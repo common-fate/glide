@@ -176,7 +176,7 @@ If you want to overwrite the parameter, take one of the following actions:
 			return err
 		}
 
-		clio.Info("wrote %s to AWS SSM parameter %s", v.Key(), ssmKey)
+		clio.Info("Wrote %s to AWS SSM parameter %s", v.Key(), ssmKey)
 	}
 
 	return nil

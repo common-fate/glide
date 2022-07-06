@@ -56,7 +56,7 @@ var addCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("added user %s to group '%s'", username, group)
+		clio.Success("Added user %s to group '%s'", username, group)
 
 		return nil
 	},

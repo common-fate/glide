@@ -51,7 +51,7 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Info("creating backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
+		clio.Info("Creating backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
 		confirm := c.Bool("confirm")
 		if !confirm {
 			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
@@ -68,10 +68,10 @@ var Command = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Success("successfully started a backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
-		clio.Info("backup details\n%s", deploy.BackupDetailsToString(backupOutput))
-		clio.Info("to view the status of this backup, run `gdeploy backup status --arn=%s`", aws.ToString(backupOutput.BackupArn))
-		clio.Info("to restore from this backup, run `gdeploy restore --arn=%s`", aws.ToString(backupOutput.BackupArn))
+		clio.Success("Successfully started a backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
+		clio.Info("Backup details\n%s", deploy.BackupDetailsToString(backupOutput))
+		clio.Info("To view the status of this backup, run `gdeploy backup status --arn=%s`", aws.ToString(backupOutput.BackupArn))
+		clio.Info("To restore from this backup, run `gdeploy restore --arn=%s`", aws.ToString(backupOutput.BackupArn))
 
 		return nil
 	},

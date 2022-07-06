@@ -73,7 +73,7 @@ var getCommand = cli.Command{
 			}
 			wg.Add(1)
 			go func(lg, s, start, end string) {
-				clio.Info("starting to watch logs for %s, log group id: %s", s, lg)
+				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
 				getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end})
 				wg.Done()
 			}(logGroup, service, start, end)
