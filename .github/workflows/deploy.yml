@@ -1,0 +1,125 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-20.04
+    concurrency: deploy-main
+
+    permissions:
+      id-token: write
+      contents: write
+      deployments: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - uses: chrnorm/deployment-action@v2.0.2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: "${{ github.token }}"
+          environment-url: https://main.test.granted.run
+          environment: staging
+          transient-environment: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.8"
+          cache: true
+
+      - name: Install NodeJS dependencies
+        run: pnpm install
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+
+      - name: Create empty aws-exports.js
+        run: echo 'export default {};' > ./web/src/utils/aws-exports.js
+
+      - name: Deploy to staging
+        run: go run mage.go -v deploy:staging test main
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          USE_SENTRY: true
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2.0.0
+        with:
+          token: "${{ github.token }}"
+          environment-url: ${{ steps.deployment.outputs.environment_url }}
+          state: "success"
+          auto-inactive: true
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2.0.0
+        with:
+          token: "${{ github.token }}"
+          environment-url: ${{ steps.deployment.outputs.environment_url }}
+          state: "failure"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+  release:
+    name: Release
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.8"
+          cache: true
+
+      - name: Install NodeJS dependencies
+        run: pnpm install
+
+      - name: Create empty aws-exports.js
+        run: echo 'export default {};' > ./web/src/utils/aws-exports.js
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ap-southeast-2
+          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+
+      - name: Release Production Assets
+        run: go run mage.go -v release:production granted-internal-testing-releases ${{ github.sha }}

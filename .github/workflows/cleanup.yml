@@ -1,0 +1,73 @@
+name: Cleanup Infrastructure
+
+on:
+  delete:
+    branches:
+      - "main"
+
+jobs:
+  cleanup:
+    name: Cleanup Test Database
+    runs-on: ubuntu-20.04
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Print GitHub context
+        run: echo "${{ toJson(github) }}"
+
+      - uses: common-fate/branch-name@v1.1.2
+        name: Get branch name
+        id: branch
+        with:
+          max-length: 32
+
+      - name: Print branch name
+        run: echo Deleting from ${{ steps.branch.outputs.name }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+
+      - name: Delete DynamoDB table
+        run: aws dynamodb delete-table --table-name approvals-test-${{ steps.branch.outputs.name }}
+
+  destroy-preview-env:
+    name: Destroy Preview Environment
+    runs-on: ubuntu-20.04
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Print GitHub context
+        run: echo "${{ toJson(github) }}"
+
+      - name: Set branch name
+        run: |
+          BRANCH=$(cat ${{ github.event_path }} | jq --raw-output '.ref' | sed s#/#-#g)
+          echo "${{ github.repository }} has ${BRANCH} branch"
+          echo "branch_name=${BRANCH}" >> $GITHUB_ENV
+
+      - uses: common-fate/branch-name@v1.1.2
+        name: Get branch name
+        id: branch
+        with:
+          max-length: 32
+
+      - name: Print branch name
+        run: echo Deleting from ${{ steps.branch.outputs.name }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+
+      - name: Delete CloudFormation stack
+        run: aws cloudformation delete-stack --stack-name granted-approvals-${{ steps.branch.outputs.name }}
