@@ -26,6 +26,7 @@ const CreateUserModal = (props: Props) => {
 
   const createUserHandler = () => {
     setLoading(true);
+  };
 
   return (
     <Modal {...props}>
