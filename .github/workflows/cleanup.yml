@@ -31,7 +31,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: us-east-1
-          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Delete DynamoDB table
         run: aws dynamodb delete-table --table-name approvals-test-${{ steps.branch.outputs.name }}
@@ -67,7 +67,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: us-east-1
-          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Delete CloudFormation stack
         run: aws cloudformation delete-stack --stack-name granted-approvals-${{ steps.branch.outputs.name }}

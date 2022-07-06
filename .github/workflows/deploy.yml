@@ -53,7 +53,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: us-east-1
-          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Create empty aws-exports.js
         run: echo 'export default {};' > ./web/src/utils/aws-exports.js
@@ -119,7 +119,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: ap-southeast-2
-          role-to-assume: "{{ secrets.AWS_TESTING_ROLE_ARN }}"
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Release Production Assets
         run: go run mage.go -v release:production granted-internal-testing-releases ${{ github.sha }}
