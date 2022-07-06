@@ -140,7 +140,7 @@ var configureCommand = cli.Command{
 			//complete the setup with the saml metadata
 			var metadata string
 			p4 := &survey.Input{Message: "SAML Metadata String:"}
-			err = survey.AskOne(p4, &metadata)GOOGLE
+			err = survey.AskOne(p4, &metadata)
 			if err != nil {
 				return err
 			}
