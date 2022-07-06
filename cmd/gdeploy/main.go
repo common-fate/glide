@@ -6,7 +6,6 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/deploy"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/groups"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications"
@@ -16,6 +15,7 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sync"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/users"
 	"github.com/common-fate/granted-approvals/internal/build"
+	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
@@ -40,7 +40,8 @@ func main() {
 			&sync.SyncCommand,
 			&commands.StatusCommand,
 			&commands.InitCommand,
-			&deploy.Command,
+			&commands.CreateCommand,
+			&commands.UpdateCommand,
 			&sso.SSOCommand,
 			&backup.Command,
 			&restore.Command,
@@ -63,7 +64,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Sugar().Error(err.Error())
+		clio.Error("%s", err.Error())
 		os.Exit(1)
 	}
 }

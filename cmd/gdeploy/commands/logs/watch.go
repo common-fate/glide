@@ -68,7 +68,7 @@ var watchCommand = cli.Command{
 			}
 			wg.Add(1)
 			go func(lg, s string) {
-				clio.Info("starting to watch logs for %s, log group id: %s", s, lg)
+				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
 				watchEvents(lg)
 				wg.Done()
 			}(logGroup, service)

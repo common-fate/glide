@@ -67,8 +67,8 @@ var configureCommand = cli.Command{
 					if err != nil {
 						return err
 					}
-					clio.Info("You will need to re-deploy using gdeploy deploy Granted Approvals to see any changes")
 					clio.Info("Successfully updated SSO configuration")
+					clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 					return nil
 
 				}
@@ -82,13 +82,9 @@ var configureCommand = cli.Command{
 			}
 		}
 
-		//run through parameters setup
-
-		//TODO: replace with live docs link
-		docs := "https://docs.commonfate.io/granted/introduction/"
-
 		switch ssoEnable {
 		case "Google":
+			docs := "https://docs.commonfate.io/granted-approvals/sso/google"
 			clio.Info("Find documentation for setting up Google Workspace in our setup docs: %s", docs)
 
 			var google deploy.Google
@@ -151,8 +147,8 @@ var configureCommand = cli.Command{
 			dc.Deployment.Parameters.SamlSSOMetadata = metadata
 
 		case "Okta":
-
-			clio.Info("find documentation for setting up Okta in our setup docs: %s", docs)
+			docs := "https://docs.commonfate.io/granted-approvals/sso/okta"
+			clio.Info("Find documentation for setting up Okta in our setup docs: %s", docs)
 
 			var okta deploy.Okta
 			if dc.Identity != nil && dc.Identity.Google != nil {
@@ -214,11 +210,8 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
-		clio.Info("You will need to re-deploy using gdeploy deploy Granted Approvals to see any changes")
-
 		clio.Success("completed SSO setup")
-
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 
 	},

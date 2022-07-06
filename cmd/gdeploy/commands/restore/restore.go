@@ -45,7 +45,7 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Info("restoring Granted Approvals backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
+		clio.Info("Restoring Granted Approvals backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
 		confirm := c.Bool("confirm")
 		if !confirm {
 			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
@@ -59,8 +59,8 @@ var Command = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Success("successfully started restoration")
-		clio.Success("to check the status of a restoration run `gdeploy restore status --table-name=%s`", tableName)
+		clio.Success("Successfully started restoration")
+		clio.Success("To check the status of a restoration run `gdeploy restore status --table-name=%s`", tableName)
 
 		return nil
 	},

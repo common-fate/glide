@@ -97,7 +97,7 @@ var addCommand = cli.Command{
 		}
 
 		clio.Success("wrote config to %s", f)
-		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy deploy' to apply the changes to your deployment.")
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 	},
 }
@@ -176,7 +176,7 @@ If you want to overwrite the parameter, take one of the following actions:
 			return err
 		}
 
-		clio.Info("wrote %s to AWS SSM parameter %s", v.Key(), ssmKey)
+		clio.Info("Wrote %s to AWS SSM parameter %s", v.Key(), ssmKey)
 	}
 
 	return nil

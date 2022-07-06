@@ -1,4 +1,4 @@
-package deploy
+package commands
 
 import (
 	"github.com/common-fate/granted-approvals/pkg/clio"
@@ -6,9 +6,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var Command = cli.Command{
-	Name:        "deploy",
-	Description: "Deploy Granted Approvals",
+var UpdateCommand = cli.Command{
+	Name:        "update",
+	Usage:       "Update a Granted Approvals deployment CloudFormation stack",
+	Description: "Update Granted Approvals deployment based on a deployment configuration file (granted-deployment.yml by default). Deploys resources to AWS using CloudFormation.",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Usage: "if provided, will automatically deploy without asking for confirmation"},
 	},
@@ -22,7 +23,8 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Info("deploying Granted Approvals %s", dc.Deployment.Release)
+		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
+		clio.Info("Using template: %s", dc.CfnTemplateURL())
 		confirm := c.Bool("confirm")
 		err = dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {

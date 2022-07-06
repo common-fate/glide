@@ -112,7 +112,7 @@ func (c *Config) LoadSAMLOutput(ctx context.Context) (SAMLOutputs, error) {
 
 To fix this, take one of the following actions:
   a) verify that your AWS credentials match the account you're trying to deploy to (%s). You can check this by calling 'aws sts get-caller-identity'.
-  b) your stack may not have been deployed yet. Run 'gdeploy deploy' to deploy it using CloudFormation.
+  b) your stack may not have been deployed yet. Run 'gdeploy create' to deploy it using CloudFormation.
 `, c.Deployment.StackName, c.Deployment.Region, c.Deployment.Account)
 		return SAMLOutputs{}, err
 	}
@@ -162,7 +162,7 @@ func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 
 To fix this, take one of the following actions:
   a) verify that your AWS credentials match the account you're trying to deploy to (%s). You can check this by calling 'aws sts get-caller-identity'.
-  b) your stack may not have been deployed yet. Run 'gdeploy deploy' to deploy it using CloudFormation.
+  b) your stack may not have been deployed yet. Run 'gdeploy create' to deploy it using CloudFormation.
 `, c.Deployment.StackName, c.Deployment.Region, c.Deployment.Account)
 		return Output{}, err
 	}
