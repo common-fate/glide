@@ -73,7 +73,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       {
         type: "String",
         description:
-          "The ARN of an ACM certificate in us-east-1 for the frontend URL. Must be set if 'frontendUrl' is defined.",
+          "The ARN of an ACM certificate in us-east-1 for the frontend URL. Must be set if 'FrontendDomain' is defined.",
         default: "",
       }
     );
