@@ -106,12 +106,14 @@ type Provider struct {
 }
 
 type Parameters struct {
-	CognitoDomainPrefix  string `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID string `yaml:"AdministratorGroupID"`
-	DeploymentSuffix     string `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType string `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata      string `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL   string `yaml:"SamlSSOMetadataURL,omitempty"`
+	CognitoDomainPrefix    string `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID   string `yaml:"AdministratorGroupID"`
+	DeploymentSuffix       string `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType   string `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata        string `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL     string `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain         string `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN string `yaml:"FrontendCertificateARN,omitempty"`
 }
 
 // AddProvider adds a new provider to the deployment configuration.
@@ -221,6 +223,20 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("SamlSSOMetadataURL"),
 			ParameterValue: &p.SamlSSOMetadataURL,
+		})
+	}
+
+	if c.Deployment.Parameters.FrontendCertificateARN != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("FrontendCertificateARN"),
+			ParameterValue: &p.FrontendCertificateARN,
+		})
+	}
+
+	if c.Deployment.Parameters.FrontendDomain != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("FrontendDomain"),
+			ParameterValue: &p.FrontendDomain,
 		})
 	}
 
