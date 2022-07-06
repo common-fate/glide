@@ -406,7 +406,7 @@ func TestUserListRequests(t *testing.T) {
 			wantCode:     http.StatusBadRequest,
 			giveReviewer: &badReviewer,
 
-			wantBody: `{"error":"parameter \"reviewer\" in query has an error: value hello: an invalid number: strconv.ParseBool: parsing \"hello\": invalid syntax"}`,
+			wantBody: `{"error":"parameter \"reviewer\" in query has an error: value hello: an invalid boolean: invalid syntax"}`,
 		},
 		{
 			name:         "bad status",
