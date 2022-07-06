@@ -217,7 +217,7 @@ func (mr *MockAHClientMockRecorder) PostGrantsWithBodyWithResponse(arg0, arg1, a
 }
 
 // PostGrantsWithResponse mocks base method.
-func (m *MockAHClient) PostGrantsWithResponse(arg0 context.Context, arg1 types.PostGrantsJSONRequestBody, arg2 ...types.RequestEditorFn) (*types.PostGrantsResponse, error) {
+func (m *MockAHClient) PostGrantsWithResponse(arg0 context.Context, arg1 types.CreateGrant, arg2 ...types.RequestEditorFn) (*types.PostGrantsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {

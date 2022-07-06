@@ -177,7 +177,7 @@ func processUsersAndGroups(idpUsers []identity.IdpUser, idpGroups []identity.Idp
 	// archive deleted users
 	for k, u := range ddbUserMap {
 		if _, ok := idpUserMap[k]; !ok {
-			u.Status = types.IdpStatusARCHIVED
+			u.Status = types.ARCHIVED
 			// Remove all group associations from archived users
 			u.Groups = []string{}
 			ddbUserMap[k] = u
@@ -186,7 +186,7 @@ func processUsersAndGroups(idpUsers []identity.IdpUser, idpGroups []identity.Idp
 	// archive deleted groups
 	for k, g := range ddbGroupMap {
 		if _, ok := idpGroupMap[k]; !ok {
-			g.Status = types.IdpStatusARCHIVED
+			g.Status = types.ARCHIVED
 			// Remove all user associations from archived groups
 			g.Users = []string{}
 			ddbGroupMap[k] = g

@@ -56,7 +56,7 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string) (*types.Grant
 		return nil, err
 	}
 
-	if grant.Status == types.GrantStatusACTIVE {
+	if grant.Status == types.ACTIVE {
 		err = prov.Provider.Revoke(ctx, string(grant.Subject), args)
 		if err != nil {
 			return nil, err
@@ -71,7 +71,7 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string) (*types.Grant
 	}
 
 	//update the grant status
-	grant.Status = types.GrantStatusREVOKED
+	grant.Status = types.REVOKED
 	return &grant, nil
 }
 

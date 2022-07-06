@@ -56,11 +56,11 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	oldStatus := gq.Result.Status
 	switch event.DetailType {
 	case gevent.GrantActivatedType:
-		gq.Result.Grant.Status = ac_types.GrantStatusACTIVE
+		gq.Result.Grant.Status = ac_types.ACTIVE
 	case gevent.GrantExpiredType:
-		gq.Result.Grant.Status = ac_types.GrantStatusEXPIRED
+		gq.Result.Grant.Status = ac_types.EXPIRED
 	case gevent.GrantFailedType:
-		gq.Result.Grant.Status = ac_types.GrantStatusERROR
+		gq.Result.Grant.Status = ac_types.ERROR
 	// revoking is handling as a synchronous operation, so we do not modify the database for these events as it is handled in the API already
 	// case gevent.GrantRevokedType:
 	// 	gq.Result.Status = ac_types.GrantStatusREVOKED

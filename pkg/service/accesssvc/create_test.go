@@ -39,8 +39,8 @@ func TestNewRequest(t *testing.T) {
 	}
 
 	clk := clock.NewMock()
-	autoApproval := types.ApprovalMethodAUTOMATIC
-	reviewed := types.ApprovalMethodREVIEWED
+	autoApproval := types.AUTOMATIC
+	reviewed := types.REVIEWED
 	testcases := []testcase{
 		{
 			name: "ok, no approvers so should auto approve",

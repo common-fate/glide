@@ -8,7 +8,7 @@ func NewGrant(vcg ValidCreateGrant) Grant {
 		Provider: vcg.Provider,
 		End:      vcg.End,
 		Start:    vcg.Start,
-		Status:   GrantStatusPENDING,
+		Status:   PENDING,
 		Subject:  vcg.Subject,
 		With: Grant_With{
 			AdditionalProperties: vcg.With.AdditionalProperties,

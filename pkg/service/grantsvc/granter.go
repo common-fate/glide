@@ -58,7 +58,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 		return nil, ErrNoGrant
 	}
 	//Cannot request to revoke/cancel grant if it is not active or pending (state function has been created and executed)
-	canRevoke := opts.Request.Grant.Status == ahTypes.GrantStatusACTIVE || opts.Request.Grant.Status == ahTypes.GrantStatusPENDING
+	canRevoke := opts.Request.Grant.Status == ahTypes.ACTIVE || opts.Request.Grant.Status == ahTypes.PENDING
 
 	if !canRevoke || opts.Request.Grant.End.Before(g.Clock.Now()) {
 		return nil, ErrGrantInactive
@@ -69,7 +69,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 	}
 
 	if res.JSON200 != nil {
-		opts.Request.Grant.Status = ahTypes.GrantStatusREVOKED
+		opts.Request.Grant.Status = ahTypes.REVOKED
 		items, err := dbupdate.GetUpdateRequestItems(ctx, g.DB, opts.Request)
 		if err != nil {
 			return nil, err

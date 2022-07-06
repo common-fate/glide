@@ -82,7 +82,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		if err != nil {
 			return nil, err
 		}
-		reviewed := types.ApprovalMethodREVIEWED
+		reviewed := types.REVIEWED
 		request.ApprovalMethod = &reviewed
 		request = *updatedRequest
 
