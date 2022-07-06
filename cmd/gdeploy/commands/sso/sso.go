@@ -59,7 +59,7 @@ var configureCommand = cli.Command{
 				if dc.Identity.Google != nil && dc.Identity.Okta != nil && !overwrite {
 					switch ssoEnable {
 					case "Google":
-						dc.Deployment.Parameters.IdentityProviderType = "GSUITE"
+						dc.Deployment.Parameters.IdentityProviderType = "GOOGLE"
 					case "Okta":
 						dc.Deployment.Parameters.IdentityProviderType = "OKTA"
 					}

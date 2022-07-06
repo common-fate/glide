@@ -174,7 +174,7 @@ export class SamlUserPoolClient extends Construct {
       ),
     });
     this._idp = new CfnUserPoolIdentityProvider(this, "SAMLIdentityProvider", {
-      providerName: props.idpType, //will be OKTA | GSUITE
+      providerName: props.idpType, //will be OKTA | GOOGLE
       providerType: "SAML",
       userPoolId: props.userPool.userPoolId,
       attributeMapping: {
