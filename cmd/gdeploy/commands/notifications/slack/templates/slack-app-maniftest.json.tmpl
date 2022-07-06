@@ -1,0 +1,36 @@
+{
+    "display_information": {
+        "name": "Granted",
+        "description": "Granted powers your cloud access workflows",
+        "background_color": "#26223a"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "Granted",
+            "always_online": false
+        }
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "channels:read",
+                "chat:write",
+                "groups:read",
+                "im:write",
+                "usergroups:read",
+                "users:read",
+                "users.profile:read",
+                "users:read.email"
+            ]
+        }
+    },
+    "settings": {
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "{{ .WebhookURL }}"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

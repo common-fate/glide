@@ -1,0 +1,95 @@
+project_name: gdeploy
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - id: gdeploy
+    binary: gdeploy
+    main: ./cmd/gdeploy
+    ldflags:
+      - -s -w
+      - -X github.com/common-fate/granted-approvals/internal/build.Version={{.Version}}
+      - -X github.com/common-fate/granted-approvals/internal/build.Commit={{.Commit}}
+      - -X github.com/common-fate/granted-approvals/internal/build.Date={{.Date}}
+      - -X github.com/common-fate/granted-approvals/internal/build.BuiltBy=commonfatereleaser
+    goos:
+      - windows
+      - linux
+
+  - id: gdeploy-macos
+    binary: gdeploy
+    main: ./cmd/gdeploy
+    ldflags:
+      - -s -w
+      - -X github.com/common-fate/granted-approvals/internal/build.Version={{.Version}}
+      - -X github.com/common-fate/granted-approvals/internal/build.Commit={{.Commit}}
+      - -X github.com/common-fate/granted-approvals/internal/build.Date={{.Date}}
+      - -X github.com/common-fate/granted-approvals/internal/build.BuiltBy=commonfatereleaser
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    hooks:
+      post:
+        - gon gon.gdeploy.hcl
+
+  - id: gdeploy-macos-arm
+    binary: gdeploy
+    main: ./cmd/gdeploy
+    ldflags:
+      - -s -w
+      - -X github.com/common-fate/granted-approvals/internal/build.Version={{.Version}}
+      - -X github.com/common-fate/granted-approvals/internal/build.Commit={{.Commit}}
+      - -X github.com/common-fate/granted-approvals/internal/build.Date={{.Date}}
+      - -X github.com/common-fate/granted-approvals/internal/build.BuilyBy=commonfatereleaser
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    hooks:
+      post:
+        - gon gon.gdeploy.arm.hcl
+
+signs:
+  - artifacts: checksum
+    args:
+      [
+        "-u",
+        "3A5BE166CA7A5897",
+        "--output",
+        "${signature}",
+        "--detach-sign",
+        "${artifact}",
+      ]
+
+archives:
+  - replacements:
+      darwin: darwin
+      linux: linux
+      windows: windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - ""
+
+blobs:
+  - provider: s3
+    bucket: cf-releases-binaries-origin
+    folder: "gdeploy/{{.Tag}}"
+    region: us-west-2
+
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

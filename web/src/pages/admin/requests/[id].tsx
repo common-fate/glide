@@ -1,0 +1,66 @@
+import { ArrowBackIcon } from "@chakra-ui/icons";
+import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
+import type { NextPage } from "next";
+import { Link, useMatch } from "react-location";
+import { AuditLog } from "../../../components/AuditLog";
+import { AdminLayout } from "../../../components/Layout";
+import {
+  RequestDetails,
+  RequestDisplay,
+  RequestOverridableTime,
+  RequestRequestor,
+  RequestReview,
+  RequestRevoke,
+  RequestTime,
+} from "../../../components/Request";
+import { useAdminGetRequest } from "../../../utils/backend-client/end-user/end-user";
+
+const Home: NextPage = () => {
+  const {
+    params: { id: requestId },
+  } = useMatch();
+
+  const { data, mutate } = useAdminGetRequest(requestId);
+  return (
+    <div>
+      <AdminLayout>
+        {/* The header bar */}
+        <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">
+          <IconButton
+            as={Link}
+            aria-label="Go back"
+            pos="absolute"
+            left={4}
+            icon={<ArrowBackIcon />}
+            rounded="full"
+            variant="ghost"
+            to="/admin/requests"
+          />
+
+          <Text as="h4" textStyle="Heading/H4">
+            Request details
+          </Text>
+        </Center>
+        {/* Main content */}
+        <Container maxW="container.xl" py={16}>
+          <Stack spacing={12} direction={{ base: "column", md: "row" }}>
+            <RequestDisplay request={data}>
+              <RequestDetails>
+                {data?.canReview ? <RequestOverridableTime /> : <RequestTime />}
+                <RequestRequestor />
+              </RequestDetails>
+              <RequestReview
+                onSubmitReview={mutate}
+                canReview={!!data?.canReview}
+              />
+              <RequestRevoke onSubmitRevoke={mutate} />
+            </RequestDisplay>
+            <AuditLog request={data} />
+          </Stack>
+        </Container>
+      </AdminLayout>
+    </div>
+  );
+};
+
+export default Home;

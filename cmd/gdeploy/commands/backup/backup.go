@@ -1,0 +1,78 @@
+package backup
+
+import (
+	"errors"
+	"fmt"
+	"regexp"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/urfave/cli/v2"
+)
+
+var Command = cli.Command{
+	Name:        "backup",
+	Description: "Backup Granted Approvals",
+	Flags: []cli.Flag{
+		&cli.BoolFlag{Name: "confirm", Usage: "if provided, will automatically deploy without asking for confirmation"},
+	},
+	Subcommands: []*cli.Command{&BackupStatus},
+	Action: func(c *cli.Context) error {
+		ctx := c.Context
+
+		f := c.Path("file")
+
+		dc, err := deploy.LoadConfig(f)
+		if err != nil {
+			return err
+		}
+
+		stackOutput, err := dc.LoadOutput(ctx)
+		if err != nil {
+			return err
+		}
+
+		p := &survey.Input{
+			Message: "Enter a backup name",
+		}
+		var backupName string
+		err = survey.AskOne(p, &backupName, survey.WithValidator(func(ans interface{}) error {
+			a := ans.(string)
+			r := regexp.MustCompile(`[^a-zA-Z0-9_.-]`)
+			match := r.MatchString(a)
+			if match {
+				return fmt.Errorf("value: `%s` must satisfy regular expression pattern: [a-zA-Z0-9_.-]+", a)
+			}
+			return nil
+		}))
+		if err != nil {
+			return err
+		}
+
+		clio.Info("creating backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
+		confirm := c.Bool("confirm")
+		if !confirm {
+			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
+			err = survey.AskOne(cp, &confirm)
+			if err != nil {
+				return err
+			}
+		}
+
+		if !confirm {
+			return errors.New("user cancelled backup")
+		}
+		backupOutput, err := deploy.StartBackup(ctx, stackOutput.DynamoDBTable, backupName)
+		if err != nil {
+			return err
+		}
+		clio.Success("successfully started a backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
+		clio.Info("backup details\n%s", deploy.BackupDetailsToString(backupOutput))
+		clio.Info("to view the status of this backup, run `gdeploy backup status --arn=%s`", aws.ToString(backupOutput.BackupArn))
+		clio.Info("to restore from this backup, run `gdeploy restore --arn=%s`", aws.ToString(backupOutput.BackupArn))
+
+		return nil
+	},
+}

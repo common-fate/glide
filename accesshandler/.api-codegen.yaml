@@ -1,0 +1,8 @@
+output: pkg/types/api.gen.go
+package: types
+generate:
+  - chi-server
+  - types
+  - skip-prune
+  - spec
+  - client

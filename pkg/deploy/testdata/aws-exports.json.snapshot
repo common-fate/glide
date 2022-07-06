@@ -1,0 +1,27 @@
+{
+  "Auth": {
+    "region": "us-east-1",
+    "userPoolId": "us-east-1_abcdefg",
+    "userPoolWebClientId": "2aqedb08vdqnabcdeo5u51udlvg",
+    "mandatorySignIn": true,
+    "oauth": {
+      "domain": "test.auth.us-east-1.amazoncognito.com",
+      "scope": ["email", "profile", "openid"],
+      "redirectSignIn": "https://example.granted.run",
+      "redirectSignOut": "https://example.granted.run",
+      "responseType": "code"
+    },
+    "cookieStorage": {
+      "domain": "example.granted.run"
+    }
+  },
+  "API": {
+    "endpoints": [
+      {
+        "name": "approvals",
+        "endpoint": "https://test.execute-api.us-east-1.amazonaws.com/prod/",
+        "region": "us-east-1"
+      }
+    ]
+  }
+}

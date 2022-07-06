@@ -1,0 +1,27 @@
+{
+  "Auth": {
+    "region": "{{ .Region }}",
+    "userPoolId": "{{ .UserPoolID }}",
+    "userPoolWebClientId": "{{ .CognitoClientID }}",
+    "mandatorySignIn": true,
+    "oauth": {
+      "domain": "{{ .UserPoolDomain }}",
+      "scope": ["email", "profile", "openid"],
+      "redirectSignIn": "https://{{ .FrontendDomain }}",
+      "redirectSignOut": "https://{{ .FrontendDomain }}",
+      "responseType": "code"
+    },
+    "cookieStorage": {
+      "domain": "{{ .FrontendDomain }}"
+    }
+  },
+  "API": {
+    "endpoints": [
+      {
+        "name": "approvals",
+        "endpoint": "{{ .APIURL }}",
+        "region": "{{ .Region }}"
+      }
+    ]
+  }
+}

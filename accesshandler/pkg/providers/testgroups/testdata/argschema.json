@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testgroups/args",
+  "$ref": "#/$defs/Args",
+  "$defs": {
+    "Args": {
+      "properties": { "group": { "type": "string" } },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["group"]
+    }
+  }
+}

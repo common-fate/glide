@@ -1,0 +1,23 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/granted.ts",
+  "versionReporting": false,
+  "build": "cd ../.. && go run mage.go -v package",
+  "watch": {
+    "include": "../../*/**",
+    "exclude": [
+      "../authlambda/node_modules",
+      "../../web/node_modules",
+      "../../node_modules",
+      "../../web/.next",
+      "../../web/out",
+      "../authlambda/build",
+      "../staticredirect/build",
+      "../../.git",
+      "../../docs",
+      "../../magefiles",
+      "../../bin",
+      "../authlambda/src/app-cdn.auth-handler.config.json",
+      "../../cmd/devcli"
+    ]
+  }
+}

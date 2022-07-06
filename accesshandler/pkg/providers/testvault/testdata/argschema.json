@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault/args",
+  "$ref": "#/$defs/Args",
+  "$defs": {
+    "Args": {
+      "properties": {
+        "vault": {
+          "type": "string",
+          "title": "Vault",
+          "description": "The name of an example vault to grant access to (can be any string)",
+          "default": "demovault"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["vault"]
+    }
+  }
+}

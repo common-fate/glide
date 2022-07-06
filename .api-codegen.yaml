@@ -1,0 +1,9 @@
+output: pkg/types/api.gen.go
+package: types
+import-mapping:
+  ./accesshandler/openapi.yml: github.com/common-fate/granted-approvals/accesshandler/pkg/types
+generate:
+  - chi-server
+  - types
+  - skip-prune
+  - spec

@@ -1,0 +1,31 @@
+const awsmobile = {
+  Auth: {
+    region: "us-east-1",
+    userPoolId: "us-east-1_abcdefg",
+    userPoolWebClientId: "2aqedb08vdqnabcdeo5u51udlvg",
+    mandatorySignIn: true,
+    oauth: {
+      domain: "test.auth.us-east-1.amazoncognito.com",
+      scope: ["email", "profile", "openid"],
+      redirectSignIn: "http://localhost:3000",
+      redirectSignOut: "http://localhost:3000",
+      responseType: "code",
+    },
+    cookieStorage: {
+      domain: "localhost",
+      secure: false,
+      path: "/",
+      expires: 365,
+    },
+  },
+  API: {
+    endpoints: [
+      {
+        name: "approvals",
+        endpoint: "http://localhost:8080/",
+        region: "us-east-1",
+      },
+    ],
+  },
+};
+export default awsmobile;
