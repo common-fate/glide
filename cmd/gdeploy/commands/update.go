@@ -24,7 +24,7 @@ var UpdateCommand = cli.Command{
 		}
 
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
-		clio.Info("Using CloudFormation template: %s", dc.CfnTemplateURL())
+		clio.Info("Using template: %s", dc.CfnTemplateURL())
 		confirm := c.Bool("confirm")
 		err = dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
