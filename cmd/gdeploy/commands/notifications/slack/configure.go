@@ -69,7 +69,7 @@ var configureSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Info("You will need to re-deploy using gdeploy deploy Granted Approvals to see any changes")
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		clio.Success("Successfully enabled Slack")
 
 		return nil

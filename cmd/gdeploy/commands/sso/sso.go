@@ -67,8 +67,8 @@ var configureCommand = cli.Command{
 					if err != nil {
 						return err
 					}
-					clio.Info("You will need to re-deploy using gdeploy deploy Granted Approvals to see any changes")
 					clio.Info("Successfully updated SSO configuration")
+					clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 					return nil
 
 				}
@@ -214,11 +214,8 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
-		clio.Info("You will need to re-deploy using gdeploy deploy Granted Approvals to see any changes")
-
 		clio.Success("completed SSO setup")
-
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 
 	},

@@ -97,7 +97,7 @@ var addCommand = cli.Command{
 		}
 
 		clio.Success("wrote config to %s", f)
-		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy deploy' to apply the changes to your deployment.")
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 	},
 }

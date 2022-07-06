@@ -40,7 +40,7 @@ var InitCommand = cli.Command{
 		}
 
 		clio.Success("wrote config to %s", f)
-		clio.Warn("Nothing has been deployed yet. To finish deploying Granted Approvals, run 'gdeploy deploy' to create the CloudFormation stack in AWS.")
+		clio.Warn("Nothing has been deployed yet. To finish deploying Granted Approvals, run 'gdeploy create' to create the CloudFormation stack in AWS.")
 		return nil
 	},
 }
