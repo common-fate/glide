@@ -59,7 +59,7 @@ var configureCommand = cli.Command{
 				if dc.Identity.Google != nil && dc.Identity.Okta != nil && !overwrite {
 					switch ssoEnable {
 					case "Google":
-						dc.Deployment.Parameters.IdentityProviderType = "GSUITE"
+						dc.Deployment.Parameters.IdentityProviderType = "GOOGLE"
 					case "Okta":
 						dc.Deployment.Parameters.IdentityProviderType = "OKTA"
 					}
@@ -140,7 +140,7 @@ var configureCommand = cli.Command{
 			//complete the setup with the saml metadata
 			var metadata string
 			p4 := &survey.Input{Message: "SAML Metadata String:"}
-			err = survey.AskOne(p4, &metadata)
+			err = survey.AskOne(p4, &metadata)GOOGLE
 			if err != nil {
 				return err
 			}

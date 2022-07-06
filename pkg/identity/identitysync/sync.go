@@ -19,7 +19,7 @@ type IdentityProvider interface {
 
 const (
 	COGNITO = "COGNITO"
-	GSUITE  = "GSUITE"
+	GOOGLE  = "GOOGLE"
 	OKTA    = "OKTA"
 	AZURE   = "AZURE"
 )
@@ -64,7 +64,7 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 			return nil, err
 		}
 
-	case GSUITE:
+	case GOOGLE:
 		if opts.IdentitySettings.Google == nil {
 			return nil, fmt.Errorf("google settings not configured")
 		}
