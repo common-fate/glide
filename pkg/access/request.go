@@ -171,7 +171,7 @@ func (r *Request) DDBKeys() (ddb.Keys, error) {
 	end := r.CreatedAt
 	if r.Status == APPROVED || r.Status == PENDING {
 		if r.Grant != nil {
-			if r.Grant.Status != ac_types.GrantStatusREVOKED {
+			if r.Grant.Status != ac_types.REVOKED {
 				end = r.Grant.End
 			}
 		} else if r.IsScheduled() {

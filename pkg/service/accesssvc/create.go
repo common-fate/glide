@@ -67,8 +67,8 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	}
 
 	// If the approval is not required, auto-approve the request
-	auto := types.ApprovalMethodAUTOMATIC
-	revd := types.ApprovalMethodREVIEWED
+	auto := types.AUTOMATIC
+	revd := types.REVIEWED
 
 	if !rule.Approval.IsRequired() {
 		req.Status = access.APPROVED

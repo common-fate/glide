@@ -1,8 +1,9 @@
-output: pkg/types/api.gen.go
 package: types
 generate:
-  - chi-server
-  - types
-  - skip-prune
-  - spec
-  - client
+  chi-server: true
+  client: true
+  models: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+output: pkg/types/api.gen.go

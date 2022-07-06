@@ -1,9 +1,10 @@
-output: pkg/types/api.gen.go
 package: types
+generate:
+  chi-server: true
+  models: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
 import-mapping:
   ./accesshandler/openapi.yml: github.com/common-fate/granted-approvals/accesshandler/pkg/types
-generate:
-  - chi-server
-  - types
-  - skip-prune
-  - spec
+output: pkg/types/api.gen.go

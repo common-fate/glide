@@ -17,7 +17,7 @@ func TestGetGroup(t *testing.T) {
 		ID:     ksuid.New().String(),
 		Name:   "a",
 		IdpID:  "a",
-		Status: types.IdpStatusACTIVE,
+		Status: types.ACTIVE,
 	}
 	ddbtest.PutFixtures(t, db, &g)
 
