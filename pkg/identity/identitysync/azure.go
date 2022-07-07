@@ -41,30 +41,6 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 	return &AzureSync{Client: client, Adapter: adapter}, nil
 }
 
-// func (a *AzureSync) GetUserByEmail(ctx context.Context, email string) (user *identity.IdpUser, usergroups []identity.IdpGroup, err error) {
-// 	oktaUser, _, err := o.Client.User.GetUser(ctx, email)
-// 	if err != nil {
-// 		return nil, nil, err
-// 	}
-// 	user = &identity.IdpUser{
-// 		ID:        oktaUser.Id,
-// 		FirstName: (*oktaUser.Profile)["firstName"].(string),
-// 		LastName:  (*oktaUser.Profile)["lastName"].(string),
-// 		Email:     (*oktaUser.Profile)["email"].(string),
-// 		Groups:    []string{},
-// 	}
-
-// 	userGroups, _, err := a.Client.User.ListUserGroups(ctx, oktaUser.Id)
-// 	if err != nil {
-// 		return nil, nil, err
-// 	}
-// 	for _, g := range userGroups {
-// 		user.Groups = append(user.Groups, g.Id)
-// 		usergroups = append(usergroups, idpGroupFromOktaGroup(g))
-// 	}
-// 	return user, usergroups, nil
-// }
-
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
 func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser models.Userable) (identity.IdpUser, error) {
 	u := identity.IdpUser{
@@ -75,13 +51,29 @@ func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser models.U
 		Groups:    []string{},
 	}
 
-	// userGroups, _, err := azureUser.group
-	// if err != nil {
-	// 	return u, err
-	// }
-	// for _, g := range userGroups {
-	// 	u.Groups = append(u.Groups, g.Id)
-	// }
+	result, err := a.Client.UsersById(u.ID).MemberOf().Get()
+	if err != nil {
+		return identity.IdpUser{}, err
+	}
+
+	// Use PageIterator to iterate through all groups
+	pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateDirectoryFromDiscriminatorValue)
+	if err != nil {
+		return identity.IdpUser{}, err
+	}
+	err = pageIterator.Iterate(func(pageItem interface{}) bool {
+		if _, ok := pageItem.(models.Groupable); ok {
+			graphGroup := pageItem.(models.Groupable)
+
+			u.Groups = append(u.Groups, aws.ToString(graphGroup.GetId()))
+
+			return true
+		}
+		return false
+	})
+	if err != nil {
+		return identity.IdpUser{}, err
+	}
 
 	return u, nil
 }
