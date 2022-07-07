@@ -32,7 +32,12 @@ var SyncCommand = cli.Command{
 		}
 
 		//set up the sync handler
-		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{TableName: cfg.TableName, IdpType: cfg.IdpProvider, UserPoolId: cfg.UserPoolId, IdentitySettings: s})
+		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
+			TableName:        cfg.TableName,
+			IdpType:          cfg.IdpProvider,
+			UserPoolId:       cfg.UserPoolId,
+			IdentitySettings: s,
+		})
 
 		if err != nil {
 			return err
