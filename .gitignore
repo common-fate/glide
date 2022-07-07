@@ -22,3 +22,4 @@ dist/
 .goreleaser.yml
 gon.gdeploy.hcl
 gon.gdeploy.arm.hcl
+.vscode*
