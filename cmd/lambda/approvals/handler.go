@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -13,6 +14,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/api"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/common-fate/granted-approvals/pkg/server"
@@ -70,11 +72,19 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 
+	var sync deploy.Identity
+	err = json.Unmarshal([]byte(cfg.IdentitySettings), &sync)
+	if err != nil {
+		panic(err)
+	}
+
 	idsync, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:  cfg.DynamoTable,
-		UserPoolId: cfg.CognitoUserPoolID,
-		IdpType:    cfg.IdpProvider,
+		TableName:        cfg.DynamoTable,
+		UserPoolId:       cfg.CognitoUserPoolID,
+		IdpType:          cfg.IdpProvider,
+		IdentitySettings: sync,
 	})
+
 	if err != nil {
 		return nil, err
 	}
