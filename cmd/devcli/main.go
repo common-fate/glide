@@ -7,7 +7,6 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/devcli/commands/db"
 	"github.com/common-fate/granted-approvals/cmd/devcli/commands/events"
 	"github.com/common-fate/granted-approvals/cmd/devcli/commands/groups"
-	"github.com/common-fate/granted-approvals/cmd/devcli/commands/sync"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -22,7 +21,6 @@ func main() {
 		Commands: []*cli.Command{
 			&groups.GroupsCommand,
 			&db.DBCommand,
-			&sync.SyncCommand,
 			&events.EventsCommand,
 		},
 	}
