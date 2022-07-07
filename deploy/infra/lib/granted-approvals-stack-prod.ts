@@ -30,7 +30,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       description:
         "Configure your identity provider, okta requires SamlSSOMetadataURL to be provided",
       default: "COGNITO",
-      allowedValues: ["COGNITO", "OKTA", "GOOGLE"],
+      allowedValues: ["COGNITO", "OKTA", "GOOGLE", "AZURE"],
     });
 
     const samlMetadataUrl = new CfnParameter(this, "SamlSSOMetadataURL", {

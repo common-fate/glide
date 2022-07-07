@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -22,11 +24,18 @@ func main() {
 		panic(err)
 	}
 
+	var s deploy.Identity
+	err = json.Unmarshal([]byte(cfg.IdentitySettings), &s)
+	if err != nil {
+		panic(err)
+	}
+
 	//set up the sync handler
 	syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:  cfg.TableName,
-		IdpType:    cfg.IdpProvider,
-		UserPoolId: cfg.UserPoolId,
+		TableName:        cfg.TableName,
+		IdpType:          cfg.IdpProvider,
+		UserPoolId:       cfg.UserPoolId,
+		IdentitySettings: s,
 	})
 	if err != nil {
 		panic(err)

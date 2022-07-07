@@ -36,6 +36,7 @@ var AvailableRegions = []string{
 var AvailableSSOProviders = []string{
 	"Google",
 	"Okta",
+	"Azure",
 }
 
 type Config struct {
@@ -51,6 +52,7 @@ type Config struct {
 type Identity struct {
 	Google *Google `yaml:"google,omitempty" json:"google,omitempty"`
 	Okta   *Okta   `yaml:"okta,omitempty" json:"okta,omitempty"`
+	Azure  *Azure  `yaml:"azure,omitempty" json:"azure,omitempty"`
 }
 
 type Google struct {
@@ -74,6 +76,18 @@ type Okta struct {
 func (o Okta) String() string {
 	o.APIToken = "****"
 	return fmt.Sprintf("{APIToken: %s, OrgURL: %s}", o.APIToken, o.OrgURL)
+}
+
+type Azure struct {
+	TenantID     string `yaml:"tenantID" json:"tenantID"`
+	ClientID     string `yaml:"clientID" json:"clientID"`
+	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
+}
+
+// String redacts potentially sensitive token values
+func (a Azure) String() string {
+	a.ClientSecret = "****"
+	return fmt.Sprintf("{TenantID: %s, ClientID: %s, ClientSecret: %s}", a.TenantID, a.ClientID, a.ClientSecret)
 }
 
 type Notifications struct {

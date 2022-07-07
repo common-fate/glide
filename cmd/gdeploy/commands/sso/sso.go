@@ -13,6 +13,7 @@ import (
 var AvailableSSOProviders = []string{
 	"Google",
 	"Okta",
+	"Azure",
 }
 
 var SSOCommand = cli.Command{
@@ -62,6 +63,8 @@ var configureCommand = cli.Command{
 						dc.Deployment.Parameters.IdentityProviderType = "GOOGLE"
 					case "Okta":
 						dc.Deployment.Parameters.IdentityProviderType = "OKTA"
+					case "Azure":
+						dc.Deployment.Parameters.IdentityProviderType = "AZURE"
 					}
 					err = dc.Save(f)
 					if err != nil {
@@ -204,6 +207,64 @@ var configureCommand = cli.Command{
 			}
 			dc.Deployment.Parameters.SamlSSOMetadataURL = metadata
 
+		case "Azure":
+			docs := "https://docs.commonfate.io/granted-approvals/sso/azure"
+
+			clio.Info("find documentation for setting up Azure in our setup docs: %s", docs)
+
+			var azure deploy.Azure
+			if dc.Identity != nil && dc.Identity.Azure != nil {
+				azure = *dc.Identity.Azure
+			}
+
+			p1 := &survey.Input{Message: "Tenant ID:"}
+			err = survey.AskOne(p1, &azure.TenantID)
+			if err != nil {
+				return err
+			}
+
+			p2 := &survey.Input{Message: "Client ID:"}
+			err = survey.AskOne(p2, &azure.ClientID)
+			if err != nil {
+				return err
+			}
+
+			var token string
+			p3 := &survey.Password{Message: "Client Secret:"}
+			err = survey.AskOne(p3, &token)
+			if err != nil {
+				return err
+			}
+
+			path, version, err := config.PutSecretVersion(ctx, config.AzureSecretPath, dc.Deployment.Parameters.DeploymentSuffix, token)
+			if err != nil {
+				return err
+			}
+			azure.ClientSecret = config.AWSSSMParamToken(path, version)
+			if err != nil {
+				return err
+			}
+
+			clio.Success("SSM Parameters Set Successfully\n")
+			if dc.Identity == nil {
+				dc.Identity = &deploy.Identity{
+					Azure: &azure,
+				}
+			} else {
+				dc.Identity.Azure = &azure
+			}
+
+			clio.Warn("SAML outputs:\n")
+			o, err := dc.LoadSAMLOutput(ctx)
+
+			if err != nil {
+				return err
+			}
+			o.PrintSAMLTable()
+
+			clio.Info("Find documentation for setting up SAML SSO here: %s", docs)
+
+			dc.Deployment.Parameters.IdentityProviderType = "AZURE"
 		}
 
 		err = dc.Save(f)

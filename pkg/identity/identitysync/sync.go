@@ -78,7 +78,19 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 			return nil, err
 		}
 
-	// case AZURE:
+	case AZURE:
+		if opts.IdentitySettings.Azure == nil {
+			return nil, fmt.Errorf("azure settings not configured")
+		}
+		clone := *opts.IdentitySettings.Azure
+		err = config.LoadAndReplaceSSMValues(ctx, &clone)
+		if err != nil {
+			return nil, err
+		}
+		idp, err = NewAzure(ctx, clone)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unsupported provider type %s", opts.IdpType)
 
