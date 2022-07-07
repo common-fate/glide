@@ -95,11 +95,19 @@ func run() error {
 		return err
 	}
 
+	var sync deploy.Identity
+	err = json.Unmarshal([]byte(cfg.IdentitySettings), &sync)
+	if err != nil {
+		panic(err)
+	}
+
 	idsync, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:  cfg.DynamoTable,
-		UserPoolId: cfg.CognitoUserPoolID,
-		IdpType:    cfg.IdpProvider,
+		TableName:        cfg.DynamoTable,
+		UserPoolId:       cfg.CognitoUserPoolID,
+		IdpType:          cfg.IdpProvider,
+		IdentitySettings: sync,
 	})
+
 	if err != nil {
 		return err
 	}
