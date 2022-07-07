@@ -4,6 +4,7 @@ import (
 	"context"
 
 	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	a "github.com/microsoft/kiota-authentication-azure-go"
@@ -22,12 +23,12 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 
 	//TODO: For applications calling graph api, 'On-behalf-of' provider is not yet available for the go graph sdk
 	// for the time being will be using a client credentials provider which uses application permissions
-	cred, err := azidentity.NewClientSecretCredential(settings.TenantID, settings.ClientID, settings.ClientSecret, &azidentity.ClientSecretCredentialOptions{})
+	cred, err := azidentity.NewClientSecretCredential(settings.TenantID, settings.ClientID, settings.ClientSecret, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	auth, err := a.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"User.Read"})
+	auth, err := a.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +68,11 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
 func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser models.Userable) (identity.IdpUser, error) {
 	u := identity.IdpUser{
-		ID:        *azureUser.GetEmployeeId(),
-		FirstName: *azureUser.GetGivenName(),
-		// LastName:  *azureUser.GetGivenName(),
-		// Email:     *azureUser.getemai(),
-		Groups: []string{},
+		ID:        aws.ToString(azureUser.GetId()),
+		FirstName: aws.ToString(azureUser.GetGivenName()),
+		LastName:  aws.ToString(azureUser.GetSurname()),
+		Email:     aws.ToString(azureUser.GetMail()),
+		Groups:    []string{},
 	}
 
 	// userGroups, _, err := azureUser.group
@@ -116,11 +117,11 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 }
 
 // idpGroupFromAzureGroup converts a azure group to the identityprovider interface group type
-func idpGroupFromAzureGroup(oktaGroup models.Groupable) identity.IdpGroup {
+func idpGroupFromAzureGroup(azureGroup models.Groupable) identity.IdpGroup {
 	return identity.IdpGroup{
-		ID:          *oktaGroup.GetId(),
-		Name:        *oktaGroup.GetDisplayName(),
-		Description: *oktaGroup.GetDescription(),
+		ID:          aws.ToString(azureGroup.GetId()),
+		Name:        aws.ToString(azureGroup.GetDisplayName()),
+		Description: aws.ToString(azureGroup.GetDescription()),
 	}
 }
 func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
@@ -131,7 +132,7 @@ func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error)
 	}
 
 	// Use PageIterator to iterate through all users
-	pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateUserCollectionResponseFromDiscriminatorValue)
+	pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateGroupCollectionResponseFromDiscriminatorValue)
 	if err != nil {
 		return nil, err
 	}

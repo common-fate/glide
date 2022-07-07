@@ -18,7 +18,7 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "cmd/devcli/main.go",
+      "program": "cmd/gdeploy/main.go",
       "args": ["sync"],
       "cwd": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env"
