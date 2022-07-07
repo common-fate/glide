@@ -1,6 +1,10 @@
 package sync
 
 import (
+	"encoding/json"
+
+	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -8,18 +12,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type SyncConfig struct {
-	TableName   string `env:"APPROVALS_TABLE_NAME,default=tablename"`
-	IdpProvider string `env:"IDENTITY_PROVIDER,default=COGNITO"`
-	UserPoolId  string `env:"APPROVALS_COGNITO_USER_POOL_ID"`
-}
-
 var SyncCommand = cli.Command{
 	Name: "sync",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		var cfg SyncConfig
+		var cfg config.SyncConfig
 		_ = godotenv.Load()
 
 		err := envconfig.Process(ctx, &cfg)
@@ -27,8 +25,19 @@ var SyncCommand = cli.Command{
 			return err
 		}
 
+		var s deploy.Identity
+		err = json.Unmarshal([]byte(cfg.IdentitySettings), &s)
+		if err != nil {
+			panic(err)
+		}
+
 		//set up the sync handler
-		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{TableName: cfg.TableName, IdpType: cfg.IdpProvider, UserPoolId: cfg.UserPoolId})
+		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
+			TableName:        cfg.TableName,
+			IdpType:          cfg.IdpProvider,
+			UserPoolId:       cfg.UserPoolId,
+			IdentitySettings: s,
+		})
 
 		if err != nil {
 			return err
