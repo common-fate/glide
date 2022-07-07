@@ -98,7 +98,7 @@ func run() error {
 	var sync deploy.Identity
 	err = json.Unmarshal([]byte(cfg.IdentitySettings), &sync)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	idsync, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
