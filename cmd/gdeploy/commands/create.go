@@ -22,7 +22,7 @@ var CreateCommand = cli.Command{
 
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
 		clio.Info("Using template: %s", dc.CfnTemplateURL())
-		clio.Warn("Your initial deployment will take approximately 5 minutes while cloudfront resources are created.\nSubsequent updates should take less time.")
+		clio.Warn("Your initial deployment will take approximately 5 minutes while CloudFront resources are created.\nSubsequent updates should take less time.")
 		confirm := c.Bool("confirm")
 		err := dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
