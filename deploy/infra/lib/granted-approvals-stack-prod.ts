@@ -91,7 +91,7 @@ export class CustomerGrantedStack extends cdk.Stack {
     const identityConfig = new CfnParameter(this, "IdentityConfiguration", {
       type: "String",
       description: "The Identity Provider Sync configuration in JSON format",
-      default: "",
+      default: "{}",
     });
 
     const appName = this.stackName + suffix.valueAsString;
