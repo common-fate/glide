@@ -243,15 +243,37 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 	return res, nil
 }
 
-func LoadConfig(f string) (*Config, error) {
-	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
+// MustLoadConfig attempts to load config.
+//
+// if it does not exist, it will log a helpful message then os.Exit(0)
+//
+// if there are any other errors, they are logged and os.Exit(1)
+func MustLoadConfig(f string) *Config {
+	c, err := LoadConfig(f)
+	if err == ErrConfigNotExist {
 		clio.Error("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f)
 		clio.Log(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
 `)
+		os.Exit(0)
+	}
+	if err != nil {
+		clio.Error("failed to load config with error: %s", err)
+		os.Exit(1)
 
+	}
+	return c
+}
+
+// LoadConfig attempts to load the config file
+// if it does not exist, returns ErrConfigNotExist
+// else returns the config or any other error
+//
+// for CLI commands where a helpful message is required, use MustLoadConfig, which will log a message and os.Exit() if it does not exist
+func LoadConfig(f string) (*Config, error) {
+	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
 		return nil, ErrConfigNotExist
 	}
 

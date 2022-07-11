@@ -18,15 +18,13 @@ var CreateCommand = cli.Command{
 
 		f := c.Path("file")
 
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
 
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
 		clio.Info("Using template: %s", dc.CfnTemplateURL())
+		clio.Warn("Your initial deployment will take approximately 5 minutes while cloudfront resources are created.\nSubsequent updates will be much faster.")
 		confirm := c.Bool("confirm")
-		err = dc.DeployCloudFormation(ctx, confirm)
+		err := dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
 		}

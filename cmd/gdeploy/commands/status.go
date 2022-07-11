@@ -13,10 +13,7 @@ var StatusCommand = cli.Command{
 		ctx := c.Context
 
 		f := c.Path("file")
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
 		o, err := dc.LoadOutput(ctx)
 
 		if err != nil {

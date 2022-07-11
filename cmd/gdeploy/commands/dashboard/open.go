@@ -12,11 +12,8 @@ var openCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		f := c.Path("file")
-		do, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
-		o, err := do.LoadOutput(ctx)
+		dc := deploy.MustLoadConfig(f)
+		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err
 		}

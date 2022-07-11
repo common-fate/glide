@@ -32,20 +32,16 @@ var createCommand = cli.Command{
 
 		username := c.String("username")
 		f := c.Path("file")
-		do, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
+		adminGroup := dc.Deployment.Parameters.AdministratorGroupID
 
-		adminGroup := do.Deployment.Parameters.AdministratorGroupID
-
-		idpType := do.Deployment.Parameters.IdentityProviderType
+		idpType := dc.Deployment.Parameters.IdentityProviderType
 		if idpType != "" && idpType != "COGNITO" {
 			clio.Error("Your Granted Approvals deployment uses the %s identity provider. Add users inside of your identity provider rather than using this CLI.\n\nIf you would like to make a user an administrator of Granted Approvals, add them to the %s group in your identity provider.", idpType, adminGroup)
 			os.Exit(1)
 		}
 
-		o, err := do.LoadOutput(ctx)
+		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err
 		}
