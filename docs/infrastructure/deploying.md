@@ -1,9 +1,8 @@
 # Deploying the stack
 
 ## Prerequisites
-
-- Make sure you have [Granted OSS](https://github.com/common-fate/granted) installed to be able to assume roles:
-- Have the cf-dev profile in your` ~/.aws` config
+- An AWS account to deploy to.
+- Try using [Granted OSS](https://github.com/common-fate/granted) to help with assuming roles for deployment, and launching the console during development:
 
 Bootstrap CDK into your account and region:
 

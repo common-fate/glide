@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/apikit/logger"
@@ -24,18 +23,17 @@ func main() {
 		panic(err)
 	}
 
-	var s deploy.Identity
-	err = json.Unmarshal([]byte(cfg.IdentitySettings), &s)
+	ic, err := deploy.UnmarshalIdentity(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
 	}
 
 	//set up the sync handler
 	syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:        cfg.TableName,
-		IdpType:          cfg.IdpProvider,
-		UserPoolId:       cfg.UserPoolId,
-		IdentitySettings: s,
+		TableName:      cfg.TableName,
+		IdpType:        cfg.IdpProvider,
+		UserPoolId:     cfg.UserPoolId,
+		IdentityConfig: ic,
 	})
 	if err != nil {
 		panic(err)

@@ -1,8 +1,6 @@
 package sync
 
 import (
-	"encoding/json"
-
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -25,18 +23,17 @@ var SyncCommand = cli.Command{
 			return err
 		}
 
-		var s deploy.Identity
-		err = json.Unmarshal([]byte(cfg.IdentitySettings), &s)
+		ic, err := deploy.UnmarshalIdentity(cfg.IdentitySettings)
 		if err != nil {
 			panic(err)
 		}
 
 		//set up the sync handler
 		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-			TableName:        cfg.TableName,
-			IdpType:          cfg.IdpProvider,
-			UserPoolId:       cfg.UserPoolId,
-			IdentitySettings: s,
+			TableName:      cfg.TableName,
+			IdpType:        cfg.IdpProvider,
+			UserPoolId:     cfg.UserPoolId,
+			IdentityConfig: ic,
 		})
 
 		if err != nil {

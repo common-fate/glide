@@ -15,7 +15,7 @@ type Config struct {
 	EventBusArn       string `env:"EVENT_BUS_ARN,required"`
 	EventBusSource    string `env:"EVENT_BUS_SOURCE,required"`
 	IdpProvider       string `env:"IDENTITY_PROVIDER,default=COGNITO"`
-	IdentitySettings  string `env:"IDENTITY_SETTINGS,required"`
+	IdentitySettings  string `env:"IDENTITY_SETTINGS,default={}"`
 }
 
 type SlackNotifierConfig struct {
@@ -35,7 +35,7 @@ type SyncConfig struct {
 	IdpProvider      string `env:"IDENTITY_PROVIDER,default=COGNITO"`
 	UserPoolId       string `env:"APPROVALS_COGNITO_USER_POOL_ID"`
 	LogLevel         string `env:"LOG_LEVEL,default=info"`
-	IdentitySettings string `env:"IDENTITY_SETTINGS,required"`
+	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
 }
 
 type FrontendDeployerConfig struct {

@@ -30,10 +30,10 @@ type IdentitySyncer struct {
 }
 
 type SyncOpts struct {
-	TableName        string
-	IdpType          string
-	UserPoolId       string
-	IdentitySettings deploy.Identity
+	TableName      string
+	IdpType        string
+	UserPoolId     string
+	IdentityConfig deploy.IdentityConfig
 }
 
 func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, error) {
@@ -51,10 +51,10 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 			return nil, err
 		}
 	case OKTA:
-		if opts.IdentitySettings.Okta == nil {
+		if opts.IdentityConfig.Okta == nil {
 			return nil, fmt.Errorf("okta settings not configured")
 		}
-		clone := *opts.IdentitySettings.Okta
+		clone := *opts.IdentityConfig.Okta
 		err = config.LoadAndReplaceSSMValues(ctx, &clone)
 		if err != nil {
 			return nil, err
@@ -65,10 +65,10 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		}
 
 	case GOOGLE:
-		if opts.IdentitySettings.Google == nil {
+		if opts.IdentityConfig.Google == nil {
 			return nil, fmt.Errorf("google settings not configured")
 		}
-		clone := *opts.IdentitySettings.Google
+		clone := *opts.IdentityConfig.Google
 		err = config.LoadAndReplaceSSMValues(ctx, &clone)
 		if err != nil {
 			return nil, err

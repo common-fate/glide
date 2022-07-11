@@ -21,7 +21,14 @@ var StatusCommand = cli.Command{
 		}
 		o.PrintTable()
 
-		clio.Success("Your Granted deployment is online")
+		ss, err := dc.GetStackStatus(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		clio.Info("Cloudformation stack status: %s", ss)
+
 		return nil
 	},
 }
