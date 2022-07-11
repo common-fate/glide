@@ -245,12 +245,13 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 
 func LoadConfig(f string) (*Config, error) {
 	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
-		clio.Error(`Tried to load Granted deployment configuration from %s but the file doesn't exist.
-
+		clio.Error("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f)
+		clio.Log(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
-`, f)
+`)
+
 		return nil, ErrConfigNotExist
 	}
 
