@@ -114,13 +114,6 @@ func (Build) Webhook() error {
 	return sh.RunWith(env, "go", "build", "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
 }
 
-func (Build) TestVault() error {
-	env := map[string]string{
-		"GOOS": "linux",
-	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/testvault", "cmd/lambda/testvault/handler.go")
-}
-
 func (Build) FrontendAWSExports() error {
 	// create the aws-exports.js file if it doesn't exist. This prevents the frontend build from breaking.
 	f := "web/src/utils/aws-exports.js"
@@ -213,12 +206,6 @@ func PackageEventHandler() error {
 func PackageWebhook() error {
 	mg.Deps(Build.Webhook)
 	return sh.Run("zip", "--junk-paths", "bin/webhook.zip", "bin/webhook")
-}
-
-// PackageTestVault zips the Go testvault handler so that it can be deployed to Lambda.
-func PackageTestVault() error {
-	mg.Deps(Build.TestVault)
-	return sh.Run("zip", "--junk-paths", "bin/testvault.zip", "bin/testvault")
 }
 
 type Deploy mg.Namespace
