@@ -36,11 +36,8 @@ var StatusCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		if ss == "CREATE_COMPLETE" {
-			clio.Success("Your Granted deployment is online (CREATE_COMPLETE)")
-		} else {
-			clio.Info("Your Granted deployment is not online yet (%s)", ss)
-		}
+
+		clio.Info("Cloudformation stack status: %s", ss)
 
 		return nil
 	},
