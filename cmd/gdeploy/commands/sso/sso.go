@@ -125,7 +125,7 @@ var configureCommand = cli.Command{
 			}
 			o.PrintSAMLTable()
 			if dc.Identity == nil {
-				dc.Identity = &deploy.Identity{
+				dc.Identity = &deploy.IdentityConfig{
 					Google: &google,
 				}
 			} else {
@@ -173,7 +173,7 @@ var configureCommand = cli.Command{
 			}
 			clio.Success("SSM Parameters Set Successfully\n")
 			if dc.Identity == nil {
-				dc.Identity = &deploy.Identity{
+				dc.Identity = &deploy.IdentityConfig{
 					Okta: &okta,
 				}
 			} else {

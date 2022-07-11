@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -72,17 +71,16 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 
-	var sync deploy.Identity
-	err = json.Unmarshal([]byte(cfg.IdentitySettings), &sync)
+	ic, err := deploy.UnmarshalIdentity(cfg.IdentitySettings)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	idsync, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:        cfg.DynamoTable,
-		UserPoolId:       cfg.CognitoUserPoolID,
-		IdpType:          cfg.IdpProvider,
-		IdentitySettings: sync,
+		TableName:      cfg.DynamoTable,
+		UserPoolId:     cfg.CognitoUserPoolID,
+		IdpType:        cfg.IdpProvider,
+		IdentityConfig: ic,
 	})
 
 	if err != nil {

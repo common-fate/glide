@@ -39,7 +39,7 @@ if (stackTarget === "dev") {
     adminGroupId: adminGroupId || "granted_administrators",
     samlMetadata: samlMetadata || "",
     slackConfiguration: slackConfig || "",
-    identityProviderSyncConfiguration: identityConfig || "",
+    identityProviderSyncConfiguration: identityConfig || "{}",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {
