@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/common-fate/access-handler/pkg/logger"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"

@@ -16,7 +16,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.14.4
 	github.com/awslabs/aws-lambda-go-api-proxy v0.13.2
 	github.com/bitfield/script v0.20.2
-	github.com/common-fate/access-handler v0.0.0-20220608005800-37dbf836bb87
 	github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed
 	github.com/common-fate/cloudform v0.3.0
 	github.com/common-fate/iso8601 v1.0.2
@@ -79,6 +78,7 @@ require (
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/r3labs/diff/v2 v2.15.1 // indirect
+	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
