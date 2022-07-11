@@ -108,12 +108,12 @@ func (c *Config) LoadSAMLOutput(ctx context.Context) (SAMLOutputs, error) {
 
 	var ve *smithy.GenericAPIError
 	if errors.As(err, &ve) && ve.Code == "ValidationError" {
-		clio.Error(`We couldn't find a CloudFormation stack '%s' in region '%s'.
-
+		clio.Error("We couldn't find a CloudFormation stack '%s' in region '%s'.", c.Deployment.StackName, c.Deployment.Region)
+		clio.Log(`
 To fix this, take one of the following actions:
   a) verify that your AWS credentials match the account you're trying to deploy to (%s). You can check this by calling 'aws sts get-caller-identity'.
   b) your stack may not have been deployed yet. Run 'gdeploy create' to deploy it using CloudFormation.
-`, c.Deployment.StackName, c.Deployment.Region, c.Deployment.Account)
+`, c.Deployment.Account)
 		return SAMLOutputs{}, err
 	}
 
@@ -158,12 +158,12 @@ func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 
 	var ve *smithy.GenericAPIError
 	if errors.As(err, &ve) && ve.Code == "ValidationError" {
-		clio.Error(`We couldn't find a CloudFormation stack '%s' in region '%s'.
-
+		clio.Error("We couldn't find a CloudFormation stack '%s' in region '%s'.", c.Deployment.StackName, c.Deployment.Region)
+		clio.Log(`
 To fix this, take one of the following actions:
   a) verify that your AWS credentials match the account you're trying to deploy to (%s). You can check this by calling 'aws sts get-caller-identity'.
   b) your stack may not have been deployed yet. Run 'gdeploy create' to deploy it using CloudFormation.
-`, c.Deployment.StackName, c.Deployment.Region, c.Deployment.Account)
+`, c.Deployment.Account)
 		return Output{}, err
 	}
 

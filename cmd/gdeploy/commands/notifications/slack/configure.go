@@ -27,11 +27,8 @@ var configureSlackCommand = cli.Command{
 		ctx := c.Context
 		f := c.Path("file")
 
-		do, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
-		o, err := do.LoadOutput(ctx)
+		dc := deploy.MustLoadConfig(f)
+		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err
 		}
@@ -55,17 +52,17 @@ var configureSlackCommand = cli.Command{
 			return err
 		}
 
-		suffixedPath, version, err := config.PutSecretVersion(ctx, config.SlackTokenPath, do.Deployment.Parameters.DeploymentSuffix, botUserToken)
+		suffixedPath, version, err := config.PutSecretVersion(ctx, config.SlackTokenPath, dc.Deployment.Parameters.DeploymentSuffix, botUserToken)
 		if err != nil {
 			return errors.Wrap(err, "failed while setting Slack parameters in ssm")
 		}
 
-		do.Notifications = &deploy.Notifications{
+		dc.Notifications = &deploy.Notifications{
 			Slack: &deploy.Slack{
 				APIToken: config.AWSSSMParamToken(suffixedPath, version),
 			},
 		}
-		err = do.Save(f)
+		err = dc.Save(f)
 		if err != nil {
 			return err
 		}

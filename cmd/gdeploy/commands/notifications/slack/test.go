@@ -19,14 +19,11 @@ var testSlackCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		f := c.Path("file")
-		do, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
-		if do.Notifications == nil || do.Notifications.Slack == nil {
+		dc := deploy.MustLoadConfig(f)
+		if dc.Notifications == nil || dc.Notifications.Slack == nil {
 			return fmt.Errorf("slack is not yet configured, configure it now by running 'gdeploy notifications slack configure'")
 		}
-		b, err := json.Marshal(do.Notifications.Slack)
+		b, err := json.Marshal(dc.Notifications.Slack)
 		if err != nil {
 			return err
 		}

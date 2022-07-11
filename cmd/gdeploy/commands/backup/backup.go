@@ -24,10 +24,7 @@ var Command = cli.Command{
 
 		f := c.Path("file")
 
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
 
 		stackOutput, err := dc.LoadOutput(ctx)
 		if err != nil {

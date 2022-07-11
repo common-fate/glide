@@ -44,10 +44,7 @@ var addCommand = cli.Command{
 		}
 
 		f := c.Path("file")
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
 
 		var id string
 		err = survey.AskOne(&survey.Input{
