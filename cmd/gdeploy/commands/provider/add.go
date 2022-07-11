@@ -17,7 +17,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 var addCommand = cli.Command{
@@ -78,8 +77,6 @@ var addCommand = cli.Command{
 			if err != nil {
 				return err
 			}
-
-			zap.S().Infow("cfg", providers.LogConfig(configer))
 		}
 
 		deployProvider := deploy.ProviderFromLookup(id, uses, pcfg)
