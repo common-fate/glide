@@ -121,5 +121,5 @@ jobs:
           aws-region: ap-southeast-2
           role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
-      - name: Release Production Assets
+      - name: Release CloudFormation
         run: go run mage.go -v release:production granted-test-releases-us-east-1 dev/${{ github.sha }}
