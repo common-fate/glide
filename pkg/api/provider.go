@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/common-fate/access-handler/pkg/logger"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 )
 
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
