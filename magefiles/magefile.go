@@ -61,10 +61,6 @@ func (Build) Backend() error {
 	return sh.RunWith(env, "go", "build", "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
 }
 
-func (Build) StaticRedirectLambda() error {
-	return sh.Run("pnpm", "--filter", "staticredirect", "run", "build")
-}
-
 func (Build) Granter() error {
 	env := map[string]string{
 		"GOOS": "linux",
@@ -163,7 +159,7 @@ func PackageBackend() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier, PackageEventHandler, Build.StaticRedirectLambda, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier, PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
