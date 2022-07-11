@@ -42,7 +42,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-region: ap-southeast-2
+          aws-region: us-east-1
           role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Release CloudFormation
