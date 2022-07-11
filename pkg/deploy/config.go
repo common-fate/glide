@@ -43,14 +43,30 @@ type Config struct {
 	Deployment    Deployment          `yaml:"deployment"`
 	Providers     map[string]Provider `yaml:"providers,omitempty"`
 	Notifications *Notifications      `yaml:"notifications,omitempty"`
-	Identity      *Identity           `yaml:"identity,omitempty"`
+	Identity      *IdentityConfig     `yaml:"identity,omitempty"`
 
 	cachedOutput     *Output
 	cachedSAMLOutput *SAMLOutputs
 }
-type Identity struct {
+
+type IdentityConfig struct {
 	Google *Google `yaml:"google,omitempty" json:"google,omitempty"`
 	Okta   *Okta   `yaml:"okta,omitempty" json:"okta,omitempty"`
+}
+
+// UnmarshalIdentity parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// Identity{} object is returned.
+func UnmarshalIdentity(data string) (IdentityConfig, error) {
+	if data == "" {
+		return IdentityConfig{}, nil
+	}
+	var i IdentityConfig
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return IdentityConfig{}, err
+	}
+	return i, nil
 }
 
 type Google struct {
