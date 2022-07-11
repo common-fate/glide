@@ -31,15 +31,15 @@ var StatusCommand = cli.Command{
 		}
 		o.PrintTable()
 
-		cc, err := dc.CheckComplete(ctx)
+		ss, err := dc.GetStackStatus(ctx)
 
 		if err != nil {
 			return err
 		}
-		if cc {
-			clio.Success("Your Granted deployment is online")
+		if ss == "CREATE_COMPLETE" {
+			clio.Success("Your Granted deployment is online (CREATE_COMPLETE)")
 		} else {
-			clio.Info("Your Granted deployment is not online yet")
+			clio.Info("Your Granted deployment is not online yet (%s)", ss)
 		}
 
 		return nil
