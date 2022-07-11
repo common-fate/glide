@@ -6,7 +6,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 var InitCommand = cli.Command{
@@ -31,7 +30,6 @@ var InitCommand = cli.Command{
 			return err
 		}
 
-		zap.S().Infow("configured Granted Approvals deployment", "config", cfg)
 		f := c.Path("file")
 
 		err = cfg.Save(f)

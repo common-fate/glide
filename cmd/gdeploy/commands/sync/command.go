@@ -1,13 +1,13 @@
 package sync
 
 import (
+	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 var SyncCommand = cli.Command{
@@ -40,7 +40,7 @@ var SyncCommand = cli.Command{
 			return err
 		}
 
-		zap.S().Infow("starting")
+		clio.Info("Starting sync")
 		err = syncer.Sync(ctx)
 		if err != nil {
 			return err
