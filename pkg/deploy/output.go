@@ -141,6 +141,33 @@ To fix this, take one of the following actions:
 	return out, nil
 }
 
+// CheckComplete indicates whether the Cloud Formation stack is online (via "CREATE_COMPLETE")
+func (c *Config) CheckComplete(ctx context.Context) (bool, error) {
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
+	if err != nil {
+		return false, err
+	}
+	client := cloudformation.NewFromConfig(cfg)
+	res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
+		StackName: &c.Deployment.StackName,
+	})
+	if err != nil {
+		return false, err
+	}
+	if len(res.Stacks) != 1 {
+		return false, fmt.Errorf("expected 1 stack but got %d", len(res.Stacks))
+	}
+
+	stack := res.Stacks[0]
+
+	if stack.StackStatus == "CREATE_COMPLETE" {
+		return true, nil
+	} else {
+		return false, nil
+	}
+
+}
+
 // LoadOutput loads the outputs for the current deployment.
 func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 	if c.cachedOutput != nil {
