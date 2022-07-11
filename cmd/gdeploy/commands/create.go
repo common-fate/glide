@@ -18,15 +18,13 @@ var CreateCommand = cli.Command{
 
 		f := c.Path("file")
 
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
 
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
 		clio.Info("Using template: %s", dc.CfnTemplateURL())
+		clio.Warn("Your initial deployment will take approximately 5 minutes while cloudfront resources are created.\nSubsequent updates should take less time.")
 		confirm := c.Bool("confirm")
-		err = dc.DeployCloudFormation(ctx, confirm)
+		err := dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
 		}
@@ -40,7 +38,7 @@ var CreateCommand = cli.Command{
 		clio.Success("Your Granted deployment has been created")
 		clio.Info(`Here are your next steps to get started:
 
-  1) create an admin user so you can log in: 'gdeploy user create --admin -u YOUR_EMAIL_ADDRESS'
+  1) create an admin user so you can log in: 'gdeploy users create --admin -u YOUR_EMAIL_ADDRESS'
   2) add an Access Provider: 'gdeploy provider add'
   3) visit the web dashboard: 'gdeploy dashboard open'
 

@@ -41,11 +41,8 @@ var getCommand = cli.Command{
 		stackName := c.String("stack")
 		if stackName == "" {
 			// default to the stage from dev-deployment-config
-			do, err := deploy.LoadConfig(f)
-			if err != nil {
-				return err
-			}
-			stackName = do.Deployment.StackName
+			dc := deploy.MustLoadConfig(f)
+			stackName = dc.Deployment.StackName
 		}
 
 		client := cloudformation.NewFromConfig(cfg)

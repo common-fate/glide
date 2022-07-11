@@ -243,14 +243,37 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 	return res, nil
 }
 
-func LoadConfig(f string) (*Config, error) {
-	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
-		clio.Error(`Tried to load Granted deployment configuration from %s but the file doesn't exist.
-
+// MustLoadConfig attempts to load config.
+//
+// if it does not exist, it will log a helpful message then os.Exit(0)
+//
+// if there are any other errors, they are logged and os.Exit(1)
+func MustLoadConfig(f string) *Config {
+	c, err := LoadConfig(f)
+	if err == ErrConfigNotExist {
+		clio.Error("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f)
+		clio.Log(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
-`, f)
+`)
+		os.Exit(0)
+	}
+	if err != nil {
+		clio.Error("failed to load config with error: %s", err)
+		os.Exit(1)
+
+	}
+	return c
+}
+
+// LoadConfig attempts to load the config file
+// if it does not exist, returns ErrConfigNotExist
+// else returns the config or any other error
+//
+// for CLI commands where a helpful message is required, use MustLoadConfig, which will log a message and os.Exit() if it does not exist
+func LoadConfig(f string) (*Config, error) {
+	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
 		return nil, ErrConfigNotExist
 	}
 
@@ -354,14 +377,12 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 
 	account := c.String("account")
 	if account == "" {
-		var err error
 		ctx := context.Background()
-		account, err = tryGetCurrentAccountID(ctx)
-		if err != nil {
-			return nil, err
-		}
+
+		account = MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
+
 		p := &survey.Input{Message: "The account ID that you are deploying to", Default: account}
-		err = survey.AskOne(p, &account)
+		err := survey.AskOne(p, &account)
 		if err != nil {
 			return nil, err
 		}
@@ -477,6 +498,80 @@ func tryGetCurrentAccountID(ctx context.Context) (string, error) {
 		return "", nil
 	}
 	return *res.Account, nil
+}
+
+type GetCurrentAccountIDOpts struct {
+	WarnExpiryIfWithinDuration *time.Duration
+}
+
+func WithWarnExpiryIfWithinDuration(t time.Duration) func(*GetCurrentAccountIDOpts) {
+	return func(gcai *GetCurrentAccountIDOpts) {
+		gcai.WarnExpiryIfWithinDuration = &t
+	}
+}
+
+// MustGetCurrentAccountID uses AWS STS to try and load the current account ID.
+//
+// if not credentials are available, logs and error and os.Exit(1)
+func MustGetCurrentAccountID(ctx context.Context, opts ...func(*GetCurrentAccountIDOpts)) string {
+	var o GetCurrentAccountIDOpts
+	for _, opt := range opts {
+		opt(&o)
+	}
+	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	si.Suffix = " loading AWS account ID from your current profile"
+	si.Writer = os.Stderr
+	si.Start()
+	defer si.Stop()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		si.Stop()
+		clio.Debug("Encountered error while loading default aws config: %s", err)
+		clio.Error("Failed to load AWS credentials.")
+		os.Exit(1)
+	}
+
+	creds, err := cfg.Credentials.Retrieve(ctx)
+	if err != nil {
+		si.Stop()
+		clio.Debug("Encountered error while loading default aws config: %s", err)
+		clio.Error("Failed to load AWS credentials.")
+		os.Exit(1)
+	}
+
+	if !creds.HasKeys() {
+		si.Stop()
+		clio.Error("Could not find AWS credentials. Please export valid AWS credentials to run this command.")
+		os.Exit(1)
+	}
+
+	if creds.Expired() {
+		si.Stop()
+		clio.Error("AWS credentials are expired. Please export valid AWS credentials to run this command.")
+		os.Exit(1)
+	}
+
+	if o.WarnExpiryIfWithinDuration != nil && creds.CanExpire && creds.Expires.Before(time.Now().Add(*o.WarnExpiryIfWithinDuration)) {
+		clio.Warn("AWS credentials expire in less than %s, consider exporting fresh credentials to avoid issues.", o.WarnExpiryIfWithinDuration.String())
+	}
+
+	client := sts.NewFromConfig(cfg)
+	res, err := client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		si.Stop()
+		clio.Debug("Encountered error while getting caller identity: %s", err)
+		clio.Error("Failed to get AWS caller identity. Check that you have exported credentials and that they are not expired.")
+
+		os.Exit(1)
+	}
+	if res.Account == nil {
+		si.Stop()
+		clio.Debug("Encountered nil response getting caller identity: %s", err)
+		clio.Error("Failed to load AWS credentials.")
+		os.Exit(1)
+	}
+	return *res.Account
 }
 
 // getDefaultAvailableRegion tries to match the AWS_REGION env var with one of the

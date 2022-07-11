@@ -32,14 +32,11 @@ var configureCommand = cli.Command{
 
 		f := c.Path("file")
 
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
+		dc := deploy.MustLoadConfig(f)
 
 		var ssoEnable string
 		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: AvailableSSOProviders}
-		err = survey.AskOne(p2, &ssoEnable)
+		err := survey.AskOne(p2, &ssoEnable)
 		if err != nil {
 			return err
 		}
