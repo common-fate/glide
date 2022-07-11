@@ -197,7 +197,7 @@ var configureCommand = cli.Command{
 
 			//complete the setup with the saml metadata
 			var metadata string
-			t := &survey.Input{Message: "Okta SAML metadata URL:"}
+			t := &survey.Input{Message: "Okta SAML metadata string:"}
 			err = survey.AskOne(t, &metadata)
 			if err != nil {
 				return err
