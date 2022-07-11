@@ -40,7 +40,7 @@ var CreateCommand = cli.Command{
 		clio.Success("Your Granted deployment has been created")
 		clio.Info(`Here are your next steps to get started:
 
-  1) create an admin user so you can log in: 'gdeploy user create --admin -u YOUR_EMAIL_ADDRESS'
+  1) create an admin user so you can log in: 'gdeploy users create --admin -u YOUR_EMAIL_ADDRESS'
   2) add an Access Provider: 'gdeploy provider add'
   3) visit the web dashboard: 'gdeploy dashboard open'
 
