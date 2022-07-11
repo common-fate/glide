@@ -87,6 +87,7 @@ var configureCommand = cli.Command{
 
 		switch ssoEnable {
 		case "Google":
+
 			docs := "https://docs.commonfate.io/granted-approvals/sso/google"
 			clio.Info("Find documentation for setting up Google Workspace in our setup docs: %s", docs)
 
@@ -217,13 +218,13 @@ var configureCommand = cli.Command{
 				azure = *dc.Identity.Azure
 			}
 
-			p1 := &survey.Input{Message: "Tenant ID:"}
+			p1 := &survey.Input{Message: "Tenant ID:", Default: azure.TenantID}
 			err = survey.AskOne(p1, &azure.TenantID)
 			if err != nil {
 				return err
 			}
 
-			p2 := &survey.Input{Message: "Client ID:"}
+			p2 := &survey.Input{Message: "Client ID:", Default: azure.ClientID}
 			err = survey.AskOne(p2, &azure.ClientID)
 			if err != nil {
 				return err
@@ -261,10 +262,18 @@ var configureCommand = cli.Command{
 				return err
 			}
 			o.PrintSAMLTable()
+			dc.Deployment.Parameters.IdentityProviderType = "AZURE"
 
 			clio.Info("Find documentation for setting up SAML SSO here: %s", docs)
+			//complete the setup with the saml metadata
+			var metadata string
+			t := &survey.Input{Message: "Azure SAML metadata URL:"}
+			err = survey.AskOne(t, &metadata)
+			if err != nil {
+				return err
+			}
+			dc.Deployment.Parameters.SamlSSOMetadataURL = metadata
 
-			dc.Deployment.Parameters.IdentityProviderType = "AZURE"
 		}
 
 		err = dc.Save(f)
