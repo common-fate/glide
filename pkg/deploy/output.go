@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/mitchellh/mapstructure"
@@ -139,6 +140,28 @@ To fix this, take one of the following actions:
 	// set the cached output value in case this method is called again.
 	c.cachedSAMLOutput = &out
 	return out, nil
+}
+
+// GetStackStatus indicates whether the Cloud Formation stack is online (via "CREATE_COMPLETE")
+func (c *Config) GetStackStatus(ctx context.Context) (types.StackStatus, error) {
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
+	if err != nil {
+		return "", err
+	}
+	client := cloudformation.NewFromConfig(cfg)
+	res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
+		StackName: &c.Deployment.StackName,
+	})
+	if err != nil {
+		return "", err
+	}
+	if len(res.Stacks) != 1 {
+		return "", fmt.Errorf("expected 1 stack but got %d", len(res.Stacks))
+	}
+
+	stack := res.Stacks[0]
+
+	return stack.StackStatus, nil
 }
 
 // LoadOutput loads the outputs for the current deployment.
