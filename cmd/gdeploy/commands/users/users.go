@@ -2,6 +2,7 @@ package users
 
 import (
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -29,6 +30,9 @@ var createCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+
+		// Ensure aws account session is valid
+		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		username := c.String("username")
 		f := c.Path("file")

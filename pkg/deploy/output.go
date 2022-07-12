@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -169,6 +170,8 @@ func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 	if c.cachedOutput != nil {
 		return *c.cachedOutput, nil
 	}
+	// Ensure aws account session is valid
+	MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
 	if err != nil {

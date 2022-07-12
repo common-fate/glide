@@ -33,6 +33,9 @@ func BackupStatus(ctx context.Context, backupARN string) (*ddbTypes.BackupDescri
 	if err != nil {
 		return nil, err
 	}
+	// Ensure aws account session is valid
+	MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
+
 	client := dynamodb.NewFromConfig(cfg)
 	b, err := client.DescribeBackup(ctx, &dynamodb.DescribeBackupInput{
 		BackupArn: &backupARN,
@@ -74,6 +77,9 @@ func RestoreStatus(ctx context.Context, targetTableName string) (*ddbTypes.Table
 	if err != nil {
 		return nil, err
 	}
+	// Ensure aws account session is valid
+	MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
+
 	client := dynamodb.NewFromConfig(cfg)
 	rbo, err := client.DescribeTable(ctx, &dynamodb.DescribeTableInput{
 		TableName: &targetTableName,
