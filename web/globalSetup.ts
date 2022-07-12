@@ -7,7 +7,6 @@ import {
 import { Auth } from "aws-amplify";
 import fs from "fs";
 import dotenv from "dotenv";
-import { OriginURL } from "./consts";
 
 // Read from default ".env" file.
 dotenv.config();
@@ -16,11 +15,10 @@ async function globalSetup(config: FullConfig) {
   const username = process.env.TEST_USERNAME ?? "";
   const password = process.env.TEST_PASSWORD;
   // get the userPoolId from Amazon Cognito
-  const userPoolId = "ap-southeast-2_XaL0vYUTJ";
+  const userPoolId = process.env.USER_POOL_ID;
 
   // get the clientId from Amazon Cognito :
-  // teamclientb2h5644q_userpool_b2h5644q-dev > App Integration, App Client List > bentlyb2h5644q_app_clientWeb
-  const clientId = "7afe1lvpncn20dfm50rjh7nov";
+  const clientId = process.env.COGNITO_CLIENT_ID;
   const awsconfig = {
     aws_user_pools_id: userPoolId,
     aws_user_pools_web_client_id: clientId,
@@ -29,40 +27,52 @@ async function globalSetup(config: FullConfig) {
   await Auth.signIn(username, password).then(async (cognitoUser) => {
     const makeKey = (name) =>
       `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
+
+
     let amplifyData: PlaywrightTestOptions["storageState"] = {
-      cookies: [],
-      origins: [
+      cookies: [
         {
-          origin:
-            "https://granted-login-cd-dev-test.auth.ap-southeast-2.amazoncognito.com/login",
-          localStorage: [],
-        },
-      ],
-    };
-    amplifyData.cookies = [
-      {
         name: makeKey("idToken"),
         value: cognitoUser.signInUserSession.idToken.jwtToken,
+        domain: process.env.TESTING_DOMAIN ?? "",
+        path: "/",
       },
       {
         name: makeKey("clockDrift"),
         value: "0",
+        domain: process.env.TESTING_DOMAIN ?? "",
+        path: "/",
       },
       {
         name: "amplify-signin-with-hostedUI",
         value: "false",
+        domain: process.env.TESTING_DOMAIN ?? "",
+        path: "/",
       },
       {
         name: makeKey("accessToken"),
         value: cognitoUser.signInUserSession.accessToken.jwtToken,
+        domain: process.env.TESTING_DOMAIN ?? "",
+        path: "/",
       },
       {
         name: `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
         value: cognitoUser.username,
+        domain: process.env.TESTING_DOMAIN ?? "",
+        path: "/",
       },
-    ];
+    ],
+    origins: [
+          {
+            "origin": "https://" + process.env.TESTING_DOMAIN ?? "",
+            "localStorage": []
+          }
+        ]
+    };
+
+    
     const data = JSON.stringify(amplifyData);
-    fs.writeFile("./tests/storageState.json", data, (err) => {
+    fs.writeFile("./authCookies.json", data, (err) => {
       if (err) {
         throw err;
       }

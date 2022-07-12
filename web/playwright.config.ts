@@ -2,15 +2,15 @@ import { type PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-//   testDir: "test",
-  retries: process.env.CI ? 2 : 0,
-//   testMatch: "./example.spec.ts",
-  globalSetup: "./tests/globalSetup",
+  
+ 
+  retries: 2,
+  globalSetup: "./globalSetup.ts",
   use: {
-    // Tell all tests to load signed-in state from 'storageState.json'.
-    storageState: "storageState.json",
+    // Tell all tests to load signed-in state from 'authCookies.json'.
+    storageState: "./authCookies.json",
     trace: "on",
-    baseURL: "https://djmoxvh6xpra8.cloudfront.net/",
+    baseURL: process.env.TESTING_DOMAIN,
   },
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
   projects: [
@@ -18,14 +18,14 @@ const config: PlaywrightTestConfig = {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
 };
 export default config;
