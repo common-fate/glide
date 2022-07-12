@@ -1,6 +1,16 @@
-import { chromium, FullConfig } from "@playwright/test";
+import {
+  chromium,
+  FullConfig,
+  PlaywrightTestConfig,
+  PlaywrightTestOptions,
+} from "@playwright/test";
 import { Auth } from "aws-amplify";
 import fs from "fs";
+import dotenv from "dotenv";
+import { OriginURL } from "./consts";
+
+// Read from default ".env" file.
+dotenv.config();
 
 async function globalSetup(config: FullConfig) {
   const username = process.env.TEST_USERNAME ?? "";
@@ -19,16 +29,17 @@ async function globalSetup(config: FullConfig) {
   await Auth.signIn(username, password).then(async (cognitoUser) => {
     const makeKey = (name) =>
       `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
-    let amplifyData = {
+    let amplifyData: PlaywrightTestOptions["storageState"] = {
       cookies: [],
       origins: [
         {
-          origin: "https://djmoxvh6xpra8.cloudfront.net/", // here :)
+          origin:
+            "https://granted-login-cd-dev-test.auth.ap-southeast-2.amazoncognito.com/login",
           localStorage: [],
         },
       ],
     };
-    amplifyData.origins[0].localStorage = [
+    amplifyData.cookies = [
       {
         name: makeKey("idToken"),
         value: cognitoUser.signInUserSession.idToken.jwtToken,
@@ -51,7 +62,7 @@ async function globalSetup(config: FullConfig) {
       },
     ];
     const data = JSON.stringify(amplifyData);
-    fs.writeFile("storageState.json", data, (err) => {
+    fs.writeFile("./tests/storageState.json", data, (err) => {
       if (err) {
         throw err;
       }

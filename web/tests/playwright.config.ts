@@ -1,16 +1,17 @@
-import type { PlaywrightTestConfig } from "@playwright/test";
+import { type PlaywrightTestConfig, devices } from '@playwright/test';
+import { OriginURL } from "./consts";
+import storageState from './storageState.json'
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  testDir: "test",
-  testMatch: "integration/**/*.test.ts",
+  
   retries: process.env.CI ? 2 : 0,
-  globalSetup: "./globalSetup",
+  globalSetup: "./globalSetup.ts",
   use: {
     // Tell all tests to load signed-in state from 'storageState.json'.
-    storageState: "storageState.json",
-    trace: "on",
-    baseURL: "https://develop.sk9932ksdi.amplifyapp.com/",
+    storageState,
+    trace: "on-first-retry",
+    baseURL: OriginURL,
   },
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
   projects: [
