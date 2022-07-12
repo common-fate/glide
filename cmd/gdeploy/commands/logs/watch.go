@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/TylerBrock/saw/blade"
 	sawconfig "github.com/TylerBrock/saw/config"
@@ -40,6 +41,9 @@ var watchCommand = cli.Command{
 			dc := deploy.MustLoadConfig(f)
 			stackName = dc.Deployment.StackName
 		}
+
+		// Ensure aws account session is valid
+		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		client := cloudformation.NewFromConfig(cfg)
 		res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{

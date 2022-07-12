@@ -45,6 +45,9 @@ var addCommand = cli.Command{
 		f := c.Path("file")
 		dc := deploy.MustLoadConfig(f)
 
+		// Ensure aws account session is valid
+		deploy.MustGetCurrentAccountID(c.Context, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+
 		var id string
 		err = survey.AskOne(&survey.Input{
 			Message: "The ID for the provider",

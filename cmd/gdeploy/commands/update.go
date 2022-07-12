@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"time"
+
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -17,6 +19,9 @@ var UpdateCommand = cli.Command{
 		ctx := c.Context
 
 		f := c.Path("file")
+
+		// Ensure aws account session is valid
+		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		dc := deploy.MustLoadConfig(f)
 
