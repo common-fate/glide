@@ -4,8 +4,7 @@ import {
   PlaywrightTestConfig,
   PlaywrightTestOptions,
 } from "@playwright/test";
-import { Auth } from "aws-amplify";
-import fs from "fs";
+import { Auth } from "@aws-amplify/auth";
 import dotenv from "dotenv";
 
 // Read from default ".env" file.
@@ -28,71 +27,69 @@ async function globalSetup(config: FullConfig) {
     const makeKey = (name) =>
       `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
 
-
     let amplifyData: PlaywrightTestOptions["storageState"] = {
       cookies: [
         {
-        name: makeKey("idToken"),
-        value: cognitoUser.signInUserSession.idToken.jwtToken,
-        domain: process.env.TESTING_DOMAIN ?? "",
-        path: "/",
-        expires: -1,
-        httpOnly: false,
-        sameSite: "Strict",
-        secure: true
-
-      },
-      {
-        name: makeKey("clockDrift"),
-        value: "0",
-        domain: process.env.TESTING_DOMAIN ?? "",
-        path: "/",
-        expires: -1,
-        httpOnly: false,
-        sameSite: "Strict",
-        secure: true
-      },
-      {
-        name: "amplify-signin-with-hostedUI",
-        value: "false",
-        domain: process.env.TESTING_DOMAIN ?? "",
-        path: "/",
-        expires: -1,
-        httpOnly: false,
-        sameSite: "Strict",
-        secure: true
-      },
-      {
-        name: makeKey("accessToken"),
-        value: cognitoUser.signInUserSession.accessToken.jwtToken,
-        domain: process.env.TESTING_DOMAIN ?? "",
-        path: "/",
-        expires: -1,
-        httpOnly: false,
-        sameSite: "Strict",
-        secure: true
-      },
-      {
-        name: `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
-        value: cognitoUser.username,
-        domain: process.env.TESTING_DOMAIN ?? "",
-        path: "/",
-        expires: -1,
-        httpOnly: false,
-        sameSite: "Strict",
-        secure: true
-      },
-    ],
-    origins: [
-          {
-            "origin": "https://" + process.env.TESTING_DOMAIN ?? "",
-            "localStorage": []
-          }
-        ]
+          name: makeKey("idToken"),
+          value: cognitoUser.signInUserSession.idToken.jwtToken,
+          domain: process.env.TESTING_DOMAIN ?? "",
+          path: "/",
+          expires: -1,
+          httpOnly: false,
+          sameSite: "Strict",
+          secure: true,
+        },
+        {
+          name: makeKey("clockDrift"),
+          value: "0",
+          domain: process.env.TESTING_DOMAIN ?? "",
+          path: "/",
+          expires: -1,
+          httpOnly: false,
+          sameSite: "Strict",
+          secure: true,
+        },
+        {
+          name: "amplify-signin-with-hostedUI",
+          value: "false",
+          domain: process.env.TESTING_DOMAIN ?? "",
+          path: "/",
+          expires: -1,
+          httpOnly: false,
+          sameSite: "Strict",
+          secure: true,
+        },
+        {
+          name: makeKey("accessToken"),
+          value: cognitoUser.signInUserSession.accessToken.jwtToken,
+          domain: process.env.TESTING_DOMAIN ?? "",
+          path: "/",
+          expires: -1,
+          httpOnly: false,
+          sameSite: "Strict",
+          secure: true,
+        },
+        {
+          name: `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
+          value: cognitoUser.username,
+          domain: process.env.TESTING_DOMAIN ?? "",
+          path: "/",
+          expires: -1,
+          httpOnly: false,
+          sameSite: "Strict",
+          secure: true,
+        },
+      ],
+      origins: [
+        {
+          origin: "https://" + process.env.TESTING_DOMAIN ?? "",
+          localStorage: [],
+        },
+      ],
     };
 
-    
     const data = JSON.stringify(amplifyData);
+    const fs = require("fs");
     fs.writeFile("./authCookies.json", data, (err) => {
       if (err) {
         throw err;
