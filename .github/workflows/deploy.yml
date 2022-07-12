@@ -118,8 +118,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-region: ap-southeast-2
+          aws-region: us-west-2
           role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
-      - name: Release Production Assets
-        run: go run mage.go -v release:production granted-internal-testing-releases ${{ github.sha }}
+      - name: Release CloudFormation
+        run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
