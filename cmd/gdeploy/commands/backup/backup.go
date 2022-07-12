@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -25,6 +26,9 @@ var Command = cli.Command{
 		f := c.Path("file")
 
 		dc := deploy.MustLoadConfig(f)
+
+		// Ensure aws account session is valid
+		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		stackOutput, err := dc.LoadOutput(ctx)
 		if err != nil {

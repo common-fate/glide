@@ -110,7 +110,15 @@ type Deployment struct {
 	StackName string `yaml:"stackName"`
 	Account   string `yaml:"account"`
 	Region    string `yaml:"region"`
-	Release   string `yaml:"release"`
+	// Release may be one of two formats:
+	//
+	// 1. A release version tag (e.g. 'v0.1.0'). This uses a release
+	// from Common Fate's release bucket.
+	//
+	// 2. A path to a CloudFormation template in S3, in the format
+	// 'https://custom-bucket.s3.amazonaws.com/path/to/template.json'.
+	// Note that the S3 bucket must be in the same region as the 'Region' parameter.
+	Release string `yaml:"release"`
 	// Dev is set to true for internal development deployments only.
 	Dev        *bool      `yaml:"dev,omitempty"`
 	Parameters Parameters `yaml:"parameters"`
@@ -306,7 +314,16 @@ func LoadConfig(f string) (*Config, error) {
 	return &dc, nil
 }
 
+// CfnTemplateURL returns the CloudFormation template URL.
+// If the deployment release points to an S3 object (https://custom-bucket.s3.amazonaws.com/path/to/template.json)
+// It is turned into a HTTPS URL. If a regular version number (v0.1.0) is used, we point to our official release bucket.
 func (c *Config) CfnTemplateURL() string {
+	// use a custom URL if it was provided
+	if strings.HasPrefix(c.Deployment.Release, "https://") {
+		return c.Deployment.Release
+	}
+
+	// otherwise, use the Common Fate release bucket
 	return fmt.Sprintf("https://granted-releases-%s.s3.amazonaws.com/%s/Granted.template.json", c.Deployment.Region, c.Deployment.Release)
 }
 

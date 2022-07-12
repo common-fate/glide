@@ -1,6 +1,8 @@
 package sync
 
 import (
+	"time"
+
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -14,6 +16,9 @@ var SyncCommand = cli.Command{
 	Name: "sync",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
+
+		// Ensure aws account session is valid
+		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		var cfg config.SyncConfig
 		_ = godotenv.Load()
