@@ -19,7 +19,7 @@ var CreateCommand = cli.Command{
 		ctx := c.Context
 
 		// Ensure aws account session is valid
-		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute * 10))
 
 		f := c.Path("file")
 
