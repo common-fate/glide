@@ -67,7 +67,7 @@ var watchCommand = cli.Command{
 			wg.Add(1)
 			go func(lg, s string) {
 				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
-				watchEvents(lg)
+				watchEvents(lg, cfg.Region)
 				wg.Done()
 			}(logGroup, service)
 		}
@@ -78,7 +78,7 @@ var watchCommand = cli.Command{
 	},
 }
 
-func watchEvents(group string) {
+func watchEvents(group string, region string) {
 	sawcfg := sawconfig.Configuration{
 		Group: group,
 	}
@@ -86,7 +86,8 @@ func watchEvents(group string) {
 	outputcfg := sawconfig.OutputConfiguration{
 		Pretty: true,
 	}
-
-	b := blade.NewBlade(&sawcfg, &sawconfig.AWSConfiguration{}, &outputcfg)
+	// The Blade api from saw is not very configurable
+	// The most we can do is pass in a Region
+	b := blade.NewBlade(&sawcfg, &sawconfig.AWSConfiguration{Region: region}, &outputcfg)
 	b.StreamEvents()
 }

@@ -7,8 +7,10 @@ import (
 
 	"github.com/TylerBrock/saw/blade"
 	sawconfig "github.com/TylerBrock/saw/config"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -73,8 +75,32 @@ var getCommand = cli.Command{
 			}
 			wg.Add(1)
 			go func(lg, s, start, end string) {
-				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
-				getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end})
+				clio.Info("Starting to get logs for %s, log group id: %s", s, lg)
+				hasLogs := false
+				cwClient := cloudwatchlogs.NewFromConfig(cfg)
+
+				// Because the saw library emits its own errors and os.exits.
+				// We first check whether logs exist for the log group.
+				// if they dont, emit a warning rather than terminating the command
+				o, _ := cwClient.DescribeLogGroups(ctx, &cloudwatchlogs.DescribeLogGroupsInput{
+					LogGroupNamePrefix: &lg,
+				})
+				if o != nil && len(o.LogGroups) == 1 {
+					lo, err := cwClient.DescribeLogStreams(ctx, &cloudwatchlogs.DescribeLogStreamsInput{
+						LogGroupName: o.LogGroups[0].LogGroupName,
+						Limit:        aws.Int32(1),
+					})
+					_ = err
+					if lo != nil && len(lo.LogStreams) != 0 {
+						hasLogs = true
+					}
+				}
+				if hasLogs {
+					getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region)
+				} else {
+					clio.Warn("No logs found for %s, the service may not have run yet. Log group id: %s", s, lg)
+				}
+
 				wg.Done()
 			}(logGroup, service, start, end)
 		}
@@ -107,7 +133,7 @@ type GetEventsOpts struct {
 	End   string
 }
 
-func getEvents(opts GetEventsOpts) {
+func getEvents(opts GetEventsOpts, region string) {
 	sawcfg := sawconfig.Configuration{
 		Group: opts.Group,
 		Start: opts.Start,
@@ -118,7 +144,10 @@ func getEvents(opts GetEventsOpts) {
 		Pretty: true,
 	}
 
-	b := blade.NewBlade(&sawcfg, &sawconfig.AWSConfiguration{}, &outputcfg)
-
+	b := blade.NewBlade(&sawcfg, &sawconfig.AWSConfiguration{Region: region}, &outputcfg)
+	// The blade package will OS.Exit if the loggroup is not found
+	// logroup will not be found possible if no logs have been created yet for the lambda
+	// resulting in
+	// Error ResourceNotFoundException: The specified log group does not exist.
 	b.GetEvents()
 }
