@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/smithy-go"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
@@ -82,9 +85,10 @@ func main() {
 }
 
 func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
+	b := cmd.Before
 	cmd.Before = func(c *cli.Context) error {
-		if cmd.Before != nil {
-			err := cmd.Before(c)
+		if b != nil {
+			err := b(c)
 			if err != nil {
 				return err
 			}
@@ -124,27 +128,13 @@ To fix this, take one of the following actions:
 	}
 }
 
-type RequireAWSCredentialsOpts struct {
-	WarnExpiryIfWithinDuration *time.Duration
-}
-
-func WithWarnExpiryIfWithinDuration(t time.Duration) func(*RequireAWSCredentialsOpts) {
-	return func(gcai *RequireAWSCredentialsOpts) {
-		gcai.WarnExpiryIfWithinDuration = &t
-	}
-}
-
 // RequireAWSCredentials attempts to load aws credentials, if they don't exist, iot returns a clio.CLIError
 // This function will set the AWS config in context under the key cfaws.AWSConfigContextKey
 // use cfaws.ConfigFromContextOrDefault(ctx) to retrieve the value
-// If RequireDeploymentConfig has already run, this function will use the region value from teh deployment config when setting the AWS config in context
-func RequireAWSCredentials(opts ...func(*RequireAWSCredentialsOpts)) cli.BeforeFunc {
+// If RequireDeploymentConfig has already run, this function will use the region value from the deployment config when setting the AWS config in context
+func RequireAWSCredentials() cli.BeforeFunc {
 	return func(c *cli.Context) error {
 		ctx := c.Context
-		var o RequireAWSCredentialsOpts
-		for _, opt := range opts {
-			opt(&o)
-		}
 		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		si.Suffix = " loading AWS credentials from your current profile"
 		si.Writer = os.Stderr
@@ -152,10 +142,12 @@ func RequireAWSCredentials(opts ...func(*RequireAWSCredentialsOpts)) cli.BeforeF
 		defer si.Stop()
 		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
-			si.Stop()
-			clio.Debug("Encountered error while loading default aws config: %s", err)
-			clio.Error("Failed to load AWS credentials.")
-			os.Exit(1)
+			return &clio.CLIError{
+				Err: "Failed to load AWS credentials.",
+				Messages: []clio.Printer{
+					&clio.DebugMsg{Msg: fmt.Sprintf("Encountered error while loading default aws config: %s", err)},
+				},
+			}
 		}
 
 		// Use the deployment region if it is available
@@ -167,11 +159,9 @@ func RequireAWSCredentials(opts ...func(*RequireAWSCredentialsOpts)) cli.BeforeF
 		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
 			return &clio.CLIError{
-				Err: fmt.Sprintf("Encountered error while loading default aws config: %s", err),
+				Err: "Failed to load AWS credentials.",
 				Messages: []clio.Printer{
-					&clio.LogMsg{
-						Msg: "Failed to load AWS credentials.",
-					},
+					&clio.DebugMsg{Msg: fmt.Sprintf("Encountered error while loading default aws config: %s", err)},
 				},
 			}
 		}
@@ -187,19 +177,30 @@ func RequireAWSCredentials(opts ...func(*RequireAWSCredentialsOpts)) cli.BeforeF
 			}
 		}
 
-		if creds.Expired() {
+		stsClient := sts.NewFromConfig(cfg)
+		// Use the sts api to check if these credentials are valid
+		_, err = stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+		if err != nil {
+			var ae smithy.APIError
+			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
+			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
+				return &clio.CLIError{
+					Err: "AWS credentials are expired.",
+					Messages: []clio.Printer{
+						&clio.LogMsg{
+							Msg: "Please export valid AWS credentials to run this command.",
+						},
+					},
+				}
+			}
 			return &clio.CLIError{
-				Err: "AWS credentials are expired.",
+				Err: "Failed to call AWS get caller identity",
 				Messages: []clio.Printer{
-					&clio.LogMsg{
-						Msg: "Please export valid AWS credentials to run this command.",
+					&clio.DebugMsg{
+						Msg: err.Error(),
 					},
 				},
 			}
-		}
-
-		if o.WarnExpiryIfWithinDuration != nil && creds.CanExpire && creds.Expires.Before(time.Now().Add(*o.WarnExpiryIfWithinDuration)) {
-			clio.Warn("AWS credentials expire in less than %s, consider exporting fresh credentials to avoid issues.", o.WarnExpiryIfWithinDuration.String())
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil

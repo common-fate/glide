@@ -281,11 +281,12 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 	return res, nil
 }
 
-// LoadConfig attempts to load the config file
+// LoadConfig attempts to load the config file at path f
 // if it does not exist, returns ErrConfigNotExist
 // else returns the config or any other error
 //
-// for CLI commands where a helpful message is required, use MustLoadConfig, which will log a message and os.Exit() if it does not exist
+// in CLI commands, it is preferable to use deploy.ConfigFromContext(ctx) where gdeploy.RequireDeploymentConfig has run as a before function for the command
+// gdeploy.RequireDeploymentConfig will return a helpful cli error if there are any issues
 func LoadConfig(f string) (Config, error) {
 	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
 		return Config{}, ErrConfigNotExist
