@@ -168,10 +168,10 @@ func RequireAWSCredentials() cli.BeforeFunc {
 
 		if !creds.HasKeys() {
 			return &clio.CLIError{
-				Err: "Could not find AWS credentials. Please export valid AWS credentials to run this command.",
+				Err: "Could not find AWS credentials.",
 				Messages: []clio.Printer{
 					&clio.LogMsg{
-						Msg: "Could not find AWS credentials. Please export valid AWS credentials to run this command.",
+						Msg: "Please export valid AWS credentials to run this command.",
 					},
 				},
 			}
