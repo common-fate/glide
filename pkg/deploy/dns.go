@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"go.uber.org/zap"
 )
 
 func (c *Config) SetDNSRecord(ctx context.Context) error {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}

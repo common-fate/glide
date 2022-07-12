@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/lookup"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -26,6 +26,7 @@ var addCommand = cli.Command{
 		&cli.BoolFlag{Name: "overwrite", Usage: "force SSM parameters to be overwritten if they exist"},
 	},
 	Action: func(c *cli.Context) error {
+		ctx := c.Context
 		r := lookup.Registry()
 		p := survey.Select{
 			Message: "What are you trying to grant access to?",
@@ -43,10 +44,10 @@ var addCommand = cli.Command{
 		}
 
 		f := c.Path("file")
-		dc := deploy.MustLoadConfig(f)
-
-		// Ensure aws account session is valid
-		deploy.MustHaveAWSCredentials(c.Context, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 
 		var id string
 		err = survey.AskOne(&survey.Input{
@@ -124,7 +125,7 @@ func promptForConfig(c *cli.Context, providerID string, pcfg genv.Config) error 
 		return nil
 	}
 
-	awsCfg, err := config.LoadDefaultConfig(ctx)
+	awsCfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}

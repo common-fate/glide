@@ -2,9 +2,9 @@ package users
 
 import (
 	"os"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -28,9 +28,14 @@ var createCommand = cli.Command{
 
 		username := c.String("username")
 		f := c.Path("file")
-		dc := deploy.MustLoadConfig(f)
-		// Ensure aws account session is valid
-		cfg := deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute), deploy.WithRegion(dc.Deployment.Region))
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
+		if err != nil {
+			return err
+		}
 		adminGroup := dc.Deployment.Parameters.AdministratorGroupID
 
 		idpType := dc.Deployment.Parameters.IdentityProviderType

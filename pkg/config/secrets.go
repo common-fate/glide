@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 
 type SecretPath string
@@ -29,7 +29,7 @@ var (
 // or just the path if suffix is empty string "/path/to/value"
 func PutSecretVersion(ctx context.Context, path SecretPath, suffix, value string) (outPath string, version string, err error) {
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return "", "", err
 	}
@@ -51,7 +51,7 @@ func PutSecretVersion(ctx context.Context, path SecretPath, suffix, value string
 // DeleteSecret deletes a secret in ssm
 // only granted secrets can be deleted with this function
 func DeleteSecret(ctx context.Context, path SecretPath, suffix string) (*ssm.DeleteParameterOutput, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}

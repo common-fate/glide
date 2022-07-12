@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"time"
-
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -14,11 +12,10 @@ var StatusCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		// Ensure aws account session is valid
-		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
-
-		f := c.Path("file")
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 		o, err := dc.LoadOutput(ctx)
 
 		if err != nil {

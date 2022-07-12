@@ -1,14 +1,7 @@
 package sync
 
 import (
-	"time"
-
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
-	"github.com/joho/godotenv"
-	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -17,39 +10,15 @@ var SyncCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		// Ensure aws account session is valid
-		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
-
-		var cfg config.SyncConfig
-		_ = godotenv.Load()
-
-		err := envconfig.Process(ctx, &cfg)
+		_, err := deploy.ConfigFromContext(ctx)
 		if err != nil {
 			return err
 		}
-
-		ic, err := deploy.UnmarshalIdentity(cfg.IdentitySettings)
-		if err != nil {
-			panic(err)
-		}
-
-		//set up the sync handler
-		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-			TableName:      cfg.TableName,
-			IdpType:        cfg.IdpProvider,
-			UserPoolId:     cfg.UserPoolId,
-			IdentityConfig: ic,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		clio.Info("Starting sync")
-		err = syncer.Sync(ctx)
-		if err != nil {
-			return err
-		}
+		// _, err := dc.LoadOutput(ctx)
+		// if err != nil {
+		// 	return err
+		// }
+		//  @TODO call sync lambda
 
 		return nil
 	}}

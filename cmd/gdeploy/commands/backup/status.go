@@ -1,8 +1,6 @@
 package backup
 
 import (
-	"time"
-
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -17,8 +15,6 @@ var BackupStatus = cli.Command{
 	Subcommands: []*cli.Command{},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		// Ensure aws account session is valid
-		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 		backupOutput, err := deploy.BackupStatus(ctx, c.String("arn"))
 		if err != nil {
 			return err

@@ -11,8 +11,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/config"
 )
 
@@ -23,7 +23,7 @@ func BuildAccessHandlerClient(ctx context.Context, cfg config.Config) (types.Cli
 	if cfg.MockAccessHandler {
 		return nil, nil
 	}
-	awsCfg, err := awsConfig.LoadDefaultConfig(ctx)
+	awsCfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}

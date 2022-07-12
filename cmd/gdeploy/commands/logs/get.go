@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/TylerBrock/saw/blade"
 	sawconfig "github.com/TylerBrock/saw/config"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/pkg/errors"
@@ -34,20 +33,20 @@ var getCommand = cli.Command{
 		}
 
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return err
 		}
-		f := c.Path("file")
 		stackName := c.String("stack")
+
 		if stackName == "" {
+			dc, err := deploy.ConfigFromContext(ctx)
+			if err != nil {
+				return err
+			}
 			// default to the stage from dev-deployment-config
-			dc := deploy.MustLoadConfig(f)
 			stackName = dc.Deployment.StackName
 		}
-
-		// Ensure aws account session is valid
-		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		client := cloudformation.NewFromConfig(cfg)
 		res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{

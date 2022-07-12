@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 )
 
@@ -26,7 +26,7 @@ func NewCognito(ctx context.Context, opts Opts) (*Cognito, error) {
 		return nil, errors.New("UserPoolID was empty")
 	}
 
-	awsconfig, err := config.LoadDefaultConfig(ctx)
+	awsconfig, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}

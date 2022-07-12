@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 
 // EventSender provides methods to submit events to a Granted EventBridge bus.
@@ -21,7 +21,7 @@ type SenderOpts struct {
 
 // NewSender creates a new Sender
 func NewSender(ctx context.Context, opts SenderOpts) (*Sender, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}

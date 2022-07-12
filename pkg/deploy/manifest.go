@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"go.uber.org/zap"
 )
@@ -31,7 +31,7 @@ func PublishManifest(ctx context.Context, releaseBucket, version string) error {
 		return err
 	}
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func PublishManifest(ctx context.Context, releaseBucket, version string) error {
 
 // GetManifest retrieves the manifest.json file for the current deployment region
 func GetManifest(ctx context.Context, region string) (Manifest, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return Manifest{}, err
 	}

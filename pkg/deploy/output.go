@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"time"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/mitchellh/mapstructure"
 	"github.com/olekukonko/tablewriter"
@@ -99,7 +98,7 @@ func (c *Config) LoadSAMLOutput(ctx context.Context) (SAMLOutputs, error) {
 	if c.cachedSAMLOutput != nil {
 		return *c.cachedSAMLOutput, nil
 	}
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return SAMLOutputs{}, err
 	}
@@ -145,7 +144,7 @@ To fix this, take one of the following actions:
 
 // GetStackStatus indicates whether the Cloud Formation stack is online (via "CREATE_COMPLETE")
 func (c *Config) GetStackStatus(ctx context.Context) (types.StackStatus, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -170,10 +169,8 @@ func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 	if c.cachedOutput != nil {
 		return *c.cachedOutput, nil
 	}
-	// Ensure aws account session is valid
-	MustHaveAWSCredentials(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return Output{}, err
 	}
