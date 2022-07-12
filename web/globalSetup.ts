@@ -36,30 +36,51 @@ async function globalSetup(config: FullConfig) {
         value: cognitoUser.signInUserSession.idToken.jwtToken,
         domain: process.env.TESTING_DOMAIN ?? "",
         path: "/",
+        expires: -1,
+        httpOnly: false,
+        sameSite: "Strict",
+        secure: true
+
       },
       {
         name: makeKey("clockDrift"),
         value: "0",
         domain: process.env.TESTING_DOMAIN ?? "",
         path: "/",
+        expires: -1,
+        httpOnly: false,
+        sameSite: "Strict",
+        secure: true
       },
       {
         name: "amplify-signin-with-hostedUI",
         value: "false",
         domain: process.env.TESTING_DOMAIN ?? "",
         path: "/",
+        expires: -1,
+        httpOnly: false,
+        sameSite: "Strict",
+        secure: true
       },
       {
         name: makeKey("accessToken"),
         value: cognitoUser.signInUserSession.accessToken.jwtToken,
         domain: process.env.TESTING_DOMAIN ?? "",
         path: "/",
+        expires: -1,
+        httpOnly: false,
+        sameSite: "Strict",
+        secure: true
       },
       {
         name: `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
         value: cognitoUser.username,
         domain: process.env.TESTING_DOMAIN ?? "",
         path: "/",
+        expires: -1,
+        httpOnly: false,
+        sameSite: "Strict",
+        secure: true
       },
     ],
     origins: [
