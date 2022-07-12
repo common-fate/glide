@@ -171,7 +171,7 @@ func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 		return *c.cachedOutput, nil
 	}
 	// Ensure aws account session is valid
-	MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
+	MustHaveAWSCredentials(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
 	if err != nil {

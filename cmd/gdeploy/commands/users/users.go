@@ -4,7 +4,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -26,17 +25,12 @@ var createCommand = cli.Command{
 	Description: "Create a Cognito user",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return err
-		}
-
-		// Ensure aws account session is valid
-		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		username := c.String("username")
 		f := c.Path("file")
 		dc := deploy.MustLoadConfig(f)
+		// Ensure aws account session is valid
+		cfg := deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute), deploy.WithRegion(dc.Deployment.Region))
 		adminGroup := dc.Deployment.Parameters.AdministratorGroupID
 
 		idpType := dc.Deployment.Parameters.IdentityProviderType

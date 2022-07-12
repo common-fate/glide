@@ -21,7 +21,7 @@ var UpdateCommand = cli.Command{
 		f := c.Path("file")
 
 		// Ensure aws account session is valid
-		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		dc := deploy.MustLoadConfig(f)
 

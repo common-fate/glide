@@ -535,6 +535,7 @@ func tryGetCurrentAccountID(ctx context.Context) (string, error) {
 
 type GetCurrentAccountIDOpts struct {
 	WarnExpiryIfWithinDuration *time.Duration
+	Region                     *string
 }
 
 func WithWarnExpiryIfWithinDuration(t time.Duration) func(*GetCurrentAccountIDOpts) {
@@ -542,22 +543,30 @@ func WithWarnExpiryIfWithinDuration(t time.Duration) func(*GetCurrentAccountIDOp
 		gcai.WarnExpiryIfWithinDuration = &t
 	}
 }
+func WithRegion(r string) func(*GetCurrentAccountIDOpts) {
+	return func(gcai *GetCurrentAccountIDOpts) {
+		gcai.Region = &r
+	}
+}
 
-// MustGetCurrentAccountID uses AWS STS to try and load the current account ID.
+// MustHaveAWSCredentials uses AWS STS to try and load the current account ID.
 //
-// if not credentials are available, logs and error and os.Exit(1)
-func MustGetCurrentAccountID(ctx context.Context, opts ...func(*GetCurrentAccountIDOpts)) string {
+// if not credentials are available, logs an error and os.Exit(1)
+func MustHaveAWSCredentials(ctx context.Context, opts ...func(*GetCurrentAccountIDOpts)) aws.Config {
 	var o GetCurrentAccountIDOpts
 	for _, opt := range opts {
 		opt(&o)
 	}
 	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-	si.Suffix = " loading AWS account ID from your current profile"
+	si.Suffix = " loading AWS credentials from your current profile"
 	si.Writer = os.Stderr
 	si.Start()
 	defer si.Stop()
-
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfgOpts := []func(*config.LoadOptions) error{}
+	if o.Region != nil {
+		cfgOpts = append(cfgOpts, config.WithRegion(*o.Region))
+	}
+	cfg, err := config.LoadDefaultConfig(ctx, cfgOpts...)
 	if err != nil {
 		si.Stop()
 		clio.Debug("Encountered error while loading default aws config: %s", err)
@@ -588,7 +597,16 @@ func MustGetCurrentAccountID(ctx context.Context, opts ...func(*GetCurrentAccoun
 	if o.WarnExpiryIfWithinDuration != nil && creds.CanExpire && creds.Expires.Before(time.Now().Add(*o.WarnExpiryIfWithinDuration)) {
 		clio.Warn("AWS credentials expire in less than %s, consider exporting fresh credentials to avoid issues.", o.WarnExpiryIfWithinDuration.String())
 	}
+	return cfg
+}
 
+func MustGetCurrentAccountID(ctx context.Context, opts ...func(*GetCurrentAccountIDOpts)) string {
+	cfg := MustHaveAWSCredentials(ctx, opts...)
+	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	si.Suffix = " loading AWS account ID from your current profile"
+	si.Writer = os.Stderr
+	si.Start()
+	defer si.Stop()
 	client := sts.NewFromConfig(cfg)
 	res, err := client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {

@@ -43,7 +43,7 @@ var watchCommand = cli.Command{
 		}
 
 		// Ensure aws account session is valid
-		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		client := cloudformation.NewFromConfig(cfg)
 		res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{

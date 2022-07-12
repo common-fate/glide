@@ -46,7 +46,7 @@ var addCommand = cli.Command{
 		dc := deploy.MustLoadConfig(f)
 
 		// Ensure aws account session is valid
-		deploy.MustGetCurrentAccountID(c.Context, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+		deploy.MustHaveAWSCredentials(c.Context, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		var id string
 		err = survey.AskOne(&survey.Input{

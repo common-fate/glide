@@ -28,7 +28,7 @@ var Command = cli.Command{
 		dc := deploy.MustLoadConfig(f)
 
 		// Ensure aws account session is valid
-		deploy.MustGetCurrentAccountID(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
+		deploy.MustHaveAWSCredentials(ctx, deploy.WithWarnExpiryIfWithinDuration(time.Minute))
 
 		stackOutput, err := dc.LoadOutput(ctx)
 		if err != nil {
