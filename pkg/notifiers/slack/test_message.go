@@ -12,7 +12,7 @@ import (
 // SendTestMessage is a helper used for customers to test their slack integration settings
 // it expects the configuration json as an input which is parsed and loaded from ssm
 func SendTestMessage(ctx context.Context, email string, slackConfig []byte) error {
-	var s deploy.Slack
+	var s deploy.SlackConfig
 	err := json.Unmarshal(slackConfig, &s)
 	if err != nil {
 		return err

@@ -81,12 +81,12 @@ export class CustomerGrantedStack extends cdk.Stack {
     const providerConfig = new CfnParameter(this, "ProviderConfiguration", {
       type: "String",
       description: "The Access Provider configuration in JSON format",
-      default: "",
+      default: "{}",
     });
     const slackConfig = new CfnParameter(this, "SlackConfiguration", {
       type: "String",
       description: "The Slack notifications configuration in JSON format",
-      default: "",
+      default: "{}",
     });
     const identityConfig = new CfnParameter(this, "IdentityConfiguration", {
       type: "String",
