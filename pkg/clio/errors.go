@@ -18,36 +18,28 @@ type CLIError struct {
 	Messages []Printer
 }
 
-type LogMsg struct {
-	Msg string
+type LogMsg string
+
+func (m LogMsg) Print() {
+	Log(string(m))
 }
 
-func (m *LogMsg) Print() {
-	Log(m.Msg)
+type InfoMsg string
+
+func (m InfoMsg) Print() {
+	Info(string(m))
 }
 
-type InfoMsg struct {
-	Msg string
+type WarnMsg string
+
+func (m WarnMsg) Print() {
+	Warn(string(m))
 }
 
-func (m *InfoMsg) Print() {
-	Info(m.Msg)
-}
+type DebugMsg string
 
-type WarnMsg struct {
-	Msg string
-}
-
-func (m *WarnMsg) Print() {
-	Warn(m.Msg)
-}
-
-type DebugMsg struct {
-	Msg string
-}
-
-func (m *DebugMsg) Print() {
-	Debug(m.Msg)
+func (m DebugMsg) Print() {
+	Debug(string(m))
 }
 
 // Error implements the error interface. It uses the default message of the

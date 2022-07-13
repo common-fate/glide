@@ -112,11 +112,11 @@ func RequireDeploymentConfig() cli.BeforeFunc {
 			return &clio.CLIError{
 				Err: fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
 				Messages: []clio.Printer{
-					&clio.LogMsg{Msg: `
+					clio.LogMsg(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
-`},
+`),
 				},
 			}
 		}
@@ -145,7 +145,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return &clio.CLIError{
 				Err: "Failed to load AWS credentials.",
 				Messages: []clio.Printer{
-					&clio.DebugMsg{Msg: fmt.Sprintf("Encountered error while loading default aws config: %s", err)},
+					clio.DebugMsg(fmt.Sprintf("Encountered error while loading default aws config: %s", err)),
 				},
 			}
 		}
@@ -161,7 +161,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return &clio.CLIError{
 				Err: "Failed to load AWS credentials.",
 				Messages: []clio.Printer{
-					&clio.DebugMsg{Msg: fmt.Sprintf("Encountered error while loading default aws config: %s", err)},
+					clio.DebugMsg(fmt.Sprintf("Encountered error while loading default aws config: %s", err)),
 				},
 			}
 		}
@@ -170,9 +170,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return &clio.CLIError{
 				Err: "Could not find AWS credentials. Please export valid AWS credentials to run this command.",
 				Messages: []clio.Printer{
-					&clio.LogMsg{
-						Msg: "Could not find AWS credentials. Please export valid AWS credentials to run this command.",
-					},
+					clio.LogMsg("Could not find AWS credentials. Please export valid AWS credentials to run this command."),
 				},
 			}
 		}
@@ -187,18 +185,14 @@ func RequireAWSCredentials() cli.BeforeFunc {
 				return &clio.CLIError{
 					Err: "AWS credentials are expired.",
 					Messages: []clio.Printer{
-						&clio.LogMsg{
-							Msg: "Please export valid AWS credentials to run this command.",
-						},
+						clio.LogMsg("Please export valid AWS credentials to run this command."),
 					},
 				}
 			}
 			return &clio.CLIError{
 				Err: "Failed to call AWS get caller identity",
 				Messages: []clio.Printer{
-					&clio.DebugMsg{
-						Msg: err.Error(),
-					},
+					clio.DebugMsg(err.Error()),
 				},
 			}
 		}
