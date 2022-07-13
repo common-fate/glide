@@ -1,5 +1,7 @@
 package clio
 
+import "fmt"
+
 type Printer interface {
 	Print()
 }
@@ -17,37 +19,56 @@ type CLIError struct {
 	// when PrintCLIError is called, each of the messages Print() method is called in order of appearence in the slice
 	Messages []Printer
 }
+type MsgType string
 
-type LogMsg struct {
-	Msg string
+const (
+	LogMsgType     MsgType = "LOG"
+	InfoMsgType    MsgType = "INFO"
+	SuccessMsgType MsgType = "SUCCESS"
+	ErrorMsgType   MsgType = "ERROR"
+	WarnMsgType    MsgType = "WARN"
+	DebugMsgType   MsgType = "DEBUG"
+)
+
+type Msg struct {
+	Msg  string
+	Type MsgType
 }
 
-func (m *LogMsg) Print() {
-	Log(m.Msg)
-}
+func (m Msg) Print() {
+	switch m.Type {
+	case InfoMsgType:
+		Info(m.Msg)
+	case SuccessMsgType:
+		Success(m.Msg)
+	case ErrorMsgType:
+		Error(m.Msg)
+	case WarnMsgType:
+		Warn(m.Msg)
+	case DebugMsgType:
+		Debug(m.Msg)
 
-type InfoMsg struct {
-	Msg string
+	default:
+		Log(m.Msg)
+	}
 }
-
-func (m *InfoMsg) Print() {
-	Info(m.Msg)
+func LogMsg(format string, a ...interface{}) Msg {
+	return Msg{Msg: fmt.Sprintf(format, a...), Type: LogMsgType}
 }
-
-type WarnMsg struct {
-	Msg string
+func InfoMsg(format string, a ...interface{}) Msg {
+	return Msg{Msg: fmt.Sprintf(format, a...), Type: InfoMsgType}
 }
-
-func (m *WarnMsg) Print() {
-	Warn(m.Msg)
+func SuccessMsg(format string, a ...interface{}) Msg {
+	return Msg{Msg: fmt.Sprintf(format, a...), Type: SuccessMsgType}
 }
-
-type DebugMsg struct {
-	Msg string
+func ErrorMsg(format string, a ...interface{}) Msg {
+	return Msg{Msg: fmt.Sprintf(format, a...), Type: ErrorMsgType}
 }
-
-func (m *DebugMsg) Print() {
-	Debug(m.Msg)
+func WarnMsg(format string, a ...interface{}) Msg {
+	return Msg{Msg: fmt.Sprintf(format, a...), Type: WarnMsgType}
+}
+func DebugMsg(format string, a ...interface{}) Msg {
+	return Msg{Msg: fmt.Sprintf(format, a...), Type: DebugMsgType}
 }
 
 // Error implements the error interface. It uses the default message of the
@@ -59,7 +80,7 @@ func (e *CLIError) Error() string {
 // PrintCLIError prints the error message and then any messages in order from the slice
 // The indended use is to surface errors with useful messages then os.Exit without having to place os.Exit withing methods other than the cli main function
 //
-// err := CLIError{Err: errors.New("new error"), Messages: []Printer{&LogMsg{Msg:"hello world"}}}
+// err := CLIError{Err: errors.New("new error"), Messages: []Printer{LogMsg("hello world")}}
 //
 // err.PrintCLIError()
 // // produces

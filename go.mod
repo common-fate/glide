@@ -143,6 +143,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.0
 	github.com/briandowns/spinner v1.18.1
 	github.com/common-fate/ddb v0.9.0

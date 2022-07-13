@@ -53,11 +53,11 @@ var AvailableSSOProviders = []string{
 }
 
 type Config struct {
-	Version       int                 `yaml:"version"`
-	Deployment    Deployment          `yaml:"deployment"`
-	Providers     map[string]Provider `yaml:"providers,omitempty"`
-	Notifications *Notifications      `yaml:"notifications,omitempty"`
-	Identity      *IdentityConfig     `yaml:"identity,omitempty"`
+	Version       int                  `yaml:"version"`
+	Deployment    Deployment           `yaml:"deployment"`
+	Providers     map[string]Provider  `yaml:"providers,omitempty"`
+	Notifications *NotificationsConfig `yaml:"notifications,omitempty"`
+	Identity      *IdentityConfig      `yaml:"identity,omitempty"`
 
 	cachedOutput     *Output
 	cachedSAMLOutput *SAMLOutputs
@@ -70,7 +70,7 @@ type IdentityConfig struct {
 
 // UnmarshalIdentity parses the JSON configuration data and returns
 // an initialised struct. If `data` is an empty string an empty
-// Identity{} object is returned.
+// IdentityConfig{} object is returned.
 func UnmarshalIdentity(data string) (IdentityConfig, error) {
 	if data == "" {
 		return IdentityConfig{}, nil
@@ -106,16 +106,46 @@ func (o Okta) String() string {
 	return fmt.Sprintf("{APIToken: %s, OrgURL: %s}", o.APIToken, o.OrgURL)
 }
 
-type Notifications struct {
-	Slack *Slack `yaml:"slack,omitempty" json:"slack,omitempty"`
+type NotificationsConfig struct {
+	Slack *SlackConfig `yaml:"slack,omitempty" json:"slack,omitempty"`
 }
 
-type Slack struct {
+// UnmarshalNotifications parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// NotificationsConfig{} object is returned.
+func UnmarshalNotifications(data string) (NotificationsConfig, error) {
+	if data == "" {
+		return NotificationsConfig{}, nil
+	}
+	var i NotificationsConfig
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return NotificationsConfig{}, err
+	}
+	return i, nil
+}
+
+type SlackConfig struct {
 	APIToken string `yaml:"apiToken" json:"apiToken"`
 }
 
+// UnmarshalSlack parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// SlackConfig{} object is returned.
+func UnmarshalSlack(data string) (SlackConfig, error) {
+	if data == "" {
+		return SlackConfig{}, nil
+	}
+	var i SlackConfig
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return SlackConfig{}, err
+	}
+	return i, nil
+}
+
 // String redacts potentially sensitive token values
-func (s Slack) String() string {
+func (s SlackConfig) String() string {
 	s.APIToken = "****"
 	return fmt.Sprintf("{APIToken: %s}", s.APIToken)
 }
