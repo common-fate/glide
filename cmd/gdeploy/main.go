@@ -88,16 +88,19 @@ func main() {
 }
 
 func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
+	// run the commands own before function last if it exists
+	// this will help to ensure we have meaningful levels of error precedence
+	// e.g check if deployment config exists before checking for aws credentials
 	b := cmd.Before
 	cmd.Before = func(c *cli.Context) error {
-		if b != nil {
-			err := b(c)
+		for _, f := range funcs {
+			err := f(c)
 			if err != nil {
 				return err
 			}
 		}
-		for _, f := range funcs {
-			err := f(c)
+		if b != nil {
+			err := b(c)
 			if err != nil {
 				return err
 			}
