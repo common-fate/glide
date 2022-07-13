@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/lambda"
 
@@ -34,8 +33,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var s deploy.Slack
-	err = json.Unmarshal([]byte(cfg.SlackSettings), &s)
+
+	s, err := deploy.UnmarshalSlack(cfg.SlackSettings)
 	if err != nil {
 		panic(err)
 	}

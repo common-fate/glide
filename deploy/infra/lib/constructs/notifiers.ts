@@ -63,7 +63,10 @@ export class Notifiers extends Construct {
       "EnableSlackEventRuleCondition",
       {
         expression: Fn.conditionNot(
-          Fn.conditionEquals(props.slackConfiguration, "")
+          Fn.conditionOr(
+            Fn.conditionEquals(props.slackConfiguration, ""),
+            Fn.conditionEquals(props.slackConfiguration, "{}")
+          )
         ),
       }
     );

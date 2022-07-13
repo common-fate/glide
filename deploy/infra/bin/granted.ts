@@ -30,7 +30,7 @@ if (stackTarget === "dev") {
   new DevGrantedStack(app, "GrantedDev", {
     cognitoDomainPrefix,
     stage,
-    providerConfig,
+    providerConfig: providerConfig || "{}",
     // We have inadvertently propagated this "granted-approvals-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
     stackName: "granted-approvals-" + stage,
     idpType: idpType || "COGNITO",
@@ -38,7 +38,7 @@ if (stackTarget === "dev") {
     devConfig: null,
     adminGroupId: adminGroupId || "granted_administrators",
     samlMetadata: samlMetadata || "",
-    slackConfiguration: slackConfig || "",
+    slackConfiguration: slackConfig || "{}",
     identityProviderSyncConfiguration: identityConfig || "{}",
   });
 } else if (stackTarget === "prod") {
