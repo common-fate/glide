@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   test:
+    if: ${{ false }}
     name: Test
     runs-on: ubuntu-20.04
 
@@ -95,9 +96,17 @@ jobs:
       - name: Build
         run: pnpm run build
         working-directory: web
-
+      # - name: Install Playwright
+      #   run: pnpm run e2e-install
+      #   working-directory: web
+      # - name: Run Playwright tests
+      #   run: pnpm run e2e
+      #   working-directory: web
+      #   env:
+      #     # This might depend on your test-runner/language binding
+      #     PLAYWRIGHT_TEST_BASE_URL: djmoxvh6xpra8.cloudfront.net/
   playwright-tests:
-    needs: [test-frontend]
+    # needs: [test-frontend]
     timeout-minutes: 10
     runs-on: ubuntu-latest
     # if: github.event.deployment_status.state == 'success'
@@ -105,11 +114,18 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14.x'
+          node-version: '16'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
       # Should be installed from dependent test-frontend
       # - name: Install dependencies
       #   run: pnpm ci
       #   working-directory: web
+      - name: Install Deps
+        run: pnpm i
+        working-directory: web
       - name: Install Playwright
         run: pnpm run e2e-install
         working-directory: web
