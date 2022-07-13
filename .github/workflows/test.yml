@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   test:
-    if: ${{ false }}
     name: Test
     runs-on: ubuntu-20.04
 
@@ -134,11 +133,10 @@ jobs:
         run: pnpm run e2e
         working-directory: web
         env:
-          # This might depend on your test-runner/language binding
-          PLAYWRIGHT_TEST_BASE_URL: djmoxvh6xpra8.cloudfront.net/
+          PLAYWRIGHT_TEST_BASE_URL: djmoxvh6xpra8.cloudfront.net/ # @TODO find a way to pass this between deployment
+          TESTING_DOMAIN: '${{ secrets.TESTING_DOMAIN}}' # @TODO find a way to pass this between deployment
           TEST_USERNAME: '${{ secrets.TEST_USERNAME}}'
           TEST_ADMIN_USERNAME: '${{ secrets.TEST_ADMIN_USERNAME}}'
           TEST_PASSWORD: '${{ secrets.TEST_PASSWORD}}'
           USER_POOL_ID: '${{ secrets.USER_POOL_ID}}'
           COGNITO_CLIENT_ID: '${{ secrets.COGNITO_CLIENT_ID}}'
-          TESTING_DOMAIN: '${{ secrets.TESTING_DOMAIN}}'
