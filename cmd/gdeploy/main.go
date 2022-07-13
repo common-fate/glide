@@ -145,7 +145,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return &clio.CLIError{
 				Err: "Failed to load AWS credentials.",
 				Messages: []clio.Printer{
-					clio.DebugMsg(fmt.Sprintf("Encountered error while loading default aws config: %s", err)),
+					clio.DebugMsg("Encountered error while loading default aws config: %s", err),
 				},
 			}
 		}
@@ -161,7 +161,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return &clio.CLIError{
 				Err: "Failed to load AWS credentials.",
 				Messages: []clio.Printer{
-					clio.DebugMsg(fmt.Sprintf("Encountered error while loading default aws config: %s", err)),
+					clio.DebugMsg("Encountered error while loading default aws config: %s", err),
 				},
 			}
 		}
