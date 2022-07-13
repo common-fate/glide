@@ -16,6 +16,7 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/provider"
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sso"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sync"
@@ -58,6 +59,7 @@ func main() {
 			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
+			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
 		},
 	}
 
