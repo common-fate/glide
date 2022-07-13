@@ -2,6 +2,7 @@ package sso
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -29,6 +30,7 @@ var configureCommand = cli.Command{
 	Description: "Set up SSO for a deployment",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
+
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)
 		if err != nil {
@@ -47,13 +49,12 @@ var configureCommand = cli.Command{
 		oktaConfigured := dc.Identity.Okta != nil
 		oktaSelected := idpType == "Okta"
 		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
-
+		var update bool
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
 			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) {
 				if isCurrentIDP {
-					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?",idpType)}
-					var update bool
+					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
 					err = survey.AskOne(p3, &update)
 					if err != nil {
 						return err
@@ -62,128 +63,149 @@ var configureCommand = cli.Command{
 						clio.Info("Closing SSO setup")
 						return nil
 					}
-				}else {
-					clio.Info("You already have configuration for %s but it's not currently set as your identity provider",idpType)
-					p3 := &survey.Confirm{Message: "Do you need to update the configuration for %s?")}
-					err = survey.AskOne(p3, &overwrite)
+				} else {
+					clio.Info("You already have configuration for %s but it's not currently set as your identity provider", idpType)
+					p3 := &survey.Confirm{Message: fmt.Sprintf("Do you need to update the configuration for %s as well as setting it as your identity provider?", idpType)}
+					var update bool
+					err = survey.AskOne(p3, &update)
 					if err != nil {
 						return err
-					}
-				}
-
-				if !overwrite {
-					p3 := &survey.Confirm{Message: "This process will overwrite your existing configuration for %s, are you sure?"}
-					err = survey.AskOne(p3, &overwrite)
-					if err != nil {
-						return err
-					}
-					//if they dont want to update current param then exit
-					if !overwrite {
-						clio.Info("Closing SSO setup")
-						return nil
 					}
 				}
 			}
 		}
-
-		if googleSelected {
-			docs := "https://docs.commonfate.io/granted-approvals/sso/google"
-			clio.Info("Find documentation for setting up Google Workspace in our setup docs: %s", docs)
-			var google deploy.Google
-			if dc.Identity != nil && dc.Identity.Google != nil {
-				google = *dc.Identity.Google
+		if update {
+			if googleSelected {
+				docs := "https://docs.commonfate.io/granted-approvals/sso/google"
+				clio.Info("You can follow along with the Google setup guide in our docs: %s", docs)
+				var google deploy.Google
+				if dc.Identity != nil && dc.Identity.Google != nil {
+					google = *dc.Identity.Google
+				}
+				var token string
+				p1 := &survey.Password{Message: "API Token:"}
+				err = survey.AskOne(p1, &token)
+				if err != nil {
+					return err
+				}
+				p2 := &survey.Input{Message: "Google Workspace Domain:"}
+				err = survey.AskOne(p2, &google.Domain)
+				if err != nil {
+					return err
+				}
+				p3 := &survey.Input{Message: "Google Admin Email"}
+				err = survey.AskOne(p3, &google.AdminEmail)
+				if err != nil {
+					return err
+				}
+				path, version, err := config.PutSecretVersion(ctx, config.GoogleTokenPath, dc.Deployment.Parameters.DeploymentSuffix, token)
+				if err != nil {
+					return err
+				}
+				google.APIToken = config.AWSSSMParamToken(path, version)
+				if err != nil {
+					return err
+				}
+				clio.Success("SSM Parameters set successfully")
+				if dc.Identity == nil {
+					dc.Identity = &deploy.IdentityConfig{
+						Google: &google,
+					}
+				} else {
+					dc.Identity.Google = &google
+				}
+			} else if oktaSelected {
+				docs := "https://docs.commonfate.io/granted-approvals/sso/okta"
+				clio.Info("You can follow along with the Okta setup guide in our docs: %s", docs)
+				var okta deploy.Okta
+				if dc.Identity != nil && dc.Identity.Google != nil {
+					okta = *dc.Identity.Okta
+				}
+				var token string
+				p1 := &survey.Password{Message: "API Token:"}
+				err = survey.AskOne(p1, &token)
+				if err != nil {
+					return err
+				}
+				p2 := &survey.Input{Message: "Okta Org URL:"}
+				err = survey.AskOne(p2, &okta.OrgURL)
+				if err != nil {
+					return err
+				}
+				path, version, err := config.PutSecretVersion(ctx, config.OktaTokenPath, dc.Deployment.Parameters.DeploymentSuffix, token)
+				if err != nil {
+					return err
+				}
+				okta.APIToken = config.AWSSSMParamToken(path, version)
+				if err != nil {
+					return err
+				}
+				clio.Success("SSM Parameters set successfully")
+				if dc.Identity == nil {
+					dc.Identity = &deploy.IdentityConfig{
+						Okta: &okta,
+					}
+				} else {
+					dc.Identity.Okta = &okta
+				}
 			}
-			var token string
-			p1 := &survey.Password{Message: "API Token:"}
-			err = survey.AskOne(p1, &token)
-			if err != nil {
-				return err
-			}
-			p2 := &survey.Input{Message: "Google Workspace Domain:"}
-			err = survey.AskOne(p2, &google.Domain)
-			if err != nil {
-				return err
-			}
-			p3 := &survey.Input{Message: "Google Admin Email"}
-			err = survey.AskOne(p3, &google.AdminEmail)
-			if err != nil {
-				return err
-			}
-			path, version, err := config.PutSecretVersion(ctx, config.GoogleTokenPath, dc.Deployment.Parameters.DeploymentSuffix, token)
-			if err != nil {
-				return err
-			}
-			google.APIToken = config.AWSSSMParamToken(path, version)
-			if err != nil {
-				return err
-			}
-			clio.Success("SSM Parameters Set Successfully\n")
-			clio.Warn("SAML outputs:\n")
+			clio.Info("The following parameters are required to setup a SAML app in your identity provider")
 			o, err := dc.LoadSAMLOutput(ctx)
 			if err != nil {
 				return err
 			}
 			o.PrintSAMLTable()
-			if dc.Identity == nil {
-				dc.Identity = &deploy.IdentityConfig{
-					Google: &google,
+			var (
+				fromUrl    = "URL"
+				fromString = "String"
+				fromFile   = "File"
+			)
+			p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
+			metadataChoice := fromUrl
+			err = survey.AskOne(p4, &metadataChoice)
+			if err != nil {
+				return err
+			}
+			switch metadataChoice {
+			case fromUrl:
+				p5 := &survey.Input{Message: "Metadata URL"}
+				err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+				if err != nil {
+					return err
 				}
-			} else {
-				dc.Identity.Google = &google
-			}
-			clio.Info("Find documentation for setting up SAML SSO here: %s", docs)
-			dc.Deployment.Parameters.IdentityProviderType = "GSUITE"
-			//complete the setup with the saml metadata
-			var metadata string
-			p4 := &survey.Input{Message: "SAML Metadata String:"}
-			err = survey.AskOne(p4, &metadata)
-			if err != nil {
-				return err
-			}
-			dc.Deployment.Parameters.SamlSSOMetadata = metadata
-		} else if oktaSelected {
-			docs := "https://docs.commonfate.io/granted-approvals/sso/okta"
-			clio.Info("Find documentation for setting up Okta in our setup docs: %s", docs)
-			var okta deploy.Okta
-			if dc.Identity != nil && dc.Identity.Google != nil {
-				okta = *dc.Identity.Okta
-			}
-			var token string
-			p1 := &survey.Password{Message: "API Token:"}
-			err = survey.AskOne(p1, &token)
-			if err != nil {
-				return err
-			}
-			p2 := &survey.Input{Message: "Okta Org URL:"}
-			err = survey.AskOne(p2, &okta.OrgURL)
-			if err != nil {
-				return err
-			}
-			path, version, err := config.PutSecretVersion(ctx, config.OktaTokenPath, dc.Deployment.Parameters.DeploymentSuffix, token)
-			if err != nil {
-				return err
-			}
-			okta.APIToken = config.AWSSSMParamToken(path, version)
-			if err != nil {
-				return err
-			}
-			clio.Success("SSM Parameters Set Successfully\n")
-			if dc.Identity == nil {
-				dc.Identity = &deploy.IdentityConfig{
-					Okta: &okta,
+			case fromString:
+				p5 := &survey.Input{Message: "Metadata XML String"}
+				err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+				if err != nil {
+					return err
 				}
-			} else {
-				dc.Identity.Okta = &okta
+			case fromFile:
+				p5 := &survey.Input{Message: "Metadata XML file"}
+				var res string
+				err := survey.AskOne(p5, &res, func(options *survey.AskOptions) error {
+					options.Validators = append(options.Validators, func(ans interface{}) error {
+						p := ans.(string)
+						fileInfo, err := os.Stat(p)
+						if err != nil {
+							return err
+						}
+						if fileInfo.IsDir() {
+							return fmt.Errorf("path is a directory, must be a file")
+						}
+						return nil
+					})
+					return nil
+				})
+				if err != nil {
+					return err
+				}
+				b, err := os.ReadFile(res)
+				if err != nil {
+					return err
+				}
+				dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 			}
-			clio.Warn("SAML outputs:\n")
-			o, err := dc.LoadSAMLOutput(ctx)
 
-			if err != nil {
-				return err
-			}
-			o.PrintSAMLTable()
-			clio.Info("Find documentation for setting up SAML SSO here: %s", docs)
-			dc.Deployment.Parameters.IdentityProviderType = "OKTA"
 			//complete the setup with the saml metadata
 			var metadata string
 			t := &survey.Input{Message: "Okta SAML metadata URL:"}
@@ -191,14 +213,17 @@ var configureCommand = cli.Command{
 			if err != nil {
 				return err
 			}
-			dc.Deployment.Parameters.SamlSSOMetadataURL = metadata
+
 		}
+		dc.Deployment.Parameters.IdentityProviderType = strings.ToUpper(idpType)
+		clio.Info("Updating your deployment config")
 		err = dc.Save(f)
 		if err != nil {
 			return err
 		}
-		clio.Success("completed SSO setup")
+		clio.Success("Successfully completed SSO configuration")
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
+
 	},
 }
