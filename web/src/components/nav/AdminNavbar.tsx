@@ -85,12 +85,6 @@ export const AdminNavbar: React.FC<{}> = () => {
                     <StyledNextButton href="/admin/groups">
                       Groups
                     </StyledNextButton>
-                    <StyledNextButton href="/admin/settings">
-                      Settings
-                    </StyledNextButton>
-                    {/* <StyledNextButton href="/admin/auditlog">
-                      Audit Log
-                    </StyledNextButton> */}
                   </ButtonGroup>
                 )}
               </HStack>
