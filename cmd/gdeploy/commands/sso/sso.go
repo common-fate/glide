@@ -43,15 +43,14 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
-		googleConfigured := dc.Identity.Google != nil
 		googleSelected := idpType == "Google"
-		oktaConfigured := dc.Identity.Okta != nil
 		oktaSelected := idpType == "Okta"
-		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
-		var update bool
+		update := true
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
+			googleConfigured := dc.Identity.Google != nil
+			oktaConfigured := dc.Identity.Okta != nil
+			isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
 			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) {
 				if isCurrentIDP {
 					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
@@ -205,15 +204,6 @@ var configureCommand = cli.Command{
 				}
 				dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 			}
-
-			//complete the setup with the saml metadata
-			var metadata string
-			t := &survey.Input{Message: "Okta SAML metadata URL:"}
-			err = survey.AskOne(t, &metadata)
-			if err != nil {
-				return err
-			}
-
 		}
 		dc.Deployment.Parameters.IdentityProviderType = strings.ToUpper(idpType)
 		clio.Info("Updating your deployment config")
