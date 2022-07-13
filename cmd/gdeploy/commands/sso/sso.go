@@ -45,12 +45,12 @@ var configureCommand = cli.Command{
 		}
 		googleSelected := idpType == "Google"
 		oktaSelected := idpType == "Okta"
+		googleConfigured := dc.Identity != nil && dc.Identity.Google != nil
+		oktaConfigured := dc.Identity != nil && dc.Identity.Okta != nil
+		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
 		update := true
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
-			googleConfigured := dc.Identity.Google != nil
-			oktaConfigured := dc.Identity.Okta != nil
-			isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
 			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) {
 				if isCurrentIDP {
 					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
@@ -78,7 +78,7 @@ var configureCommand = cli.Command{
 				docs := "https://docs.commonfate.io/granted-approvals/sso/google"
 				clio.Info("You can follow along with the Google setup guide in our docs: %s", docs)
 				var google deploy.Google
-				if dc.Identity != nil && dc.Identity.Google != nil {
+				if googleConfigured {
 					google = *dc.Identity.Google
 				}
 				var token string
@@ -87,12 +87,12 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				p2 := &survey.Input{Message: "Google Workspace Domain:"}
+				p2 := &survey.Input{Message: "Google Workspace Domain:", Default: google.Domain}
 				err = survey.AskOne(p2, &google.Domain)
 				if err != nil {
 					return err
 				}
-				p3 := &survey.Input{Message: "Google Admin Email"}
+				p3 := &survey.Input{Message: "Google Admin Email", Default: google.AdminEmail}
 				err = survey.AskOne(p3, &google.AdminEmail)
 				if err != nil {
 					return err
@@ -117,7 +117,7 @@ var configureCommand = cli.Command{
 				docs := "https://docs.commonfate.io/granted-approvals/sso/okta"
 				clio.Info("You can follow along with the Okta setup guide in our docs: %s", docs)
 				var okta deploy.Okta
-				if dc.Identity != nil && dc.Identity.Google != nil {
+				if oktaConfigured {
 					okta = *dc.Identity.Okta
 				}
 				var token string
@@ -126,7 +126,7 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				p2 := &survey.Input{Message: "Okta Org URL:"}
+				p2 := &survey.Input{Message: "Okta Org URL:", Default: okta.OrgURL}
 				err = survey.AskOne(p2, &okta.OrgURL)
 				if err != nil {
 					return err
