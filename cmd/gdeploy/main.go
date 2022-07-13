@@ -191,7 +191,7 @@ func RequireCleanGitWorktree() cli.BeforeFunc {
 	return func(c *cli.Context) error {
 		if !c.Bool("ignore-git-dirty") {
 			_, err := os.Stat(".git")
-			if err == os.ErrNotExist {
+			if os.IsNotExist(err) {
 				// not a git repo, skip check
 				return nil
 			}
