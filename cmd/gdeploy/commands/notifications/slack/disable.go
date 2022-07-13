@@ -15,8 +15,11 @@ var disableSlackCommand = cli.Command{
 		ctx := c.Context
 		f := c.Path("file")
 
-		dc := deploy.MustLoadConfig(f)
-		_, err := config.DeleteSecret(ctx, config.SlackTokenPath, dc.Deployment.Parameters.DeploymentSuffix)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+		_, err = config.DeleteSecret(ctx, config.SlackTokenPath, dc.Deployment.Parameters.DeploymentSuffix)
 		if err != nil {
 			return errors.Wrap(err, "failed while deleting slack parameters in ssm")
 		}

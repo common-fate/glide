@@ -26,17 +26,17 @@ var configureCommand = cli.Command{
 	Flags:       []cli.Flag{&cli.BoolFlag{Name: "overwrite", Aliases: []string{"o"}, Usage: "if provided, will prompt to override parameter values"}},
 	Description: "Set up SSO for a deployment",
 	Action: func(c *cli.Context) error {
-
 		overwrite := c.Bool("overwrite")
 		ctx := c.Context
-
 		f := c.Path("file")
-
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 
 		var ssoEnable string
 		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: AvailableSSOProviders}
-		err := survey.AskOne(p2, &ssoEnable)
+		err = survey.AskOne(p2, &ssoEnable)
 		if err != nil {
 			return err
 		}

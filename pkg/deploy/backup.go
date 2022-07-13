@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	ddbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 
 func StartBackup(ctx context.Context, tableName string, backupName string) (*ddbTypes.BackupDetails, error) {
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -29,12 +29,10 @@ func StartBackup(ctx context.Context, tableName string, backupName string) (*ddb
 }
 
 func BackupStatus(ctx context.Context, backupARN string) (*ddbTypes.BackupDescription, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
-	// Ensure aws account session is valid
-	MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
 
 	client := dynamodb.NewFromConfig(cfg)
 	b, err := client.DescribeBackup(ctx, &dynamodb.DescribeBackupInput{
@@ -58,7 +56,7 @@ func BackupDetailsToString(b *ddbTypes.BackupDetails) string {
 }
 
 func StartRestore(ctx context.Context, backupARN string, targetTableName string) (*ddbTypes.TableDescription, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +71,10 @@ func StartRestore(ctx context.Context, backupARN string, targetTableName string)
 	return rbo.TableDescription, nil
 }
 func RestoreStatus(ctx context.Context, targetTableName string) (*ddbTypes.TableDescription, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
-	// Ensure aws account session is valid
-	MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
 
 	client := dynamodb.NewFromConfig(cfg)
 	rbo, err := client.DescribeTable(ctx, &dynamodb.DescribeTableInput{

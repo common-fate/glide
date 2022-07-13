@@ -81,4 +81,7 @@ export class IdpSync extends Construct {
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }
+  getFunctionName(): string {
+    return this._lambda.functionName;
+  }
 }
