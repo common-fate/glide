@@ -60,8 +60,8 @@ var configureSlackCommand = cli.Command{
 			return errors.Wrap(err, "failed while setting Slack parameters in ssm")
 		}
 
-		dc.Notifications = &deploy.Notifications{
-			Slack: &deploy.Slack{
+		dc.Notifications = &deploy.NotificationsConfig{
+			Slack: &deploy.SlackConfig{
 				APIToken: config.AWSSSMParamToken(suffixedPath, version),
 			},
 		}

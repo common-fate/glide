@@ -14,7 +14,7 @@ func TestSSMSecretsAreMaskedWhenLogged(t *testing.T) {
 	google := Google{
 		APIToken: "this-should-be-hidden",
 	}
-	slack := Slack{
+	slack := SlackConfig{
 		APIToken: "this-should-be-hidden",
 	}
 	type testcase struct {

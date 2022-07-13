@@ -29,6 +29,7 @@ type Output struct {
 	CloudFrontDistributionID string `json:"CloudFrontDistributionID"`
 	EventBusArn              string `json:"EventBusArn"`
 	EventBusSource           string `json:"EventBusSource"`
+	IdpSyncFunctionName      string `json:"IdpSyncFunctionName"`
 	Region                   string `json:"Region"`
 }
 

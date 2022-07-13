@@ -20,7 +20,7 @@ type IdentityProvider interface {
 type Notifier struct {
 	DB          ddb.Storage
 	FrontendURL string
-	SlackConfig deploy.Slack
+	SlackConfig deploy.SlackConfig
 }
 
 func (n *Notifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {

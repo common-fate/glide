@@ -33,6 +33,10 @@ func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
 	if !ok {
 		return nil, errors.New("PROVIDER_CONFIG environment variable not set")
 	}
+	// ensure that if the env var is set but is an empty string, we replace it defensively with an empty json object to prevent 500 errors
+	if providerCfg == "" {
+		providerCfg = "{}"
+	}
 	return []byte(providerCfg), nil
 }
 
