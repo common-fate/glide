@@ -133,7 +133,6 @@ jobs:
         run: pnpm run e2e
         working-directory: web
         env:
-          PLAYWRIGHT_TEST_BASE_URL: djmoxvh6xpra8.cloudfront.net/ # @TODO find a way to pass this between deployment
           TESTING_DOMAIN: '${{ secrets.TESTING_DOMAIN}}' # @TODO find a way to pass this between deployment
           TEST_USERNAME: '${{ secrets.TEST_USERNAME}}'
           TEST_ADMIN_USERNAME: '${{ secrets.TEST_ADMIN_USERNAME}}'
