@@ -67,12 +67,12 @@ func ensureConfigDoesntExist(c *cli.Context) error {
 	return &clio.CLIError{
 		Err: fmt.Sprintf("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f),
 		Messages: []clio.Printer{
-			&clio.LogMsg{Msg: `
+			clio.LogMsg(`
 To fix this, take one of the following actions:
   a) run 'gdeploy init' from a different folder
   b) run 'gdeploy -f other-config.toml init' to use a separate config file
   c) run 'gdeploy init --overwrite' to force overwriting the existing config
-`},
+`),
 		},
 	}
 }
