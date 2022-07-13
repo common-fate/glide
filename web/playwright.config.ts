@@ -4,11 +4,11 @@ const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   
  
-  retries: 2,
+  retries: 0,
   globalSetup: "./globalSetup.ts",
   use: {
     // Tell all tests to load signed-in state from 'authCookies.json'.
-    storageState: "./authCookies.json",
+    //storageState: "./authCookies.json",
     trace: "on",
     baseURL: process.env.TESTING_DOMAIN,
   },
