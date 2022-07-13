@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"os"
+
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -23,6 +25,12 @@ var UpdateCommand = cli.Command{
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
 		clio.Info("Using template: %s", dc.CfnTemplateURL())
 		confirm := c.Bool("confirm")
+
+		if os.Getenv("CI") == "true" {
+			clio.Debug("CI env var is set to 'true', skipping confirmation prompt")
+			confirm = true
+		}
+
 		err = dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
