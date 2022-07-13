@@ -10,7 +10,7 @@
     "lint:ci": "next lint --quiet",
     "clienttypegen": "orval --config ./src/utils/orval.config.js",
     "analyze": "ANALYZE=true next build",
-    "e2e-install": "playwright install",
+    "e2e-install": "playwright install --with-deps",
     "e2e": "playwright test --headed"
   },
   "dependencies": {
