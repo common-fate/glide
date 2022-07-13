@@ -17,6 +17,7 @@ import {
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/default/default";
+import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { CreateAccessRuleFormData } from "../CreateForm";
@@ -52,6 +53,7 @@ export const ProviderStep: React.FC = () => {
           <FormLabel htmlFor="target.providerId">
             <Text textStyle={"Body/Medium"}>Provider</Text>
           </FormLabel>
+          <ProviderSetupNotice />
           <Controller
             control={methods.control}
             rules={{ required: true }}

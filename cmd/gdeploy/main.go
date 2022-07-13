@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -39,6 +41,7 @@ func main() {
 		HideVersion: false,
 		Flags: []cli.Flag{
 			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "the deployment config file"},
+			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "ignore checking if this is a clean repository during create and update commands"},
 		},
 		Writer: color.Output,
 		Commands: []*cli.Command{
@@ -49,8 +52,8 @@ func main() {
 			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&sync.SyncCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
+			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
@@ -85,16 +88,19 @@ func main() {
 }
 
 func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
+	// run the commands own before function last if it exists
+	// this will help to ensure we have meaningful levels of error precedence
+	// e.g check if deployment config exists before checking for aws credentials
 	b := cmd.Before
 	cmd.Before = func(c *cli.Context) error {
-		if b != nil {
-			err := b(c)
+		for _, f := range funcs {
+			err := f(c)
 			if err != nil {
 				return err
 			}
 		}
-		for _, f := range funcs {
-			err := f(c)
+		if b != nil {
+			err := b(c)
 			if err != nil {
 				return err
 			}
@@ -169,6 +175,46 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return clio.NewCLIError("Failed to call AWS get caller identity", clio.DebugMsg(err.Error()))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
+		return nil
+	}
+}
+
+// RequireCleanGitWorktree checks if this is a git repo and if so, checks that the worktree is clean.
+// this ensures that users working with a deployment config in a repo always commit their changes prior to deploying.
+//
+// This method calls out to git if it is installed on the users system.
+// Unfortunately, the go library go-git is very slow when checking status.
+// https://github.com/go-git/go-git/issues/181
+// So this command uses the git cli directly.
+// assumption is if a user is using a repository, they will have git installed
+func RequireCleanGitWorktree() cli.BeforeFunc {
+	return func(c *cli.Context) error {
+		if !c.Bool("ignore-git-dirty") {
+			_, err := os.Stat(".git")
+			if os.IsNotExist(err) {
+				// not a git repo, skip check
+				return nil
+			}
+			if err != nil {
+				return clio.NewCLIError(err.Error(), clio.InfoMsg("The above error occurred while checking if this is a git repo.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
+			}
+			_, err = exec.LookPath("git")
+			if err != nil {
+				// ignore check if git is not installed
+				clio.Debug("could not find 'git' when trying to check if repository is clean. err: %s", err)
+				return nil
+			}
+			cmd := exec.Command("git", "status", "--porcelain")
+			var stdout bytes.Buffer
+			cmd.Stdout = &stdout
+			err = cmd.Run()
+			if err != nil {
+				return clio.NewCLIError(err.Error(), clio.InfoMsg("The above error occurred while checking if this git repo worktree is clean.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
+			}
+			if stdout.Len() > 0 {
+				return clio.NewCLIError("Git worktree is not clean", clio.InfoMsg("We recommend that you commit all changes before creating or updating your deployment.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
+			}
+		}
 		return nil
 	}
 }
