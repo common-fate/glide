@@ -312,6 +312,8 @@ func (Deploy) StagingCDK(env, name string) error {
 
 	dep := deploy.NewStagingConfig(context.Background(), name)
 	args = append(args, dep.CDKContextArgs()...)
+	// add the devEnvironment context arg
+	args = append(args, "-c", "devEnvironment="+env)
 
 	zap.S().Infow("deploying CDK stack", "stage", name)
 
