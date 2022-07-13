@@ -1,16 +1,22 @@
-// playwright.config.ts
 import { type PlaywrightTestConfig, devices } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  
+ 
+  retries: 0,
+  globalSetup: "./globalSetup.ts",
   use: {
-    trace: 'on-first-retry',
+    // Tell all tests to load signed-in state from 'authCookies.json'.
+    //storageState: "./authCookies.json",
+    trace: "on",
+    baseURL: process.env.TESTING_DOMAIN,
   },
+  globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
     {
       name: 'firefox',
