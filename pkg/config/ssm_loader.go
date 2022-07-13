@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 )
@@ -40,7 +40,7 @@ func LoadAndReplaceSSMValues(ctx context.Context, dst interface{}) error {
 	// use an errgroup so we can look up parameter values in parallel.
 	g, gctx := errgroup.WithContext(ctx)
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}

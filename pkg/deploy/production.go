@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/smithy-go"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 
 func StackExists(ctx context.Context, stackName string) (bool, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return false, err
 	}

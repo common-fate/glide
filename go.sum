@@ -140,6 +140,10 @@ github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.2 h1:fOsqTEkAm+z1fIXOz
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.21.2/go.mod h1:feeb/bUX013g5XC4v9DRvFwZNZu0CqhAHZhRA1GGK0E=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2 h1:uhpcmaxRKPt/VHGmzJ4aam8sL0DYr7qJejiQzp/dBV8=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2/go.mod h1:TRXCqcApTM1LhOJcLNolqFEDr3InJoYBieb1qqPcCko=
+github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.18.6 h1:3FtKgndLdv919p3V4VStk8y3agcC9yEu9vrhhe+rvfQ=
+github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.18.6/go.mod h1:A9gdtslk61CskUB2nDcY2fuvJ1RNl5bskr1eTJrcUJU=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10 h1:i4iFDBClrtYE/l5diOkDkfDT4inFk3x/CtJ0wLp/13A=
+github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10/go.mod h1:qZ+mnaag/eWCF6gNVIVwjCjXuNbE0BuWJWKWh2TRAJ8=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4 h1:sMzxamrhhkUrL/Ok7OyeJbJR46u4dbXOci0ucsOQu1c=
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4/go.mod h1:aer8ZSLSiO1d24Xv5MouJ4TdYop2u2tyxRPUYpvueGU=
 github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.4/go.mod h1:lBz+dFsiLZcTCnIdWKUmNQLGX4CidaQqb706AIJ652M=
@@ -169,6 +173,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.7/go.mod h1:HvV
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.2.2/go.mod h1:nnutjMLuna0s3GVY/MAkpLX03thyNER06gXvnMAPj5g=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.7 h1:imb0NhTQZaTDSAQvgFyiZbKTwl0F+AkZL1ZNoEHtuQc=
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.7/go.mod h1:V952z/yIT247sKya+CB+Ls3sxpB9jeBj5TkLraCGKGU=
+github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4 h1:d1Olp+josNRAlrrtacghtos74rffKS6Mq5gEUBHfgHw=
+github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4/go.mod h1:XiSHsT7z5ScD2AsTgfa1UEFQaAr53dHP1oWvaqSW6jQ=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.15.2 h1:lwVNtW6wmwa9iIH017Y9qMoGCcEtvDYJQGUO/1jlRBc=
 github.com/aws/aws-sdk-go-v2/service/organizations v1.15.2/go.mod h1:QV/cuhF5g2FEc7178E+mpmiqf7sS2aHCDGLNkVgHf2o=
 github.com/aws/aws-sdk-go-v2/service/route53 v1.21.2 h1:t7yn/jSMOVFAlCpJqFzivixMRPI/MySAcD0LhXdjbf4=

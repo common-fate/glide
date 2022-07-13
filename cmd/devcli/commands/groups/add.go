@@ -1,8 +1,8 @@
 package groups
 
 import (
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -29,7 +29,7 @@ var addCommand = cli.Command{
 	Description: "Add a Cognito user to a group",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return err
 		}

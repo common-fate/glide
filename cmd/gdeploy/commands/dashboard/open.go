@@ -11,8 +11,10 @@ var openCommand = cli.Command{
 	Description: "Open the dashboard in your web browser",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		f := c.Path("file")
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err

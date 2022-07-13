@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
@@ -26,7 +26,7 @@ var createCommand = cli.Command{
 	Description: "Create a DynamoDB database",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return err
 		}

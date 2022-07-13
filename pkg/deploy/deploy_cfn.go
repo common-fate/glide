@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/cloudform/cfn"
 	"github.com/common-fate/cloudform/console"
 	"github.com/common-fate/cloudform/ui"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/pkg/errors"
 )
@@ -21,7 +21,7 @@ const noChangeFoundMsg = "The submitted information didn't contain changes. Subm
 // DeployCloudFormation creates a CloudFormation stack based on the config
 func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) error {
 	template := c.CfnTemplateURL()
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(c.Deployment.Region))
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}
