@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
+	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 )
 
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +20,11 @@ func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 	code := res.StatusCode()
 	switch code {
 	case 200:
+		// A nil array gets serialised as null, make sure we return an empty array to avoid this
+		if res.JSON200 == nil || len(*res.JSON200) == 0 {
+			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
+			return
+		}
 		apio.JSON(ctx, w, res.JSON200, code)
 		return
 	case 500:
