@@ -112,13 +112,14 @@ jobs:
     # if: github.event.deployment_status.state == 'success'
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 7.1.5
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          # cache: 'pnpm'
       # Should be installed from dependent test-frontend
       # - name: Install dependencies
       #   run: pnpm ci
@@ -135,3 +136,9 @@ jobs:
         env:
           # This might depend on your test-runner/language binding
           PLAYWRIGHT_TEST_BASE_URL: djmoxvh6xpra8.cloudfront.net/
+          TEST_USERNAME: '${{ secrets.TEST_USERNAME}}'
+          TEST_ADMIN_USERNAME: '${{ secrets.TEST_ADMIN_USERNAME}}'
+          TEST_PASSWORD: '${{ secrets.TEST_PASSWORD}}'
+          USER_POOL_ID: '${{ secrets.USER_POOL_ID}}'
+          COGNITO_CLIENT_ID: '${{ secrets.COGNITO_CLIENT_ID}}'
+          TESTING_DOMAIN: '${{ secrets.TESTING_DOMAIN}}'
