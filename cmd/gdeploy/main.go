@@ -109,16 +109,13 @@ func RequireDeploymentConfig() cli.BeforeFunc {
 		f := c.Path("file")
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
-			return &clio.CLIError{
-				Err: fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
-				Messages: []clio.Printer{
-					clio.LogMsg(`
+			return clio.NewCLIError(fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
+				clio.LogMsg(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
 `),
-				},
-			}
+			)
 		}
 		if err != nil {
 			return fmt.Errorf("failed to load config with error: %s", err)
@@ -142,12 +139,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 		defer si.Stop()
 		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
-			return &clio.CLIError{
-				Err: "Failed to load AWS credentials.",
-				Messages: []clio.Printer{
-					clio.DebugMsg("Encountered error while loading default aws config: %s", err),
-				},
-			}
+			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err))
 		}
 
 		// Use the deployment region if it is available
@@ -158,21 +150,11 @@ func RequireAWSCredentials() cli.BeforeFunc {
 
 		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			return &clio.CLIError{
-				Err: "Failed to load AWS credentials.",
-				Messages: []clio.Printer{
-					clio.DebugMsg("Encountered error while loading default aws config: %s", err),
-				},
-			}
+			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err))
 		}
 
 		if !creds.HasKeys() {
-			return &clio.CLIError{
-				Err: "Could not find AWS credentials. Please export valid AWS credentials to run this command.",
-				Messages: []clio.Printer{
-					clio.LogMsg("Could not find AWS credentials. Please export valid AWS credentials to run this command."),
-				},
-			}
+			return clio.NewCLIError("Could not find AWS credentials. Please export valid AWS credentials to run this command.", clio.LogMsg("Could not find AWS credentials. Please export valid AWS credentials to run this command."))
 		}
 
 		stsClient := sts.NewFromConfig(cfg)
@@ -182,19 +164,9 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			var ae smithy.APIError
 			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
 			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
-				return &clio.CLIError{
-					Err: "AWS credentials are expired.",
-					Messages: []clio.Printer{
-						clio.LogMsg("Please export valid AWS credentials to run this command."),
-					},
-				}
+				return clio.NewCLIError("AWS credentials are expired.", clio.LogMsg("Please export valid AWS credentials to run this command."))
 			}
-			return &clio.CLIError{
-				Err: "Failed to call AWS get caller identity",
-				Messages: []clio.Printer{
-					clio.DebugMsg(err.Error()),
-				},
-			}
+			return clio.NewCLIError("Failed to call AWS get caller identity", clio.DebugMsg(err.Error()))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil

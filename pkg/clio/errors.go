@@ -19,6 +19,14 @@ type CLIError struct {
 	// when PrintCLIError is called, each of the messages Print() method is called in order of appearence in the slice
 	Messages []Printer
 }
+
+func NewCLIError(err string, msgs ...Printer) *CLIError {
+	return &CLIError{
+		Err:      err,
+		Messages: msgs,
+	}
+}
+
 type MsgType string
 
 const (

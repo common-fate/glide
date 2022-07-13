@@ -33,7 +33,7 @@ var SyncCommand = cli.Command{
 		}
 
 		if o.IdpSyncFunctionName == "" {
-			return &clio.CLIError{Err: "The sync function name is not yet available. You may need to update your deployment to use this feature."}
+			return clio.NewCLIError("The sync function name is not yet available. You may need to update your deployment to use this feature.")
 		}
 		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		si.Suffix = " invoking IDP sync lambda function"
