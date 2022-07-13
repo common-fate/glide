@@ -40,9 +40,7 @@ var createCommand = cli.Command{
 
 		idpType := dc.Deployment.Parameters.IdentityProviderType
 		if idpType != "" && idpType != "COGNITO" {
-			return &clio.CLIError{
-				Err: fmt.Sprintf("Your Granted Approvals deployment uses the %s identity provider. Add users inside of your identity provider rather than using this CLI.\n\nIf you would like to make a user an administrator of Granted Approvals, add them to the %s group in your identity provider.", idpType, adminGroup),
-			}
+			return clio.NewCLIError(fmt.Sprintf("Your Granted Approvals deployment uses the %s identity provider. Add users inside of your identity provider rather than using this CLI.\n\nIf you would like to make a user an administrator of Granted Approvals, add them to the %s group in your identity provider.", idpType, adminGroup))
 		}
 
 		o, err := dc.LoadOutput(ctx)
@@ -62,9 +60,7 @@ var createCommand = cli.Command{
 
 		if c.Bool("admin") {
 			if adminGroup == "" {
-				return &clio.CLIError{
-					Err: fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy group members add --username %s --group <the admin group ID>' to make the user a Granted administrator.", f, username),
-				}
+				return clio.NewCLIError(fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy group members add --username %s --group <the admin group ID>' to make the user a Granted administrator.", f, username))
 			}
 
 			_, err = cog.AdminAddUserToGroup(ctx, &cognitoidentityprovider.AdminAddUserToGroupInput{

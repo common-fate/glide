@@ -127,6 +127,7 @@ export const Navbar: React.FC<{}> = () => {
                       variant="link"
                       px={3}
                       aria-label="Admin"
+                      id="admin-button"
                     >
                       Admin
                     </Button>
