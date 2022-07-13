@@ -1,6 +1,9 @@
 package sso
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
@@ -9,8 +12,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// AvailableSSOProviders are the currently implemented SSO providers.
-var AvailableSSOProviders = []string{
+// idpTypes are the currently implemented SSO providers.
+var idpTypes = []string{
 	"Google",
 	"Okta",
 }
@@ -23,10 +26,8 @@ var SSOCommand = cli.Command{
 
 var configureCommand = cli.Command{
 	Name:        "configure",
-	Flags:       []cli.Flag{&cli.BoolFlag{Name: "overwrite", Aliases: []string{"o"}, Usage: "if provided, will prompt to override parameter values"}},
 	Description: "Set up SSO for a deployment",
 	Action: func(c *cli.Context) error {
-		overwrite := c.Bool("overwrite")
 		ctx := c.Context
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)
@@ -34,74 +35,75 @@ var configureCommand = cli.Command{
 			return err
 		}
 
-		var ssoEnable string
-		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: AvailableSSOProviders}
-		err = survey.AskOne(p2, &ssoEnable)
+		var idpType string
+		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes}
+		err = survey.AskOne(p2, &idpType)
 		if err != nil {
 			return err
 		}
 
+		googleConfigured := dc.Identity.Google != nil
+		googleSelected := idpType == "Google"
+		oktaConfigured := dc.Identity.Okta != nil
+		oktaSelected := idpType == "Okta"
+		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
+
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
-			if (dc.Identity.Google != nil && ssoEnable == "Google") ||
-				(dc.Identity.Okta != nil && ssoEnable == "Okta") {
-				clio.Info("You already have params set for %s", ssoEnable)
-				p3 := &survey.Confirm{Message: "Would you like to update the current parameters?"}
-				err = survey.AskOne(p3, &overwrite)
-				if err != nil {
-					return err
-				}
-
-				//if both google and okta have config update the deployment param here and exit
-				if dc.Identity.Google != nil && dc.Identity.Okta != nil && !overwrite {
-					switch ssoEnable {
-					case "Google":
-						dc.Deployment.Parameters.IdentityProviderType = "GOOGLE"
-					case "Okta":
-						dc.Deployment.Parameters.IdentityProviderType = "OKTA"
-					}
-					err = dc.Save(f)
+			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) {
+				if isCurrentIDP {
+					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?",idpType)}
+					var update bool
+					err = survey.AskOne(p3, &update)
 					if err != nil {
 						return err
 					}
-					clio.Info("Successfully updated SSO configuration")
-					clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
-					return nil
-
+					if !update {
+						clio.Info("Closing SSO setup")
+						return nil
+					}
+				}else {
+					clio.Info("You already have configuration for %s but it's not currently set as your identity provider",idpType)
+					p3 := &survey.Confirm{Message: "Do you need to update the configuration for %s?")}
+					err = survey.AskOne(p3, &overwrite)
+					if err != nil {
+						return err
+					}
 				}
 
-				//if they dont want to update current param then exit
 				if !overwrite {
-
-					clio.Info("Closing SSO setup")
-					return nil
+					p3 := &survey.Confirm{Message: "This process will overwrite your existing configuration for %s, are you sure?"}
+					err = survey.AskOne(p3, &overwrite)
+					if err != nil {
+						return err
+					}
+					//if they dont want to update current param then exit
+					if !overwrite {
+						clio.Info("Closing SSO setup")
+						return nil
+					}
 				}
 			}
 		}
 
-		switch ssoEnable {
-		case "Google":
+		if googleSelected {
 			docs := "https://docs.commonfate.io/granted-approvals/sso/google"
 			clio.Info("Find documentation for setting up Google Workspace in our setup docs: %s", docs)
-
 			var google deploy.Google
 			if dc.Identity != nil && dc.Identity.Google != nil {
 				google = *dc.Identity.Google
 			}
 			var token string
-
 			p1 := &survey.Password{Message: "API Token:"}
 			err = survey.AskOne(p1, &token)
 			if err != nil {
 				return err
 			}
-
 			p2 := &survey.Input{Message: "Google Workspace Domain:"}
 			err = survey.AskOne(p2, &google.Domain)
 			if err != nil {
 				return err
 			}
-
 			p3 := &survey.Input{Message: "Google Admin Email"}
 			err = survey.AskOne(p3, &google.AdminEmail)
 			if err != nil {
@@ -116,10 +118,8 @@ var configureCommand = cli.Command{
 				return err
 			}
 			clio.Success("SSM Parameters Set Successfully\n")
-
 			clio.Warn("SAML outputs:\n")
 			o, err := dc.LoadSAMLOutput(ctx)
-
 			if err != nil {
 				return err
 			}
@@ -132,7 +132,6 @@ var configureCommand = cli.Command{
 				dc.Identity.Google = &google
 			}
 			clio.Info("Find documentation for setting up SAML SSO here: %s", docs)
-
 			dc.Deployment.Parameters.IdentityProviderType = "GSUITE"
 			//complete the setup with the saml metadata
 			var metadata string
@@ -142,11 +141,9 @@ var configureCommand = cli.Command{
 				return err
 			}
 			dc.Deployment.Parameters.SamlSSOMetadata = metadata
-
-		case "Okta":
+		} else if oktaSelected {
 			docs := "https://docs.commonfate.io/granted-approvals/sso/okta"
 			clio.Info("Find documentation for setting up Okta in our setup docs: %s", docs)
-
 			var okta deploy.Okta
 			if dc.Identity != nil && dc.Identity.Google != nil {
 				okta = *dc.Identity.Okta
@@ -157,7 +154,6 @@ var configureCommand = cli.Command{
 			if err != nil {
 				return err
 			}
-
 			p2 := &survey.Input{Message: "Okta Org URL:"}
 			err = survey.AskOne(p2, &okta.OrgURL)
 			if err != nil {
@@ -179,7 +175,6 @@ var configureCommand = cli.Command{
 			} else {
 				dc.Identity.Okta = &okta
 			}
-
 			clio.Warn("SAML outputs:\n")
 			o, err := dc.LoadSAMLOutput(ctx)
 
@@ -187,11 +182,8 @@ var configureCommand = cli.Command{
 				return err
 			}
 			o.PrintSAMLTable()
-
 			clio.Info("Find documentation for setting up SAML SSO here: %s", docs)
-
 			dc.Deployment.Parameters.IdentityProviderType = "OKTA"
-
 			//complete the setup with the saml metadata
 			var metadata string
 			t := &survey.Input{Message: "Okta SAML metadata URL:"}
@@ -200,9 +192,7 @@ var configureCommand = cli.Command{
 				return err
 			}
 			dc.Deployment.Parameters.SamlSSOMetadataURL = metadata
-
 		}
-
 		err = dc.Save(f)
 		if err != nil {
 			return err
@@ -210,6 +200,5 @@ var configureCommand = cli.Command{
 		clio.Success("completed SSO setup")
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
-
 	},
 }
