@@ -168,6 +168,13 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	return nil, nil
 }
 
+func (a *AzureSync) Get(url string) (*http.Response, error) {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+a.token)
+	return a.NewClient.Do(req)
+
+}
+
 type ListUsersResponse struct {
 	OdataContext  string  `json:"@odata.context"`
 	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
