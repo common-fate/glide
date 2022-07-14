@@ -126,32 +126,52 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	// 	return nil, err
 	// }
 	// return idpUsers, nil
+	//get all users
+	idpUsers := []identity.IdpUser{}
+	hasMore := true
+	var paginationToken *string
+	for hasMore {
+		url := MSGraphBaseURL + "/users"
+		if paginationToken != nil {
+			url += "?skipToken=" + *paginationToken
+		}
+		req, _ := http.NewRequest("GET", MSGraphBaseURL+"/users", nil)
+		req.Header.Add("Authorization", "Bearer "+a.token)
+		res, err := a.NewClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		var lu ListUsersResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
 
-	req, _ := http.NewRequest("GET", MSGraphBaseURL+"/users", nil)
-	req.Header.Add("Authorization", "Bearer "+a.token)
-	res, err := a.NewClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	var lu ListUsersResponse
-	err = json.Unmarshal(b, &lu)
-	if err != nil {
-		return nil, err
-	}
-	for _, u := range lu.Value {
-		fmt.Println(u.Mail)
+		paginationToken = *lu.OdataNextLink
+		for _, u := range lu.Value {
+			_ = u
+			// user, err := o.idpUserFromOktaUser(ctx, u)
+			// if err != nil {
+			// 	return nil, err
+			// }
+			// idpUsers = append(idpUsers, user)
+		}
+
+		paginationToken = res.NextPage
+		hasMore = paginationToken != ""
 	}
 
 	return nil, nil
 }
 
 type ListUsersResponse struct {
-	OdataContext string `json:"@odata.context"`
-	Value        []struct {
+	OdataContext  string  `json:"@odata.context"`
+	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
+	Value         []struct {
 		GivenName string `json:"givenName"`
 		Mail      string `json:"mail"`
 		Surname   string `json:"surname"`
