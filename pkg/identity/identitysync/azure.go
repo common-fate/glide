@@ -2,6 +2,9 @@ package identitysync
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
@@ -12,6 +15,7 @@ import (
 )
 
 const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
+const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type AzureSync struct {
 	// Client    *msgraphsdk.GraphServiceClient
@@ -29,12 +33,14 @@ func (c *ClientSecretCredential) GetToken(ctx context.Context) (string, error) {
 	return ar.AccessToken, err
 }
 
-func NewClientSecretCredential(s deploy.Azure) (*ClientSecretCredential, error) {
+func NewClientSecretCredential(s deploy.Azure, httpClient *http.Client) (*ClientSecretCredential, error) {
 	cred, err := confidential.NewCredFromSecret(s.ClientSecret)
 	if err != nil {
 		return nil, err
 	}
-	c, err := confidential.New(s.ClientID, cred)
+	c, err := confidential.New(s.ClientID, cred,
+		confidential.WithAuthority(fmt.Sprintf("%s/%s", ADAuthorityHost, s.TenantID)),
+		confidential.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +49,7 @@ func NewClientSecretCredential(s deploy.Azure) (*ClientSecretCredential, error) 
 
 // NewAzure will fail if the Azure settings are not configured
 func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
-	azAuth, err := NewClientSecretCredential(settings)
+	azAuth, err := NewClientSecretCredential(settings, http.DefaultClient)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +58,7 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 		return nil, err
 	}
 
-	return &AzureSync{NewClient: &http.Client{}, token: token}, nil
+	return &AzureSync{NewClient: http.DefaultClient, token: token}, nil
 }
 
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
@@ -123,9 +129,34 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 
 	req, _ := http.NewRequest("GET", MSGraphBaseURL+"/users", nil)
 	req.Header.Add("Authorization", "Bearer "+a.token)
-	res, _ := a.NewClient.Do(req)
-	_ = res
+	res, err := a.NewClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var lu ListUsersResponse
+	err = json.Unmarshal(b, &lu)
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range lu.Value {
+		fmt.Println(u.Mail)
+	}
+
 	return nil, nil
+}
+
+type ListUsersResponse struct {
+	OdataContext string `json:"@odata.context"`
+	Value        []struct {
+		GivenName string `json:"givenName"`
+		Mail      string `json:"mail"`
+		Surname   string `json:"surname"`
+		ID        string `json:"id"`
+	} `json:"value"`
 }
 
 // idpGroupFromAzureGroup converts a azure group to the identityprovider interface group type
