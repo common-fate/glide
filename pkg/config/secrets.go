@@ -17,6 +17,7 @@ var (
 	// Identity secrets
 	GoogleTokenPath SecretPath = "/granted/secrets/identity/google/token"
 	OktaTokenPath   SecretPath = "/granted/secrets/identity/okta/token"
+	AzureSecretPath SecretPath = "/granted/secrets/identity/azure/secret"
 	// Notifications secrets
 	SlackTokenPath SecretPath = "/granted/secrets/notifications/slack/token"
 )
