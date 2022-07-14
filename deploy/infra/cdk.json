@@ -11,7 +11,6 @@
       "../../web/.next",
       "../../web/out",
       "../authlambda/build",
-      "../staticredirect/build",
       "../../.git",
       "../../docs",
       "../../magefiles",

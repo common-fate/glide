@@ -7,8 +7,8 @@ import (
 
 	"github.com/TylerBrock/saw/blade"
 	sawconfig "github.com/TylerBrock/saw/config"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/pkg/errors"
@@ -29,18 +29,19 @@ var watchCommand = cli.Command{
 			return err
 		}
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return err
 		}
-		f := c.Path("file")
 		stackName := c.String("stack")
 		if stackName == "" {
 			// default to the stage from dev-deployment-config
-			dc := deploy.MustLoadConfig(f)
+			dc, err := deploy.ConfigFromContext(ctx)
+			if err != nil {
+				return err
+			}
 			stackName = dc.Deployment.StackName
 		}
-
 		client := cloudformation.NewFromConfig(cfg)
 		res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
 			StackName: &stackName,
@@ -66,7 +67,7 @@ var watchCommand = cli.Command{
 			wg.Add(1)
 			go func(lg, s string) {
 				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
-				watchEvents(lg)
+				watchEvents(lg, cfg.Region)
 				wg.Done()
 			}(logGroup, service)
 		}
@@ -77,7 +78,7 @@ var watchCommand = cli.Command{
 	},
 }
 
-func watchEvents(group string) {
+func watchEvents(group string, region string) {
 	sawcfg := sawconfig.Configuration{
 		Group: group,
 	}
@@ -85,7 +86,8 @@ func watchEvents(group string) {
 	outputcfg := sawconfig.OutputConfiguration{
 		Pretty: true,
 	}
-
-	b := blade.NewBlade(&sawcfg, &sawconfig.AWSConfiguration{}, &outputcfg)
+	// The Blade api from saw is not very configurable
+	// The most we can do is pass in a Region
+	b := blade.NewBlade(&sawcfg, &sawconfig.AWSConfiguration{Region: region}, &outputcfg)
 	b.StreamEvents()
 }

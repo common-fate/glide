@@ -21,10 +21,10 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{&BackupStatus},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-
-		f := c.Path("file")
-
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 
 		stackOutput, err := dc.LoadOutput(ctx)
 		if err != nil {

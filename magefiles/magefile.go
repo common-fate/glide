@@ -61,10 +61,6 @@ func (Build) Backend() error {
 	return sh.RunWith(env, "go", "build", "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
 }
 
-func (Build) StaticRedirectLambda() error {
-	return sh.Run("pnpm", "--filter", "staticredirect", "run", "build")
-}
-
 func (Build) Granter() error {
 	env := map[string]string{
 		"GOOS": "linux",
@@ -112,13 +108,6 @@ func (Build) Webhook() error {
 		"GOOS": "linux",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
-}
-
-func (Build) TestVault() error {
-	env := map[string]string{
-		"GOOS": "linux",
-	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/testvault", "cmd/lambda/testvault/handler.go")
 }
 
 func (Build) FrontendAWSExports() error {
@@ -170,7 +159,7 @@ func PackageBackend() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier, PackageEventHandler, Build.StaticRedirectLambda, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier, PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
@@ -213,12 +202,6 @@ func PackageEventHandler() error {
 func PackageWebhook() error {
 	mg.Deps(Build.Webhook)
 	return sh.Run("zip", "--junk-paths", "bin/webhook.zip", "bin/webhook")
-}
-
-// PackageTestVault zips the Go testvault handler so that it can be deployed to Lambda.
-func PackageTestVault() error {
-	mg.Deps(Build.TestVault)
-	return sh.Run("zip", "--junk-paths", "bin/testvault.zip", "bin/testvault")
 }
 
 type Deploy mg.Namespace
@@ -329,6 +312,8 @@ func (Deploy) StagingCDK(env, name string) error {
 
 	dep := deploy.NewStagingConfig(context.Background(), name)
 	args = append(args, dep.CDKContextArgs()...)
+	// add the devEnvironment context arg
+	args = append(args, "-c", "devEnvironment="+env)
 
 	zap.S().Infow("deploying CDK stack", "stage", name)
 

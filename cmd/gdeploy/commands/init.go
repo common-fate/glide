@@ -1,12 +1,11 @@
 package commands
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 var InitCommand = cli.Command{
@@ -31,7 +30,6 @@ var InitCommand = cli.Command{
 			return err
 		}
 
-		zap.S().Infow("configured Granted Approvals deployment", "config", cfg)
 		f := c.Path("file")
 
 		err = cfg.Save(f)
@@ -66,14 +64,12 @@ func ensureConfigDoesntExist(c *cli.Context) error {
 	}
 
 	// if we get here, the config file exists and is at risk of being overwritten.
-
-	clio.Error("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f)
-	clio.Log(`
+	return clio.NewCLIError(fmt.Sprintf("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f),
+		clio.LogMsg(`
 To fix this, take one of the following actions:
   a) run 'gdeploy init' from a different folder
   b) run 'gdeploy -f other-config.toml init' to use a separate config file
   c) run 'gdeploy init --overwrite' to force overwriting the existing config
-`)
-	os.Exit(1)
-	return nil
+`))
+
 }

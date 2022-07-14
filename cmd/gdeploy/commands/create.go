@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"os"
+
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -16,15 +18,22 @@ var CreateCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		f := c.Path("file")
-
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
 		clio.Info("Using template: %s", dc.CfnTemplateURL())
-		clio.Warn("Your initial deployment will take approximately 5 minutes while cloudfront resources are created.\nSubsequent updates should take less time.")
+		clio.Warn("Your initial deployment will take approximately 5 minutes while CloudFront resources are created.\nSubsequent updates should take less time.")
 		confirm := c.Bool("confirm")
-		err := dc.DeployCloudFormation(ctx, confirm)
+
+		if os.Getenv("CI") == "true" {
+			clio.Debug("CI env var is set to 'true', skipping confirmation prompt")
+			confirm = true
+		}
+
+		err = dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
 		}

@@ -10,11 +10,11 @@ import (
 	"text/template"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	cfTypes "github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/magefile/mage/sh"
 	"github.com/segmentio/ksuid"
@@ -144,7 +144,7 @@ func RenderProductionFrontendConfig(rfc RenderFrontendConfig) (string, error) {
 }
 
 func DeployProductionFrontend(ctx context.Context, cfg config.FrontendDeployerConfig) error {
-	defaultAwsConfig, err := awsConfig.LoadDefaultConfig(ctx)
+	defaultAwsConfig, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}

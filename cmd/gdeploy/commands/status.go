@@ -12,8 +12,10 @@ var StatusCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		f := c.Path("file")
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
 		o, err := dc.LoadOutput(ctx)
 
 		if err != nil {
@@ -21,7 +23,14 @@ var StatusCommand = cli.Command{
 		}
 		o.PrintTable()
 
-		clio.Success("Your Granted deployment is online")
+		ss, err := dc.GetStackStatus(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		clio.Info("Cloudformation stack status: %s", ss)
+
 		return nil
 	},
 }

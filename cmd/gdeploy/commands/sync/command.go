@@ -1,15 +1,16 @@
 package sync
 
 import (
-	"encoding/json"
+	"os"
+	"time"
 
-	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/briandowns/spinner"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
-	"github.com/joho/godotenv"
-	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 var SyncCommand = cli.Command{
@@ -17,37 +18,42 @@ var SyncCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		var cfg config.SyncConfig
-		_ = godotenv.Load()
-
-		err := envconfig.Process(ctx, &cfg)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err
 		}
 
-		var s deploy.Identity
-		err = json.Unmarshal([]byte(cfg.IdentitySettings), &s)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
-		//set up the sync handler
-		syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-			TableName:        cfg.TableName,
-			IdpType:          cfg.IdpProvider,
-			UserPoolId:       cfg.UserPoolId,
-			IdentitySettings: s,
+		if o.IdpSyncFunctionName == "" {
+			return clio.NewCLIError("The sync function name is not yet available. You may need to update your deployment to use this feature.")
+		}
+		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		si.Suffix = " invoking IDP sync lambda function"
+		si.Writer = os.Stderr
+		si.Start()
+
+		lambdaClient := lambda.NewFromConfig(cfg)
+		res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
+			FunctionName:   &o.IdpSyncFunctionName,
+			InvocationType: types.InvocationTypeRequestResponse,
+			Payload:        []byte("{}"),
 		})
-
+		si.Stop()
 		if err != nil {
 			return err
 		}
 
-		zap.S().Infow("starting")
-		err = syncer.Sync(ctx)
-		if err != nil {
-			return err
+		clio.Info("Lamda execution completed with status: %d. ", res.StatusCode)
+		if res.FunctionError != nil {
+			clio.Error("Lambda returned execution error: %s", *res.FunctionError)
 		}
-
 		return nil
 	}}

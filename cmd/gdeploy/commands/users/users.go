@@ -1,10 +1,10 @@
 package users
 
 import (
-	"os"
+	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
@@ -25,20 +25,22 @@ var createCommand = cli.Command{
 	Description: "Create a Cognito user",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return err
-		}
 
 		username := c.String("username")
 		f := c.Path("file")
-		dc := deploy.MustLoadConfig(f)
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
+		if err != nil {
+			return err
+		}
 		adminGroup := dc.Deployment.Parameters.AdministratorGroupID
 
 		idpType := dc.Deployment.Parameters.IdentityProviderType
 		if idpType != "" && idpType != "COGNITO" {
-			clio.Error("Your Granted Approvals deployment uses the %s identity provider. Add users inside of your identity provider rather than using this CLI.\n\nIf you would like to make a user an administrator of Granted Approvals, add them to the %s group in your identity provider.", idpType, adminGroup)
-			os.Exit(1)
+			return clio.NewCLIError(fmt.Sprintf("Your Granted Approvals deployment uses the %s identity provider. Add users inside of your identity provider rather than using this CLI.\n\nIf you would like to make a user an administrator of Granted Approvals, add them to the %s group in your identity provider.", idpType, adminGroup))
 		}
 
 		o, err := dc.LoadOutput(ctx)
@@ -58,8 +60,7 @@ var createCommand = cli.Command{
 
 		if c.Bool("admin") {
 			if adminGroup == "" {
-				clio.Error("the AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy group members add --username %s --group <the admin group ID>' to make the user a Granted administrator.", f, username)
-				os.Exit(1)
+				return clio.NewCLIError(fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy group members add --username %s --group <the admin group ID>' to make the user a Granted administrator.", f, username))
 			}
 
 			_, err = cog.AdminAddUserToGroup(ctx, &cognitoidentityprovider.AdminAddUserToGroupInput{

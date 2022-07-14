@@ -148,6 +148,9 @@ export class DevGrantedStack extends cdk.Stack {
     new cdk.CfnOutput(this, "EventBusSource", {
       value: events.getEventBusSourceName(),
     });
+    new cdk.CfnOutput(this, "IdpSyncFunctionName", {
+      value: approvals.getIdpSync().getFunctionName(),
+    });
     new cdk.CfnOutput(this, "Region", {
       value: this.region,
     });

@@ -3,6 +3,10 @@ import { App, DefaultStackSynthesizer } from "aws-cdk-lib";
 import "source-map-support/register";
 import { DevGrantedStack } from "../lib/granted-approvals-stack";
 import { CustomerGrantedStack } from "../lib/granted-approvals-stack-prod";
+import {
+  DevEnvironmentConfig,
+  DevEnvironments,
+} from "../lib/helpers/dev-accounts";
 
 const app = new App();
 const stage = app.node.tryGetContext("stage");
@@ -27,19 +31,34 @@ const productionReleaseBucketPrefix = app.node.tryGetContext(
 const stackTarget = process.env.STACK_TARGET || "dev";
 
 if (stackTarget === "dev") {
+  // devEnvironment is used to set the environment for internal
+  // development deployments of the Approvals stack.
+  const devEnvironmentName = app.node.tryGetContext("devEnvironment");
+
+  let devConfig: DevEnvironmentConfig | null = null;
+
+  if (devEnvironmentName !== undefined) {
+    const conf = DevEnvironments.get(devEnvironmentName);
+
+    if (conf === undefined) {
+      throw new Error(`invalid dev environment name: ${devEnvironmentName}`);
+    }
+    devConfig = conf;
+  }
+
   new DevGrantedStack(app, "GrantedDev", {
     cognitoDomainPrefix,
     stage,
-    providerConfig,
+    providerConfig: providerConfig || "{}",
     // We have inadvertently propagated this "granted-approvals-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
     stackName: "granted-approvals-" + stage,
     idpType: idpType || "COGNITO",
     samlMetadataUrl: samlMetadataUrl || "",
-    devConfig: null,
+    devConfig,
     adminGroupId: adminGroupId || "granted_administrators",
     samlMetadata: samlMetadata || "",
-    slackConfiguration: slackConfig || "",
-    identityProviderSyncConfiguration: identityConfig || "",
+    slackConfiguration: slackConfig || "{}",
+    identityProviderSyncConfiguration: identityConfig || "{}",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {

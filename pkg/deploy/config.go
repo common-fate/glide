@@ -3,7 +3,7 @@ package deploy
 import (
 	"context"
 	"encoding/json"
-	"errors"
+
 	"fmt"
 	"os"
 	"strings"
@@ -11,18 +11,32 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
-var ErrConfigNotExist = errors.New("config does not exist")
+type contextkey struct{}
+
+var DeploymentConfigContextKey contextkey
+
+func ConfigFromContext(ctx context.Context) (Config, error) {
+	if cfg := ctx.Value(DeploymentConfigContextKey); cfg != nil {
+		return cfg.(Config), nil
+	} else {
+		return Config{}, ErrConfigNotNotSetInContext
+	}
+}
+
+func SetConfigInContext(ctx context.Context, cfg Config) context.Context {
+	return context.WithValue(ctx, DeploymentConfigContextKey, cfg)
+}
 
 const DefaultFilename = "granted-deployment.yml"
 
@@ -40,19 +54,35 @@ var AvailableSSOProviders = []string{
 }
 
 type Config struct {
-	Version       int                 `yaml:"version"`
-	Deployment    Deployment          `yaml:"deployment"`
-	Providers     map[string]Provider `yaml:"providers,omitempty"`
-	Notifications *Notifications      `yaml:"notifications,omitempty"`
-	Identity      *Identity           `yaml:"identity,omitempty"`
+	Version       int                  `yaml:"version"`
+	Deployment    Deployment           `yaml:"deployment"`
+	Providers     map[string]Provider  `yaml:"providers,omitempty"`
+	Notifications *NotificationsConfig `yaml:"notifications,omitempty"`
+	Identity      *IdentityConfig      `yaml:"identity,omitempty"`
 
 	cachedOutput     *Output
 	cachedSAMLOutput *SAMLOutputs
 }
-type Identity struct {
+
+type IdentityConfig struct {
 	Google *Google `yaml:"google,omitempty" json:"google,omitempty"`
 	Okta   *Okta   `yaml:"okta,omitempty" json:"okta,omitempty"`
 	Azure  *Azure  `yaml:"azure,omitempty" json:"azure,omitempty"`
+}
+
+// UnmarshalIdentity parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// IdentityConfig{} object is returned.
+func UnmarshalIdentity(data string) (IdentityConfig, error) {
+	if data == "" {
+		return IdentityConfig{}, nil
+	}
+	var i IdentityConfig
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return IdentityConfig{}, err
+	}
+	return i, nil
 }
 
 type Google struct {
@@ -90,16 +120,46 @@ func (a Azure) String() string {
 	return fmt.Sprintf("{TenantID: %s, ClientID: %s, ClientSecret: %s}", a.TenantID, a.ClientID, a.ClientSecret)
 }
 
-type Notifications struct {
-	Slack *Slack `yaml:"slack,omitempty" json:"slack,omitempty"`
+type NotificationsConfig struct {
+	Slack *SlackConfig `yaml:"slack,omitempty" json:"slack,omitempty"`
 }
 
-type Slack struct {
+// UnmarshalNotifications parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// NotificationsConfig{} object is returned.
+func UnmarshalNotifications(data string) (NotificationsConfig, error) {
+	if data == "" {
+		return NotificationsConfig{}, nil
+	}
+	var i NotificationsConfig
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return NotificationsConfig{}, err
+	}
+	return i, nil
+}
+
+type SlackConfig struct {
 	APIToken string `yaml:"apiToken" json:"apiToken"`
 }
 
+// UnmarshalSlack parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// SlackConfig{} object is returned.
+func UnmarshalSlack(data string) (SlackConfig, error) {
+	if data == "" {
+		return SlackConfig{}, nil
+	}
+	var i SlackConfig
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return SlackConfig{}, err
+	}
+	return i, nil
+}
+
 // String redacts potentially sensitive token values
-func (s Slack) String() string {
+func (s SlackConfig) String() string {
 	s.APIToken = "****"
 	return fmt.Sprintf("{APIToken: %s}", s.APIToken)
 }
@@ -108,7 +168,15 @@ type Deployment struct {
 	StackName string `yaml:"stackName"`
 	Account   string `yaml:"account"`
 	Region    string `yaml:"region"`
-	Release   string `yaml:"release"`
+	// Release may be one of two formats:
+	//
+	// 1. A release version tag (e.g. 'v0.1.0'). This uses a release
+	// from Common Fate's release bucket.
+	//
+	// 2. A path to a CloudFormation template in S3, in the format
+	// 'https://custom-bucket.s3.amazonaws.com/path/to/template.json'.
+	// Note that the S3 bucket must be in the same region as the 'Region' parameter.
+	Release string `yaml:"release"`
 	// Dev is set to true for internal development deployments only.
 	Dev        *bool      `yaml:"dev,omitempty"`
 	Parameters Parameters `yaml:"parameters"`
@@ -257,54 +325,40 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 	return res, nil
 }
 
-// MustLoadConfig attempts to load config.
-//
-// if it does not exist, it will log a helpful message then os.Exit(0)
-//
-// if there are any other errors, they are logged and os.Exit(1)
-func MustLoadConfig(f string) *Config {
-	c, err := LoadConfig(f)
-	if err == ErrConfigNotExist {
-		clio.Error("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f)
-		clio.Log(`
-To fix this, take one of the following actions:
-  a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
-  b) run 'gdeploy init' to set up a new deployment configuration file
-`)
-		os.Exit(0)
-	}
-	if err != nil {
-		clio.Error("failed to load config with error: %s", err)
-		os.Exit(1)
-
-	}
-	return c
-}
-
-// LoadConfig attempts to load the config file
+// LoadConfig attempts to load the config file at path f
 // if it does not exist, returns ErrConfigNotExist
 // else returns the config or any other error
 //
-// for CLI commands where a helpful message is required, use MustLoadConfig, which will log a message and os.Exit() if it does not exist
-func LoadConfig(f string) (*Config, error) {
+// in CLI commands, it is preferable to use deploy.ConfigFromContext(ctx) where gdeploy.RequireDeploymentConfig has run as a before function for the command
+// gdeploy.RequireDeploymentConfig will return a helpful cli error if there are any issues
+func LoadConfig(f string) (Config, error) {
 	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
-		return nil, ErrConfigNotExist
+		return Config{}, ErrConfigNotExist
 	}
 
 	fileRead, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 	defer fileRead.Close()
 	var dc Config
 	err = yaml.NewDecoder(fileRead).Decode(&dc)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
-	return &dc, nil
+	return dc, nil
 }
 
+// CfnTemplateURL returns the CloudFormation template URL.
+// If the deployment release points to an S3 object (https://custom-bucket.s3.amazonaws.com/path/to/template.json)
+// It is turned into a HTTPS URL. If a regular version number (v0.1.0) is used, we point to our official release bucket.
 func (c *Config) CfnTemplateURL() string {
+	// use a custom URL if it was provided
+	if strings.HasPrefix(c.Deployment.Release, "https://") {
+		return c.Deployment.Release
+	}
+
+	// otherwise, use the Common Fate release bucket
 	return fmt.Sprintf("https://granted-releases-%s.s3.amazonaws.com/%s/Granted.template.json", c.Deployment.Region, c.Deployment.Release)
 }
 
@@ -392,11 +446,12 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	account := c.String("account")
 	if account == "" {
 		ctx := context.Background()
-
-		account = MustGetCurrentAccountID(ctx, WithWarnExpiryIfWithinDuration(time.Minute))
-
+		account, err := tryGetCurrentAccountID(ctx)
+		if err != nil {
+			return nil, err
+		}
 		p := &survey.Input{Message: "The account ID that you are deploying to", Default: account}
-		err := survey.AskOne(p, &account)
+		err = survey.AskOne(p, &account)
 		if err != nil {
 			return nil, err
 		}
@@ -497,95 +552,19 @@ func tryGetCurrentAccountID(ctx context.Context) (string, error) {
 	si.Start()
 	defer si.Stop()
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
-		zap.S().Debugw("failed fetching config", zap.Error(err))
-		return "", err
+		return "", errors.Wrap(err, "failed fetching config")
 	}
 	client := sts.NewFromConfig(cfg)
 	res, err := client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
-		zap.S().Debugw("failed getting caller identity", zap.Error(err))
-		return "", err
+		return "", errors.Wrap(err, "failed getting caller identity")
 	}
 	if res.Account == nil {
 		return "", nil
 	}
 	return *res.Account, nil
-}
-
-type GetCurrentAccountIDOpts struct {
-	WarnExpiryIfWithinDuration *time.Duration
-}
-
-func WithWarnExpiryIfWithinDuration(t time.Duration) func(*GetCurrentAccountIDOpts) {
-	return func(gcai *GetCurrentAccountIDOpts) {
-		gcai.WarnExpiryIfWithinDuration = &t
-	}
-}
-
-// MustGetCurrentAccountID uses AWS STS to try and load the current account ID.
-//
-// if not credentials are available, logs and error and os.Exit(1)
-func MustGetCurrentAccountID(ctx context.Context, opts ...func(*GetCurrentAccountIDOpts)) string {
-	var o GetCurrentAccountIDOpts
-	for _, opt := range opts {
-		opt(&o)
-	}
-	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-	si.Suffix = " loading AWS account ID from your current profile"
-	si.Writer = os.Stderr
-	si.Start()
-	defer si.Stop()
-
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		si.Stop()
-		clio.Debug("Encountered error while loading default aws config: %s", err)
-		clio.Error("Failed to load AWS credentials.")
-		os.Exit(1)
-	}
-
-	creds, err := cfg.Credentials.Retrieve(ctx)
-	if err != nil {
-		si.Stop()
-		clio.Debug("Encountered error while loading default aws config: %s", err)
-		clio.Error("Failed to load AWS credentials.")
-		os.Exit(1)
-	}
-
-	if !creds.HasKeys() {
-		si.Stop()
-		clio.Error("Could not find AWS credentials. Please export valid AWS credentials to run this command.")
-		os.Exit(1)
-	}
-
-	if creds.Expired() {
-		si.Stop()
-		clio.Error("AWS credentials are expired. Please export valid AWS credentials to run this command.")
-		os.Exit(1)
-	}
-
-	if o.WarnExpiryIfWithinDuration != nil && creds.CanExpire && creds.Expires.Before(time.Now().Add(*o.WarnExpiryIfWithinDuration)) {
-		clio.Warn("AWS credentials expire in less than %s, consider exporting fresh credentials to avoid issues.", o.WarnExpiryIfWithinDuration.String())
-	}
-
-	client := sts.NewFromConfig(cfg)
-	res, err := client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
-	if err != nil {
-		si.Stop()
-		clio.Debug("Encountered error while getting caller identity: %s", err)
-		clio.Error("Failed to get AWS caller identity. Check that you have exported credentials and that they are not expired.")
-
-		os.Exit(1)
-	}
-	if res.Account == nil {
-		si.Stop()
-		clio.Debug("Encountered nil response getting caller identity: %s", err)
-		clio.Error("Failed to load AWS credentials.")
-		os.Exit(1)
-	}
-	return *res.Account
 }
 
 // getDefaultAvailableRegion tries to match the AWS_REGION env var with one of the

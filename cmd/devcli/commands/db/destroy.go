@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
@@ -21,7 +21,7 @@ var destroyCommand = cli.Command{
 	Description: "Destroy a DynamoDB database",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		cfg, err := config.LoadDefaultConfig(ctx)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return err
 		}
