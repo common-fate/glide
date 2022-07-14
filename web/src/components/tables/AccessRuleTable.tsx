@@ -200,6 +200,7 @@ export const AccessRuleTable = () => {
           leftIcon={<SmallAddIcon />}
           as={Link}
           to="/admin/access-rules/create"
+          id="new-access-rule-button"
         >
           New Access Rule
         </Button>

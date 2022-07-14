@@ -94,6 +94,7 @@ const BottomActionButtons: React.FC<{
     <Flex w="100%" justify={"left"}>
       {showNext && (
         <Button
+          id="form-step-next-button"
           isDisabled={hasErrors}
           onClick={async () => {
             // only go to next if there are no field errors
