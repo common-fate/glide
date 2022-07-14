@@ -162,7 +162,7 @@ jobs:
         run: pnpm run e2e
         working-directory: web
         env:
-          TESTING_DOMAIN: '${{ secrets.TESTING_DOMAIN}}' # @TODO find a way to pass this between deployment
+          TESTING_DOMAIN: '${{ steps.branch.outputs.name }}.test.granted.run'
           TEST_USERNAME: '${{ secrets.TEST_USERNAME}}'
           TEST_ADMIN_USERNAME: '${{ secrets.TEST_ADMIN_USERNAME}}'
           TEST_PASSWORD: '${{ secrets.TEST_PASSWORD}}'
