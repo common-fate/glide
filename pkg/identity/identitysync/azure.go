@@ -17,8 +17,6 @@ const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
 const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type AzureSync struct {
-	// Client    *msgraphsdk.GraphServiceClient
-	// Adapter   *msgraphsdk.GraphRequestAdapter
 	NewClient *http.Client
 	token     string
 }
