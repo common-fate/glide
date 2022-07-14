@@ -25,29 +25,29 @@ type RequestEvent struct {
 	GrantCreated    *bool                 `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
 }
 
-func NewRequestEvent(createdAt time.Time, actor *string) RequestEvent {
-	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor}
+func NewRequestEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID}
 }
-func NewGrantStatusChangeEvent(createdAt time.Time, actor *string, from, to ac_types.GrantStatus) RequestEvent {
-	r := NewRequestEvent(createdAt, actor)
+func NewGrantStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to ac_types.GrantStatus) RequestEvent {
+	r := NewRequestEvent(requestID, createdAt, actor)
 	r.FromGrantStatus = &from
 	r.ToGrantStatus = &to
 	return r
 }
-func NewGrantCreatedEvent(createdAt time.Time, actor *string) RequestEvent {
-	r := NewRequestEvent(createdAt, actor)
+func NewGrantCreatedEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
+	r := NewRequestEvent(requestID, createdAt, actor)
 	t := true
 	r.GrantCreated = &t
 	return r
 }
-func NewStatusChangeEvent(createdAt time.Time, actor *string, from, to Status) RequestEvent {
-	r := NewRequestEvent(createdAt, actor)
+func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Status) RequestEvent {
+	r := NewRequestEvent(requestID, createdAt, actor)
 	r.FromStatus = &from
 	r.ToStatus = &to
 	return r
 }
-func NewTimingChangeEvent(createdAt time.Time, actor *string, from, to Timing) RequestEvent {
-	r := NewRequestEvent(createdAt, actor)
+func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
+	r := NewRequestEvent(requestID, createdAt, actor)
 	r.FromTiming = &from
 	r.ToTiming = &to
 	return r
@@ -74,6 +74,7 @@ func (r *RequestEvent) ToAPI() types.RequestEvent {
 		ToGrantStatus:   (*types.RequestEventToGrantStatus)(r.ToGrantStatus),
 		ToStatus:        (*types.RequestStatus)(r.ToStatus),
 		ToTiming:        toTiming,
+		GrantCreated:    r.GrantCreated,
 	}
 }
 

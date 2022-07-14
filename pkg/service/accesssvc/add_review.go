@@ -101,7 +101,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	items = append(items, &r)
 
 	// audit log event
-	reqEvent := access.NewStatusChangeEvent(request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
+	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
 	items = append(items, &reqEvent)
 	// store the updated items in the database
 	err = s.DB.PutBatch(ctx, items...)

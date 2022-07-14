@@ -23,4 +23,5 @@ export interface RequestEvent {
   fromGrantStatus?: RequestEventFromGrantStatus;
   /** The current state of the grant. */
   toGrantStatus?: RequestEventToGrantStatus;
+  grantCreated?: boolean;
 }

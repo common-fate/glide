@@ -11,5 +11,5 @@ type accessRequestEventKeys struct {
 var AccessRequestEvent = accessRequestEventKeys{
 	PK1:        AccessRequestEventKey,
 	SK1:        func(requestID string, eventID string) string { return requestID + "#" + eventID },
-	SK1Request: func(requestID string) string { return requestID },
+	SK1Request: func(requestID string) string { return requestID + "#" },
 }

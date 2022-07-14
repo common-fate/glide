@@ -62,14 +62,17 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	// don't add status changed f event is its the same status
 	// but check if its grant created
 	if oldStatus == newStatus {
+		// I anticipate that this would be succeptible to a race condition, recoverable if the eventbridge retries the event handler
+		// this is because the grant events are sourced from the access handler prior to the request being saved to dynamodb on creation
+		// we could solve this by saving the request to the DB prior to making the call to the access handler?
 		if event.DetailType == gevent.GrantCreatedType {
-			requestEvent := access.NewGrantCreatedEvent(time.Now(), nil)
+			requestEvent := access.NewGrantCreatedEvent(gq.Result.ID, time.Now(), nil)
 			log.Infow("inserting request event for grant created")
 			return n.db.Put(ctx, &requestEvent)
 		}
 		return nil
 	} else {
-		requestEvent := access.NewGrantStatusChangeEvent(time.Now(), nil, oldStatus, newStatus)
+		requestEvent := access.NewGrantStatusChangeEvent(gq.Result.ID, time.Now(), nil, oldStatus, newStatus)
 		log.Infow("updating grant status on request", "old", oldStatus, "new", newStatus)
 		log.Infow("inserting request event for grant status change")
 		items, err := dbupdate.GetUpdateRequestItems(ctx, n.db, *gq.Result)

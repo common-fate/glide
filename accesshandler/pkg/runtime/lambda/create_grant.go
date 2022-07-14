@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/gevent"
 )
 
 // WorkflowInput is the input to the Step Functions workflow execution
@@ -52,6 +53,14 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 	if err != nil {
 		return nil, err
 	}
-
+	eventsBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: r.EventBusArn})
+	if err != nil {
+		return nil, err
+	}
+	evt := &gevent.GrantCreated{Grant: grant}
+	err = eventsBus.Put(ctx, evt)
+	if err != nil {
+		return nil, err
+	}
 	return &grant, nil
 }

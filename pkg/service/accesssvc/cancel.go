@@ -40,7 +40,7 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 		return err
 	}
 	// audit log event
-	reqEvent := access.NewStatusChangeEvent(req.UpdatedAt, &opts.CancellerID, originalStatus, req.Status)
+	reqEvent := access.NewStatusChangeEvent(req.ID, req.UpdatedAt, &opts.CancellerID, originalStatus, req.Status)
 	items = append(items, &reqEvent)
 	return s.DB.PutBatch(ctx, items...)
 }
