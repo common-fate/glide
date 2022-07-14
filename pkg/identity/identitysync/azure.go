@@ -105,14 +105,13 @@ func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUse
 	if err != nil {
 		return identity.IdpUser{}, err
 	}
-
-	_ = g
+	u.Groups = g
 
 	return u, nil
 }
 
-func (a *AzureSync) GetMemberGroups(userID string) ([]identity.IdpGroup, error) {
-	idpGroups := []identity.IdpGroup{}
+func (a *AzureSync) GetMemberGroups(userID string) ([]string, error) {
+	var userGroups []string
 
 	hasMore := true
 	var nextToken *string
@@ -139,11 +138,7 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]identity.IdpGroup, error) 
 
 		for _, u := range lu.Value {
 
-			group := idpGroupFromAzureGroup(u)
-			if err != nil {
-				return nil, err
-			}
-			idpGroups = append(idpGroups, group)
+			userGroups = append(userGroups, u.ID)
 		}
 		nextToken = lu.OdataNextLink
 		if nextToken != nil {
@@ -153,7 +148,7 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]identity.IdpGroup, error) 
 		}
 
 	}
-	return idpGroups, nil
+	return userGroups, nil
 }
 
 func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
