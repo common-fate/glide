@@ -90,13 +90,6 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 	return &AzureSync{NewClient: http.DefaultClient, token: token}, nil
 }
 
-func (a *AzureSync) Get(url string) (*http.Response, error) {
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer "+a.token)
-	return a.NewClient.Do(req)
-
-}
-
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
 func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IdpUser, error) {
 	u := identity.IdpUser{
