@@ -126,9 +126,15 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, err
+		}
+
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
 		}
 
 		var lu UserGroups
@@ -170,6 +176,11 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 		if err != nil {
 			return nil, err
 		}
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
+		}
+
 		var lu ListUsersResponse
 		err = json.Unmarshal(b, &lu)
 		if err != nil {
@@ -220,6 +231,11 @@ func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error)
 		b, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, err
+		}
+
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
 		}
 
 		var lu ListGroupsResponse
