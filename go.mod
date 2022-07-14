@@ -3,7 +3,7 @@ module github.com/common-fate/granted-approvals
 go 1.17
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.1.0
+	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.1
 	github.com/aws/aws-sdk-go-v2 v1.16.7
 	github.com/aws/aws-sdk-go-v2/config v1.15.12
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.17
@@ -30,9 +30,6 @@ require (
 	github.com/invopop/jsonschema v0.4.0
 	github.com/magefile/mage v1.13.0
 	github.com/mattn/go-colorable v0.1.12
-	github.com/microsoft/kiota-authentication-azure-go v0.3.1
-	github.com/microsoftgraph/msgraph-sdk-go v0.28.0
-	github.com/microsoftgraph/msgraph-sdk-go-core v0.26.1
 	github.com/okta/okta-sdk-golang/v2 v2.12.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
@@ -46,9 +43,6 @@ require (
 require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
 	cloud.google.com/go/compute v1.6.1 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.1.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.0.0 // indirect
-	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.1 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/aws/aws-sdk-go v1.44.38 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
@@ -58,7 +52,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.7 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.0 // indirect
 	github.com/chzyer/readline v1.5.0 // indirect
-	github.com/cjlapao/common-go v0.0.20 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -84,10 +77,6 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
-	github.com/microsoft/kiota-abstractions-go v0.8.1 // indirect
-	github.com/microsoft/kiota-http-go v0.5.1 // indirect
-	github.com/microsoft/kiota-serialization-json-go v0.5.3 // indirect
-	github.com/microsoft/kiota-serialization-text-go v0.4.1 // indirect
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -98,7 +87,6 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
-	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d // indirect
