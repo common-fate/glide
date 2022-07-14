@@ -2,6 +2,7 @@ package identitysync
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,9 +14,13 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
+const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
+
 type AzureSync struct {
-	Client  *msgraphsdk.GraphServiceClient
-	Adapter *msgraphsdk.GraphRequestAdapter
+	Client    *msgraphsdk.GraphServiceClient
+	Adapter   *msgraphsdk.GraphRequestAdapter
+	NewClient *http.Client
+	token     string
 }
 type ClientSecretCredential struct {
 	client confidential.Client
@@ -64,7 +69,7 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 	}
 	client := msgraphsdk.NewGraphServiceClient(adapter)
 
-	return &AzureSync{Client: client, Adapter: adapter}, nil
+	return &AzureSync{Client: client, Adapter: adapter, NewClient: &http.Client{}, token: token}, nil
 }
 
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
@@ -105,33 +110,39 @@ func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser models.U
 }
 
 func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
-	//get all users
-	idpUsers := []identity.IdpUser{}
-	result, err := a.Client.Users().Get()
-	if err != nil {
-		return nil, err
-	}
+	// //get all users
+	// idpUsers := []identity.IdpUser{}
+	// result, err := a.Client.Users().Get()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	// Use PageIterator to iterate through all users
-	pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateUserCollectionResponseFromDiscriminatorValue)
-	if err != nil {
-		return nil, err
-	}
-	err = pageIterator.Iterate(func(pageItem interface{}) bool {
-		graphUser := pageItem.(models.Userable)
+	// // Use PageIterator to iterate through all users
+	// pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateUserCollectionResponseFromDiscriminatorValue)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// err = pageIterator.Iterate(func(pageItem interface{}) bool {
+	// 	graphUser := pageItem.(models.Userable)
 
-		user, err := a.idpUserFromAzureUser(ctx, graphUser)
-		if err != nil {
-			return false
-		}
-		idpUsers = append(idpUsers, user)
+	// 	user, err := a.idpUserFromAzureUser(ctx, graphUser)
+	// 	if err != nil {
+	// 		return false
+	// 	}
+	// 	idpUsers = append(idpUsers, user)
 
-		return true
-	})
-	if err != nil {
-		return nil, err
-	}
-	return idpUsers, nil
+	// 	return true
+	// })
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return idpUsers, nil
+
+	req, _ := http.NewRequest("GET", MSGraphBaseURL+"/users", nil)
+	req.Header.Add("Authorization", "Bearer "+a.token)
+	res, _ := a.NewClient.Do(req)
+	_ = res
+	return nil, nil
 }
 
 // idpGroupFromAzureGroup converts a azure group to the identityprovider interface group type
