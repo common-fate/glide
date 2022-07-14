@@ -1,6 +1,6 @@
 import { Box, VStack } from "@chakra-ui/layout";
 import { Skeleton } from "@chakra-ui/react";
-import React from "react";
+import React, { useMemo } from "react";
 import { useListRequestEvents } from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
 import { CFTimelineRow } from "./CFTimelineRow";
@@ -8,7 +8,72 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
   const { data } = useListRequestEvents(request?.id || "");
-  if (!request) {
+  const events = useMemo(() => {
+    const items: {
+      timestamp: string;
+      react: JSX.Element;
+    }[] = [];
+    data?.events.forEach((e) => {
+      if (e.grantCreated) {
+        items.push({
+          timestamp: e.createdAt,
+          react: (
+            <CFTimelineRow
+              arrLength={2}
+              header={"Grant created"}
+              index={2}
+              body={new Date(e.createdAt).toString()}
+            />
+          ),
+        });
+      }
+      if (e.fromGrantStatus) {
+        items.push({
+          timestamp: e.createdAt,
+          react: (
+            <CFTimelineRow
+              arrLength={2}
+              header={`Grant status changed from ${e.fromGrantStatus} to ${e.toGrantStatus}`}
+              index={2}
+              body={new Date(e.createdAt).toString()}
+            />
+          ),
+        });
+      }
+      if (e.fromStatus) {
+        items.push({
+          timestamp: e.createdAt,
+          react: (
+            <CFTimelineRow
+              arrLength={2}
+              header={`${
+                e.actor || "Granted Approvals"
+              } changed request status from ${e.fromStatus} to ${e.toStatus}`}
+              index={2}
+              body={new Date(e.createdAt).toString()}
+            />
+          ),
+        });
+      }
+      if (e.requestCreated) {
+        items.push({
+          timestamp: e.createdAt,
+          react: (
+            <CFTimelineRow
+              arrLength={2}
+              header={`Request created by ${e.actor}`}
+              index={2}
+              body={new Date(e.createdAt).toString()}
+            />
+          ),
+        });
+      }
+    });
+    items.sort();
+    return items.map((i) => i.react);
+  }, [data]);
+  console.log(events);
+  if (!request || data === undefined) {
     return (
       <VStack flex={1} align="left">
         <Box textStyle="Heading/H4" as="h4" mb={8}>
@@ -19,55 +84,12 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
     );
   }
 
-  const GrantItems = () => {
-    const items = [];
-    switch (request?.grant?.status) {
-      case "PENDING":
-        items.push(
-          <CFTimelineRow
-            arrLength={2}
-            header={"Grant Created "}
-            index={2}
-            body={new Date(request.updatedAt).toString()}
-          />
-        );
-      case "ACTIVE":
-        items.push(
-          <CFTimelineRow
-            arrLength={2}
-            header={"Grant Activated "}
-            index={2}
-            body={new Date(request.updatedAt).toString()}
-          />
-        );
-    }
-    return <>{items}</>;
-  };
-
   return (
     <VStack flex={1} align="left">
       <Box textStyle="Heading/H4" as="h4" mb={8}>
         Audit Log
       </Box>
-      {request?.grant && <GrantItems />}
-      {request?.status !== "PENDING" && (
-        <CFTimelineRow
-          arrLength={2}
-          header={
-            "Request " +
-            request.status.toLowerCase().charAt(0).toUpperCase() +
-            request.status.toLowerCase().slice(1)
-          }
-          index={2}
-          body={new Date(request.updatedAt).toString()}
-        />
-      )}
-      <CFTimelineRow
-        arrLength={2}
-        header={"Request Created"}
-        index={1}
-        body={new Date(request.requestedAt).toString()}
-      />
+      {events}
     </VStack>
   );
 };

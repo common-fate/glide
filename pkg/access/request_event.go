@@ -23,34 +23,25 @@ type RequestEvent struct {
 	FromGrantStatus *ac_types.GrantStatus `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
 	ToGrantStatus   *ac_types.GrantStatus `json:"toGrantStatus,omitempty" dynamodbav:"toGrantStatus,omitempty"`
 	GrantCreated    *bool                 `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
+	RequestCreated  *bool                 `json:"requestCreated,omitempty" dynamodbav:"requestCreated,omitempty"`
 }
 
-func NewRequestEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
-	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID}
+func NewRequestCreatedEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
+	t := true
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, RequestCreated: &t}
 }
 func NewGrantStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to ac_types.GrantStatus) RequestEvent {
-	r := NewRequestEvent(requestID, createdAt, actor)
-	r.FromGrantStatus = &from
-	r.ToGrantStatus = &to
-	return r
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromGrantStatus: &from, ToGrantStatus: &to}
 }
 func NewGrantCreatedEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
-	r := NewRequestEvent(requestID, createdAt, actor)
 	t := true
-	r.GrantCreated = &t
-	return r
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, GrantCreated: &t}
 }
 func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Status) RequestEvent {
-	r := NewRequestEvent(requestID, createdAt, actor)
-	r.FromStatus = &from
-	r.ToStatus = &to
-	return r
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &from, ToStatus: &to}
 }
 func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
-	r := NewRequestEvent(requestID, createdAt, actor)
-	r.FromTiming = &from
-	r.ToTiming = &to
-	return r
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromTiming: &from, ToTiming: &to}
 }
 func (r *RequestEvent) ToAPI() types.RequestEvent {
 	var toTiming *types.RequestTiming
@@ -75,6 +66,7 @@ func (r *RequestEvent) ToAPI() types.RequestEvent {
 		ToStatus:        (*types.RequestStatus)(r.ToStatus),
 		ToTiming:        toTiming,
 		GrantCreated:    r.GrantCreated,
+		RequestCreated:  r.RequestCreated,
 	}
 }
 

@@ -1129,6 +1129,8 @@ components:
             - EXPIRED
         grantCreated:
           type: boolean
+        requestCreated:
+          type: boolean
       required:
         - id
         - requestId
