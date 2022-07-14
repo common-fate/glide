@@ -8,10 +8,8 @@ import (
 	"net/http"
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
@@ -22,6 +20,31 @@ type AzureSync struct {
 	// Adapter   *msgraphsdk.GraphRequestAdapter
 	NewClient *http.Client
 	token     string
+}
+
+type ListUsersResponse struct {
+	OdataContext  string      `json:"@odata.context"`
+	OdataNextLink *string     `json:"@odata.nextLink,omitempty"`
+	Value         []AzureUser `json:"value"`
+}
+
+type AzureUser struct {
+	GivenName string `json:"givenName"`
+	Mail      string `json:"mail"`
+	Surname   string `json:"surname"`
+	ID        string `json:"id"`
+}
+
+type ListGroupsResponse struct {
+	OdataContext  string       `json:"@odata.context"`
+	OdataNextLink *string      `json:"@odata.nextLink,omitempty"`
+	Value         []AzureGroup `json:"value"`
+}
+
+type AzureGroup struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+	DisplayName string `json:"displayName"`
 }
 type ClientSecretCredential struct {
 	client confidential.Client
@@ -61,81 +84,89 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
 	return &AzureSync{NewClient: http.DefaultClient, token: token}, nil
 }
 
+func (a *AzureSync) Get(url string) (*http.Response, error) {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+a.token)
+	return a.NewClient.Do(req)
+
+}
+
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
-func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser models.Userable) (identity.IdpUser, error) {
+func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IdpUser, error) {
 	u := identity.IdpUser{
-		ID:        aws.ToString(azureUser.GetId()),
-		FirstName: aws.ToString(azureUser.GetGivenName()),
-		LastName:  aws.ToString(azureUser.GetSurname()),
-		Email:     aws.ToString(azureUser.GetMail()),
+		ID:        azureUser.ID,
+		FirstName: azureUser.GivenName,
+		LastName:  azureUser.Surname,
+		Email:     azureUser.Mail,
 		Groups:    []string{},
 	}
 
-	// result, err := a.Client.UsersById(u.ID).MemberOf().Get()
-	// if err != nil {
-	// 	return identity.IdpUser{}, err
-	// }
+	g, err := a.GetMemberGroups(u.ID)
+	if err != nil {
+		return identity.IdpUser{}, err
+	}
 
-	// // Use PageIterator to iterate through all groups
-	// pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateDirectoryFromDiscriminatorValue)
-	// if err != nil {
-	// 	return identity.IdpUser{}, err
-	// }
-	// err = pageIterator.Iterate(func(pageItem interface{}) bool {
-	// 	if _, ok := pageItem.(models.Groupable); ok {
-	// 		graphGroup := pageItem.(models.Groupable)
-
-	// 		u.Groups = append(u.Groups, aws.ToString(graphGroup.GetId()))
-
-	// 		return true
-	// 	}
-	// 	return false
-	// })
-	// if err != nil {
-	// 	return identity.IdpUser{}, err
-	// }
+	_ = g
 
 	return u, nil
 }
 
+func (a *AzureSync) GetMemberGroups(userID string) ([]identity.IdpGroup, error) {
+	idpGroups := []identity.IdpGroup{}
+
+	hasMore := true
+	var nextToken *string
+	url := MSGraphBaseURL + fmt.Sprintf("/users/%s/getMemberGroups", userID)
+
+	for hasMore {
+
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("Authorization", "Bearer "+a.token)
+		res, err := a.NewClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		var lu ListGroupsResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, u := range lu.Value {
+
+			group := idpGroupFromAzureGroup(u)
+			if err != nil {
+				return nil, err
+			}
+			idpGroups = append(idpGroups, group)
+		}
+		nextToken = lu.OdataNextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
+
+	}
+	return idpGroups, nil
+}
+
 func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
-	// //get all users
-	// idpUsers := []identity.IdpUser{}
-	// result, err := a.Client.Users().Get()
-	// if err != nil {
-	// 	return nil, err
-	// }
 
-	// // Use PageIterator to iterate through all users
-	// pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateUserCollectionResponseFromDiscriminatorValue)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = pageIterator.Iterate(func(pageItem interface{}) bool {
-	// 	graphUser := pageItem.(models.Userable)
-
-	// 	user, err := a.idpUserFromAzureUser(ctx, graphUser)
-	// 	if err != nil {
-	// 		return false
-	// 	}
-	// 	idpUsers = append(idpUsers, user)
-
-	// 	return true
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return idpUsers, nil
 	//get all users
 	idpUsers := []identity.IdpUser{}
 	hasMore := true
-	var paginationToken *string
+	var nextToken *string
+	url := MSGraphBaseURL + "/users"
+
 	for hasMore {
-		url := MSGraphBaseURL + "/users"
-		if paginationToken != nil {
-			url += "?skipToken=" + *paginationToken
-		}
-		req, _ := http.NewRequest("GET", MSGraphBaseURL+"/users", nil)
+
+		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Add("Authorization", "Bearer "+a.token)
 		res, err := a.NewClient.Do(req)
 		if err != nil {
@@ -151,73 +182,72 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 			return nil, err
 		}
 
-		paginationToken = *lu.OdataNextLink
 		for _, u := range lu.Value {
-			_ = u
-			// user, err := o.idpUserFromOktaUser(ctx, u)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// idpUsers = append(idpUsers, user)
+
+			user, err := a.idpUserFromAzureUser(ctx, u)
+			if err != nil {
+				return nil, err
+			}
+			idpUsers = append(idpUsers, user)
+		}
+		nextToken = lu.OdataNextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
 		}
 
-		paginationToken = res.NextPage
-		hasMore = paginationToken != ""
 	}
 
-	return nil, nil
-}
-
-func (a *AzureSync) Get(url string) (*http.Response, error) {
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer "+a.token)
-	return a.NewClient.Do(req)
-
-}
-
-type ListUsersResponse struct {
-	OdataContext  string  `json:"@odata.context"`
-	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
-	Value         []struct {
-		GivenName string `json:"givenName"`
-		Mail      string `json:"mail"`
-		Surname   string `json:"surname"`
-		ID        string `json:"id"`
-	} `json:"value"`
+	return idpUsers, nil
 }
 
 // idpGroupFromAzureGroup converts a azure group to the identityprovider interface group type
-func idpGroupFromAzureGroup(azureGroup models.Groupable) identity.IdpGroup {
+func idpGroupFromAzureGroup(azureGroup AzureGroup) identity.IdpGroup {
 	return identity.IdpGroup{
-		ID:          aws.ToString(azureGroup.GetId()),
-		Name:        aws.ToString(azureGroup.GetDisplayName()),
-		Description: aws.ToString(azureGroup.GetDescription()),
+		ID:          azureGroup.ID,
+		Name:        azureGroup.DisplayName,
+		Description: string(azureGroup.Description),
 	}
 }
 func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
-	// idpGroups := []identity.IdpGroup{}
-	// result, err := a.Client.Groups().Get()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	idpGroups := []identity.IdpGroup{}
+	hasMore := true
+	var nextToken *string
+	url := MSGraphBaseURL + "/groups"
+	for hasMore {
 
-	// // Use PageIterator to iterate through all users
-	// pageIterator, err := msgraphcore.NewPageIterator(result, a.Adapter, models.CreateGroupCollectionResponseFromDiscriminatorValue)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = pageIterator.Iterate(func(pageItem interface{}) bool {
-	// 	graphGroup := pageItem.(models.Groupable)
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("Authorization", "Bearer "+a.token)
+		res, err := a.NewClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
 
-	// 	user := idpGroupFromAzureGroup(graphGroup)
+		var lu ListGroupsResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
 
-	// 	idpGroups = append(idpGroups, user)
+		for _, u := range lu.Value {
 
-	// 	return true
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return idpGroups, nil
-	return nil, nil
+			group := idpGroupFromAzureGroup(u)
+			if err != nil {
+				return nil, err
+			}
+			idpGroups = append(idpGroups, group)
+		}
+		nextToken = lu.OdataNextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
+	}
+	return idpGroups, nil
 }

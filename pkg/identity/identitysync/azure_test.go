@@ -20,6 +20,15 @@ func TestAzureListUsers(t *testing.T) {
 	}
 }
 
+func TestAzureListGroups(t *testing.T) {
+	c := newTestingAzure(t)
+	ctx := context.Background()
+	_, err := c.ListGroups(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 // newTestingCognito creates a new testing Cognito.
 // It skips the tests if the APPROVALS_COGNITO_USER_POOL_ID env var isn't set.
 func newTestingAzure(t *testing.T) *AzureSync {
