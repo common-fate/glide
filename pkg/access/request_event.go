@@ -22,6 +22,7 @@ type RequestEvent struct {
 	ToTiming        *Timing               `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
 	FromGrantStatus *ac_types.GrantStatus `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
 	ToGrantStatus   *ac_types.GrantStatus `json:"toGrantStatus,omitempty" dynamodbav:"toGrantStatus,omitempty"`
+	GrantCreated    *bool                 `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
 }
 
 func NewRequestEvent(createdAt time.Time, actor *string) RequestEvent {
@@ -31,6 +32,12 @@ func NewGrantStatusChangeEvent(createdAt time.Time, actor *string, from, to ac_t
 	r := NewRequestEvent(createdAt, actor)
 	r.FromGrantStatus = &from
 	r.ToGrantStatus = &to
+	return r
+}
+func NewGrantCreatedEvent(createdAt time.Time, actor *string) RequestEvent {
+	r := NewRequestEvent(createdAt, actor)
+	t := true
+	r.GrantCreated = &t
 	return r
 }
 func NewStatusChangeEvent(createdAt time.Time, actor *string, from, to Status) RequestEvent {

@@ -1,11 +1,13 @@
 import { Box, VStack } from "@chakra-ui/layout";
 import { Skeleton } from "@chakra-ui/react";
 import React from "react";
+import { useListRequestEvents } from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
 import { CFTimelineRow } from "./CFTimelineRow";
 export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
+  const { data } = useListRequestEvents(request?.id || "");
   if (!request) {
     return (
       <VStack flex={1} align="left">

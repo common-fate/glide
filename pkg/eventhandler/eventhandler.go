@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
-	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
@@ -53,25 +54,29 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	if gq.Result.Grant == nil {
 		return fmt.Errorf("request: %s does not have a grant", grantEvent.Grant.ID)
 	}
-	oldStatus := gq.Result.Status
-	switch event.DetailType {
-	case gevent.GrantActivatedType:
-		gq.Result.Grant.Status = ac_types.ACTIVE
-	case gevent.GrantExpiredType:
-		gq.Result.Grant.Status = ac_types.EXPIRED
-	case gevent.GrantFailedType:
-		gq.Result.Grant.Status = ac_types.ERROR
-	// revoking is handling as a synchronous operation, so we do not modify the database for these events as it is handled in the API already
-	// case gevent.GrantRevokedType:
-	// 	gq.Result.Status = ac_types.GrantStatusREVOKED
-	default:
-		zap.S().Infow("unhandled grant event type", "detailType", event.DetailType)
+	oldStatus := gq.Result.Grant.Status
+	newStatus := grantEvent.Grant.Status
+	gq.Result.Grant.Status = newStatus
+
+	// don't add status changed f event is its the same status
+	// but check if its grant created
+	if oldStatus == newStatus {
+		if event.DetailType == gevent.GrantCreatedType {
+			requestEvent := access.NewGrantCreatedEvent(time.Now(), nil)
+			log.Infow("inserting request event for grant created")
+			return n.db.Put(ctx, &requestEvent)
+		}
+		return nil
+	} else {
+		requestEvent := access.NewGrantStatusChangeEvent(time.Now(), nil, oldStatus, newStatus)
+		log.Infow("updating grant status on request", "old", oldStatus, "new", newStatus)
+		log.Infow("inserting request event for grant status change")
+		items, err := dbupdate.GetUpdateRequestItems(ctx, n.db, *gq.Result)
+		if err != nil {
+			return err
+		}
+		items = append(items, &requestEvent)
+		// Updates the grant status
+		return n.db.PutBatch(ctx, items...)
 	}
-	log.Infow("updating grant status on request", "old", oldStatus, "new", gq.Result.Status)
-	items, err := dbupdate.GetUpdateRequestItems(ctx, n.db, *gq.Result)
-	if err != nil {
-		return err
-	}
-	// Updates the grant status
-	return n.db.PutBatch(ctx, items...)
 }
