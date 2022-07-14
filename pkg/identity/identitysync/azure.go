@@ -1,6 +1,7 @@
 package identitysync
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -46,6 +47,13 @@ type AzureGroup struct {
 	Description string `json:"description"`
 	DisplayName string `json:"displayName"`
 }
+
+type UserGroups struct {
+	OdataNextLink *string  `json:"@odata.nextLink,omitempty"`
+	OdataContext  string   `json:"@odata.context"`
+	Value         []string `json:"value"`
+}
+
 type ClientSecretCredential struct {
 	client confidential.Client
 }
@@ -115,12 +123,14 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]string, error) {
 
 	hasMore := true
 	var nextToken *string
-	url := MSGraphBaseURL + fmt.Sprintf("/users/%s/getMemberGroups", userID)
+	url := MSGraphBaseURL + fmt.Sprintf("/directoryObjects/%s/getMemberGroups", userID)
 
 	for hasMore {
-
-		req, _ := http.NewRequest("GET", url, nil)
+		var jsonStr = []byte(`{ "securityEnabledOnly": false}`)
+		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 		req.Header.Add("Authorization", "Bearer "+a.token)
+		req.Header.Set("Content-Type", "application/json")
+
 		res, err := a.NewClient.Do(req)
 		if err != nil {
 			return nil, err
@@ -130,16 +140,14 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]string, error) {
 			return nil, err
 		}
 
-		var lu ListGroupsResponse
+		var lu UserGroups
 		err = json.Unmarshal(b, &lu)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, u := range lu.Value {
+		userGroups = append(userGroups, lu.Value...)
 
-			userGroups = append(userGroups, u.ID)
-		}
 		nextToken = lu.OdataNextLink
 		if nextToken != nil {
 			url = *nextToken
