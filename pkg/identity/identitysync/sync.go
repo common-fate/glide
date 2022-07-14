@@ -79,10 +79,10 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		}
 
 	case AZURE:
-		if opts.IdentitySettings.Azure == nil {
+		if opts.IdentityConfig.Azure == nil {
 			return nil, fmt.Errorf("azure settings not configured")
 		}
-		clone := *opts.IdentitySettings.Azure
+		clone := *opts.IdentityConfig.Azure
 		err = config.LoadAndReplaceSSMValues(ctx, &clone)
 		if err != nil {
 			return nil, err
