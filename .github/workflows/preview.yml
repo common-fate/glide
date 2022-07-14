@@ -147,11 +147,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
-          # cache: 'pnpm'
-      # Should be installed from dependent test-frontend
-      # - name: Install dependencies
-      #   run: pnpm ci
-      #   working-directory: web
       - name: Install Deps
         run: pnpm i
         working-directory: web
