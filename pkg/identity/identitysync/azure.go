@@ -3,11 +3,11 @@ package identitysync
 import (
 	"context"
 
-	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity"
-	a "github.com/microsoft/kiota-authentication-azure-go"
+	abs "github.com/microsoft/kiota-abstractions-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	msgraphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
@@ -17,22 +17,48 @@ type AzureSync struct {
 	Client  *msgraphsdk.GraphServiceClient
 	Adapter *msgraphsdk.GraphRequestAdapter
 }
+type ClientSecretCredential struct {
+	client confidential.Client
+}
+
+// GetToken requests an access token from Azure Active Directory. This method is called automatically by Azure SDK clients.
+func (c *ClientSecretCredential) GetToken(ctx context.Context) (string, error) {
+	ar, err := c.client.AcquireTokenSilent(ctx, []string{"https://graph.microsoft.com/.default"})
+	return ar.AccessToken, err
+}
+
+func NewClientSecretCredential(s deploy.Azure) (*ClientSecretCredential, error) {
+	cred, err := confidential.NewCredFromSecret(s.ClientSecret)
+	if err != nil {
+		return nil, err
+	}
+	c, err := confidential.New(s.ClientID, cred)
+	if err != nil {
+		return nil, err
+	}
+	return &ClientSecretCredential{client: c}, nil
+}
+
+type Authenticator struct {
+	token string
+}
+
+func (a Authenticator) AuthenticateRequest(request *abs.RequestInformation, additionalAuthenticationContext map[string]interface{}) error {
+	return nil
+}
 
 // NewAzure will fail if the Azure settings are not configured
 func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
-
-	//TODO: For applications calling graph api, 'On-behalf-of' provider is not yet available for the go graph sdk
-	// for the time being will be using a client credentials provider which uses application permissions
-	cred, err := azidentity.NewClientSecretCredential(settings.TenantID, settings.ClientID, settings.ClientSecret, nil)
+	azAuth, err := NewClientSecretCredential(settings)
 	if err != nil {
 		return nil, err
 	}
-
-	auth, err := a.NewAzureIdentityAuthenticationProviderWithScopes(cred, []string{"https://graph.microsoft.com/.default"})
+	token, err := azAuth.GetToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-	adapter, err := msgraphsdk.NewGraphRequestAdapter(auth)
+	a := Authenticator{token: token}
+	adapter, err := msgraphsdk.NewGraphRequestAdapter(a)
 	if err != nil {
 		return nil, err
 	}
