@@ -22,13 +22,13 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
-          cache: "pnpm"
+          node-version: '16'
+          cache: 'pnpm'
 
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.17.8"
+          go-version: '1.17.8'
           cache: true
 
       - name: Install NodeJS dependencies
@@ -41,7 +41,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: us-west-2
-          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
+          role-to-assume: '${{ secrets.AWS_TESTING_ROLE_ARN }}'
 
       - name: Release CloudFormation
         run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
@@ -70,7 +70,7 @@ jobs:
         name: Create GitHub deployment
         id: deployment
         with:
-          token: "${{ github.token }}"
+          token: '${{ github.token }}'
           environment-url: https://${{ steps.branch.outputs.name }}.test.granted.run
           environment: ${{ steps.branch.outputs.name }}
           transient-environment: true
@@ -83,13 +83,13 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
-          cache: "pnpm"
+          node-version: '16'
+          cache: 'pnpm'
 
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.17.8"
+          go-version: '1.17.8'
           cache: true
 
       - name: Install NodeJS dependencies
@@ -99,7 +99,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: us-east-1
-          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
+          role-to-assume: '${{ secrets.AWS_TESTING_ROLE_ARN }}'
 
       - name: Create empty aws-exports.js
         run: echo 'export default {};' > ./web/src/utils/aws-exports.js
@@ -114,9 +114,9 @@ jobs:
         if: success()
         uses: chrnorm/deployment-status@v2.0.0
         with:
-          token: "${{ github.token }}"
+          token: '${{ github.token }}'
           environment-url: ${{ steps.deployment.outputs.environment_url }}
-          state: "success"
+          state: 'success'
           auto-inactive: true
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
@@ -124,7 +124,47 @@ jobs:
         if: failure()
         uses: chrnorm/deployment-status@v2.0.0
         with:
-          token: "${{ github.token }}"
+          token: '${{ github.token }}'
           environment-url: ${{ steps.deployment.outputs.environment_url }}
-          state: "failure"
+          state: 'failure'
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+  playwright-tests:
+    needs: [deploy]
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    # if: github.event.deployment_status.state == 'success'
+    steps:
+      - uses: common-fate/branch-name@v1.1.2
+        name: Get branch name
+        id: branch
+        with:
+          max-length: 32
+      - uses: actions/checkout@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          # cache: 'pnpm'
+      # Should be installed from dependent test-frontend
+      # - name: Install dependencies
+      #   run: pnpm ci
+      #   working-directory: web
+      - name: Install Deps
+        run: pnpm i
+        working-directory: web
+      - name: Install Playwright
+        run: pnpm run e2e-install
+        working-directory: web
+      - name: Run Playwright tests
+        run: pnpm run e2e
+        working-directory: web
+        env:
+          TESTING_DOMAIN: '${{ secrets.TESTING_DOMAIN}}' # @TODO find a way to pass this between deployment
+          TEST_USERNAME: '${{ secrets.TEST_USERNAME}}'
+          TEST_ADMIN_USERNAME: '${{ secrets.TEST_ADMIN_USERNAME}}'
+          TEST_PASSWORD: '${{ secrets.TEST_PASSWORD}}'
+          USER_POOL_ID: '${{ secrets.USER_POOL_ID}}'
+          COGNITO_CLIENT_ID: '${{ secrets.COGNITO_CLIENT_ID}}'
