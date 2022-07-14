@@ -51,6 +51,7 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	if err != nil {
 		return err
 	}
+	// This would indicate a race condition or a major error
 	if gq.Result.Grant == nil {
 		return fmt.Errorf("request: %s does not have a grant", grantEvent.Grant.ID)
 	}
