@@ -166,6 +166,28 @@ paths:
       tags:
         - End User
       parameters: []
+  "/api/v1/requests/{requestId}/events":
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    get:
+      summary: List request events
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequestEventsResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: list-request-events
+      description: |
+        Returns a HTTP401 response if the user is not the requestor or a reviewer.
+      tags:
+        - End User
+      parameters: []
   "/api/v1/requests/{requestId}/review":
     parameters:
       - schema:
@@ -1063,6 +1085,52 @@ components:
       enum:
         - AUTOMATIC
         - REVIEWED
+    RequestEvent:
+      title: RequestEvent
+      x-stoplight:
+        id: x15z5qclesdq9
+      type: object
+      properties:
+        id:
+          type: string
+        requestId:
+          type: string
+        createdAt:
+          type: string
+          x-go-type: time.Time
+          format: time
+        actor:
+          type: string
+        fromStatus:
+          $ref: "#/components/schemas/RequestStatus"
+        toStatus:
+          $ref: "#/components/schemas/RequestStatus"
+        fromTiming:
+          $ref: "#/components/schemas/RequestTiming"
+        toTiming:
+          $ref: "#/components/schemas/RequestTiming"
+        fromGrantStatus:
+          type: string
+          description: The current state of the grant.
+          enum:
+            - PENDING
+            - ACTIVE
+            - ERROR
+            - REVOKED
+            - EXPIRED
+        toGrantStatus:
+          type: string
+          description: The current state of the grant.
+          enum:
+            - PENDING
+            - ACTIVE
+            - ERROR
+            - REVOKED
+            - EXPIRED
+      required:
+        - id
+        - requestId
+        - createdAt
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -1221,6 +1289,23 @@ components:
             required:
               - hasOptions
               - options
+    ListRequestEventsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              events:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RequestEvent"
+              next:
+                type: string
+                nullable: true
+            required:
+              - events
+              - next
   examples: {}
   securitySchemes: {}
   requestBodies:

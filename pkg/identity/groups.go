@@ -21,7 +21,7 @@ func (g IdpGroup) ToInternalGroup() Group {
 		IdpID:       g.ID,
 		Name:        g.Name,
 		Description: g.Description,
-		Status:      types.ACTIVE,
+		Status:      types.IdpStatusACTIVE,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
