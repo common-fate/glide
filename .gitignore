@@ -23,3 +23,6 @@ dist/
 gon.gdeploy.hcl
 gon.gdeploy.arm.hcl
 .vscode*
+userAuthCookies.json
+adminAuthCookies.json
+*test-results*
