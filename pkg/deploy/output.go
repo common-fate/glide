@@ -132,7 +132,7 @@ To fix this, take one of the following actions:
 
 	for _, o := range stack.Outputs {
 		if *o.OutputKey == "UserPoolDomain" {
-			out.CognitoDomain = *o.OutputValue
+			out.CognitoDomain = *o.OutputValue + "/saml2/idpresponse"
 		}
 		if *o.OutputKey == "UserPoolID" {
 			out.AudienceURI = fmt.Sprintf("urn:amazon:cognito:sp:%s", *o.OutputValue)
