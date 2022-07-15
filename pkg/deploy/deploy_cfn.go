@@ -19,11 +19,11 @@ import (
 const noChangeFoundMsg = "The submitted information didn't contain changes. Submit different information to create a change set."
 
 // DeployCloudFormation creates a CloudFormation stack based on the config
-func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) error {
+func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) (string, error) {
 	template := c.CfnTemplateURL()
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 	cfnClient := cfn.New(cfg)
 
@@ -34,7 +34,7 @@ func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) error {
 
 	params, err := c.CfnParams()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	changeSetName, createErr := cfnClient.CreateChangeSet(ctx, template, params, nil, c.Deployment.StackName, "")
@@ -44,16 +44,16 @@ func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) error {
 	if createErr != nil {
 		if createErr.Error() == noChangeFoundMsg {
 			clio.Success("Change set was created, but there is no change. Deploy was skipped.")
-			return nil
+			return "", nil
 		} else {
-			return errors.Wrap(createErr, "creating changeset")
+			return "", errors.Wrap(createErr, "creating changeset")
 		}
 	}
 	uiClient := ui.New(cfg)
 	if !confirm {
 		status, err := uiClient.FormatChangeSet(ctx, c.Deployment.StackName, changeSetName)
 		if err != nil {
-			return err
+			return "", err
 		}
 		clio.Info("The following CloudFormation changes will be made:")
 		fmt.Println(status)
@@ -61,16 +61,16 @@ func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) error {
 		p := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
 		err = survey.AskOne(p, &confirm)
 		if err != nil {
-			return err
+			return "", err
 		}
 		if !confirm {
-			return errors.New("user cancelled deployment")
+			return "", errors.New("user cancelled deployment")
 		}
 	}
 
 	err = cfnClient.ExecuteChangeSet(ctx, c.Deployment.StackName, changeSetName)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	status, messages := uiClient.WaitForStackToSettle(ctx, c.Deployment.StackName)
@@ -83,5 +83,5 @@ func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) error {
 			fmt.Printf("  - %s\n", message)
 		}
 	}
-	return nil
+	return status, nil
 }
