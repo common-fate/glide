@@ -17,6 +17,7 @@ import (
 var idpTypes = []string{
 	"Google",
 	"Okta",
+	"Azure",
 }
 
 var SSOCommand = cli.Command{
@@ -45,8 +46,10 @@ var configureCommand = cli.Command{
 		}
 		googleSelected := idpType == "Google"
 		oktaSelected := idpType == "Okta"
+		azureSelected := idpType == "Azure"
 		googleConfigured := dc.Identity != nil && dc.Identity.Google != nil
 		oktaConfigured := dc.Identity != nil && dc.Identity.Okta != nil
+		azureConfigured := dc.Identity != nil && dc.Identity.Azure != nil
 		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
 		update := true
 		//if there are already params for that idp then ask if they want to update
@@ -146,6 +149,49 @@ var configureCommand = cli.Command{
 					}
 				} else {
 					dc.Identity.Okta = &okta
+				}
+			} else if azureSelected {
+				docs := "https://docs.commonfate.io/granted-approvals/sso/azure"
+				clio.Info("You can follow along with the Azure setup guide in our docs: %s", docs)
+				var azure deploy.Azure
+				if azureConfigured {
+					azure = *dc.Identity.Azure
+				}
+				p1 := &survey.Input{Message: "Tenant ID:", Default: azure.TenantID}
+				err = survey.AskOne(p1, &azure.TenantID)
+				if err != nil {
+					return err
+				}
+
+				p2 := &survey.Input{Message: "Client ID:", Default: azure.ClientID}
+				err = survey.AskOne(p2, &azure.ClientID)
+				if err != nil {
+					return err
+				}
+
+				var token string
+				p3 := &survey.Password{Message: "Client Secret:"}
+				err = survey.AskOne(p3, &token)
+				if err != nil {
+					return err
+				}
+
+				path, version, err := config.PutSecretVersion(ctx, config.AzureSecretPath, dc.Deployment.Parameters.DeploymentSuffix, token)
+				if err != nil {
+					return err
+				}
+				azure.ClientSecret = config.AWSSSMParamToken(path, version)
+				if err != nil {
+					return err
+				}
+				clio.Success("SSM Parameters set successfully")
+
+				if dc.Identity == nil {
+					dc.Identity = &deploy.IdentityConfig{
+						Azure: &azure,
+					}
+				} else {
+					dc.Identity.Azure = &azure
 				}
 			}
 			clio.Info("The following parameters are required to setup a SAML app in your identity provider")

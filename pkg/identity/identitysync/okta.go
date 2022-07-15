@@ -56,30 +56,6 @@ func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IdpGroup {
 	}
 }
 
-func (o *OktaSync) GetUserByEmail(ctx context.Context, email string) (user *identity.IdpUser, usergroups []identity.IdpGroup, err error) {
-	oktaUser, _, err := o.client.User.GetUser(ctx, email)
-	if err != nil {
-		return nil, nil, err
-	}
-	user = &identity.IdpUser{
-		ID:        oktaUser.Id,
-		FirstName: (*oktaUser.Profile)["firstName"].(string),
-		LastName:  (*oktaUser.Profile)["lastName"].(string),
-		Email:     (*oktaUser.Profile)["email"].(string),
-		Groups:    []string{},
-	}
-
-	userGroups, _, err := o.client.User.ListUserGroups(ctx, oktaUser.Id)
-	if err != nil {
-		return nil, nil, err
-	}
-	for _, g := range userGroups {
-		user.Groups = append(user.Groups, g.Id)
-		usergroups = append(usergroups, idpGroupFromOktaGroup(g))
-	}
-	return user, usergroups, nil
-}
-
 func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	//get all users
 	idpUsers := []identity.IdpUser{}
