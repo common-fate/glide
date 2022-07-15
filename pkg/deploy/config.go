@@ -46,13 +46,6 @@ var AvailableRegions = []string{
 	"us-west-2",
 }
 
-// AvailableSSOProviders are the currently implemented SSO providers.
-var AvailableSSOProviders = []string{
-	"Google",
-	"Okta",
-	"Azure",
-}
-
 type Config struct {
 	Version       int                  `yaml:"version"`
 	Deployment    Deployment           `yaml:"deployment"`

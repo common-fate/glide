@@ -21,7 +21,6 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sso"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sync"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/users"
 	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
@@ -51,7 +50,6 @@ func main() {
 			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&sync.SyncCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), RequireCleanGitWorktree()),
