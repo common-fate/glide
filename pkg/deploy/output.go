@@ -90,8 +90,8 @@ func (c SAMLOutputs) PrintSAMLTable() {
 }
 
 type SAMLOutputs struct {
-	CognitoDomain string
-	AudienceURI   string
+	SAML_SSO_URL string
+	AudienceURI  string
 }
 
 // LoadOutput loads the outputs for the current deployment.
@@ -132,7 +132,7 @@ To fix this, take one of the following actions:
 
 	for _, o := range stack.Outputs {
 		if *o.OutputKey == "UserPoolDomain" {
-			out.CognitoDomain = *o.OutputValue + "/saml2/idpresponse"
+			out.SAML_SSO_URL = *o.OutputValue + "/saml2/idpresponse"
 		}
 		if *o.OutputKey == "UserPoolID" {
 			out.AudienceURI = fmt.Sprintf("urn:amazon:cognito:sp:%s", *o.OutputValue)
