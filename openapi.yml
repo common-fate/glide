@@ -1131,6 +1131,8 @@ components:
           type: boolean
         requestCreated:
           type: boolean
+        grantFailureReason:
+          type: string
       required:
         - id
         - requestId

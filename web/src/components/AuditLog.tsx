@@ -1,78 +1,137 @@
 import { Box, VStack } from "@chakra-ui/layout";
-import { Skeleton } from "@chakra-ui/react";
+import { Skeleton, Text } from "@chakra-ui/react";
 import React, { useMemo } from "react";
-import { useListRequestEvents } from "../utils/backend-client/end-user/end-user";
+import {
+  useGetUser,
+  useListRequestEvents,
+} from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
+import { renderTiming } from "../utils/renderTiming";
 import { CFTimelineRow } from "./CFTimelineRow";
 export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
   const { data } = useListRequestEvents(request?.id || "");
   const events = useMemo(() => {
-    const items: {
-      timestamp: string;
-      react: JSX.Element;
-    }[] = [];
-    data?.events.forEach((e) => {
+    const items: JSX.Element[] = [];
+    // use map here to ensure order is preserved
+    // foreach is not synchronous
+    const l = data?.events.length || 0;
+    data?.events.map((e, i) => {
       if (e.grantCreated) {
-        items.push({
-          timestamp: e.createdAt,
-          react: (
-            <CFTimelineRow
-              arrLength={2}
-              header={"Grant created"}
-              index={2}
-              body={new Date(e.createdAt).toString()}
-            />
-          ),
-        });
-      }
-      if (e.fromGrantStatus) {
-        items.push({
-          timestamp: e.createdAt,
-          react: (
-            <CFTimelineRow
-              arrLength={2}
-              header={`Grant status changed from ${e.fromGrantStatus} to ${e.toGrantStatus}`}
-              index={2}
-              body={new Date(e.createdAt).toString()}
-            />
-          ),
-        });
-      }
-      if (e.fromStatus) {
-        items.push({
-          timestamp: e.createdAt,
-          react: (
-            <CFTimelineRow
-              arrLength={2}
-              header={`${
-                e.actor || "Granted Approvals"
-              } changed request status from ${e.fromStatus} to ${e.toStatus}`}
-              index={2}
-              body={new Date(e.createdAt).toString()}
-            />
-          ),
-        });
-      }
-      if (e.requestCreated) {
-        items.push({
-          timestamp: e.createdAt,
-          react: (
-            <CFTimelineRow
-              arrLength={2}
-              header={`Request created by ${e.actor}`}
-              index={2}
-              body={new Date(e.createdAt).toString()}
-            />
-          ),
-        });
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={<Text>Grant created</Text>}
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.fromGrantStatus && e.actor) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                <UserText userId={e.actor || ""} />
+                {`changed grant status from
+              ${e.fromGrantStatus} to ${e.toGrantStatus}`}
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.fromGrantStatus && e.grantFailureReason) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                {`Grant status changed from ${e.fromGrantStatus} to
+              ${e.toGrantStatus} due to reason: ${e.grantFailureReason}`}
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.fromGrantStatus) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                {`Grant status changed from ${e.fromGrantStatus} to
+              ${e.toGrantStatus}`}
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.fromTiming && e.actor) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                <UserText userId={e.actor || ""} />
+                {` changed request timing from
+              ${renderTiming(e.fromTiming)} to ${renderTiming(e.toTiming)}`}
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.fromStatus && e.actor) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                <UserText userId={e.actor || ""} />
+                {` changed request status from
+              ${e.fromStatus} to ${e.toStatus}`}
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.fromStatus) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                {`Granted Approvals changed request status from
+              ${e.fromStatus} to ${e.toStatus}`}
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.requestCreated) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Text>
+                {`Request created by `}
+                <UserText userId={e.actor || ""} />
+              </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
       }
     });
-    items.sort();
-    return items.map((i) => i.react);
+    return items;
   }, [data]);
-  console.log(events);
   if (!request || data === undefined) {
     return (
       <VStack flex={1} align="left">
@@ -92,4 +151,15 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
       {events}
     </VStack>
   );
+};
+
+const UserText: React.FC<{ userId: string }> = ({ userId }) => {
+  const { data } = useGetUser(userId);
+  if (!data) {
+    return <Text></Text>;
+  }
+  if (data.firstName && data.lastName) {
+    <Text>{`${data.firstName} ${data.lastName}`}</Text>;
+  }
+  return <Text>{data.email}</Text>;
 };

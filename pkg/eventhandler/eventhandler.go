@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
@@ -58,34 +57,43 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	oldStatus := gq.Result.Grant.Status
 	newStatus := grantEvent.Grant.Status
 	gq.Result.Grant.Status = newStatus
+	gq.Result.Grant.UpdatedAt = event.Time
 	// I anticipate that this would be succeptible to a race condition, recoverable if the eventbridge retries the event handler
 	// this is because the grant events are sourced from the access handler prior to the request being saved to dynamodb on creation
 	// we could solve this by saving the request to the DB prior to making the call to the access handler?
 	if event.DetailType == gevent.GrantCreatedType {
-		requestEvent := access.NewGrantCreatedEvent(gq.Result.ID, time.Now(), nil)
+		requestEvent := access.NewGrantCreatedEvent(gq.Result.ID, event.Time)
 		log.Infow("inserting request event for grant created")
 		return n.db.Put(ctx, &requestEvent)
-		// don't add revoken events here, revoke events are added in the revoke api so that the actor can be captured
-	} else if event.DetailType == gevent.GrantRevokedType {
+	}
+	var requestEvent access.RequestEvent
+	if event.DetailType == gevent.GrantRevokedType {
 		// Grant revoked events have an actor which should be included in the audit trail
 		var grantRevokedEvent gevent.GrantRevoked
 		err := json.Unmarshal(event.Detail, &grantRevokedEvent)
 		if err != nil {
 			return err
 		}
-		requestEvent := access.NewGrantStatusChangeEvent(gq.Result.ID, time.Now(), &grantRevokedEvent.Actor, oldStatus, newStatus)
+		requestEvent = access.NewGrantStatusChangeEvent(gq.Result.ID, event.Time, &grantRevokedEvent.Actor, oldStatus, newStatus)
 		log.Infow("inserting request event for grant revoked")
-		return n.db.Put(ctx, &requestEvent)
-	} else {
-		requestEvent := access.NewGrantStatusChangeEvent(gq.Result.ID, time.Now(), nil, oldStatus, newStatus)
-		log.Infow("updating grant status on request", "old", oldStatus, "new", newStatus)
-		log.Infow("inserting request event for grant status change")
-		items, err := dbupdate.GetUpdateRequestItems(ctx, n.db, *gq.Result)
+	} else if event.DetailType == gevent.GrantFailedType {
+		// Grant revoked events have an actor which should be included in the audit trail
+		var grantFailedEvent gevent.GrantFailed
+		err := json.Unmarshal(event.Detail, &grantFailedEvent)
 		if err != nil {
 			return err
 		}
-		items = append(items, &requestEvent)
-		// Updates the grant status
-		return n.db.PutBatch(ctx, items...)
+		requestEvent = access.NewGrantFailedEvent(gq.Result.ID, event.Time, oldStatus, newStatus, grantFailedEvent.Reason)
+		log.Infow("inserting request event for grant failed")
+	} else {
+		requestEvent = access.NewGrantStatusChangeEvent(gq.Result.ID, event.Time, nil, oldStatus, newStatus)
+		log.Infow("inserting request event for grant status change")
 	}
+	items, err := dbupdate.GetUpdateRequestItems(ctx, n.db, *gq.Result)
+	if err != nil {
+		return err
+	}
+	items = append(items, &requestEvent)
+	// Updates the grant status
+	return n.db.PutBatch(ctx, items...)
 }

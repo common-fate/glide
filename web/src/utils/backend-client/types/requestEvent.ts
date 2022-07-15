@@ -25,4 +25,5 @@ export interface RequestEvent {
   toGrantStatus?: RequestEventToGrantStatus;
   grantCreated?: boolean;
   requestCreated?: boolean;
+  grantFailureReason?: string;
 }
