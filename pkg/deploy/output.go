@@ -66,13 +66,9 @@ func (c Output) PrintTable() {
 }
 
 func (c SAMLOutputs) PrintSAMLTable() {
-	v := reflect.ValueOf(c)
-	t := v.Type()
-
-	data := [][]string{}
-	for i := 0; i < v.NumField(); i++ {
-		val := fmt.Sprintf("%v", v.Field(i).Interface())
-		data = append(data, []string{t.Field(i).Name, val})
+	data := [][]string{
+		{"SAML SSO URL (ACS URL)", c.ACSURL},
+		{"Audience URI", c.AudienceURI},
 	}
 
 	table := tablewriter.NewWriter(os.Stderr)
@@ -90,8 +86,9 @@ func (c SAMLOutputs) PrintSAMLTable() {
 }
 
 type SAMLOutputs struct {
-	SAML_SSO_URL string
-	AudienceURI  string
+	// ACS URL
+	ACSURL      string
+	AudienceURI string
 }
 
 // LoadOutput loads the outputs for the current deployment.
@@ -132,7 +129,7 @@ To fix this, take one of the following actions:
 
 	for _, o := range stack.Outputs {
 		if *o.OutputKey == "UserPoolDomain" {
-			out.SAML_SSO_URL = *o.OutputValue + "/saml2/idpresponse"
+			out.ACSURL = *o.OutputValue + "/saml2/idpresponse"
 		}
 		if *o.OutputKey == "UserPoolID" {
 			out.AudienceURI = fmt.Sprintf("urn:amazon:cognito:sp:%s", *o.OutputValue)
