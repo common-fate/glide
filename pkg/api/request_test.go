@@ -14,6 +14,7 @@ import (
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
+	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
@@ -498,4 +499,137 @@ func TestRevokeRequest(t *testing.T) {
 
 		})
 	}
+}
+func TestUserListRequestEvents(t *testing.T) {
+
+	type testcase struct {
+		name                      string
+		mockGetRequest            storage.GetRequest
+		mockGetRequestErr         error
+		mockGetRequestReviewer    storage.GetRequestReviewer
+		mockGetRequestReviewerErr error
+		mockListEvents            storage.ListRequestEvents
+		mockListEventsErr         error
+		apiUserID                 string
+		apiUserIsAdmin            bool
+		// expected HTTP response code
+		wantCode int
+		// expected HTTP response body
+		wantBody string
+	}
+
+	testcases := []testcase{
+
+		{
+			name:     "ok requestor",
+			wantCode: http.StatusOK,
+			mockGetRequest: storage.GetRequest{
+				ID: "1234",
+				Result: &access.Request{
+					ID:          "1234",
+					RequestedBy: "abcd",
+				},
+			},
+			mockListEvents: storage.ListRequestEvents{
+				RequestID: "1234",
+				Result: []access.RequestEvent{
+					{ID: "event", RequestID: "1234"},
+				},
+			},
+			apiUserID: "abcd",
+			wantBody:  `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
+		},
+		{
+			name:     "ok reviewer",
+			wantCode: http.StatusOK,
+			mockGetRequest: storage.GetRequest{
+				ID: "1234",
+				Result: &access.Request{
+					ID:          "1234",
+					RequestedBy: "wrong",
+				},
+			},
+			mockGetRequestReviewer: storage.GetRequestReviewer{
+				RequestID:  "1234",
+				ReviewerID: "abcd",
+				Result: &access.Reviewer{
+					ReviewerID: "abcd",
+					Request: access.Request{
+						ID:          "1234",
+						RequestedBy: "wrong",
+					},
+				},
+			},
+			mockListEvents: storage.ListRequestEvents{
+				RequestID: "1234",
+				Result: []access.RequestEvent{
+					{ID: "event", RequestID: "1234"},
+				},
+			},
+			apiUserID: "abcd",
+			wantBody:  `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
+		},
+		{
+			name:     "ok admin",
+			wantCode: http.StatusOK,
+			mockGetRequest: storage.GetRequest{
+				ID: "1234",
+				Result: &access.Request{
+					ID:          "1234",
+					RequestedBy: "wrong",
+				},
+			},
+			mockGetRequestReviewerErr: ddb.ErrNoItems,
+			mockListEvents: storage.ListRequestEvents{
+				RequestID: "1234",
+				Result: []access.RequestEvent{
+					{ID: "event", RequestID: "1234"},
+				},
+			},
+			apiUserID:      "abcd",
+			apiUserIsAdmin: true,
+			wantBody:       `{"events":[{"createdAt":"0001-01-01T00:00:00Z","id":"event","requestId":"1234"}],"next":null}`,
+		},
+		{
+			name:              "not found",
+			wantCode:          http.StatusUnauthorized,
+			mockGetRequestErr: ddb.ErrNoItems,
+
+			wantBody: `{"error":"item query returned no items"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
+			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)
+			db.MockQueryWithErr(&tc.mockGetRequestReviewer, tc.mockGetRequestReviewerErr)
+			a := API{DB: db}
+			handler := newTestServer(t, &a, withRequestUser(identity.User{ID: tc.apiUserID}), withIsAdmin(tc.apiUserIsAdmin))
+
+			req, err := http.NewRequest("GET", "/api/v1/requests/1234/events", strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := ioutil.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			} else {
+				fmt.Print((data))
+			}
+
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
+		})
+	}
+
 }
