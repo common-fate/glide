@@ -224,9 +224,13 @@ export class SamlUserPoolClient extends Construct {
         logoutUrls: props.callbackUrls,
       },
     });
+
     // have to drill down into the L1 construct to set the condition here
     const c = this._userPoolClient.node.defaultChild as CfnUserPoolClient;
     c.cfnOptions.condition = props.condition;
+    // adding this depends on to ensure that the user pool client is not created until the saml CfnUserPoolIdentityProvider exists
+    // this avoids an error "The provider <PROVIDER NAME> does not exist for User Pool <POOL_ID>"
+    c.addDependsOn(this._idp);
   }
   getUserPoolClient(): cognito.UserPoolClient {
     return this._userPoolClient;
