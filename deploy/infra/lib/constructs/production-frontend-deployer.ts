@@ -78,8 +78,11 @@ export class ProductionFrontendDeployer extends Construct {
     // custom resource will deploy the frontend from the public releases bucket
     new CustomResource(this, "CustomResource", {
       serviceToken: this._lambda.functionArn,
+
+      // These properties will cause the custom resource to run during an update when the cognito client id changes or when the frontend assets path changes
       properties: {
         Release: props.cfReleaseBucketFrontendAssetObjectPrefix,
+        CognitoClientID: props.cognitoClientId,
       },
     });
   }
