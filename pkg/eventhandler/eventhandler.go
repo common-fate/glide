@@ -58,19 +58,24 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	oldStatus := gq.Result.Grant.Status
 	newStatus := grantEvent.Grant.Status
 	gq.Result.Grant.Status = newStatus
-
-	// don't add status changed f event is its the same status
-	// but check if its grant created
-	if oldStatus == newStatus {
-		// I anticipate that this would be succeptible to a race condition, recoverable if the eventbridge retries the event handler
-		// this is because the grant events are sourced from the access handler prior to the request being saved to dynamodb on creation
-		// we could solve this by saving the request to the DB prior to making the call to the access handler?
-		if event.DetailType == gevent.GrantCreatedType {
-			requestEvent := access.NewGrantCreatedEvent(gq.Result.ID, time.Now(), nil)
-			log.Infow("inserting request event for grant created")
-			return n.db.Put(ctx, &requestEvent)
+	// I anticipate that this would be succeptible to a race condition, recoverable if the eventbridge retries the event handler
+	// this is because the grant events are sourced from the access handler prior to the request being saved to dynamodb on creation
+	// we could solve this by saving the request to the DB prior to making the call to the access handler?
+	if event.DetailType == gevent.GrantCreatedType {
+		requestEvent := access.NewGrantCreatedEvent(gq.Result.ID, time.Now(), nil)
+		log.Infow("inserting request event for grant created")
+		return n.db.Put(ctx, &requestEvent)
+		// don't add revoken events here, revoke events are added in the revoke api so that the actor can be captured
+	} else if event.DetailType == gevent.GrantRevokedType {
+		// Grant revoked events have an actor which should be included in the audit trail
+		var grantRevokedEvent gevent.GrantRevoked
+		err := json.Unmarshal(event.Detail, &grantRevokedEvent)
+		if err != nil {
+			return err
 		}
-		return nil
+		requestEvent := access.NewGrantStatusChangeEvent(gq.Result.ID, time.Now(), &grantRevokedEvent.Actor, oldStatus, newStatus)
+		log.Infow("inserting request event for grant revoked")
+		return n.db.Put(ctx, &requestEvent)
 	} else {
 		requestEvent := access.NewGrantStatusChangeEvent(gq.Result.ID, time.Now(), nil, oldStatus, newStatus)
 		log.Infow("updating grant status on request", "old", oldStatus, "new", newStatus)

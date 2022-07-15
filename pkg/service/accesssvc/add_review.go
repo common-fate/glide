@@ -100,6 +100,11 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	}
 	items = append(items, &r)
 
+	if request.OverrideTiming != nil {
+		// audit log event
+		reqEvent := access.NewTimingChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, request.RequestedTiming, *request.OverrideTiming)
+		items = append(items, &reqEvent)
+	}
 	// audit log event
 	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
 	items = append(items, &reqEvent)

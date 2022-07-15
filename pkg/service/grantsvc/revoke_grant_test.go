@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/benbjohnson/clock"
+
 	ah_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 
@@ -52,7 +53,7 @@ func TestAccessRevoke(t *testing.T) {
 					Subject:  "test@test.com",
 					Status:   "PENDING",
 					Provider: "okta",
-				}}}},
+				}}, RevokerID: "1234"}},
 	}
 
 	for _, tc := range testcases {
@@ -60,7 +61,9 @@ func TestAccessRevoke(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			g.EXPECT().PostGrantsRevokeWithResponse(gomock.Any(), "123").Return(&tc.withRevokeGrantResponse, tc.wantErr).AnyTimes()
+			g.EXPECT().PostGrantsRevokeWithResponse(gomock.Any(), "123", ah_types.PostGrantsRevokeJSONRequestBody{
+				RevokerId: tc.give.RevokerID,
+			}).Return(&tc.withRevokeGrantResponse, tc.wantErr).AnyTimes()
 
 			s := Granter{AHClient: g, Clock: clk}
 			_, err := s.RevokeGrant(context.Background(), tc.give)

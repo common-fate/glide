@@ -44,7 +44,8 @@ type CreateGrantOpts struct {
 }
 
 type RevokeGrantOpts struct {
-	Request access.Request
+	Request   access.Request
+	RevokerID string
 }
 
 // NewGranter creates a new Granter instance
@@ -63,7 +64,9 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 	if !canRevoke || opts.Request.Grant.End.Before(g.Clock.Now()) {
 		return nil, ErrGrantInactive
 	}
-	res, err := g.AHClient.PostGrantsRevokeWithResponse(ctx, opts.Request.ID)
+	res, err := g.AHClient.PostGrantsRevokeWithResponse(ctx, opts.Request.ID, ahTypes.PostGrantsRevokeJSONRequestBody{
+		RevokerId: opts.RevokerID,
+	})
 	if err != nil {
 		return nil, err
 	}

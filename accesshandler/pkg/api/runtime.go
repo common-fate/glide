@@ -24,7 +24,7 @@ type Runtime interface {
 	// RevokeGrant revokes a grant by executing runtime-specific workflow logic, such as
 	// initiating an AWS Step Functions workflow.
 	// Revokes a grant and terminates the previous create grant workflow
-	RevokeGrant(ctx context.Context, grantID string) (*types.Grant, error)
+	RevokeGrant(ctx context.Context, grantID string, revoker string) (*types.Grant, error)
 }
 
 // runtimes is a map of the supported runtime environments

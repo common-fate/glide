@@ -59,6 +59,7 @@ func (GrantExpired) EventType() string {
 // access to), this event will not be emitted.
 type GrantRevoked struct {
 	Grant types.Grant `json:"grant"`
+	Actor string      `json:"actor"`
 }
 
 func (GrantRevoked) EventType() string {

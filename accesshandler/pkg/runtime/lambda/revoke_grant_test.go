@@ -108,7 +108,7 @@ func TestRevokeGrant(t *testing.T) {
 
 	//check the state function is running
 
-	_, err = runtime.RevokeGrant(ctx, grant.ID)
+	_, err = runtime.RevokeGrant(ctx, grant.ID, "actor")
 	if err != nil {
 		t.Fatal(err)
 	}

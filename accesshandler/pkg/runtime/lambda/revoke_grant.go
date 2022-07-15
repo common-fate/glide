@@ -17,7 +17,7 @@ import (
 )
 
 //calls out to the provider to revoke access to the grant and disables execution to the granter state function
-func (r *Runtime) RevokeGrant(ctx context.Context, grantID string) (*types.Grant, error) {
+func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker string) (*types.Grant, error) {
 
 	logger.Get(ctx).Infow("revoking grant", "grant", grantID)
 
@@ -78,7 +78,7 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string) (*types.Grant
 	if err != nil {
 		return nil, err
 	}
-	evt := &gevent.GrantRevoked{Grant: grant}
+	evt := &gevent.GrantRevoked{Grant: grant, Actor: revoker}
 	err = eventsBus.Put(ctx, evt)
 	if err != nil {
 		return nil, err

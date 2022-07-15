@@ -149,6 +149,12 @@ type HealthResponse struct {
 // PostGrantsJSONBody defines parameters for PostGrants.
 type PostGrantsJSONBody = CreateGrant
 
+// PostGrantsRevokeJSONBody defines parameters for PostGrantsRevoke.
+type PostGrantsRevokeJSONBody struct {
+	// An id representiing the user calling this API will be included in the GrantRevoked event
+	RevokerId string `json:"revokerId"`
+}
+
 // GetAccessInstructionsParams defines parameters for GetAccessInstructions.
 type GetAccessInstructionsParams struct {
 	// the user's email address
@@ -160,6 +166,9 @@ type GetAccessInstructionsParams struct {
 
 // PostGrantsJSONRequestBody defines body for PostGrants for application/json ContentType.
 type PostGrantsJSONRequestBody = PostGrantsJSONBody
+
+// PostGrantsRevokeJSONRequestBody defines body for PostGrantsRevoke for application/json ContentType.
+type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
 
 // Getter for additional properties for CreateGrant_With. Returns the specified
 // element and whether it was found
@@ -348,8 +357,10 @@ type ClientInterface interface {
 
 	PostGrants(ctx context.Context, body PostGrantsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostGrantsRevoke request
-	PostGrantsRevoke(ctx context.Context, grantId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostGrantsRevoke request with any body
+	PostGrantsRevokeWithBody(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostGrantsRevoke(ctx context.Context, grantId string, body PostGrantsRevokeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetHealth request
 	GetHealth(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -406,8 +417,20 @@ func (c *Client) PostGrants(ctx context.Context, body PostGrantsJSONRequestBody,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostGrantsRevoke(ctx context.Context, grantId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostGrantsRevokeRequest(c.Server, grantId)
+func (c *Client) PostGrantsRevokeWithBody(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGrantsRevokeRequestWithBody(c.Server, grantId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGrantsRevoke(ctx context.Context, grantId string, body PostGrantsRevokeJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGrantsRevokeRequest(c.Server, grantId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -557,8 +580,19 @@ func NewPostGrantsRequestWithBody(server string, contentType string, body io.Rea
 	return req, nil
 }
 
-// NewPostGrantsRevokeRequest generates requests for PostGrantsRevoke
-func NewPostGrantsRevokeRequest(server string, grantId string) (*http.Request, error) {
+// NewPostGrantsRevokeRequest calls the generic PostGrantsRevoke builder with application/json body
+func NewPostGrantsRevokeRequest(server string, grantId string, body PostGrantsRevokeJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostGrantsRevokeRequestWithBody(server, grantId, "application/json", bodyReader)
+}
+
+// NewPostGrantsRevokeRequestWithBody generates requests for PostGrantsRevoke with any type of body
+func NewPostGrantsRevokeRequestWithBody(server string, grantId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -583,10 +617,12 @@ func NewPostGrantsRevokeRequest(server string, grantId string) (*http.Request, e
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -867,8 +903,10 @@ type ClientWithResponsesInterface interface {
 
 	PostGrantsWithResponse(ctx context.Context, body PostGrantsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGrantsResponse, error)
 
-	// PostGrantsRevoke request
-	PostGrantsRevokeWithResponse(ctx context.Context, grantId string, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error)
+	// PostGrantsRevoke request with any body
+	PostGrantsRevokeWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error)
+
+	PostGrantsRevokeWithResponse(ctx context.Context, grantId string, body PostGrantsRevokeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error)
 
 	// GetHealth request
 	GetHealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetHealthResponse, error)
@@ -1171,9 +1209,17 @@ func (c *ClientWithResponses) PostGrantsWithResponse(ctx context.Context, body P
 	return ParsePostGrantsResponse(rsp)
 }
 
-// PostGrantsRevokeWithResponse request returning *PostGrantsRevokeResponse
-func (c *ClientWithResponses) PostGrantsRevokeWithResponse(ctx context.Context, grantId string, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error) {
-	rsp, err := c.PostGrantsRevoke(ctx, grantId, reqEditors...)
+// PostGrantsRevokeWithBodyWithResponse request with arbitrary body returning *PostGrantsRevokeResponse
+func (c *ClientWithResponses) PostGrantsRevokeWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error) {
+	rsp, err := c.PostGrantsRevokeWithBody(ctx, grantId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGrantsRevokeResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostGrantsRevokeWithResponse(ctx context.Context, grantId string, body PostGrantsRevokeJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error) {
+	rsp, err := c.PostGrantsRevoke(ctx, grantId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -2027,42 +2073,43 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"//82gh7AcSUAAA==",
+	"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",
+	"/8sx3p9sJgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
