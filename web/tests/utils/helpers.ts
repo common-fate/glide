@@ -33,16 +33,25 @@ export const fillFormElement = async (
       .fill(value);
   }
 
+  export const fillFormElementById = async (
+    name: string,
+    value: string,
+    page: Page
+  )  => {
+    
+       await page
+      .locator(`#${name} >> visible=true`)
+      .fill(value);
+  }
+
   export const clickFormElementByText = async (
     inputType: 'input' | 'textarea' | 'button',
     name: string,
     page: Page
   )  => {
-    
        await page
       .locator(`${inputType}:has-text("${name}") >> visible=true`)
       .click();
-    
     
   }
 
@@ -50,9 +59,19 @@ export const fillFormElement = async (
         id: string,
     page: Page
   )  => {
-    
        await page
       .locator(`#${id} >> visible=true`)
+      .click();
+    
+    
+  }
+
+      export const clickFormElementByClass = async (
+        id: string,
+    page: Page
+  )  => {
+       await page
+      .locator(`.${id} >> visible=true`)
       .click();
     
     

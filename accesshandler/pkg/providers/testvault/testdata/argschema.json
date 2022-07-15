@@ -9,12 +9,15 @@
           "type": "string",
           "title": "Vault",
           "description": "The name of an example vault to grant access to (can be any string)",
-          "default": "demovault"
+          "default": "demovault",
+          "name": "test-vault"
         }
       },
       "additionalProperties": false,
       "type": "object",
-      "required": ["vault"]
+      "required": [
+        "vault"
+      ]
     }
   }
 }

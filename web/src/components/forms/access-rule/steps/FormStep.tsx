@@ -105,7 +105,11 @@ const BottomActionButtons: React.FC<{
         </Button>
       )}
       {showSubmit && (
-        <Button isLoading={formState.isSubmitting} type="submit">
+        <Button
+          id="rule-create-button"
+          isLoading={formState.isSubmitting}
+          type="submit"
+        >
           Create
         </Button>
       )}

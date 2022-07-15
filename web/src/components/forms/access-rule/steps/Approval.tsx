@@ -40,6 +40,7 @@ export const ApprovalStep: React.FC = () => {
           <FormLabel htmlFor="approval.required">
             <HStack>
               <Switch
+                id="requires-approval-button"
                 bg="neutrals.0"
                 {...methods.register("approval.required", {})}
               />

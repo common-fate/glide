@@ -159,6 +159,7 @@ const SelectField: React.FC<FieldProps> = (props) => {
           ) : (
             <>
               <Input
+                id="provider-vault"
                 bg="white"
                 ref={ref}
                 onChange={onChange}

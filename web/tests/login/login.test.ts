@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import {fillFormElement, clickFormElement, LoginUser} from "../utils/helpers"
+import {fillFormElement, clickFormElementByText} from "../utils/helpers"
 
 test("test loging through form works and gets to granted page", async ({ browser }) => {
    test.slow();
@@ -9,7 +9,7 @@ test("test loging through form works and gets to granted page", async ({ browser
   await page.goto("/");
   await fillFormElement("input", "username", process.env.TEST_USERNAME ?? "", page)
   await fillFormElement("input", "password", process.env.TEST_PASSWORD ?? "", page)
-  await clickFormElement("input", "Sign in", page)
+  await clickFormElementByText("input", "Sign in", page)
 
   //verify login
   //verify we are on the granted homepage
