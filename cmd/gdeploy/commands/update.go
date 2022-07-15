@@ -31,7 +31,7 @@ var UpdateCommand = cli.Command{
 			confirm = true
 		}
 
-		err = dc.DeployCloudFormation(ctx, confirm)
+		status, err := dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
 		}
@@ -41,8 +41,11 @@ var UpdateCommand = cli.Command{
 			return err
 		}
 		o.PrintTable()
-
-		clio.Success("Your Granted deployment has been updated")
+		if status == "UPDATE_COMPLETE" {
+			clio.Success("Your Granted deployment has been updated")
+		} else {
+			clio.Warn("Your Granted deployment update ended in status %s", status)
+		}
 
 		return nil
 	},

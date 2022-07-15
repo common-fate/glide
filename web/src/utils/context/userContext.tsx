@@ -103,7 +103,13 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       setInitialized(true);
     } else {
       console.debug("using fetch to get aws-exports.json");
-      fetch("/aws-exports.json").then((r) =>
+      const awsConfigRequestHeaders = new Headers();
+      awsConfigRequestHeaders.append("pragma", "no-cache");
+      awsConfigRequestHeaders.append("cache-control", "no-cache");
+      fetch("/aws-exports.json", {
+        headers: awsConfigRequestHeaders,
+        method: "GET",
+      }).then((r) =>
         r.json().then((j) => {
           Amplify.configure(j);
           const apiURL = j.API.endpoints[0]?.endpoint;

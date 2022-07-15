@@ -33,7 +33,7 @@ var CreateCommand = cli.Command{
 			confirm = true
 		}
 
-		err = dc.DeployCloudFormation(ctx, confirm)
+		_, err = dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
 		}
