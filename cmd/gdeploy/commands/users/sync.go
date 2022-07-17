@@ -1,4 +1,4 @@
-package sync
+package users
 
 import (
 	"os"
@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var SyncCommand = cli.Command{
+var syncCommand = cli.Command{
 	Name: "sync",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
@@ -51,7 +51,7 @@ var SyncCommand = cli.Command{
 			return err
 		}
 
-		clio.Info("Lamda execution completed with status: %d. ", res.StatusCode)
+		clio.Info("Lambda execution completed with status: %d. ", res.StatusCode)
 		if res.FunctionError != nil {
 			clio.Error("Lambda returned execution error: %s", *res.FunctionError)
 		}

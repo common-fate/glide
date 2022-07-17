@@ -252,14 +252,28 @@ var configureCommand = cli.Command{
 			}
 		}
 		dc.Deployment.Parameters.IdentityProviderType = strings.ToUpper(idpType)
+
+		clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
+Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
+Users in this group will be able to manage Access Rules.
+`)
+		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:"}
+		err = survey.AskOne(adminGroupPrompt, &dc.Deployment.Parameters.AdministratorGroupID)
+		if err != nil {
+			return err
+		}
+
 		clio.Info("Updating your deployment config")
 		err = dc.Save(f)
 		if err != nil {
 			return err
 		}
 		clio.Success("Successfully completed SSO configuration")
-		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
-		return nil
+		clio.Warn(`Users and will be synced every 5 minutes from your identity provider. To finish enabling SSO, follow these steps:
 
+  1) Run 'gdeploy update' to apply the changes to your CloudFormation deployment.
+  2) Run 'gdeploy users sync' to trigger an immediate sync of your user directory.
+`)
+		return nil
 	},
 }
