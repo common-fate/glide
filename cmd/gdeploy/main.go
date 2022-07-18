@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/smithy-go"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
@@ -165,7 +166,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 
 		stsClient := sts.NewFromConfig(cfg)
 		// Use the sts api to check if these credentials are valid
-		_, err = stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+		identity, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 		if err != nil {
 			var ae smithy.APIError
 			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
@@ -173,6 +174,11 @@ func RequireAWSCredentials() cli.BeforeFunc {
 				return clio.NewCLIError("AWS credentials are expired.", clio.LogMsg("Please export valid AWS credentials to run this command."))
 			}
 			return clio.NewCLIError("Failed to call AWS get caller identity. (maybe you need to assume a role first?)", clio.DebugMsg(err.Error()))
+		}
+
+		//check to see that account number in config is the same account that is assumed
+		if identity.Account != &dc.Deployment.Account {
+			return clio.NewCLIError(fmt.Sprintf("Deployment account mismatched assumed account: %s verses %s", dc.Deployment.Account, aws.StringValue(identity.Account)))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil
