@@ -154,7 +154,7 @@ jobs:
         run: pnpm run e2e-install
         working-directory: web
       - name: Run Playwright tests
-        run: pnpm run e2e
+        run: pnpm run e2e:ci
         working-directory: web
         env:
           TESTING_DOMAIN: '${{ steps.branch.outputs.name }}.test.granted.run'
