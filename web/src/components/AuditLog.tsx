@@ -35,7 +35,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               <Text>
                 <UserText userId={e.actor || ""} />
                 {`changed grant status from
-              ${e.fromGrantStatus} to ${e.toGrantStatus}`}
+              ${e.fromGrantStatus?.toLowerCase()} to ${e.toGrantStatus?.toLowerCase()}`}
               </Text>
             }
             index={i}
@@ -48,8 +48,10 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             arrLength={l}
             header={
               <Text>
-                {`Grant status changed from ${e.fromGrantStatus} to
-              ${e.toGrantStatus} due to reason: ${e.grantFailureReason}`}
+                {`Grant status changed from ${e.fromGrantStatus?.toLowerCase()} to
+              ${e.toGrantStatus?.toLowerCase()} due to reason: ${
+                  e.grantFailureReason
+                }`}
               </Text>
             }
             index={i}
@@ -62,8 +64,8 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             arrLength={l}
             header={
               <Text>
-                {`Grant status changed from ${e.fromGrantStatus} to
-              ${e.toGrantStatus}`}
+                {`Grant status changed from ${e.fromGrantStatus?.toLowerCase()} to
+              ${e.toGrantStatus?.toLowerCase()}`}
               </Text>
             }
             index={i}
@@ -93,21 +95,21 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               <Text>
                 <UserText userId={e.actor || ""} />
                 {` changed request status from
-              ${e.fromStatus} to ${e.toStatus}`}
+              ${e.fromStatus?.toLowerCase()} to ${e.toStatus?.toLowerCase()}`}
               </Text>
             }
             index={i}
             body={new Date(e.createdAt).toString()}
           />
         );
-      } else if (e.fromStatus) {
+      } else if (e.fromStatus?.toLowerCase()) {
         items.push(
           <CFTimelineRow
             arrLength={l}
             header={
               <Text>
                 {`Granted Approvals changed request status from
-              ${e.fromStatus} to ${e.toStatus}`}
+              ${e.fromStatus?.toLowerCase()} to ${e.toStatus?.toLowerCase()}`}
               </Text>
             }
             index={i}
