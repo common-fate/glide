@@ -172,7 +172,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
 				return clio.NewCLIError("AWS credentials are expired.", clio.LogMsg("Please export valid AWS credentials to run this command."))
 			}
-			return clio.NewCLIError("Failed to call AWS get caller identity", clio.DebugMsg(err.Error()))
+			return clio.NewCLIError("Failed to call AWS get caller identity. (maybe you need to assume a role first?)", clio.DebugMsg(err.Error()))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil
