@@ -94,6 +94,7 @@ const BottomActionButtons: React.FC<{
     <Flex w="100%" justify={"left"}>
       {showNext && (
         <Button
+          id="form-step-next-button"
           isDisabled={hasErrors}
           onClick={async () => {
             // only go to next if there are no field errors
@@ -104,7 +105,11 @@ const BottomActionButtons: React.FC<{
         </Button>
       )}
       {showSubmit && (
-        <Button isLoading={formState.isSubmitting} type="submit">
+        <Button
+          id="rule-create-button"
+          isLoading={formState.isSubmitting}
+          type="submit"
+        >
           Create
         </Button>
       )}

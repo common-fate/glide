@@ -42,6 +42,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
         px={6}
         py={5}
         position="relative"
+        id="provider-selector"
       >
         {/* @ts-ignore */}
         {checkbox?.["data-checked"] !== undefined && (
