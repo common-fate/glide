@@ -16,7 +16,7 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	q := storage.ListGroupsForStatus{
-		Status: types.ACTIVE,
+		Status: types.IdpStatusACTIVE,
 	}
 
 	_, err := a.DB.Query(ctx, &q)

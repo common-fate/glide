@@ -31,3 +31,6 @@ func NewRequestID() string {
 func NewRequestReviewID() string {
 	return newResourceID("rev")
 }
+func NewHistoryID() string {
+	return newResourceID("his")
+}

@@ -107,3 +107,7 @@ export * from "./revokeRequest200";
 export * from "./requestApprovalReason";
 export * from "./approvalMethod";
 export * from './argOptionsResponseResponse';
+export * from './requestEventToGrantStatus';
+export * from './listRequestEventsResponseResponse';
+export * from './requestEventFromGrantStatus';
+export * from './requestEvent';

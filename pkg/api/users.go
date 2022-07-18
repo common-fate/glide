@@ -16,7 +16,7 @@ import (
 func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	q := storage.ListUsersForStatus{Status: types.ACTIVE}
+	q := storage.ListUsersForStatus{Status: types.IdpStatusACTIVE}
 
 	_, err := a.DB.Query(ctx, &q)
 	if err != nil {

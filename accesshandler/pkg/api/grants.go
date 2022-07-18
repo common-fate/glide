@@ -53,8 +53,15 @@ func (a *API) PostGrants(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/grants/{grantId}/revoke)
 func (a *API) PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId string) {
 	ctx := r.Context()
+	var b types.PostGrantsRevokeJSONRequestBody
 
-	g, err := a.runtime.RevokeGrant(ctx, grantId)
+	err := apio.DecodeJSONBody(w, r, &b)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	g, err := a.runtime.RevokeGrant(ctx, grantId, b.RevokerId)
 
 	if err != nil {
 		apio.Error(ctx, w, err)

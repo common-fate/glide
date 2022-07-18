@@ -7,9 +7,9 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 )
 
-func (r *Runtime) RevokeGrant(ctx context.Context, grant string) (*types.Grant, error) {
+func (r *Runtime) RevokeGrant(ctx context.Context, grant string, revoker string) (*types.Grant, error) {
 
-	logger.Get(ctx).Infow("revoking grant", "grant", grant)
+	logger.Get(ctx).Infow("revoking grant", "grant", grant, "revoker", revoker)
 
 	return &types.Grant{}, nil
 }

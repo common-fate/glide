@@ -66,6 +66,7 @@ func TestPostGrants(t *testing.T) {
 func TestRevokeGrant(t *testing.T) {
 	type testcase struct {
 		name           string
+		revokeBody     string
 		body           string
 		wantCode       int
 		wantCodeRevoke int
@@ -81,7 +82,7 @@ func TestRevokeGrant(t *testing.T) {
 	clk.Set(TenAM)
 
 	testcases := []testcase{
-		{name: "create grant and revoke ok", body: fmt.Sprintf(`{"id":"abcd","subject":"chris@commonfate.io","provider":"okta","with":{"group":"Admins"},"start":"%s","end":"%s"}`, TenAMISO8601, TenThirtyAMISO8601), wantCode: http.StatusCreated, wantCodeRevoke: http.StatusOK},
+		{name: "create grant and revoke ok", revokeBody: `{"revokerId":"1234"}`, body: fmt.Sprintf(`{"id":"abcd","subject":"chris@commonfate.io","provider":"okta","with":{"group":"Admins"},"start":"%s","end":"%s"}`, TenAMISO8601, TenThirtyAMISO8601), wantCode: http.StatusCreated, wantCodeRevoke: http.StatusOK},
 	}
 
 	for _, tc := range testcases {
@@ -106,7 +107,7 @@ func TestRevokeGrant(t *testing.T) {
 			assert.Equal(t, tc.wantErr, apiErr.Error)
 
 			//revoke grant
-			req, err = http.NewRequest("POST", "/api/v1/grants/123/revoke", strings.NewReader(tc.body))
+			req, err = http.NewRequest("POST", "/api/v1/grants/123/revoke", strings.NewReader(tc.revokeBody))
 			if err != nil {
 				t.Fatal(err)
 			}

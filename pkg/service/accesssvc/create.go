@@ -105,6 +105,9 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	log.Debugw("saving request", "request", req, "reviewers", reviewers)
 
+	// audit log event
+	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy)
+	items = append(items, &reqEvent)
 	// save the request.
 	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {

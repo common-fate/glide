@@ -176,11 +176,31 @@ func (mr *MockAHClientMockRecorder) ListProvidersWithResponse(arg0 interface{}, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProvidersWithResponse", reflect.TypeOf((*MockAHClient)(nil).ListProvidersWithResponse), varargs...)
 }
 
-// PostGrantsRevokeWithResponse mocks base method.
-func (m *MockAHClient) PostGrantsRevokeWithResponse(arg0 context.Context, arg1 string, arg2 ...types.RequestEditorFn) (*types.PostGrantsRevokeResponse, error) {
+// PostGrantsRevokeWithBodyWithResponse mocks base method.
+func (m *MockAHClient) PostGrantsRevokeWithBodyWithResponse(arg0 context.Context, arg1, arg2 string, arg3 io.Reader, arg4 ...types.RequestEditorFn) (*types.PostGrantsRevokeResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
+	varargs := []interface{}{arg0, arg1, arg2, arg3}
+	for _, a := range arg4 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PostGrantsRevokeWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.PostGrantsRevokeResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PostGrantsRevokeWithBodyWithResponse indicates an expected call of PostGrantsRevokeWithBodyWithResponse.
+func (mr *MockAHClientMockRecorder) PostGrantsRevokeWithBodyWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostGrantsRevokeWithBodyWithResponse", reflect.TypeOf((*MockAHClient)(nil).PostGrantsRevokeWithBodyWithResponse), varargs...)
+}
+
+// PostGrantsRevokeWithResponse mocks base method.
+func (m *MockAHClient) PostGrantsRevokeWithResponse(arg0 context.Context, arg1 string, arg2 types.PostGrantsRevokeJSONRequestBody, arg3 ...types.RequestEditorFn) (*types.PostGrantsRevokeResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "PostGrantsRevokeWithResponse", varargs...)
@@ -190,9 +210,9 @@ func (m *MockAHClient) PostGrantsRevokeWithResponse(arg0 context.Context, arg1 s
 }
 
 // PostGrantsRevokeWithResponse indicates an expected call of PostGrantsRevokeWithResponse.
-func (mr *MockAHClientMockRecorder) PostGrantsRevokeWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+func (mr *MockAHClientMockRecorder) PostGrantsRevokeWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostGrantsRevokeWithResponse", reflect.TypeOf((*MockAHClient)(nil).PostGrantsRevokeWithResponse), varargs...)
 }
 

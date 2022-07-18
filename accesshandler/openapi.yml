@@ -77,6 +77,17 @@ paths:
       description: Revoke an active grant.
       tags:
         - grants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                revokerId:
+                  type: string
+                  description: An id representiing the user calling this API will be included in the GrantRevoked event
+              required:
+                - revokerId
     parameters:
       - schema:
           type: string

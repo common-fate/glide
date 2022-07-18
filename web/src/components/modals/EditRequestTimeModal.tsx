@@ -104,7 +104,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                   step={0.5}
                   max={12}
                   w="200px"
-                  onChange={(s, n) => {
+                  onChange={(s: string, n: number) => {
                     setReadableDuration(durationString(n * 3600));
                   }}
                 >

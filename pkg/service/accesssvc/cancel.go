@@ -22,6 +22,7 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 		return err
 	}
 	req := q.Result
+	originalStatus := req.Status
 	isAllowed := canCancel(opts, *req)
 	if !isAllowed {
 		return ErrUserNotAuthorized
@@ -38,6 +39,9 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 	if err != nil {
 		return err
 	}
+	// audit log event
+	reqEvent := access.NewStatusChangeEvent(req.ID, req.UpdatedAt, &opts.CancellerID, originalStatus, req.Status)
+	items = append(items, &reqEvent)
 	return s.DB.PutBatch(ctx, items...)
 }
 

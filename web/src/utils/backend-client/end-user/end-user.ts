@@ -18,6 +18,7 @@ import type {
   UserListRequestsParams,
   CreateRequestRequestBody,
   RequestDetail,
+  ListRequestEventsResponseResponse,
   ReviewResponseResponse,
   ReviewRequestBody,
   CancelRequest200,
@@ -255,6 +256,46 @@ export const useUserGetRequest = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnable = !!(requestId)
   const swrKey = swrOptions?.swrKey ?? (() => isEnable ? getUserGetRequestKey(requestId) : null);
   const swrFn = () => userGetRequest(requestId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Returns a HTTP401 response if the user is not the requestor or a reviewer.
+
+ * @summary List request events
+ */
+export const listRequestEvents = (
+    requestId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListRequestEventsResponseResponse>(
+      {url: `/api/v1/requests/${requestId}/events`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getListRequestEventsKey = (requestId: string,) => [`/api/v1/requests/${requestId}/events`];
+
+    
+export type ListRequestEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listRequestEvents>>>
+export type ListRequestEventsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useListRequestEvents = <TError = ErrorType<ErrorResponseResponse>>(
+ requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listRequestEvents>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnable = !!(requestId)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnable ? getListRequestEventsKey(requestId) : null);
+  const swrFn = () => listRequestEvents(requestId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

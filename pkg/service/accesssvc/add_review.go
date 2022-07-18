@@ -40,6 +40,8 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		return nil, InvalidStatusError{Status: request.Status}
 	}
 
+	originalStatus := request.Status
+
 	isAllowed := canReview(opts)
 	if !isAllowed {
 		return nil, ErrUserNotAuthorized
@@ -97,6 +99,15 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		return nil, err
 	}
 	items = append(items, &r)
+
+	if request.OverrideTiming != nil {
+		// audit log event
+		reqEvent := access.NewTimingChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, request.RequestedTiming, *request.OverrideTiming)
+		items = append(items, &reqEvent)
+	}
+	// audit log event
+	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
+	items = append(items, &reqEvent)
 	// store the updated items in the database
 	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {
