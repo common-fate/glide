@@ -176,8 +176,9 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return clio.NewCLIError("Failed to call AWS get caller identity. (maybe you need to assume a role first?)", clio.DebugMsg(err.Error()))
 		}
 
+		overwrite := c.Bool("overwrite")
 		//check to see that account number in config is the same account that is assumed
-		if identity.Account != &dc.Deployment.Account {
+		if identity.Account != &dc.Deployment.Account && !overwrite {
 			return clio.NewCLIError(fmt.Sprintf("Deployment account mismatched assumed account: %s verses %s", dc.Deployment.Account, aws.StringValue(identity.Account)))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
