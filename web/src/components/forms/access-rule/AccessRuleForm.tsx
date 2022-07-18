@@ -18,7 +18,7 @@ import {
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
-import { useMatch, useNavigate } from "react-location";
+import { useMatch, useNavigate, useRouter } from "react-location";
 import {
   adminUpdateAccessRule,
   useAdminGetAccessRule,
@@ -232,39 +232,6 @@ const BottomActionButtons: React.FC<{ rule: AccessRuleDetail }> = ({
 }) => {
   const { formState } = useFormContext();
   const navigate = useNavigate();
-  const toast = useToast();
-  const [isArchiving, setIsArchiving] = useState<boolean>(false);
-  const handleArchive = async () => {
-    try {
-      setIsArchiving(true);
-      const res = await adminArchiveAccessRule(rule.id, {});
-
-      toast({
-        title: "Access rule archived",
-        status: "success",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-      navigate({ to: "/admin/access-rules" });
-    } catch (err) {
-      let description: string | undefined;
-      if (axios.isAxiosError(err)) {
-        // @ts-ignore
-        description = err?.response?.data.error;
-      }
-      toast({
-        title: "Error archiving access rule",
-        description,
-        status: "error",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-    } finally {
-      setIsArchiving(false);
-    }
-  };
 
   // No available actions for archived rules
   if (rule.status === "ARCHIVED") {
@@ -273,26 +240,12 @@ const BottomActionButtons: React.FC<{ rule: AccessRuleDetail }> = ({
 
   return (
     <ButtonGroup w="100%">
-      <Button
-        isLoading={formState.isSubmitting}
-        disabled={isArchiving}
-        type="submit"
-      >
+      <Button isLoading={formState.isSubmitting} type="submit">
         Update
       </Button>
       <Button
-        disabled={formState.isSubmitting}
-        variant={"solid"}
-        colorScheme="red"
-        isLoading={isArchiving}
-        onClick={handleArchive}
-        type="button"
-      >
-        Archive
-      </Button>
-      <Button
         variant="brandSecondary"
-        disabled={isArchiving || formState.isSubmitting}
+        isLoading={formState.isSubmitting}
         type="button"
         onClick={() => navigate({ to: "/admin/access-rules" })}
       >
