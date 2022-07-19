@@ -378,6 +378,15 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 			Account:   acc,
 			Dev:       &dev,
 		},
+		Providers: map[string]Provider{
+			"test-vault": {
+				Uses: "commonfate/testvault@v1",
+				With: map[string]string{
+					"apiUrl":   "https://prod.testvault.granted.run",
+					"uniqueId": "2BvQYmAfGQ82U9B60YlQVKD4BP2",
+				},
+			},
+		},
 	}
 	return &conf
 }
