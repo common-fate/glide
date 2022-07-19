@@ -175,10 +175,8 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.LogMsg("Please export valid AWS credentials to run this command."), clio.DebugMsg(err.Error()))
 		}
 
-		//allow the overwrite if overwrite is set
-		overwrite := c.Bool("overwrite")
 		//check to see that account number in config is the same account that is assumed
-		if *identity.Account != dc.Deployment.Account && !overwrite {
+		if *identity.Account != dc.Deployment.Account {
 			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), clio.LogMsg("Please export valid AWS credentials for account %s to run this command."))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
