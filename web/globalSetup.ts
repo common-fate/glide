@@ -16,7 +16,7 @@ async function globalSetup(config: FullConfig) {
   const password = process.env.TEST_PASSWORD;
 
   //admin user
-  const adminUsername = process.env.TEST_USERNAME ?? "";
+  const adminUsername = process.env.TEST_ADMIN_USERNAME ?? "";
   const adminPassword = process.env.TEST_PASSWORD;
 
   //setup aws config
@@ -32,9 +32,13 @@ async function globalSetup(config: FullConfig) {
   //These functions will create the json including login creds
   //user
   await LoginUser(username, password)
+   
+  // // ... log in
 
-  //admin
+  // //admin
   await LoginAdmin(adminUsername, adminPassword)
+
+ 
 
   
 }
@@ -126,7 +130,7 @@ const LoginAdmin = async (username, password, ) => {
     const makeKey = (name) =>
       `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
 
-    let amplifyData: PlaywrightTestOptions["storageState"] = {
+    let adminData: PlaywrightTestOptions["storageState"] = {
       cookies: [
         {
           name: makeKey("idToken"),
@@ -187,7 +191,7 @@ const LoginAdmin = async (username, password, ) => {
       ],
     };
 
-    const data = JSON.stringify(amplifyData);
+    const data = JSON.stringify(adminData);
     const fs = require("fs");
     fs.writeFile("./adminAuthCookies.json", data, (err) => {
       if (err) {
@@ -197,5 +201,5 @@ const LoginAdmin = async (username, password, ) => {
         `AWS Cognito login information stored in storageState.json for: ${username}`
       );
     });
-  });
+  }).catch((e) => {console.log(`error: ${e}`)});
 }

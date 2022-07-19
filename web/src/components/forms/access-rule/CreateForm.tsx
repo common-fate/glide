@@ -46,6 +46,7 @@ const CreateAccessRuleForm = () => {
     try {
       await adminCreateAccessRule(ruleData);
       toast({
+        id: "access-rule-created",
         title: "Access rule created",
         status: "success",
         variant: "subtle",

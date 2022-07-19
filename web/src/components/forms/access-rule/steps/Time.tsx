@@ -69,7 +69,7 @@ export const TimeStep: React.FC = () => {
                 methods.trigger("timeConstraints.maxDurationSeconds")
               }
             >
-              <NumberInputField bg="neutrals.0" />
+              <NumberInputField bg="neutrals.0" id="rule-max-duration" />
               <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />
