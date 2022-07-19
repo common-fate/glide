@@ -1,14 +1,15 @@
 import { test, expect } from "@playwright/test";
 
-import {clickFormElementByClass, clickFormElementByID, fillFormElement, clickFormElementByText, fillFormElementById} from '../utils/helpers'
+import {clickFormElementByClass, clickFormElementByID, fillFormElement, clickFormElementByText, fillFormElementById, Logout, LoginUser, LoginAdmin} from '../utils/helpers'
 
 //has to be admin to create access rule
 
 //test user cannot create access rule
+test("non admin cannot create access rule", async ({ page }) => {
+   
 
-test("non admin cannot create access rule", async ({ browser }) => {
-    const userContext = await browser.newContext({ storageState: 'userAuthCookies.json' });
-    const page = await userContext.newPage();
+    await Logout(page)
+    await LoginUser(page)
     await page.goto("/admin/access-rules");
     await expect(page).toHaveTitle(/Granted/);
     await expect(page.locator("#app")).toContainText("Sorry, you  don't have access");
@@ -17,10 +18,10 @@ test("non admin cannot create access rule", async ({ browser }) => {
 });
 
 //test access rule create
-
-test("admin can create access rule", async ({ browser }) => {
-    const adminContext = await browser.newContext({ storageState: 'adminAuthCookies.json' });
-    const page = await adminContext.newPage();
+test("admin can create access rule", async ({ page }) => {
+    
+    await Logout(page)
+    await LoginAdmin(page)
     await page.goto("/admin/access-rules");
     await expect(page).toHaveTitle(/Granted/);
     await expect(page.locator(".chakra-container #new-access-rule-button")).toHaveText("New Access Rule");

@@ -11,7 +11,8 @@
     "clienttypegen": "orval --config ./src/utils/orval.config.js",
     "analyze": "ANALYZE=true next build",
     "e2e-install": "playwright install",
-    "e2e": "playwright test --headed"
+    "e2e": "playwright test --headed",
+    "e2e-ci": "playwright test"
   },
   "dependencies": {
     "@aws-amplify/api": "^4.0.42",

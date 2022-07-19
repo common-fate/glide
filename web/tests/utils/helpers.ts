@@ -19,6 +19,12 @@ export const LoginAdmin = async(page) => {
     await clickFormElementByText("input", "Sign in", page)
 }
 
+export const Logout = async(page) => {
+    //  const page = await context.newPage();
+    await page.goto("/logout");
+   
+}
+
 
 //helper functions to click elements that are visible 
 export const fillFormElement = async (
