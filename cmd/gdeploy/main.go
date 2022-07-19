@@ -165,14 +165,19 @@ func RequireAWSCredentials() cli.BeforeFunc {
 
 		stsClient := sts.NewFromConfig(cfg)
 		// Use the sts api to check if these credentials are valid
-		_, err = stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+		identity, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 		if err != nil {
 			var ae smithy.APIError
 			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
 			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
 				return clio.NewCLIError("AWS credentials are expired.", clio.LogMsg("Please export valid AWS credentials to run this command."))
 			}
-			return clio.NewCLIError("Failed to call AWS get caller identity", clio.DebugMsg(err.Error()))
+			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.LogMsg("Please export valid AWS credentials to run this command."), clio.DebugMsg(err.Error()))
+		}
+
+		//check to see that account number in config is the same account that is assumed
+		if *identity.Account != dc.Deployment.Account {
+			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), clio.LogMsg("Please export valid AWS credentials for account %s to run this command.", *identity.Account))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil

@@ -33,7 +33,7 @@ var CreateCommand = cli.Command{
 			confirm = true
 		}
 
-		_, err = dc.DeployCloudFormation(ctx, confirm)
+		status, err := dc.DeployCloudFormation(ctx, confirm)
 		if err != nil {
 			return err
 		}
@@ -42,10 +42,12 @@ var CreateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		o.PrintTable()
 
-		clio.Success("Your Granted deployment has been created")
-		clio.Info(`Here are your next steps to get started:
+		if status == "CREATE_COMPLETE" {
+			clio.Success("Your Granted deployment has been created")
+			o.PrintTable()
+
+			clio.Info(`Here are your next steps to get started:
 
   1) create an admin user so you can log in: 'gdeploy users create --admin -u YOUR_EMAIL_ADDRESS'
   2) add an Access Provider: 'gdeploy provider add'
@@ -53,6 +55,10 @@ var CreateCommand = cli.Command{
 
 Check out the next steps in our getting started guide for more information: https://docs.comonfate.io/granted-approvals/getting-started/deploying
 `)
+		} else {
+			clio.Warn("Creating your Granted deployment failed with a final status: %s", status)
+			return nil
+		}
 
 		return nil
 	},

@@ -43,6 +43,10 @@ var UpdateCommand = cli.Command{
 		o.PrintTable()
 		if status == "UPDATE_COMPLETE" {
 			clio.Success("Your Granted deployment has been updated")
+		} else if status == "DEPLOY_SKIPPED" {
+			//return without displaying status, nothing changed
+			return nil
+
 		} else {
 			clio.Warn("Your Granted deployment update ended in status %s", status)
 		}

@@ -439,11 +439,12 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	account := c.String("account")
 	if account == "" {
 		ctx := context.Background()
-		account, err := tryGetCurrentAccountID(ctx)
+		//Setting account to a fresh variable when set, was being unallocated when using the account variable
+		current, err := tryGetCurrentAccountID(ctx)
 		if err != nil {
 			return nil, err
 		}
-		p := &survey.Input{Message: "The account ID that you are deploying to", Default: account}
+		p := &survey.Input{Message: "The account ID that you are deploying to", Default: current}
 		err = survey.AskOne(p, &account)
 		if err != nil {
 			return nil, err
