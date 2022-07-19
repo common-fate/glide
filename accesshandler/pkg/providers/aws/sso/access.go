@@ -171,3 +171,8 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 
 	return &res.Users[0], nil
 }
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
+	instructions := fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)", url)
+	return instructions, nil
+}
