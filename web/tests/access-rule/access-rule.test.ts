@@ -17,8 +17,8 @@ import {
 test("non admin cannot create access rule", async ({ page }) => {
   await Logout(page);
   await LoginUser(page);
-  await page.goto("/admin/access-rules");
   await expect(page).toHaveTitle(/Granted/);
+  await page.goto("/admin/access-rules");
   await expect(page.locator("#app")).toContainText(
     "Sorry, you  don't have access"
   );
