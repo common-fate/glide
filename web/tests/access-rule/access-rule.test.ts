@@ -28,7 +28,8 @@ test("non admin cannot create access rule", async ({ page }) => {
 test("admin can create access rule", async ({ page }) => {
   await Logout(page);
   await LoginAdmin(page);
-  await page.goto("/admin/access-rules");
+  await page.goto("/");
+  await clickFormElementByID("admin-button", page);
   await expect(page).toHaveTitle(/Granted/);
   await expect(
     page.locator(".chakra-container #new-access-rule-button")
