@@ -436,11 +436,10 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 		}
 	}
 
-	//Setting account to a fresh variable when set, was being unallocated when using the account variable
-	//var acc string
 	account := c.String("account")
 	if account == "" {
 		ctx := context.Background()
+		//Setting account to a fresh variable when set, was being unallocated when using the account variable
 		current, err := tryGetCurrentAccountID(ctx)
 		if err != nil {
 			return nil, err
