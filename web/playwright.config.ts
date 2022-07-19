@@ -7,7 +7,6 @@ const config: PlaywrightTestConfig = {
   retries: 0,
   globalSetup: "./globalSetup.ts",
   use: {
-    
     trace: "on",
     baseURL: "http://" + process.env.TESTING_DOMAIN,
   },
