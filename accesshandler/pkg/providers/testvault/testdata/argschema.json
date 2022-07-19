@@ -10,7 +10,6 @@
           "title": "Vault",
           "description": "The name of an example vault to grant access to (can be any string)",
           "default": "demovault",
-          "name": "test-vault"
         }
       },
       "additionalProperties": false,
