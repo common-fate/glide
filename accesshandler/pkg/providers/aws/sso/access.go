@@ -171,3 +171,13 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 
 	return &res.Users[0], nil
 }
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+	// var a Args
+	// err := json.Unmarshal(args, &a)
+	// if err != nil {
+	// 	return "", err
+	// }
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
+	instructions := fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)", url) //\n\nYou can also use [assume](https://granted.dev) to access this role. Run the command assume --sso dev-GrantedAdministratorAccess to get access.
+	return instructions, nil
+}
