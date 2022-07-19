@@ -56,7 +56,7 @@ var CreateCommand = cli.Command{
 Check out the next steps in our getting started guide for more information: https://docs.comonfate.io/granted-approvals/getting-started/deploying
 `)
 		} else {
-			clio.Warn("Your Granted deployment update ended in status %s", status)
+			clio.Warn("Creating your Granted deployment failed with a final status: %s", status)
 			return nil
 		}
 

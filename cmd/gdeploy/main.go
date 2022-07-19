@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/smithy-go"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
@@ -173,14 +172,14 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
 				return clio.NewCLIError("AWS credentials are expired.", clio.LogMsg("Please export valid AWS credentials to run this command."))
 			}
-			return clio.NewCLIError("Failed to call AWS get caller identity. (maybe you need to assume a role first?)", clio.DebugMsg(err.Error()))
+			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.LogMsg("Please export valid AWS credentials to run this command."), clio.DebugMsg(err.Error()))
 		}
 
 		//allow the overwrite if overwrite is set
 		overwrite := c.Bool("overwrite")
 		//check to see that account number in config is the same account that is assumed
 		if *identity.Account != dc.Deployment.Account && !overwrite {
-			return clio.NewCLIError(fmt.Sprintf("Deployment account mismatched assumed account: %s verses %s", dc.Deployment.Account, aws.StringValue(identity.Account)))
+			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), clio.LogMsg("Please export valid AWS credentials for account %s to run this command."))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil
