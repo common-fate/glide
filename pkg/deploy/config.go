@@ -18,6 +18,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/pkg/errors"
+	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -383,7 +384,7 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 				Uses: "commonfate/testvault@v1",
 				With: map[string]string{
 					"apiUrl":   "https://prod.testvault.granted.run",
-					"uniqueId": "2BvQYmAfGQ82U9B60YlQVKD4BP2",
+					"uniqueId": ksuid.New().String(),
 				},
 			},
 		},
