@@ -164,7 +164,10 @@ const SelectField: React.FC<FieldProps> = (props) => {
                 id="provider-vault"
                 bg="white"
                 ref={ref}
-                onChange={onChange}
+                onChange={(e) => {
+                  onChange(e);
+                  trigger(`target.with.${props.name}`); // this triggers the form to revalidate
+                }}
                 value={value}
                 placeholder={props.schema.default?.toString() ?? ""}
               />
