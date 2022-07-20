@@ -178,6 +178,7 @@ func processUsersAndGroups(idpUsers []identity.IdpUser, idpGroups []identity.Idp
 		if existing, ok := ddbGroupMap[g.ID]; ok { //update
 			existing.Description = g.Description
 			existing.Name = g.Name
+			existing.Status = types.IdpStatusACTIVE
 			ddbGroupMap[g.ID] = existing
 		} else { // create
 			newGroup := g.ToInternalGroup()
