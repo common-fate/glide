@@ -45,11 +45,6 @@ export const TimeStep: React.FC = () => {
         </FormLabel>
         <Controller
           control={methods.control}
-          /**
-           * @TODO:
-           * after lunch
-           * resolve the final issue witih the minute section, it should pass through nicely
-           */
           rules={{
             required: true,
             // these need to be in seconds
