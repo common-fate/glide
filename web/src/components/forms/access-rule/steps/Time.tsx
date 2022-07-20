@@ -115,18 +115,21 @@ export const TimeStep: React.FC = () => {
                 </NumberInput>
                 <NumberInput
                   step={10}
-                  min={0}
                   w="130px"
                   value={(value / 60) % 60}
                   name={name}
                   ref={ref}
-                  onChange={(s, n) => {
-                    console.log({ n, value });
-                    // if (n < 0) {
-                    //   onChange(value - 10 * 60);
-                    // } else {
-                    onChange(value + 10 * 60);
-                    //}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowDown") {
+                      // Ensure the value is above zero
+                      if (value > 0) {
+                        // Decrement by 10 mins
+                        onChange(value - 10 * 60);
+                      }
+                    } else if (e.key === "ArrowUp") {
+                      // Increment by 10 mins
+                      onChange(value + 10 * 60);
+                    }
                   }}
                   onBlur={() =>
                     methods.trigger("timeConstraints.maxDurationSeconds")
