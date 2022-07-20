@@ -18,14 +18,14 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.17.8'
+          go-version: "1.17.8"
           cache: true
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-region: us-east-1
-          role-to-assume: '${{ secrets.AWS_TESTING_ROLE_ARN }}'
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Provision test DynamoDB database
         run: |
@@ -76,8 +76,8 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
-          cache: 'pnpm'
+          node-version: "16"
+          cache: "pnpm"
 
       - name: Install NodeJS dependencies
         run: pnpm install
@@ -95,3 +95,25 @@ jobs:
       - name: Build
         run: pnpm run build
         working-directory: web
+  test-accesshandler:
+    name: Test Access Handler
+    runs-on: ubuntu-latest
+    env:
+      GRANTED_INTEGRATION_TEST: true
+      PROVIDER_CONFIG: '{"okta":{"orgUrl":"${{ secrets.OKTA_ORG_URL }}","apiToken":"${{ secrets.OKTA_API_TOKEN }}"}}'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.8"
+          cache: true
+      - name: generate fixtures
+        run: go run cmd/gdk/main.go fixtures create --name okta
+      - name: test okta
+        run: go test ./accesshandler/pkg/providers/okta
+      - name: destroy fixtures
+        if: always() #always destroy the fixture even if the test fails
+        run: go run cmd/gdk/main.go fixtures destroy --name okta
