@@ -66,7 +66,9 @@ export const TimeStep: React.FC = () => {
             const NaN1 = Number.isNaN(value / 60 / 60);
             const NaN2 = Number.isNaN(value / 60 / 60);
 
-            let hours = (value / 60 / 60).toFixed(0).toString();
+            // let hours = (value / 60 / 60).toFixed(0).toString();
+            let hours = Math.floor(value / 3600);
+            let mins = Math.floor((value % 3600) / 60);
 
             return (
               <Flex>
@@ -115,17 +117,16 @@ export const TimeStep: React.FC = () => {
                   step={10}
                   min={0}
                   w="130px"
-                  // value={((value / 60) % 60).toFixed(0).toString()}
+                  value={(value / 60) % 60}
                   name={name}
                   ref={ref}
                   onChange={(s, n) => {
-                    // let input = (value / 1000 / 60) % 60
                     console.log({ n, value });
-                    onChange(n * 60);
-                    // n == the step (in this case 10)
-                    // convert n to milliseconds
-                    // let mili = n * 1000 * 60;
-                    // onChange(value + n * 1000 * 60 * 10);
+                    // if (n < 0) {
+                    //   onChange(value - 10 * 60);
+                    // } else {
+                    onChange(value + 10 * 60);
+                    //}
                   }}
                   onBlur={() =>
                     methods.trigger("timeConstraints.maxDurationSeconds")
