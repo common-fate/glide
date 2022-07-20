@@ -1,7 +1,9 @@
 import {
+  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
+  InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -39,43 +41,123 @@ export const TimeStep: React.FC = () => {
         }
       >
         <FormLabel htmlFor="timeConstraints.maxDurationSeconds">
-          <Text textStyle={"Body/Medium"}>Maximum Duration (hours)</Text>
+          <Text textStyle={"Body/Medium"}>Maximum Duration </Text>
         </FormLabel>
         <Controller
           control={methods.control}
+          /**
+           * @TODO:
+           * after lunch
+           * resolve the final issue witih the minute section, it should pass through nicely
+           */
           rules={{
             required: true,
             // these need to be in seconds
             min: 15 * 60,
             max: 12 * 60 * 60,
             // ensure value is divisible by 15 minutes
-            validate: (v) => {
-              return v % (15 * 60) === 0;
-            },
+            // validate: (v) => {
+            //   return v % (15 * 60) === 0;
+            // },
           }}
           defaultValue={0}
           name={"timeConstraints.maxDurationSeconds"}
-          render={({ field: { ref, onChange, name, value } }) => (
-            <NumberInput
-              step={0.25}
-              w="200px"
-              value={value / 60 / 60}
-              name={name}
-              ref={ref}
-              onChange={(s, n) => {
-                onChange(n * 60 * 60);
-              }}
-              onBlur={() =>
-                methods.trigger("timeConstraints.maxDurationSeconds")
-              }
-            >
-              <NumberInputField bg="neutrals.0" id="rule-max-duration" />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          )}
+          render={({ field: { ref, onChange, name, value } }) => {
+            const NaN1 = Number.isNaN(value / 60 / 60);
+            const NaN2 = Number.isNaN(value / 60 / 60);
+
+            let hours = (value / 60 / 60).toFixed(0).toString();
+
+            return (
+              <Flex>
+                <NumberInput
+                  step={1}
+                  w="130px"
+                  min={0}
+                  mr={2}
+                  // get only the hours from a milisecond value, 0 decimal places
+                  value={NaN1 ? 0 : hours}
+                  name={name}
+                  ref={ref}
+                  onChange={(s, n) => {
+                    console.log({ n, value });
+                    onChange(n * 60 * 60);
+                  }}
+                  onBlur={() =>
+                    methods.trigger("timeConstraints.maxDurationSeconds")
+                  }
+                  sx={{
+                    "#step": {
+                      opacity: 0,
+                    },
+                    "_focusWithin": {
+                      "#step": {
+                        opacity: 1,
+                      },
+                    },
+                  }}
+                >
+                  <NumberInputField bg="neutrals.0" id="rule-max-duration" />
+                  <NumberInputStepper id="step">
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                  <InputRightElement
+                    pos="absolute"
+                    right={10}
+                    color="neutrals.500"
+                    userSelect="none"
+                  >
+                    hrs
+                  </InputRightElement>
+                </NumberInput>
+                <NumberInput
+                  step={10}
+                  min={0}
+                  w="130px"
+                  // value={((value / 60) % 60).toFixed(0).toString()}
+                  name={name}
+                  ref={ref}
+                  onChange={(s, n) => {
+                    // let input = (value / 1000 / 60) % 60
+                    console.log({ n, value });
+                    onChange(n * 60);
+                    // n == the step (in this case 10)
+                    // convert n to milliseconds
+                    // let mili = n * 1000 * 60;
+                    // onChange(value + n * 1000 * 60 * 10);
+                  }}
+                  onBlur={() =>
+                    methods.trigger("timeConstraints.maxDurationSeconds")
+                  }
+                  sx={{
+                    "#step": {
+                      opacity: 0,
+                    },
+                    "_focusWithin": {
+                      "#step": {
+                        opacity: 1,
+                      },
+                    },
+                  }}
+                >
+                  <NumberInputField bg="neutrals.0" id="rule-max-duration" />
+                  <NumberInputStepper id="step">
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                  <InputRightElement
+                    pos="absolute"
+                    right={10}
+                    color="neutrals.500"
+                    userSelect="none"
+                  >
+                    mins
+                  </InputRightElement>
+                </NumberInput>
+              </Flex>
+            );
+          }}
         />
 
         <FormErrorMessage>
