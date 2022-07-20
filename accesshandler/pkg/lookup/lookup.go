@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azuread"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
@@ -22,6 +23,11 @@ func Registry() ProviderRegistry {
 				Provider:    &okta.Provider{},
 				DefaultID:   "okta",
 				Description: "Okta groups",
+			},
+			"commonfate/azuread@v1": {
+				Provider:    &azuread.Provider{},
+				DefaultID:   "azuread",
+				Description: "AzureAD groups",
 			},
 			"commonfate/aws-sso@v1": {
 				Provider:    &sso.Provider{},

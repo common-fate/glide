@@ -33,6 +33,12 @@ func TestFromCLIOption(t *testing.T) {
 			want:    testRegistry.Providers["commonfate/okta@v1"],
 		},
 		{
+			name:    "ok",
+			give:    "AzureAD groups (commonfate/azuread@v1)",
+			wantKey: "commonfate/azuread@v1",
+			want:    testRegistry.Providers["commonfate/azuread@v1"],
+		},
+		{
 			name:    "from CLIOptions",
 			give:    testRegistry.CLIOptions()[0],
 			wantKey: "commonfate/okta@v1",
