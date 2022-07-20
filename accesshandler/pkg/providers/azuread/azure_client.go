@@ -10,12 +10,14 @@ import (
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"go.uber.org/zap"
 )
 
 //making our own azure client to interact with in access handler
 type AzureClient struct {
 	NewClient *http.Client
 	token     string
+	log       *zap.SugaredLogger
 }
 
 type ClientSecretCredential struct {
@@ -159,14 +161,26 @@ func (c *AzureClient) GetUser(ctx context.Context, userID string) (*AzureUser, e
 	return &u, nil
 }
 
+type AddUser struct {
+	Key string `json:"@odata.id"`
+}
+
 //GroupMember.ReadWrite.All
 func (c *AzureClient) AddUserToGroup(ctx context.Context, userID string, groupID string) error {
 
 	url := MSGraphBaseURL + "/groups/" + groupID + "/members/$ref"
 
-	var jsonStr = []byte(`{"@odata.id":"https://graph.microsoft.com/v1.0/directoryObjects/"+userID`)
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	a := AddUser{Key: "https://graph.microsoft.com/v1.0/directoryObjects/" + userID}
+	out, err := json.Marshal(a)
+	if err != nil {
+		return err
+	}
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(out))
 	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Content-Type", "application/json")
+
+	c.log.Info("adding user to group")
+
 	res, err := c.NewClient.Do(req)
 	if err != nil {
 		return err
@@ -190,6 +204,9 @@ func (c *AzureClient) RemoveUserFromGroup(ctx context.Context, userID string, gr
 
 	req, _ := http.NewRequest("DELETE", url, nil)
 	req.Header.Add("Authorization", "Bearer "+c.token)
+
+	c.log.Info("removing user to group")
+
 	res, err := c.NewClient.Do(req)
 	if err != nil {
 		return err
@@ -264,8 +281,9 @@ func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureClient, error) 
 	if err != nil {
 		return nil, err
 	}
+	log := zap.S().With("args", nil)
 
-	return &AzureClient{NewClient: http.DefaultClient, token: token}, nil
+	return &AzureClient{NewClient: http.DefaultClient, token: token, log: log}, nil
 }
 
 func NewClientSecretCredential(s deploy.Azure, httpClient *http.Client) (*ClientSecretCredential, error) {

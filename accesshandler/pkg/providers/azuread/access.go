@@ -25,7 +25,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 		return err
 	}
 	log.Info("adding okta user to group")
-	err = p.client.AddUserToGroup(ctx, a.GroupID, user.ID)
+	err = p.client.AddUserToGroup(ctx, user.ID, a.GroupID)
 	return err
 }
 
@@ -43,7 +43,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 		return err
 	}
 	log.Info("removing okta user from group")
-	err = p.client.RemoveUserFromGroup(ctx, a.GroupID, user.ID)
+	err = p.client.RemoveUserFromGroup(ctx, user.ID, a.GroupID)
 	return err
 }
 
