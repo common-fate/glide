@@ -17,12 +17,11 @@ import (
 )
 
 func TestIntegration(t *testing.T) {
+	ctx := context.Background()
+	_ = godotenv.Load("../../../../.env")
 	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
 		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
 	}
-
-	ctx := context.Background()
-	_ = godotenv.Load("../../../../.env")
 
 	var f fixtures.Fixtures
 	err := providertest.LoadFixture(ctx, "aws_sso", &f)
