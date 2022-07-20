@@ -111,9 +111,9 @@ jobs:
           go-version: "1.17.8"
           cache: true
       - name: generate fixtures
-        run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta
+        run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta --path accesshandler/fixtures
       - name: test okta
         run: go test ./accesshandler/pkg/providers/okta
       - name: destroy fixtures
         if: always() #always destroy the fixture even if the test fails
-        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name okta
+        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name okta --path accesshandler/fixtures
