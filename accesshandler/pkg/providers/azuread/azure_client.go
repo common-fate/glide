@@ -1,8 +1,11 @@
 package azuread
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
@@ -32,12 +35,6 @@ type AzureUser struct {
 	ID        string `json:"id"`
 }
 
-type ListGroupsResponse struct {
-	OdataContext  string       `json:"@odata.context"`
-	OdataNextLink *string      `json:"@odata.nextLink,omitempty"`
-	Value         []AzureGroup `json:"value"`
-}
-
 type AzureGroup struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
@@ -50,34 +47,211 @@ type UserGroups struct {
 	Value         []string `json:"value"`
 }
 
+type ListGroupsResponse struct {
+	OdataContext  string       `json:"@odata.context"`
+	OdataNextLink *string      `json:"@odata.nextLink,omitempty"`
+	Value         []AzureGroup `json:"value"`
+}
+
+type GroupMembers struct {
+	OdataNextLink *string  `json:"@odata.nextLink,omitempty"`
+	OdataContext  string   `json:"@odata.context"`
+	Value         []string `json:"value"`
+}
+
 func (c *AzureClient) ListGroups(context.Context) ([]AzureGroup, error) {
+	idpGroups := []AzureGroup{}
+	hasMore := true
+	var nextToken *string
+	url := MSGraphBaseURL + "/groups"
+	for hasMore {
 
-	return nil, nil
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("Authorization", "Bearer "+c.token)
+		res, err := c.NewClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
+		}
+
+		var lu ListGroupsResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
+
+		idpGroups = append(idpGroups, lu.Value...)
+
+		nextToken = lu.OdataNextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
+	}
+	return idpGroups, nil
 }
 
-func (c *AzureClient) GetGroup(context.Context, string) (*AzureGroup, error) {
+func (c *AzureClient) GetGroup(ctx context.Context, groupID string) (*AzureGroup, error) {
 
-	return nil, nil
+	url := MSGraphBaseURL + "/groups/" + groupID
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	//return the error if its anything but a 200
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf(string(b))
+	}
+
+	var g AzureGroup
+	err = json.Unmarshal(b, &g)
+	if err != nil {
+		return nil, err
+	}
+
+	return &g, nil
+
 }
 
-func (c *AzureClient) GetUser(context.Context, string) (*AzureUser, error) {
+func (c *AzureClient) GetUser(ctx context.Context, userID string) (*AzureUser, error) {
 
-	return nil, nil
+	url := MSGraphBaseURL + "/users/" + userID
+
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	//return the error if its anything but a 200
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf(string(b))
+	}
+
+	var u AzureUser
+	err = json.Unmarshal(b, &u)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
 
-func (c *AzureClient) AddUserToGroup(context.Context, string, string) (*AzureUser, error) {
+//GroupMember.ReadWrite.All
+func (c *AzureClient) AddUserToGroup(ctx context.Context, userID string, groupID string) error {
 
-	return nil, nil
+	url := MSGraphBaseURL + "/groups/" + groupID + "/members/$ref"
+
+	var jsonStr = []byte(`{"@odata.id":"https://graph.microsoft.com/v1.0/directoryObjects/"+userID`)
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	//return the error if its anything but a 204
+	if res.StatusCode != 204 {
+		return fmt.Errorf(string(b))
+	}
+
+	return nil
 }
 
-func (c *AzureClient) RemoveUserFromGroup(context.Context, string, string) (*AzureUser, error) {
+//GroupMember.ReadWrite.All
+func (c *AzureClient) RemoveUserFromGroup(ctx context.Context, userID string, groupID string) error {
 
-	return nil, nil
+	url := MSGraphBaseURL + "/groups/" + groupID + "/members/" + userID + "/$ref"
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	//return the error if its anything but a 204
+	if res.StatusCode != 204 {
+		return fmt.Errorf(string(b))
+	}
+	return nil
 }
 
-func (c *AzureClient) ListGroupUsers(context.Context, string) ([]AzureUser, error) {
+//GroupMember.Read.All
+func (c *AzureClient) ListGroupUsers(ctx context.Context, userID string) ([]AzureUser, error) {
 
-	return nil, nil
+	var groupMembers []AzureUser
+
+	hasMore := true
+	var nextToken *string
+	url := MSGraphBaseURL + fmt.Sprintf("/groups/%s/members", userID)
+
+	for hasMore {
+		var jsonStr = []byte(`{ "securityEnabledOnly": false}`)
+		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+		req.Header.Add("Authorization", "Bearer "+c.token)
+		req.Header.Set("Content-Type", "application/json")
+
+		res, err := c.NewClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
+		}
+
+		var lu ListUsersResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
+
+		groupMembers = append(groupMembers, lu.Value...)
+
+		nextToken = lu.OdataNextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
+
+	}
+	return groupMembers, nil
 }
 
 // NewAzure will fail if the Azure settings are not configured

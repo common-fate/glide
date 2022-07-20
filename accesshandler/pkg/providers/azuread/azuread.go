@@ -14,9 +14,9 @@ const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type Provider struct {
 	client       AzureClient
-	tenantID     string `yaml:"tenantID" json:"tenantID"`
-	clientID     string `yaml:"clientID" json:"clientID"`
-	clientSecret string `yaml:"clientSecret" json:"clientSecret"`
+	tenantID     string `yaml:"tenantID"`
+	clientID     string `yaml:"clientID"`
+	clientSecret string `yaml:"clientSecret"`
 }
 
 func (a *Provider) Config() genv.Config {

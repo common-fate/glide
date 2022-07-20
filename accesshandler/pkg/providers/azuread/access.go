@@ -25,7 +25,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 		return err
 	}
 	log.Info("adding okta user to group")
-	_, err = p.client.AddUserToGroup(ctx, a.GroupID, user.ID)
+	err = p.client.AddUserToGroup(ctx, a.GroupID, user.ID)
 	return err
 }
 
@@ -43,7 +43,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 		return err
 	}
 	log.Info("removing okta user from group")
-	_, err = p.client.RemoveUserFromGroup(ctx, a.GroupID, user.ID)
+	err = p.client.RemoveUserFromGroup(ctx, a.GroupID, user.ID)
 	return err
 }
 
@@ -66,6 +66,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (b
 
 func userExists(users []AzureUser, subject string) bool {
 	for _, u := range users {
+
 		email := u.Mail
 		if email == subject {
 			return true

@@ -48,7 +48,7 @@ func TestLogging(t *testing.T) {
 	logger.Sugar().Infow("provider", providers.LogConfig(&p))
 
 	got := strings.TrimSpace(b.String())
-	want := `{"level":"info","msg":"provider","provider.config":{"apiToken":"*****","orgUrl":"test"}}`
+	want := `{"level":"info","msg":"provider","provider.config":{"apiToken":"*****","clientID":"test","tenantID":"tenantid"}}`
 	assert.Equal(t, want, got)
 }
 
@@ -61,7 +61,7 @@ func TestIntegration(t *testing.T) {
 	_ = godotenv.Load("../../../.env")
 
 	var f fixtures.Fixtures
-	err := providertest.LoadFixture(ctx, "okta", &f)
+	err := providertest.LoadFixture(ctx, "azure", &f)
 	if err != nil {
 		t.Fatal(err)
 	}

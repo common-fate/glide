@@ -13,7 +13,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 	switch arg {
 	case "groupId":
 		log := zap.S().With("arg", arg)
-		log.Info("getting okta group options")
+		log.Info("getting azure group options")
 		groups, err := p.client.ListGroups(ctx)
 		if err != nil {
 			return nil, err
