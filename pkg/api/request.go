@@ -38,10 +38,10 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := types.ListRequestsResponse{
-		Requests: []types.Request{},
+		Requests: make([]types.Request, len(q.Result)),
 	}
-	for _, req := range q.Result {
-		res.Requests = append(res.Requests, req.ToAPI())
+	for i, r := range q.Result {
+		res.Requests[i] = r.ToAPI()
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
@@ -66,10 +66,10 @@ func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := types.ListRequestsResponse{
-		Requests: []types.Request{},
+		Requests: make([]types.Request, len(q.Result)),
 	}
-	for _, req := range q.Result {
-		res.Requests = append(res.Requests, req.ToAPI())
+	for i, r := range q.Result {
+		res.Requests[i] = r.ToAPI()
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
@@ -120,11 +120,10 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 	res := types.ListRequestsResponse{
 		Requests: make([]types.Request, len(requests)),
 	}
-	if len(requests) > 0 {
-		for i, r := range requests {
-			res.Requests[i] = r.ToAPI()
-		}
+	for i, r := range requests {
+		res.Requests[i] = r.ToAPI()
 	}
+
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
@@ -371,8 +370,9 @@ func (a *API) ListRequestEvents(w http.ResponseWriter, r *http.Request, requestI
 		apio.Error(ctx, w, err)
 		return
 	}
-	var res types.ListRequestEventsResponse
-	res.Events = make([]types.RequestEvent, len(qre.Result))
+	res := types.ListRequestEventsResponse{
+		Events: make([]types.RequestEvent, len(qre.Result)),
+	}
 	for i, re := range qre.Result {
 		res.Events[i] = re.ToAPI()
 	}
