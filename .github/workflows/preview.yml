@@ -132,8 +132,6 @@ jobs:
     needs: [deploy]
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    env:
-      CI: true
     # if: github.event.deployment_status.state == 'success'
     steps:
       - uses: common-fate/branch-name@v1.1.2
@@ -168,6 +166,7 @@ jobs:
           TEST_PASSWORD: "${{ secrets.TEST_PASSWORD}}"
           USER_POOL_ID: "${{ secrets.USER_POOL_ID}}"
           COGNITO_CLIENT_ID: "${{ secrets.COGNITO_CLIENT_ID}}"
+          CI: true
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
