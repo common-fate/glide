@@ -132,6 +132,8 @@ jobs:
     needs: [deploy]
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    env:
+      CI: true
     # if: github.event.deployment_status.state == 'success'
     steps:
       - uses: common-fate/branch-name@v1.1.2
@@ -140,13 +142,16 @@ jobs:
         with:
           max-length: 32
       - uses: actions/checkout@v2
-      - name: Setup pnpm
+     - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 7.1.5
-      - uses: actions/setup-node@v2
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
         with:
           node-version: "16"
+          cache: "pnpm"
       - name: Install Deps
         run: pnpm i
         working-directory: web
