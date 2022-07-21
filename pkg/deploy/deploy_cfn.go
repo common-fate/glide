@@ -44,7 +44,7 @@ func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) (string
 	if createErr != nil {
 		if createErr.Error() == noChangeFoundMsg {
 			clio.Success("Change set was created, but there is no change. Deploy was skipped.")
-			return "", nil
+			return "DEPLOY_SKIPPED", nil
 		} else {
 			return "", errors.Wrap(createErr, "creating changeset")
 		}

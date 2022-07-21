@@ -21,10 +21,7 @@ var DestroyCommand = cli.Command{
 		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "the name of the provider to generate fixtures for", Required: true},
 	},
 	Action: func(c *cli.Context) error {
-		err := godotenv.Load()
-		if err != nil {
-			return err
-		}
+		_ = godotenv.Load()
 
 		ctx := c.Context
 

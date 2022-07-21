@@ -18,6 +18,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/pkg/errors"
+	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -378,6 +379,15 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 			Account:   acc,
 			Dev:       &dev,
 		},
+		Providers: map[string]Provider{
+			"test-vault": {
+				Uses: "commonfate/testvault@v1",
+				With: map[string]string{
+					"apiUrl":   "https://prod.testvault.granted.run",
+					"uniqueId": ksuid.New().String(),
+				},
+			},
+		},
 	}
 	return &conf
 }
@@ -439,11 +449,12 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	account := c.String("account")
 	if account == "" {
 		ctx := context.Background()
-		account, err := tryGetCurrentAccountID(ctx)
+		//Setting account to a fresh variable when set, was being unallocated when using the account variable
+		current, err := tryGetCurrentAccountID(ctx)
 		if err != nil {
 			return nil, err
 		}
-		p := &survey.Input{Message: "The account ID that you are deploying to", Default: account}
+		p := &survey.Input{Message: "The account ID that you are deploying to", Default: current}
 		err = survey.AskOne(p, &account)
 		if err != nil {
 			return nil, err
