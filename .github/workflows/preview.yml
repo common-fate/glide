@@ -164,7 +164,7 @@ jobs:
           USER_POOL_ID: "${{ secrets.USER_POOL_ID}}"
           COGNITO_CLIENT_ID: "${{ secrets.COGNITO_CLIENT_ID}}"
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: failure()
         with:
           name: playwright-traces
           path: web/test-results/
