@@ -279,20 +279,13 @@ const Home: NextPage = () => {
                       name="timing.durationSeconds"
                       control={control}
                       rules={{ required: "Duration is required." }}
-                      render={({ field }) => {
+                      render={({ field, fieldState }) => {
                         // state for hours
                         const [hours, setHours] = useState(0);
                         const [mins, setMins] = useState(0);
 
                         const onBlurFn = () => {
                           const duration = hours * 60 * 60 + mins * 60;
-
-                          console.log({
-                            hours,
-                            mins,
-                            durationSecs: duration,
-                            maxDurationSeconds,
-                          });
 
                           if (
                             maxDurationSeconds &&
@@ -302,10 +295,30 @@ const Home: NextPage = () => {
                               "timing.durationSeconds",
                               maxDurationSeconds
                             );
+
+                            // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
+                            // Firstly calculate what the hours would be
+                            let h = maxDurationSeconds / 60 / 60;
+                            let m = (maxDurationSeconds / 60) % 60;
+
+                            // console.log("updating hours and mins");
+                            setHours(h);
+                            setMins(m);
+
+                            // @TODO: show a warning to the user that the duration is too long
+                            // Set an error for the react-hook-form
+                            fieldState.setError("durationSeconds", {
+                              message: "oh no",
+                            });
+                            // Invalidate the field
                           } else {
                             setValue("timing.durationSeconds", duration);
                           }
                         };
+
+                        let maxH = maxDurationSeconds
+                          ? maxDurationSeconds / 3600
+                          : 12;
 
                         return (
                           <HStack>
@@ -315,28 +328,14 @@ const Home: NextPage = () => {
                               min={0}
                               step={1}
                               role="group"
-                              // max={
-                              //   maxDurationSeconds
-                              //     ? maxDurationSeconds / 3600
-                              //     : 12
-                              // }
-                              max={12}
+                              max={maxH}
                               w="100px"
                               value={hours}
                               onChange={(s, n) => setHours(n)}
                               className="peer"
                               onBlur={onBlurFn}
-                              // {...field}
                             >
-                              <NumberInputField
-                                bg="white"
-                                className="1"
-                                // {...register("timing.durationSeconds", {
-                                //   max: maxDurationSeconds
-                                //     ? maxDurationSeconds / 3600
-                                //     : 12,
-                                // })}
-                              />
+                              <NumberInputField bg="white" />
                               <InputRightElement
                                 pos="absolute"
                                 right={10}
@@ -364,17 +363,22 @@ const Home: NextPage = () => {
                               onChange={(s, n) => setMins(n)}
                               className="peer"
                               onBlur={onBlurFn}
-                              // {...field}
+                              onKeyDown={(e) => {
+                                // allow stepping up from 59 to 0
+                                if (e.key === "ArrowUp") {
+                                  if (mins === 59 && hours <= maxH) {
+                                    setMins(0);
+                                    setHours(hours + 1);
+                                  }
+                                } else if (e.key === "ArrowDown") {
+                                  if (mins === 0 && hours > 0) {
+                                    setMins(59);
+                                    setHours(hours - 1);
+                                  }
+                                }
+                              }}
                             >
-                              <NumberInputField
-                                bg="white"
-                                className="2"
-                                // {...register("timing.durationSeconds", {
-                                //   max: maxDurationSeconds
-                                //     ? maxDurationSeconds / 3600
-                                //     : 12,
-                                // })}
-                              />
+                              <NumberInputField bg="white" />
                               <NumberInputStepper>
                                 <NumberIncrementStepper />
                                 <NumberDecrementStepper />
@@ -387,7 +391,7 @@ const Home: NextPage = () => {
                                 userSelect="none"
                                 textAlign="left"
                               >
-                                min
+                                mins
                               </InputRightElement>
                             </NumberInput>
                             {maxDurationSeconds && (
