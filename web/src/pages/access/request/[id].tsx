@@ -13,6 +13,7 @@ import {
   HStack,
   IconButton,
   Input,
+  InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
   NumberInput,
@@ -147,7 +148,7 @@ const Home: NextPage = () => {
     let r: CreateRequestRequestBody = {
       accessRuleId: ruleId,
       timing: {
-        durationSeconds: duration * 60 * 60,
+        durationSeconds: duration,
       },
       reason: data.reason,
     };
@@ -278,40 +279,125 @@ const Home: NextPage = () => {
                       name="timing.durationSeconds"
                       control={control}
                       rules={{ required: "Duration is required." }}
-                      render={({ field }) => (
-                        <HStack>
-                          <NumberInput
-                            defaultValue={1}
-                            min={0.01}
-                            step={0.5}
-                            max={
+                      render={({ field }) => {
+                        // state for hours
+                        const [hours, setHours] = useState(0);
+                        const [mins, setMins] = useState(0);
+
+                        const onBlurFn = () => {
+                          const duration = hours * 60 * 60 + mins * 60;
+
+                          console.log({
+                            hours,
+                            mins,
+                            durationSecs: duration,
+                            maxDurationSeconds,
+                          });
+
+                          if (
+                            maxDurationSeconds &&
+                            duration > maxDurationSeconds
+                          ) {
+                            setValue(
+                              "timing.durationSeconds",
                               maxDurationSeconds
-                                ? maxDurationSeconds / 3600
-                                : 12
-                            }
-                            w="200px"
-                            {...field}
-                          >
-                            <NumberInputField
-                              bg="white"
-                              {...register("timing.durationSeconds", {
-                                max: maxDurationSeconds
-                                  ? maxDurationSeconds / 3600
-                                  : 12,
-                              })}
-                            />
-                            <NumberInputStepper>
-                              <NumberIncrementStepper />
-                              <NumberDecrementStepper />
-                            </NumberInputStepper>
-                          </NumberInput>
-                          {maxDurationSeconds && (
-                            <Text textStyle={"Body/ExtraSmall"}>
-                              Maximum: {durationString(maxDurationSeconds)}
-                            </Text>
-                          )}
-                        </HStack>
-                      )}
+                            );
+                          } else {
+                            setValue("timing.durationSeconds", duration);
+                          }
+                        };
+
+                        return (
+                          <HStack>
+                            <NumberInput
+                              variant="reveal"
+                              defaultValue={1}
+                              min={0}
+                              step={1}
+                              role="group"
+                              // max={
+                              //   maxDurationSeconds
+                              //     ? maxDurationSeconds / 3600
+                              //     : 12
+                              // }
+                              max={12}
+                              w="100px"
+                              value={hours}
+                              onChange={(s, n) => setHours(n)}
+                              className="peer"
+                              onBlur={onBlurFn}
+                              // {...field}
+                            >
+                              <NumberInputField
+                                bg="white"
+                                className="1"
+                                // {...register("timing.durationSeconds", {
+                                //   max: maxDurationSeconds
+                                //     ? maxDurationSeconds / 3600
+                                //     : 12,
+                                // })}
+                              />
+                              <InputRightElement
+                                pos="absolute"
+                                right={10}
+                                w="8px"
+                                color="neutrals.500"
+                                userSelect="none"
+                                textAlign="left"
+                              >
+                                hrs
+                              </InputRightElement>
+                              <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                              </NumberInputStepper>
+                            </NumberInput>
+                            <NumberInput
+                              variant="reveal"
+                              role="group"
+                              defaultValue={1}
+                              min={0}
+                              step={1}
+                              max={59}
+                              w="100px"
+                              value={mins}
+                              onChange={(s, n) => setMins(n)}
+                              className="peer"
+                              onBlur={onBlurFn}
+                              // {...field}
+                            >
+                              <NumberInputField
+                                bg="white"
+                                className="2"
+                                // {...register("timing.durationSeconds", {
+                                //   max: maxDurationSeconds
+                                //     ? maxDurationSeconds / 3600
+                                //     : 12,
+                                // })}
+                              />
+                              <NumberInputStepper>
+                                <NumberIncrementStepper />
+                                <NumberDecrementStepper />
+                              </NumberInputStepper>
+                              <InputRightElement
+                                pos="absolute"
+                                right={10}
+                                w="8px"
+                                color="neutrals.500"
+                                userSelect="none"
+                                textAlign="left"
+                              >
+                                min
+                              </InputRightElement>
+                            </NumberInput>
+                            {maxDurationSeconds && (
+                              <Text textStyle={"Body/ExtraSmall"}>
+                                Maximum: {durationString(maxDurationSeconds)}
+                              </Text>
+                            )}
+                          </HStack>
+                        );
+                      }}
                     />
 
                     {errors.timing?.durationSeconds !== undefined ? (
@@ -320,7 +406,7 @@ const Home: NextPage = () => {
                       </FormErrorMessage>
                     ) : (
                       <FormHelperText color="neutrals.600">
-                        {readableDuration}
+                        {/* {readableDuration} */}
                       </FormHelperText>
                     )}
                   </FormControl>
