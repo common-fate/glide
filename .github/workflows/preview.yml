@@ -150,10 +150,18 @@ jobs:
         with:
           node-version: "16"
           cache: "pnpm"
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: cache-playwright
       - name: Install Deps
         run: pnpm i
         working-directory: web
       - name: Install Playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm run e2e-install
         working-directory: web
       - name: Run Playwright tests
