@@ -33,7 +33,7 @@ func NewCustomLogger(pipeTo io.Writer) zapcore.Core {
 	)
 }
 
-// TestLogging verifies that we don't accidentally log the okta API token when using zap.
+// TestLogging verifies that we don't accidentally log the azure API token when using zap.
 func TestLogging(t *testing.T) {
 	p := Provider{
 		clientID:     "test",
@@ -48,7 +48,7 @@ func TestLogging(t *testing.T) {
 	logger.Sugar().Infow("provider", providers.LogConfig(&p))
 
 	got := strings.TrimSpace(b.String())
-	want := `{"level":"info","msg":"provider","provider.config":{"apiToken":"*****","clientID":"test","tenantID":"tenantid"}}`
+	want := `{"level":"info","msg":"provider","provider.config":{"clientSecret":"*****","clientID":"test","tenantID":"tenantid"}}`
 	assert.Equal(t, want, got)
 }
 
