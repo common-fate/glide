@@ -3,6 +3,7 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
+  HStack,
   InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -12,13 +13,16 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import { durationString } from "../../../../utils/durationString";
 import { FormStep } from "./FormStep";
 
 export const TimeStep: React.FC = () => {
   const methods = useFormContext();
   const time = methods.watch("timeConstraints");
+  const maxDurationSeconds = 24 * 3600;
+
   return (
     <FormStep
       heading="Time"
@@ -29,7 +33,10 @@ export const TimeStep: React.FC = () => {
           <Text textStyle={"Body/Medium"} color="neutrals.600">
             Max duration:{" "}
             {time?.maxDurationSeconds
-              ? time.maxDurationSeconds / 60 / 60 + " hours"
+              ? time.maxDurationSeconds / 60 / 60 +
+                " hours " +
+                ((time.maxDurationSeconds / 60) % 60) +
+                " minutes"
               : ""}
           </Text>
         </VStack>
@@ -45,124 +52,126 @@ export const TimeStep: React.FC = () => {
         </FormLabel>
         <Controller
           control={methods.control}
-          rules={{
-            required: true,
-            // these need to be in seconds
-            min: 15 * 60,
-            max: 12 * 60 * 60,
-            // ensure value is divisible by 15 minutes
-            // validate: (v) => {
-            //   return v % (15 * 60) === 0;
-            // },
-          }}
+          rules={{ required: "Duration is required." }}
           defaultValue={0}
-          name={"timeConstraints.maxDurationSeconds"}
-          render={({ field: { ref, onChange, name, value } }) => {
-            const NaN1 = Number.isNaN(value / 60 / 60);
-            const NaN2 = Number.isNaN(value / 60 / 60);
+          name="timeConstraints.maxDurationSeconds"
+          render={({ field, fieldState }) => {
+            // state for hours
+            const [hours, setHours] = useState(0);
+            const [mins, setMins] = useState(0);
 
-            // let hours = (value / 60 / 60).toFixed(0).toString();
-            let hours = Math.floor(value / 3600);
-            let mins = Math.floor((value % 3600) / 60);
+            const onBlurFn = () => {
+              const duration = hours * 60 * 60 + mins * 60;
+
+              if (maxDurationSeconds && duration > maxDurationSeconds) {
+                methods.setValue("timeConstraints.maxDurationSeconds", 0);
+
+                // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
+                // Firstly calculate what the hours would be
+                let h = maxDurationSeconds / 60 / 60;
+                let m = (maxDurationSeconds / 60) % 60;
+
+                setHours(h);
+                setMins(m);
+
+                // Invalidate the field
+              } else {
+                methods.setValue(
+                  "timeConstraints.maxDurationSeconds",
+                  duration
+                );
+              }
+            };
+
+            let maxH = maxDurationSeconds ? maxDurationSeconds / 3600 : 24;
 
             return (
-              <Flex>
+              <HStack>
                 <NumberInput
-                  step={1}
-                  w="130px"
+                  variant="reveal"
+                  defaultValue={1}
                   min={0}
-                  mr={2}
-                  // get only the hours from a milisecond value, 0 decimal places
-                  value={NaN1 ? 0 : hours}
-                  name={name}
-                  ref={ref}
-                  onChange={(s, n) => {
-                    console.log({ n, value });
-                    onChange(n * 60 * 60);
-                  }}
-                  onBlur={() =>
-                    methods.trigger("timeConstraints.maxDurationSeconds")
-                  }
-                  sx={{
-                    "#step": {
-                      opacity: 0,
-                    },
-                    "_focusWithin": {
-                      "#step": {
-                        opacity: 1,
-                      },
-                    },
-                  }}
+                  step={1}
+                  role="group"
+                  max={maxH}
+                  w="100px"
+                  value={hours}
+                  onChange={(s, n) => setHours(n)}
+                  className="peer"
+                  onBlur={onBlurFn}
                 >
-                  <NumberInputField bg="neutrals.0" id="rule-max-duration" />
-                  <NumberInputStepper id="step">
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
+                  <NumberInputField bg="white" />
                   <InputRightElement
                     pos="absolute"
                     right={10}
+                    w="8px"
                     color="neutrals.500"
                     userSelect="none"
+                    textAlign="left"
                   >
                     hrs
                   </InputRightElement>
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
                 </NumberInput>
                 <NumberInput
-                  step={10}
-                  w="130px"
-                  value={(value / 60) % 60}
-                  name={name}
-                  ref={ref}
+                  variant="reveal"
+                  role="group"
+                  defaultValue={1}
+                  min={0}
+                  step={1}
+                  max={59}
+                  w="100px"
+                  value={mins}
+                  onChange={(s, n) => {
+                    if (hours * 3600 + mins * 60 >= maxDurationSeconds) {
+                      return;
+                    } else setMins(n);
+                  }}
+                  className="peer"
+                  onBlur={onBlurFn}
                   onKeyDown={(e) => {
-                    if (e.key === "ArrowDown") {
-                      // Ensure the value is above zero
-                      if (value > 0) {
-                        // Decrement by 10 mins
-                        onChange(value - 10 * 60);
+                    // allow stepping up from 59 to 0
+                    if (e.key === "ArrowUp") {
+                      if (mins === 59 && hours < maxH) {
+                        setMins(0);
+                        setHours((h) => h + 1);
                       }
-                    } else if (e.key === "ArrowUp") {
-                      // Increment by 10 mins
-                      onChange(value + 10 * 60);
+                    } else if (e.key === "ArrowDown") {
+                      if (mins === 0 && hours > 0) {
+                        setMins(59);
+                        setHours((h) => h - 1);
+                      }
                     }
                   }}
-                  onBlur={() =>
-                    methods.trigger("timeConstraints.maxDurationSeconds")
-                  }
-                  sx={{
-                    "#step": {
-                      opacity: 0,
-                    },
-                    "_focusWithin": {
-                      "#step": {
-                        opacity: 1,
-                      },
-                    },
-                  }}
                 >
-                  <NumberInputField bg="neutrals.0" id="rule-max-duration" />
-                  <NumberInputStepper id="step">
+                  <NumberInputField bg="white" />
+                  <NumberInputStepper>
                     <NumberIncrementStepper />
                     <NumberDecrementStepper />
                   </NumberInputStepper>
                   <InputRightElement
                     pos="absolute"
                     right={10}
+                    w="8px"
                     color="neutrals.500"
                     userSelect="none"
+                    textAlign="left"
                   >
                     mins
                   </InputRightElement>
                 </NumberInput>
-              </Flex>
+              </HStack>
             );
           }}
         />
 
-        <FormErrorMessage>
+        {/* <FormErrorMessage>
           Duration must be in 0.25 hour increments. Minimum duration 0.25 hours.
           Max duration 12 hours.
-        </FormErrorMessage>
+        </FormErrorMessage> */}
       </FormControl>
     </FormStep>
   );

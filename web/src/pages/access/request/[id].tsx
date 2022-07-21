@@ -301,15 +301,9 @@ const Home: NextPage = () => {
                             let h = maxDurationSeconds / 60 / 60;
                             let m = (maxDurationSeconds / 60) % 60;
 
-                            // console.log("updating hours and mins");
                             setHours(h);
                             setMins(m);
 
-                            // @TODO: show a warning to the user that the duration is too long
-                            // Set an error for the react-hook-form
-                            fieldState.setError("durationSeconds", {
-                              message: "oh no",
-                            });
                             // Invalidate the field
                           } else {
                             setValue("timing.durationSeconds", duration);
@@ -360,7 +354,14 @@ const Home: NextPage = () => {
                               max={59}
                               w="100px"
                               value={mins}
-                              onChange={(s, n) => setMins(n)}
+                              onChange={(s, n) => {
+                                if (
+                                  maxDurationSeconds &&
+                                  hours * 3600 + mins * 60 >= maxDurationSeconds
+                                ) {
+                                  return;
+                                } else setMins(n);
+                              }}
                               className="peer"
                               onBlur={onBlurFn}
                               onKeyDown={(e) => {
