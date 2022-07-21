@@ -17,19 +17,20 @@ import {
 test("non admin cannot create access rule", async ({ page }) => {
   await Logout(page);
   await LoginUser(page);
-  await page.goto("/");
   await expect(page).toHaveTitle(/Granted/);
-  await page.goto("/admin/access-rules").then(() => expect(page.locator("#app")).toContainText(
-    "Sorry, you  don't have access"
-  ));
-
+  await page
+    .goto("/admin/access-rules")
+    .then(() =>
+      expect(page.locator("#app")).toContainText(
+        "Sorry, you  don't have access"
+      )
+    );
 });
 
 //test access rule create
 test("admin can create access rule", async ({ page }) => {
   await Logout(page);
   await LoginAdmin(page);
-  await page.goto("/");
   await clickFormElementByID("admin-button", page);
   await expect(page).toHaveTitle(/Granted/);
   await expect(
