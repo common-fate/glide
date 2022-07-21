@@ -1,11 +1,11 @@
 import { type PlaywrightTestConfig, devices } from '@playwright/test';
-
+// Read from default ".env" file.
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   
  
   retries: 0,
-  //globalSetup: "./globalSetup.ts",
+  globalSetup: "./globalSetup.ts",
   use: {
     trace: "on",
     baseURL: "https://" + process.env.TESTING_DOMAIN,
