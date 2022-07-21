@@ -140,7 +140,7 @@ jobs:
         with:
           max-length: 32
       - uses: actions/checkout@v2
-     - name: Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 7.1.5
