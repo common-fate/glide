@@ -1,4 +1,4 @@
-package azuread
+package ad
 
 import (
 	"bytes"
@@ -53,12 +53,12 @@ func TestLogging(t *testing.T) {
 }
 
 func TestIntegration(t *testing.T) {
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
-	}
+	// if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
+	// 	t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	// }
 
 	ctx := context.Background()
-	_ = godotenv.Load("../../../.env")
+	_ = godotenv.Load("../../../../.env")
 
 	var f fixtures.Fixtures
 	err := providertest.LoadFixture(ctx, "azure", &f)
@@ -98,7 +98,7 @@ func TestIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	integration.RunTests(t, ctx, "okta", &Provider{}, testcases, integration.WithProviderConfig(configMap["okta"]))
+	integration.RunTests(t, ctx, "azure", &Provider{}, testcases, integration.WithProviderConfig(configMap["azure"]))
 }
 
 func TestArgSchema(t *testing.T) {

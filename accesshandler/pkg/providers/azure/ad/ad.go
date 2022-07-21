@@ -1,4 +1,4 @@
-package azuread
+package ad
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func (a *Provider) Config() genv.Config {
 	return genv.Config{
 		genv.String("clientID", &a.clientID, "the azure client ID"),
 		genv.String("tenantID", &a.tenantID, "the azure tenant ID"),
-		genv.SecretString("apiToken", &a.clientSecret, "the azure API token"),
+		genv.SecretString("clientSecret", &a.clientSecret, "the azure API token"),
 	}
 }
 

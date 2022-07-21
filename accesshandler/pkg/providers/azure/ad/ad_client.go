@@ -1,4 +1,4 @@
-package azuread
+package ad
 
 import (
 	"bytes"
@@ -269,6 +269,136 @@ func (c *AzureClient) ListGroupUsers(ctx context.Context, userID string) ([]Azur
 
 	}
 	return groupMembers, nil
+}
+
+type CreateADUser struct {
+	AccountEnabled    bool            `json:"accountEnabled"`
+	DisplayName       string          `json:"displayName"`
+	MailNickname      string          `json:"mailNickname"`
+	UserPrincipalName string          `json:"userPrincipalName"`
+	PasswordProfile   PasswordProfile `json:"passwordProfile"`
+}
+
+type PasswordProfile struct {
+	ForceChangePasswordNextSignIn bool   `json:"forceChangePasswordNextSignIn"`
+	Password                      string `json:"password"`
+}
+
+func (c *AzureClient) CreateUser(ctx context.Context, user CreateADUser) error {
+	url := MSGraphBaseURL + "/users"
+
+	out, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(out))
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	//return the error if its anything but a 201
+	if res.StatusCode != 201 {
+		return fmt.Errorf(string(b))
+	}
+	return nil
+
+}
+
+func (c *AzureClient) DeleteUser(ctx context.Context, userID string) error {
+	url := MSGraphBaseURL + "/users/" + userID
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+	req.Header.Add("Authorization", "Bearer "+c.token)
+
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	//return the error if its anything but a 204
+	if res.StatusCode != 204 {
+		return fmt.Errorf(string(b))
+	}
+	return nil
+}
+
+type CreateADGroup struct {
+	Description     string   `json:"description"`
+	DisplayName     string   `json:"displayName"`
+	GroupTypes      []string `json:"groupTypes"`
+	MailEnabled     bool     `json:"mailEnabled"`
+	MailNickname    string   `json:"mailNickname"`
+	SecurityEnabled bool     `json:"securityEnabled"`
+}
+
+type CreateADGroupResponse struct {
+	ID string `json:"id"`
+
+	Description string `json:"description"`
+	DisplayName string `json:"displayName"`
+}
+
+func (c *AzureClient) CreateGroup(ctx context.Context, group CreateADGroup) (*CreateADGroupResponse, error) {
+	url := MSGraphBaseURL + "/groups"
+
+	out, err := json.Marshal(group)
+	if err != nil {
+		return nil, err
+	}
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(out))
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupRes CreateADGroupResponse
+	err = json.Unmarshal(b, &groupRes)
+	if err != nil {
+		return nil, err
+	}
+	//return the error if its anything but a 201
+	if res.StatusCode != 201 {
+		return nil, fmt.Errorf(string(b))
+	}
+	return &groupRes, nil
+}
+
+func (c *AzureClient) DeleteGroup(ctx context.Context, groupID string) error {
+	url := MSGraphBaseURL + "/groups/" + groupID
+
+	req, _ := http.NewRequest("DELETE", url, nil)
+	req.Header.Add("Authorization", "Bearer "+c.token)
+
+	res, err := c.NewClient.Do(req)
+	if err != nil {
+		return err
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	//return the error if its anything but a 204
+	if res.StatusCode != 204 {
+		return fmt.Errorf(string(b))
+	}
+	return nil
 }
 
 // NewAzure will fail if the Azure settings are not configured

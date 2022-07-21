@@ -1,4 +1,4 @@
-package azuread
+package ad
 
 import (
 	"fmt"
