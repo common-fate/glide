@@ -1,7 +1,5 @@
 import {
-  Flex,
   FormControl,
-  FormErrorMessage,
   FormLabel,
   HStack,
   InputRightElement,
@@ -15,13 +13,15 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { durationString } from "../../../../utils/durationString";
 import { FormStep } from "./FormStep";
 
 export const TimeStep: React.FC = () => {
   const methods = useFormContext();
   const time = methods.watch("timeConstraints");
   const maxDurationSeconds = 24 * 3600;
+
+  const [hours, setHours] = useState(0);
+  const [mins, setMins] = useState(0);
 
   return (
     <FormStep
@@ -56,10 +56,6 @@ export const TimeStep: React.FC = () => {
           defaultValue={0}
           name="timeConstraints.maxDurationSeconds"
           render={({ field, fieldState }) => {
-            // state for hours
-            const [hours, setHours] = useState(0);
-            const [mins, setMins] = useState(0);
-
             const onBlurFn = () => {
               const duration = hours * 60 * 60 + mins * 60;
 

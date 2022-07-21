@@ -161,6 +161,9 @@ const Home: NextPage = () => {
 
   const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
 
+  const [hours, setHours] = useState(0);
+  const [mins, setMins] = useState(0);
+
   return (
     <>
       <UserLayout>
@@ -280,10 +283,6 @@ const Home: NextPage = () => {
                       control={control}
                       rules={{ required: "Duration is required." }}
                       render={({ field, fieldState }) => {
-                        // state for hours
-                        const [hours, setHours] = useState(0);
-                        const [mins, setMins] = useState(0);
-
                         const onBlurFn = () => {
                           const duration = hours * 60 * 60 + mins * 60;
 
