@@ -10,22 +10,28 @@ import {
 import React, { useEffect, useState } from "react";
 
 type Props = {
-  maxDurationSeconds: number;
   setValue: (n: number) => void;
-  /** initialValue in seconds */
+  maxDurationSeconds?: number;
+  /** initialValue in seconds, this must be set for onBlurFn validation to occur */
   initialValue?: number;
+  rightElement?: React.ReactNode;
 };
 
 const HoursMinutes = ({
   maxDurationSeconds,
   setValue,
   initialValue,
+  rightElement,
 }: Props) => {
   const [hours, setHours] = useState<number>();
   const [mins, setMins] = useState<number>();
 
   useEffect(() => {
-    if (initialValue && hours === undefined && mins === undefined) {
+    if (
+      initialValue != undefined &&
+      hours === undefined &&
+      mins === undefined
+    ) {
       setHours(initialValue / 60 / 60);
       setMins((initialValue / 60) % 60);
     }
@@ -140,6 +146,7 @@ const HoursMinutes = ({
           mins
         </InputRightElement>
       </NumberInput>
+      {rightElement}
     </HStack>
   );
 };

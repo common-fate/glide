@@ -13,12 +13,6 @@ import {
   HStack,
   IconButton,
   Input,
-  InputRightElement,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
@@ -35,6 +29,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import { CFRadioBox } from "../../../components/CFRadioBox";
+import HoursMinutes from "../../../components/HoursMinutes";
 import { getProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
@@ -161,9 +156,6 @@ const Home: NextPage = () => {
 
   const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
 
-  const [hours, setHours] = useState(0);
-  const [mins, setMins] = useState(0);
-
   return (
     <>
       <UserLayout>
@@ -283,123 +275,21 @@ const Home: NextPage = () => {
                       control={control}
                       rules={{ required: "Duration is required." }}
                       render={({ field, fieldState }) => {
-                        const onBlurFn = () => {
-                          const duration = hours * 60 * 60 + mins * 60;
-
-                          if (
-                            maxDurationSeconds &&
-                            duration > maxDurationSeconds
-                          ) {
-                            setValue(
-                              "timing.durationSeconds",
-                              maxDurationSeconds
-                            );
-
-                            // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
-                            // Firstly calculate what the hours would be
-                            let h = maxDurationSeconds / 60 / 60;
-                            let m = (maxDurationSeconds / 60) % 60;
-
-                            setHours(h);
-                            setMins(m);
-
-                            // Invalidate the field
-                          } else {
-                            setValue("timing.durationSeconds", duration);
-                          }
-                        };
-
-                        let maxH = maxDurationSeconds
-                          ? maxDurationSeconds / 3600
-                          : 12;
-
                         return (
-                          <HStack>
-                            <NumberInput
-                              variant="reveal"
-                              defaultValue={1}
-                              min={0}
-                              step={1}
-                              role="group"
-                              max={maxH}
-                              w="100px"
-                              value={hours}
-                              onChange={(s, n) => setHours(n)}
-                              className="peer"
-                              onBlur={onBlurFn}
-                            >
-                              <NumberInputField bg="white" />
-                              <InputRightElement
-                                pos="absolute"
-                                right={10}
-                                w="8px"
-                                color="neutrals.500"
-                                userSelect="none"
-                                textAlign="left"
-                              >
-                                hrs
-                              </InputRightElement>
-                              <NumberInputStepper>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                            </NumberInput>
-                            <NumberInput
-                              variant="reveal"
-                              role="group"
-                              defaultValue={1}
-                              min={0}
-                              step={1}
-                              max={59}
-                              w="100px"
-                              value={mins}
-                              onChange={(s, n) => {
-                                if (
-                                  maxDurationSeconds &&
-                                  hours * 3600 + mins * 60 >= maxDurationSeconds
-                                ) {
-                                  return;
-                                } else setMins(n);
-                              }}
-                              className="peer"
-                              onBlur={onBlurFn}
-                              onKeyDown={(e) => {
-                                // allow stepping up from 59 to 0
-                                if (e.key === "ArrowUp") {
-                                  if (mins === 59 && hours <= maxH) {
-                                    setMins(0);
-                                    setHours(hours + 1);
-                                  }
-                                } else if (e.key === "ArrowDown") {
-                                  if (mins === 0 && hours > 0) {
-                                    setMins(59);
-                                    setHours(hours - 1);
-                                  }
-                                }
-                              }}
-                            >
-                              <NumberInputField bg="white" />
-                              <NumberInputStepper>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                              <InputRightElement
-                                pos="absolute"
-                                right={10}
-                                w="8px"
-                                color="neutrals.500"
-                                userSelect="none"
-                                textAlign="left"
-                              >
-                                mins
-                              </InputRightElement>
-                            </NumberInput>
-                            {maxDurationSeconds && (
-                              <Text textStyle={"Body/ExtraSmall"}>
-                                Maximum: {durationString(maxDurationSeconds)}
-                              </Text>
-                            )}
-                          </HStack>
+                          <HoursMinutes
+                            initialValue={3600}
+                            maxDurationSeconds={maxDurationSeconds}
+                            setValue={(n: number) =>
+                              setValue("timing.durationSeconds", n)
+                            }
+                            rightElement={
+                              maxDurationSeconds && (
+                                <Text textStyle={"Body/ExtraSmall"}>
+                                  Maximum: {durationString(maxDurationSeconds)}
+                                </Text>
+                              )
+                            }
+                          />
                         );
                       }}
                     />
