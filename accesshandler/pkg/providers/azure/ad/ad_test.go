@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad/fixtures"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
 	"github.com/hashicorp/go-multierror"
@@ -48,14 +48,14 @@ func TestLogging(t *testing.T) {
 	logger.Sugar().Infow("provider", providers.LogConfig(&p))
 
 	got := strings.TrimSpace(b.String())
-	want := `{"level":"info","msg":"provider","provider.config":{"clientSecret":"*****","clientID":"test","tenantID":"tenantid"}}`
+	want := `{"level":"info","msg":"provider","provider.config":{"clientID":"test","clientSecret":"*****","tenantID":"tenantid"}}`
 	assert.Equal(t, want, got)
 }
 
 func TestIntegration(t *testing.T) {
-	// if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-	// 	t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
-	// }
+	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
+		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	}
 
 	ctx := context.Background()
 	_ = godotenv.Load("../../../../.env")

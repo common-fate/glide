@@ -98,11 +98,6 @@ func (g *Generator) Destroy(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	// _, err = g.client.DeactivateUser(ctx, f.User, nil)
-	// if err != nil {
-	// 	return err
-	// }
-
 	err = g.client.DeleteUser(ctx, f.User)
 	return err
 }
