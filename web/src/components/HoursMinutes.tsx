@@ -11,8 +11,9 @@ import React, { useEffect, useState } from "react";
 
 type Props = {
   setValue: (n: number) => void;
+  /** maxDurationSeconds in seconds, this must be set for onBlurFn validation to occur */
   maxDurationSeconds?: number;
-  /** initialValue in seconds, this must be set for onBlurFn validation to occur */
+  /** intitialValue that hydrates the component with hours/mins */
   initialValue?: number;
   rightElement?: React.ReactNode;
 };
@@ -32,7 +33,7 @@ const HoursMinutes = ({
       hours === undefined &&
       mins === undefined
     ) {
-      setHours(initialValue / 60 / 60);
+      setHours(Number((initialValue / 60 / 60).toString().split(".")[0]));
       setMins((initialValue / 60) % 60);
     }
   }, [initialValue]);
@@ -42,22 +43,20 @@ const HoursMinutes = ({
   const onBlurFn = () => {
     if (hours != undefined && mins != undefined) {
       const duration = hours * 60 * 60 + mins * 60;
-
+      // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
       if (maxDurationSeconds && duration > maxDurationSeconds) {
-        //   methods.setValue("timeConstraints.maxDurationSeconds", 0);
-        setValue(0);
-
-        // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
-        // Firstly calculate what the hours would be
-        let h = maxDurationSeconds / 60 / 60;
+        setValue(maxDurationSeconds);
+        let h = Number((maxDurationSeconds / 60 / 60).toString().split(".")[0]);
         let m = (maxDurationSeconds / 60) % 60;
 
         setHours(h);
         setMins(m);
-
-        // Invalidate the field
+        // DE =  If the duration is under 60s, set the time to one minute
+      } else if (duration < 60 || hours + mins == 0) {
+        setValue(60);
+        setHours(0);
+        setMins(1);
       } else {
-        //   methods.setValue("timeConstraints.maxDurationSeconds", duration);
         setValue(duration);
       }
     } else {
@@ -68,7 +67,8 @@ const HoursMinutes = ({
   return (
     <HStack>
       <NumberInput
-        variant="reveal"
+        // variant="reveal"
+        precision={0}
         defaultValue={1}
         min={0}
         step={1}
@@ -97,10 +97,11 @@ const HoursMinutes = ({
         </NumberInputStepper>
       </NumberInput>
       <NumberInput
-        variant="reveal"
+        // variant="reveal"
         role="group"
+        precision={0}
         defaultValue={1}
-        min={0}
+        min={hours == 0 ? 1 : 0}
         step={1}
         max={59}
         w="100px"

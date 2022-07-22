@@ -277,7 +277,7 @@ const Home: NextPage = () => {
                       render={({ field, fieldState }) => {
                         return (
                           <HoursMinutes
-                            initialValue={3600}
+                            initialValue={3600 < maxDurationSeconds ? 3600 : 60}
                             maxDurationSeconds={maxDurationSeconds}
                             setValue={(n: number) =>
                               setValue("timing.durationSeconds", n)
@@ -285,7 +285,9 @@ const Home: NextPage = () => {
                             rightElement={
                               maxDurationSeconds && (
                                 <Text textStyle={"Body/ExtraSmall"}>
-                                  Maximum: {durationString(maxDurationSeconds)}
+                                  Max {durationString(maxDurationSeconds)}
+                                  <br />
+                                  Min 1 min
                                 </Text>
                               )
                             }
