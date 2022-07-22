@@ -1,7 +1,10 @@
 package users
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
@@ -50,10 +53,21 @@ var syncCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
-		clio.Info("Lambda execution completed with status: %d. ", res.StatusCode)
+		b, err := json.Marshal(res)
+		if err != nil {
+			return err
+		}
+		clio.Debug("idp sync lamda invoke response: %s", string(b))
 		if res.FunctionError != nil {
-			clio.Error("Lambda returned execution error: %s", *res.FunctionError)
+			return fmt.Errorf("user and group sync failed with lambda execution error: %s", *res.FunctionError)
+		} else if res.StatusCode == 200 {
+			idp := strings.ToLower(dc.Deployment.Parameters.IdentityProviderType)
+			if idp == "" {
+				idp = "cognito"
+			}
+			clio.Success("Successfully synced users and groups from %s", idp)
+		} else {
+			return fmt.Errorf("user and group sync failed with lambda invoke status code: %d", res.StatusCode)
 		}
 		return nil
 	}}

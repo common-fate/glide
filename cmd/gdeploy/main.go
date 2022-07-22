@@ -42,8 +42,15 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "the deployment config file"},
 			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "ignore checking if this is a clean repository during create and update commands"},
+			&cli.BoolFlag{Name: "verbose", Usage: "enable verbose logging, effectively sets environment variable GRANTED_LOG=DEBUG"},
 		},
 		Writer: color.Output,
+		Before: func(ctx *cli.Context) error {
+			if ctx.Bool("verbose") {
+				os.Setenv("GRANTED_LOG", "DEBUG")
+			}
+			return nil
+		},
 		Commands: []*cli.Command{
 			// It's possible that these wrappers would be better defined on the commands themselves rather than in this main function
 			// It would be easier to see exactly what runs when a command runs
