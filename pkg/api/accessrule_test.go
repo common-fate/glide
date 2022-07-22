@@ -64,23 +64,10 @@ func TestAdminCreateAccessRule(t *testing.T) {
 			wantBody:      `{"error":"access rule id already exists"}`,
 		},
 		{
-			name: "fail when rule doesn't meet maxduration req",
-			give: `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 1},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
-			mockCreate: &rule.AccessRule{
-				ID:     "rule1",
-				Status: rule.ACTIVE,
-
-				Description: "string",
-				Name:        "string",
-				Groups:      []string{"string"},
-				Target: rule.Target{
-					ProviderID: "string",
-					With:       map[string]string{},
-				},
-			},
-			mockCreateErr: rulesvc.ErrRuleIdAlreadyExists,
-			wantCode:      http.StatusBadRequest,
-			wantBody:      `{"error":"request body has an error: doesn't match the schema: Error at \"/timeConstraints/maxDurationSeconds\": number must be at least 60"}`,
+			name:     "fail when rule doesn't meet maxduration req",
+			give:     `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 1},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/timeConstraints/maxDurationSeconds\": number must be at least 60"}`,
 		},
 	}
 
@@ -90,7 +77,9 @@ func TestAdminCreateAccessRule(t *testing.T) {
 			defer ctrl.Finish()
 
 			m := mocks.NewMockAccessRuleService(ctrl)
-			m.EXPECT().CreateAccessRule(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+			if (tc.mockCreate != nil) || (tc.mockCreateErr != nil) {
+				m.EXPECT().CreateAccessRule(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+			}
 
 			a := API{Rules: m}
 			handler := newTestServer(t, &a)

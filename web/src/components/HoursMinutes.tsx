@@ -33,12 +33,12 @@ const HoursMinutes = ({
       hours === undefined &&
       mins === undefined
     ) {
-      setHours(Math.trunc(initialValue / 60 / 60));
+      setHours(Math.floor(initialValue / 60 / 60));
       setMins((initialValue / 60) % 60);
     }
   }, [initialValue]);
 
-  let maxH = maxDurationSeconds ? maxDurationSeconds / 3600 : 24;
+  let maxH = maxDurationSeconds ? Math.floor(maxDurationSeconds / 3600) : 24;
 
   const onBlurFn = () => {
     if (hours != undefined && mins != undefined) {
@@ -103,7 +103,7 @@ const HoursMinutes = ({
         defaultValue={1}
         min={hours == 0 ? 1 : 0}
         step={1}
-        max={59}
+        max={mins * 60 == maxDurationSeconds ? mins * 60 : 59}
         w="100px"
         value={mins}
         onChange={(s, n) => {
