@@ -4,14 +4,22 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/stretchr/testify/assert"
 )
 
 var testRegistry = ProviderRegistry{
 	Providers: map[string]RegisteredProvider{
 		"commonfate/okta@v1": {
+			Provider:    &okta.Provider{},
 			DefaultID:   "okta",
 			Description: "Okta groups",
+		},
+		"commonfate/azuread@v1": {
+			Provider:    &ad.Provider{},
+			DefaultID:   "azuread",
+			Description: "AzureAD groups",
 		},
 	},
 }
@@ -27,27 +35,38 @@ func TestFromCLIOption(t *testing.T) {
 
 	testcases := []testcase{
 		{
-			name:    "ok",
+			name:    "ok okta",
 			give:    "Okta groups (commonfate/okta@v1)",
 			wantKey: "commonfate/okta@v1",
 			want:    testRegistry.Providers["commonfate/okta@v1"],
 		},
 		{
-			name:    "ok",
+			name:    "ok azure",
 			give:    "AzureAD groups (commonfate/azuread@v1)",
 			wantKey: "commonfate/azuread@v1",
 			want:    testRegistry.Providers["commonfate/azuread@v1"],
 		},
 		{
-			name:    "from CLIOptions",
+			name:    "from CLIOptions okta",
 			give:    testRegistry.CLIOptions()[0],
 			wantKey: "commonfate/okta@v1",
 			want:    testRegistry.Providers["commonfate/okta@v1"],
 		},
 		{
-			name:    "invalid format",
+			name:    "from CLIOptions azure",
+			give:    testRegistry.CLIOptions()[1],
+			wantKey: "commonfate/azuread@v1",
+			want:    testRegistry.Providers["commonfate/azuread@v1"],
+		},
+		{
+			name:    "invalid format opkta",
 			give:    "commonfate/okta@v1",
 			wantErr: errors.New("couldn't extract provider key: commonfate/okta@v1"),
+		},
+		{
+			name:    "invalid format azure",
+			give:    "commonfate/azuread@v1",
+			wantErr: errors.New("couldn't extract provider key: commonfate/azuread@v1"),
 		},
 		{
 			name:    "provider not found",
