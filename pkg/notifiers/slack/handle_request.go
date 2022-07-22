@@ -151,6 +151,14 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Duration:*\n%s", o.Request.RequestedTiming.Duration),
 		},
+		{
+			Type: "mrkdwn",
+			// @TODO: ensure this status is accurate and updates dynamically
+			// IO = A request which is approved cancelled or declined shows the status, the actor and the timestamp.
+			// DE = A user can easily differentiate between requests that have been handled and those that require actioning.
+			// IO = A request requiring actions shows Slack action buttons.
+			Text: fmt.Sprintf("*Status:*\n%s", o.Request.Status),
+		},
 	}
 
 	if o.Request.Data.Reason != nil {

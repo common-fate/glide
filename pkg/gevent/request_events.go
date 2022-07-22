@@ -5,6 +5,8 @@ import "github.com/common-fate/granted-approvals/pkg/access"
 const (
 	RequestCreatedType  = "request.created"
 	RequestApprovedType = "request.approved"
+	RequestCancelled    = "request.cancelled"
+	RequestDeclined     = "request.declined"
 )
 
 // RequestCreated is emitted when a user requests access

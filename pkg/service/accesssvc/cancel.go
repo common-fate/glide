@@ -41,6 +41,10 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 	}
 	// audit log event
 	reqEvent := access.NewStatusChangeEvent(req.ID, req.UpdatedAt, &opts.CancellerID, originalStatus, req.Status)
+
+	// @TODO: uncover best way to emit RequestCancelled/Declined events here...
+	// DE = Ensure slack message is updated for requestor too
+
 	items = append(items, &reqEvent)
 	return s.DB.PutBatch(ctx, items...)
 }

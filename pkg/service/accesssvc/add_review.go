@@ -107,6 +107,10 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	}
 	// audit log event
 	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
+
+	// @TODO: uncover best way to emit RequestCancelled/Declined events here...
+	// DE = When a request is approved or declined, the requestor is notified via Slack.
+
 	items = append(items, &reqEvent)
 	// store the updated items in the database
 	err = s.DB.PutBatch(ctx, items...)
