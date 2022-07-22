@@ -257,7 +257,7 @@ var configureCommand = cli.Command{
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
 `)
-		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:"}
+		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:", Default: dc.Deployment.Parameters.AdministratorGroupID}
 		err = survey.AskOne(adminGroupPrompt, &dc.Deployment.Parameters.AdministratorGroupID)
 		if err != nil {
 			return err
