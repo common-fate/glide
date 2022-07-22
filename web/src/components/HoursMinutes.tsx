@@ -33,7 +33,7 @@ const HoursMinutes = ({
       hours === undefined &&
       mins === undefined
     ) {
-      setHours(Math.trunc((initialValue / 60 / 60)));
+      setHours(Math.trunc(initialValue / 60 / 60));
       setMins((initialValue / 60) % 60);
     }
   }, [initialValue]);
@@ -46,7 +46,7 @@ const HoursMinutes = ({
       // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
       if (maxDurationSeconds && duration > maxDurationSeconds) {
         setValue(maxDurationSeconds);
-        let h = Math.trunc(maxDurationSeconds / 60 / 60).;
+        let h = Math.trunc(maxDurationSeconds / 60 / 60);
         let m = (maxDurationSeconds / 60) % 60;
 
         setHours(h);
