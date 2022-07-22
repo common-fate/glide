@@ -16,10 +16,7 @@ import (
 )
 
 func TestSSMLoader(t *testing.T) {
-	err := godotenv.Load("../../../.env")
-	if err != nil {
-		t.Fatal(err)
-	}
+	_ = godotenv.Load()
 
 	if os.Getenv("TESTING_SSM") == "" {
 		t.Skip("TESTING_SSM env var not set")

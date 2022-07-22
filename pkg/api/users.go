@@ -24,10 +24,12 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := types.ListUserResponse{}
+	res := types.ListUserResponse{
+		Users: make([]types.User, len(q.Result)),
+	}
 
-	for _, u := range q.Result {
-		res.Users = append(res.Users, u.ToAPI())
+	for i, u := range q.Result {
+		res.Users[i] = u.ToAPI()
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

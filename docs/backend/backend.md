@@ -21,6 +21,25 @@ If you create a new endpoint and generate the code for it, you will need to make
 GetApiV1Rules(w http.ResponseWriter, r *http.Request)
 ```
 
+### Implementing List API responses
+
+When implementing a List API, first you will create a a listResponse type following our openapi-standards.
+Then in the api stub, it is critical to follow this pattern for the response.
+In Go, a nil slice will marshal to JSON as null rather than an empty array.
+This breaks our frontend typing and causes errors.
+
+To avoid this, always initialise the list response using make([]types.ResponseType, len(responseElements)) as below
+This will make a non nil empty slice if there are no elements which marshals to [] in JSON.
+
+```go
+res := types.ListGroupsResponse{
+    Groups: make([]types.Group, len(q.Result)),
+}
+for i, g := range q.Result {
+    res.Groups[i] = g.ToAPI()
+}
+```
+
 ## Webhook Handler
 
 When deployed, the backend API runs in AWS Lambda, behind AWS API Gateway. The API Gateway handles Cognito authentication.

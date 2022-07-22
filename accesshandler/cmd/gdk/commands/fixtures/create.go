@@ -24,10 +24,7 @@ var CreateCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		err := godotenv.Load()
-		if err != nil {
-			return err
-		}
+		_ = godotenv.Load()
 
 		name := c.String("name")
 		g, err := LookupGenerator(name)

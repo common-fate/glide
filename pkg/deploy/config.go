@@ -18,6 +18,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/pkg/errors"
+	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -377,6 +378,15 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 			StackName: "granted-approvals-" + stage,
 			Account:   acc,
 			Dev:       &dev,
+		},
+		Providers: map[string]Provider{
+			"test-vault": {
+				Uses: "commonfate/testvault@v1",
+				With: map[string]string{
+					"apiUrl":   "https://prod.testvault.granted.run",
+					"uniqueId": ksuid.New().String(),
+				},
+			},
 		},
 	}
 	return &conf
