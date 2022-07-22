@@ -19,7 +19,7 @@ export const TimeStep: React.FC = () => {
           <Text textStyle={"Body/Medium"} color="neutrals.600">
             Max duration:{" "}
             {time?.maxDurationSeconds
-              ? (time.maxDurationSeconds / 60 / 60).toString().split(".")[0] +
+              ? Math.trunc(time.maxDurationSeconds / 60 / 60) +
                 " hours " +
                 ((time.maxDurationSeconds / 60) % 60) +
                 " minutes"
