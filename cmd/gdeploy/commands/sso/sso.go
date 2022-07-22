@@ -37,9 +37,13 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+		i := strings.ToLower(dc.Deployment.Parameters.IdentityProviderType)
+		if len(i) > 0 {
+			i = strings.ToUpper(string(i[0])) + string(i[1:])
+		}
 
 		var idpType string
-		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes}
+		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes, Default: i}
 		err = survey.AskOne(p2, &idpType)
 		if err != nil {
 			return err
