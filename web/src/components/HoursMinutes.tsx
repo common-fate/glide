@@ -7,7 +7,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type Props = {
   setValue: (n: number) => void;
@@ -103,7 +103,13 @@ const HoursMinutes = ({
         defaultValue={1}
         min={hours == 0 ? 1 : 0}
         step={1}
-        max={mins * 60 == maxDurationSeconds ? mins * 60 : 59}
+        max={
+          /**
+           * DE = if the mins amount == maxDurationSeconds, then we are at the max
+           * DE = otherwise the max minute input is 59/60
+           */
+          mins != undefined ? (mins * 60 == maxDurationSeconds ? mins : 59) : 1
+        }
         w="100px"
         value={mins}
         onChange={(s, n) => {
