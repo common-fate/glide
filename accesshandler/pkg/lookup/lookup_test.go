@@ -16,10 +16,10 @@ var testRegistry = ProviderRegistry{
 			DefaultID:   "okta",
 			Description: "Okta groups",
 		},
-		"commonfate/azuread@v1": {
+		"commonfate/azure-ad@v1": {
 			Provider:    &ad.Provider{},
-			DefaultID:   "azuread",
-			Description: "AzureAD groups",
+			DefaultID:   "azure-ad",
+			Description: "Azure-AD groups",
 		},
 	},
 }
@@ -42,9 +42,9 @@ func TestFromCLIOption(t *testing.T) {
 		},
 		{
 			name:    "ok azure",
-			give:    "AzureAD groups (commonfate/azuread@v1)",
-			wantKey: "commonfate/azuread@v1",
-			want:    testRegistry.Providers["commonfate/azuread@v1"],
+			give:    "Azure-AD groups (commonfate/azure-ad@v1)",
+			wantKey: "commonfate/azure-ad@v1",
+			want:    testRegistry.Providers["commonfate/azure-ad@v1"],
 		},
 		{
 			name:    "from CLIOptions okta",
@@ -55,8 +55,8 @@ func TestFromCLIOption(t *testing.T) {
 		{
 			name:    "from CLIOptions azure",
 			give:    testRegistry.CLIOptions()[1],
-			wantKey: "commonfate/azuread@v1",
-			want:    testRegistry.Providers["commonfate/azuread@v1"],
+			wantKey: "commonfate/azure-ad@v1",
+			want:    testRegistry.Providers["commonfate/azure-ad@v1"],
 		},
 		{
 			name:    "invalid format opkta",
@@ -65,8 +65,8 @@ func TestFromCLIOption(t *testing.T) {
 		},
 		{
 			name:    "invalid format azure",
-			give:    "commonfate/azuread@v1",
-			wantErr: errors.New("couldn't extract provider key: commonfate/azuread@v1"),
+			give:    "commonfate/azure-ad@v1",
+			wantErr: errors.New("couldn't extract provider key: commonfate/azure-ad@v1"),
 		},
 		{
 			name:    "provider not found",

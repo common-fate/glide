@@ -24,10 +24,10 @@ func Registry() ProviderRegistry {
 				DefaultID:   "okta",
 				Description: "Okta groups",
 			},
-			"commonfate/azuread@v1": {
+			"commonfate/azure-ad@v1": {
 				Provider:    &ad.Provider{},
-				DefaultID:   "azuread",
-				Description: "AzureAD groups",
+				DefaultID:   "azure-ad",
+				Description: "Azure-AD groups",
 			},
 			"commonfate/aws-sso@v1": {
 				Provider:    &sso.Provider{},
