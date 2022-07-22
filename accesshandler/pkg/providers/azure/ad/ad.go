@@ -43,7 +43,7 @@ func (a *Provider) Init(ctx context.Context) error {
 	return nil
 }
 
-// ArgSchema returns the schema for the Okta provider.
+// ArgSchema returns the schema for the AzureAD provider.
 func (o *Provider) ArgSchema() *jsonschema.Schema {
 	return jsonschema.Reflect(&Args{})
 }

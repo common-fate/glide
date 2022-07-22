@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad/fixtures"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
 	"github.com/hashicorp/go-multierror"

@@ -19,7 +19,7 @@ type ADErr struct {
 	} `json:"error"`
 }
 
-// Validate the access against Okta without actually granting it.
+// Validate the access against AzureAD without actually granting it.
 func (p *Provider) Validate(ctx context.Context, subject string, args []byte) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
@@ -46,7 +46,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 		result = multierror.Append(result, err)
 	}
 
-	// The group we are trying to grant access to should exist in Okta.
+	// The group we are trying to grant access to should exist in AzureAD.
 	_, err = p.client.GetGroup(ctx, a.GroupID)
 	if err != nil {
 		var adError ADErr

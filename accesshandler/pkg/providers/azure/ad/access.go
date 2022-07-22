@@ -24,12 +24,12 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 	if err != nil {
 		return err
 	}
-	log.Info("adding okta user to group")
+	log.Info("adding azureAD user to group")
 	err = p.client.AddUserToGroup(ctx, user.ID, a.GroupID)
 	return err
 }
 
-// Revoke the access by calling Okta's API.
+// Revoke the access by calling AzureAD's API.
 func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
@@ -42,12 +42,12 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 	if err != nil {
 		return err
 	}
-	log.Info("removing okta user from group")
+	log.Info("removing azureAD user from group")
 	err = p.client.RemoveUserFromGroup(ctx, user.ID, a.GroupID)
 	return err
 }
 
-// IsActive checks whether the access is active by calling Okta's API.
+// IsActive checks whether the access is active by calling AzureAD's API.
 func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (bool, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)

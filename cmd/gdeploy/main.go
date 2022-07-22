@@ -176,7 +176,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 		}
 
 		//check to see that account number in config is the same account that is assumed
-		if *identity.Account != dc.Deployment.Account {
+		if *identity.Account != dc.Deployment.Account && dc.Deployment.Account != "" {
 			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), clio.LogMsg("Please export valid AWS credentials for account %s to run this command.", *identity.Account))
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
