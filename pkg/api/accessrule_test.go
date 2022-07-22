@@ -35,7 +35,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 10},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
+			give: `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 60},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
 			mockCreate: &rule.AccessRule{
 				ID:     "rule1",
 				Status: rule.ACTIVE,
@@ -58,10 +58,29 @@ func TestAdminCreateAccessRule(t *testing.T) {
 		},
 		{
 			name:          "id already exists",
-			give:          `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 10},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
+			give:          `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 60},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
 			mockCreateErr: rulesvc.ErrRuleIdAlreadyExists,
 			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"access rule id already exists"}`,
+		},
+		{
+			name: "fail when rule doesn't meet maxduration req",
+			give: `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 1},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
+			mockCreate: &rule.AccessRule{
+				ID:     "rule1",
+				Status: rule.ACTIVE,
+
+				Description: "string",
+				Name:        "string",
+				Groups:      []string{"string"},
+				Target: rule.Target{
+					ProviderID: "string",
+					With:       map[string]string{},
+				},
+			},
+			mockCreateErr: rulesvc.ErrRuleIdAlreadyExists,
+			wantCode:      http.StatusBadRequest,
+			wantBody:      `{"error":"request body has an error: doesn't match the schema: Error at \"/timeConstraints/maxDurationSeconds\": number must be at least 60"}`,
 		},
 	}
 
