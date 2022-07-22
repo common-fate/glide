@@ -58,7 +58,7 @@ var configureCommand = cli.Command{
 		update := true
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
-			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) {
+			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) || (azureSelected && azureConfigured) {
 				if isCurrentIDP {
 					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
 					err = survey.AskOne(p3, &update)
