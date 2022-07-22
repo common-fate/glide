@@ -150,24 +150,33 @@ func RequireAWSCredentials() cli.BeforeFunc {
 		si.Writer = os.Stderr
 		si.Start()
 		defer si.Stop()
+		needCredentialsLog := clio.LogMsg("Please export valid AWS credentials to run this command.")
 		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
-			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err))
+			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
 		}
 
 		// Use the deployment region if it is available
+		var configExists bool
 		dc, err := deploy.ConfigFromContext(ctx)
-		if err == nil && dc.Deployment.Region != "" {
-			cfg.Region = dc.Deployment.Region
+		if err == nil {
+			configExists = true
+			if dc.Deployment.Region != "" {
+				cfg.Region = dc.Deployment.Region
+			}
+			if dc.Deployment.Account != "" {
+				// include the account id in the log message if available
+				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.", dc.Deployment.Account)
+			}
 		}
 
 		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err))
+			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
 		}
 
 		if !creds.HasKeys() {
-			return clio.NewCLIError("Could not find AWS credentials. Please export valid AWS credentials to run this command.", clio.LogMsg("Could not find AWS credentials. Please export valid AWS credentials to run this command."))
+			return clio.NewCLIError("Failed to load AWS credentials.", needCredentialsLog)
 		}
 
 		stsClient := sts.NewFromConfig(cfg)
@@ -177,14 +186,14 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			var ae smithy.APIError
 			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
 			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
-				return clio.NewCLIError("AWS credentials are expired.", clio.LogMsg("Please export valid AWS credentials to run this command."))
+				return clio.NewCLIError("AWS credentials are expired.", needCredentialsLog)
 			}
-			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.LogMsg("Please export valid AWS credentials to run this command."), clio.DebugMsg(err.Error()))
+			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.DebugMsg(err.Error()), needCredentialsLog)
 		}
 
 		//check to see that account number in config is the same account that is assumed
-		if *identity.Account != dc.Deployment.Account {
-			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), clio.LogMsg("Please export valid AWS credentials for account %s to run this command.", *identity.Account))
+		if configExists && *identity.Account != dc.Deployment.Account {
+			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), needCredentialsLog)
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil
