@@ -6,7 +6,6 @@ import (
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
@@ -23,11 +22,6 @@ func Registry() ProviderRegistry {
 				Provider:    &okta.Provider{},
 				DefaultID:   "okta",
 				Description: "Okta groups",
-			},
-			"commonfate/azure-ad@v1": {
-				Provider:    &ad.Provider{},
-				DefaultID:   "azure-ad",
-				Description: "Azure-AD groups",
 			},
 			"commonfate/aws-sso@v1": {
 				Provider:    &sso.Provider{},
