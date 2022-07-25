@@ -2,7 +2,6 @@ import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { DurationInput, Hours, Minutes } from "../../../DurationInput";
-import HoursMinutes from "../../../HoursMinutes";
 import { FormStep } from "./FormStep";
 
 export const TimeStep: React.FC = () => {
