@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad/args",
+  "$ref": "#/$defs/Args",
+  "$defs": {
+    "Args": {
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "title": "Group"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "groupId"
+      ]
+    }
+  }
+}
