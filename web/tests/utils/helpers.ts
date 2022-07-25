@@ -2,7 +2,7 @@ import { Page } from "@playwright/test";
 
 //login helper functions
 
-export const LoginUser = async (page) => {
+export const LoginUser = async (page: Page) => {
   //  const page = await context.newPage();
   await page.goto("/");
   await fillFormElement(
@@ -18,11 +18,15 @@ export const LoginUser = async (page) => {
     page
   );
   await clickFormElementByText("input", "Sign in", page);
+  // wait for the cognito login to redirect to the app frontend
+  await page.waitForNavigation();
+  // when auth has been successful, the me api will be called, this means we can continue our test from this point
+  await page.waitForRequest(/me/);
 };
 
 export const LoginAdmin = async (page) => {
   //  const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("/", { timeout: 10000 });
   await fillFormElement(
     "input",
     "username",
@@ -36,11 +40,15 @@ export const LoginAdmin = async (page) => {
     page
   );
   await clickFormElementByText("input", "Sign in", page);
+  // wait for the cognito login to redirect to the app frontend
+  await page.waitForNavigation();
+  // when auth has been successful, the me api will be called, this means we can continue our test from this point
+  await page.waitForRequest(/me/);
 };
 
-export const Logout = async (page) => {
-  //  const page = await context.newPage();
-  await page.goto("/logout");
+export const Logout = async (page: Page) => {
+  // wait for redirects to stop
+  await page.goto("/logout", { waitUntil: "networkidle" });
 };
 
 //helper functions to click elements that are visible

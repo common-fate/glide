@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import config from "../../playwright.config";
 
 import {
   clickFormElementByClass,
@@ -17,8 +18,7 @@ import {
 test("non admin cannot create access rule", async ({ page }) => {
   await Logout(page);
   await LoginUser(page);
-  await page.goto("/");
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Granted/, { timeout: 5000 });
   await page
     .goto("/admin/access-rules")
     .then(() =>
@@ -32,7 +32,6 @@ test("non admin cannot create access rule", async ({ page }) => {
 test("admin can create access rule", async ({ page }) => {
   await Logout(page);
   await LoginAdmin(page);
-  await page.goto("/");
   await clickFormElementByID("admin-button", page);
   await expect(page).toHaveTitle(/Granted/);
   await expect(
