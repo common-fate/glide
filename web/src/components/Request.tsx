@@ -392,10 +392,12 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
   const toast = useToast();
   const auth = useUser();
   const [comment, setComment] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submitReview = async (decision: ReviewDecision) => {
     if (request === undefined) return;
     try {
+      setIsSubmitting(true);
       await reviewRequest(request.id, {
         decision,
         comment,
@@ -424,6 +426,8 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
         duration: 2200,
         isClosable: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -505,6 +509,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                     </Text>
                   )}
                   <Button
+                    isLoading={isSubmitting}
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
                     key={1}
@@ -514,6 +519,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                     Approve
                   </Button>
                   <Button
+                    isLoading={isSubmitting}
                     autoFocus={focus === "close"}
                     key={2}
                     rounded="full"

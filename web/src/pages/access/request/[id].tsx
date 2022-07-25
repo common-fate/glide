@@ -29,7 +29,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import { CFRadioBox } from "../../../components/CFRadioBox";
-import HoursMinutes from "../../../components/HoursMinutes";
+import {
+  DurationInput,
+  Hours,
+  Minutes,
+} from "../../../components/DurationInput";
 import { getProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
@@ -65,17 +69,18 @@ export const getWhenHelperText = (
 };
 
 const Home: NextPage = () => {
+  const [loading, setLoading] = useState(false);
   const {
     params: { id: ruleId },
   } = useMatch();
-  const [loading, setLoading] = useState(false);
+  const { data: rule } = useUserGetAccessRule(ruleId);
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
     d.setSeconds(0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   }, []);
-
+  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
   const {
     register,
     handleSubmit,
@@ -83,21 +88,36 @@ const Home: NextPage = () => {
     setValue,
     control,
     watch,
+    reset,
   } = useForm<NewRequestFormData>({
     shouldUnregister: true,
     defaultValues: {
       when: "asap",
       startDateTime: now,
       timing: {
-        durationSeconds: 1,
+        durationSeconds: 0,
       },
     },
   });
 
+  useEffect(() => {
+    if (rule) {
+      reset({
+        when: "asap",
+        startDateTime: now,
+        timing: {
+          durationSeconds:
+            maxDurationSeconds && maxDurationSeconds > 3600
+              ? 3600
+              : maxDurationSeconds,
+        },
+      });
+    }
+  }, [rule]);
+
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   const durationSeconds = watch("timing.durationSeconds");
-
   const readableDuration = useMemo(() => {
     if (!durationSeconds) return "";
     const durationHours = durationSeconds * 60 * 60;
@@ -116,7 +136,6 @@ const Home: NextPage = () => {
     )}, until ${endTime.toLocaleTimeString()}`;
   }, [durationSeconds, startTimeDate, when]);
 
-  const { data: rule } = useUserGetAccessRule(ruleId);
   useEffect(() => {
     const md = rule?.timeConstraints?.maxDurationSeconds;
     if (md && md / 60 / 60 < durationSeconds) {
@@ -153,8 +172,6 @@ const Home: NextPage = () => {
     await userCreateRequest(r);
     navigate({ to: "/requests" });
   };
-
-  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
 
   return (
     <>
@@ -273,37 +290,41 @@ const Home: NextPage = () => {
                     <Controller
                       name="timing.durationSeconds"
                       control={control}
-                      rules={{ required: "Duration is required." }}
-                      render={({ field, fieldState }) => {
+                      rules={{
+                        required: "Duration is required.",
+                        max: maxDurationSeconds,
+                        min: 60,
+                      }}
+                      render={({ field: { ref, ...rest } }) => {
                         return (
-                          <HoursMinutes
-                            initialValue={3600 < maxDurationSeconds ? 3600 : 60}
-                            maxDurationSeconds={maxDurationSeconds}
-                            setValue={(n: number) =>
-                              setValue("timing.durationSeconds", n)
+                          <DurationInput
+                            {...rest}
+                            max={maxDurationSeconds}
+                            min={60}
+                            defaultValue={
+                              maxDurationSeconds && maxDurationSeconds > 3600
+                                ? 3600
+                                : maxDurationSeconds
                             }
-                            rightElement={
-                              maxDurationSeconds && (
-                                <Text textStyle={"Body/ExtraSmall"}>
-                                  Max {durationString(maxDurationSeconds)}
-                                  <br />
-                                  Min 1 min
-                                </Text>
-                              )
-                            }
-                          />
+                          >
+                            <Hours />
+                            <Minutes />
+                            {maxDurationSeconds !== undefined && (
+                              <Text textStyle={"Body/ExtraSmall"}>
+                                Max {durationString(maxDurationSeconds)}
+                                <br />
+                                Min 1 min
+                              </Text>
+                            )}
+                          </DurationInput>
                         );
                       }}
                     />
 
-                    {errors.timing?.durationSeconds !== undefined ? (
+                    {errors.timing?.durationSeconds !== undefined && (
                       <FormErrorMessage>
                         {errors.timing?.durationSeconds.message}
                       </FormErrorMessage>
-                    ) : (
-                      <FormHelperText color="neutrals.600">
-                        {/* {readableDuration} */}
-                      </FormHelperText>
                     )}
                   </FormControl>
                 </Flex>
