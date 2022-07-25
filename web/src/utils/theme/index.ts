@@ -375,6 +375,25 @@ const two: ThemeOverride = {
         variants: null,
       },
     },
+    NumberInput: {
+      parts: ["root", "field", "stepperGroup", "stepper"],
+      variants: {
+        reveal: {
+          field: {
+            _focusWithin: {
+              boxShadow: "outline",
+            },
+          },
+          stepperGroup: {
+            transition: "all .05s ease-in-out",
+            _groupFocusWithin: {
+              opacity: 1,
+            },
+            opacity: 0,
+          },
+        },
+      },
+    },
     FormLabel: {
       baseStyle: {},
       variants: {
