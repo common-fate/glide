@@ -168,43 +168,20 @@ export const DurationInput: React.FC<DurationInputProps> = ({
 };
 
 export const Hours: React.FC = () => {
-  const { maxHours, hours, setValue, register } = useContext(Context);
+  const { maxHours, minHours, hours, setValue, register } = useContext(Context);
   const [defaultValue] = useState(hours);
   useEffect(() => {
     register("HOUR");
   });
   return (
-    <NumberInput
-      // variant="reveal"
-      precision={0}
+    <InputElement
       defaultValue={defaultValue}
-      min={0}
-      step={1}
-      role="group"
-      max={maxHours}
-      w="100px"
+      onChange={(n: number) => setValue("HOUR", n)}
       value={hours}
-      onChange={(s: string, n: number) => setValue("HOUR", n)}
-      className="peer"
-      // prevent chackra component from controlling the value on blur because we fully control the values via the context
-      onBlur={undefined}
-    >
-      <NumberInputField bg="white" />
-      <InputRightElement
-        pos="absolute"
-        right={10}
-        w="8px"
-        color="neutrals.500"
-        userSelect="none"
-        textAlign="left"
-      >
-        hrs
-      </InputRightElement>
-      <NumberInputStepper>
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
-      </NumberInputStepper>
-    </NumberInput>
+      max={maxHours}
+      min={minHours}
+      rightElement="hrs"
+    />
   );
 };
 export const Minutes: React.FC = () => {
@@ -215,19 +192,58 @@ export const Minutes: React.FC = () => {
   useEffect(() => {
     register("MINUTE");
   });
-
+  return (
+    <InputElement
+      defaultValue={defaultValue}
+      onChange={(n: number) => setValue("MINUTE", n)}
+      value={minutes}
+      max={maxMinutes}
+      min={minMinutes}
+      rightElement="mins"
+    />
+  );
+};
+interface InputElementProps {
+  max?: number;
+  min?: number;
+  defaultValue: number;
+  value: number;
+  onChange: (n: number) => void;
+  rightElement?: React.ReactNode;
+}
+const InputElement: React.FC<InputElementProps> = ({
+  defaultValue,
+  onChange,
+  value,
+  max,
+  min,
+  rightElement,
+}) => {
+  const [v, setV] = useState<string | number>(value);
+  useEffect(() => {
+    if (typeof v === "string" || v != value) {
+      setV(value);
+    }
+  }, [value]);
   return (
     <NumberInput
       // variant="reveal"
       precision={0}
       defaultValue={defaultValue}
-      max={maxMinutes}
-      min={minMinutes}
+      max={max}
+      min={min}
       step={1}
       role="group"
       w="100px"
-      value={minutes}
-      onChange={(s: string, n: number) => setValue("MINUTE", n)}
+      value={value}
+      onChange={(s: string, n: number) => {
+        if (isNaN(n)) {
+          setV(s);
+        } else {
+          setV(n);
+          onChange(n);
+        }
+      }}
       className="peer"
       // prevent chackra component from controlling the value on blur because we fully control the values via the context
       onBlur={undefined}
@@ -241,7 +257,7 @@ export const Minutes: React.FC = () => {
         userSelect="none"
         textAlign="left"
       >
-        mins
+        {rightElement}
       </InputRightElement>
       <NumberInputStepper>
         <NumberIncrementStepper />

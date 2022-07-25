@@ -322,14 +322,10 @@ const Home: NextPage = () => {
                       }}
                     />
 
-                    {errors.timing?.durationSeconds !== undefined ? (
+                    {errors.timing?.durationSeconds !== undefined && (
                       <FormErrorMessage>
                         {errors.timing?.durationSeconds.message}
                       </FormErrorMessage>
-                    ) : (
-                      <FormHelperText color="neutrals.600">
-                        {/* {readableDuration} */}
-                      </FormHelperText>
                     )}
                   </FormControl>
                 </Flex>
