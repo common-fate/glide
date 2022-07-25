@@ -40,7 +40,7 @@ export const TimeStep: React.FC = () => {
           control={methods.control}
           rules={{
             required: "Duration is required.",
-            max: 3600 * 24,
+            max: maxDurationSeconds,
             min: 60,
           }}
           name="timeConstraints.maxDurationSeconds"
@@ -48,7 +48,7 @@ export const TimeStep: React.FC = () => {
             return (
               <DurationInput
                 {...rest}
-                max={3600 * 24}
+                max={maxDurationSeconds}
                 min={60}
                 defaultValue={time?.maxDurationSeconds}
               >
