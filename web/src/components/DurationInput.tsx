@@ -1,15 +1,13 @@
-import { HStack, Stack, VStack } from "@chakra-ui/layout";
+import { HStack } from "@chakra-ui/layout";
 import {
+  forwardRef,
+  InputRightElement,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
   NumberInput,
   NumberInputField,
-  InputRightElement,
   NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-  Text,
-  Skeleton,
 } from "@chakra-ui/react";
-import { setHours } from "date-fns";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface DurationInputProps {
@@ -19,8 +17,8 @@ interface DurationInputProps {
   /**  minimum duration in seconds, defaults to 0s when not provided*/
   min?: number;
   /** value, provide this to control the component */
-  initialValue?: number;
-  isLoading?: boolean;
+  value?: number;
+  defaultValue?: number;
   children?: React.ReactNode;
 }
 
@@ -32,7 +30,6 @@ interface DurationInputContext {
   minMinutes: number;
   hours: number;
   minutes: number;
-  loading: boolean;
   setValue: (d: DurationInterval, v: number) => void;
   // Register should be called once on mount of the child duration intervals hours or minutes etc
   register: (d: DurationInterval) => void;
@@ -45,69 +42,92 @@ const Context = createContext<DurationInputContext>({
   minMinutes: 0,
   hours: 0,
   minutes: 0,
-  loading: true,
 });
 const HOUR = 3600;
 const MINUTE = 60;
 
+const maxMinutesFn = (
+  hasHours: boolean,
+  hours: number,
+  maxDurationSeconds?: number
+) => {
+  if (hasHours) {
+    if (maxDurationSeconds == undefined) {
+      // if the hours component is available, but no max is set, then 59 minutes is the maximum
+      return 59;
+    } else {
+      // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
+      return maxDurationSeconds < HOUR
+        ? Math.floor(maxDurationSeconds / MINUTE)
+        : Math.min(
+            Math.floor((maxDurationSeconds - hours * HOUR) / MINUTE),
+            59
+          );
+    }
+  } else if (maxDurationSeconds != undefined) {
+    // if there is no hours component, and max is defined, then get the minutes component of the max
+    return Math.floor(maxDurationSeconds / MINUTE);
+  }
+  return undefined;
+};
+const minMinutesFn = (duration: number, minDurationSeconds: number) =>
+  duration < HOUR ? Math.floor((minDurationSeconds % HOUR) / MINUTE) : 0;
+
+/*
+  DurationInput is intended to be a composable duration input element, it can be used with either hour minute or both hours and minutes.
+  In future we may wish to add Days as well.
+
+usage example 
+  <DurationInput>
+    <Hour>
+    <Minute>
+    <Text>
+      some text on the right of the inputs
+    </Text>
+  </DurationInput>
+  */
+
 export const DurationInput: React.FC<DurationInputProps> = ({
   children,
   onChange,
-  initialValue,
+  value: v,
+  defaultValue: dv,
   max,
   min: minv,
-  isLoading,
 }) => {
-  console.log({ minv, max });
-  const initial = initialValue || 0;
+  const defaultValue = dv ?? 0;
+  const value = v ?? 0;
   const min = minv || 0;
-  const [hours, setHours] = useState<number>(Math.floor(initial / HOUR));
+  const [hours, setHours] = useState<number>(Math.floor(defaultValue / HOUR));
   const [minutes, setMinutes] = useState<number>(
-    Math.floor((initial % HOUR) / MINUTE)
+    Math.floor((defaultValue % HOUR) / MINUTE)
   );
+
+  // The children components can register which means you can use this duration input with hours, minutes or both
   const [hasHours, setHasHours] = useState(false);
   const [hasMinutes, setHasMinutes] = useState(false);
-  const v = hours * HOUR + minutes * MINUTE;
-  useEffect(() => {
-    console.log({ h: initial / HOUR });
-    setHours(Math.floor(initial / HOUR));
-    setMinutes(Math.floor((initial % HOUR) / MINUTE));
-  }, [initialValue]);
 
-  let maxHours = undefined;
-  let maxMinutes = undefined;
-  if (hasHours && max != undefined) {
-    maxHours = Math.floor(max / HOUR);
-  }
-  if (hasMinutes) {
-    if (hasHours) {
-      if (max == undefined) {
-        // if the hours component is available, but no max is set, then 59 minutes is the maximum
-        maxMinutes = 59;
-      } else {
-        // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
-        maxMinutes = Math.min(Math.floor((max - v) % HOUR), 59);
-      }
-    } else if (max != undefined) {
-      // if there is no hours component, and max is defined, then get the minutes component of the max
-      maxMinutes = Math.floor(max / MINUTE);
-    }
-  }
-  const minHours = Math.floor(min / HOUR);
-  const minMinutesFn = (duration: number, minDurationSeconds: number) =>
-    duration < HOUR ? Math.floor((minDurationSeconds % HOUR) / MINUTE) : 0; // the minute component of the min , e.g if min is 3540 then min minutes it 59, if min is 3600 then min minutes is 0
-  const minMinutes = minMinutesFn(v, min);
+  useEffect(() => {
+    setHours(Math.floor(value / HOUR));
+    setMinutes(Math.floor((value % HOUR) / MINUTE));
+  }, [value]);
 
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
       case "HOUR":
-        setHours(v);
-        if (v + minutes * MINUTE < min) {
-          setMinutes(minMinutesFn(v + minutes * MINUTE, min));
+        let newTime = v * HOUR + minutes * MINUTE;
+        if (max && newTime > max) {
+          onChange(
+            v * HOUR +
+              Math.min(Math.floor((max - v * HOUR) / MINUTE), 59) * MINUTE
+          );
+        } else {
+          onChange(v * HOUR + minutes * MINUTE);
         }
+
         break;
       case "MINUTE":
-        setMinutes(v);
+        onChange(hours * HOUR + v * MINUTE);
         break;
     }
   };
@@ -121,6 +141,14 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         break;
     }
   };
+
+  const maxHours =
+    hasHours && max != undefined ? Math.floor(max / HOUR) : undefined;
+  const maxMinutes = hasMinutes
+    ? maxMinutesFn(hasHours, hours, max)
+    : undefined;
+  const minHours = Math.floor(min / HOUR);
+  const minMinutes = minMinutesFn(value, min);
   return (
     <Context.Provider
       value={{
@@ -132,20 +160,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         maxMinutes,
         hours,
         minutes,
-        loading: isLoading || false,
       }}
     >
-      <VStack>
-        <Text>
-          other max {max} min {min} value {initialValue} v {v}
-        </Text>
-        <Text>
-          hours {hours} {maxHours} {minHours}
-        </Text>
-        <Text>
-          minutes {minutes} {maxMinutes} {minMinutes}
-        </Text>
-      </VStack>
       <HStack>{children}</HStack>
     </Context.Provider>
   );
@@ -170,7 +186,8 @@ export const Hours: React.FC = () => {
       value={hours}
       onChange={(s: string, n: number) => setValue("HOUR", n)}
       className="peer"
-      // onBlur={onBlurFn}
+      // prevent chackra component from controlling the value on blur because we fully control the values via the context
+      onBlur={undefined}
     >
       <NumberInputField bg="white" />
       <InputRightElement
@@ -199,7 +216,6 @@ export const Minutes: React.FC = () => {
     register("MINUTE");
   });
 
-  console.log({ minMinutes, minutes });
   return (
     <NumberInput
       // variant="reveal"
@@ -213,7 +229,8 @@ export const Minutes: React.FC = () => {
       value={minutes}
       onChange={(s: string, n: number) => setValue("MINUTE", n)}
       className="peer"
-      // onBlur={onBlurFn}
+      // prevent chackra component from controlling the value on blur because we fully control the values via the context
+      onBlur={undefined}
     >
       <NumberInputField bg="white" />
       <InputRightElement

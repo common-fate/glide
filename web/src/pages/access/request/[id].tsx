@@ -102,7 +102,6 @@ const Home: NextPage = () => {
   });
 
   useEffect(() => {
-    console.log({ rule });
     if (rule) {
       reset({
         when: "asap",
@@ -120,7 +119,6 @@ const Home: NextPage = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   const durationSeconds = watch("timing.durationSeconds");
-  console.log({ durationSeconds });
   const readableDuration = useMemo(() => {
     if (!durationSeconds) return "";
     const durationHours = durationSeconds * 60 * 60;
@@ -298,15 +296,13 @@ const Home: NextPage = () => {
                         max: maxDurationSeconds,
                         min: 60,
                       }}
-                      render={({ field, fieldState }) => {
-                        console.log({ field });
+                      render={({ field: { ref, ...rest } }) => {
                         return (
                           <DurationInput
-                            {...field}
+                            {...rest}
                             max={maxDurationSeconds}
                             min={60}
-                            isLoading={rule === undefined}
-                            initialValue={
+                            defaultValue={
                               maxDurationSeconds && maxDurationSeconds > 3600
                                 ? 3600
                                 : maxDurationSeconds
@@ -314,28 +310,14 @@ const Home: NextPage = () => {
                           >
                             <Hours />
                             <Minutes />
+                            {maxDurationSeconds !== undefined && (
+                              <Text textStyle={"Body/ExtraSmall"}>
+                                Max {durationString(maxDurationSeconds)}
+                                <br />
+                                Min 1 min
+                              </Text>
+                            )}
                           </DurationInput>
-                          // <HoursMinutes
-                          //   // if maxDurationSeconds is greater than 1 hour, set the initial value to 1 hour, else set it to the maxDurationSeconds
-                          //   initialValue={
-                          //     maxDurationSeconds && maxDurationSeconds > 3600
-                          //       ? 3600
-                          //       : maxDurationSeconds
-                          //   }
-                          //   max={maxDurationSeconds}
-                          //   onChange={(n: number) =>
-                          //     setValue("timing.durationSeconds", n)
-                          //   }
-                          //   rightElement={
-                          //     maxDurationSeconds && (
-                          //       <Text textStyle={"Body/ExtraSmall"}>
-                          //         Max {durationString(maxDurationSeconds)}
-                          //         <br />
-                          //         Min 1 min
-                          //       </Text>
-                          //     )
-                          //   }
-                          // />
                         );
                       }}
                     />
