@@ -34,7 +34,6 @@ import {
   Hours,
   Minutes,
 } from "../../../components/DurationInput";
-import HoursMinutes from "../../../components/HoursMinutes";
 import { getProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
