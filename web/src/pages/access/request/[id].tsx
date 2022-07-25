@@ -313,7 +313,7 @@ const Home: NextPage = () => {
                               <Text textStyle={"Body/ExtraSmall"}>
                                 Max {durationString(maxDurationSeconds)}
                                 <br />
-                                Min 1 min
+                                Min 1 minute
                               </Text>
                             )}
                           </DurationInput>
