@@ -7,7 +7,7 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type Props = {
   setValue: (n: number) => void;
@@ -33,12 +33,12 @@ const HoursMinutes = ({
       hours === undefined &&
       mins === undefined
     ) {
-      setHours(Number((initialValue / 60 / 60).toString().split(".")[0]));
+      setHours(Math.floor(initialValue / 60 / 60));
       setMins((initialValue / 60) % 60);
     }
   }, [initialValue]);
 
-  let maxH = maxDurationSeconds ? maxDurationSeconds / 3600 : 24;
+  let maxH = maxDurationSeconds ? Math.floor(maxDurationSeconds / 3600) : 24;
 
   const onBlurFn = () => {
     if (hours != undefined && mins != undefined) {
@@ -46,7 +46,7 @@ const HoursMinutes = ({
       // DE = when an out of bounds value is adjusted to maxSeconds, we need to update the hours and mins to match
       if (maxDurationSeconds && duration > maxDurationSeconds) {
         setValue(maxDurationSeconds);
-        let h = Number((maxDurationSeconds / 60 / 60).toString().split(".")[0]);
+        let h = Math.floor(maxDurationSeconds / 60 / 60);
         let m = (maxDurationSeconds / 60) % 60;
 
         setHours(h);
@@ -103,7 +103,13 @@ const HoursMinutes = ({
         defaultValue={1}
         min={hours == 0 ? 1 : 0}
         step={1}
-        max={59}
+        max={
+          /**
+           * DE = if the mins amount == maxDurationSeconds, then we are at the max
+           * DE = otherwise the max minute input is 59/60
+           */
+          mins != undefined ? (mins * 60 == maxDurationSeconds ? mins : 59) : 1
+        }
         w="100px"
         value={mins}
         onChange={(s, n) => {
