@@ -285,7 +285,7 @@ const Home: NextPage = () => {
                     isInvalid={errors.timing?.durationSeconds !== undefined}
                   >
                     <FormLabel textStyle="Body/Medium" fontWeight="normal">
-                      How long in hours do you need access for?
+                      How long do you need access for?
                     </FormLabel>
                     <Controller
                       name="timing.durationSeconds"
