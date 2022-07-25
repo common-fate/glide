@@ -29,6 +29,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import { CFRadioBox } from "../../../components/CFRadioBox";
+import {
+  DurationInput,
+  Hours,
+  Minutes,
+} from "../../../components/DurationInput";
 import HoursMinutes from "../../../components/HoursMinutes";
 import { getProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
@@ -276,22 +281,31 @@ const Home: NextPage = () => {
                       rules={{ required: "Duration is required." }}
                       render={({ field, fieldState }) => {
                         return (
-                          <HoursMinutes
-                            initialValue={3600 < maxDurationSeconds ? 3600 : 60}
-                            maxDurationSeconds={maxDurationSeconds}
-                            setValue={(n: number) =>
-                              setValue("timing.durationSeconds", n)
-                            }
-                            rightElement={
-                              maxDurationSeconds && (
-                                <Text textStyle={"Body/ExtraSmall"}>
-                                  Max {durationString(maxDurationSeconds)}
-                                  <br />
-                                  Min 1 min
-                                </Text>
-                              )
-                            }
-                          />
+                          <DurationInput {...field}>
+                            <Hours />
+                            <Minutes />
+                          </DurationInput>
+                          // <HoursMinutes
+                          //   // if maxDurationSeconds is greater than 1 hour, set the initial value to 1 hour, else set it to the maxDurationSeconds
+                          //   initialValue={
+                          //     maxDurationSeconds && maxDurationSeconds > 3600
+                          //       ? 3600
+                          //       : maxDurationSeconds
+                          //   }
+                          //   max={maxDurationSeconds}
+                          //   onChange={(n: number) =>
+                          //     setValue("timing.durationSeconds", n)
+                          //   }
+                          //   rightElement={
+                          //     maxDurationSeconds && (
+                          //       <Text textStyle={"Body/ExtraSmall"}>
+                          //         Max {durationString(maxDurationSeconds)}
+                          //         <br />
+                          //         Min 1 min
+                          //       </Text>
+                          //     )
+                          //   }
+                          // />
                         );
                       }}
                     />

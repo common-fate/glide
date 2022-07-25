@@ -45,8 +45,8 @@ export const TimeStep: React.FC = () => {
             return (
               <HoursMinutes
                 initialValue={time?.maxDurationSeconds}
-                maxDurationSeconds={maxDurationSeconds}
-                setValue={(n: number) =>
+                max={maxDurationSeconds}
+                onChange={(n: number) =>
                   methods.setValue("timeConstraints.maxDurationSeconds", n)
                 }
               />

@@ -10,17 +10,19 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 
 type Props = {
-  setValue: (n: number) => void;
-  /** maxDurationSeconds in seconds, this must be set for onBlurFn validation to occur */
-  maxDurationSeconds?: number;
+  onChange: (n: number) => void;
+  /**  maximum duration in seconds*/
+  max?: number;
+  /**  minimum duration in seconds, defaults to 0s when not provided*/
+  min?: number;
   /** intitialValue that hydrates the component with hours/mins */
   initialValue?: number;
   rightElement?: React.ReactNode;
 };
 
 const HoursMinutes = ({
-  maxDurationSeconds,
-  setValue,
+  max: maxDurationSeconds,
+  onChange: setValue,
   initialValue,
   rightElement,
 }: Props) => {
