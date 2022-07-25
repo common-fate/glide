@@ -123,6 +123,10 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     }
   }, [value, hasHours]);
 
+  // setValue checks whether the change to one field needs to affect the other field
+  // e.g if reducing an hour to 0 does the minute field need to be increased
+  // the validation logic on the input components themselves handle "most" of the actual validation
+  // however they are not aware of each other, so edge cases are handled in here
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
       case "HOUR":
