@@ -70,17 +70,18 @@ export const getWhenHelperText = (
 };
 
 const Home: NextPage = () => {
+  const [loading, setLoading] = useState(false);
   const {
     params: { id: ruleId },
   } = useMatch();
-  const [loading, setLoading] = useState(false);
+  const { data: rule } = useUserGetAccessRule(ruleId);
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
     d.setSeconds(0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   }, []);
-
+  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
   const {
     register,
     handleSubmit,
@@ -88,21 +89,38 @@ const Home: NextPage = () => {
     setValue,
     control,
     watch,
+    reset,
   } = useForm<NewRequestFormData>({
     shouldUnregister: true,
     defaultValues: {
       when: "asap",
       startDateTime: now,
       timing: {
-        durationSeconds: 1,
+        durationSeconds: 0,
       },
     },
   });
 
+  useEffect(() => {
+    console.log({ rule });
+    if (rule) {
+      reset({
+        when: "asap",
+        startDateTime: now,
+        timing: {
+          durationSeconds:
+            maxDurationSeconds && maxDurationSeconds > 3600
+              ? 3600
+              : maxDurationSeconds,
+        },
+      });
+    }
+  }, [rule]);
+
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   const durationSeconds = watch("timing.durationSeconds");
-
+  console.log({ durationSeconds });
   const readableDuration = useMemo(() => {
     if (!durationSeconds) return "";
     const durationHours = durationSeconds * 60 * 60;
@@ -121,7 +139,6 @@ const Home: NextPage = () => {
     )}, until ${endTime.toLocaleTimeString()}`;
   }, [durationSeconds, startTimeDate, when]);
 
-  const { data: rule } = useUserGetAccessRule(ruleId);
   useEffect(() => {
     const md = rule?.timeConstraints?.maxDurationSeconds;
     if (md && md / 60 / 60 < durationSeconds) {
@@ -158,8 +175,6 @@ const Home: NextPage = () => {
     await userCreateRequest(r);
     navigate({ to: "/requests" });
   };
-
-  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
 
   return (
     <>
@@ -278,10 +293,25 @@ const Home: NextPage = () => {
                     <Controller
                       name="timing.durationSeconds"
                       control={control}
-                      rules={{ required: "Duration is required." }}
+                      rules={{
+                        required: "Duration is required.",
+                        max: maxDurationSeconds,
+                        min: 60,
+                      }}
                       render={({ field, fieldState }) => {
+                        console.log({ field });
                         return (
-                          <DurationInput {...field}>
+                          <DurationInput
+                            {...field}
+                            max={maxDurationSeconds}
+                            min={60}
+                            isLoading={rule === undefined}
+                            initialValue={
+                              maxDurationSeconds && maxDurationSeconds > 3600
+                                ? 3600
+                                : maxDurationSeconds
+                            }
+                          >
                             <Hours />
                             <Minutes />
                           </DurationInput>
