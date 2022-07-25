@@ -121,6 +121,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
             v * HOUR +
               Math.min(Math.floor((max - v * HOUR) / MINUTE), 59) * MINUTE
           );
+        } else if (newTime < min) {
+          onChange(v * HOUR + minMinutesFn(newTime, min) * MINUTE);
         } else {
           onChange(v * HOUR + minutes * MINUTE);
         }
@@ -235,18 +237,26 @@ const InputElement: React.FC<InputElementProps> = ({
       step={1}
       role="group"
       w="100px"
-      value={value}
+      value={v}
+      // if you backspace the value then click out, this resets the value to the current value
+      onBlur={() => {
+        if (typeof v === "string" || isNaN(v)) {
+          setV(value);
+        }
+      }}
       onChange={(s: string, n: number) => {
         if (isNaN(n)) {
           setV(s);
+        } else if (max && n > max) {
+          // don't allow typed inputs greater than max
+          setV(max);
+          onChange(max);
         } else {
           setV(n);
           onChange(n);
         }
       }}
       className="peer"
-      // prevent chackra component from controlling the value on blur because we fully control the values via the context
-      onBlur={undefined}
     >
       <NumberInputField bg="white" />
       <InputRightElement
