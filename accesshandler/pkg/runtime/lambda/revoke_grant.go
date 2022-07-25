@@ -57,11 +57,11 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 		return nil, err
 	}
 
-	if grant.Status == types.ACTIVE {
-		err = prov.Provider.Revoke(ctx, string(grant.Subject), args)
-		if err != nil {
-			return nil, err
-		}
+	//do we need to check for grant status here?
+	//How can we from this lambda
+	err = prov.Provider.Revoke(ctx, string(grant.Subject), args)
+	if err != nil {
+		return nil, err
 	}
 
 	//cancel the existing granter
