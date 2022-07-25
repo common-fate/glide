@@ -144,6 +144,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         break;
     }
   };
+
+  // Register is meant to register capability of the component, there may be a better way to work out if the minutes or hours components are present
   const register = (d: DurationInterval) => {
     switch (d) {
       case "HOUR":
@@ -192,6 +194,7 @@ export const Hours: React.FC = () => {
   });
   return (
     <InputElement
+      inputId="hour-duration-input"
       defaultValue={defaultValue}
       onChange={(n: number) => setValue("HOUR", n)}
       value={hours}
@@ -212,6 +215,7 @@ export const Minutes: React.FC = () => {
 
   return (
     <InputElement
+      inputId="minute-duration-input"
       defaultValue={defaultValue}
       onChange={(n: number) => setValue("MINUTE", n)}
       value={minutes}
@@ -222,6 +226,8 @@ export const Minutes: React.FC = () => {
   );
 };
 interface InputElementProps {
+  // input id is set on the input element if present
+  inputId?: string;
   max?: number;
   min?: number;
   defaultValue: number;
@@ -230,6 +236,7 @@ interface InputElementProps {
   rightElement?: React.ReactNode;
 }
 const InputElement: React.FC<InputElementProps> = ({
+  inputId,
   defaultValue,
   onChange,
   value,
@@ -274,7 +281,7 @@ const InputElement: React.FC<InputElementProps> = ({
       }}
       className="peer"
     >
-      <NumberInputField bg="white" />
+      <NumberInputField bg="white" id={inputId} />
       <InputRightElement
         pos="absolute"
         right={10}
