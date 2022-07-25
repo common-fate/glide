@@ -160,7 +160,11 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const maxMinutes = hasMinutes
     ? maxMinutesFn(hasHours, hours, max)
     : undefined;
-  const minHours = Math.floor(min / HOUR);
+  const minHours = hasMinutes
+    ? Math.floor(min / HOUR)
+    : min < HOUR
+    ? 1
+    : Math.floor(min / HOUR);
   const minMinutes = minMinutesFn(value, min);
   return (
     <Context.Provider
