@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/common-fate/apikit/logger"
@@ -74,15 +73,6 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 	//update the grant status
 	grant.Status = types.REVOKED
 
-	eventsBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: r.EventBusArn})
-	if err != nil {
-		return nil, err
-	}
-	evt := &gevent.GrantRevoked{Grant: grant, Actor: revoker}
-	err = eventsBus.Put(ctx, evt)
-	if err != nil {
-		return nil, err
-	}
 	return &grant, nil
 }
 
