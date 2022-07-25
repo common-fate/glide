@@ -108,9 +108,20 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const [hasMinutes, setHasMinutes] = useState(false);
 
   useEffect(() => {
-    setHours(Math.floor(value / HOUR));
-    setMinutes(Math.floor((value % HOUR) / MINUTE));
-  }, [value]);
+    // The following effect updates the hours and minutes values when the external value changes after a call to onChange
+    // it supports having eitehr hours and minutes or just hours or just minutes component
+    if (hasHours) {
+      setHours(Math.floor(value / HOUR));
+      if (hasMinutes) {
+        setMinutes(Math.floor((value % HOUR) / MINUTE));
+      } else {
+        setMinutes(0);
+      }
+    } else if (hasMinutes) {
+      setHours(0);
+      setMinutes(Math.floor(value / MINUTE));
+    }
+  }, [value, hasHours]);
 
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
@@ -194,6 +205,7 @@ export const Minutes: React.FC = () => {
   useEffect(() => {
     register("MINUTE");
   });
+
   return (
     <InputElement
       defaultValue={defaultValue}

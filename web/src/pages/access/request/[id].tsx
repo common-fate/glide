@@ -308,7 +308,7 @@ const Home: NextPage = () => {
                                 : maxDurationSeconds
                             }
                           >
-                            <Hours />
+                            {/* <Hours /> */}
                             <Minutes />
                             {maxDurationSeconds !== undefined && (
                               <Text textStyle={"Body/ExtraSmall"}>
