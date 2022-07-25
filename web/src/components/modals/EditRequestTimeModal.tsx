@@ -74,17 +74,9 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
         : undefined;
 
     props.handleSubmit({
-      durationSeconds: data.timing.durationSeconds * 60 * 60,
+      durationSeconds: data.timing.durationSeconds,
       startTime,
     });
-    // const duration = data.overrideTiming?.durationSeconds ?? 2;
-    // await props.handleSubmit(data.comment ?? "", {
-    //   durationSeconds: duration * 60 * 60,
-    //   startTime:
-    //     data.when === "scheduled"
-    //       ? new Date(data.startDateTime).toISOString()
-    //       : undefined,
-    // });
     props.onClose();
   };
 
