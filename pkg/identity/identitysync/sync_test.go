@@ -214,6 +214,42 @@ func TestIdentitySyncProcessor(t *testing.T) {
 				},
 			},
 		},
+		{
+			// a group should be dearchived if it exists again
+			name:         "dearchive group when it exists again",
+			giveIdpUsers: []identity.IdpUser{},
+			giveIdpGroups: []identity.IdpGroup{{
+				ID:          "granted_administrators",
+				Name:        "granted_administrators",
+				Description: "admin group",
+			}},
+			giveInternalUsers: []identity.User{},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "1234",
+					IdpID:       "granted_administrators",
+					Name:        "granted_administrators",
+					Description: "admin group",
+					Status:      types.IdpStatusARCHIVED,
+					Users:       []string{},
+					CreatedAt:   now,
+					UpdatedAt:   now,
+				},
+			},
+			wantUserMap: map[string]identity.User{},
+			wantGroupMap: map[string]identity.Group{
+				"granted_administrators": {
+					ID:          "1234",
+					IdpID:       "granted_administrators",
+					Name:        "granted_administrators",
+					Description: "admin group",
+					Status:      types.IdpStatusACTIVE,
+					Users:       []string{},
+					CreatedAt:   now,
+					UpdatedAt:   now,
+				},
+			},
+		},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

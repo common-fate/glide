@@ -19,16 +19,18 @@ import {
   NumberInputField,
   NumberInputStepper,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { When, WhenRadioGroup } from "../../pages/access/request/[id]";
-import { Request } from "../../utils/backend-client/types";
+import { Request, RequestDetail } from "../../utils/backend-client/types";
 import { RequestTiming } from "../../utils/backend-client/types/requestTiming";
 import { durationString } from "../../utils/durationString";
+import { DurationInput, Hours, Minutes } from "../DurationInput";
 type Props = {
-  request: Request;
+  request: RequestDetail;
   handleSubmit: (timing: RequestTiming) => void;
 } & Omit<ModalProps, "children">;
 
@@ -51,7 +53,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   useEffect(() => {
     let data: ApproveRequestFormData = {
       timing: {
-        durationSeconds: request.timing.durationSeconds / 60 / 60,
+        durationSeconds: request.timing.durationSeconds,
         startTime: request.timing.startTime,
       },
       when: request.timing.startTime ? "scheduled" : "asap",
@@ -72,19 +74,14 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
         : undefined;
 
     props.handleSubmit({
-      durationSeconds: data.timing.durationSeconds * 60 * 60,
+      durationSeconds: data.timing.durationSeconds,
       startTime,
     });
-    // const duration = data.overrideTiming?.durationSeconds ?? 2;
-    // await props.handleSubmit(data.comment ?? "", {
-    //   durationSeconds: duration * 60 * 60,
-    //   startTime:
-    //     data.when === "scheduled"
-    //       ? new Date(data.startDateTime).toISOString()
-    //       : undefined,
-    // });
     props.onClose();
   };
+
+  const maxDurationSeconds =
+    request.accessRule.timeConstraints.maxDurationSeconds;
   return (
     <Modal {...props}>
       <form onSubmit={methods.handleSubmit(handleSubmit)}>
@@ -98,7 +95,36 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                 <FormLabel textStyle="Body/Medium" fontWeight="normal">
                   Duration
                 </FormLabel>
-                <NumberInput
+                <Controller
+                  name="timing.durationSeconds"
+                  control={methods.control}
+                  rules={{
+                    required: "Duration is required.",
+                    max: maxDurationSeconds,
+                    min: 60,
+                  }}
+                  render={({ field: { ref, ...rest } }) => {
+                    return (
+                      <DurationInput
+                        {...rest}
+                        max={maxDurationSeconds}
+                        min={60}
+                        defaultValue={request.timing.durationSeconds}
+                      >
+                        <Hours />
+                        <Minutes />
+                        {maxDurationSeconds !== undefined && (
+                          <Text textStyle={"Body/ExtraSmall"}>
+                            Max {durationString(maxDurationSeconds)}
+                            <br />
+                            Min 1 min
+                          </Text>
+                        )}
+                      </DurationInput>
+                    );
+                  }}
+                />
+                {/* <NumberInput
                   defaultValue={1}
                   min={0.01}
                   step={0.5}
@@ -119,7 +145,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                 </NumberInput>
                 <FormHelperText color="neutrals.600">
                   {readableDuration}
-                </FormHelperText>
+                </FormHelperText> */}
               </FormControl>
 
               <FormControl

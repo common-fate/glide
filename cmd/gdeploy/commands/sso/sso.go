@@ -37,9 +37,13 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+		i := strings.ToLower(dc.Deployment.Parameters.IdentityProviderType)
+		if len(i) > 0 {
+			i = strings.ToUpper(string(i[0])) + string(i[1:])
+		}
 
 		var idpType string
-		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes}
+		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes, Default: i}
 		err = survey.AskOne(p2, &idpType)
 		if err != nil {
 			return err
@@ -54,7 +58,7 @@ var configureCommand = cli.Command{
 		update := true
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
-			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) {
+			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) || (azureSelected && azureConfigured) {
 				if isCurrentIDP {
 					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
 					err = survey.AskOne(p3, &update)
@@ -257,7 +261,7 @@ var configureCommand = cli.Command{
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
 `)
-		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:"}
+		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:", Default: dc.Deployment.Parameters.AdministratorGroupID}
 		err = survey.AskOne(adminGroupPrompt, &dc.Deployment.Parameters.AdministratorGroupID)
 		if err != nil {
 			return err
