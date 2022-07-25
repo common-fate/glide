@@ -27,11 +27,18 @@ type ListUsersResponse struct {
 	Value         []AzureUser `json:"value"`
 }
 
+// properties of a user in the graph API
+//
+// https://docs.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0#properties
 type AzureUser struct {
 	GivenName string `json:"givenName"`
-	Mail      string `json:"mail"`
-	Surname   string `json:"surname"`
-	ID        string `json:"id"`
+	// this maps to a users email by convention
+	// see the graph API spec for details
+	// in practive all users have a principal name but some users may not have the "mail" property for different reasons.
+	// we use this for the email
+	UserPrincipalName string `json:"userPrincipalName"`
+	Surname           string `json:"surname"`
+	ID                string `json:"id"`
 }
 
 type ListGroupsResponse struct {
@@ -96,7 +103,7 @@ func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUse
 		ID:        azureUser.ID,
 		FirstName: azureUser.GivenName,
 		LastName:  azureUser.Surname,
-		Email:     azureUser.Mail,
+		Email:     azureUser.UserPrincipalName,
 		Groups:    []string{},
 	}
 

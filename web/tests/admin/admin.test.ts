@@ -8,5 +8,7 @@ test("test admin login gets to granted page with admin nav", async ({
   await LoginAdmin(page);
   await page.goto("/");
   await expect(page).toHaveTitle(/Granted/);
-  await expect(page.locator("#admin-button >> visible=true")).toHaveText("Admin");
+  await expect(page.locator("#admin-button >> visible=true")).toHaveText(
+    "Admin"
+  );
 });

@@ -26,10 +26,12 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := types.ListGroupsResponse{}
+	res := types.ListGroupsResponse{
+		Groups: make([]types.Group, len(q.Result)),
+	}
 
-	for _, u := range q.Result {
-		res.Groups = append(res.Groups, u.ToAPI())
+	for i, g := range q.Result {
+		res.Groups[i] = g.ToAPI()
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

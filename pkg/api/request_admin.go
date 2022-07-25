@@ -60,11 +60,12 @@ func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params t
 	}
 
 	// var endToken int
-	var res types.ListRequestsResponse
-	res.Requests = []types.Request{}
+	res := types.ListRequestsResponse{
+		Requests: make([]types.Request, len(dbRes)),
+	}
 
-	for _, r := range dbRes {
-		res.Requests = append(res.Requests, r.ToAPI())
+	for i, r := range dbRes {
+		res.Requests[i] = r.ToAPI()
 	}
 
 	res.Next = next
