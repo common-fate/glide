@@ -53,7 +53,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   useEffect(() => {
     let data: ApproveRequestFormData = {
       timing: {
-        durationSeconds: request.timing.durationSeconds / 60 / 60,
+        durationSeconds: request.timing.durationSeconds,
         startTime: request.timing.startTime,
       },
       when: request.timing.startTime ? "scheduled" : "asap",
@@ -117,11 +117,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                         {...rest}
                         max={maxDurationSeconds}
                         min={60}
-                        defaultValue={
-                          maxDurationSeconds && maxDurationSeconds > 3600
-                            ? 3600
-                            : maxDurationSeconds
-                        }
+                        defaultValue={request.timing.durationSeconds}
                       >
                         <Hours />
                         <Minutes />
