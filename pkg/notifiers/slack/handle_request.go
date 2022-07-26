@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/notifiers"
 	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
@@ -43,7 +42,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 			msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", ruleQuery.Result.Name)
 			fallback := fmt.Sprintf("Your request to access %s requires approval.", ruleQuery.Result.Name)
 
-			err = SendMessage(ctx, slackClient, userQuery.Result.Email, msg, fallback)
+			_, err = SendMessage(ctx, slackClient, userQuery.Result.Email, msg, fallback)
 			if err != nil {
 				log.Errorw("Failed to send direct message", "email", userQuery.Result.Email, "msg", msg, "error", err)
 			}
@@ -68,16 +67,18 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 			rule := *ruleQuery.Result
 
 			var wg sync.WaitGroup
-			approvers, err := rulesvc.GetApprovers(ctx, n.DB, rule)
+
+			reviewers := storage.ListRequestReviewers{RequestID: req.ID}
+			_, err = n.DB.Query(ctx, &reviewers)
+
 			if err != nil {
-				return errors.Wrap(err, "getting approvers")
+				return errors.Wrap(err, "getting reviewers")
 			}
 
-			log.Infow("messaging approvers", "approvers", approvers)
+			log.Infow("messaging reviewers", "reviewers", reviewers)
 
-			for _, u := range approvers {
-				usr := u
-				if usr == req.RequestedBy {
+			for _, usr := range reviewers.Result {
+				if usr.ReviewerID == req.RequestedBy {
 					log.Infow("skipping sending approval message to requestor", "user.id", usr)
 					continue
 				}
@@ -85,7 +86,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					approver := storage.GetUser{ID: usr}
+					approver := storage.GetUser{ID: usr.ReviewerID}
 					_, err := n.DB.Query(ctx, &approver)
 					if err != nil {
 						log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", usr, zap.Error(err))
@@ -99,12 +100,31 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 						RequestorEmail:   userQuery.Result.Email,
 						ReviewURLs:       reviewURL,
 					})
-					err = SendMessageBlocks(ctx, slackClient, approver.Result.Email, msg, summary)
+					// msg.ClientMsgID
+					ts, err := SendMessageBlocks(ctx, slackClient, approver.Result.Email, msg, summary)
 					if err != nil {
 						log.Errorw("failed to send request approval message", "user", usr, zap.Error(err))
 					}
+					// TODO: update Reviewer.SlackMessageID with the slack message now sent
+					usr.SlackMessageID = ts
+					log.Infow("\nupdating reviewer with slack msg id", "usr.SlackMessageID", ts)
+
+					err = n.DB.Put(ctx, &usr)
+
+					if err != nil {
+						log.Errorw("failed to update reviewer", "user", usr, zap.Error(err))
+					}
+
+					// print out the msg object in full
+					log.Infow("\n\n\n\n", "MSG ", msg)
+					// print a message to the console)
+					fmt.Printf("MSG MSG: \n\n\n%+v\n\n\n", msg)
+
 				}()
 			}
+			// Consider another way of in
+			// n.DB.PutBatch(ctx, )
+			// dbupdate.WithReviewers()
 			wg.Wait()
 		} else {
 			//Review not required
@@ -116,6 +136,10 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		msg := fmt.Sprintf("Your request to access *%s* has been approved. Hang tight - we're provisioning the access now and will let you know when it's ready.", ruleQuery.Result.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", ruleQuery.Result.Name)
 		n.SendDMWithLogOnError(ctx, slackClient, log, userQuery.Result.Email, msg, fallback)
+	case gevent.RequestCancelledType:
+		// TODO: handle update
+	case gevent.RequestDeclinedType:
+		// TODO: handle update
 	}
 	return nil
 }
@@ -150,14 +174,6 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		{
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Duration:*\n%s", o.Request.RequestedTiming.Duration),
-		},
-		{
-			Type: "mrkdwn",
-			// @TODO: ensure this status is accurate and updates dynamically
-			// IO = A request which is approved cancelled or declined shows the status, the actor and the timestamp.
-			// DE = A user can easily differentiate between requests that have been handled and those that require actioning.
-			// IO = A request requiring actions shows Slack action buttons.
-			Text: fmt.Sprintf("*Status:*\n%s", o.Request.Status),
 		},
 	}
 
@@ -199,5 +215,6 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 			},
 		),
 	)
+
 	return summary, msg
 }

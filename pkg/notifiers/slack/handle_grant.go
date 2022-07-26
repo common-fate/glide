@@ -49,7 +49,8 @@ func (n *Notifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger,
 		zap.S().Infow("unhandled grant event", "detailType", event.DetailType)
 	}
 	if msg != "" {
-		return SendMessage(ctx, slackClient, gq.Result.Grant.Subject, msg, fallback)
+		_, err = SendMessage(ctx, slackClient, gq.Result.Grant.Subject, msg, fallback)
+		return err
 	}
 	return nil
 }

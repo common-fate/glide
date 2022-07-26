@@ -97,6 +97,8 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		r := access.Reviewer{
 			ReviewerID: u,
 			Request:    req,
+			// @TODO: add me here????
+			// SlackMessageID: ,
 		}
 
 		reviewers = append(reviewers, r)
