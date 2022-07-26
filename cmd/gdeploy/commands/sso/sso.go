@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -175,6 +176,12 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
+				//Try using the api to call using the creds to test if they are setup correctly.
+				testprovider := ad.Provider{
+					TenantID:     azure.TenantID,
+					ClientID:     azure.ClientID,
+					ClientSecret: token,
+				}
 
 				path, version, err := config.PutSecretVersion(ctx, config.AzureSecretPath, dc.Deployment.Parameters.DeploymentSuffix, token)
 				if err != nil {
@@ -184,6 +191,32 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
+
+				err = testprovider.Init(ctx)
+				if err != nil {
+
+					return err
+				}
+				clio.Success("Verifying credentials...")
+
+				groups, err := testprovider.Client.ListGroups(ctx)
+				if err != nil {
+					return fmt.Errorf("Something went wrong calling Azure with provided credentials: %s", err)
+				}
+				clio.Success("List groups works")
+
+				_, err = testprovider.Client.ListUsers(ctx)
+				if err != nil {
+					return fmt.Errorf("Something went wrong calling Azure with provided credentials: %s", err)
+				}
+				clio.Success("List users works")
+
+				_, err = testprovider.Client.ListGroupUsers(ctx, groups[0].ID)
+				if err != nil {
+					return fmt.Errorf("Something went wrong calling Azure with provided credentials: %s", err)
+				}
+				clio.Success("List group members works")
+
 				clio.Success("SSM Parameters set successfully")
 
 				if dc.Identity == nil {

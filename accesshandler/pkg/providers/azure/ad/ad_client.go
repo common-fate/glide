@@ -61,6 +61,51 @@ type GroupMembers struct {
 	Value         []string `json:"value"`
 }
 
+func (c *AzureClient) ListUsers(ctx context.Context) ([]AzureUser, error) {
+
+	//get all users
+	idpUsers := []AzureUser{}
+	hasMore := true
+	var nextToken *string
+	url := MSGraphBaseURL + "/users"
+
+	for hasMore {
+
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("Authorization", "Bearer "+c.token)
+		res, err := c.NewClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
+		}
+
+		var lu ListUsersResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
+
+		idpUsers = append(idpUsers, lu.Value...)
+
+		nextToken = lu.OdataNextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
+
+	}
+
+	return idpUsers, nil
+}
+
 func (c *AzureClient) ListGroups(context.Context) ([]AzureGroup, error) {
 	idpGroups := []AzureGroup{}
 	hasMore := true
@@ -223,13 +268,13 @@ func (c *AzureClient) RemoveUserFromGroup(ctx context.Context, userID string, gr
 }
 
 //GroupMember.Read.All
-func (c *AzureClient) ListGroupUsers(ctx context.Context, userID string) ([]AzureUser, error) {
+func (c *AzureClient) ListGroupUsers(ctx context.Context, groupID string) ([]AzureUser, error) {
 
 	var groupMembers []AzureUser
 
 	hasMore := true
 	var nextToken *string
-	url := MSGraphBaseURL + fmt.Sprintf("/groups/%s/members", userID)
+	url := MSGraphBaseURL + fmt.Sprintf("/groups/%s/members", groupID)
 
 	for hasMore {
 		var jsonStr = []byte(`{ "securityEnabledOnly": false}`)

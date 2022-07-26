@@ -31,7 +31,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 	var result error
 
 	// The user should exist in azure.
-	_, err = p.client.GetUser(ctx, subject)
+	_, err = p.Client.GetUser(ctx, subject)
 	if err != nil {
 		var adError ADErr
 		err = json.Unmarshal([]byte(err.Error()), &adError)
@@ -47,7 +47,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 	}
 
 	// The group we are trying to grant access to should exist in AzureAD.
-	_, err = p.client.GetGroup(ctx, a.GroupID)
+	_, err = p.Client.GetGroup(ctx, a.GroupID)
 	if err != nil {
 		var adError ADErr
 		err = json.Unmarshal([]byte(err.Error()), &adError)
