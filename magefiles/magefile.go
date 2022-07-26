@@ -278,11 +278,15 @@ func Dotenv() error {
 	myEnv["IDENTITY_SETTINGS"] = idConf
 	myEnv["PROVIDER_CONFIG"] = providerConf
 	myEnv["IDENTITY_PROVIDER"] = idpType
+	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
+	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
+	myEnv["GRANTED_RUNTIME"] = "local"
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
 		return err
 	}
+
 	zap.S().Infow("updated .env file with CDK output", "output", o)
 	return nil
 }

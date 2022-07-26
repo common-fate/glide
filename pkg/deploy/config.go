@@ -71,6 +71,11 @@ func UnmarshalIdentity(data string) (IdentityConfig, error) {
 	if data == "" {
 		return IdentityConfig{}, nil
 	}
+
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
 	var i IdentityConfig
 	err := json.Unmarshal([]byte(data), &i)
 	if err != nil {

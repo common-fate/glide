@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/lookup"
@@ -37,6 +38,11 @@ func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
 	if providerCfg == "" {
 		providerCfg = "{}"
 	}
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	providerCfg = strings.ReplaceAll(providerCfg, "\\", "")
+
 	return []byte(providerCfg), nil
 }
 
@@ -45,6 +51,7 @@ func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
 // 	{"<ID>": {"uses": "<TYPE>", "with": {"var1": "value1", "var2": "value2", ...}}}
 // where <ID> is the identifier of the provider, <TYPE> is it's type,
 // and the other key/value pairs are config variables for the provider.
+// config is assumed to be unescaped json
 func ConfigureProviders(ctx context.Context, config []byte) error {
 	all := make(map[string]Provider)
 	var configMap map[string]json.RawMessage
