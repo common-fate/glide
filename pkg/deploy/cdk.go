@@ -49,6 +49,18 @@ func (c Config) CDKContextArgs() []string {
 			args = append(args, "-c", fmt.Sprintf("slackConfiguration=%s", string(cfg)))
 		}
 	}
+	if c.Deployment.Parameters.IdentityProviderType != "" {
+		args = append(args, "-c", fmt.Sprintf("idpType=%s", string(c.Deployment.Parameters.IdentityProviderType)))
+	}
+	if c.Deployment.Parameters.AdministratorGroupID != "" {
+		args = append(args, "-c", fmt.Sprintf("adminGroupId=%s", string(c.Deployment.Parameters.AdministratorGroupID)))
+	}
+	if c.Deployment.Parameters.SamlSSOMetadata != "" {
+		args = append(args, "-c", fmt.Sprintf("samlMetadata=%s", string(c.Deployment.Parameters.SamlSSOMetadata)))
+	}
+	if c.Deployment.Parameters.SamlSSOMetadataURL != "" {
+		args = append(args, "-c", fmt.Sprintf("samlMetadataUrl=%s", string(c.Deployment.Parameters.SamlSSOMetadataURL)))
+	}
 	return args
 }
 

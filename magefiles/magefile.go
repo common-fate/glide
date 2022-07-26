@@ -257,6 +257,18 @@ func Dotenv() error {
 		}
 		idConf = string(b)
 	}
+	providerConf := "{}"
+	if cfg.Providers != nil {
+		b, err := json.Marshal(cfg.Providers)
+		if err != nil {
+			return err
+		}
+		providerConf = string(b)
+	}
+	idpType := "COGNITO"
+	if cfg.Deployment.Parameters.IdentityProviderType != "" {
+		idpType = cfg.Deployment.Parameters.IdentityProviderType
+	}
 
 	myEnv["APPROVALS_TABLE_NAME"] = o.DynamoDBTable
 	myEnv["AWS_REGION"] = o.Region
@@ -264,11 +276,17 @@ func Dotenv() error {
 	myEnv["EVENT_BUS_ARN"] = o.EventBusArn
 	myEnv["EVENT_BUS_SOURCE"] = o.EventBusSource
 	myEnv["IDENTITY_SETTINGS"] = idConf
+	myEnv["PROVIDER_CONFIG"] = providerConf
+	myEnv["IDENTITY_PROVIDER"] = idpType
+	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
+	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
+	myEnv["GRANTED_RUNTIME"] = "local"
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
 		return err
 	}
+
 	zap.S().Infow("updated .env file with CDK output", "output", o)
 	return nil
 }
