@@ -31,6 +31,7 @@ type Output struct {
 	EventBusSource           string `json:"EventBusSource"`
 	IdpSyncFunctionName      string `json:"IdpSyncFunctionName"`
 	Region                   string `json:"Region"`
+	StateMachineARN          string `json:"GranterStateMachineArn"`
 }
 
 func (c Output) FrontendURL() string {

@@ -63,11 +63,22 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 		return nil, err
 	}
 
-	//cancel the existing granter
-	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
-	//if stopping the execution failed we want return with an error and not continue with the flow
+	//if the state function is in the active state then we will stop the execution
+	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
 	if err != nil {
 		return nil, err
+	}
+	lastState := statefn.Events[len(statefn.Events)-1]
+
+	_ = lastState
+	//if the state of the grant is in the active state
+	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
+		//cancel the existing granter
+		_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
+		//if stopping the execution failed we want return with an error and not continue with the flow
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	//update the grant status
