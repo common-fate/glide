@@ -966,6 +966,8 @@ components:
         maxDurationSeconds:
           type: integer
           description: The maximum duration in seconds the access is allowed for.
+          minimum: 60
+          exclusiveMinimum: false
       required:
         - maxDurationSeconds
     Provider:

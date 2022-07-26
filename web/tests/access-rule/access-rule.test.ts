@@ -57,7 +57,7 @@ test("admin can create access rule", async ({ page }) => {
   await clickFormElementByID("form-step-next-button", page);
 
   //select max duration for rule
-  await fillFormElementById("rule-max-duration", "1", page);
+  await fillFormElementById("hour-duration-input", "1", page);
   await clickFormElementByID("form-step-next-button", page);
 
   //click on group select

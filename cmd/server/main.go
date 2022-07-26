@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"os"
 
 	ahConfig "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 
@@ -135,18 +133,6 @@ func runAccessHandler() error {
 	if err != nil {
 		return err
 	}
-
-	// load the provider config from the granted-deployment.yml file and set the PROVIDER_CONFIG env var,
-	// so that we only need to define providers in one place in local development
-	do, err := deploy.LoadConfig("granted-deployment.yml")
-	if err != nil {
-		return err
-	}
-	providerJSON, err := json.Marshal(do.Providers)
-	if err != nil {
-		return err
-	}
-	os.Setenv("PROVIDER_CONFIG", string(providerJSON))
 
 	if approvalsCfg.RunAccessHandler {
 		var cfg ahConfig.Config

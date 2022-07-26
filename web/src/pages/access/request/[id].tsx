@@ -13,11 +13,6 @@ import {
   HStack,
   IconButton,
   Input,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
@@ -34,6 +29,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import { CFRadioBox } from "../../../components/CFRadioBox";
+import {
+  DurationInput,
+  Hours,
+  Minutes,
+} from "../../../components/DurationInput";
 import { getProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
@@ -69,17 +69,18 @@ export const getWhenHelperText = (
 };
 
 const Home: NextPage = () => {
+  const [loading, setLoading] = useState(false);
   const {
     params: { id: ruleId },
   } = useMatch();
-  const [loading, setLoading] = useState(false);
+  const { data: rule } = useUserGetAccessRule(ruleId);
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
     d.setSeconds(0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   }, []);
-
+  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
   const {
     register,
     handleSubmit,
@@ -87,21 +88,36 @@ const Home: NextPage = () => {
     setValue,
     control,
     watch,
+    reset,
   } = useForm<NewRequestFormData>({
     shouldUnregister: true,
     defaultValues: {
       when: "asap",
       startDateTime: now,
       timing: {
-        durationSeconds: 1,
+        durationSeconds: 0,
       },
     },
   });
 
+  useEffect(() => {
+    if (rule) {
+      reset({
+        when: "asap",
+        startDateTime: now,
+        timing: {
+          durationSeconds:
+            maxDurationSeconds && maxDurationSeconds > 3600
+              ? 3600
+              : maxDurationSeconds,
+        },
+      });
+    }
+  }, [rule]);
+
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   const durationSeconds = watch("timing.durationSeconds");
-
   const readableDuration = useMemo(() => {
     if (!durationSeconds) return "";
     const durationHours = durationSeconds * 60 * 60;
@@ -120,7 +136,6 @@ const Home: NextPage = () => {
     )}, until ${endTime.toLocaleTimeString()}`;
   }, [durationSeconds, startTimeDate, when]);
 
-  const { data: rule } = useUserGetAccessRule(ruleId);
   useEffect(() => {
     const md = rule?.timeConstraints?.maxDurationSeconds;
     if (md && md / 60 / 60 < durationSeconds) {
@@ -147,7 +162,7 @@ const Home: NextPage = () => {
     let r: CreateRequestRequestBody = {
       accessRuleId: ruleId,
       timing: {
-        durationSeconds: duration * 60 * 60,
+        durationSeconds: duration,
       },
       reason: data.reason,
     };
@@ -157,8 +172,6 @@ const Home: NextPage = () => {
     await userCreateRequest(r);
     navigate({ to: "/requests" });
   };
-
-  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
 
   return (
     <>
@@ -272,56 +285,46 @@ const Home: NextPage = () => {
                     isInvalid={errors.timing?.durationSeconds !== undefined}
                   >
                     <FormLabel textStyle="Body/Medium" fontWeight="normal">
-                      How long in hours do you need access for?
+                      How long do you need access for?
                     </FormLabel>
                     <Controller
                       name="timing.durationSeconds"
                       control={control}
-                      rules={{ required: "Duration is required." }}
-                      render={({ field }) => (
-                        <HStack>
-                          <NumberInput
-                            defaultValue={1}
-                            min={0.01}
-                            step={0.5}
-                            max={
-                              maxDurationSeconds
-                                ? maxDurationSeconds / 3600
-                                : 12
+                      rules={{
+                        required: "Duration is required.",
+                        max: maxDurationSeconds,
+                        min: 60,
+                      }}
+                      render={({ field: { ref, ...rest } }) => {
+                        return (
+                          <DurationInput
+                            {...rest}
+                            max={maxDurationSeconds}
+                            min={60}
+                            defaultValue={
+                              maxDurationSeconds && maxDurationSeconds > 3600
+                                ? 3600
+                                : maxDurationSeconds
                             }
-                            w="200px"
-                            {...field}
                           >
-                            <NumberInputField
-                              bg="white"
-                              {...register("timing.durationSeconds", {
-                                max: maxDurationSeconds
-                                  ? maxDurationSeconds / 3600
-                                  : 12,
-                              })}
-                            />
-                            <NumberInputStepper>
-                              <NumberIncrementStepper />
-                              <NumberDecrementStepper />
-                            </NumberInputStepper>
-                          </NumberInput>
-                          {maxDurationSeconds && (
-                            <Text textStyle={"Body/ExtraSmall"}>
-                              Maximum: {durationString(maxDurationSeconds)}
-                            </Text>
-                          )}
-                        </HStack>
-                      )}
+                            <Hours />
+                            <Minutes />
+                            {maxDurationSeconds !== undefined && (
+                              <Text textStyle={"Body/ExtraSmall"}>
+                                Max {durationString(maxDurationSeconds)}
+                                <br />
+                                Min 1 minute
+                              </Text>
+                            )}
+                          </DurationInput>
+                        );
+                      }}
                     />
 
-                    {errors.timing?.durationSeconds !== undefined ? (
+                    {errors.timing?.durationSeconds !== undefined && (
                       <FormErrorMessage>
                         {errors.timing?.durationSeconds.message}
                       </FormErrorMessage>
-                    ) : (
-                      <FormHelperText color="neutrals.600">
-                        {readableDuration}
-                      </FormHelperText>
                     )}
                   </FormControl>
                 </Flex>
