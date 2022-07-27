@@ -16,15 +16,6 @@ var (
 )
 
 func LoadFixture(ctx context.Context, name string, f interface{}) error {
-	switch name {
-	case "azure":
-		projectPath = filepath.Join(basepath, "../../..")
-	case "okta":
-		projectPath = filepath.Join(basepath, "../..")
-	default:
-		projectPath = filepath.Join(basepath, "../..")
-	}
-
 	fixtureFile := filepath.Join(projectPath, "fixtures", fmt.Sprintf("%s.json", name))
 
 	bytes, err := ioutil.ReadFile(fixtureFile)

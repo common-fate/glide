@@ -1,7 +1,7 @@
 import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import HoursMinutes from "../../../HoursMinutes";
+import { DurationInput, Hours, Minutes } from "../../../DurationInput";
 import { FormStep } from "./FormStep";
 
 export const TimeStep: React.FC = () => {
@@ -38,18 +38,23 @@ export const TimeStep: React.FC = () => {
         </FormLabel>
         <Controller
           control={methods.control}
-          rules={{ required: "Duration is required." }}
-          defaultValue={0}
+          rules={{
+            required: "Duration is required.",
+            max: maxDurationSeconds,
+            min: 60,
+          }}
           name="timeConstraints.maxDurationSeconds"
-          render={({ field, fieldState }) => {
+          render={({ field: { ref, ...rest } }) => {
             return (
-              <HoursMinutes
-                initialValue={time?.maxDurationSeconds}
-                maxDurationSeconds={maxDurationSeconds}
-                setValue={(n: number) =>
-                  methods.setValue("timeConstraints.maxDurationSeconds", n)
-                }
-              />
+              <DurationInput
+                {...rest}
+                max={maxDurationSeconds}
+                min={60}
+                defaultValue={time?.maxDurationSeconds}
+              >
+                <Hours />
+                <Minutes />
+              </DurationInput>
             );
           }}
         />
