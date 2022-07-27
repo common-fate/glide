@@ -3,10 +3,13 @@
 The access handler has support for different runtimes, this may allow the access handle to run in different Clouds eventually.
 For now, we have a local runtime and a lambda runtime.
 
+Switch between the runtimes by setting the GRANTED_RUNTIME variable in your .env file. The options are `lambda` or `local`
 ### Local
 
 Local is used in local development, it is a No-Op runtime in which no calls are actually made to the provider to grant or revoke access, it simply logs to the terminal, uses time.Sleep and responds with success responses to the api.
 
 ### Lambda
 
-The lambda runtime is built for AWS Lambda with AWS Step Functions.
+The lambda runtime is built for AWS Lambda with AWS Step Functions. But since our lambda functions are all written in go, they can be run locally when running the access handler
+If you are running mage deploy:dev locally it will set this environment variable to `lambda` by default.
+
