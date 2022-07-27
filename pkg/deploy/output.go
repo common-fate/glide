@@ -18,19 +18,27 @@ import (
 
 // Output is the output from deploying the CDK stack to AWS.
 type Output struct {
-	UserPoolDomain           string `json:"UserPoolDomain"`
-	CloudFrontDomain         string `json:"CloudFrontDomain"`
-	FrontendDomainOutput     string `json:"FrontendDomainOutput"`
-	APIURL                   string `json:"APIURL"`
-	DynamoDBTable            string `json:"DynamoDBTable"`
-	CognitoClientID          string `json:"CognitoClientID"`
-	UserPoolID               string `json:"UserPoolID"`
-	S3BucketName             string `json:"S3BucketName"`
-	CloudFrontDistributionID string `json:"CloudFrontDistributionID"`
-	EventBusArn              string `json:"EventBusArn"`
-	EventBusSource           string `json:"EventBusSource"`
-	IdpSyncFunctionName      string `json:"IdpSyncFunctionName"`
-	Region                   string `json:"Region"`
+	CognitoClientID           string `json:"CognitoClientID"`
+	CloudFrontDomain          string `json:"CloudFrontDomain"`
+	FrontendDomainOutput      string `json:"FrontendDomainOutput"`
+	CloudFrontDistributionID  string `json:"CloudFrontDistributionID"`
+	S3BucketName              string `json:"S3BucketName"`
+	UserPoolID                string `json:"UserPoolID"`
+	UserPoolDomain            string `json:"UserPoolDomain"`
+	APIURL                    string `json:"APIURL"`
+	APILogGroupName           string `json:"APILogGroupName"`
+	IDPSyncLogGroupName       string `json:"IDPSyncLogGroupName"`
+	AccessHandlerLogGroupName string `json:"AccessHandlerLogGroupName"`
+	EventBusLogGroupName      string `json:"EventBusLogGroupName"`
+	EventsHandlerLogGroupName string `json:"EventsHandlerLogGroupName"`
+	GranterLogGroupName       string `json:"GranterLogGroupName"`
+	SlackNotifierLogGroupName string `json:"SlackNotifierLogGroupName"`
+	DynamoDBTable             string `json:"DynamoDBTable"`
+	GranterStateMachineArn    string `json:"GranterStateMachineArn"`
+	EventBusArn               string `json:"EventBusArn"`
+	EventBusSource            string `json:"EventBusSource"`
+	IdpSyncFunctionName       string `json:"IdpSyncFunctionName"`
+	Region                    string `json:"Region"`
 }
 
 func (c Output) FrontendURL() string {
