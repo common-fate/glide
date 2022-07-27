@@ -3,7 +3,6 @@ package slacknotifier
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/slack-go/slack"
 )
@@ -12,7 +11,7 @@ import (
 //
 // The message is in Slack message block format.
 // DE = support for changing status & removing/disabling block actions
-func UpdateMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail string, message slack.MsgOption) error {
+func UpdateMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail string, message slack.Message) error {
 	u, err := slackClient.GetUserByEmailContext(ctx, userEmail)
 	if err != nil {
 		return err
@@ -38,12 +37,10 @@ func UpdateMessageBlocks(ctx context.Context, slackClient *slack.Client, userEma
 	// Research further
 	// https://github.com/jace-ys/bingsoo/blob/25bc364265edc999c2c7f168bc4701b8e107ee5d/pkg/session/vote.go#L63
 
-	test := slack.MsgOptionBlocks()
+	// test := slack.MsgOptionBlocks()
 
 	// We now want to update the message
-	// timestampe for now
-	t := time.Now()
-	_, ts, _, err := slackClient.UpdateMessageContext(ctx, result.Conversation.ID, t.String(), test)
+	_, ts, _, err := slackClient.UpdateMessageContext(ctx, result.Conversation.ID, message.Timestamp, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
 
 	if err != nil {
 		return err

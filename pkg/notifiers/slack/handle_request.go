@@ -113,7 +113,6 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 					if err != nil {
 						log.Errorw("failed to update reviewer", "user", usr, zap.Error(err))
 					}
-
 				}()
 			}
 
@@ -131,6 +130,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 
 		// Loop over the request approvers
 		reviewers := storage.ListRequestReviewers{RequestID: req.ID}
+		// reviewers, err := rulesvc.GetApprovers(ctx, n.DB, rule)
 		_, err = n.DB.Query(ctx, &reviewers)
 
 		if err != nil {
@@ -156,7 +156,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 				return errors.Wrap(err, "building review URL")
 			}
 			// Here we want to update the original approvers slack messages
-			summary, msg := BuildRequestMessage(RequestMessageOpts{
+			_, msg := BuildRequestMessage(RequestMessageOpts{
 				Request:          req,
 				Rule:             rule,
 				RequestorSlackID: slackUserID,
@@ -170,14 +170,12 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 				continue
 			}
 			// @TODO ENSURE THAT THIS UPDATES RATHER THAN SENDS NEW
-			_, err = SendMessageBlocks(ctx, slackClient, approver.Result.Email, msg, summary)
+			msg.Timestamp = usr.SlackMessageID
+			err = UpdateMessageBlocks(ctx, slackClient, approver.Result.Email, msg)
 			if err != nil {
 				log.Errorw("failed to send updated request approval message", "user", usr, zap.Error(err))
 			}
 		}
-		// continue
-
-		// }
 
 	case gevent.RequestCancelledType:
 		// TODO: handle update
