@@ -207,19 +207,11 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return fmt.Errorf("Something went wrong calling Azure with provided credentials: %s", err)
 				}
-				clio.Success("List groups works")
 
 				_, err = testprovider.Client.ListUsers(ctx)
 				if err != nil {
 					return fmt.Errorf("Something went wrong calling Azure with provided credentials: %s", err)
 				}
-				clio.Success("List users works")
-
-				// _, err = testprovider.Client.ListGroupUsers(ctx, groups[0].ID)
-				// if err != nil {
-				// 	return fmt.Errorf("Something went wrong calling Azure with provided credentials: %s, %s", err, groups[0].ID)
-				// }
-				// clio.Success("List group members works")
 
 				clio.Success("SSM Parameters set successfully")
 
