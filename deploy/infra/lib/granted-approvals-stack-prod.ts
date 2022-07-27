@@ -9,6 +9,7 @@ import { WebUserPool } from "./constructs/app-user-pool";
 import { CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
+import { generateOutputs } from "./helpers/outputs";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -153,81 +154,30 @@ export class CustomerGrantedStack extends cdk.Stack {
     });
 
     /* Outputs */
-
-    new cdk.CfnOutput(this, "CognitoClientID", {
-      value: webUserPool.getUserPoolClientId(),
-    });
-
-    new cdk.CfnOutput(this, "CloudFrontDomain", {
-      value: appFrontend.getCloudFrontDomain(),
-    });
-
-    new cdk.CfnOutput(this, "FrontendDomainOutput", {
-      value: appFrontend.getDomainName(),
-    });
-
-    new cdk.CfnOutput(this, "CloudFrontDistributionID", {
-      value: appFrontend.getDistributionId(),
-    });
-
-    new cdk.CfnOutput(this, "S3BucketName", {
-      value: appFrontend.getBucketName(),
-    });
-
-    new cdk.CfnOutput(this, "UserPoolID", {
-      value: webUserPool.getUserPoolId(),
-    });
-
-    new cdk.CfnOutput(this, "UserPoolDomain", {
-      value: webUserPool.getUserPoolLoginFQDN(),
-    }).node.addDependency(webUserPool);
-
-    new cdk.CfnOutput(this, "APIURL", {
-      value: appBackend.getApprovalsApiURL(),
-    });
-
-    new cdk.CfnOutput(this, "APILogGroupName", {
-      value: appBackend.getLogGroupName(),
-    });
-    new cdk.CfnOutput(this, "IDPSyncLogGroupName", {
-      value: appBackend.getIdpSync().getLogGroupName(),
-    });
-    new cdk.CfnOutput(this, "AccessHandlerLogGroupName", {
-      value: accessHandler.getLogGroupName(),
-    });
-
-    new cdk.CfnOutput(this, "EventBusLogGroupName", {
-      value: events.getLogGroupName(),
-    });
-    new cdk.CfnOutput(this, "EventsHandlerLogGroupName", {
-      value: appBackend.getEventHandler().getLogGroupName(),
-    });
-
-    new cdk.CfnOutput(this, "GranterLogGroupName", {
-      value: accessHandler.getGranter().getLogGroupName(),
-    });
-
-    new cdk.CfnOutput(this, "SlackNotifierLogGroupName", {
-      value: appBackend.getNotifiers().getSlackLogGroupName(),
-    });
-    new cdk.CfnOutput(this, "DynamoDBTable", {
-      value: appBackend.getDynamoTableName(),
-    });
-
-    new cdk.CfnOutput(this, "GranterStateMachineArn", {
-      value: accessHandler.getGranter().getStateMachineARN(),
-    });
-    new cdk.CfnOutput(this, "EventBusArn", {
-      value: events.getEventBus().eventBusArn,
-    });
-    new cdk.CfnOutput(this, "EventBusSource", {
-      value: events.getEventBusSourceName(),
-    });
-    new cdk.CfnOutput(this, "IdpSyncFunctionName", {
-      value: appBackend.getIdpSync().getFunctionName(),
-    });
-    new cdk.CfnOutput(this, "Region", {
-      value: this.region,
+    generateOutputs(this, {
+      CognitoClientID: webUserPool.getUserPoolClientId(),
+      CloudFrontDomain: appFrontend.getCloudFrontDomain(),
+      FrontendDomainOutput: appFrontend.getDomainName(),
+      CloudFrontDistributionID: appFrontend.getDistributionId(),
+      S3BucketName: appFrontend.getBucketName(),
+      UserPoolID: webUserPool.getUserPoolId(),
+      UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
+      APIURL: appBackend.getApprovalsApiURL(),
+      APILogGroupName: appBackend.getLogGroupName(),
+      IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
+      AccessHandlerLogGroupName: accessHandler.getLogGroupName(),
+      EventBusLogGroupName: events.getLogGroupName(),
+      EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
+      GranterLogGroupName: accessHandler.getGranter().getLogGroupName(),
+      SlackNotifierLogGroupName: appBackend
+        .getNotifiers()
+        .getSlackLogGroupName(),
+      DynamoDBTable: appBackend.getDynamoTableName(),
+      GranterStateMachineArn: accessHandler.getGranter().getStateMachineARN(),
+      EventBusArn: events.getEventBus().eventBusArn,
+      EventBusSource: events.getEventBusSourceName(),
+      IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
+      Region: this.region,
     });
   }
 }

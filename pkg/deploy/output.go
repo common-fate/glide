@@ -20,7 +20,7 @@ import (
 type Output struct {
 	UserPoolDomain           string `json:"UserPoolDomain"`
 	CloudFrontDomain         string `json:"CloudFrontDomain"`
-	FrontendDomain           string `json:"FrontendDomain"`
+	FrontendDomainOutput     string `json:"FrontendDomainOutput"`
 	APIURL                   string `json:"APIURL"`
 	DynamoDBTable            string `json:"DynamoDBTable"`
 	CognitoClientID          string `json:"CognitoClientID"`
@@ -34,11 +34,11 @@ type Output struct {
 }
 
 func (c Output) FrontendURL() string {
-	if c.FrontendDomain == "" {
+	if c.FrontendDomainOutput == "" {
 		return "https://" + c.CloudFrontDomain
 	}
 
-	return "https://" + c.FrontendDomain
+	return "https://" + c.FrontendDomainOutput
 }
 
 func (c Output) PrintTable() {
