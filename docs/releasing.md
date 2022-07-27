@@ -13,3 +13,61 @@ s3://granted-test-releases-us-east-1/rc/<TAG>/Granted.template.json
 ```
 
 Where `<TAG>` is the RC tag, e.g. `v0.2.0-rc2`.
+
+
+# Running Granted Approvals Locally
+The goal with Granted Approvals was to keep local development environments as similar to deployments as possible. This makes spinning up a dev environment super simple.
+
+Start by exporting some AWS credentials, using whatever method you like. Here we just run `assume` using [Granted](https://granted.dev/).
+```
+assume rolename
+```
+
+
+Then initiate the dev deployment by running: 
+```
+mage deploy:dev
+```
+The command will ask some prompts for naming your dev deployment and which region to deploy some of the resources into.
+
+It will create a CDK changeset and ask to continue with the provisioning, input _yes_.
+
+Once it has completed successfully you will receive the following success message in your console:
+```
+ ✅  GrantedDev (granted-approvals-dev-deployment)
+
+✨  Deployment time: 749.51s
+```
+**Note: This can take up to 5 minutes to complete, it is highly recommended to go make a coffee during this process ☕**
+
+The mage scripts will export all necessary variables from the CDK outputs and set them in your `.env` file
+
+From here you should have successfully deployed a local dev environment and can run the server by running:
+```
+go run cmd/server/main.go
+```
+And the frontend locally by running:
+```
+cd web
+pnpm install
+pnpm dev
+```
+
+If at any point you make updates that effect any of the deployed cloud resources you can run `mage deploy:dev` to update these. 
+
+**Never use `gdeploy create` or `gdeploy update` when working with a local deployment.**
+
+## Extras
+All additional commands to be run are all the same as if it was a live deployment using `gdeploy`.
+### Setting up a new provider
+To create a new provider run:
+```
+gdeploy provider add
+```
+- Docs for setting this up here: [Provider Docs](https://docs.commonfate.io/granted-approvals/providers/introduction)
+### Setting up a SSO identity provider]
+To create a new identity provider run:
+```
+gdeploy sso configure
+```
+- Docs for setting this up here: [SSO Docs](https://docs.commonfate.io/granted-approvals/sso/introduction)
