@@ -2,7 +2,6 @@ package slacknotifier
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/slack-go/slack"
 )
@@ -37,18 +36,12 @@ func UpdateMessageBlocks(ctx context.Context, slackClient *slack.Client, userEma
 	// Research further
 	// https://github.com/jace-ys/bingsoo/blob/25bc364265edc999c2c7f168bc4701b8e107ee5d/pkg/session/vote.go#L63
 
-	// test := slack.MsgOptionBlocks()
-
 	// We now want to update the message
-	_, ts, _, err := slackClient.UpdateMessageContext(ctx, result.Conversation.ID, message.Timestamp, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
+	_, _, _, err = slackClient.UpdateMessageContext(ctx, result.Conversation.ID, message.Timestamp, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
 
 	if err != nil {
 		return err
 	}
-
-	// could also handle update logic here....
-	// employ ts to run the update
-	fmt.Print(ts)
 
 	return nil
 }

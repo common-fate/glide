@@ -83,7 +83,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 				}
 
 				wg.Add(1)
-				go func() {
+				go func(usr access.Reviewer) {
 					defer wg.Done()
 					approver := storage.GetUser{ID: usr.ReviewerID}
 					_, err := n.DB.Query(ctx, &approver)
@@ -105,15 +105,16 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 						log.Errorw("failed to send request approval message", "user", usr, zap.Error(err))
 					}
 
-					usr.SlackMessageID = ts
-					log.Infow("updating reviewer with slack msg id", "usr.SlackMessageID", ts)
+					updatedUsr := usr
+					updatedUsr.SlackMessageID = ts
+					log.Infow("updating reviewer with slack msg id", "updatedUsr.SlackMessageID", ts)
 
-					err = n.DB.Put(ctx, &usr)
+					err = n.DB.Put(ctx, &updatedUsr)
 
 					if err != nil {
 						log.Errorw("failed to update reviewer", "user", usr, zap.Error(err))
 					}
-				}()
+				}(usr)
 			}
 
 			wg.Wait()
@@ -136,6 +137,8 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		if err != nil {
 			return errors.Wrap(err, "getting reviewers")
 		}
+
+		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
 			if usr.ReviewerID == req.RequestedBy {
