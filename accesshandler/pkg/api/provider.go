@@ -21,7 +21,7 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 
 		return
 	}
-	apio.JSON(r.Context(), w, prov, http.StatusOK)
+	apio.JSON(r.Context(), w, prov.ToAPI(), http.StatusOK)
 }
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 	var listProvidersResponse []types.Provider
