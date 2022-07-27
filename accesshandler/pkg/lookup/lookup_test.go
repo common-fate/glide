@@ -67,7 +67,8 @@ func TestFromCLIOption(t *testing.T) {
 	}
 }
 
-// The following test enforces a convention that Provider structs do not have any exported fields, this is to help ensure secrets are not leaked inadvertently.
+// The following test enforces a convention that Provider structs do not have any exported fields, this is one part of helping to ensure secrets are not logged.
+// json.Marshal for example will not include unexported values.
 func TestProvidersHaveNoPublicAttributes(t *testing.T) {
 	for _, tc := range Registry().Providers {
 		t.Run(tc.DefaultID, func(t *testing.T) {
@@ -78,7 +79,6 @@ func TestProvidersHaveNoPublicAttributes(t *testing.T) {
 				}
 				// dereference to get a value
 				v = v.Elem()
-				fmt.Println(v.Kind().String())
 			}
 			// check for any exported fields
 			for _, f := range reflect.VisibleFields(v.Type()) {
