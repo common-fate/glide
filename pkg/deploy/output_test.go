@@ -29,6 +29,13 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c = exec.Command("ls")
+	c.Dir = cwd
+	c.Stdout = os.Stdout
+	err = c.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
 	testOutputs, err := os.ReadFile(path.Join(cwd, "testOutputs.json"))
 	if err != nil {
 		t.Fatal(err)

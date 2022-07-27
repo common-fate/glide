@@ -52,10 +52,8 @@ jobs:
 
       - name: Lint
         run: go vet ./...
-      - name: Lint
-        run: ls
-      - name: Lint
-        run: cd deploy/infra && ls
+      - name: generate test json
+        run: cd deploy/infra && pnpm ts-node ./test/stack-outputs.ts
 
       - name: Test
         run: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
