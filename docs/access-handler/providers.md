@@ -4,11 +4,10 @@ The access handler uses a provider framework which allows new services to be int
 
 ### Adding a provider
 
-Providers are defined in accesshandler/pkg/providers if this provider is for a service which may have multiple possible providers, create a parent folder and
-then create a specific folder for your new provider. E.g aws/sso or azure/ad otherwise, a single folder is ok e.g okta
+Providers are defined in accesshandler/pkg/providers if this provider is for a service which may have multiple possible providers, create a parent folder and then create a specific folder for your new provider. E.g aws/sso or azure/ad otherwise, a single folder is ok e.g okta
 
-One of the simplest ways to get started is to copy an existing provider and update the api calls.
-A provider should have the following files.
+One of the simplest ways to get started is to copy an existing provider and update the API calls.
+A provider should have the following files:
 
 ```
 accesshandler
@@ -25,7 +24,7 @@ accesshandler
 
 ### access.go
 
-Should contain an implementation for the accessor interface.
+This file should contain an implementation for the accessor interface.
 
 ```go
 type Accessor interface {
@@ -37,11 +36,9 @@ type Accessor interface {
 }
 ```
 
-It should also contain a struct `Args` always call this `Args` by convention.
-Args defines what is being requested when granting access. for example, in Okta, a groupId is requested. Args should contain all the
-parameters required by your provider implementation.
+It should also contain a struct `Args` always call this `Args` by convention. Args defines what is being requested when granting access. For example, in Okta, a `groupId` is requested. Args should contain all the parameters required by your provider implementation.
 
-Args must define both `json` and `jsonschema` tags there is some automation which happens whereby the Args struct is used to dynamically render part of the Create Access Rule form in the frontend. This allows flexibility when creating new providers because the frontend does not need to be updated to work with a new provider.
+The `Args` struct must define both `json` and `jsonschema` tags. There is some automation happening whereby the `Args` struct is used to dynamically render part of the `Create Access Rule` form in the frontend. This allows flexibility when creating new providers as it means the frontend does not need to be updated to work with a new provider.
 
 ```
 type Args struct {
@@ -49,7 +46,7 @@ type Args struct {
 }
 ```
 
-The Grant and Revoke interface provides `args []byte` which will be a serialised json string. It can be unmarshalled into the Args type.
+The `Grant` and `Revoke` interface provides `args []byte` which will be a serialised json string. It can be unmarshalled into the `Args` type.
 
 ```go
 // Grant the access by calling the AWS SSO API.
@@ -65,7 +62,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 
 ### errors.go
 
-Should contain named error declarations e.g
+This file should contain named error declarations. For example:
 
 ```go
 var ErrTargetNotExist error = errors.New("the traget does not exist")
@@ -73,21 +70,21 @@ var ErrTargetNotExist error = errors.New("the traget does not exist")
 
 ### okta_test.go
 
-A test file containing testing that works with the testing framework, see [testing](testing.md) for more information.
+This is a test file containing testing that works with the testing framework. See [testing](testing.md) for more information.
 
 You may implement any other unit tests that as you see fit.
 
 ### okta.go
 
-This file, named after the provider, should contain a struct definition `Provider` by convention, always name this `Provider`.
+This file is named after the provider and should contain a struct definition `Provider`. By convention, always name this `Provider`.
 
-The provider struct should contain unexported configuration params required to make API calls etc.
+The `Provider` struct should contain unexported configuration params required to make API calls etc.
 
-As required, your provider may implement the Configer, Initer and ArgSchemarer interface full descriptions are available in the [source code](../../accesshandler/pkg/providers/providers.go). These optional interfaces are run to initialise your provider.
+As required, your provider may implement the `Configer`, `Initer` and `ArgSchemarer` interfaces. Full descriptions are available in the [source code](../../accesshandler/pkg/providers/providers.go). These optional interfaces are run to initialise your provider.
 
-If implemented Config is called first, followed by Init. Find out more about genv and how to use it [here](genv.md).
+If implemented, `Config` is called first, followed by `Init`. Find out more about genv and how to use it [here](genv.md).
 
-ArgSchema should return jsonSchema, this jsonSchema is used to render a dynamic form element in the frontend, We have been using `jsonschema.Reflect(&Args{})` however if you needed something more custom, you could implement that here.
+`ArgSchema` should return `jsonSchema`. This `jsonSchema` is used to render a dynamic form element in the frontend. We have been using `jsonschema.Reflect(&Args{})` however if you needed something more custom, you could implement that here.
 
 ```go
 type Configer interface {
@@ -137,9 +134,9 @@ func (o *Provider) ArgSchema() *jsonschema.Schema {
 
 ### options.go
 
-Options should contain an implementation of the ArgOptioner interface. This interface accepts an arg key and the response should be the options for that arg. The args are defined in the `Args` struct in access.go
+The options file should contain an implementation of the `ArgOptioner` interface. This interface accepts an arg key and the response should be the options for that arg. The args are defined in the `Args` struct in access.go
 
-The Options type is a label value pair which is rendered in the frontend based on the arg schema.
+The `Options` type is a label value pair which is rendered in the frontend based on the arg schema.
 
 ```go
 type ArgOptioner interface {
@@ -150,7 +147,7 @@ type ArgOptioner interface {
 
 ### validate.go
 
-Validate contains an implementation of the Validator interface. This interface provides args, which is serialised json object.
+The validate file contains an implementation of the `Validator` interface. This interface provides args, which is serialised json object.
 As above, unmarshal this into the `Args` struct and validate the parameters. For example, if args contains a groupId, check that the groupId exists in the target. Also check that the user exists in the target.
 
 The subject will be an email address of the user to grant access to.

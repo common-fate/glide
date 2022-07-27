@@ -16,11 +16,9 @@ Where `<TAG>` is the RC tag, e.g. `v0.2.0-rc2`.
 
 
 # Running Granted Approvals Locally
-The goals with Granted Approvals was to keep local development environments as similar to deployments as possible. 
-This makes spinning up a dev environment super simple.
+The goal with Granted Approvals was to keep local development environments as similar to deployments as possible. This makes spinning up a dev environment super simple.
 
-Start by exporting some AWS credentials, using whatever method you like.
-Here we just run `assume` using [Granted](https://granted.dev/).
+Start by exporting some AWS credentials, using whatever method you like. Here we just run `assume` using [Granted](https://granted.dev/).
 ```
 assume rolename
 ```
@@ -32,9 +30,9 @@ mage deploy:dev
 ```
 The command will ask some prompts for naming your dev deployment and which region to deploy some of the resources into.
 
-It will create a CDK changeset and ask to continue with the provisioning, input yes.
+It will create a CDK changeset and ask to continue with the provisioning, input _yes_.
 
-Once its completed successfully you will recieve the following success message in your console:
+Once it has completed successfully you will receive the following success message in your console:
 ```
  ✅  GrantedDev (granted-approvals-dev-deployment)
 

@@ -6,4 +6,4 @@ We use a code generation library to generate all the go structs and HTTP endpoin
 
 ### Generating code / Updating the API spec
 
-Refer to the [main backend docs](../backend/backend.md) as we use the same processes for the approvals backend and the access handler api.
+Refer to the [main backend docs](../backend/backend.md) as we use the same processes for the approvals backend and the access handler API.
