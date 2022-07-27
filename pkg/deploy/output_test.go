@@ -14,11 +14,18 @@ import (
 // making a change to either will cause this test to fail.
 // When you add a new output to the TS type, you will need to add it to the Go struct Output and update this test
 func TestOutputStructMatchesTSType(t *testing.T) {
-
+	c := exec.Command("ls")
+	c.Stdout = os.Stdout
+	err := c.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
 	cwd := "../../deploy/infra"
 	cmd := exec.Command("pnpm", "ts-node", "./test/stack-outputs.ts")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = cwd
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		t.Fatal(err)
 	}
