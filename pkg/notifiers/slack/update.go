@@ -45,9 +45,13 @@ func UpdateMessageBlocks(ctx context.Context, slackClient *slack.Client, userEma
 	t := time.Now()
 	_, ts, _, err := slackClient.UpdateMessageContext(ctx, result.Conversation.ID, t.String(), test)
 
+	if err != nil {
+		return err
+	}
+
 	// could also handle update logic here....
 	// employ ts to run the update
-	fmt.Printf(ts)
+	fmt.Print(ts)
 
 	return nil
 }
