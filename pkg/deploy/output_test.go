@@ -14,25 +14,14 @@ import (
 // making a change to either will cause this test to fail.
 // When you add a new output to the TS type, you will need to add it to the Go struct Output and update this test
 func TestOutputStructMatchesTSType(t *testing.T) {
-	c := exec.Command("ls")
-	c.Stdout = os.Stdout
-	err := c.Start()
-	if err != nil {
-		t.Fatal(err)
-	}
 	cwd := "../../deploy/infra"
+	// This command doesn't seem to work in github actions, the file ends up not existing.
+	// Instead, I added a step in github actions which runs this same pnpm command which makes this test work correctly
 	cmd := exec.Command("pnpm", "ts-node", "./test/stack-outputs.ts")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = cwd
-	err = cmd.Start()
-	if err != nil {
-		t.Fatal(err)
-	}
-	c = exec.Command("ls")
-	c.Dir = cwd
-	c.Stdout = os.Stdout
-	err = c.Start()
+	err := cmd.Start()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -52,82 +52,83 @@ jobs:
 
       - name: Lint
         run: go vet ./...
+      # There is an issue in the test pkg/deploy.output_test.go which doesn't run this command correctly so it is added here to ensure the test works
       - name: generate test json
         run: cd deploy/infra && pnpm ts-node ./test/stack-outputs.ts
 
       - name: Test
         run: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
 
-  # golangci:
-  #   name: Go Lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/setup-go@v3
-  #       with:
-  #         go-version: 1.17.8
-  #     - uses: actions/checkout@v3
-  #     - name: golangci-lint
-  #       uses: golangci/golangci-lint-action@v3
-  #       with:
-  #         version: v1.29
-  #         args: --timeout=3m
+  golangci:
+    name: Go Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.17.8
+      - uses: actions/checkout@v3
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.29
+          args: --timeout=3m
 
-  # test-frontend:
-  #   name: Test NodeJS
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     NODE_ENV: test
+  test-frontend:
+    name: Test NodeJS
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
 
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 7.1.5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
 
-  #     - name: Setup NodeJS
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: "16"
-  #         cache: "pnpm"
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
 
-  #     - name: Install NodeJS dependencies
-  #       run: pnpm install
+      - name: Install NodeJS dependencies
+        run: pnpm install
 
-  #     - name: Create empty aws-exports.js
-  #       run: echo 'export default {};' > ./web/src/utils/aws-exports.js
+      - name: Create empty aws-exports.js
+        run: echo 'export default {};' > ./web/src/utils/aws-exports.js
 
-  #     - name: Run ESLint
-  #       run: pnpm run lint:ci
-  #       working-directory: web
+      - name: Run ESLint
+        run: pnpm run lint:ci
+        working-directory: web
 
-  #     - name: Run Tests
-  #       run: pnpm run -r test
+      - name: Run Tests
+        run: pnpm run -r test
 
-  #     - name: Build
-  #       run: pnpm run build
-  #       working-directory: web
-  # test-accesshandler:
-  #   name: Test Access Handler
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GRANTED_INTEGRATION_TEST: true
-  #     PROVIDER_CONFIG: '{"okta":{"orgUrl":"${{ secrets.OKTA_ORG_URL }}","apiToken":"${{ secrets.OKTA_API_TOKEN }}"}}'
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v1
+      - name: Build
+        run: pnpm run build
+        working-directory: web
+  test-accesshandler:
+    name: Test Access Handler
+    runs-on: ubuntu-latest
+    env:
+      GRANTED_INTEGRATION_TEST: true
+      PROVIDER_CONFIG: '{"okta":{"orgUrl":"${{ secrets.OKTA_ORG_URL }}","apiToken":"${{ secrets.OKTA_API_TOKEN }}"}}'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
 
-  #     - name: Setup Go
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: "1.17.8"
-  #         cache: true
-  #     - name: generate fixtures
-  #       run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta --path accesshandler/fixtures
-  #     - name: test okta
-  #       run: go test ./accesshandler/pkg/providers/okta
-  #     - name: destroy fixtures
-  #       if: always() #always destroy the fixture even if the test fails
-  #       run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name okta --path accesshandler/fixtures
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.8"
+          cache: true
+      - name: generate fixtures
+        run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta --path accesshandler/fixtures
+      - name: test okta
+        run: go test ./accesshandler/pkg/providers/okta
+      - name: destroy fixtures
+        if: always() #always destroy the fixture even if the test fails
+        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name okta --path accesshandler/fixtures
