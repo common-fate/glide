@@ -32,13 +32,13 @@ mage deploy:dev
 ```
 The command will ask some prompts for naming your dev deployment and which region to deploy some of the resources into.
 
-It will create a changeset and ask to continue with the provisioning, input yes
+It will create a CDK changeset and ask to continue with the provisioning, input yes.
 
 Once its completed successfully you will recieve the following success message in your console:
 ```
  ✅  GrantedDev (granted-approvals-dev-deployment)
 
-✨  Deployment time: 149.51s
+✨  Deployment time: 749.51s
 ```
 **Note: This can take up to 5 minutes to complete, it is highly recommended to go make a coffee during this process ☕**
 
@@ -54,3 +54,22 @@ cd web
 pnpm install
 pnpm dev
 ```
+
+If at any point you make updates that effect any of the deployed cloud resources you can run `mage deploy:dev` to update these. 
+
+**Never use `gdeploy create` or `gdeploy update` when working with a local deployment.**
+
+## Extras
+All additional commands to be run are all the same as if it was a live deployment using `gdeploy`.
+### Setting up a new provider
+To create a new provider run:
+```
+gdeploy provider add
+```
+- Docs for setting this up here: [Provider Docs](https://docs.commonfate.io/granted-approvals/providers/introduction)
+### Setting up a SSO identity provider]
+To create a new identity provider run:
+```
+gdeploy sso configure
+```
+- Docs for setting this up here: [SSO Docs](https://docs.commonfate.io/granted-approvals/sso/introduction)
