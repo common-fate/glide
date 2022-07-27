@@ -26,7 +26,7 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 	var listProvidersResponse []types.Provider
 	for _, p := range config.Providers {
-		listProvidersResponse = append(listProvidersResponse, types.Provider{Id: p.ID, Type: p.Type})
+		listProvidersResponse = append(listProvidersResponse, p.ToAPI())
 	}
 	// Ensure consistent order of the response alphabetically
 	sort.Slice(listProvidersResponse, func(i, j int) bool { return listProvidersResponse[i].Id < listProvidersResponse[j].Id })
