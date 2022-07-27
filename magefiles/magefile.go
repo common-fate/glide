@@ -281,7 +281,7 @@ func Dotenv() error {
 	myEnv["IDENTITY_PROVIDER"] = idpType
 	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
-	myEnv["GRANTED_RUNTIME"] = "local"
+	myEnv["GRANTED_RUNTIME"] = "lambda"
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {

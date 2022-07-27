@@ -2,7 +2,7 @@ import { Box, BoxProps, HStack, Text } from "@chakra-ui/react";
 import React from "react";
 import { Link } from "react-location";
 import { useUserGetAccessRule } from "../utils/backend-client/end-user/end-user";
-import { getProviderIcon } from "./icons/providerIcon";
+import { ProviderIcon } from "./icons/providerIcon";
 
 type Props = {
   reason?: string;
@@ -29,7 +29,7 @@ export const RuleNameCell: React.FC<Props> = ({
         {...rest}
       >
         <HStack>
-          {getProviderIcon(data?.target.provider)}
+          <ProviderIcon provider={data?.target.provider} />
           <Text
             _groupHover={{
               textDecor: isAdmin ? "underline" : undefined,

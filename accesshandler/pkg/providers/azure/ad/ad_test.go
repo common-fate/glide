@@ -36,9 +36,9 @@ func NewCustomLogger(pipeTo io.Writer) zapcore.Core {
 // TestLogging verifies that we don't accidentally log the azure API token when using zap.
 func TestLogging(t *testing.T) {
 	p := Provider{
-		ClientID:     "test",
-		TenantID:     "tenantid",
-		ClientSecret: "secret",
+		clientID:     "test",
+		tenantID:     "tenantid",
+		clientSecret: "secret",
 	}
 
 	b := &bytes.Buffer{}

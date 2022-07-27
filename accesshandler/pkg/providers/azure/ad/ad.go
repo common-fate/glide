@@ -13,17 +13,17 @@ const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
 const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type Provider struct {
-	Client       AzureClient
-	TenantID     string `yaml:"tenantID"`
-	ClientID     string `yaml:"clientID"`
-	ClientSecret string `yaml:"clientSecret"`
+	client       AzureClient
+	tenantID     string
+	clientID     string
+	clientSecret string
 }
 
 func (a *Provider) Config() genv.Config {
 	return genv.Config{
-		genv.String("tenantID", &a.TenantID, "the azure tenant ID"),
-		genv.String("clientID", &a.ClientID, "the azure client ID"),
-		genv.SecretString("clientSecret", &a.ClientSecret, "the azure API token"),
+		genv.String("tenantID", &a.tenantID, "the azure tenant ID"),
+		genv.String("clientID", &a.clientID, "the azure client ID"),
+		genv.SecretString("clientSecret", &a.clientSecret, "the azure API token"),
 	}
 }
 
@@ -32,14 +32,14 @@ func (a *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configuring azure client")
 
 	client, err := NewAzure(ctx, deploy.Azure{
-		TenantID:     a.TenantID,
-		ClientID:     a.ClientID,
-		ClientSecret: a.ClientSecret,
+		TenantID:     a.tenantID,
+		ClientID:     a.clientID,
+		ClientSecret: a.clientSecret,
 	})
 	if err != nil {
 		return err
 	}
-	a.Client = *client
+	a.client = *client
 	return nil
 }
 

@@ -12,7 +12,7 @@ import {
 import React from "react";
 import { useListProviders } from "../../../../utils/backend-client/default/default";
 import { Provider } from "../../../../utils/backend-client/types";
-import { getProviderIcon } from "../../../icons/providerIcon";
+import { ProviderIcon } from "../../../icons/providerIcon";
 
 interface ProviderRadioProps extends RadioProps {
   provider: Provider;
@@ -56,7 +56,8 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
           />
         )}
         <HStack>
-          {getProviderIcon(props.provider)}
+          <ProviderIcon provider={props.provider} />
+
           <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
             {props.provider.id}
           </Text>

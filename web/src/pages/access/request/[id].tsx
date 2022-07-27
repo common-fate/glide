@@ -34,7 +34,7 @@ import {
   Hours,
   Minutes,
 } from "../../../components/DurationInput";
-import { getProviderIcon } from "../../../components/icons/providerIcon";
+import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
@@ -213,7 +213,7 @@ const Home: NextPage = () => {
               {rule ? (
                 <>
                   <Flex align="center" mr="auto">
-                    {getProviderIcon(rule?.target.provider)}
+                    <ProviderIcon provider={rule?.target.provider} />
                     <Text ml={2} textStyle="Body/Medium" color="neutrals.600">
                       {rule?.name}
                     </Text>

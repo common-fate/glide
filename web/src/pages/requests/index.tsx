@@ -333,45 +333,8 @@ const getRequestOption = (req: Request): RequestOption => {
 const UserAccessCard: React.FC<{
   req: Request;
   type: "upcoming" | "past";
-  onCancel?: () => void;
-}> = ({ req, type, onCancel }) => {
+}> = ({ req, type }) => {
   const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
-
-  const toast = useToast();
-
-  const { mutate: refreshAll } = useUserListRequests();
-  const { mutate: refreshPending } = useUserListRequests({ status: "PENDING" });
-
-  const handleCancel = async () => {
-    if (req === undefined) return;
-    try {
-      await cancelRequest(req.id, {});
-      toast({
-        title: "Request cancelled",
-        status: "success",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-      onCancel && onCancel();
-    } catch (err) {
-      let description: string | undefined;
-      if (axios.isAxiosError(err)) {
-        // @ts-ignore
-        description = err?.response?.data.error;
-      }
-      toast({
-        title: "Error cancelling request",
-        description,
-        status: "error",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-    }
-    refreshAll();
-    refreshPending();
-  };
 
   const option = getRequestOption(req);
 
@@ -416,26 +379,6 @@ const UserAccessCard: React.FC<{
                     {renderTiming(req.timing)}
                   </Text>
                 </Box>
-                {option === "cancel" && (
-                  <Button
-                    variant="outline"
-                    bg="white"
-                    rounded="full"
-                    position="absolute"
-                    top={-6}
-                    right={8}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      handleCancel();
-                    }}
-                    // these two properties escape the button from the parent link
-                    as="a"
-                    href="#cancel"
-                  >
-                    Cancel
-                  </Button>
-                )}
               </Flex>
             </Stack>
           </Flex>

@@ -20,12 +20,12 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 	}
 	log := zap.S().With("args", a)
 	log.Info("getting azure user")
-	user, err := p.Client.GetUser(ctx, subject)
+	user, err := p.client.GetUser(ctx, subject)
 	if err != nil {
 		return err
 	}
 	log.Info("adding azure-AD user to group")
-	err = p.Client.AddUserToGroup(ctx, user.ID, a.GroupID)
+	err = p.client.AddUserToGroup(ctx, user.ID, a.GroupID)
 	return err
 }
 
@@ -38,12 +38,12 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 	}
 	log := zap.S().With("args", a)
 	log.Info("getting azure user")
-	user, err := p.Client.GetUser(ctx, subject)
+	user, err := p.client.GetUser(ctx, subject)
 	if err != nil {
 		return err
 	}
 	log.Info("removing azure-AD user from group")
-	err = p.Client.RemoveUserFromGroup(ctx, user.ID, a.GroupID)
+	err = p.client.RemoveUserFromGroup(ctx, user.ID, a.GroupID)
 	return err
 }
 
@@ -55,7 +55,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (b
 		return false, err
 	}
 
-	users, err := p.Client.ListGroupUsers(ctx, a.GroupID)
+	users, err := p.client.ListGroupUsers(ctx, a.GroupID)
 	if err != nil {
 		return false, err
 	}
