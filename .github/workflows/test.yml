@@ -52,6 +52,10 @@ jobs:
 
       - name: Lint
         run: go vet ./...
+      - name: Lint
+        run: ls
+      - name: Lint
+        run: cd deploy/infra && ls
 
       - name: Test
         run: go test ./... -race -coverprofile=coverage.txt -covermode=atomic
