@@ -13,3 +13,21 @@ s3://granted-test-releases-us-east-1/rc/<TAG>/Granted.template.json
 ```
 
 Where `<TAG>` is the RC tag, e.g. `v0.2.0-rc2`.
+
+
+# Running Granted Approvals Locally
+The goals with Granted Approvals was to keep local development environments as similar to deployments as possible. 
+This makes spinning up a dev environment super simple.
+
+Start by exporting some AWS credentials, using whatever method you like.
+Here we just run `assume` using [Granted](https://granted.dev/)
+```
+assume rolename
+```
+
+
+
+```
+mage deploy:dev
+```
+The command wil
