@@ -277,10 +277,11 @@ func Dotenv() error {
 	myEnv["EVENT_BUS_SOURCE"] = o.EventBusSource
 	myEnv["IDENTITY_SETTINGS"] = idConf
 	myEnv["PROVIDER_CONFIG"] = providerConf
+	myEnv["STATE_MACHINE_ARN"] = o.StateMachineARN
 	myEnv["IDENTITY_PROVIDER"] = idpType
 	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
-	myEnv["GRANTED_RUNTIME"] = "local"
+	myEnv["GRANTED_RUNTIME"] = "lambda"
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {

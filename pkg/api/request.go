@@ -270,7 +270,7 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 		req = q.Result.Request
 	}
 
-	res, err := a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req})
+	res, err := a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
 	if err == grantsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return

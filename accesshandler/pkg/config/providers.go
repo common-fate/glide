@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/lookup"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/pkg/errors"
 )
 
@@ -21,7 +22,15 @@ type Provider struct {
 	ID       string
 	Type     string
 	Version  string
-	Provider providers.Accessor
+	Provider providers.Accessor `json:"-"`
+}
+
+func (p *Provider) ToAPI() types.Provider {
+	return types.Provider{
+		Id:   p.ID,
+		Type: p.Type,
+	}
+
 }
 
 // ReadProviderConfig will fetch the provider config based on the runtime

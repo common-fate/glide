@@ -6,7 +6,7 @@ import {
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/default/default";
 import { AccessRuleTarget } from "../../../../utils/backend-client/types";
-import { getProviderIcon } from "../../../icons/providerIcon";
+import { ProviderIcon } from "../../../icons/providerIcon";
 
 export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   target,
@@ -43,7 +43,8 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
-        {getProviderIcon(target.provider)}
+        <ProviderIcon provider={target.provider} />
+
         <Text>{target.provider.id}</Text>
       </HStack>
 

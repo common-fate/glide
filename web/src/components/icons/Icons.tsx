@@ -63,6 +63,26 @@ export const OktaIcon = createIcon({
   ),
 });
 
+export const AzureIcon = createIcon({
+  displayName: "AzureIcon",
+  viewBox: "0 0 24 24",
+  path: (
+    <svg width={24} height={24} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clipPath="url(#a)">
+        <path
+          d="M13.113 2.535 6.036 8.67 0 19.507h5.444l7.669-16.972Zm.94 1.435-3.019 8.51 5.79 7.275-11.233 1.93H24L14.054 3.97Z"
+          fill="#0072C6"
+        />
+      </g>
+      <defs>
+        <clipPath id="a">
+          <path fill="#fff" d="M0 0h24v23.999H0z" />
+        </clipPath>
+      </defs>
+    </svg>
+  ),
+});
+
 export const GrantedKeysIcon = createIcon({
   displayName: "GrantedKeysIcon",
   viewBox: "0 0 93 130",

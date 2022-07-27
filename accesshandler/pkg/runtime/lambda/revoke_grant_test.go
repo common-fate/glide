@@ -78,6 +78,7 @@ func TestRevokeGrant(t *testing.T) {
 	}
 
 	grant, err := runtime.CreateGrant(ctx, types.ValidCreateGrant{CreateGrant: types.CreateGrant{
+		Id:       "TESTGRANT",
 		Start:    iso8601.Now(),
 		End:      iso8601.New(time.Now().Add(time.Minute)),
 		Subject:  openapi_types.Email(testCfg.Email),
