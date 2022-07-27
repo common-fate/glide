@@ -50,26 +50,6 @@ export const AWSIcon = createIcon({
   ),
 });
 
-<svg
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <g clip-path="url(#clip0_616_2889)">
-    <path
-      d="M13.1129 2.53482L6.03626 8.67033L0 19.5072H5.44357L13.1129 2.53482ZM14.0539 3.97015L11.0342 12.4809L16.8237 19.7552L5.59063 21.6852H24L14.0539 3.97015Z"
-      fill="#0072C6"
-    />
-  </g>
-  <defs>
-    <clipPath id="clip0_616_2889">
-      <rect width="24" height="23.9991" fill="white" />
-    </clipPath>
-  </defs>
-</svg>;
-
 export const OktaIcon = createIcon({
   displayName: "OktaIcon",
   viewBox: "0 0 24 24",
