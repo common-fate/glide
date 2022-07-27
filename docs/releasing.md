@@ -20,14 +20,37 @@ The goals with Granted Approvals was to keep local development environments as s
 This makes spinning up a dev environment super simple.
 
 Start by exporting some AWS credentials, using whatever method you like.
-Here we just run `assume` using [Granted](https://granted.dev/)
+Here we just run `assume` using [Granted](https://granted.dev/).
 ```
 assume rolename
 ```
 
 
-
+Then initiate the dev deployment by running: 
 ```
 mage deploy:dev
 ```
-The command wil
+The command will ask some prompts for naming your dev deployment and which region to deploy some of the resources into.
+
+It will create a changeset and ask to continue with the provisioning, input yes
+
+Once its completed successfully you will recieve the following success message in your console:
+```
+ ✅  GrantedDev (granted-approvals-dev-deployment)
+
+✨  Deployment time: 149.51s
+```
+**Note: This can take up to 5 minutes to complete, it is highly recommended to go make a coffee during this process ☕**
+
+The mage scripts will export all necessary variables from the CDK outputs and set them in your `.env` file
+
+From here you should have successfully deployed a local dev environment and can run the server by running:
+```
+go run cmd/server/main.go
+```
+And the frontend locally by running:
+```
+cd web
+pnpm install
+pnpm dev
+```
