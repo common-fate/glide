@@ -20,8 +20,8 @@ export const NoUser = (props: Props) => {
       <Stack textAlign="center" w="70%">
         <Heading pb="50px">An error occured signing you in</Heading>
         <Text>
-          You've successfully logged in, but we couldn&apos;t find a matching
-          user account for you in our database. ({props.userEmail})
+          You&apos;ve successfully logged in, but we couldn&apos;t find a
+          matching user account for you in our database. ({props.userEmail})
         </Text>
         <Text>
           This is likely because your user directory settings are misconfigured.
