@@ -50,7 +50,6 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 			}
 
 			// Notify approvers
-
 			reviewURL, err := notifiers.ReviewURL(n.FrontendURL, req.ID)
 			if err != nil {
 				return errors.Wrap(err, "building review URL")
@@ -123,12 +122,12 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 			//Review not required
 			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved. Hang tight - we're provisioning the role now and will let you know when it's ready.", ruleQuery.Result.Name)
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", ruleQuery.Result.Name)
-			n.SendDMWithLogOnError(ctx, slackClient, log, userQuery.Result.Email, msg, fallback)
+			_ = n.SendDMWithLogOnError(ctx, slackClient, log, req.RequestedBy, msg, fallback)
 		}
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been approved. Hang tight - we're provisioning the access now and will let you know when it's ready.", ruleQuery.Result.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", ruleQuery.Result.Name)
-		n.SendDMWithLogOnError(ctx, slackClient, log, userQuery.Result.Email, msg, fallback)
+		_ = n.SendDMWithLogOnError(ctx, slackClient, log, req.RequestedBy, msg, fallback)
 
 		// Loop over the request reviewers
 		reviewers := storage.ListRequestReviewers{RequestID: req.ID}
@@ -139,13 +138,11 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
-		for _, usr := range reviewers.Result {
-
-			err := n.UpdateSlackMessage(ctx, slackClient, usr, req, rule, userQuery.Result)
+		for _, rev := range reviewers.Result {
+			err := n.UpdateSlackMessage(ctx, slackClient, rev, req, rule, userQuery.Result)
 			if err != nil {
-				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
+				log.Errorw("failed to update slack message", "user", rev, zap.Error(err))
 			}
-			continue
 		}
 
 	case gevent.RequestCancelledType:
@@ -154,7 +151,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		*/
 		// msg := fmt.Sprintf("Your request to access *%s* has been approved. Hang tight - we're provisioning the access now and will let you know when it's ready.", ruleQuery.Result.Name)
 		// fallback := fmt.Sprintf("Your request to access %s has been approved.", ruleQuery.Result.Name)
-		// n.SendDMWithLogOnError(ctx, slackClient, log, userQuery.Result.Email, msg, fallback)
+		// n.SendDMWithLogOnError(ctx, slackClient, log, req.RequestedBy, msg, fallback)
 
 		// Loop over the request reviewers
 		reviewers := storage.ListRequestReviewers{RequestID: req.ID}
@@ -166,17 +163,15 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
-
 			err := n.UpdateSlackMessage(ctx, slackClient, usr, req, rule, userQuery.Result)
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
 			}
-			continue
 		}
 	case gevent.RequestDeclinedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been declined.", ruleQuery.Result.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been declined.", ruleQuery.Result.Name)
-		n.SendDMWithLogOnError(ctx, slackClient, log, userQuery.Result.Email, msg, fallback)
+		_ = n.SendDMWithLogOnError(ctx, slackClient, log, req.RequestedBy, msg, fallback)
 
 		// Loop over the request reviewers
 		reviewers := storage.ListRequestReviewers{RequestID: req.ID}
@@ -188,28 +183,34 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
-
 			err := n.UpdateSlackMessage(ctx, slackClient, usr, req, rule, userQuery.Result)
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
 			}
-			continue
 		}
 	}
 	return nil
 }
 
-func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Client, usr access.Reviewer, req access.Request, rule rule.AccessRule, dbRequestor *identity.User) error {
+func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Client, rev access.Reviewer, req access.Request, rule rule.AccessRule, dbRequestor *identity.User) error {
 
-	if usr.ReviewerID == req.RequestedBy {
-		// Skip the requestor
+	// Skip if requestor == reviewer
+	if rev.ReviewerID == req.RequestedBy {
 		return nil
 	}
+
+	// Get the reviewers email from db
+	reviewerQuery := storage.GetUser{ID: rev.ReviewerID}
+	_, err := n.DB.Query(ctx, &reviewerQuery)
+	if err != nil {
+		return errors.Wrap(err, "getting reviewer")
+	}
+
 	// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 	var slackUserID string
-	requestor, err := slackClient.GetUserByEmailContext(ctx, dbRequestor.Email)
+	requestor, err := slackClient.GetUserByEmailContext(ctx, reviewerQuery.Result.Email)
 	if err != nil {
-		zap.S().Infow("couldn't get slack user from requestor - falling back to email address", "requestor.id", dbRequestor.ID, zap.Error(err))
+		return errors.Wrap(err, "getting slack user from requestor  - falling back to email address")
 	}
 	if requestor != nil {
 		slackUserID = requestor.ID
@@ -226,16 +227,11 @@ func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Cl
 		RequestorEmail:   dbRequestor.Email,
 		ReviewURLs:       reviewURL,
 	})
-	approver := storage.GetUser{ID: usr.ReviewerID}
-	_, err = n.DB.Query(ctx, &approver)
+	msg.Timestamp = rev.SlackMessageID
+
+	err = UpdateMessageBlocks(ctx, slackClient, reviewerQuery.Result.Email, msg)
 	if err != nil {
-		return errors.New("failed to fetch user by id while trying to send message in slack")
-	}
-	msg.Timestamp = usr.SlackMessageID
-	err = UpdateMessageBlocks(ctx, slackClient, approver.Result.Email, msg)
-	if err != nil {
-		// log.Errorw("failed to send updated request approval message", "user", usr, zap.Error(err))
-		return errors.New("failed to send updated request approval message")
+		return errors.Wrap(err, "failed to send updated request approval message")
 	}
 	return nil
 }
