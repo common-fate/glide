@@ -34,7 +34,7 @@ const UserProvider: React.FC<Props> = ({ children }) => {
 
   async function getUser() {
     if (!initialized) {
-      console.log("userContext: not initialized, skipping getUser");
+      console.debug("userContext: not initialized, skipping getUser");
       return;
     }
 
