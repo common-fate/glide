@@ -24,19 +24,6 @@ func UpdateMessageBlocks(ctx context.Context, slackClient *slack.Client, userEma
 		return err
 	}
 
-	// 1.  Fetch or find where the existing request-message block relation is (the link)
-	//     - Store this in a variable called "blockID" on the RequestReviewer
-	//     - Look up this blockId in the database
-	//     - add it to an array of blocks to be updated
-	// 2.  Hook into this, ensuring you have the message block contents
-	// 3.  Update the message block contents with desired values
-	// 4.  Feed this into UpdateMessageContext, send the message
-
-	// Tap into logic here for how messages that are being updated
-	// Research further
-	// https://github.com/jace-ys/bingsoo/blob/25bc364265edc999c2c7f168bc4701b8e107ee5d/pkg/session/vote.go#L63
-
-	// We now want to update the message
 	_, _, _, err = slackClient.UpdateMessageContext(ctx, result.Conversation.ID, message.Timestamp, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
 
 	if err != nil {
