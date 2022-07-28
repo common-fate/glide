@@ -21,7 +21,12 @@ export const NoUser = (props: Props) => {
         <Heading pb="50px">An error occured signing you in</Heading>
         <Text>
           You&apos;ve successfully logged in, but we couldn&apos;t find a
-          matching user account for you in our database. ({props.userEmail})
+          matching user account for you in our database. (
+          {props.userEmail
+            ?.split("_")
+            .slice(1, props.userEmail?.split("_").length)
+            .join()}
+          ){/* Removes prefixed idp provider that amplify adds */}
         </Text>
         <Text>
           This is likely because your user directory settings are misconfigured.
