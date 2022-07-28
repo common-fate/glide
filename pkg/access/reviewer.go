@@ -24,9 +24,6 @@ func (r *Reviewer) DDBKeys() (ddb.Keys, error) {
 		GSI1SK: keys.RequestReviewer.GSI1SK(r.Request.ID),
 		GSI2PK: keys.RequestReviewer.GSI2PK(r.ReviewerID),
 		GSI2SK: keys.RequestReviewer.GSI2SK(string(r.Request.Status), r.Request.ID),
-		// TODO: add a key for SlackMessageID?
-		// GSI3PK: keys.RequestReviewer.GSI3PK(r.Request.ID),
-		// GSI3SK: keys.RequestReviewer.GSI3SK(r.SlackMessageID),
 	}
 
 	return keys, nil

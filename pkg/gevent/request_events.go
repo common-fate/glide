@@ -29,6 +29,22 @@ func (RequestApproved) EventType() string {
 	return RequestApprovedType
 }
 
+type RequestCancelled struct {
+	Request access.Request `json:"request"`
+}
+
+func (RequestCancelled) EventType() string {
+	return RequestCancelledType
+}
+
+type RequestDeclined struct {
+	Request access.Request `json:"request"`
+}
+
+func (RequestDeclined) EventType() string {
+	return RequestDeclinedType
+}
+
 // RequestEventPayload is a payload which is common to
 // all Request events. It is used to conveniently unmarshal
 // the Request payloads in our event handler code.

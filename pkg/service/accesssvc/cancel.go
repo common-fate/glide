@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 )
@@ -42,8 +43,12 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 	// audit log event
 	reqEvent := access.NewStatusChangeEvent(req.ID, req.UpdatedAt, &opts.CancellerID, originalStatus, req.Status)
 
-	// @TODO: uncover best way to emit RequestCancelled/Declined events here...
-	// DE = Ensure slack message is updated for requestor too
+	err = s.EventPutter.Put(ctx, gevent.RequestCancelled{Request: *req})
+	// In a future PR we will shift these events out to be triggered by dynamo db streams
+	// This will currently put the app in a strange state if this fails
+	if err != nil {
+		return err
+	}
 
 	items = append(items, &reqEvent)
 	return s.DB.PutBatch(ctx, items...)
