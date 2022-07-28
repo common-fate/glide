@@ -30,7 +30,7 @@ func (o Output) ToRenderFrontendConfig() RenderFrontendConfig {
 		UserPoolID:      o.UserPoolID,
 		CognitoClientID: o.CognitoClientID,
 		UserPoolDomain:  o.UserPoolDomain,
-		FrontendDomain:  o.FrontendDomain,
+		FrontendDomain:  o.FrontendDomainOutput,
 		APIURL:          o.APIURL,
 	}
 }
@@ -94,7 +94,7 @@ func (o Output) DeployFrontend() error {
 		return err
 	}
 
-	url := fmt.Sprintf("https://%s", o.FrontendDomain)
+	url := fmt.Sprintf("https://%s", o.FrontendDomainOutput)
 	zap.S().Infow("deployed frontend", "url", url)
 	return nil
 }
