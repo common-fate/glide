@@ -24,7 +24,7 @@ import {
   AccessRuleStatus,
 } from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
-import { getProviderIcon } from "../icons/providerIcon";
+import { ProviderIcon } from "../icons/providerIcon";
 import RuleConfigModal from "../modals/RuleConfigModal";
 import { StatusCell } from "../StatusCell";
 import { UserAvatarDetails } from "../UserAvatar";
@@ -107,7 +107,8 @@ export const AccessRuleTable = () => {
         Cell: ({ cell }) => {
           return (
             <HStack>
-              {getProviderIcon(cell.value.provider)}
+              <ProviderIcon provider={cell.value.provider} />
+
               <Text
                 color="neutrals.700"
                 textStyle="Body/Small"

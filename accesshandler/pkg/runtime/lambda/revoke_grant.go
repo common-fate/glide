@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/common-fate/apikit/logger"
@@ -57,14 +56,20 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 		return nil, err
 	}
 
-	if grant.Status == types.ACTIVE {
+	//if the state function is in the active state then we will stop the execution
+	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
+	if err != nil {
+		return nil, err
+	}
+	lastState := statefn.Events[len(statefn.Events)-1]
+	//if the state of the grant is in the active state
+	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
 		err = prov.Provider.Revoke(ctx, string(grant.Subject), args)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	//cancel the existing granter
 	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
 	//if stopping the execution failed we want return with an error and not continue with the flow
 	if err != nil {
@@ -74,15 +79,6 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 	//update the grant status
 	grant.Status = types.REVOKED
 
-	eventsBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: r.EventBusArn})
-	if err != nil {
-		return nil, err
-	}
-	evt := &gevent.GrantRevoked{Grant: grant, Actor: revoker}
-	err = eventsBus.Put(ctx, evt)
-	if err != nil {
-		return nil, err
-	}
 	return &grant, nil
 }
 
