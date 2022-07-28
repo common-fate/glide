@@ -41,7 +41,7 @@ import { Request } from "../utils/backend-client/types/request";
 import { useUser } from "../utils/context/userContext";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
-import { getProviderIcon } from "./icons/providerIcon";
+import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
@@ -179,7 +179,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            {getProviderIcon(request?.accessRule?.target.provider)}
+            <ProviderIcon provider={request?.accessRule.target.provider} />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge

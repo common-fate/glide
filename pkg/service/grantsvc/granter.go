@@ -72,11 +72,19 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 	}
 
 	if res.JSON200 != nil {
+		oldStatus := opts.Request.Grant.Status
 		opts.Request.Grant.Status = ahTypes.REVOKED
+		opts.Request.Grant.UpdatedAt = g.Clock.Now()
 		items, err := dbupdate.GetUpdateRequestItems(ctx, g.DB, opts.Request)
 		if err != nil {
 			return nil, err
 		}
+
+		//create a request event for audit loggging request change
+		requestEvent := access.NewGrantStatusChangeEvent(opts.Request.ID, opts.Request.Grant.UpdatedAt, &opts.RevokerID, oldStatus, opts.Request.Grant.Status)
+
+		items = append(items, &requestEvent)
+
 		err = g.DB.PutBatch(ctx, items...)
 		if err != nil {
 			return nil, err

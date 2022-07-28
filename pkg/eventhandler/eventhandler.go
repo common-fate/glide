@@ -54,6 +54,11 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	if gq.Result.Grant == nil {
 		return fmt.Errorf("request: %s does not have a grant", grantEvent.Grant.ID)
 	}
+
+	if event.DetailType == gevent.GrantRevokedType {
+		log.Infow("Ignored grant revoke event")
+		return nil
+	}
 	oldStatus := gq.Result.Grant.Status
 	newStatus := grantEvent.Grant.Status
 	gq.Result.Grant.Status = newStatus
@@ -67,16 +72,8 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 		return n.db.Put(ctx, &requestEvent)
 	}
 	var requestEvent access.RequestEvent
-	if event.DetailType == gevent.GrantRevokedType {
-		// Grant revoked events have an actor which should be included in the audit trail
-		var grantRevokedEvent gevent.GrantRevoked
-		err := json.Unmarshal(event.Detail, &grantRevokedEvent)
-		if err != nil {
-			return err
-		}
-		requestEvent = access.NewGrantStatusChangeEvent(gq.Result.ID, event.Time, &grantRevokedEvent.Actor, oldStatus, newStatus)
-		log.Infow("inserting request event for grant revoked")
-	} else if event.DetailType == gevent.GrantFailedType {
+
+	if event.DetailType == gevent.GrantFailedType {
 		// Grant revoked events have an actor which should be included in the audit trail
 		var grantFailedEvent gevent.GrantFailed
 		err := json.Unmarshal(event.Detail, &grantFailedEvent)
