@@ -18,7 +18,7 @@ export const NoUser = (props: Props) => {
       justifyContent="center"
     >
       <Stack textAlign="center" w="70%">
-        <Heading pb="50px">An error occured signing you in</Heading>
+        <Heading pb="50px">An error occurred signing you in</Heading>
         <Text>
           You&apos;ve successfully logged in, but we couldn&apos;t find a
           matching user account for you in our database. (
