@@ -83,12 +83,12 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 			// which we can use for handling IDP webhook notifications rather than polling.
 			if err == ddb.ErrNoItems {
 				log.Info("user does not exist in database - running an IDP sync and trying again", "user", claims)
-				err = idp.Sync(ctx)
-				if err != nil {
-					log.Infow("error syncing IDP", zap.Error(err))
-					apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-					return
-				}
+				// err = idp.Sync(ctx)
+				// if err != nil {
+				// 	log.Infow("error syncing IDP", zap.Error(err))
+				// 	apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				// 	return
+				// }
 				log.Info("looking up user again")
 				// reuse the same query, so that we can access the results later if it's successful.
 				_, err = db.Query(ctx, q)
