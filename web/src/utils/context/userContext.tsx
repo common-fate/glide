@@ -55,12 +55,6 @@ const UserProvider: React.FC<Props> = ({ children }) => {
         setamplifyLoggedIn(true);
         setamplifyUser(data);
       case "cognitoHostedUI":
-        await getUser().then((out) => {
-          if (user !== undefined) {
-            //setLoading(false );
-          }
-        });
-        break;
       case "signOut":
         setUser(undefined);
         setLoading(false);
