@@ -40,12 +40,11 @@ const UserProvider: React.FC<Props> = ({ children }) => {
 
     // await Auth.currentSession();
 
-    const me = await getMe().then((user) => {
-      if (user != null) {
-        setUser(user.user);
-        setIsAdmin(user.isAdmin);
-      }
-    });
+    const me = await getMe();
+    if (me != null) {
+      setUser(me.user);
+      setIsAdmin(me.isAdmin);
+    }
     console.debug({ msg: "getMe response", me });
   }
 
