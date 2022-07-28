@@ -2,6 +2,7 @@ import { Auth } from "@aws-amplify/auth";
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
 import { Center } from "@chakra-ui/layout";
 import React, { useEffect, useState } from "react";
+import NoUser from "../../pages/noUserPage";
 import CFSpinner from "../../pages/CFSpinner";
 import awsExports from "../aws-exports";
 import { getMe } from "../backend-client/end-user/end-user";
@@ -24,46 +25,51 @@ interface Props {
 
 const UserProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User>();
+  const [amplifyUser, setamplifyUser] = useState<any>();
   const [loading, setLoading] = useState<boolean>(true);
+  const [amplifyLoggedIn, setamplifyLoggedIn] = useState<boolean>(false);
 
   const [initialized, setInitialized] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean>();
 
   async function getUser() {
     if (!initialized) {
-      console.debug("userContext: not initialized, skipping getUser");
+      console.log("userContext: not initialized, skipping getUser");
       return;
     }
 
     // await Auth.currentSession();
 
-    const me = await getMe();
+    const me = await getMe().then((user) => {
+      if (user != null) {
+        setUser(user.user);
+        setIsAdmin(user.isAdmin);
+      }
+    });
     console.debug({ msg: "getMe response", me });
-    if (me != null) {
-      setUser(me.user);
-      setIsAdmin(me.isAdmin);
-    }
   }
 
   const amplifyListener: HubCallback = async ({ payload: { event, data } }) => {
     console.debug("aws-amplify Hub recieved event", { event, data });
     switch (event) {
       case "signIn":
+        setamplifyLoggedIn(true);
+        setamplifyUser(data);
       case "cognitoHostedUI":
-        await getUser().then(() => {
+        await getUser().then((out) => {
           if (user !== undefined) {
-            setLoading(false);
+            //setLoading(false );
           }
         });
         break;
       case "signOut":
         setUser(undefined);
         setLoading(false);
+        setamplifyLoggedIn(false);
         break;
       case "signIn_failure":
+
       case "cognitoHostedUI_failure":
-        // user will be redirected to login screen on failure
-        setLoading(false);
         break;
     }
   };
@@ -131,6 +137,14 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       </Center>
     );
   }
+  if (amplifyLoggedIn && user === undefined && !loading) {
+    return (
+      <Center h="100vh">
+        <NoUser userEmail={amplifyUser.username} initiateAuth={initiateAuth} />
+      </Center>
+    );
+  }
+
   if (user === undefined && !loading) {
     initiateAuth();
   }
