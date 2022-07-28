@@ -38,6 +38,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 	if err != nil {
 		return errors.Wrap(err, "getting requestor")
 	}
+
 	switch event.DetailType {
 	case gevent.RequestCreatedType:
 		if ruleQuery.Result.Approval.IsRequired() {
@@ -106,7 +107,10 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 					}
 
 					updatedUsr := usr
-					updatedUsr.SlackMessageID = ts
+					noti := access.Notifications{
+						SlackMessageID: &ts,
+					}
+					updatedUsr.Notifications = noti
 					log.Infow("updating reviewer with slack msg id", "updatedUsr.SlackMessageID", ts)
 
 					err = n.DB.Put(ctx, &updatedUsr)
@@ -146,13 +150,6 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		}
 
 	case gevent.RequestCancelledType:
-		/*
-			TODO: Decide how the requestor should be notified of the cancellation.
-		*/
-		// msg := fmt.Sprintf("Your request to access *%s* has been approved. Hang tight - we're provisioning the access now and will let you know when it's ready.", ruleQuery.Result.Name)
-		// fallback := fmt.Sprintf("Your request to access %s has been approved.", ruleQuery.Result.Name)
-		// n.SendDMWithLogOnError(ctx, slackClient, log, req.RequestedBy, msg, fallback)
-
 		// Loop over the request reviewers
 		reviewers := storage.ListRequestReviewers{RequestID: req.ID}
 		_, err = n.DB.Query(ctx, &reviewers)
@@ -224,10 +221,11 @@ func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Cl
 		Request:          req,
 		Rule:             rule,
 		RequestorSlackID: slackUserID,
-		RequestorEmail:   dbRequestor.Email,
+		RequestorEmail:   reviewerQuery.Result.Email,
 		ReviewURLs:       reviewURL,
+		Reviewer:         reviewerQuery.Result,
 	})
-	msg.Timestamp = rev.SlackMessageID
+	msg.Timestamp = *rev.Notifications.SlackMessageID
 
 	err = UpdateMessageBlocks(ctx, slackClient, reviewerQuery.Result.Email, msg)
 	if err != nil {
@@ -242,6 +240,7 @@ type RequestMessageOpts struct {
 	ReviewURLs       notifiers.ReviewURLs
 	RequestorSlackID string
 	RequestorEmail   string
+	Reviewer         *identity.User
 }
 
 func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
@@ -271,6 +270,14 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Status:*\n%s", o.Request.Status),
 		},
+	}
+
+	if o.Reviewer != nil {
+		requestDetails = append(requestDetails, &slack.TextBlockObject{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Reviewer:*\n%s", o.Reviewer.Email),
+		})
+
 	}
 
 	if o.Request.Data.Reason != nil {
