@@ -13,53 +13,66 @@ import (
 // The message is in Slack message block format.
 // The summary must be plaintext and is used as the fallback
 // message in Slack notifications.
-func SendMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail string, message slack.Message, summary string) error {
+func SendMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail string, message slack.Message, summary string) (timestamp string, error error) {
 	u, err := slackClient.GetUserByEmailContext(ctx, userEmail)
 	if err != nil {
-		return err
+		return "", err
 	}
+
 	result, _, _, err := slackClient.OpenConversationContext(ctx, &slack.OpenConversationParameters{
 		Users: []string{u.ID},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
-	_, _, _, err = slackClient.SendMessageContext(ctx, result.Conversation.ID, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
-	return err
+	_, ts, _, err := slackClient.SendMessageContext(ctx, result.Conversation.ID, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
+
+	if err != nil {
+		return "", err
+	} else {
+		return ts, nil
+	}
 }
 
 // SendMessage is a utility for sending DMs to users by ID
 //
 // The message may be markdown formatted. The summary must be plaintext and is used as the fallback
 // message in Slack notifications.
-func SendMessage(ctx context.Context, slackClient *slack.Client, userID, message, summary string) error {
+func SendMessage(ctx context.Context, slackClient *slack.Client, userID, message, summary string) (timestamp string, error error) {
 	u, err := slackClient.GetUserByEmailContext(ctx, userID)
 	if err != nil {
-		return err
+		return "", err
 	}
 	result, _, _, err := slackClient.OpenConversationContext(ctx, &slack.OpenConversationParameters{
 		Users: []string{u.ID},
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	block := slack.NewTextBlockObject("mrkdwn", message, false, false)
 	msgBlock := slack.NewSectionBlock(block, nil, nil)
-	_, _, _, err = slackClient.SendMessageContext(ctx, result.Conversation.ID, slack.MsgOptionBlocks(msgBlock), slack.MsgOptionText(summary, false))
-	return err
+
+	_, ts, _, err := slackClient.SendMessageContext(ctx, result.Conversation.ID, slack.MsgOptionBlocks(msgBlock), slack.MsgOptionText(summary, false))
+	if err != nil {
+		return "", err
+	} else {
+		return ts, nil
+	}
 }
 
 // SendDMWithLogOnError attempts to fetch a user from cognito to get their email, then tries to send them a message in slack
 //
 // This will log any errors and continue
-func (n *Notifier) SendDMWithLogOnError(ctx context.Context, slackClient *slack.Client, log *zap.SugaredLogger, userId, msg, fallback string) {
+func (n *Notifier) SendDMWithLogOnError(ctx context.Context, slackClient *slack.Client, log *zap.SugaredLogger, userId, msg, fallback string) (ts string) {
 	userQuery := storage.GetUser{ID: userId}
 	_, err := n.DB.Query(ctx, &userQuery)
 	if err != nil {
 		log.Errorw("Failed to fetch user by id while trying to send message in slack", "uid", userId, "error", err)
-		return
+		return ""
 	}
-	if err := SendMessage(ctx, slackClient, userQuery.Result.Email, msg, fallback); err != nil {
+	ts, err = SendMessage(ctx, slackClient, userQuery.Result.Email, msg, fallback)
+	if err != nil {
 		log.Errorw("Failed to send direct message", "email", userQuery.Result.Email, "msg", msg, "error", err)
 	}
+	return ts
 }

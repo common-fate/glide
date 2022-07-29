@@ -11,7 +11,13 @@ import (
 type Reviewer struct {
 	ReviewerID string `json:"reviewerId" dynamodbav:"reviewerId"`
 	// Request is the associated request.
-	Request Request `json:"request" dynamodbav:"request"`
+	Request       Request       `json:"request" dynamodbav:"request"`
+	Notifications Notifications `json:"notifications" dynamodbav:"notifications"`
+}
+
+type Notifications struct {
+	// if slack is in use, slack message ID should be populated when this has been notified
+	SlackMessageID *string `json:"slackMessageId" dynamodbav:"slackMessageId"`
 }
 
 // DDBKeys provides the keys for storing the object in DynamoDB

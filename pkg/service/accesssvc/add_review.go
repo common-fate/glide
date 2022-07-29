@@ -107,6 +107,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	}
 	// audit log event
 	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
+
 	items = append(items, &reqEvent)
 	// store the updated items in the database
 	err = s.DB.PutBatch(ctx, items...)
@@ -114,14 +115,19 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		return nil, err
 	}
 
-	if r.Decision == access.DecisionApproved {
+	switch r.Decision {
+	case access.DecisionApproved:
 		err = s.EventPutter.Put(ctx, gevent.RequestApproved{Request: request})
-		// In a future PR we will shift these events out to be triggered by dynamo db streams
-		// This will currently put the app in a strange state if this fails
-		if err != nil {
-			return nil, err
-		}
+	case access.DecisionDECLINED:
+		err = s.EventPutter.Put(ctx, gevent.RequestDeclined{Request: request})
 	}
+
+	// In a future PR we will shift these events out to be triggered by dynamo db streams
+	// This will currently put the app in a strange state if this fails
+	if err != nil {
+		return nil, err
+	}
+
 	res := AddReviewResult{
 		Request: request,
 	}

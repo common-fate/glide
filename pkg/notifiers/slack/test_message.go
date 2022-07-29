@@ -23,5 +23,9 @@ func SendTestMessage(ctx context.Context, email string, slackConfig []byte) erro
 	}
 
 	slackClient := slack.New(s.APIToken)
-	return SendMessage(ctx, slackClient, email, "slack integration test", "slack integration test")
+	_, err = SendMessage(ctx, slackClient, email, "slack integration test", "slack integration test")
+	if err != nil {
+		return err
+	}
+	return nil
 }

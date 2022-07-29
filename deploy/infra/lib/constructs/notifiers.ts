@@ -75,7 +75,7 @@ export class Notifiers extends Construct {
       Fn.conditionIf(enableSlackEventBusRule.logicalId, "ENABLED", "DISABLED")
     );
 
-    props.dynamoTable.grantReadData(this._slackLambda);
+    props.dynamoTable.grantReadWriteData(this._slackLambda);
     this._slackLambda.addToRolePolicy(
       new PolicyStatement({
         resources: [props.userPool.getUserPool().userPoolArn],

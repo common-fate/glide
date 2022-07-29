@@ -3,8 +3,10 @@ package gevent
 import "github.com/common-fate/granted-approvals/pkg/access"
 
 const (
-	RequestCreatedType  = "request.created"
-	RequestApprovedType = "request.approved"
+	RequestCreatedType   = "request.created"
+	RequestApprovedType  = "request.approved"
+	RequestCancelledType = "request.cancelled"
+	RequestDeclinedType  = "request.declined"
 )
 
 // RequestCreated is emitted when a user requests access
@@ -25,6 +27,22 @@ type RequestApproved struct {
 
 func (RequestApproved) EventType() string {
 	return RequestApprovedType
+}
+
+type RequestCancelled struct {
+	Request access.Request `json:"request"`
+}
+
+func (RequestCancelled) EventType() string {
+	return RequestCancelledType
+}
+
+type RequestDeclined struct {
+	Request access.Request `json:"request"`
+}
+
+func (RequestDeclined) EventType() string {
+	return RequestDeclinedType
 }
 
 // RequestEventPayload is a payload which is common to
