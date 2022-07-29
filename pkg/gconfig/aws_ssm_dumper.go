@@ -11,14 +11,38 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 
-// PutSecretVersion uses AWS SSM to store a secret and returns the version number after creation
+// SSMDumper will upload any secrets to SSM which have changed and then return the tokenised ssm path as the value
+type SSMDumper struct {
+	Suffix string
+}
+
+func (d SSMDumper) Dump(ctx context.Context, c Config) (map[string]string, error) {
+	res := make(map[string]string)
+	for _, s := range c {
+		if s.IsSecret() {
+			if s.hasChanged && !s.secretUpdated {
+				p, v, err := putSecretVersion(ctx, s.secretPathPrefix, d.Suffix, s.Get())
+				if err != nil {
+					return nil, err
+				}
+				res[s.Key()] = "awsssm://" + p + ":" + v
+			} else {
+				res[s.Key()] = "awsssm://" + s.SecretPath()
+			}
+		} else {
+			res[s.Key()] = s.Get()
+		}
+	}
+	return res, nil
+}
+
+// putSecretVersion uses AWS SSM to store a secret and returns the version number after creation
 // A suffix will be appended to the path, to append nothing, set this to an empty string.
 // Use the suffix when multiple deployments are in the same account
 // the suffix should be [a-zA-Z0-9_.-]+ any characters outside this set will be replaces with - automatically
 // suffixedPath return value will be the path in ssm with suffix as so "/path/to/value-suffix"
 // or just the path if suffix is empty string "/path/to/value"
-func PutSecretVersion(ctx context.Context, path string, suffix, value string) (outPath string, version string, err error) {
-
+func putSecretVersion(ctx context.Context, path string, suffix, value string) (outPath string, version string, err error) {
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return "", "", err
@@ -36,20 +60,6 @@ func PutSecretVersion(ctx context.Context, path string, suffix, value string) (o
 	}
 
 	return name, strconv.Itoa(int(o.Version)), nil
-}
-
-// DeleteSecret deletes a secret in ssm
-// only granted secrets can be deleted with this function
-func DeleteSecret(ctx context.Context, path string, suffix string) (*ssm.DeleteParameterOutput, error) {
-	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
-	if err != nil {
-		return nil, err
-	}
-	client := ssm.NewFromConfig(cfg)
-	name := suffixedPath(path, suffix)
-	return client.DeleteParameter(ctx, &ssm.DeleteParameterInput{
-		Name: &name,
-	})
 }
 
 func cleanSuffix(suffix string) string {

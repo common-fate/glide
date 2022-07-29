@@ -22,6 +22,10 @@ func (c Config) Get(key string) string {
 	return ""
 }
 
+type Dumper interface {
+	Dump(ctx context.Context, cfg Config) (map[string]string, error)
+}
+
 // Loader loads configuration for Granted providers.
 type Loader interface {
 	// Load configuration. Returns a map of config values.
@@ -49,6 +53,18 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 		s.Set(val)
 	}
 	return nil
+}
+
+// Dump renders a map[string]string where the values are mapped in different ways based on the provided dumper
+//
+// use SafeDumper to get all values with secrets redacted
+//
+// SSMDumper first pushes any updated secrets to ssm then returns the ssm paths to the secrets
+func (c Config) Dump(ctx context.Context, dumper Dumper) (map[string]string, error) {
+	if dumper == nil {
+		return nil, fmt.Errorf("cannot dump with nil dumper")
+	}
+	return dumper.Dump(ctx, c)
 }
 
 type Valuer interface {
