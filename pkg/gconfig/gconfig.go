@@ -8,7 +8,7 @@ import (
 )
 
 // Config is the list of variables which a provider can be configured with.
-type Config []Field
+type Config []*Field
 
 // Get a config value. Useful for testing purposes.
 // If the config value is secret a redacted string will be returned.
@@ -62,6 +62,30 @@ type Field struct {
 	value    Valuer
 	secret   bool
 	optional bool
+
+	// hasChanged is true if the Set() method has been called
+	hasChanged bool
+	// secretUpdated is true if the current value has been pushed to the secret backend e.g SSM
+	// This happens when Field.Dump(Dumper) is called with a secret dumper
+	secretUpdated bool
+	// secretPathPrefix defines the path that this secret should be written to.
+	// For example, in aws ssm, this is the secret path
+	secretPathPrefix string
+	// When a secret is read from file with the aws ssm loader, the path will be set here.
+	// If this is a newly created secret, when it is put in ssm, the path is saved here.
+	// this value is typically derived from the secretPathPrefix a suffix and a version number
+	secretPath string
+}
+
+func (s Field) HasChanged() bool {
+	return s.hasChanged
+}
+
+// Path returns the secret path
+// secrets loaded from config with the SSM Loader will have an secret path relevant to the loader type
+// secrets loaded from a test loader like JSONLoader or MapLoader will not have a path and this method will return an empty string
+func (s Field) SecretPath() string {
+	return s.secretPath
 }
 
 // IsSecret returns true if this Field is a secret
@@ -89,6 +113,7 @@ func (s *Field) Set(v string) error {
 	if s.value == nil {
 		return errors.New("cannot call Set on nil Valuer")
 	}
+	s.hasChanged = true
 	s.value.Set(v)
 	return nil
 }
@@ -111,13 +136,13 @@ func (s *Field) String() string {
 	return s.value.String()
 }
 
-// SecretStringValue value implements the Valuer interface, it should be used for secrets in configuration structs.
+// SecretConfigValue value implements the Valuer interface, it should be used for secrets in configuration structs.
 //
 // It is configured to automatically redact the secret for common logging usecases like Zap, fmt.Println and json.Marshal
-type SecretStringValue string
+type SecretConfigValue string
 
 // Get the raw value of the secret
-func (s *SecretStringValue) Get() string {
+func (s *SecretConfigValue) Get() string {
 	if s == nil {
 		return ""
 	}
@@ -125,25 +150,25 @@ func (s *SecretStringValue) Get() string {
 }
 
 // Set the value of the secret
-func (s *SecretStringValue) Set(value string) {
-	*s = SecretStringValue(value)
+func (s *SecretConfigValue) Set(value string) {
+	*s = SecretConfigValue(value)
 }
 
 // String returns a redacted value for this secret
-func (s SecretStringValue) String() string {
+func (s SecretConfigValue) String() string {
 	return "*****"
 }
 
 // MarshalJSON returns a redacted value bytes for this secret
-func (s SecretStringValue) MarshalJSON() ([]byte, error) {
+func (s SecretConfigValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
 
-// String value implements the Valuer interface
-type StringValue string
+// ConfigValue value implements the Valuer interface
+type ConfigValue string
 
 // Get the value of the string
-func (s *StringValue) Get() string {
+func (s *ConfigValue) Get() string {
 	if s == nil {
 		return ""
 	}
@@ -151,17 +176,17 @@ func (s *StringValue) Get() string {
 }
 
 // String calls StringValue.Get()
-func (s *StringValue) String() string {
+func (s *ConfigValue) String() string {
 	return s.Get()
 }
 
 // Set the value of the string
-func (s *StringValue) Set(value string) {
-	*s = StringValue(value)
+func (s *ConfigValue) Set(value string) {
+	*s = ConfigValue(value)
 }
 
 // String sets a string variable.
-func String(key string, dest *StringValue, usage string) *Field {
+func String(key string, dest *ConfigValue, usage string) *Field {
 	return &Field{
 		key:   key,
 		value: dest,
@@ -170,17 +195,18 @@ func String(key string, dest *StringValue, usage string) *Field {
 }
 
 // SecretString sets a secret string variable.
-func SecretString(key string, dest *SecretStringValue, usage string) *Field {
+func SecretString(key string, dest *SecretConfigValue, usage string, pathPrefix string) *Field {
 	return &Field{
-		key:    key,
-		value:  dest,
-		usage:  usage,
-		secret: true,
+		key:              key,
+		value:            dest,
+		usage:            usage,
+		secret:           true,
+		secretPathPrefix: pathPrefix,
 	}
 }
 
 // OptionalString sets an optional string variable.
-func OptionalString(key string, dest *StringValue, usage string) *Field {
+func OptionalString(key string, dest *ConfigValue, usage string) *Field {
 	return &Field{
 		key:      key,
 		value:    dest,

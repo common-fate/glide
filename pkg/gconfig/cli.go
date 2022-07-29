@@ -54,6 +54,18 @@ func (f *Field) CLIPrompt() error {
 		return err
 	}
 	// set the value.
-	f.Set(val)
-	return nil
+	return f.Set(val)
+}
+
+type Provider struct {
+	client   *struct{}
+	orgURL   ConfigValue
+	apiToken SecretConfigValue
+}
+
+func (o *Provider) Config() Config {
+	return Config{
+		String("orgUrl", &o.orgURL, "the Okta organization URL"),
+		SecretString("apiToken", &o.apiToken, "the Okta API token", "granted/secrets/identity/slack"),
+	}
 }
