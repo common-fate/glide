@@ -26,3 +26,4 @@ gon.gdeploy.arm.hcl
 userAuthCookies.json
 adminAuthCookies.json
 *test-results*
+testOutputs.json

@@ -8,15 +8,15 @@ import (
 )
 
 var testCDKOutput = Output{
-	APIURL:           "https://test.execute-api.us-east-1.amazonaws.com/prod/",
-	UserPoolDomain:   "test.auth.us-east-1.amazoncognito.com",
-	CognitoClientID:  "2aqedb08vdqnabcdeo5u51udlvg",
-	CloudFrontDomain: "aaaaaaaaaa.cloudfront.net",
-	FrontendDomain:   "example.granted.run",
-	UserPoolID:       "us-east-1_abcdefg",
-	S3BucketName:     "granted-approvals-test-us-east-1-12345567890",
-	DynamoDBTable:    "granted-approvals-test",
-	Region:           "us-east-1",
+	APIURL:               "https://test.execute-api.us-east-1.amazonaws.com/prod/",
+	UserPoolDomain:       "test.auth.us-east-1.amazoncognito.com",
+	CognitoClientID:      "2aqedb08vdqnabcdeo5u51udlvg",
+	CloudFrontDomain:     "aaaaaaaaaa.cloudfront.net",
+	FrontendDomainOutput: "example.granted.run",
+	UserPoolID:           "us-east-1_abcdefg",
+	S3BucketName:         "granted-approvals-test-us-east-1-12345567890",
+	DynamoDBTable:        "granted-approvals-test",
+	Region:               "us-east-1",
 }
 
 func TestRenderLocalFrontend(t *testing.T) {
