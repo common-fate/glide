@@ -8,7 +8,7 @@ import (
 // CLIPrompt prompts the user to enter a value for the config varsiable
 // in a CLI context. If the config variable implements Defaulter, the
 // default value is returned and the user is not prompted for any input.
-// @TODO I think that this cli prompt shoudfl actually be defined elsewhere like in the cli cmd
+// @TODO I think that this cli prompt should actually be defined elsewhere like in the cli cmd
 // gconfig should be a pure package concerned with providing the API to read and write configs
 // CLI IO is a layer built ontop of gconfig using the public API
 func (f *Field) CLIPrompt() error {
@@ -55,17 +55,4 @@ func (f *Field) CLIPrompt() error {
 	}
 	// set the value.
 	return f.Set(val)
-}
-
-type Provider struct {
-	client   *struct{}
-	orgURL   ConfigValue
-	apiToken SecretConfigValue
-}
-
-func (o *Provider) Config() Config {
-	return Config{
-		String("orgUrl", &o.orgURL, "the Okta organization URL"),
-		SecretString("apiToken", &o.apiToken, "the Okta API token", "granted/secrets/identity/slack"),
-	}
 }
