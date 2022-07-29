@@ -7,7 +7,9 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/access"
+	accessMocks "github.com/common-fate/granted-approvals/pkg/service/accesssvc/mocks"
 	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,9 +80,15 @@ func TestCancelRequest(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetRequest{Result: tc.getRequestResponse}, tc.getRequestErr)
 			db.MockQuery(&storage.ListRequestReviewers{Result: []access.Reviewer{}})
+
+			ctrl2 := gomock.NewController(t)
+			ep := accessMocks.NewMockEventPutter(ctrl2)
+			ep.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			s := Service{
-				Clock: clk,
-				DB:    db,
+				Clock:       clk,
+				DB:          db,
+				EventPutter: ep,
 			}
 			err := s.CancelRequest(context.Background(), tc.givenCancelRequest)
 			assert.Equal(t, tc.wantErr, err)
