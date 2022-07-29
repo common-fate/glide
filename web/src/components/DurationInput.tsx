@@ -258,6 +258,7 @@ const InputElement: React.FC<InputElementProps> = ({
     <NumberInput
       // variant="reveal"
       precision={0}
+      id="minute-duration-input"
       defaultValue={defaultValue}
       max={max}
       min={min}
@@ -297,8 +298,8 @@ const InputElement: React.FC<InputElementProps> = ({
         {rightElement}
       </InputRightElement>
       <NumberInputStepper>
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
+        <NumberIncrementStepper id="increment" />
+        <NumberDecrementStepper id="decrement" />
       </NumberInputStepper>
     </NumberInput>
   );

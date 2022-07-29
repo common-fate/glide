@@ -335,6 +335,7 @@ const Home: NextPage = () => {
                   </FormLabel>
                   <Textarea
                     bg="white"
+                    id="reasonField"
                     placeholder="Deploying initial Terraform infrastructure for CF-123"
                     {...register("reason")}
                   />

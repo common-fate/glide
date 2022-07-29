@@ -110,18 +110,18 @@ const Home: NextPage = () => {
                 >
                   {!!rules ? (
                     rules.accessRules.length > 0 ? (
-                      rules.accessRules.map((r) => (
+                      rules.accessRules.map((r, i) => (
                         <Link
                           style={{ display: "flex" }}
                           to={"/access/request/" + r.id}
                           key={r.id}
+                          id={"r_" + i}
                         >
                           <Box
                             className="group"
                             textAlign="center"
                             bg="neutrals.100"
                             p={6}
-                            as="a"
                             h="172px"
                             w="232px"
                             rounded="md"
