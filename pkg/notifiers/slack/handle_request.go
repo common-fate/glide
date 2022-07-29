@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -257,6 +258,9 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
 	}
 
+	status := strings.ToLower(string(o.Request.Status))
+	status = strings.ToUpper(string(status[0])) + status[1:]
+
 	requestDetails := []*slack.TextBlockObject{
 		{
 			Type: "mrkdwn",
@@ -268,7 +272,7 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		},
 		{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Status:*\n%s", o.Request.Status),
+			Text: fmt.Sprintf("*Status:*\n%s", status),
 		},
 	}
 
