@@ -107,10 +107,9 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 					}
 
 					updatedUsr := usr
-					noti := access.Notifications{
+					updatedUsr.Notifications = access.Notifications{
 						SlackMessageID: &ts,
 					}
-					updatedUsr.Notifications = noti
 					log.Infow("updating reviewer with slack msg id", "updatedUsr.SlackMessageID", ts)
 
 					err = n.DB.Put(ctx, &updatedUsr)
@@ -143,7 +142,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, rev := range reviewers.Result {
-			err := n.UpdateSlackMessage(ctx, slackClient, rev, req, rule, userQuery.Result)
+			err := n.UpdateSlackMessage(ctx, slackClient, log, rev, req, rule, userQuery.Result)
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", rev, zap.Error(err))
 			}
@@ -160,7 +159,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
-			err := n.UpdateSlackMessage(ctx, slackClient, usr, req, rule, userQuery.Result)
+			err := n.UpdateSlackMessage(ctx, slackClient, log, usr, req, rule, userQuery.Result)
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
 			}
@@ -180,7 +179,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
-			err := n.UpdateSlackMessage(ctx, slackClient, usr, req, rule, userQuery.Result)
+			err := n.UpdateSlackMessage(ctx, slackClient, log, usr, req, rule, userQuery.Result)
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
 			}
@@ -189,7 +188,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 	return nil
 }
 
-func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Client, rev access.Reviewer, req access.Request, rule rule.AccessRule, dbRequestor *identity.User) error {
+func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Client, log *zap.SugaredLogger, rev access.Reviewer, req access.Request, rule rule.AccessRule, dbRequestor *identity.User) error {
 
 	// Skip if requestor == reviewer
 	if rev.ReviewerID == req.RequestedBy {
@@ -205,9 +204,10 @@ func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Cl
 
 	// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 	var slackUserID string
-	requestor, err := slackClient.GetUserByEmailContext(ctx, reviewerQuery.Result.Email)
+	requestor, err := slackClient.GetUserByEmailContext(ctx, dbRequestor.Email)
 	if err != nil {
-		return errors.Wrap(err, "getting slack user from requestor  - falling back to email address")
+		// log this instead of returning
+		log.Errorw("failed to get slack user id, defaulting to email", "user", dbRequestor.Email, zap.Error(err))
 	}
 	if requestor != nil {
 		slackUserID = requestor.ID
@@ -221,7 +221,7 @@ func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Cl
 		Request:          req,
 		Rule:             rule,
 		RequestorSlackID: slackUserID,
-		RequestorEmail:   reviewerQuery.Result.Email,
+		RequestorEmail:   dbRequestor.Email,
 		ReviewURLs:       reviewURL,
 		Reviewer:         reviewerQuery.Result,
 	})
@@ -273,14 +273,24 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 	}
 
 	if o.Reviewer != nil {
+		// If it is not a canncelled request, add the reviewer
+		if o.Request.Status != access.CANCELLED {
+			requestDetails = append(requestDetails, &slack.TextBlockObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*Reviewer:*\n%s", o.Reviewer.Email),
+			})
+		}
+
+		t := o.Reviewer.UpdatedAt
+		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Reviewer:*\n%s", o.Reviewer.Email),
+			Text: fmt.Sprintf("*Reviewed At:*\n%s", when),
 		})
-
 	}
 
-	if o.Request.Data.Reason != nil {
+	// Only show the Request reason if it is not empty
+	if o.Request.Data.Reason != nil && len(*o.Request.Data.Reason) > 0 {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Request Reason:*\n%s", *o.Request.Data.Reason),
