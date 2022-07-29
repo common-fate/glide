@@ -276,23 +276,6 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		},
 	}
 
-	if o.Reviewer != nil {
-		// If it is not a canncelled request, add the reviewer
-		if o.Request.Status != access.CANCELLED {
-			requestDetails = append(requestDetails, &slack.TextBlockObject{
-				Type: "mrkdwn",
-				Text: fmt.Sprintf("*Reviewer:*\n%s", o.Reviewer.Email),
-			})
-		}
-
-		t := o.Reviewer.UpdatedAt
-		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
-		requestDetails = append(requestDetails, &slack.TextBlockObject{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Reviewed At:*\n%s", when),
-		})
-	}
-
 	// Only show the Request reason if it is not empty
 	if o.Request.Data.Reason != nil && len(*o.Request.Data.Reason) > 0 {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
@@ -314,6 +297,19 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 			Fields: requestDetails,
 		},
 	)
+
+	if o.Reviewer != nil {
+
+		t := o.Reviewer.UpdatedAt
+		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
+
+		reviewContextBlock := slack.NewContextBlock("", slack.TextBlockObject{
+			Type: slack.MarkdownType,
+			Text: fmt.Sprintf("*Reviewed by* %s at %s", o.Reviewer.Email, when),
+		})
+
+		msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, reviewContextBlock)
+	}
 
 	// If the request has just been sent (PENDING), then append Action Blocks
 	if o.Request.Status == access.PENDING {
