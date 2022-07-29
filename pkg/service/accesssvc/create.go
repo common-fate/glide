@@ -128,17 +128,6 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 			return nil, ErrRequestOverlapsExistingGrant
 		}
 
-		//check that there isnt already active grant for the same rule
-		rq = storage.ListRequestsForUserAndRuleAndRequestend{
-			UserID:               req.RequestedBy,
-			RuleID:               req.Rule,
-			RequestEndComparator: storage.GreaterThanEqual,
-			CompareTo:            end,
-		}
-		_, err = s.DB.Query(ctx, &rq)
-		if err != nil && err != ddb.ErrNoItems {
-			return nil, err
-		}
 	}
 
 	items = append(items, &reqEvent)
