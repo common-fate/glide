@@ -22,8 +22,8 @@ func (RequestCreated) EventType() string {
 // RequestApproved is emitted when a
 // user's request is approved.
 type RequestApproved struct {
-	Request access.Request `json:"request"`
-	Review  access.Review  `json:"review"`
+	Request    access.Request `json:"request"`
+	ReviewerID string         `json:"reviewerId"`
 }
 
 func (RequestApproved) EventType() string {
@@ -39,8 +39,8 @@ func (RequestCancelled) EventType() string {
 }
 
 type RequestDeclined struct {
-	Request access.Request `json:"request"`
-	Review  access.Review  `json:"review"`
+	Request    access.Request `json:"request"`
+	ReviewerID string         `json:"reviewerId"`
 }
 
 func (RequestDeclined) EventType() string {
@@ -51,6 +51,6 @@ func (RequestDeclined) EventType() string {
 // all Request events. It is used to conveniently unmarshal
 // the Request payloads in our event handler code.
 type RequestEventPayload struct {
-	Request access.Request `json:"request"`
-	Review  access.Review  `json:"review"`
+	Request    access.Request `json:"request"`
+	ReviewerID string         `json:"reviewerId"`
 }
