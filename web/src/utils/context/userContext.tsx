@@ -2,6 +2,7 @@ import { Auth } from "@aws-amplify/auth";
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
 import { Center } from "@chakra-ui/layout";
 import React, { useEffect, useState } from "react";
+import NoUser from "../../pages/noUserPage";
 import CFSpinner from "../../pages/CFSpinner";
 import awsExports from "../aws-exports";
 import { getMe } from "../backend-client/end-user/end-user";
@@ -24,7 +25,9 @@ interface Props {
 
 const UserProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User>();
+  const [amplifyUser, setamplifyUser] = useState<any>();
   const [loading, setLoading] = useState<boolean>(true);
+  const [amplifyLoggedIn, setamplifyLoggedIn] = useState<boolean>(false);
 
   const [initialized, setInitialized] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean>();
@@ -38,32 +41,27 @@ const UserProvider: React.FC<Props> = ({ children }) => {
     // await Auth.currentSession();
 
     const me = await getMe();
-    console.debug({ msg: "getMe response", me });
     if (me != null) {
       setUser(me.user);
       setIsAdmin(me.isAdmin);
     }
+    console.debug({ msg: "getMe response", me });
   }
 
   const amplifyListener: HubCallback = async ({ payload: { event, data } }) => {
     console.debug("aws-amplify Hub recieved event", { event, data });
     switch (event) {
       case "signIn":
+        setamplifyLoggedIn(true);
+        setamplifyUser(data);
       case "cognitoHostedUI":
-        await getUser().then(() => {
-          if (user !== undefined) {
-            setLoading(false);
-          }
-        });
-        break;
       case "signOut":
         setUser(undefined);
-        setLoading(false);
+
         break;
       case "signIn_failure":
+
       case "cognitoHostedUI_failure":
-        // user will be redirected to login screen on failure
-        setLoading(false);
         break;
     }
   };
@@ -131,6 +129,17 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       </Center>
     );
   }
+  if (amplifyLoggedIn && user === undefined && !loading) {
+    return (
+      <Center h="100vh">
+        <NoUser
+          userEmail={amplifyUser.username}
+          initiateSignOut={initiateSignOut}
+        />
+      </Center>
+    );
+  }
+
   if (user === undefined && !loading) {
     initiateAuth();
   }

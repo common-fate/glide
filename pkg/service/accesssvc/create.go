@@ -107,6 +107,29 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	// audit log event
 	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy)
+
+	//before saving the request check to see if there already is a active approved rule
+	if !rule.Approval.IsRequired() {
+		start, end := req.GetInterval(access.WithNow(s.Clock.Now()))
+
+		rq := storage.ListRequestsForUserAndRuleAndRequestend{
+			UserID:               req.RequestedBy,
+			RuleID:               req.Rule,
+			RequestEndComparator: storage.GreaterThanEqual,
+			CompareTo:            end,
+		}
+		_, err := s.DB.Query(ctx, &rq)
+		if err != nil && err != ddb.ErrNoItems {
+			return nil, err
+		}
+		// This will check against the requests which do have grants already
+		overlaps := overlapsExistingGrant(start, end, rq.Result)
+		if overlaps {
+			return nil, ErrRequestOverlapsExistingGrant
+		}
+
+	}
+
 	items = append(items, &reqEvent)
 	// save the request.
 	err = s.DB.PutBatch(ctx, items...)
@@ -123,6 +146,7 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	// check to see if it valid for instant approval
 	if !rule.Approval.IsRequired() {
+
 		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
 		updatedReq, err := s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
 		if err != nil {
