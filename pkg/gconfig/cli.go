@@ -11,7 +11,7 @@ import (
 // @TODO I think that this cli prompt should actually be defined elsewhere like in the cli cmd
 // gconfig should be a pure package concerned with providing the API to read and write configs
 // CLI IO is a layer built ontop of gconfig using the public API
-func (f *Field) CLIPrompt() error {
+func (f *field) CLIPrompt() error {
 	grey := color.New(color.FgHiBlack)
 	msg := f.Key()
 	if f.Usage() != "" {

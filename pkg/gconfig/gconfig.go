@@ -8,7 +8,7 @@ import (
 )
 
 // Config is the list of variables which a provider can be configured with.
-type Config []*Field
+type Config []*field
 
 // Get a config value. Useful for testing purposes.
 // If the config value is secret a redacted string will be returned.
@@ -72,7 +72,11 @@ type Valuer interface {
 	Get() string
 	String() string
 }
-type Field struct {
+
+// field represents a key-value pair in a configuration
+// to create a field, use one of the generator functions
+// StringField(), SecretStringField() or OptionalStringField()
+type field struct {
 	key      string
 	usage    string
 	value    Valuer
@@ -93,39 +97,39 @@ type Field struct {
 	secretPath string
 }
 
-func (s Field) HasChanged() bool {
+func (s field) HasChanged() bool {
 	return s.hasChanged
 }
 
 // Path returns the secret path
 // secrets loaded from config with the SSM Loader will have an secret path relevant to the loader type
 // secrets loaded from a test loader like JSONLoader or MapLoader will not have a path and this method will return an empty string
-func (s Field) SecretPath() string {
+func (s field) SecretPath() string {
 	return s.secretPath
 }
 
 // IsSecret returns true if this Field is a secret
-func (s Field) IsSecret() bool {
+func (s field) IsSecret() bool {
 	return s.secret
 }
 
 // IsOptional returns true if this Field is optional
-func (s Field) IsOptional() bool {
+func (s field) IsOptional() bool {
 	return s.optional
 }
 
 // Key returns the key for this field
-func (s Field) Key() string {
+func (s field) Key() string {
 	return s.key
 }
 
 // Usage returns the usage string for this field
-func (s Field) Usage() string {
+func (s field) Usage() string {
 	return s.usage
 }
 
 // Set the value of this string
-func (s *Field) Set(v string) error {
+func (s *field) Set(v string) error {
 	if s.value == nil {
 		return errors.New("cannot call Set on nil Valuer")
 	}
@@ -135,7 +139,7 @@ func (s *Field) Set(v string) error {
 }
 
 // Get returns the value if it is set, or an empty string if it is not set
-func (s *Field) Get() string {
+func (s *field) Get() string {
 	if s.value == nil {
 		return ""
 	}
@@ -145,20 +149,20 @@ func (s *Field) Get() string {
 // String calls the Valuer.String() method for this fields value.
 // If this field is a secret, then the response will be a redacted string.
 // Use Field.Get() to retrieve the raw value for the field
-func (s *Field) String() string {
+func (s *field) String() string {
 	if s.value == nil {
 		return ""
 	}
 	return s.value.String()
 }
 
-// SecretConfigValue value implements the Valuer interface, it should be used for secrets in configuration structs.
+// SecretStringValue value implements the Valuer interface, it should be used for secrets in configuration structs.
 //
 // It is configured to automatically redact the secret for common logging usecases like Zap, fmt.Println and json.Marshal
-type SecretConfigValue string
+type SecretStringValue string
 
 // Get the raw value of the secret
-func (s *SecretConfigValue) Get() string {
+func (s *SecretStringValue) Get() string {
 	if s == nil {
 		return ""
 	}
@@ -166,25 +170,25 @@ func (s *SecretConfigValue) Get() string {
 }
 
 // Set the value of the secret
-func (s *SecretConfigValue) Set(value string) {
-	*s = SecretConfigValue(value)
+func (s *SecretStringValue) Set(value string) {
+	*s = SecretStringValue(value)
 }
 
 // String returns a redacted value for this secret
-func (s SecretConfigValue) String() string {
+func (s SecretStringValue) String() string {
 	return "*****"
 }
 
 // MarshalJSON returns a redacted value bytes for this secret
-func (s SecretConfigValue) MarshalJSON() ([]byte, error) {
+func (s SecretStringValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
 
-// ConfigValue value implements the Valuer interface
-type ConfigValue string
+// StringValue value implements the Valuer interface
+type StringValue string
 
 // Get the value of the string
-func (s *ConfigValue) Get() string {
+func (s *StringValue) Get() string {
 	if s == nil {
 		return ""
 	}
@@ -192,27 +196,29 @@ func (s *ConfigValue) Get() string {
 }
 
 // String calls StringValue.Get()
-func (s *ConfigValue) String() string {
+func (s *StringValue) String() string {
 	return s.Get()
 }
 
 // Set the value of the string
-func (s *ConfigValue) Set(value string) {
-	*s = ConfigValue(value)
+func (s *StringValue) Set(value string) {
+	*s = StringValue(value)
 }
 
-// String sets a string variable.
-func String(key string, dest *ConfigValue, usage string) *Field {
-	return &Field{
+// StringField creates a new field with a StringValue
+// This field type is for non secrets
+// for secrets, use SecretField()
+func StringField(key string, dest *StringValue, usage string) *field {
+	return &field{
 		key:   key,
 		value: dest,
 		usage: usage,
 	}
 }
 
-// SecretString sets a secret string variable.
-func SecretString(key string, dest *SecretConfigValue, usage string, pathPrefix string) *Field {
-	return &Field{
+// SecretStringField creates a new field with a SecretStringValue
+func SecretStringField(key string, dest *SecretStringValue, usage string, pathPrefix string) *field {
+	return &field{
 		key:              key,
 		value:            dest,
 		usage:            usage,
@@ -221,9 +227,10 @@ func SecretString(key string, dest *SecretConfigValue, usage string, pathPrefix 
 	}
 }
 
-// OptionalString sets an optional string variable.
-func OptionalString(key string, dest *ConfigValue, usage string) *Field {
-	return &Field{
+// OptionalStringField creates a new optional field with a StringValue
+// There is no OptionalSecret type.
+func OptionalStringField(key string, dest *StringValue, usage string) *field {
+	return &field{
 		key:      key,
 		value:    dest,
 		usage:    usage,

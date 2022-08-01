@@ -14,9 +14,9 @@ func TestSecretStringValue(t *testing.T) {
 		give string
 		want string
 	}
-	var emptySecret SecretConfigValue
+	var emptySecret SecretStringValue
 	emptyField := SecretString("test", &emptySecret, "testing", "")
-	var nonEmptySecret SecretConfigValue
+	var nonEmptySecret SecretStringValue
 	nonEmptyField := SecretString("test", &nonEmptySecret, "testing", "")
 	nonEmptyField.Set("value")
 
@@ -55,24 +55,24 @@ func TestSecretStringValue(t *testing.T) {
 func TestGeneralUsage(t *testing.T) {
 	type testcase struct {
 		name      string
-		giveField *Field
+		giveField *field
 		giveValue string
-		wantField *Field
+		wantField *field
 	}
-	var secret SecretConfigValue
-	secretAfterSetting := SecretConfigValue("some value")
+	var secret SecretStringValue
+	secretAfterSetting := SecretStringValue("some value")
 
-	var value ConfigValue
-	valueSetting := ConfigValue("some value")
+	var value StringValue
+	valueSetting := StringValue("some value")
 
-	var optionalValue ConfigValue
-	optionalValueSetting := ConfigValue("some value")
+	var optionalValue StringValue
+	optionalValueSetting := StringValue("some value")
 
 	// The following tests ensure that secrets stay secret in logs and prints
 	testcases := []testcase{
-		{name: "secretString", giveField: SecretString("test", &secret, "testing", "granted/path"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathPrefix: "granted/path", hasChanged: true}},
-		{name: "string", giveField: String("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
-		{name: "optionalString", giveField: OptionalString("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
+		{name: "secretString", giveField: SecretString("test", &secret, "testing", "granted/path"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathPrefix: "granted/path", hasChanged: true}},
+		{name: "string", giveField: String("test", &value, "testing"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
+		{name: "optionalString", giveField: OptionalString("test", &optionalValue, "testing"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

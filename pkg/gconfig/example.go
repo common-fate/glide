@@ -27,8 +27,8 @@ import (
 
 type OktaSync struct {
 	client   *okta.Client
-	orgURL   ConfigValue
-	apiToken SecretConfigValue
+	orgURL   StringValue
+	apiToken SecretStringValue
 }
 
 func (o *OktaSync) Config() Config {
