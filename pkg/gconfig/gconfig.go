@@ -38,8 +38,13 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 		val, ok := loaded[key]
 		if !ok && !s.IsOptional() {
 			return fmt.Errorf("could not find %s in map", key)
+		} else if ok { // only set value if its found
+			err = s.Set(val)
+			if err != nil {
+				return err
+			}
 		}
-		s.Set(val)
+
 	}
 	return nil
 }
@@ -148,19 +153,18 @@ func (s *field) String() string {
 // SecretStringValue value implements the Valuer interface, it should be used for secrets in configuration structs.
 //
 // It is configured to automatically redact the secret for common logging usecases like Zap, fmt.Println and json.Marshal
-type SecretStringValue string
+type SecretStringValue struct {
+	Value string
+}
 
 // Get the raw value of the secret
 func (s *SecretStringValue) Get() string {
-	if s == nil {
-		return ""
-	}
-	return string(*s)
+	return s.Value
 }
 
 // Set the value of the secret
 func (s *SecretStringValue) Set(value string) {
-	*s = SecretStringValue(value)
+	s.Value = value
 }
 
 // String returns a redacted value for this secret
@@ -174,14 +178,13 @@ func (s SecretStringValue) MarshalJSON() ([]byte, error) {
 }
 
 // StringValue value implements the Valuer interface
-type StringValue string
+type StringValue struct {
+	Value string
+}
 
 // Get the value of the string
 func (s *StringValue) Get() string {
-	if s == nil {
-		return ""
-	}
-	return string(*s)
+	return s.Value
 }
 
 // String calls StringValue.Get()
@@ -191,13 +194,44 @@ func (s *StringValue) String() string {
 
 // Set the value of the string
 func (s *StringValue) Set(value string) {
-	*s = StringValue(value)
+	s.Value = value
+}
+
+// OptionalStringValue value implements the Valuer interface
+type OptionalStringValue struct {
+	Value *string
+}
+
+// Get the value of the string
+func (s *OptionalStringValue) Get() string {
+	if s.Value == nil {
+		return ""
+	}
+	return *s.Value
+}
+
+// Get the value of the string
+func (s *OptionalStringValue) IsSet() bool {
+	return s.Value == nil
+}
+
+// String calls OptionalStringValue.Get()
+func (s *OptionalStringValue) String() string {
+	return s.Get()
+}
+
+// Set the value of the string
+func (s *OptionalStringValue) Set(value string) {
+	s.Value = &value
 }
 
 // StringField creates a new field with a StringValue
 // This field type is for non secrets
 // for secrets, use SecretField()
 func StringField(key string, dest *StringValue, usage string) *field {
+	if dest == nil {
+		panic(ErrFieldValueMustNotBeNil)
+	}
 	return &field{
 		key:   key,
 		value: dest,
@@ -207,6 +241,9 @@ func StringField(key string, dest *StringValue, usage string) *field {
 
 // SecretStringField creates a new field with a SecretStringValue
 func SecretStringField(key string, dest *SecretStringValue, usage string, pathPrefix string) *field {
+	if dest == nil {
+		panic(ErrFieldValueMustNotBeNil)
+	}
 	return &field{
 		key:              key,
 		value:            dest,
@@ -216,9 +253,12 @@ func SecretStringField(key string, dest *SecretStringValue, usage string, pathPr
 	}
 }
 
-// OptionalStringField creates a new optional field with a StringValue
+// OptionalStringField creates a new optional field with an OptionalStringValue
 // There is no OptionalSecret type.
-func OptionalStringField(key string, dest *StringValue, usage string) *field {
+func OptionalStringField(key string, dest *OptionalStringValue, usage string) *field {
+	if dest == nil {
+		panic(ErrFieldValueMustNotBeNil)
+	}
 	return &field{
 		key:      key,
 		value:    dest,
