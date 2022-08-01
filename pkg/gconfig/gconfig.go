@@ -9,19 +9,6 @@ import (
 
 // Config is the list of variables which a provider can be configured with.
 type Config []*field
-
-// Get a config value. Useful for testing purposes.
-// If the config value is secret a redacted string will be returned.
-// Returns an empty string if not found.
-func (c Config) Get(key string) string {
-	for _, v := range c {
-		if v.Key() == key {
-			return v.String()
-		}
-	}
-	return ""
-}
-
 type Dumper interface {
 	Dump(ctx context.Context, cfg Config) (map[string]string, error)
 }
@@ -35,10 +22,12 @@ type Loader interface {
 	//	{"orgUrl": "http://my-org.com"}
 	//
 	// Returns an error if loading the values fails.
+	//
+	// The Loader should internally handle sourcing the configuration for example from a map or environment variables
 	Load(ctx context.Context) (map[string]string, error)
 }
 
-// Load configuration using a loader.
+// Load configuration using a Loader.
 func (c Config) Load(ctx context.Context, l Loader) error {
 	loaded, err := l.Load(ctx)
 	if err != nil {
