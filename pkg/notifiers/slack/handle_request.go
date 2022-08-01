@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/granted-approvals/pkg/access"
@@ -26,6 +27,7 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		return err
 	}
 	req := requestEvent.Request
+	reqRev := requestEvent.Review
 
 	ruleQuery := storage.GetAccessRuleVersion{ID: req.Rule, VersionID: req.RuleVersion}
 	_, err = n.DB.Query(ctx, &ruleQuery)
@@ -143,7 +145,16 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, rev := range reviewers.Result {
-			err := n.UpdateSlackMessage(ctx, slackClient, log, rev, req, rule, userQuery.Result)
+			err := n.UpdateSlackMessage(UpdateSlackMessageOpts{
+				Ctx:           ctx,
+				SlackClient:   slackClient,
+				Log:           log,
+				Review:        rev,
+				Request:       req,
+				RequestReview: &reqRev,
+				Rule:          rule,
+				DbRequestor:   userQuery.Result,
+			})
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", rev, zap.Error(err))
 			}
@@ -160,7 +171,17 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
-			err := n.UpdateSlackMessage(ctx, slackClient, log, usr, req, rule, userQuery.Result)
+			err := n.UpdateSlackMessage(
+				UpdateSlackMessageOpts{
+					Ctx:           ctx,
+					SlackClient:   slackClient,
+					Log:           log,
+					Review:        usr,
+					Request:       req,
+					RequestReview: &reqRev,
+					Rule:          rule,
+					DbRequestor:   userQuery.Result,
+				})
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
 			}
@@ -180,7 +201,17 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 		log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 
 		for _, usr := range reviewers.Result {
-			err := n.UpdateSlackMessage(ctx, slackClient, log, usr, req, rule, userQuery.Result)
+			err := n.UpdateSlackMessage(
+				UpdateSlackMessageOpts{
+					Ctx:           ctx,
+					SlackClient:   slackClient,
+					Log:           log,
+					Review:        usr,
+					Request:       req,
+					RequestReview: &reqRev,
+					Rule:          rule,
+					DbRequestor:   userQuery.Result,
+				})
 			if err != nil {
 				log.Errorw("failed to update slack message", "user", usr, zap.Error(err))
 			}
@@ -189,7 +220,20 @@ func (n *Notifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogge
 	return nil
 }
 
-func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Client, log *zap.SugaredLogger, rev access.Reviewer, req access.Request, rule rule.AccessRule, dbRequestor *identity.User) error {
+type UpdateSlackMessageOpts struct {
+	Ctx           context.Context
+	SlackClient   *slack.Client
+	Log           *zap.SugaredLogger
+	Review        access.Reviewer
+	Request       access.Request
+	RequestReview *access.Review
+	Rule          rule.AccessRule
+	DbRequestor   *identity.User
+}
+
+func (n *Notifier) UpdateSlackMessage(opts UpdateSlackMessageOpts) error {
+
+	ctx, slackClient, log, rev, req, reqRev, rule, dbRequestor := opts.Ctx, opts.SlackClient, opts.Log, opts.Review, opts.Request, opts.RequestReview, opts.Rule, opts.DbRequestor
 
 	// Skip if requestor == reviewer
 	if rev.ReviewerID == req.RequestedBy {
@@ -201,6 +245,12 @@ func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Cl
 	_, err := n.DB.Query(ctx, &reviewerQuery)
 	if err != nil {
 		return errors.Wrap(err, "getting reviewer")
+	}
+	// do the same but for the request reveiwer
+	reviewerQuery2 := storage.GetUser{ID: reqRev.ReviewerID}
+	_, err = n.DB.Query(ctx, &reviewerQuery2)
+	if err != nil {
+		return errors.Wrap(err, "getting reviewer 2")
 	}
 
 	// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
@@ -225,6 +275,7 @@ func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Cl
 		RequestorEmail:   dbRequestor.Email,
 		ReviewURLs:       reviewURL,
 		Reviewer:         reviewerQuery.Result,
+		RequestReviewer:  reviewerQuery2.Result,
 	})
 	msg.Timestamp = *rev.Notifications.SlackMessageID
 
@@ -242,6 +293,7 @@ type RequestMessageOpts struct {
 	RequestorSlackID string
 	RequestorEmail   string
 	Reviewer         *identity.User
+	RequestReviewer  *identity.User
 }
 
 func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
@@ -300,12 +352,12 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 
 	if o.Reviewer != nil {
 
-		t := o.Reviewer.UpdatedAt
+		t := time.Now()
 		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
 
 		reviewContextBlock := slack.NewContextBlock("", slack.TextBlockObject{
 			Type: slack.MarkdownType,
-			Text: fmt.Sprintf("*Reviewed by* %s at %s", o.Reviewer.Email, when),
+			Text: fmt.Sprintf("*Reviewed by* %s at %s", o.RequestReviewer.Email, when),
 		})
 
 		msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, reviewContextBlock)

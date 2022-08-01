@@ -23,6 +23,7 @@ func (RequestCreated) EventType() string {
 // user's request is approved.
 type RequestApproved struct {
 	Request access.Request `json:"request"`
+	Review  access.Review  `json:"review"`
 }
 
 func (RequestApproved) EventType() string {
@@ -39,6 +40,7 @@ func (RequestCancelled) EventType() string {
 
 type RequestDeclined struct {
 	Request access.Request `json:"request"`
+	Review  access.Review  `json:"review"`
 }
 
 func (RequestDeclined) EventType() string {
@@ -50,4 +52,5 @@ func (RequestDeclined) EventType() string {
 // the Request payloads in our event handler code.
 type RequestEventPayload struct {
 	Request access.Request `json:"request"`
+	Review  access.Review  `json:"review"`
 }
