@@ -41,6 +41,7 @@ const UserProvider: React.FC<Props> = ({ children }) => {
     // await Auth.currentSession();
 
     const me = await getMe();
+    console.log(me);
     if (me != null) {
       setUser(me.user);
       setIsAdmin(me.isAdmin);
@@ -57,8 +58,8 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       case "cognitoHostedUI":
       case "signOut":
         setUser(undefined);
-        setLoading(false);
-        setamplifyLoggedIn(false);
+        //setLoading(false);
+        //setamplifyLoggedIn(false);
         break;
       case "signIn_failure":
 
@@ -130,10 +131,14 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       </Center>
     );
   }
+  console.log(amplifyLoggedIn, user, loading);
   if (amplifyLoggedIn && user === undefined && !loading) {
     return (
       <Center h="100vh">
-        <NoUser userEmail={amplifyUser.username} initiateAuth={initiateAuth} />
+        <NoUser
+          userEmail={amplifyUser.username}
+          initiateSignOut={initiateSignOut}
+        />
       </Center>
     );
   }

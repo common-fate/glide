@@ -5,7 +5,7 @@ import { useNavigate } from "react-location";
 
 interface Props {
   userEmail?: string;
-  initiateAuth: () => Promise<ICredentials>;
+  initiateSignOut: () => Promise<any>;
 }
 
 export const NoUser = (props: Props) => {
@@ -42,7 +42,9 @@ export const NoUser = (props: Props) => {
         <Button
           onClick={() => {
             console.log("clicked");
-            window.location.reload();
+            props.initiateSignOut().then(() => {
+              window.location.reload();
+            });
           }}
           top="40px"
           alignSelf="center"
