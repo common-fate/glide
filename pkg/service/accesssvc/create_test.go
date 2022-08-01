@@ -224,6 +224,7 @@ func TestNewRequest(t *testing.T) {
 			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: tc.rule}, tc.ruleErr)
 			db.MockQuery(tc.withGetGroupResponse)
 			db.MockQuery(&storage.ListRequestReviewers{})
+			db.MockQuery(&storage.ListRequestsForUserAndRuleAndRequestend{})
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()
