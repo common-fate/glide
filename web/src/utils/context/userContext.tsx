@@ -58,8 +58,7 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       case "cognitoHostedUI":
       case "signOut":
         setUser(undefined);
-        //setLoading(false);
-        //setamplifyLoggedIn(false);
+
         break;
       case "signIn_failure":
 
@@ -131,7 +130,6 @@ const UserProvider: React.FC<Props> = ({ children }) => {
       </Center>
     );
   }
-  console.log(amplifyLoggedIn, user, loading);
   if (amplifyLoggedIn && user === undefined && !loading) {
     return (
       <Center h="100vh">
