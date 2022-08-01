@@ -196,7 +196,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           </HStack>
         </Skeleton>
         <Skeleton isLoaded={request !== undefined}>
-          <Flex color="neutrals.600" textStyle="Body/Medium">
+          <Flex color="neutrals.600" textStyle="Body/Medium" id="reason">
             {request?.reason}
           </Flex>
         </Skeleton>
