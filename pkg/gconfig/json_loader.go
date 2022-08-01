@@ -14,7 +14,7 @@ import (
 )
 
 type SecretGetter interface {
-	Get(ctx context.Context, path string) (string, error)
+	GetSecret(ctx context.Context, path string) (string, error)
 }
 
 // these are our secret backends
@@ -53,7 +53,7 @@ func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
 				name := strings.TrimPrefix(v, getterKey)
 				key := k
 				g.Go(func() error {
-					value, err := getter.Get(gctx, name)
+					value, err := getter.GetSecret(gctx, name)
 					if err != nil {
 						return err
 					}
@@ -74,7 +74,7 @@ func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
 
 type SSMGetter struct{}
 
-func (g SSMGetter) Get(ctx context.Context, path string) (string, error) {
+func (g SSMGetter) GetSecret(ctx context.Context, path string) (string, error) {
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return "", err

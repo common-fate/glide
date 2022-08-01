@@ -33,8 +33,8 @@ type OktaSync struct {
 
 func (o *OktaSync) Config() Config {
 	return Config{
-		String("orgUrl", &o.orgURL, "the Okta organization URL"),
-		SecretString("apiToken", &o.apiToken, "the Okta API token", "/granted/secrets/identity/okta/token"),
+		StringField("orgUrl", &o.orgURL, "the Okta organization URL"),
+		SecretStringField("apiToken", &o.apiToken, "the Okta API token", "/granted/secrets/identity/okta/token"),
 	}
 }
 
