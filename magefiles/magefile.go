@@ -249,17 +249,17 @@ func Dotenv() error {
 	if err != nil {
 		return err
 	}
-	idConf := "{}"
-	if cfg.Identity != nil {
-		b, err := json.Marshal(cfg.Identity)
+	idConf := "[]"
+	if cfg.Deployment.Parameters.IdentityConfiguration != nil {
+		b, err := json.Marshal(cfg.Deployment.Parameters.IdentityConfiguration)
 		if err != nil {
 			return err
 		}
 		idConf = string(b)
 	}
 	providerConf := "{}"
-	if cfg.Providers != nil {
-		b, err := json.Marshal(cfg.Providers)
+	if cfg.Deployment.Parameters.ProviderConfiguration != nil {
+		b, err := json.Marshal(cfg.Deployment.Parameters.ProviderConfiguration)
 		if err != nil {
 			return err
 		}
