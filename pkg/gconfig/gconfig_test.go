@@ -59,9 +59,9 @@ func TestSecretStringValue(t *testing.T) {
 func TestGeneralUsage(t *testing.T) {
 	type testcase struct {
 		name      string
-		giveField *field
+		giveField *Field
 		giveValue string
-		wantField *field
+		wantField *Field
 	}
 	var secret SecretStringValue
 	secretAfterSetting := SecretStringValue{"some value"}
@@ -75,9 +75,9 @@ func TestGeneralUsage(t *testing.T) {
 
 	// The following tests ensure that secrets stay secret in logs and prints
 	testcases := []testcase{
-		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", WithNoArgs("granted/path")), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: WithNoArgs("granted/path"), hasChanged: true}},
-		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
-		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
+		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", WithNoArgs("granted/path")), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: WithNoArgs("granted/path"), hasChanged: true}},
+		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
+		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

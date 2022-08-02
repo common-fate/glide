@@ -16,6 +16,8 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
@@ -70,6 +72,31 @@ type Deployment struct {
 	Dev        *bool      `yaml:"dev,omitempty"`
 	Parameters Parameters `yaml:"parameters"`
 }
+type Features []Feature
+
+func (f Features) Get(uses string) (*Feature, error) {
+	for _, feature := range f {
+		if feature.Uses == uses {
+			return &feature, nil
+		}
+	}
+	return nil, ErrFeatureNotDefined
+}
+
+// Upsert Updates or inserts a Feature
+func (f *Features) Upsert(feature Feature) error {
+	if len(*f) == 0 {
+		*f = append(*f, feature)
+	} else {
+		for i := range *f {
+			if (*f)[i].Uses == feature.Uses {
+				(*f)[i] = feature
+				break
+			}
+		}
+	}
+	return nil
+}
 
 type Feature struct {
 	Uses string            `yaml:"uses" json:"uses"`
@@ -86,8 +113,8 @@ type Parameters struct {
 	FrontendDomain             string             `yaml:"FrontendDomain,omitempty"`
 	FrontendCertificateARN     string             `yaml:"FrontendCertificateARN,omitempty"`
 	ProviderConfiguration      map[string]Feature `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration      []Feature          `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration []Feature          `yaml:"NotificationsConfiguration,omitempty"`
+	IdentityConfiguration      Features           `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration Features           `yaml:"NotificationsConfiguration,omitempty"`
 }
 
 // UnmarshalFeatures parses the JSON configuration data and returns
@@ -119,6 +146,55 @@ func (c *Config) AddProvider(id string, p Feature) error {
 	}
 	c.Deployment.Parameters.ProviderConfiguration[id] = p
 	return nil
+}
+
+// CLIPrompt prompts the user to enter a value for the config varsiable
+// in a CLI context. If the config variable implements Defaulter, the
+// default value is returned and the user is not prompted for any input.
+func CLIPrompt(f *gconfig.Field) error {
+	grey := color.New(color.FgHiBlack)
+	msg := f.Key()
+	if f.Usage() != "" {
+		msg = f.Usage() + " " + grey.Sprintf("(%s)", msg)
+	}
+
+	// @TODO work out how to integrate the optional prompt here
+	// you shoudl be able to choose to set or unset
+	// if you choose to set, it should use a default if it exists
+	// By design, we can't have an optional secret as they are mutually exclusive.
+	var p survey.Prompt
+	// if this value is a secret, use a password prompt to key the secret out of the terminal history
+	if f.IsSecret() {
+		if f.Get() != "" {
+			confMsg := msg + " would you like to update this secret?"
+			p = &survey.Confirm{
+				Message: confMsg,
+			}
+			var doUpdate bool
+			err := survey.AskOne(p, &doUpdate)
+			if err != nil {
+				return err
+			}
+			if !doUpdate {
+				return nil
+			}
+		}
+		p = &survey.Password{
+			Message: msg,
+		}
+	} else {
+		p = &survey.Input{
+			Message: msg,
+			Default: f.Get(),
+		}
+	}
+	var val string
+	err := survey.AskOne(p, &val)
+	if err != nil {
+		return err
+	}
+	// set the value.
+	return f.Set(val)
 }
 
 // CfnParams converts the parameters to types supported by CloudFormation deployments.

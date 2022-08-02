@@ -8,7 +8,7 @@ import (
 )
 
 // Config is the list of variables which a provider can be configured with.
-type Config []*field
+type Config []*Field
 type Dumper interface {
 	Dump(ctx context.Context, cfg Config) (map[string]string, error)
 }
@@ -85,10 +85,10 @@ func WithArgs(path string, expectedCount int) SecretPathFunc {
 	}
 }
 
-// field represents a key-value pair in a configuration
-// to create a field, use one of the generator functions
+// Field represents a key-value pair in a configuration
+// to create a Field, use one of the generator functions
 // StringField(), SecretStringField() or OptionalStringField()
-type field struct {
+type Field struct {
 	key      string
 	usage    string
 	value    Valuer
@@ -116,39 +116,39 @@ type field struct {
 	secretPath string
 }
 
-func (s field) HasChanged() bool {
+func (s Field) HasChanged() bool {
 	return s.hasChanged
 }
 
 // Path returns the secret path
 // secrets loaded from config with the SSM Loader will have an secret path relevant to the loader type
 // secrets loaded from a test loader like JSONLoader or MapLoader will not have a path and this method will return an empty string
-func (s field) SecretPath() string {
+func (s Field) SecretPath() string {
 	return s.secretPath
 }
 
 // IsSecret returns true if this Field is a secret
-func (s field) IsSecret() bool {
+func (s Field) IsSecret() bool {
 	return s.secret
 }
 
 // IsOptional returns true if this Field is optional
-func (s field) IsOptional() bool {
+func (s Field) IsOptional() bool {
 	return s.optional
 }
 
 // Key returns the key for this field
-func (s field) Key() string {
+func (s Field) Key() string {
 	return s.key
 }
 
 // Usage returns the usage string for this field
-func (s field) Usage() string {
+func (s Field) Usage() string {
 	return s.usage
 }
 
 // Set the value of this string
-func (s *field) Set(v string) error {
+func (s *Field) Set(v string) error {
 	if s.value == nil {
 		return errors.New("cannot call Set on nil Valuer")
 	}
@@ -158,7 +158,7 @@ func (s *field) Set(v string) error {
 }
 
 // Get returns the value if it is set, or an empty string if it is not set
-func (s *field) Get() string {
+func (s *Field) Get() string {
 	if s.value == nil {
 		return ""
 	}
@@ -168,7 +168,7 @@ func (s *field) Get() string {
 // String calls the Valuer.String() method for this fields value.
 // If this field is a secret, then the response will be a redacted string.
 // Use Field.Get() to retrieve the raw value for the field
-func (s *field) String() string {
+func (s *Field) String() string {
 	if s.value == nil {
 		return ""
 	}
@@ -253,11 +253,11 @@ func (s *OptionalStringValue) Set(value string) {
 // StringField creates a new field with a StringValue
 // This field type is for non secrets
 // for secrets, use SecretField()
-func StringField(key string, dest *StringValue, usage string) *field {
+func StringField(key string, dest *StringValue, usage string) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &field{
+	return &Field{
 		key:   key,
 		value: dest,
 		usage: usage,
@@ -265,11 +265,11 @@ func StringField(key string, dest *StringValue, usage string) *field {
 }
 
 // SecretStringField creates a new field with a SecretStringValue
-func SecretStringField(key string, dest *SecretStringValue, usage string, secretPathFunc SecretPathFunc) *field {
+func SecretStringField(key string, dest *SecretStringValue, usage string, secretPathFunc SecretPathFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &field{
+	return &Field{
 		key:            key,
 		value:          dest,
 		usage:          usage,
@@ -280,11 +280,11 @@ func SecretStringField(key string, dest *SecretStringValue, usage string, secret
 
 // OptionalStringField creates a new optional field with an OptionalStringValue
 // There is no OptionalSecret type.
-func OptionalStringField(key string, dest *OptionalStringValue, usage string) *field {
+func OptionalStringField(key string, dest *OptionalStringValue, usage string) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &field{
+	return &Field{
 		key:      key,
 		value:    dest,
 		usage:    usage,

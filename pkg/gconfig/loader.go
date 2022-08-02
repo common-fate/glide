@@ -23,6 +23,23 @@ var secretGetterRegistry = map[string]SecretGetter{
 	"awsssm://": SSMGetter{},
 }
 
+// MapLoader looks up values in it's Values map
+// when loading configuration.
+//
+// It's useful for writing tests which use genv to configure things.
+type MapLoader struct {
+	Values map[string]string
+}
+
+// Under the hood, this just uses the json loader so we get all the SSM loading capability
+func (l *MapLoader) Load(ctx context.Context) (map[string]string, error) {
+	b, err := json.Marshal(l.Values)
+	if err != nil {
+		return nil, err
+	}
+	return JSONLoader{Data: b}.Load(ctx)
+}
+
 // JSONLoader loads configuration from a serialized JSON payload
 // set in the 'Data' field.
 // if any values are prefixed with one of teh known prefixes, there are further processed

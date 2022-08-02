@@ -58,10 +58,10 @@ var addCommand = cli.Command{
 			if !ok {
 				return errors.New("couldn't validate non-string answer")
 			}
-			if dc.Providers == nil {
+			if dc.Deployment.Parameters.ProviderConfiguration == nil {
 				return nil
 			}
-			if _, ok := dc.Providers[str]; ok {
+			if _, ok := dc.Deployment.Parameters.ProviderConfiguration[str]; ok {
 				return fmt.Errorf("provider %s already exists in %s", str, f)
 			}
 			return nil
