@@ -3,10 +3,9 @@ package provider
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
-
-	docs "github.com/common-fate/granted-approvals/cmd/gdeploy/utils"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -46,9 +45,14 @@ var addCommand = cli.Command{
 			return err
 		}
 
-		linker := docs.Linker{BaseURL: "https://docs.commonfate.io/"}
+		docsURL := url.URL{
+			Scheme: "https",
+			Host:   "docs.commonfate.io",
+		}
 
-		clio.Warn("Follow the documentation for setting up the %s provider here: %s", provider.Description, linker.MakeURL(fmt.Sprintf("granted-approvals/providers/%s", provider.DefaultID)))
+		docsURL.Path = fmt.Sprintf("granted-approvals/providers/%s", provider.DefaultID)
+
+		clio.Warn("Follow the documentation for setting up the %s provider here: %s", provider.Description, docsURL.String())
 
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)

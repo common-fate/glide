@@ -2,11 +2,11 @@ package sso
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	docs "github.com/common-fate/granted-approvals/cmd/gdeploy/utils"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -39,9 +39,14 @@ var configureCommand = cli.Command{
 			return err
 		}
 
-		linker := docs.Linker{BaseURL: "https://docs.commonfate.io/"}
+		docsURL := url.URL{
+			Scheme: "https",
+			Host:   "docs.commonfate.io",
+		}
 
-		clio.Warn("Follow the documentation for setting up SSO here: %s", linker.MakeURL("granted-approvals/sso/overview"))
+		docsURL.Path = "granted-approvals/sso/overview"
+
+		clio.Warn("Follow the documentation for setting up SSO here: %s", docsURL.String())
 
 		var idpType string
 		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes}
@@ -58,8 +63,10 @@ var configureCommand = cli.Command{
 		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
 		update := true
 
-		clio.Warn("Don't know where to find a SSO credential? Best place to find out would be our docs!")
-		clio.Warn("Follow our %s setup guide at: %s", idpType, linker.MakeURL(fmt.Sprintf("granted-approvals/sso/%s", strings.ToLower(idpType))))
+		docsURL.Path = fmt.Sprintf("granted-approvals/sso/overview/%s", strings.ToLower(idpType))
+
+		clio.Warn("Don't know where to find an SSO credential? Best place to find out would be our docs!")
+		clio.Warn("Follow our %s setup guide at: %s", idpType, docsURL.String())
 
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
@@ -208,8 +215,8 @@ var configureCommand = cli.Command{
 				fromString = "String"
 				fromFile   = "File"
 			)
-			samlHelp := linker.MakeURL(fmt.Sprintf("granted-approvals/sso/%s/#setting-up-saml-sso", strings.ToLower(idpType)))
-			clio.Warn("Instructions for setting up SAML SSO for %s can be found here: %s", idpType, samlHelp)
+			docsURL.Path = fmt.Sprintf("granted-approvals/sso/%s/#setting-up-saml-sso", strings.ToLower(idpType))
+			clio.Warn("Instructions for setting up SAML SSO for %s can be found here: %s", idpType, docsURL.String())
 			p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
 			metadataChoice := fromUrl
 			err = survey.AskOne(p4, &metadataChoice)
