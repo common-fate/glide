@@ -25,6 +25,8 @@ test.describe.serial("Approval/Request Workflows", () => {
     //   We can now validate that the rule is there
     await page.goto("/");
 
+    await page.waitForLoadState("networkidle");
+
     //   Click on the first rule
     await page.click("#r_0");
 
