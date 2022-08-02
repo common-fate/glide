@@ -17,7 +17,7 @@ interface Props extends cdk.StackProps {
   samlMetadataUrl: string;
   samlMetadata: string;
   devConfig: DevEnvironmentConfig | null;
-  slackConfiguration: string;
+  notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   adminGroupId: string;
 }
@@ -33,7 +33,7 @@ export class DevGrantedStack extends cdk.Stack {
       samlMetadata,
       devConfig,
       adminGroupId,
-      slackConfiguration,
+      notificationsConfiguration,
       identityProviderSyncConfiguration,
     } = props;
     const appName = `granted-approvals-${stage}`;
@@ -74,7 +74,7 @@ export class DevGrantedStack extends cdk.Stack {
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId,
       identityProviderSyncConfiguration: identityProviderSyncConfiguration,
-      slackConfiguration: slackConfiguration,
+      notificationsConfiguration: notificationsConfiguration,
     });
     /* Outputs */
     generateOutputs(this, {

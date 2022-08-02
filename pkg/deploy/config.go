@@ -156,7 +156,7 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			}
 			configStr := string(config)
 			res = append(res, types.Parameter{
-				ParameterKey:   aws.String("SlackConfiguration"),
+				ParameterKey:   aws.String("NotificationsConfiguration"),
 				ParameterValue: &configStr,
 			})
 		}

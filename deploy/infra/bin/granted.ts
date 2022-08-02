@@ -17,7 +17,7 @@ const samlMetadata = app.node.tryGetContext("samlMetadata");
 const adminGroupId = app.node.tryGetContext("adminGroupId");
 const providerConfig = app.node.tryGetContext("providerConfiguration");
 const identityConfig = app.node.tryGetContext("identityConfiguration");
-const slackConfig = app.node.tryGetContext("slackConfiguration");
+const notificationsConfiguration = app.node.tryGetContext("notificationsConfiguration");
 const productionReleasesBucket = app.node.tryGetContext(
   "productionReleasesBucket"
 );
@@ -57,8 +57,8 @@ if (stackTarget === "dev") {
     devConfig,
     adminGroupId: adminGroupId || "granted_administrators",
     samlMetadata: samlMetadata || "",
-    slackConfiguration: slackConfig || "{}",
-    identityProviderSyncConfiguration: identityConfig || "{}",
+    notificationsConfiguration: notificationsConfiguration || "[]",
+    identityProviderSyncConfiguration: identityConfig || "[]",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {

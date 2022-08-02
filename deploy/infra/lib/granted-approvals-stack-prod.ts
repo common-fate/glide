@@ -84,15 +84,15 @@ export class CustomerGrantedStack extends cdk.Stack {
       description: "The Access Provider configuration in JSON format",
       default: "{}",
     });
-    const slackConfig = new CfnParameter(this, "SlackConfiguration", {
+    const notificationsConfiguration = new CfnParameter(this, "NotificationsConfiguration", {
       type: "String",
-      description: "The Slack notifications configuration in JSON format",
-      default: "{}",
+      description: "The Notifications configuration in JSON format",
+      default: "[]",
     });
     const identityConfig = new CfnParameter(this, "IdentityConfiguration", {
       type: "String",
       description: "The Identity Provider Sync configuration in JSON format",
-      default: "{}",
+      default: "[]",
     });
 
     const appName = this.stackName + suffix.valueAsString;
@@ -137,7 +137,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId: grantedAdminGroupId.valueAsString,
       identityProviderSyncConfiguration: identityConfig.valueAsString,
-      slackConfiguration: slackConfig.valueAsString,
+      notificationsConfiguration: notificationsConfiguration.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

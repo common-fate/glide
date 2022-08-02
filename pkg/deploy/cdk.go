@@ -46,7 +46,7 @@ func (c Config) CDKContextArgs() []string {
 			if err != nil {
 				panic(err)
 			}
-			args = append(args, "-c", fmt.Sprintf("slackConfiguration=%s", string(cfg)))
+			args = append(args, "-c", fmt.Sprintf("notificationsConfiguration=%s", string(cfg)))
 		}
 	}
 	if c.Deployment.Parameters.IdentityProviderType != "" {
