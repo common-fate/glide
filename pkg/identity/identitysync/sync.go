@@ -44,7 +44,7 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 	}
 	cfg := idp.IdentityProvider.Config()
 	var found bool
-	if opts.IdpType == "commonfate/identity/cognito@v1" {
+	if opts.IdpType == CognitoV1Key {
 		// Cognito has slightly different loading behaviour becauae it is the default provider
 		// config is provided directly via env vars when the stack is deployed, rather than via a cloudformation parameter
 		found = true

@@ -10,6 +10,7 @@ import { CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
 import { generateOutputs } from "./helpers/outputs";
+import { IdentityProviderRegistry, IdentityProviderRegistryValues } from "./helpers/registry";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -30,8 +31,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       type: "String",
       description:
         "Configure your identity provider, okta requires SamlSSOMetadataURL to be provided",
-      default: "COGNITO",
-      allowedValues: ["COGNITO", "OKTA", "GOOGLE", "AZURE"],
+      default: IdentityProviderRegistry.CognitoV1Key,
+      allowedValues: Object.values(IdentityProviderRegistry),
     });
 
     const samlMetadataUrl = new CfnParameter(this, "SamlSSOMetadataURL", {
@@ -112,7 +113,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       appName,
       domainPrefix: cognitoDomainPrefix.valueAsString,
       callbackUrls: appFrontend.getProdCallbackUrls(),
-      idpType: idpType.valueAsString,
+      idpType: idpType.valueAsString as IdentityProviderRegistryValues,
       samlMetadataUrl: samlMetadataUrl.valueAsString,
       samlMetadata: samlMetadata.valueAsString,
       devConfig: null,

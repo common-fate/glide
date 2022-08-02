@@ -7,6 +7,7 @@ import {
   DevEnvironmentConfig,
   DevEnvironments,
 } from "../lib/helpers/dev-accounts";
+import { IdentityProviderRegistry } from "../lib/helpers/registry";
 
 const app = new App();
 const stage = app.node.tryGetContext("stage");
@@ -52,7 +53,7 @@ if (stackTarget === "dev") {
     providerConfig: providerConfig || "{}",
     // We have inadvertently propagated this "granted-approvals-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
     stackName: "granted-approvals-" + stage,
-    idpType: idpType || "COGNITO",
+    idpType: idpType || IdentityProviderRegistry.CognitoV1Key,
     samlMetadataUrl: samlMetadataUrl || "",
     devConfig,
     adminGroupId: adminGroupId || "granted_administrators",

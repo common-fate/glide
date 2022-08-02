@@ -8,15 +8,15 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { DevEnvironmentConfig } from "../helpers/dev-accounts";
+import { IdentityProviderRegistry, IdentityProviderRegistryValues } from "../helpers/registry";
 
-const IDP_TYPE_COGNITO = "COGNITO";
-const IDP_TYPE_OKTA = "OKTA";
+
+
 interface Props {
   appName: string;
   domainPrefix: string;
   callbackUrls: string[];
-  // COGNITO | OKTA
-  idpType: string;
+  idpType: IdentityProviderRegistryValues;
   // default should be an empty string is not in use
   samlMetadataUrl: string;
   // optional to use either a url or the metadata directly
@@ -27,7 +27,7 @@ interface Props {
 export class WebUserPool extends Construct {
   private readonly _userPool: cognito.IUserPool;
   private readonly _appName: string;
-  private readonly _idpType: string;
+  private readonly _idpType: IdentityProviderRegistryValues;
   private _userPoolClientId: string;
   private _userPoolDomain: cognito.IUserPoolDomain;
 
@@ -41,7 +41,7 @@ export class WebUserPool extends Construct {
       "CreateSAMLResourcesCondition",
       {
         expression: cdk.Fn.conditionNot(
-          cdk.Fn.conditionEquals(this._idpType, IDP_TYPE_COGNITO)
+          cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.CognitoV1Key)
         ),
       }
     );
@@ -49,7 +49,7 @@ export class WebUserPool extends Construct {
       this,
       "CreateCognitoResourcesCondition",
       {
-        expression: cdk.Fn.conditionEquals(this._idpType, IDP_TYPE_COGNITO),
+        expression: cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.CognitoV1Key),
       }
     );
     if (props.devConfig !== null) {
@@ -132,7 +132,7 @@ export class WebUserPool extends Construct {
       cognitoWebClient.getUserPoolClient().userPoolClientId
     ).toString();
   }
-  getIdpType(): string {
+  getIdpType(): IdentityProviderRegistryValues {
     return this._idpType;
   }
   getUserPool(): cdk.aws_cognito.IUserPool {

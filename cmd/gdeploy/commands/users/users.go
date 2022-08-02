@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/urfave/cli/v2"
 )
 
@@ -39,7 +40,7 @@ var createCommand = cli.Command{
 		adminGroup := dc.Deployment.Parameters.AdministratorGroupID
 
 		idpType := dc.Deployment.Parameters.IdentityProviderType
-		if idpType != "" && idpType != "COGNITO" {
+		if idpType != "" && idpType != identitysync.CognitoV1Key {
 			return clio.NewCLIError(fmt.Sprintf("Your Granted Approvals deployment uses the %s identity provider. Add users inside of your identity provider rather than using this CLI.\n\nIf you would like to make a user an administrator of Granted Approvals, add them to the %s group in your identity provider.", idpType, adminGroup))
 		}
 

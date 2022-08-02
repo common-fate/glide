@@ -14,6 +14,7 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/mg"
@@ -265,7 +266,7 @@ func Dotenv() error {
 		}
 		providerConf = string(b)
 	}
-	idpType := "COGNITO"
+	idpType := identitysync.CognitoV1Key
 	if cfg.Deployment.Parameters.IdentityProviderType != "" {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
 	}

@@ -7,6 +7,13 @@ import (
 	"github.com/fatih/color"
 )
 
+const (
+	CognitoV1Key = "commonfate/identity/cognito@v1"
+	OktaV1Key    = "commonfate/identity/okta@v1"
+	AzureADV1Key = "commonfate/identity/azure-ad@v1"
+	GoogleV1Key  = "commonfate/identity/google@v1"
+)
+
 type RegisteredIdentityProvider struct {
 	IdentityProvider IdentityProvider
 	Description      string
@@ -19,19 +26,19 @@ type IdentityProviderRegistry struct {
 func Registry() IdentityProviderRegistry {
 	return IdentityProviderRegistry{
 		IdentityProviders: map[string]RegisteredIdentityProvider{
-			"commonfate/identity/cognito@v1": {
+			CognitoV1Key: {
 				IdentityProvider: &CognitoSync{},
 				Description:      "Cognito",
 			},
-			"commonfate/identity/okta@v1": {
+			OktaV1Key: {
 				IdentityProvider: &OktaSync{},
 				Description:      "Okta",
 			},
-			"commonfate/identity/azure-ad@v1": {
+			AzureADV1Key: {
 				IdentityProvider: &AzureSync{},
 				Description:      "Azure Active Directory",
 			},
-			"commonfate/identity/google@v1": {
+			GoogleV1Key: {
 				IdentityProvider: &GoogleSync{},
 				Description:      "Google Workspaces",
 			},

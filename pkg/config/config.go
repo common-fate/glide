@@ -14,7 +14,7 @@ type Config struct {
 	SentryDSN         string `env:"SENTRY_DSN"`
 	EventBusArn       string `env:"EVENT_BUS_ARN,required"`
 	EventBusSource    string `env:"EVENT_BUS_SOURCE,required"`
-	IdpProvider       string `env:"IDENTITY_PROVIDER,default=COGNITO"`
+	IdpProvider       string `env:"IDENTITY_PROVIDER,required"`
 	IdentitySettings  string `env:"IDENTITY_SETTINGS,default=[]"`
 }
 
@@ -32,8 +32,8 @@ type EventHandlerConfig struct {
 
 type SyncConfig struct {
 	TableName        string `env:"APPROVALS_TABLE_NAME,required"`
-	IdpProvider      string `env:"IDENTITY_PROVIDER,default=COGNITO"`
-	UserPoolId       string `env:"APPROVALS_COGNITO_USER_POOL_ID"`
+	IdpProvider      string `env:"IDENTITY_PROVIDER,required"`
+	UserPoolId       string `env:"APPROVALS_COGNITO_USER_POOL_ID,required"`
 	LogLevel         string `env:"LOG_LEVEL,default=info"`
 	IdentitySettings string `env:"IDENTITY_SETTINGS,default=[]"`
 }
