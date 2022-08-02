@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	docs "github.com/common-fate/granted-approvals/cmd/gdeploy/utils"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
@@ -37,11 +39,16 @@ var addCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+
 		var provider lookup.RegisteredProvider
 		uses, provider, err := r.FromCLIOption(chosen)
 		if err != nil {
 			return err
 		}
+
+		linker := docs.Linker{BaseURL: "http://localhost:3000"}
+
+		clio.Warn("Follow the documentation for setting up the %s provider here: %s", provider.Description, linker.MakeURL(fmt.Sprintf("granted-approvals/providers/%s", provider.DefaultID)))
 
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)

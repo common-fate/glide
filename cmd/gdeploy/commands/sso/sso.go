@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	docs "github.com/common-fate/granted-approvals/cmd/gdeploy/utils"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -37,13 +38,13 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		i := strings.ToLower(dc.Deployment.Parameters.IdentityProviderType)
-		if len(i) > 0 {
-			i = strings.ToUpper(string(i[0])) + string(i[1:])
-		}
+
+		linker := docs.Linker{BaseURL: "http://localhost:3000"}
+
+		clio.Warn("Follow the documentation for setting up SSO here: %s", linker.MakeURL("granted-approvals/sso/overview"))
 
 		var idpType string
-		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes, Default: i}
+		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes}
 		err = survey.AskOne(p2, &idpType)
 		if err != nil {
 			return err
@@ -56,6 +57,10 @@ var configureCommand = cli.Command{
 		azureConfigured := dc.Identity != nil && dc.Identity.Azure != nil
 		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
 		update := true
+
+		clio.Warn("Don't know where to find a SSO credential? Best place to find out would be our docs!")
+		clio.Warn("Follow our %s setup guide at: %s", idpType, linker.MakeURL(fmt.Sprintf("granted-approvals/sso/%s", strings.ToLower(idpType))))
+
 		//if there are already params for that idp then ask if they want to update
 		if dc.Identity != nil {
 			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) || (azureSelected && azureConfigured) {
@@ -82,8 +87,6 @@ var configureCommand = cli.Command{
 		}
 		if update {
 			if googleSelected {
-				docs := "https://docs.commonfate.io/granted-approvals/sso/google"
-				clio.Info("You can follow along with the Google setup guide in our docs: %s", docs)
 				var google deploy.Google
 				if googleConfigured {
 					google = *dc.Identity.Google
@@ -112,7 +115,6 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				clio.Success("SSM Parameters set successfully")
 				if dc.Identity == nil {
 					dc.Identity = &deploy.IdentityConfig{
 						Google: &google,
@@ -121,8 +123,6 @@ var configureCommand = cli.Command{
 					dc.Identity.Google = &google
 				}
 			} else if oktaSelected {
-				docs := "https://docs.commonfate.io/granted-approvals/sso/okta"
-				clio.Info("You can follow along with the Okta setup guide in our docs: %s", docs)
 				var okta deploy.Okta
 				if oktaConfigured {
 					okta = *dc.Identity.Okta
@@ -146,7 +146,6 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				clio.Success("SSM Parameters set successfully")
 				if dc.Identity == nil {
 					dc.Identity = &deploy.IdentityConfig{
 						Okta: &okta,
@@ -155,8 +154,6 @@ var configureCommand = cli.Command{
 					dc.Identity.Okta = &okta
 				}
 			} else if azureSelected {
-				docs := "https://docs.commonfate.io/granted-approvals/sso/azure"
-				clio.Info("You can follow along with the Azure setup guide in our docs: %s", docs)
 				var azure deploy.Azure
 				if azureConfigured {
 					azure = *dc.Identity.Azure
@@ -188,7 +185,6 @@ var configureCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				clio.Success("SSM Parameters set successfully")
 
 				if dc.Identity == nil {
 					dc.Identity = &deploy.IdentityConfig{
@@ -198,7 +194,10 @@ var configureCommand = cli.Command{
 					dc.Identity.Azure = &azure
 				}
 			}
+			clio.Success(fmt.Sprintf("Sync successfully configured for %s", idpType))
+
 			clio.Info("The following parameters are required to setup a SAML app in your identity provider")
+
 			o, err := dc.LoadSAMLOutput(ctx)
 			if err != nil {
 				return err
@@ -209,6 +208,8 @@ var configureCommand = cli.Command{
 				fromString = "String"
 				fromFile   = "File"
 			)
+			samlHelp := linker.MakeURL(fmt.Sprintf("granted-approvals/sso/%s/#setting-up-saml-sso", strings.ToLower(idpType)))
+			clio.Warn("Instructions for setting up SAML SSO for %s can be found here: %s", idpType, samlHelp)
 			p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
 			metadataChoice := fromUrl
 			err = survey.AskOne(p4, &metadataChoice)
