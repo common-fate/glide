@@ -72,6 +72,8 @@ var configureSlackCommand = cli.Command{
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		clio.Success("Successfully enabled Slack")
 
+		clio.Info("Run: `gdeploy notifications slack test --email=<your_slack_email>` to test your Slack notifications")
+
 		return nil
 	},
 }
