@@ -509,6 +509,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                     </Text>
                   )}
                   <Button
+                    id="approve"
                     isLoading={isSubmitting}
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
@@ -519,6 +520,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                     Approve
                   </Button>
                   <Button
+                    id="decline"
                     isLoading={isSubmitting}
                     autoFocus={focus === "close"}
                     key={2}
