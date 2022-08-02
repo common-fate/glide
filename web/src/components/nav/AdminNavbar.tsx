@@ -123,6 +123,14 @@ export const AdminNavbar: React.FC<{}> = () => {
                     </MenuButton>
                     <MenuList _dark={{ borderColor: "gray.500" }}>
                       <MenuItem
+                        _hover={{ cursor: "auto", backgroundColor: "gray.700" }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                        }}
+                      >
+                        {auth.user?.email}
+                      </MenuItem>
+                      <MenuItem
                         icon={<DoorIcon color={"gray.400"} />}
                         onClick={auth.initiateSignOut}
                       >
