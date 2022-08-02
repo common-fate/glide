@@ -20,8 +20,6 @@ import { CFTimelineRow } from "./CFTimelineRow";
 export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
-  const user = useUser();
-
   const { data } = useListRequestEvents(request?.id || "");
   const events = useMemo(() => {
     const items: JSX.Element[] = [];
