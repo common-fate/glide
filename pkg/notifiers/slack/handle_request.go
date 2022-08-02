@@ -219,9 +219,6 @@ type UpdateSlackMessageOpts struct {
 func (n *Notifier) UpdateSlackMessage(ctx context.Context, slackClient *slack.Client, log *zap.SugaredLogger, opts UpdateSlackMessageOpts) error {
 
 	// Skip if requestor == reviewer
-	// if opts.Review.ReviewerID == opts.Request.RequestedBy  {
-	// 	return nil
-	// }
 
 	// Get the reviewers email from db
 	reviewerQuery := storage.GetUser{ID: opts.Review.ReviewerID}
