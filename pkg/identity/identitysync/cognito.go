@@ -2,42 +2,37 @@ package identitysync
 
 import (
 	"context"
-	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 )
 
-type Cognito struct {
-	cfg    Opts
-	client *cognitoidentityprovider.Client
+type CognitoSync struct {
+	client     *cognitoidentityprovider.Client
+	userPoolID gconfig.StringValue
 }
 
-type Opts struct {
-	UserPoolID string
-}
-
-// New creates a new Cognito instance.
-func NewCognito(ctx context.Context, opts Opts) (*Cognito, error) {
-	if opts.UserPoolID == "" {
-		return nil, errors.New("UserPoolID was empty")
+func (s *CognitoSync) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("userPoolID", &s.userPoolID, "the Cognito user pool ID"),
 	}
+}
 
+func (s *CognitoSync) Init(ctx context.Context) error {
 	awsconfig, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	c := &Cognito{client: cognitoidentityprovider.NewFromConfig(awsconfig), cfg: opts}
-
-	return c, nil
-
+	s.client = cognitoidentityprovider.NewFromConfig(awsconfig)
+	return nil
 }
 
 // idpUserFromCognitoUser converts a cognito user to an idp user after fetching the users groups
-func (c *Cognito) idpUserFromCognitoUser(ctx context.Context, cognitoUser types.UserType) (identity.IdpUser, error) {
+func (c *CognitoSync) idpUserFromCognitoUser(ctx context.Context, cognitoUser types.UserType) (identity.IdpUser, error) {
 
 	var u identity.IdpUser
 	for _, a := range cognitoUser.Attributes {
@@ -66,13 +61,13 @@ func groupFromCognitoGroup(cognitoGroup types.GroupType) identity.IdpGroup {
 	}
 }
 
-func (c *Cognito) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
+func (c *CognitoSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	//get all users
 	users := []identity.IdpUser{}
 	hasMore := true
 	var paginationToken *string
 	for hasMore {
-		userRes, err := c.client.ListUsers(ctx, &cognitoidentityprovider.ListUsersInput{UserPoolId: aws.String(c.cfg.UserPoolID), AttributesToGet: []string{"sub", "email"}, PaginationToken: paginationToken})
+		userRes, err := c.client.ListUsers(ctx, &cognitoidentityprovider.ListUsersInput{UserPoolId: aws.String(c.userPoolID.Get()), AttributesToGet: []string{"sub", "email"}, PaginationToken: paginationToken})
 		if err != nil {
 			return nil, err
 		}
@@ -94,12 +89,12 @@ func (c *Cognito) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	return users, nil
 }
 
-func (c *Cognito) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
+func (c *CognitoSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
 	groups := []identity.IdpGroup{}
 	hasMore := true
 	var paginationToken *string
 	for hasMore {
-		groupsRes, err := c.client.ListGroups(ctx, &cognitoidentityprovider.ListGroupsInput{UserPoolId: aws.String(c.cfg.UserPoolID), NextToken: paginationToken})
+		groupsRes, err := c.client.ListGroups(ctx, &cognitoidentityprovider.ListGroupsInput{UserPoolId: aws.String(c.userPoolID.Get()), NextToken: paginationToken})
 		if err != nil {
 			return nil, err
 		}
@@ -113,12 +108,12 @@ func (c *Cognito) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
 	return groups, nil
 }
 
-func (c *Cognito) listUsersGroups(ctx context.Context, id string) ([]string, error) {
+func (c *CognitoSync) listUsersGroups(ctx context.Context, id string) ([]string, error) {
 	groups := []string{}
 	hasMore := true
 	var paginationToken *string
 	for hasMore {
-		userGroupsRes, err := c.client.AdminListGroupsForUser(ctx, &cognitoidentityprovider.AdminListGroupsForUserInput{UserPoolId: &c.cfg.UserPoolID, Username: aws.String(id), NextToken: paginationToken})
+		userGroupsRes, err := c.client.AdminListGroupsForUser(ctx, &cognitoidentityprovider.AdminListGroupsForUserInput{UserPoolId: aws.String(c.userPoolID.Get()), Username: aws.String(id), NextToken: paginationToken})
 		if err != nil {
 			return nil, err
 		}

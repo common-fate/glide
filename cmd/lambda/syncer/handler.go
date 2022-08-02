@@ -23,7 +23,7 @@ func main() {
 		panic(err)
 	}
 
-	ic, err := deploy.UnmarshalIdentity(cfg.IdentitySettings)
+	ic, err := deploy.UnmarshalFeatures(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
 	}

@@ -2,11 +2,12 @@ package identitysync
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"errors"
 
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -15,14 +16,9 @@ import (
 type IdentityProvider interface {
 	ListUsers(ctx context.Context) ([]identity.IdpUser, error)
 	ListGroups(ctx context.Context) ([]identity.IdpGroup, error)
+	gconfig.Configer
+	gconfig.Initer
 }
-
-const (
-	COGNITO = "COGNITO"
-	GOOGLE  = "GOOGLE"
-	OKTA    = "OKTA"
-	AZURE   = "AZURE"
-)
 
 type IdentitySyncer struct {
 	db  ddb.Storage
@@ -33,7 +29,7 @@ type SyncOpts struct {
 	TableName      string
 	IdpType        string
 	UserPoolId     string
-	IdentityConfig deploy.IdentityConfig
+	IdentityConfig []deploy.Feature
 }
 
 func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, error) {
@@ -42,63 +38,49 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		return nil, err
 	}
 
-	var idp IdentityProvider
-
-	switch opts.IdpType {
-	case COGNITO:
-		idp, err = NewCognito(ctx, Opts{UserPoolID: opts.UserPoolId})
+	idp, err := Registry().Lookup(opts.IdpType)
+	if err != nil {
+		return nil, err
+	}
+	cfg := idp.IdentityProvider.Config()
+	var found bool
+	if opts.IdpType == "commonfate/identity/cognito@v1" {
+		// Cognito has slightly different loading behaviour becauae it is the default provider
+		// config is provided directly via env vars when the stack is deployed, rather than via a cloudformation parameter
+		found = true
+		err = cfg.Load(ctx, &gconfig.MapLoader{Values: map[string]string{
+			"userPoolID": opts.UserPoolId,
+		}})
 		if err != nil {
 			return nil, err
 		}
-	case OKTA:
-		if opts.IdentityConfig.Okta == nil {
-			return nil, fmt.Errorf("okta settings not configured")
+	} else {
+		for _, f := range opts.IdentityConfig {
+			if f.Uses == opts.IdpType {
+				found = true
+				b, err := json.Marshal(f.With)
+				if err != nil {
+					return nil, err
+				}
+				err = cfg.Load(ctx, gconfig.JSONLoader{Data: b})
+				if err != nil {
+					return nil, err
+				}
+				break
+			}
 		}
-		clone := *opts.IdentityConfig.Okta
-		err = config.LoadAndReplaceSSMValues(ctx, &clone)
-		if err != nil {
-			return nil, err
-		}
-		idp, err = NewOkta(ctx, clone)
-		if err != nil {
-			return nil, err
-		}
-
-	case GOOGLE:
-		if opts.IdentityConfig.Google == nil {
-			return nil, fmt.Errorf("google settings not configured")
-		}
-		clone := *opts.IdentityConfig.Google
-		err = config.LoadAndReplaceSSMValues(ctx, &clone)
-		if err != nil {
-			return nil, err
-		}
-		idp, err = NewGcp(ctx, clone)
-		if err != nil {
-			return nil, err
-		}
-
-	case AZURE:
-		if opts.IdentityConfig.Azure == nil {
-			return nil, fmt.Errorf("azure settings not configured")
-		}
-		clone := *opts.IdentityConfig.Azure
-		err = config.LoadAndReplaceSSMValues(ctx, &clone)
-		if err != nil {
-			return nil, err
-		}
-		idp, err = NewAzure(ctx, clone)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("unsupported provider type %s", opts.IdpType)
-
+	}
+	if !found {
+		return nil, errors.New("no matching configuration found for idp type")
 	}
 
+	err = idp.IdentityProvider.Init(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &IdentitySyncer{
 		db:  db,
-		idp: idp,
+		idp: idp.IdentityProvider,
 	}, nil
 }
 

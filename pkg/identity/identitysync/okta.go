@@ -3,27 +3,36 @@ package identitysync
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 )
 
 type OktaSync struct {
-	client *okta.Client
+	client   *okta.Client
+	orgURL   gconfig.StringValue
+	apiToken gconfig.SecretStringValue
 }
 
-func NewOkta(ctx context.Context, settings deploy.Okta) (*OktaSync, error) {
+func (s *OktaSync) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("orgUrl", &s.orgURL, "the Okta organization URL"),
+		gconfig.SecretStringField("apiToken", &s.apiToken, "the Okta API token", gconfig.WithNoArgs("/granted/secrets/identity/okta/token")),
+	}
+}
+
+func (s *OktaSync) Init(ctx context.Context) error {
 	_, client, err := okta.NewClient(
 		ctx,
-		okta.WithOrgUrl(settings.OrgURL),
-		okta.WithToken(settings.APIToken),
+		okta.WithOrgUrl(s.orgURL.Get()),
+		okta.WithToken(s.apiToken.Get()),
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return &OktaSync{client: client}, nil
+	s.client = client
+	return nil
 }
 
 // userFromOktaUser converts a Okta user to the identityprovider interface user type

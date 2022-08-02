@@ -67,6 +67,24 @@ type Valuer interface {
 	String() string
 }
 
+type SecretPathFunc func(args ...interface{}) (string, error)
+
+func WithNoArgs(path string) SecretPathFunc {
+	return WithArgs(path, 0)
+}
+func WithArgs(path string, expectedCount int) SecretPathFunc {
+	return func(args ...interface{}) (string, error) {
+		if len(args) != expectedCount {
+			return "", IncorrectArgumentsToSecretPathFuncError{
+				ExpectedArgs: expectedCount,
+				FoundArgs:    len(args),
+				Key:          path,
+			}
+		}
+		return fmt.Sprintf(path, args), nil
+	}
+}
+
 // field represents a key-value pair in a configuration
 // to create a field, use one of the generator functions
 // StringField(), SecretStringField() or OptionalStringField()
@@ -82,9 +100,16 @@ type field struct {
 	// secretUpdated is true if the current value has been pushed to the secret backend e.g SSM
 	// This happens when Field.Dump(Dumper) is called with a secret dumper
 	secretUpdated bool
-	// secretPathPrefix defines the path that this secret should be written to.
+	// secretPathFunc defines the path that this secret should be written to.
+	// it is a function that takes in args. for some usecases, an id will need to be inserted into the path dynamically
 	// For example, in aws ssm, this is the secret path
-	secretPathPrefix string
+	//
+	// func pathGen(args ...string)string {
+	// 		return fmt.Sprintf("granted/providers/secrets/%s/apiToken",args...)
+	// }
+	//
+	//
+	secretPathFunc SecretPathFunc
 	// When a secret is read from file with the aws ssm loader, the path will be set here.
 	// If this is a newly created secret, when it is put in ssm, the path is saved here.
 	// this value is typically derived from the secretPathPrefix a suffix and a version number
@@ -240,16 +265,16 @@ func StringField(key string, dest *StringValue, usage string) *field {
 }
 
 // SecretStringField creates a new field with a SecretStringValue
-func SecretStringField(key string, dest *SecretStringValue, usage string, pathPrefix string) *field {
+func SecretStringField(key string, dest *SecretStringValue, usage string, secretPathFunc SecretPathFunc) *field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
 	return &field{
-		key:              key,
-		value:            dest,
-		usage:            usage,
-		secret:           true,
-		secretPathPrefix: pathPrefix,
+		key:            key,
+		value:          dest,
+		usage:          usage,
+		secret:         true,
+		secretPathFunc: secretPathFunc,
 	}
 }
 

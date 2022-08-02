@@ -15,14 +15,14 @@ type Config struct {
 	EventBusArn       string `env:"EVENT_BUS_ARN,required"`
 	EventBusSource    string `env:"EVENT_BUS_SOURCE,required"`
 	IdpProvider       string `env:"IDENTITY_PROVIDER,default=COGNITO"`
-	IdentitySettings  string `env:"IDENTITY_SETTINGS,default={}"`
+	IdentitySettings  string `env:"IDENTITY_SETTINGS,default=[]"`
 }
 
-type SlackNotifierConfig struct {
-	LogLevel      string `env:"LOG_LEVEL,default=info"`
-	DynamoTable   string `env:"APPROVALS_TABLE_NAME,required"`
-	FrontendURL   string `env:"APPROVALS_FRONTEND_URL,required"`
-	SlackSettings string `env:"SLACK_SETTINGS,required"`
+type NotificationsConfig struct {
+	LogLevel            string `env:"LOG_LEVEL,default=info"`
+	DynamoTable         string `env:"APPROVALS_TABLE_NAME,required"`
+	FrontendURL         string `env:"APPROVALS_FRONTEND_URL,required"`
+	NotificationsConfig string `env:"NOTIFICATIONS_SETTINGS,default=[]"`
 }
 
 type EventHandlerConfig struct {
@@ -35,7 +35,7 @@ type SyncConfig struct {
 	IdpProvider      string `env:"IDENTITY_PROVIDER,default=COGNITO"`
 	UserPoolId       string `env:"APPROVALS_COGNITO_USER_POOL_ID"`
 	LogLevel         string `env:"LOG_LEVEL,default=info"`
-	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
+	IdentitySettings string `env:"IDENTITY_SETTINGS,default=[]"`
 }
 
 type FrontendDeployerConfig struct {
