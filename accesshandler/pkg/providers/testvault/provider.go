@@ -3,33 +3,22 @@ package testvault
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/testvault"
 	"github.com/invopop/jsonschema"
-	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
 
 type Provider struct {
 	client   *testvault.ClientWithResponses
-	apiURL   string
-	uniqueID string
+	apiURL   gconfig.StringValue
+	uniqueID gconfig.StringValue
 }
 
-func (p *Provider) Config() genv.Config {
-	return genv.Config{
-		&genv.StringValue{
-			Name:    "apiUrl",
-			Val:     &p.apiURL,
-			Usage:   "The TestVault API URL",
-			Default: func() string { return "https://prod.testvault.granted.run" },
-		},
-		&genv.StringValue{
-			Name:    "uniqueId",
-			Val:     &p.uniqueID,
-			Usage:   "A unique ID used as a prefix for vault IDs",
-			Default: func() string { return ksuid.New().String() },
-		},
+func (p *Provider) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("apiUrl", &p.apiURL, "The TestVault API URL"),
+		gconfig.StringField("uniqueId", &p.uniqueID, "A unique ID used as a prefix for vault IDs"),
 	}
 }
 
@@ -37,7 +26,7 @@ func (p *Provider) Config() genv.Config {
 func (p *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configuring TestVault client", "apiURL", p.apiURL, "uniqueId", p.uniqueID)
 
-	client, err := testvault.NewClientWithResponses(p.apiURL)
+	client, err := testvault.NewClientWithResponses(p.apiURL.Get())
 	if err != nil {
 		return err
 	}

@@ -57,12 +57,12 @@ func UsageExample() error {
 	if configer, ok := inter.(gconfig.Configer); ok {
 		cfg := configer.Config()
 		// prompt for values, this will use the usage desciption on the field to ask the user for a value
-		for i := range cfg {
-			err := cfg[i].CLIPrompt()
-			if err != nil {
-				return err
-			}
-		}
+		// for i := range cfg {
+		// err := cfg[i].CLIPrompt()
+		// if err != nil {
+		// 	return err
+		// }
+		// }
 		// dump the values to storage
 		out, err := cfg.Dump(ctx, gconfig.SSMDumper{})
 		if err != nil {

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,8 +16,8 @@ import (
 func testProvider(t *testing.T, p providers.Accessor, vals map[string]string) providers.Accessor {
 	ctx := context.Background()
 
-	if c, ok := p.(providers.Configer); ok {
-		err := c.Config().Load(ctx, &genv.MapLoader{
+	if c, ok := p.(gconfig.Configer); ok {
+		err := c.Config().Load(ctx, &gconfig.MapLoader{
 			Values: vals,
 		})
 		if err != nil {
@@ -26,7 +26,7 @@ func testProvider(t *testing.T, p providers.Accessor, vals map[string]string) pr
 	}
 
 	// initialise the provider if it supports it.
-	if i, ok := p.(providers.Initer); ok {
+	if i, ok := p.(gconfig.Initer); ok {
 		err := i.Init(ctx)
 		if err != nil {
 			t.Fatal(err)
@@ -107,8 +107,8 @@ func TestConfigureProviders(t *testing.T) {
 				assert.Equal(t, p.Type, got.Type)
 				assert.IsType(t, p.Provider, got.Provider)
 
-				if c, ok := p.Provider.(providers.Configer); ok {
-					gotc := got.Provider.(providers.Configer)
+				if c, ok := p.Provider.(gconfig.Configer); ok {
+					gotc := got.Provider.(gconfig.Configer)
 					assert.Equal(t, c.Config(), gotc.Config())
 				}
 			}

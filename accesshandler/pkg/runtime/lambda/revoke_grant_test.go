@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/joho/godotenv"
@@ -31,14 +31,14 @@ func TestRevokeGrant(t *testing.T) {
 	_ = godotenv.Load("../../../../.env")
 	testCfg := TestConfig{}
 
-	loader := genv.EnvLoader{Prefix: "REVOKE_GRANT_INTEGRATION_TEST_"}
+	loader := gconfig.EnvLoader{Prefix: "REVOKE_GRANT_INTEGRATION_TEST_"}
 
 	err := loader.Load(
-		genv.String("PROVIDER_ID", &testCfg.ProviderID, ""),
-		genv.String("GROUP_ID", &testCfg.GroupID, ""),
-		genv.String("SUBJECT_EMAIL", &testCfg.Email, ""),
-		genv.String("OKTA_ORG_URL", &testCfg.OrgURL, ""),
-		genv.String("OKTA_SYNC_TOKEN", &testCfg.APIToken, ""))
+		gconfig.String("PROVIDER_ID", &testCfg.ProviderID, ""),
+		gconfig.String("GROUP_ID", &testCfg.GroupID, ""),
+		gconfig.String("SUBJECT_EMAIL", &testCfg.Email, ""),
+		gconfig.String("OKTA_ORG_URL", &testCfg.OrgURL, ""),
+		gconfig.String("OKTA_SYNC_TOKEN", &testCfg.APIToken, ""))
 	if err != nil {
 		t.Skip("environment variables not set")
 	}

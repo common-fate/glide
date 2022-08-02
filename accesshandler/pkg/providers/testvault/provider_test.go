@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
@@ -70,8 +71,8 @@ func TestArgSchema(t *testing.T) {
 
 func TestInstructions(t *testing.T) {
 	p := Provider{
-		apiURL:   "https://testvault.internal",
-		uniqueID: "1234",
+		apiURL:   gconfig.StringValue{Value: "https://testvault.internal"},
+		uniqueID: gconfig.StringValue{Value: "1234"},
 	}
 	args := `{"vault": "my-vault"}`
 	got, err := p.Instructions(context.Background(), "testuser", []byte(args))

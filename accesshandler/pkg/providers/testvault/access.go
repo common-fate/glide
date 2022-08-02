@@ -69,7 +69,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 		return "", err
 	}
 	vault := p.getPrefixedVault(a.Vault)
-	u, err := url.Parse(p.apiURL)
+	u, err := url.Parse(p.apiURL.Get())
 	if err != nil {
 		return "", err
 	}
@@ -81,8 +81,8 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 
 // getPrefixedVault gets the vault ID with the unique ID prefixed to it.
 func (p *Provider) getPrefixedVault(vault string) string {
-	if p.uniqueID == "" {
+	if p.uniqueID.Get() == "" {
 		return vault
 	}
-	return p.uniqueID + "_" + vault
+	return p.uniqueID.Get() + "_" + vault
 }

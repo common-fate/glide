@@ -42,12 +42,11 @@ func (s *AzureSync) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	azAuth := ClientSecretCredential{client: c}
-	token, err := azAuth.GetToken(ctx)
+	token, err := c.AcquireTokenByCredential(ctx, []string{"https://graph.microsoft.com/.default"})
 	if err != nil {
 		return err
 	}
-	s.token.Set(token)
+	s.token.Set(token.AccessToken)
 	return nil
 }
 
@@ -91,12 +90,6 @@ type UserGroups struct {
 
 type ClientSecretCredential struct {
 	client confidential.Client
-}
-
-// GetToken requests an access token from Azure Active Directory. This method is called automatically by Azure SDK clients.
-func (c *ClientSecretCredential) GetToken(ctx context.Context) (string, error) {
-	ar, err := c.client.AcquireTokenByCredential(ctx, []string{"https://graph.microsoft.com/.default"})
-	return ar.AccessToken, err
 }
 
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type

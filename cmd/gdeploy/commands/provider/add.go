@@ -10,12 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/briandowns/spinner"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/lookup"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -72,7 +72,7 @@ var addCommand = cli.Command{
 		}
 
 		// set up the config for the specific provider by prompting the user.
-		var pcfg genv.Config
+		var pcfg gconfig.Config
 		if configer, ok := provider.Provider.(providers.Configer); ok {
 			pcfg = configer.Config()
 
@@ -83,7 +83,6 @@ var addCommand = cli.Command{
 			}
 		}
 
-		deployProvider := deploy.ProviderFromLookup(id, uses, pcfg)
 		err = dc.AddProvider(id, deployProvider)
 		if err != nil {
 			return err
@@ -100,13 +99,13 @@ var addCommand = cli.Command{
 	},
 }
 
-func promptForConfig(c *cli.Context, providerID string, pcfg genv.Config) error {
+func promptForConfig(c *cli.Context, providerID string, pcfg gconfig.Config) error {
 	ctx := c.Context
 	// split the config into regular config, and secrets.
 	// this will allow us to display user-friendly prompts for each section.
-	var cfg, secrets genv.Config
+	var cfg, secrets gconfig.Config
 	for _, v := range pcfg {
-		if s, ok := v.(genv.Secret); ok && s.IsSecret() {
+		if s, ok := v.(gconfig.Secret); ok && s.IsSecret() {
 			secrets = append(secrets, v)
 		} else {
 			cfg = append(cfg, v)
@@ -114,7 +113,7 @@ func promptForConfig(c *cli.Context, providerID string, pcfg genv.Config) error 
 	}
 
 	for _, v := range cfg {
-		err := genv.CLIPrompt(v)
+		err := gconfig.CLIPrompt(v)
 		if err != nil {
 			return err
 		}
@@ -135,7 +134,7 @@ func promptForConfig(c *cli.Context, providerID string, pcfg genv.Config) error 
 	clio.Info("This provider requires some sensitive credentials. These will be uploaded to AWS SSM using the path '/granted/%s/<value>'. A reference to the secrets will be stored in your configuration file.", providerID)
 
 	for _, v := range secrets {
-		err := genv.CLIPrompt(v)
+		err := gconfig.CLIPrompt(v)
 		if err != nil {
 			return err
 		}

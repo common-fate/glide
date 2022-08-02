@@ -8,34 +8,34 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"go.uber.org/zap"
 )
 
 type Provider struct {
-	instanceARN string
-	// The globally unique identifier for the identity store, such as d-1234567890.
-	identityStoreID string
-	// The aws region where the identity store runs
-	region        string
 	client        *ssoadmin.Client
 	idStoreClient *identitystore.Client
 	orgClient     *organizations.Client
+	instanceARN   gconfig.StringValue
+	// The globally unique identifier for the identity store, such as d-1234567890.
+	identityStoreID gconfig.StringValue
+	// The aws region where the identity store runs
+	region gconfig.OptionalStringValue
 }
 
-func (p *Provider) Config() genv.Config {
-	return genv.Config{
-		genv.String("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
-		genv.String("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
-		genv.OptionalString("region", &p.region, "the region the AWS SSO instance is deployed to"),
+func (p *Provider) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
+		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
+		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
 	}
 }
 
 func (p *Provider) Init(ctx context.Context) error {
 	var opts []func(*config.LoadOptions) error
-	if p.region != "" {
-		opts = append(opts, config.WithRegion(p.region))
+	if p.region.IsSet() {
+		opts = append(opts, config.WithRegion(p.region.Get()))
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)

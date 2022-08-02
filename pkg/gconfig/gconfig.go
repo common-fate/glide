@@ -69,9 +69,14 @@ type Valuer interface {
 
 type SecretPathFunc func(args ...interface{}) (string, error)
 
+// Use this if the path is a simple string
 func WithNoArgs(path string) SecretPathFunc {
 	return WithArgs(path, 0)
 }
+
+// WithArgs returns a SecretPathFunc which is intended to be used when dynamic formatting of the path is required.
+// For example a path refers to an id entered by a user, we only know this at dump time.
+// The SSMDumper takes in args which are passed to the the format string
 func WithArgs(path string, expectedCount int) SecretPathFunc {
 	return func(args ...interface{}) (string, error) {
 		if len(args) != expectedCount {

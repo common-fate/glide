@@ -6,4 +6,4 @@ We use AWS CDK v2 to define the infrastructure required to run the Granted appro
 - [Providers](./providers.md)
 - [Runtimes](./runtimes.md)
 - [Testing](./testing.md)
-- [Genv](./genv.md)
+- [gconfig](./gconfig.md)
