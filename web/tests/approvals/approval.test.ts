@@ -13,7 +13,7 @@ test.describe.serial("Approval/Request Workflows", () => {
 
   test("test request workflow", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
-    // await CreateAccessRule(page);
+    await CreateAccessRule(page);
     // This will log us out of the admin account
     await Logout(page);
 
