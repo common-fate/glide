@@ -39,7 +39,7 @@ var configureCommand = cli.Command{
 			return err
 		}
 
-		linker := docs.Linker{BaseURL: "http://localhost:3000"}
+		linker := docs.Linker{BaseURL: "https://docs.commonfate.io/"}
 
 		clio.Warn("Follow the documentation for setting up SSO here: %s", linker.MakeURL("granted-approvals/sso/overview"))
 

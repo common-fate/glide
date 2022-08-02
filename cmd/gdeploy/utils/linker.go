@@ -1,5 +1,6 @@
-package docs
+package linker
 
+// Helper package to clean up the links to the docs in the gdeploy cli
 type Linker struct {
 	BaseURL string
 }

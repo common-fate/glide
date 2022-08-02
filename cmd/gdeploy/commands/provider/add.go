@@ -46,7 +46,7 @@ var addCommand = cli.Command{
 			return err
 		}
 
-		linker := docs.Linker{BaseURL: "http://localhost:3000"}
+		linker := docs.Linker{BaseURL: "https://docs.commonfate.io/"}
 
 		clio.Warn("Follow the documentation for setting up the %s provider here: %s", provider.Description, linker.MakeURL(fmt.Sprintf("granted-approvals/providers/%s", provider.DefaultID)))
 
