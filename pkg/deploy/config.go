@@ -82,6 +82,19 @@ func (f Features) Get(uses string) (*Feature, error) {
 	}
 	return nil, ErrFeatureNotDefined
 }
+func (f *Features) Remove(uses string) error {
+	removeIndex := -1
+	for i := range *f {
+		if (*f)[i].Uses == uses {
+			removeIndex = i
+		}
+	}
+	if removeIndex == -1 {
+		return ErrFeatureNotDefined
+	}
+	*f = append((*f)[:removeIndex], (*f)[removeIndex+1:]...)
+	return nil
+}
 
 // Upsert Updates or inserts a Feature
 func (f *Features) Upsert(feature Feature) error {
@@ -98,29 +111,40 @@ func (f *Features) Upsert(feature Feature) error {
 	return nil
 }
 
+type FeatureMap map[string]Feature
+
+// Adds the feature if it does not exist
+func (f FeatureMap) Add(id string, feature Feature) error {
+	if _, ok := f[id]; ok {
+		return fmt.Errorf("provider %s already exists in the config", id)
+	}
+	f[id] = feature
+	return nil
+}
+
 type Feature struct {
 	Uses string            `yaml:"uses" json:"uses"`
 	With map[string]string `yaml:"with" json:"with"`
 }
 
 type Parameters struct {
-	CognitoDomainPrefix        string             `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID       string             `yaml:"AdministratorGroupID"`
-	DeploymentSuffix           string             `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType       string             `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata            string             `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL         string             `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain             string             `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN     string             `yaml:"FrontendCertificateARN,omitempty"`
-	ProviderConfiguration      map[string]Feature `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration      Features           `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration Features           `yaml:"NotificationsConfiguration,omitempty"`
+	CognitoDomainPrefix        string     `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID       string     `yaml:"AdministratorGroupID"`
+	DeploymentSuffix           string     `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType       string     `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata            string     `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL         string     `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain             string     `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN     string     `yaml:"FrontendCertificateARN,omitempty"`
+	ProviderConfiguration      FeatureMap `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration      Features   `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration Features   `yaml:"NotificationsConfiguration,omitempty"`
 }
 
 // UnmarshalFeatures parses the JSON configuration data and returns
 // an initialised struct. If `data` is an empty string an empty
 // IdentityConfig{} object is returned.
-func UnmarshalFeatures(data string) ([]Feature, error) {
+func UnmarshalFeatures(data string) (Features, error) {
 	if data == "" {
 		return []Feature{}, nil
 	}
@@ -136,16 +160,23 @@ func UnmarshalFeatures(data string) ([]Feature, error) {
 	return i, nil
 }
 
-// AddProvider adds a new provider to the deployment configuration.
-func (c *Config) AddProvider(id string, p Feature) error {
-	if c.Deployment.Parameters.ProviderConfiguration == nil {
-		c.Deployment.Parameters.ProviderConfiguration = make(map[string]Feature)
+// UnmarshalFeatureMap parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// IdentityConfig{} object is returned.
+func UnmarshalFeatureMap(data string) (FeatureMap, error) {
+	if data == "" {
+		return make(FeatureMap), nil
 	}
-	if _, ok := c.Deployment.Parameters.ProviderConfiguration[id]; ok {
-		return fmt.Errorf("provider %s already exists in the config", id)
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
+	var i FeatureMap
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return make(FeatureMap), err
 	}
-	c.Deployment.Parameters.ProviderConfiguration[id] = p
-	return nil
+	return i, nil
 }
 
 // CLIPrompt prompts the user to enter a value for the config varsiable

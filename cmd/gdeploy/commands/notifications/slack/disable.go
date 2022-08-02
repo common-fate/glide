@@ -2,9 +2,7 @@ package slack
 
 import (
 	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,16 +17,16 @@ var disableSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		_, err = config.DeleteSecret(ctx, config.SlackTokenPath, dc.Deployment.Parameters.DeploymentSuffix)
+
+		err = dc.Deployment.Parameters.NotificationsConfiguration.Remove("commonfate/notifications/slack@v1")
 		if err != nil {
-			return errors.Wrap(err, "failed while deleting slack parameters in ssm")
+			return err
 		}
-		dc.Notifications = nil
 		err = dc.Save(f)
 		if err != nil {
 			return err
 		}
-		clio.Success("Successfully deleted slack secrets")
+		clio.Success("Successfully disabled Slack")
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 	},

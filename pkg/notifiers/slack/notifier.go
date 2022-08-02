@@ -7,14 +7,9 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
-
-type IdentityProvider interface {
-	GetUserBySub(ctx context.Context, sub string) (*types.User, error)
-}
 
 // Notifier provides handler methods for sending notifications to slack based on events
 type SlackNotifier struct {

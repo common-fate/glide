@@ -1,11 +1,11 @@
 package slack
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
@@ -22,14 +22,21 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		if dc.Notifications == nil || dc.Notifications.Slack == nil {
+		currentConfig, err := dc.Deployment.Parameters.NotificationsConfiguration.Get("commonfate/notifications/slack@v1")
+		if err == deploy.ErrFeatureNotDefined {
 			return fmt.Errorf("slack is not yet configured, configure it now by running 'gdeploy notifications slack configure'")
 		}
-		b, err := json.Marshal(dc.Notifications.Slack)
+		if err != nil && err != deploy.ErrFeatureNotDefined {
+			return err
+		}
+		var slack slacknotifier.SlackNotifier
+		cfg := slack.Config()
+		err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig.With})
 		if err != nil {
 			return err
 		}
-		err = slacknotifier.SendTestMessage(ctx, c.String("email"), b)
+
+		err = slack.SendTestMessage(ctx, c.String("email"))
 		if err != nil {
 			return err
 		}
