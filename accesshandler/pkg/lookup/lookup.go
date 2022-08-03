@@ -54,13 +54,20 @@ func (r ProviderRegistry) Lookup(uses string) (*RegisteredProvider, error) {
 
 func (r ProviderRegistry) CLIOptions() []string {
 	var opts []string
-	for k, v := range r.Providers {
-		grey := color.New(color.FgHiBlack).SprintFunc()
-		id := "(" + k + ")"
-		opt := fmt.Sprintf("%s %s", v.Description, grey(id))
+	for k := range r.Providers {
+
+		opt := r.FormatOptions(k)
 		opts = append(opts, opt)
 	}
 	return opts
+}
+
+func (r ProviderRegistry) FormatOptions(provider string) string {
+	k := r.Providers[provider]
+	grey := color.New(color.FgHiBlack).SprintFunc()
+	id := "(" + provider + ")"
+	opt := fmt.Sprintf("%s %s", k.Description, grey(id))
+	return opt
 }
 
 func (r ProviderRegistry) FromCLIOption(opt string) (key string, p RegisteredProvider, err error) {

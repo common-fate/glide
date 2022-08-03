@@ -50,13 +50,13 @@ func TestFromCLIOption(t *testing.T) {
 		},
 		{
 			name:    "from CLIOptions okta",
-			give:    testRegistry.CLIOptions()[0],
+			give:    testRegistry.FormatOptions("commonfate/okta@v1"),
 			wantKey: "commonfate/okta@v1",
 			want:    testRegistry.Providers["commonfate/okta@v1"],
 		},
 		{
 			name:    "from CLIOptions azure",
-			give:    testRegistry.CLIOptions()[1],
+			give:    testRegistry.FormatOptions("commonfate/azure-ad@v1"),
 			wantKey: "commonfate/azure-ad@v1",
 			want:    testRegistry.Providers["commonfate/azure-ad@v1"],
 		},
