@@ -3,7 +3,6 @@ package sso
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
@@ -31,7 +30,7 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
+		clio.Info("Follow the documentation for setting up SSO here: https://docs.commonfate.io/granted-approvals/sso/overview")
 		registry := identitysync.Registry()
 
 		var selected string
@@ -74,6 +73,8 @@ var configureCommand = cli.Command{
 
 		cfg := idp.IdentityProvider.Config()
 		if update {
+			clio.Info("Don't know where to find an SSO credential? Best place to find out would be our docs!")
+			clio.Info("Follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s", idpType, idpType)
 			// if there is existing config, process it into the idp struct
 			// This way, the cli prompt will have defaults loaded
 			if currentConfig != nil {
@@ -101,6 +102,7 @@ var configureCommand = cli.Command{
 			dc.Deployment.Parameters.IdentityConfiguration.Upsert(deploy.Feature{Uses: idpType, With: idpWith})
 
 			clio.Info("The following parameters are required to setup a SAML app in your identity provider")
+			clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idpType)
 			o, err := dc.LoadSAMLOutput(ctx)
 			if err != nil {
 				return err
@@ -157,7 +159,7 @@ var configureCommand = cli.Command{
 				dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 			}
 		}
-		dc.Deployment.Parameters.IdentityProviderType = strings.ToUpper(idpType)
+		dc.Deployment.Parameters.IdentityProviderType = idpType
 
 		clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.

@@ -20,13 +20,19 @@ var addCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
+		f := c.Path("file")
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+
 		r := providerregistry.Registry()
 		p := survey.Select{
 			Message: "What are you trying to grant access to?",
 			Options: r.CLIOptions(),
 		}
 		var chosen string
-		err := survey.AskOne(&p, &chosen)
+		err = survey.AskOne(&p, &chosen)
 		if err != nil {
 			return err
 		}
@@ -36,11 +42,7 @@ var addCommand = cli.Command{
 			return err
 		}
 
-		f := c.Path("file")
-		dc, err := deploy.ConfigFromContext(ctx)
-		if err != nil {
-			return err
-		}
+		clio.Info("Follow the documentation for setting up the %s provider here: https://docs.commonfate.io/granted-approvals/providers/%s", provider.Description, provider.DefaultID)
 
 		var id string
 		err = survey.AskOne(&survey.Input{
