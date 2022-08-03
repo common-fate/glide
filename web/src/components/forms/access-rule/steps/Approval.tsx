@@ -58,7 +58,7 @@ export const ApprovalStep: React.FC = () => {
           </FormLabel>
 
           <GroupSelect
-            data-testid="approval-group-select"
+            testId="approval-group-select"
             fieldName="approval.groups"
             isDisabled={!approval?.required}
             rules={{ required: approverRequired }}

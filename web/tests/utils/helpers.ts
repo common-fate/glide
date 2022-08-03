@@ -95,9 +95,11 @@ export const CreateAccessRule = async (page: Page) => {
   await clickFormElementByClass("chakra-switch", page);
 
   //ensure granted_admins was added to selection box
-  await clickFormElementByID("group-select", page);
+  // await clickFormElementByID("approval-group-select", page);
+  await page.locator("#approval-group-select").click();
   await page.keyboard.press("Enter");
-  await clickFormElementByID("group-select", page);
+  // await clickFormElementByID("approval-group-select", page);
+  await page.locator("#approval-group-select").click();
   await page.keyboard.press("Enter");
 
   await clickFormElementByID("rule-create-button", page);
@@ -137,7 +139,7 @@ export const clickFormElementByText = async (
 };
 
 export const clickFormElementByID = async (id: string, page: Page) => {
-  await page.locator(`#${id} >> visible=true`).click();
+  await page.locator(`#${id} >> visible=true`).first().click();
 };
 
 export const clickFormElementByClass = async (id: string, page: Page) => {
