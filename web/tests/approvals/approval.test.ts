@@ -67,6 +67,8 @@ test.describe.serial("Approval/Request Workflows", () => {
     // Click on the first review
     await page.locator(testId("tablerow-0")).click();
 
+    await page.waitForLoadState("networkidle");
+
     await page.locator(testId("approve")).click();
   });
 });
