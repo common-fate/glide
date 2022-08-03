@@ -82,7 +82,9 @@ export const CreateAccessRule = async (page: Page) => {
   await fillFormElementById("hour-duration-input", "1", page);
   await clickFormElementByID("form-step-next-button", page);
 
-  //click on group select
+  //click on group select, add both groups
+  await clickFormElementByID("group-select", page);
+  await clickFormElementByID("react-select-2-listbox", page);
   await clickFormElementByID("group-select", page);
   await clickFormElementByID("react-select-2-listbox", page);
 
@@ -102,11 +104,6 @@ export const CreateAccessRule = async (page: Page) => {
 
   //check that we are redirected
   await expect(page).toHaveURL("/admin/access-rules");
-
-  // await fillFormElement('input', "name", "test-rule", page)
-  // await fillFormElement('input', "name", "test-rule", page)
-  // await fillFormElement('input', "name", "test-rule", page)
-  // });
 };
 
 //helper functions to click elements that are visible

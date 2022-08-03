@@ -51,6 +51,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   rules,
   isDisabled,
   id,
+  ...rest
 }) => {
   const { control, trigger } = useFormContext();
 
@@ -86,6 +87,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
             onBlur={() => trigger(fieldName)}
+            {...rest}
           />
         );
       }}
