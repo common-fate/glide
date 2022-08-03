@@ -96,7 +96,7 @@ export const Navbar: React.FC<{}> = () => {
                     )}
                   </TabsStyledNextButton>
                   <TabsStyledNextButton
-                    href="/reviews"
+                    href="/reviews?status=pending"
                     w="125px"
                     pr={showRewCount && 10}
                   >
