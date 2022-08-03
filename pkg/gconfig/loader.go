@@ -26,7 +26,7 @@ var secretGetterRegistry = map[string]SecretGetter{
 // MapLoader looks up values in it's Values map
 // when loading configuration.
 //
-// It's useful for writing tests which use gconfig to configure things.
+// It's useful for writing tests which use genv to configure things.
 type MapLoader struct {
 	Values map[string]string
 }
@@ -85,7 +85,10 @@ func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
 			}
 		}
 	}
-
+	err = g.Wait()
+	if err != nil {
+		return nil, err
+	}
 	return res, nil
 }
 

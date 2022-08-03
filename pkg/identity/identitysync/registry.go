@@ -3,6 +3,7 @@ package identitysync
 import (
 	"fmt"
 	"regexp"
+	"sort"
 
 	"github.com/fatih/color"
 )
@@ -62,6 +63,7 @@ func (r IdentityProviderRegistry) CLIOptions() []string {
 		opt := fmt.Sprintf("%s %s", v.Description, grey(id))
 		opts = append(opts, opt)
 	}
+	sort.Strings(opts)
 	return opts
 }
 
