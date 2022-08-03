@@ -40,15 +40,15 @@ func (c Config) CDKContextArgs() []string {
 
 		args = append(args, "-c", fmt.Sprintf("identityConfiguration=%s", string(cfg)))
 	}
+
 	if c.Deployment.Parameters.NotificationsConfiguration != nil {
-		if c.Deployment.Parameters.NotificationsConfiguration != nil {
-			cfg, err := json.Marshal(c.Deployment.Parameters.NotificationsConfiguration)
-			if err != nil {
-				panic(err)
-			}
-			args = append(args, "-c", fmt.Sprintf("notificationsConfiguration=%s", string(cfg)))
+		cfg, err := json.Marshal(c.Deployment.Parameters.NotificationsConfiguration)
+		if err != nil {
+			panic(err)
 		}
+		args = append(args, "-c", fmt.Sprintf("notificationsConfiguration=%s", string(cfg)))
 	}
+
 	if c.Deployment.Parameters.IdentityProviderType != "" {
 		args = append(args, "-c", fmt.Sprintf("idpType=%s", string(c.Deployment.Parameters.IdentityProviderType)))
 	}

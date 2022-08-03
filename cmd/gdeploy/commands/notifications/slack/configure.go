@@ -74,7 +74,7 @@ var configureSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		dc.Deployment.Parameters.IdentityConfiguration.Upsert(deploy.Feature{Uses: "commonfate/notifications/slack@v1", With: slackWith})
+		dc.Deployment.Parameters.NotificationsConfiguration.Upsert(deploy.Feature{Uses: "commonfate/notifications/slack@v1", With: slackWith})
 		err = dc.Save(f)
 		if err != nil {
 			return err
