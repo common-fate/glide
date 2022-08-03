@@ -56,7 +56,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await Logout(page);
 
     // This will log us in as an admin
-    await LoginAdmin(page);
+    await LoginUser(page);
 
     await page.waitForLoadState("networkidle");
 
