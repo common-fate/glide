@@ -45,6 +45,8 @@ test.describe.serial("Approval/Request Workflows", () => {
     // Click on the first request
     await page.click(testId("req_" + uniqueReason), { force: true });
 
+    await page.waitForLoadState("networkidle");
+
     const locator = page.locator(testId("reason"));
     await expect(locator).toContainText(uniqueReason);
   });
