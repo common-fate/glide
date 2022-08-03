@@ -208,8 +208,8 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
                   cursor="pointer"
                   {...extraProps}
                   userSelect="all"
-                  key={"tablerow-" + i}
-                  id={"tablerow-" + i}
+                  key={i}
+                  data-testid={`row-${i}`}
                   onClick={(e) => {
                     e.preventDefault();
 
@@ -238,7 +238,7 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
                   {...extraProps}
                   userSelect="all"
                   key={"tablerow-" + i}
-                  id={"tablerow-" + i}
+                  data-testid={`tablerow-${i}`}
                 >
                   {row.cells.map((cell, i) => (
                     <Td

@@ -124,7 +124,7 @@ const Home: NextPage = () => {
                             h="172px"
                             w="232px"
                             rounded="md"
-                            id={"r_" + i}
+                            data-testid={"r_" + i}
                           >
                             <ProviderIcon
                               provider={r.target.provider}
@@ -350,8 +350,7 @@ const UserAccessCard: React.FC<{
             flexDir="column"
             key={req.id}
             pos="relative"
-            // id={"req_"+ index}
-            id={"req_" + req.reason}
+            data-testid={"req_" + req.reason}
           >
             <Stack flexDir="column" p={8} pos="relative" spacing={2}>
               <RequestStatusDisplay request={req} />

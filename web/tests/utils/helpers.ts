@@ -144,3 +144,7 @@ export const clickFormElementByID = async (id: string, page: Page) => {
 export const clickFormElementByClass = async (id: string, page: Page) => {
   await page.locator(`.${id} >> visible=true`).click();
 };
+
+export const testId = (id: string) => {
+  return `[data-testid="${id}"]`;
+};

@@ -196,7 +196,11 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           </HStack>
         </Skeleton>
         <Skeleton isLoaded={request !== undefined}>
-          <Flex color="neutrals.600" textStyle="Body/Medium" id="reason">
+          <Flex
+            color="neutrals.600"
+            textStyle="Body/Medium"
+            data-testid="reason"
+          >
             {request?.reason}
           </Flex>
         </Skeleton>
@@ -509,7 +513,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                     </Text>
                   )}
                   <Button
-                    id="approve"
+                    data-testid="approve"
                     isLoading={isSubmitting}
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
@@ -520,7 +524,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                     Approve
                   </Button>
                   <Button
-                    id="decline"
+                    data-testid="decline"
                     isLoading={isSubmitting}
                     autoFocus={focus === "close"}
                     key={2}

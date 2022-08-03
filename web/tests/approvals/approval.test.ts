@@ -6,6 +6,7 @@ import {
   LoginAdmin,
   LoginUser,
   Logout,
+  testId,
 } from "../utils/helpers";
 
 test.describe.serial("Approval/Request Workflows", () => {
@@ -28,7 +29,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     //   Click on the first rule
-    await page.click("#r_0");
+    await page.click(testId("r_0"));
 
     await fillFormElementById("reasonField", uniqueReason, page);
 
@@ -42,9 +43,9 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     // Click on the first request
-    await page.click("#req_" + uniqueReason);
+    await page.click(testId("req_" + uniqueReason));
 
-    const locator = page.locator("#reason");
+    const locator = page.locator(testId("reason"));
     await expect(locator).toContainText(uniqueReason);
   });
 
@@ -62,8 +63,8 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     // Click on the first review
-    await page.locator("#tablerow-0").click();
+    await page.locator(testId("tablerow-0")).click();
 
-    await page.locator("#approve").click();
+    await page.locator(testId("approve")).click();
   });
 });
