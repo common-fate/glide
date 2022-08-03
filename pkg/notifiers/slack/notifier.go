@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const NotificationsTypeSlack = "slack"
+
 // Notifier provides handler methods for sending notifications to slack based on events
 type SlackNotifier struct {
 	DB          ddb.Storage

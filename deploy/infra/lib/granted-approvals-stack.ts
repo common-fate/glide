@@ -9,11 +9,11 @@ import { WebUserPool } from "./constructs/app-user-pool";
 import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
-import { IdentityProviderRegistryValues } from "./helpers/registry";
+import { IdentityProviderTypes } from "./helpers/registry";
 interface Props extends cdk.StackProps {
   stage: string;
   cognitoDomainPrefix: string;
-  idpType: IdentityProviderRegistryValues;
+  idpType: IdentityProviderTypes;
   providerConfig: string;
   samlMetadataUrl: string;
   samlMetadata: string;

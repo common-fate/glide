@@ -2,7 +2,6 @@ package identitysync
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"github.com/common-fate/ddb"
@@ -29,7 +28,7 @@ type SyncOpts struct {
 	TableName      string
 	IdpType        string
 	UserPoolId     string
-	IdentityConfig []deploy.Feature
+	IdentityConfig deploy.FeatureMap
 }
 
 func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, error) {
@@ -44,7 +43,7 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 	}
 	cfg := idp.IdentityProvider.Config()
 	var found bool
-	if opts.IdpType == CognitoV1Key {
+	if opts.IdpType == IDPTypeCognito {
 		// Cognito has slightly different loading behaviour becauae it is the default provider
 		// config is provided directly via env vars when the stack is deployed, rather than via a cloudformation parameter
 		found = true
@@ -55,18 +54,11 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 			return nil, err
 		}
 	} else {
-		for _, f := range opts.IdentityConfig {
-			if f.Uses == opts.IdpType {
-				found = true
-				b, err := json.Marshal(f.With)
-				if err != nil {
-					return nil, err
-				}
-				err = cfg.Load(ctx, gconfig.JSONLoader{Data: b})
-				if err != nil {
-					return nil, err
-				}
-				break
+		if idpCfg, ok := opts.IdentityConfig[opts.IdpType]; ok {
+			found = true
+			err = cfg.Load(ctx, &gconfig.MapLoader{Values: idpCfg})
+			if err != nil {
+				return nil, err
 			}
 		}
 	}

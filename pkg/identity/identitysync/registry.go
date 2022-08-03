@@ -9,15 +9,16 @@ import (
 )
 
 const (
-	CognitoV1Key = "commonfate/identity/cognito@v1"
-	OktaV1Key    = "commonfate/identity/okta@v1"
-	AzureADV1Key = "commonfate/identity/azure-ad@v1"
-	GoogleV1Key  = "commonfate/identity/google@v1"
+	IDPTypeCognito = "cognito"
+	IDPTypeOkta    = "okta"
+	IDPTypeAzureAD = "azure"
+	IDPTypeGoogle  = "google"
 )
 
 type RegisteredIdentityProvider struct {
 	IdentityProvider IdentityProvider
 	Description      string
+	DocsID           string
 }
 
 type IdentityProviderRegistry struct {
@@ -27,21 +28,25 @@ type IdentityProviderRegistry struct {
 func Registry() IdentityProviderRegistry {
 	return IdentityProviderRegistry{
 		IdentityProviders: map[string]RegisteredIdentityProvider{
-			CognitoV1Key: {
+			IDPTypeCognito: {
 				IdentityProvider: &CognitoSync{},
 				Description:      "Cognito",
+				DocsID:           "cognito",
 			},
-			OktaV1Key: {
+			IDPTypeOkta: {
 				IdentityProvider: &OktaSync{},
 				Description:      "Okta",
+				DocsID:           "okta",
 			},
-			AzureADV1Key: {
+			IDPTypeAzureAD: {
 				IdentityProvider: &AzureSync{},
 				Description:      "Azure Active Directory",
+				DocsID:           "azure",
 			},
-			GoogleV1Key: {
+			IDPTypeGoogle: {
 				IdentityProvider: &GoogleSync{},
 				Description:      "Google Workspaces",
+				DocsID:           "google",
 			},
 		},
 	}

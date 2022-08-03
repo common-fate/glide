@@ -63,7 +63,7 @@ var syncCommand = cli.Command{
 		} else if res.StatusCode == 200 {
 			idp := dc.Deployment.Parameters.IdentityProviderType
 			if idp == "" {
-				idp = identitysync.CognitoV1Key
+				idp = identitysync.IDPTypeCognito
 			}
 			clio.Success("Successfully synced users and groups using %s", idp)
 		} else {

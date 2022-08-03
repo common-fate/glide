@@ -72,53 +72,15 @@ type Deployment struct {
 	Dev        *bool      `yaml:"dev,omitempty"`
 	Parameters Parameters `yaml:"parameters"`
 }
-type Features []Feature
 
-func (f Features) Get(uses string) (*Feature, error) {
-	for _, feature := range f {
-		if feature.Uses == uses {
-			return &feature, nil
-		}
-	}
-	return nil, ErrFeatureNotDefined
-}
-func (f *Features) Remove(uses string) error {
-	removeIndex := -1
-	for i := range *f {
-		if (*f)[i].Uses == uses {
-			removeIndex = i
-		}
-	}
-	if removeIndex == -1 {
-		return ErrFeatureNotDefined
-	}
-	*f = append((*f)[:removeIndex], (*f)[removeIndex+1:]...)
-	return nil
-}
+type ProviderMap map[string]Provider
 
-// Upsert Updates or inserts a Feature
-func (f *Features) Upsert(feature Feature) error {
-	if len(*f) == 0 {
-		*f = append(*f, feature)
-	} else {
-		for i := range *f {
-			if (*f)[i].Uses == feature.Uses {
-				(*f)[i] = feature
-				break
-			}
-		}
-	}
-	return nil
-}
-
-type FeatureMap map[string]Feature
-
-// Adds the feature if it does not exist
-func (f *FeatureMap) Add(id string, feature Feature) error {
+// Adds the Provider if it does not exist
+func (f *ProviderMap) Add(id string, feature Provider) error {
 	// check if this is a nil map and initialise first if so
 	// This is a trick to check the underlying maps from the alias' value
-	if map[string]Feature(*f) == nil {
-		*f = make(map[string]Feature)
+	if map[string]Provider(*f) == nil {
+		*f = make(map[string]Provider)
 	}
 	if _, ok := (*f)[id]; ok {
 		return fmt.Errorf("provider %s already exists in the config", id)
@@ -127,47 +89,51 @@ func (f *FeatureMap) Add(id string, feature Feature) error {
 	return nil
 }
 
-type Feature struct {
+type Provider struct {
 	Uses string            `yaml:"uses" json:"uses"`
 	With map[string]string `yaml:"with" json:"with"`
 }
 
-type Parameters struct {
-	CognitoDomainPrefix        string     `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID       string     `yaml:"AdministratorGroupID"`
-	DeploymentSuffix           string     `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType       string     `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata            string     `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL         string     `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain             string     `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN     string     `yaml:"FrontendCertificateARN,omitempty"`
-	ProviderConfiguration      FeatureMap `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration      Features   `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration Features   `yaml:"NotificationsConfiguration,omitempty"`
+// Feature map represents the type used for features like identity and notifications
+type FeatureMap map[string]map[string]string
+
+// Upserts the feature in the map, if the map is not initialised, it initialises it first
+func (f *FeatureMap) Upsert(id string, feature map[string]string) {
+	// check if this is a nil map and initialise first if so
+	// This is a trick to check the underlying maps from the alias' value
+	if map[string]map[string]string(*f) == nil {
+		*f = make(map[string]map[string]string)
+	}
+	(*f)[id] = feature
 }
 
-// UnmarshalFeatures parses the JSON configuration data and returns
-// an initialised struct. If `data` is an empty string an empty
-// IdentityConfig{} object is returned.
-func UnmarshalFeatures(data string) (Features, error) {
-	if data == "" {
-		return []Feature{}, nil
+// Remove the feature in the map, if the map is not initialised, it does nothing
+func (f FeatureMap) Remove(id string) {
+	// check if this is a nil map and initialise first if so
+	// This is a trick to check the underlying maps from the alias' value
+	if map[string]map[string]string(f) == nil {
+		return
 	}
-	// first remove any double backslashes which may have been added while loading from or to environment
-	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
-	// unless removed
-	data = strings.ReplaceAll(string(data), "\\", "")
-	var i []Feature
-	err := json.Unmarshal([]byte(data), &i)
-	if err != nil {
-		return []Feature{}, err
-	}
-	return i, nil
+	delete(f, id)
+}
+
+type Parameters struct {
+	CognitoDomainPrefix        string      `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID       string      `yaml:"AdministratorGroupID"`
+	DeploymentSuffix           string      `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType       string      `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata            string      `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL         string      `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain             string      `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN     string      `yaml:"FrontendCertificateARN,omitempty"`
+	ProviderConfiguration      ProviderMap `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration      FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
-// an initialised struct. If `data` is an empty string an empty
-// IdentityConfig{} object is returned.
+// an initialised FeatureMap. If `data` is an empty string an empty
+// FeatureMap is returned.
 func UnmarshalFeatureMap(data string) (FeatureMap, error) {
 	if data == "" {
 		return make(FeatureMap), nil
@@ -179,7 +145,26 @@ func UnmarshalFeatureMap(data string) (FeatureMap, error) {
 	var i FeatureMap
 	err := json.Unmarshal([]byte(data), &i)
 	if err != nil {
-		return make(FeatureMap), err
+		return nil, err
+	}
+	return i, nil
+}
+
+// UnmarshalProviderMap parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// IdentityConfig{} object is returned.
+func UnmarshalProviderMap(data string) (ProviderMap, error) {
+	if data == "" {
+		return make(ProviderMap), nil
+	}
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
+	var i ProviderMap
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return make(ProviderMap), err
 	}
 	return i, nil
 }
@@ -394,7 +379,7 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 			Account:   acc,
 			Dev:       &dev,
 			Parameters: Parameters{
-				ProviderConfiguration: map[string]Feature{
+				ProviderConfiguration: ProviderMap{
 					"test-vault": {
 						Uses: "commonfate/testvault@v1",
 						With: map[string]string{

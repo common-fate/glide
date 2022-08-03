@@ -22,16 +22,13 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		currentConfig, err := dc.Deployment.Parameters.NotificationsConfiguration.Get("commonfate/notifications/slack@v1")
-		if err == deploy.ErrFeatureNotDefined {
+		currentConfig, ok := dc.Deployment.Parameters.NotificationsConfiguration[slacknotifier.NotificationsTypeSlack]
+		if !ok {
 			return fmt.Errorf("slack is not yet configured, configure it now by running 'gdeploy notifications slack configure'")
-		}
-		if err != nil && err != deploy.ErrFeatureNotDefined {
-			return err
 		}
 		var slack slacknotifier.SlackNotifier
 		cfg := slack.Config()
-		err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig.With})
+		err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
 		if err != nil {
 			return err
 		}

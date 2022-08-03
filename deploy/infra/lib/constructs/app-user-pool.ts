@@ -8,7 +8,7 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { DevEnvironmentConfig } from "../helpers/dev-accounts";
-import { IdentityProviderRegistry, IdentityProviderRegistryValues } from "../helpers/registry";
+import { IdentityProviderRegistry, IdentityProviderTypes } from "../helpers/registry";
 
 
 
@@ -16,7 +16,7 @@ interface Props {
   appName: string;
   domainPrefix: string;
   callbackUrls: string[];
-  idpType: IdentityProviderRegistryValues;
+  idpType: IdentityProviderTypes;
   // default should be an empty string is not in use
   samlMetadataUrl: string;
   // optional to use either a url or the metadata directly
@@ -27,7 +27,7 @@ interface Props {
 export class WebUserPool extends Construct {
   private readonly _userPool: cognito.IUserPool;
   private readonly _appName: string;
-  private readonly _idpType: IdentityProviderRegistryValues;
+  private readonly _idpType: IdentityProviderTypes;
   private _userPoolClientId: string;
   private _userPoolDomain: cognito.IUserPoolDomain;
 
@@ -41,7 +41,7 @@ export class WebUserPool extends Construct {
       "CreateSAMLResourcesCondition",
       {
         expression: cdk.Fn.conditionNot(
-          cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.CognitoV1Key)
+          cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.Cognito)
         ),
       }
     );
@@ -49,7 +49,7 @@ export class WebUserPool extends Construct {
       this,
       "CreateCognitoResourcesCondition",
       {
-        expression: cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.CognitoV1Key),
+        expression: cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.Cognito),
       }
     );
     if (props.devConfig !== null) {
@@ -132,7 +132,7 @@ export class WebUserPool extends Construct {
       cognitoWebClient.getUserPoolClient().userPoolClientId
     ).toString();
   }
-  getIdpType(): IdentityProviderRegistryValues {
+  getIdpType(): IdentityProviderTypes {
     return this._idpType;
   }
   getUserPool(): cdk.aws_cognito.IUserPool {

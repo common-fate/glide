@@ -93,7 +93,7 @@ func run() error {
 		return err
 	}
 
-	ic, err := deploy.UnmarshalFeatures(cfg.IdentitySettings)
+	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
 	}

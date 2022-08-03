@@ -250,7 +250,7 @@ func Dotenv() error {
 	if err != nil {
 		return err
 	}
-	idConf := "[]"
+	idConf := "{}"
 	if cfg.Deployment.Parameters.IdentityConfiguration != nil {
 		b, err := json.Marshal(cfg.Deployment.Parameters.IdentityConfiguration)
 		if err != nil {
@@ -266,7 +266,7 @@ func Dotenv() error {
 		}
 		providerConf = string(b)
 	}
-	idpType := identitysync.CognitoV1Key
+	idpType := identitysync.IDPTypeCognito
 	if cfg.Deployment.Parameters.IdentityProviderType != "" {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
 	}

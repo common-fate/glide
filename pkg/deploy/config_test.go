@@ -57,7 +57,7 @@ func TestTestCfnParams(t *testing.T) {
 			give: Config{
 				Deployment: Deployment{
 					Parameters: Parameters{
-						ProviderConfiguration: map[string]Feature{
+						ProviderConfiguration: map[string]Provider{
 							"okta": {
 								Uses: "commonfate/okta@v1",
 								With: map[string]string{
@@ -137,37 +137,28 @@ func TestCfnTemplateURL(t *testing.T) {
 	}
 }
 
-func TestFeatures(t *testing.T) {
+func TestProviderMap(t *testing.T) {
+	// Tests that the Add method works as expected
 	var p Parameters
-	f1 := Feature{Uses: "hello", With: map[string]string{"hello": "world"}}
-	err := p.IdentityConfiguration.Upsert(f1)
+	err := p.ProviderConfiguration.Add("test", Provider{})
 	assert.NoError(t, err)
-	f, err := p.IdentityConfiguration.Get("hello")
+	err = p.ProviderConfiguration.Add("test2", Provider{})
 	assert.NoError(t, err)
-	assert.Equal(t, &f1, f)
-	f1Updated := Feature{Uses: "hello", With: map[string]string{"hello": "you"}}
-	err = p.IdentityConfiguration.Upsert(f1Updated)
-	assert.NoError(t, err)
-	f, err = p.IdentityConfiguration.Get("hello")
-	assert.NoError(t, err)
-	assert.Equal(t, &f1Updated, f)
 
-	// Assert that f1 was not mutated unexpectedly but updating the array
-	assert.NotEqual(t, f1, f)
+	// Expect this to return an error
+	err = p.ProviderConfiguration.Add("test", Provider{})
+	assert.EqualError(t, err, "provider test already exists in the config")
 
+	// assert that the map is as expected
+	assert.Equal(t, ProviderMap{"test": Provider{}, "test2": Provider{}}, p.ProviderConfiguration)
 }
 func TestFeatureMap(t *testing.T) {
 	// Tests that the Add method works as expected
 	var p Parameters
-	err := p.ProviderConfiguration.Add("test", Feature{})
-	assert.NoError(t, err)
-	err = p.ProviderConfiguration.Add("test2", Feature{})
-	assert.NoError(t, err)
-
-	// Expect this to return an error
-	err = p.ProviderConfiguration.Add("test", Feature{})
-	assert.EqualError(t, err, "provider test already exists in the config")
+	p.IdentityConfiguration.Upsert("test", map[string]string{})
+	p.IdentityConfiguration.Upsert("test2", map[string]string{})
+	p.IdentityConfiguration.Upsert("test", map[string]string{})
 
 	// assert that the map is as expected
-	assert.Equal(t, FeatureMap{"test": Feature{}, "test2": Feature{}}, p.ProviderConfiguration)
+	assert.Equal(t, FeatureMap{"test": map[string]string{}, "test2": map[string]string{}}, p.IdentityConfiguration)
 }

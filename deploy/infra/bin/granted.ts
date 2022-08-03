@@ -58,8 +58,8 @@ if (stackTarget === "dev") {
     devConfig,
     adminGroupId: adminGroupId || "granted_administrators",
     samlMetadata: samlMetadata || "",
-    notificationsConfiguration: notificationsConfiguration || "[]",
-    identityProviderSyncConfiguration: identityConfig || "[]",
+    notificationsConfiguration: notificationsConfiguration || "{}",
+    identityProviderSyncConfiguration: identityConfig || "{}",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {

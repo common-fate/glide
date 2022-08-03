@@ -43,10 +43,7 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		currentConfig, err := dc.Deployment.Parameters.IdentityConfiguration.Get(idpType)
-		if err != nil && err != deploy.ErrFeatureNotDefined {
-			return err
-		}
+		currentConfig := dc.Deployment.Parameters.IdentityConfiguration[idpType]
 		update := true
 		//if there are already params for that idp then ask if they want to update
 		if currentConfig != nil {
@@ -78,7 +75,7 @@ var configureCommand = cli.Command{
 			// if there is existing config, process it into the idp struct
 			// This way, the cli prompt will have defaults loaded
 			if currentConfig != nil {
-				err := cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig.With})
+				err := cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
 				if err != nil {
 					return err
 				}
@@ -95,11 +92,11 @@ var configureCommand = cli.Command{
 			// e.g idp.IdentityProvider.TestConfig(ctx)
 
 			// if tests pass, dump the config and update in the deployment config
-			idpWith, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
+			newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
 			if err != nil {
 				return err
 			}
-			dc.Deployment.Parameters.IdentityConfiguration.Upsert(deploy.Feature{Uses: idpType, With: idpWith})
+			dc.Deployment.Parameters.IdentityConfiguration.Upsert(idpType, newConfig)
 
 			clio.Info("The following parameters are required to setup a SAML app in your identity provider")
 			clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idpType)

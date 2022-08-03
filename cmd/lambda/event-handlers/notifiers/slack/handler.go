@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -45,37 +44,28 @@ func main() {
 	// @TODO
 	// temporarily while making the switch to using gconfig for settings, I have implemented the slack lambda in this way.
 	// In future, This should instead be implemented with some sort of registry and possibly an interface to send notifications
+	// because slack currently integrates directly with the db it was hard to fit everything into the right interfaces during the initial rework
+	// We will switch to a single notifications lambda which handles all configured notifications channels
 	ncfg := notifier.Config()
-	var notificationsConfig []deploy.Feature
-	err = json.Unmarshal([]byte(cfg.NotificationsConfig), &notificationsConfig)
+	notificationsConfig, err := deploy.UnmarshalFeatureMap(cfg.NotificationsConfig)
 	if err != nil {
 		panic(err)
 	}
-	var found bool
-	for _, c := range notificationsConfig {
-		if c.Uses == "commonfate/notifications/slack@v1" {
-			found = true
-			b, err := json.Marshal(c.With)
-			if err != nil {
-				panic(err)
-			}
-			err = ncfg.Load(ctx, gconfig.JSONLoader{Data: b})
-			if err != nil {
-				panic(err)
-			}
-			err = notifier.Init(ctx)
-			if err != nil {
-				panic(err)
-			}
+
+	if slackCfg, ok := notificationsConfig[slacknotifier.NotificationsTypeSlack]; ok {
+		err = ncfg.Load(ctx, &gconfig.MapLoader{Values: slackCfg})
+		if err != nil {
+			panic(err)
 		}
-	}
-	if !found {
+		err = notifier.Init(ctx)
+		if err != nil {
+			panic(err)
+		}
+		lambda.Start(notifier.HandleEvent)
+	} else {
 		lambda.Start(func(ctx context.Context, event events.CloudWatchEvent) (err error) {
 			log.Infow("notifications not configured, skipping handling event")
 			return nil
 		})
-	} else {
-		lambda.Start(notifier.HandleEvent)
 	}
-
 }

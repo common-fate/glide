@@ -48,12 +48,9 @@ var configureSlackCommand = cli.Command{
 
 		var slack slacknotifier.SlackNotifier
 		cfg := slack.Config()
-		currentConfig, err := dc.Deployment.Parameters.NotificationsConfiguration.Get("commonfate/notifications/slack@v1")
-		if err != nil && err != deploy.ErrFeatureNotDefined {
-			return err
-		}
+		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration[slacknotifier.NotificationsTypeSlack]
 		if currentConfig != nil {
-			err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig.With})
+			err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
 			if err != nil {
 				return err
 			}
@@ -70,11 +67,11 @@ var configureSlackCommand = cli.Command{
 		// e.g idp.IdentityProvider.TestConfig(ctx)
 
 		// if tests pass, dump the config and update in the deployment config
-		slackWith, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
+		newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
 		if err != nil {
 			return err
 		}
-		dc.Deployment.Parameters.NotificationsConfiguration.Upsert(deploy.Feature{Uses: "commonfate/notifications/slack@v1", With: slackWith})
+		dc.Deployment.Parameters.NotificationsConfiguration.Upsert(slacknotifier.NotificationsTypeSlack, newConfig)
 		err = dc.Save(f)
 		if err != nil {
 			return err

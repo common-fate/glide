@@ -87,7 +87,7 @@ var addCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		err = dc.Deployment.Parameters.ProviderConfiguration.Add(id, deploy.Feature{Uses: uses, With: idpWith})
+		err = dc.Deployment.Parameters.ProviderConfiguration.Add(id, deploy.Provider{Uses: uses, With: idpWith})
 		if err != nil {
 			return err
 		}

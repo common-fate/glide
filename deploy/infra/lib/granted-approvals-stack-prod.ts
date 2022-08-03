@@ -10,7 +10,7 @@ import { CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
 import { generateOutputs } from "./helpers/outputs";
-import { IdentityProviderRegistry, IdentityProviderRegistryValues } from "./helpers/registry";
+import { IdentityProviderRegistry, IdentityProviderTypes } from "./helpers/registry";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -31,7 +31,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       type: "String",
       description:
         "Configure your identity provider, okta requires SamlSSOMetadataURL to be provided",
-      default: IdentityProviderRegistry.CognitoV1Key,
+      default: IdentityProviderRegistry.Cognito,
       allowedValues: Object.values(IdentityProviderRegistry),
     });
 
@@ -88,12 +88,12 @@ export class CustomerGrantedStack extends cdk.Stack {
     const notificationsConfiguration = new CfnParameter(this, "NotificationsConfiguration", {
       type: "String",
       description: "The Notifications configuration in JSON format",
-      default: "[]",
+      default: "{}",
     });
     const identityConfig = new CfnParameter(this, "IdentityConfiguration", {
       type: "String",
       description: "The Identity Provider Sync configuration in JSON format",
-      default: "[]",
+      default: "{}",
     });
 
     const appName = this.stackName + suffix.valueAsString;
@@ -113,7 +113,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       appName,
       domainPrefix: cognitoDomainPrefix.valueAsString,
       callbackUrls: appFrontend.getProdCallbackUrls(),
-      idpType: idpType.valueAsString as IdentityProviderRegistryValues,
+      idpType: idpType.valueAsString as IdentityProviderTypes,
       samlMetadataUrl: samlMetadataUrl.valueAsString,
       samlMetadata: samlMetadata.valueAsString,
       devConfig: null,
