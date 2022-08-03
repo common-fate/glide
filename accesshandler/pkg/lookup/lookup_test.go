@@ -13,15 +13,15 @@ import (
 
 var testRegistry = ProviderRegistry{
 	Providers: map[string]RegisteredProvider{
-		"commonfate/okta@v1": {
-			Provider:    &okta.Provider{},
-			DefaultID:   "okta",
-			Description: "Okta groups",
-		},
 		"commonfate/azure-ad@v1": {
 			Provider:    &ad.Provider{},
 			DefaultID:   "azure-ad",
 			Description: "Azure-AD groups",
+		},
+		"commonfate/okta@v1": {
+			Provider:    &okta.Provider{},
+			DefaultID:   "okta",
+			Description: "Okta groups",
 		},
 	},
 }
@@ -50,13 +50,13 @@ func TestFromCLIOption(t *testing.T) {
 		},
 		{
 			name:    "from CLIOptions okta",
-			give:    testRegistry.FormatOptions("commonfate/okta@v1"),
+			give:    testRegistry.CLIOptions()[1],
 			wantKey: "commonfate/okta@v1",
 			want:    testRegistry.Providers["commonfate/okta@v1"],
 		},
 		{
 			name:    "from CLIOptions azure",
-			give:    testRegistry.FormatOptions("commonfate/azure-ad@v1"),
+			give:    testRegistry.CLIOptions()[0],
 			wantKey: "commonfate/azure-ad@v1",
 			want:    testRegistry.Providers["commonfate/azure-ad@v1"],
 		},
