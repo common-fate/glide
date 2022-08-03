@@ -21,7 +21,7 @@ test.describe.serial("Approval/Request Workflows", () => {
 
   test("test request workflow", async ({ page }) => {
     // This will log us in as an admin
-    await LoginAdmin(page);
+    await LoginUser(page);
 
     await page.waitForLoadState("networkidle");
 
@@ -54,9 +54,6 @@ test.describe.serial("Approval/Request Workflows", () => {
   });
 
   test("test approval workflow", async ({ page }) => {
-    // This will log us out of the admin account
-    await Logout(page);
-
     // This will log us in as an admin
     await LoginAdmin(page);
 
