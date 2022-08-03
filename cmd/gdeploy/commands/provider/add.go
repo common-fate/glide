@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -37,11 +38,21 @@ var addCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+
 		var provider lookup.RegisteredProvider
 		uses, provider, err := r.FromCLIOption(chosen)
 		if err != nil {
 			return err
 		}
+
+		docsURL := url.URL{
+			Scheme: "https",
+			Host:   "docs.commonfate.io",
+		}
+
+		docsURL.Path = fmt.Sprintf("granted-approvals/providers/%s", provider.DefaultID)
+
+		clio.Warn("Follow the documentation for setting up the %s provider here: %s", provider.Description, docsURL.String())
 
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)
