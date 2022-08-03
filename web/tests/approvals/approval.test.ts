@@ -18,8 +18,8 @@ test.describe.serial("Approval/Request Workflows", () => {
     // This will log us out of the admin account
     await Logout(page);
 
-    // This will log us in as a user
-    await LoginUser(page);
+    // This will log us in as an admin
+    await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
 
