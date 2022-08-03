@@ -157,7 +157,7 @@ var configureCommand = cli.Command{
 			}
 		}
 		dc.Deployment.Parameters.IdentityProviderType = idpType
-
+		clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 		clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
