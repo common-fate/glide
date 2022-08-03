@@ -88,10 +88,6 @@ type UserGroups struct {
 	Value         []string `json:"value"`
 }
 
-type ClientSecretCredential struct {
-	client confidential.Client
-}
-
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
 func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IdpUser, error) {
 	u := identity.IdpUser{

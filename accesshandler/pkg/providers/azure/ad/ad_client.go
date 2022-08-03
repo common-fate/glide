@@ -8,13 +8,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"go.uber.org/zap"
 )
-
-type ClientSecretCredential struct {
-	client confidential.Client
-}
 
 type ListUsersResponse struct {
 	OdataContext  string      `json:"@odata.context"`
