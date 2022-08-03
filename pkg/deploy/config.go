@@ -219,9 +219,13 @@ func CLIPrompt(f *gconfig.Field) error {
 			Message: msg,
 		}
 	} else {
+		defaultValue := f.Get()
+		if defaultValue == "" {
+			defaultValue = f.Default()
+		}
 		p = &survey.Input{
 			Message: msg,
-			Default: f.Get(),
+			Default: defaultValue,
 		}
 	}
 	var val string

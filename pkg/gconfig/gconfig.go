@@ -118,7 +118,8 @@ type Field struct {
 	// When a secret is read from file with the aws ssm loader, the path will be set here.
 	// If this is a newly created secret, when it is put in ssm, the path is saved here.
 	// this value is typically derived from the secretPathPrefix a suffix and a version number
-	secretPath string
+	secretPath  string
+	defaultFunc func() string
 }
 
 func (s Field) HasChanged() bool {
@@ -150,6 +151,14 @@ func (s Field) Key() string {
 // Usage returns the usage string for this field
 func (s Field) Usage() string {
 	return s.usage
+}
+
+// Default returns the default value if available else and empty string
+func (s Field) Default() string {
+	if s.defaultFunc != nil {
+		return s.defaultFunc()
+	}
+	return ""
 }
 
 // Set the value of this string
@@ -255,44 +264,66 @@ func (s *OptionalStringValue) Set(value string) {
 	s.Value = &value
 }
 
+type FieldOptFunc func(f *Field)
+
+// WithDefaultFunc sets the default function for a field
+// The default func can be used to initialise a new config
+func WithDefaultFunc(df func() string) FieldOptFunc {
+	return func(f *Field) {
+		f.defaultFunc = df
+	}
+}
+
 // StringField creates a new field with a StringValue
 // This field type is for non secrets
 // for secrets, use SecretField()
-func StringField(key string, dest *StringValue, usage string) *Field {
+func StringField(key string, dest *StringValue, usage string, opts ...FieldOptFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &Field{
+	f := &Field{
 		key:   key,
 		value: dest,
 		usage: usage,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 // SecretStringField creates a new field with a SecretStringValue
-func SecretStringField(key string, dest *SecretStringValue, usage string, secretPathFunc SecretPathFunc) *Field {
+func SecretStringField(key string, dest *SecretStringValue, usage string, secretPathFunc SecretPathFunc, opts ...FieldOptFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &Field{
+	f := &Field{
 		key:            key,
 		value:          dest,
 		usage:          usage,
 		secret:         true,
 		secretPathFunc: secretPathFunc,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 // OptionalStringField creates a new optional field with an OptionalStringValue
 // There is no OptionalSecret type.
-func OptionalStringField(key string, dest *OptionalStringValue, usage string) *Field {
+func OptionalStringField(key string, dest *OptionalStringValue, usage string, opts ...FieldOptFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &Field{
+	f := &Field{
 		key:      key,
 		value:    dest,
 		usage:    usage,
 		optional: true,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
