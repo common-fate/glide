@@ -82,7 +82,7 @@ export const CreateAccessRule = async (page: Page) => {
   await fillFormElementById("hour-duration-input", "1", page);
   await clickFormElementByID("form-step-next-button", page);
 
-  //click on group select, add both groups
+  //click on group select, add both groups for approval
   await clickFormElementByID("group-select", page);
   await clickFormElementByID("react-select-2-listbox", page);
   await clickFormElementByID("group-select", page);
@@ -95,7 +95,9 @@ export const CreateAccessRule = async (page: Page) => {
   await clickFormElementByClass("chakra-switch", page);
 
   //ensure granted_admins was added to selection box
-  await clickFormElementByID("user-select", page);
+  await clickFormElementByID("group-select", page);
+  await page.keyboard.press("Enter");
+  await clickFormElementByID("group-select", page);
   await page.keyboard.press("Enter");
 
   await clickFormElementByID("rule-create-button", page);
