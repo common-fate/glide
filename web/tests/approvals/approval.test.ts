@@ -12,12 +12,14 @@ import {
 test.describe.serial("Approval/Request Workflows", () => {
   const uniqueReason = "test-" + Math.floor(Math.random() * 1000);
 
-  test("test request workflow", async ({ page }) => {
+  test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
     await CreateAccessRule(page);
     // This will log us out of the admin account
     await Logout(page);
+  });
 
+  test("test request workflow", async ({ page }) => {
     // This will log us in as an admin
     await LoginAdmin(page);
 
@@ -56,7 +58,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await Logout(page);
 
     // This will log us in as an admin
-    await LoginUser(page);
+    await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
 
@@ -65,7 +67,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     // Click on the first review
-    await page.locator(testId("tablerow-0")).click();
+    await page.locator(testId(uniqueReason)).click();
 
     await page.waitForLoadState("networkidle");
 

@@ -209,7 +209,6 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
                   {...extraProps}
                   userSelect="all"
                   key={i}
-                  data-testid={`row-${i}`}
                   onClick={(e) => {
                     e.preventDefault();
 
@@ -234,12 +233,7 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
               );
             } else {
               return (
-                <Tr
-                  {...extraProps}
-                  userSelect="all"
-                  key={"tablerow-" + i}
-                  data-testid={`tablerow-${i}`}
-                >
+                <Tr {...extraProps} userSelect="all" key={"tablerow-" + i}>
                   {row.cells.map((cell, i) => (
                     <Td
                       {...cell.getCellProps()}
