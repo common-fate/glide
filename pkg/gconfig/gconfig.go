@@ -86,7 +86,7 @@ func WithArgs(path string, expectedCount int) SecretPathFunc {
 				Key:          path,
 			}
 		}
-		return fmt.Sprintf(path, args), nil
+		return fmt.Sprintf(path, args...), nil
 	}
 }
 

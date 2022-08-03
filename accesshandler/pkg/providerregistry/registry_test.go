@@ -1,4 +1,4 @@
-package lookup
+package providerregistry
 
 import (
 	"errors"

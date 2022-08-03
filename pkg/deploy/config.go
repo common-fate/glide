@@ -114,11 +114,16 @@ func (f *Features) Upsert(feature Feature) error {
 type FeatureMap map[string]Feature
 
 // Adds the feature if it does not exist
-func (f FeatureMap) Add(id string, feature Feature) error {
-	if _, ok := f[id]; ok {
+func (f *FeatureMap) Add(id string, feature Feature) error {
+	// check if this is a nil map and initialise first if so
+	// This is a trick to check the underlying maps from the alias' value
+	if map[string]Feature(*f) == nil {
+		*f = make(map[string]Feature)
+	}
+	if _, ok := (*f)[id]; ok {
 		return fmt.Errorf("provider %s already exists in the config", id)
 	}
-	f[id] = feature
+	(*f)[id] = feature
 	return nil
 }
 

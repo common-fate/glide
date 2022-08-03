@@ -26,7 +26,7 @@ type Generator struct {
 func (g *Generator) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("orgUrl", &g.orgURL, "Okta org URL"),
-		gconfig.SecretStringField("apiToken", &g.apiToken, "Okta API token", gconfig.WithArgs("awsssm:///granted/providers/%s/%s", 2)),
+		gconfig.SecretStringField("apiToken", &g.apiToken, "Okta API token", gconfig.WithArgs("/granted/providers/%s/apiToken", 1)),
 	}
 }
 

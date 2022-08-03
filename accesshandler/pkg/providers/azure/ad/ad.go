@@ -25,7 +25,7 @@ func (a *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("tenantID", &a.tenantID, "the azure tenant ID"),
 		gconfig.StringField("clientID", &a.clientID, "the azure client ID"),
-		gconfig.SecretStringField("clientSecret", &a.clientSecret, "the azure API token", gconfig.WithArgs("awsssm:///granted/providers/%s/%s", 2)),
+		gconfig.SecretStringField("clientSecret", &a.clientSecret, "the azure API token", gconfig.WithArgs("/granted/providers/%s/clientSecret", 1)),
 	}
 }
 

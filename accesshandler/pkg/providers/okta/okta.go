@@ -18,7 +18,7 @@ type Provider struct {
 func (o *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("orgUrl", &o.orgURL, "the Okta organization URL"),
-		gconfig.SecretStringField("apiToken", &o.apiToken, "the Okta API token", gconfig.WithArgs("awsssm:///granted/providers/%s/%s", 2)),
+		gconfig.SecretStringField("apiToken", &o.apiToken, "the Okta API token", gconfig.WithArgs("/granted/providers/%s/apiToken", 1)),
 	}
 }
 

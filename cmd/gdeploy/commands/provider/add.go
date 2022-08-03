@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/lookup"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -20,7 +20,7 @@ var addCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		r := lookup.Registry()
+		r := providerregistry.Registry()
 		p := survey.Select{
 			Message: "What are you trying to grant access to?",
 			Options: r.CLIOptions(),
@@ -30,7 +30,7 @@ var addCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		var provider lookup.RegisteredProvider
+		var provider providerregistry.RegisteredProvider
 		uses, provider, err := r.FromCLIOption(chosen)
 		if err != nil {
 			return err
@@ -80,7 +80,8 @@ var addCommand = cli.Command{
 		// e.g provider.Provider.TestConfig(ctx)
 
 		// if tests pass, dump the config and update in the deployment config
-		idpWith, err := pcfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
+		// secret path args requires the id, all provider config includes the provider ID in the path
+		idpWith, err := pcfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix, SecretPathArgs: []interface{}{id}})
 		if err != nil {
 			return err
 		}
