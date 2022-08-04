@@ -198,8 +198,8 @@ type Okta struct {
 }
 
 type Azure struct {
-	TenantID     string `yaml:"tenantID" json:"tenantID"`
-	ClientID     string `yaml:"clientID" json:"clientID"`
+	TenantID     string `yaml:"tenantID" json:"tenantId"`
+	ClientID     string `yaml:"clientID" json:"clientId"`
 	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
 }
 
