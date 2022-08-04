@@ -34,7 +34,7 @@ export const RequestsFilterMenu: React.FC<{
       </MenuButton>
       <MenuList>
         <MenuOptionGroup
-          defaultValue="all"
+          defaultValue="pend"
           title="View option"
           type="radio"
           onChange={(e) => {
