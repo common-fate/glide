@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,9 +37,10 @@ func testProvider(t *testing.T, p providers.Accessor, vals map[string]string) pr
 	return p
 }
 
+// Note that this test requires AWS credentials to be in the environment
 func TestConfigureProviders(t *testing.T) {
 	ctx := context.Background()
-
+	_ = godotenv.Load("../../../.env")
 	type testcase struct {
 		name string
 		give string
@@ -109,7 +111,18 @@ func TestConfigureProviders(t *testing.T) {
 
 				if c, ok := p.Provider.(gconfig.Configer); ok {
 					gotc := got.Provider.(gconfig.Configer)
-					assert.Equal(t, c.Config(), gotc.Config())
+					assert.Len(t, gotc.Config(), len(c.Config()))
+					for _, v := range c.Config() {
+						found := false
+						for _, v1 := range gotc.Config() {
+							if v.Key() == v1.Key() {
+								found = true
+								assert.Equal(t, v.Get(), v1.Get())
+							}
+						}
+						assert.True(t, found)
+
+					}
 				}
 			}
 		})
