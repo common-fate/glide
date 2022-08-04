@@ -26,13 +26,17 @@ Granted Approvals is an open source privileged access management framework which
 
 **Approve quickly**: connect with your team's communication tools like Slack.
 
+## Documentation
+
+Check out our [documentation](https://docs.commonfate.io/granted-approvals/introduction) for detailed guide on getting started!
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for information on how to contribute. We welcome all contributors - [join our Slack](https://join.slack.com/t/commonfatecommunity/shared_invite/zt-q4m96ypu-_gYlRWD3k5rIsaSsqP7QMg) to discuss the project!
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Granted website](https://docs.commonfate.io/granted/security).
+See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Granted Approvals website](https://docs.commonfate.io/granted-approvals/security-architecture).
 
 ## Licence
 
