@@ -68,10 +68,30 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     // Click on the first review
-    await page.locator(testId(uniqueReason)).click();
+    await page.locator(testId(uniqueReason)).first().click();
 
     await page.waitForLoadState("networkidle");
 
     await page.locator(testId("approve")).click();
+  });
+
+  test("ensure access granted for matching user", async ({
+    page,
+    playwright,
+  }) => {
+    // wait 5s to give the granter time to approve the request
+    await page.waitForTimeout(5000);
+
+    let apiContext = await playwright.request.newContext({});
+    let user = process.env.TEST_USERNAME ?? "jordi@commonfate.io";
+    let vault = process.env.VAULT_ID ?? "2CBsuomHFRE3mrpLGWFaxbyKXG6_5";
+    const res = await apiContext.get(
+      `https://prod.testvault.granted.run/vaults/${vault}/members/${user}`
+    );
+    let stringSuccess = await res.text();
+    expect(stringSuccess).toBe(
+      `{"message":"success! user ${user} is a member of vault ${vault}"}`
+    );
+    await apiContext.dispose();
   });
 });
