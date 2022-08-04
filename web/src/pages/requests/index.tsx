@@ -110,7 +110,7 @@ const Home: NextPage = () => {
                 >
                   {!!rules ? (
                     rules.accessRules.length > 0 ? (
-                      rules.accessRules.map((r) => (
+                      rules.accessRules.map((r, i) => (
                         <Link
                           style={{ display: "flex" }}
                           to={"/access/request/" + r.id}
@@ -121,10 +121,10 @@ const Home: NextPage = () => {
                             textAlign="center"
                             bg="neutrals.100"
                             p={6}
-                            as="a"
                             h="172px"
                             w="232px"
                             rounded="md"
+                            data-testid={"r_" + i}
                           >
                             <ProviderIcon
                               provider={r.target.provider}
@@ -230,7 +230,7 @@ const Home: NextPage = () => {
                 <TabPanels>
                   <TabPanel overflowY="auto">
                     <Stack spacing={5} maxH="80vh">
-                      {reqsUpcoming?.requests?.map((request) => (
+                      {reqsUpcoming?.requests?.map((request, i) => (
                         <UserAccessCard
                           onCancel={() => {
                             mutatePast();
@@ -239,6 +239,7 @@ const Home: NextPage = () => {
                           type="upcoming"
                           key={request.id}
                           req={request}
+                          index={i}
                         />
                       ))}
                       {reqsUpcoming === undefined && (
@@ -333,7 +334,8 @@ const getRequestOption = (req: Request): RequestOption => {
 const UserAccessCard: React.FC<{
   req: Request;
   type: "upcoming" | "past";
-}> = ({ req, type }) => {
+  index: number;
+}> = ({ req, type, index }) => {
   const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
 
   const option = getRequestOption(req);
@@ -348,6 +350,7 @@ const UserAccessCard: React.FC<{
             flexDir="column"
             key={req.id}
             pos="relative"
+            data-testid={"req_" + req.reason}
           >
             <Stack flexDir="column" p={8} pos="relative" spacing={2}>
               <RequestStatusDisplay request={req} />

@@ -10,6 +10,7 @@ interface SelectProps {
   fieldName: string;
   rules?: MultiSelectRules;
   isDisabled?: boolean;
+  testId?: string;
 }
 // UserSelect required defaults to true
 export const UserSelect: React.FC<SelectProps> = (props) => {
@@ -33,7 +34,7 @@ export const GroupSelect: React.FC<SelectProps> = (props) => {
       }) ?? []
     );
   }, [data]);
-  return <MultiSelect id="group-select" options={options} {...props} />;
+  return <MultiSelect id={props.testId} options={options} {...props} />;
 };
 type MultiSelectRules = Partial<{
   required: boolean;
@@ -51,6 +52,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   rules,
   isDisabled,
   id,
+  ...rest
 }) => {
   const { control, trigger } = useFormContext();
 
@@ -86,6 +88,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
             onBlur={() => trigger(fieldName)}
+            data-testid={rest.testId}
+            {...rest}
           />
         );
       }}

@@ -208,7 +208,7 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
                   cursor="pointer"
                   {...extraProps}
                   userSelect="all"
-                  key={"tablerow-" + i}
+                  key={i}
                   onClick={(e) => {
                     e.preventDefault();
 

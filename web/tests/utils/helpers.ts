@@ -1,4 +1,4 @@
-import { Page } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
 
 //login helper functions
 
@@ -51,6 +51,65 @@ export const Logout = async (page: Page) => {
   await page.goto("/logout", { waitUntil: "networkidle" });
 };
 
+export const CreateAccessRule = async (page: Page) => {
+  await Logout(page);
+  await LoginAdmin(page);
+  await clickFormElementByID("admin-button", page);
+  await expect(page).toHaveTitle(/Granted/);
+  await expect(
+    page.locator(".chakra-container #new-access-rule-button")
+  ).toHaveText("New Access Rule");
+
+  //click new access rule
+  await clickFormElementByID("new-access-rule-button", page);
+
+  //enter a name for new rule
+  await fillFormElement("input", "name", "test-rule", page);
+  await fillFormElement(
+    "textarea",
+    "description",
+    "test-rule description",
+    page
+  );
+  await clickFormElementByID("form-step-next-button", page);
+
+  //selec the test vault provider
+  await clickFormElementByID("provider-selector", page);
+  await fillFormElementById("provider-vault", "test", page);
+  await clickFormElementByID("form-step-next-button", page);
+
+  //select max duration for rule
+  await fillFormElementById("hour-duration-input", "1", page);
+  await clickFormElementByID("form-step-next-button", page);
+
+  //click on group select, add both groups for approval
+  await clickFormElementByID("group-select", page);
+  await clickFormElementByID("react-select-2-listbox", page);
+  await clickFormElementByID("group-select", page);
+  await clickFormElementByID("react-select-2-listbox", page);
+
+  //ensure granted_admins was added to selection box
+  await clickFormElementByID("form-step-next-button", page);
+
+  //add an approver
+  await clickFormElementByClass("chakra-switch", page);
+
+  //ensure granted_admins was added to selection box
+  // await clickFormElementByID("approval-group-select", page);
+  await page.locator("#approval-group-select").click();
+  await page.keyboard.press("Enter");
+  // await clickFormElementByID("approval-group-select", page);
+  await page.locator("#approval-group-select").click();
+  await page.keyboard.press("Enter");
+
+  await clickFormElementByID("rule-create-button", page);
+
+  //check to see if the rule was successfully created
+
+  //check that we are redirected
+  await expect(page).toHaveURL("/admin/access-rules");
+};
+
 //helper functions to click elements that are visible
 export const fillFormElement = async (
   inputType: "input" | "textarea",
@@ -80,9 +139,13 @@ export const clickFormElementByText = async (
 };
 
 export const clickFormElementByID = async (id: string, page: Page) => {
-  await page.locator(`#${id} >> visible=true`).click();
+  await page.locator(`#${id} >> visible=true`).first().click();
 };
 
 export const clickFormElementByClass = async (id: string, page: Page) => {
   await page.locator(`.${id} >> visible=true`).click();
+};
+
+export const testId = (id: string) => {
+  return `[data-testid="${id}"]`;
 };
