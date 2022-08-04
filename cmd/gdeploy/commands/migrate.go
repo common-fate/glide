@@ -76,9 +76,11 @@ var MigrateCommand = cli.Command{
 							version = p.Version
 						}
 					}
+					// fix some bad casing from v1 config
 					w += fmt.Sprintf(":%d", version)
 				}
-				newWith[k2] = w
+
+				newWith[strings.ReplaceAll(k2, "ID", "Id")] = w
 			}
 			err := cfgv2.Deployment.Parameters.ProviderConfiguration.Add(k, deploy.Provider{Uses: v.Uses, With: newWith})
 			if err != nil {
