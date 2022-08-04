@@ -137,10 +137,12 @@ export const UserReviewsTable = () => {
         data: data?.requests,
         emptyText: "🎉 No outstanding reviews",
         rowProps: (row) => ({
-          _hover: { bg: "gray.50" },
-          cursor: "pointer",
-          alignItems: "center",
-          onClick: () => {
+          "_hover": { bg: "gray.50" },
+          "cursor": "pointer",
+          // in our test cases we use reason for the unique key
+          "data-testid": row.original.reason,
+          "alignItems": "center",
+          "onClick": () => {
             navigate({ to: "/requests/" + row.values.id });
           },
         }),
