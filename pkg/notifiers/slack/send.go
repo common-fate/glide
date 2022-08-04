@@ -63,14 +63,14 @@ func SendMessage(ctx context.Context, slackClient *slack.Client, userID, message
 // SendDMWithLogOnError attempts to fetch a user from cognito to get their email, then tries to send them a message in slack
 //
 // This will log any errors and continue
-func (n *Notifier) SendDMWithLogOnError(ctx context.Context, slackClient *slack.Client, log *zap.SugaredLogger, userId, msg, fallback string) (ts string) {
+func (n *SlackNotifier) SendDMWithLogOnError(ctx context.Context, log *zap.SugaredLogger, userId, msg, fallback string) (ts string) {
 	userQuery := storage.GetUser{ID: userId}
 	_, err := n.DB.Query(ctx, &userQuery)
 	if err != nil {
 		log.Errorw("Failed to fetch user by id while trying to send message in slack", "uid", userId, "error", err)
 		return ""
 	}
-	ts, err = SendMessage(ctx, slackClient, userQuery.Result.Email, msg, fallback)
+	ts, err = SendMessage(ctx, n.client, userQuery.Result.Email, msg, fallback)
 	if err != nil {
 		log.Errorw("Failed to send direct message", "email", userQuery.Result.Email, "msg", msg, "error", err)
 	}

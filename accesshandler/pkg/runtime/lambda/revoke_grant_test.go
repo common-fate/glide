@@ -7,42 +7,33 @@ import (
 	"time"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/joho/godotenv"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
+	"github.com/sethvargo/go-envconfig"
 	"github.com/stretchr/testify/assert"
 )
 
 type TestConfig struct {
-	ProviderID string
-	GroupID    string
-	Email      string
-	OrgURL     string
-	APIToken   string
+	ProviderID string `env:"REVOKE_GRANT_INTEGRATION_TEST_PROVIDER_ID,required"`
+	GroupID    string `env:"REVOKE_GRANT_INTEGRATION_TEST_GROUP_ID,required"`
+	Email      string `env:"REVOKE_GRANT_INTEGRATION_TEST_SUBJECT_EMAIL,required"`
+	OrgURL     string `env:"REVOKE_GRANT_INTEGRATION_TEST_OKTA_ORG_URL,required"`
+	APIToken   string `env:"REVOKE_GRANT_INTEGRATION_TEST_OKTA_SYNC_TOKEN,required"`
 }
 
 func TestRevokeGrant(t *testing.T) {
 	ctx := context.Background()
 
 	_ = godotenv.Load("../../../../.env")
-	testCfg := TestConfig{}
-
-	loader := genv.EnvLoader{Prefix: "REVOKE_GRANT_INTEGRATION_TEST_"}
-
-	err := loader.Load(
-		genv.String("PROVIDER_ID", &testCfg.ProviderID, ""),
-		genv.String("GROUP_ID", &testCfg.GroupID, ""),
-		genv.String("SUBJECT_EMAIL", &testCfg.Email, ""),
-		genv.String("OKTA_ORG_URL", &testCfg.OrgURL, ""),
-		genv.String("OKTA_SYNC_TOKEN", &testCfg.APIToken, ""))
+	var testCfg TestConfig
+	err := envconfig.Process(ctx, &testCfg)
 	if err != nil {
-		t.Skip("environment variables not set")
+		t.Skip(err)
 	}
-
 	//create a new grant using create grant
 	runtime := Runtime{}
 

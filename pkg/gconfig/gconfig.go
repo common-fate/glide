@@ -8,7 +8,7 @@ import (
 )
 
 // Config is the list of variables which a provider can be configured with.
-type Config []*field
+type Config []*Field
 type Dumper interface {
 	Dump(ctx context.Context, cfg Config) (map[string]string, error)
 }
@@ -67,10 +67,33 @@ type Valuer interface {
 	String() string
 }
 
-// field represents a key-value pair in a configuration
-// to create a field, use one of the generator functions
+type SecretPathFunc func(args ...interface{}) (string, error)
+
+// Use this if the path is a simple string
+func WithNoArgs(path string) SecretPathFunc {
+	return WithArgs(path, 0)
+}
+
+// WithArgs returns a SecretPathFunc which is intended to be used when dynamic formatting of the path is required.
+// For example a path refers to an id entered by a user, we only know this at dump time.
+// The SSMDumper takes in args which are passed to the the format string
+func WithArgs(path string, expectedCount int) SecretPathFunc {
+	return func(args ...interface{}) (string, error) {
+		if len(args) != expectedCount {
+			return "", IncorrectArgumentsToSecretPathFuncError{
+				ExpectedArgs: expectedCount,
+				FoundArgs:    len(args),
+				Key:          path,
+			}
+		}
+		return fmt.Sprintf(path, args...), nil
+	}
+}
+
+// Field represents a key-value pair in a configuration
+// to create a Field, use one of the generator functions
 // StringField(), SecretStringField() or OptionalStringField()
-type field struct {
+type Field struct {
 	key      string
 	usage    string
 	value    Valuer
@@ -82,48 +105,64 @@ type field struct {
 	// secretUpdated is true if the current value has been pushed to the secret backend e.g SSM
 	// This happens when Field.Dump(Dumper) is called with a secret dumper
 	secretUpdated bool
-	// secretPathPrefix defines the path that this secret should be written to.
+	// secretPathFunc defines the path that this secret should be written to.
+	// it is a function that takes in args. for some usecases, an id will need to be inserted into the path dynamically
 	// For example, in aws ssm, this is the secret path
-	secretPathPrefix string
+	//
+	// func pathGen(args ...string)string {
+	// 		return fmt.Sprintf("granted/providers/secrets/%s/apiToken",args...)
+	// }
+	//
+	//
+	secretPathFunc SecretPathFunc
 	// When a secret is read from file with the aws ssm loader, the path will be set here.
 	// If this is a newly created secret, when it is put in ssm, the path is saved here.
 	// this value is typically derived from the secretPathPrefix a suffix and a version number
-	secretPath string
+	secretPath  string
+	defaultFunc func() string
 }
 
-func (s field) HasChanged() bool {
+func (s Field) HasChanged() bool {
 	return s.hasChanged
 }
 
 // Path returns the secret path
 // secrets loaded from config with the SSM Loader will have an secret path relevant to the loader type
 // secrets loaded from a test loader like JSONLoader or MapLoader will not have a path and this method will return an empty string
-func (s field) SecretPath() string {
+func (s Field) SecretPath() string {
 	return s.secretPath
 }
 
 // IsSecret returns true if this Field is a secret
-func (s field) IsSecret() bool {
+func (s Field) IsSecret() bool {
 	return s.secret
 }
 
 // IsOptional returns true if this Field is optional
-func (s field) IsOptional() bool {
+func (s Field) IsOptional() bool {
 	return s.optional
 }
 
 // Key returns the key for this field
-func (s field) Key() string {
+func (s Field) Key() string {
 	return s.key
 }
 
 // Usage returns the usage string for this field
-func (s field) Usage() string {
+func (s Field) Usage() string {
 	return s.usage
 }
 
+// Default returns the default value if available else and empty string
+func (s Field) Default() string {
+	if s.defaultFunc != nil {
+		return s.defaultFunc()
+	}
+	return ""
+}
+
 // Set the value of this string
-func (s *field) Set(v string) error {
+func (s *Field) Set(v string) error {
 	if s.value == nil {
 		return errors.New("cannot call Set on nil Valuer")
 	}
@@ -133,7 +172,7 @@ func (s *field) Set(v string) error {
 }
 
 // Get returns the value if it is set, or an empty string if it is not set
-func (s *field) Get() string {
+func (s *Field) Get() string {
 	if s.value == nil {
 		return ""
 	}
@@ -143,7 +182,7 @@ func (s *field) Get() string {
 // String calls the Valuer.String() method for this fields value.
 // If this field is a secret, then the response will be a redacted string.
 // Use Field.Get() to retrieve the raw value for the field
-func (s *field) String() string {
+func (s *Field) String() string {
 	if s.value == nil {
 		return ""
 	}
@@ -225,44 +264,66 @@ func (s *OptionalStringValue) Set(value string) {
 	s.Value = &value
 }
 
+type FieldOptFunc func(f *Field)
+
+// WithDefaultFunc sets the default function for a field
+// The default func can be used to initialise a new config
+func WithDefaultFunc(df func() string) FieldOptFunc {
+	return func(f *Field) {
+		f.defaultFunc = df
+	}
+}
+
 // StringField creates a new field with a StringValue
 // This field type is for non secrets
 // for secrets, use SecretField()
-func StringField(key string, dest *StringValue, usage string) *field {
+func StringField(key string, dest *StringValue, usage string, opts ...FieldOptFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &field{
+	f := &Field{
 		key:   key,
 		value: dest,
 		usage: usage,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 // SecretStringField creates a new field with a SecretStringValue
-func SecretStringField(key string, dest *SecretStringValue, usage string, pathPrefix string) *field {
+func SecretStringField(key string, dest *SecretStringValue, usage string, secretPathFunc SecretPathFunc, opts ...FieldOptFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &field{
-		key:              key,
-		value:            dest,
-		usage:            usage,
-		secret:           true,
-		secretPathPrefix: pathPrefix,
+	f := &Field{
+		key:            key,
+		value:          dest,
+		usage:          usage,
+		secret:         true,
+		secretPathFunc: secretPathFunc,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 // OptionalStringField creates a new optional field with an OptionalStringValue
 // There is no OptionalSecret type.
-func OptionalStringField(key string, dest *OptionalStringValue, usage string) *field {
+func OptionalStringField(key string, dest *OptionalStringValue, usage string, opts ...FieldOptFunc) *Field {
 	if dest == nil {
 		panic(ErrFieldValueMustNotBeNil)
 	}
-	return &field{
+	f := &Field{
 		key:      key,
 		value:    dest,
 		usage:    usage,
 		optional: true,
 	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }

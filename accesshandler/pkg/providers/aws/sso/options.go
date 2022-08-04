@@ -22,7 +22,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 		var nextToken *string
 		for hasMore {
 			o, err := p.client.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
-				InstanceArn: &p.instanceARN,
+				InstanceArn: aws.String(p.instanceARN.Get()),
 				NextToken:   nextToken,
 			})
 			if err != nil {
@@ -32,7 +32,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 			hasMore = nextToken != nil
 			for _, arn := range o.PermissionSets {
 				po, err := p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-					InstanceArn: &p.instanceARN, PermissionSetArn: aws.String(arn),
+					InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(arn),
 				})
 				if err != nil {
 					return nil, err

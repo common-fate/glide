@@ -14,9 +14,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/briandowns/spinner"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
@@ -48,119 +49,10 @@ var AvailableRegions = []string{
 }
 
 type Config struct {
-	Version       int                  `yaml:"version"`
-	Deployment    Deployment           `yaml:"deployment"`
-	Providers     map[string]Provider  `yaml:"providers,omitempty"`
-	Notifications *NotificationsConfig `yaml:"notifications,omitempty"`
-	Identity      *IdentityConfig      `yaml:"identity,omitempty"`
-
+	Version          int        `yaml:"version"`
+	Deployment       Deployment `yaml:"deployment"`
 	cachedOutput     *Output
 	cachedSAMLOutput *SAMLOutputs
-}
-
-type IdentityConfig struct {
-	Google *Google `yaml:"google,omitempty" json:"google,omitempty"`
-	Okta   *Okta   `yaml:"okta,omitempty" json:"okta,omitempty"`
-	Azure  *Azure  `yaml:"azure,omitempty" json:"azure,omitempty"`
-}
-
-// UnmarshalIdentity parses the JSON configuration data and returns
-// an initialised struct. If `data` is an empty string an empty
-// IdentityConfig{} object is returned.
-func UnmarshalIdentity(data string) (IdentityConfig, error) {
-	if data == "" {
-		return IdentityConfig{}, nil
-	}
-
-	// first remove any double backslashes which may have been added while loading from or to environment
-	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
-	// unless removed
-	data = strings.ReplaceAll(string(data), "\\", "")
-	var i IdentityConfig
-	err := json.Unmarshal([]byte(data), &i)
-	if err != nil {
-		return IdentityConfig{}, err
-	}
-	return i, nil
-}
-
-type Google struct {
-	APIToken   string `yaml:"apiToken" json:"apiToken"`
-	Domain     string `yaml:"domain" json:"domain"`
-	AdminEmail string `yaml:"adminEmail" json:"adminEmail"`
-}
-
-// String redacts potentially sensitive token values
-func (g Google) String() string {
-	g.APIToken = "****"
-	return fmt.Sprintf("{APIToken: %s, Domain: %s, AdminEmail %s}", g.APIToken, g.Domain, g.AdminEmail)
-}
-
-type Okta struct {
-	APIToken string `yaml:"apiToken" json:"apiToken"`
-	OrgURL   string `yaml:"orgUrl" json:"orgUrl"`
-}
-
-// String redacts potentially sensitive token values
-func (o Okta) String() string {
-	o.APIToken = "****"
-	return fmt.Sprintf("{APIToken: %s, OrgURL: %s}", o.APIToken, o.OrgURL)
-}
-
-type Azure struct {
-	TenantID     string `yaml:"tenantID" json:"tenantID"`
-	ClientID     string `yaml:"clientID" json:"clientID"`
-	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
-}
-
-// String redacts potentially sensitive token values
-func (a Azure) String() string {
-	a.ClientSecret = "****"
-	return fmt.Sprintf("{TenantID: %s, ClientID: %s, ClientSecret: %s}", a.TenantID, a.ClientID, a.ClientSecret)
-}
-
-type NotificationsConfig struct {
-	Slack *SlackConfig `yaml:"slack,omitempty" json:"slack,omitempty"`
-}
-
-// UnmarshalNotifications parses the JSON configuration data and returns
-// an initialised struct. If `data` is an empty string an empty
-// NotificationsConfig{} object is returned.
-func UnmarshalNotifications(data string) (NotificationsConfig, error) {
-	if data == "" {
-		return NotificationsConfig{}, nil
-	}
-	var i NotificationsConfig
-	err := json.Unmarshal([]byte(data), &i)
-	if err != nil {
-		return NotificationsConfig{}, err
-	}
-	return i, nil
-}
-
-type SlackConfig struct {
-	APIToken string `yaml:"apiToken" json:"apiToken"`
-}
-
-// UnmarshalSlack parses the JSON configuration data and returns
-// an initialised struct. If `data` is an empty string an empty
-// SlackConfig{} object is returned.
-func UnmarshalSlack(data string) (SlackConfig, error) {
-	if data == "" {
-		return SlackConfig{}, nil
-	}
-	var i SlackConfig
-	err := json.Unmarshal([]byte(data), &i)
-	if err != nil {
-		return SlackConfig{}, err
-	}
-	return i, nil
-}
-
-// String redacts potentially sensitive token values
-func (s SlackConfig) String() string {
-	s.APIToken = "****"
-	return fmt.Sprintf("{APIToken: %s}", s.APIToken)
 }
 
 type Deployment struct {
@@ -181,51 +73,153 @@ type Deployment struct {
 	Parameters Parameters `yaml:"parameters"`
 }
 
+type ProviderMap map[string]Provider
+
+// Adds the Provider if it does not exist
+func (f *ProviderMap) Add(id string, feature Provider) error {
+	// check if this is a nil map and initialise first if so
+	// This is a trick to check the underlying maps from the alias' value
+	if map[string]Provider(*f) == nil {
+		*f = make(map[string]Provider)
+	}
+	if _, ok := (*f)[id]; ok {
+		return fmt.Errorf("provider %s already exists in the config", id)
+	}
+	(*f)[id] = feature
+	return nil
+}
+
 type Provider struct {
 	Uses string            `yaml:"uses" json:"uses"`
 	With map[string]string `yaml:"with" json:"with"`
 }
 
+// Feature map represents the type used for features like identity and notifications
+type FeatureMap map[string]map[string]string
+
+// Upserts the feature in the map, if the map is not initialised, it initialises it first
+func (f *FeatureMap) Upsert(id string, feature map[string]string) {
+	// check if this is a nil map and initialise first if so
+	// This is a trick to check the underlying maps from the alias' value
+	if map[string]map[string]string(*f) == nil {
+		*f = make(map[string]map[string]string)
+	}
+	(*f)[id] = feature
+}
+
+// Remove the feature in the map, if the map is not initialised, it does nothing
+func (f FeatureMap) Remove(id string) {
+	// check if this is a nil map and initialise first if so
+	// This is a trick to check the underlying maps from the alias' value
+	if map[string]map[string]string(f) == nil {
+		return
+	}
+	delete(f, id)
+}
+
 type Parameters struct {
-	CognitoDomainPrefix    string `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID   string `yaml:"AdministratorGroupID"`
-	DeploymentSuffix       string `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType   string `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata        string `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL     string `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain         string `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN string `yaml:"FrontendCertificateARN,omitempty"`
+	CognitoDomainPrefix        string      `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID       string      `yaml:"AdministratorGroupID"`
+	DeploymentSuffix           string      `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType       string      `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata            string      `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL         string      `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain             string      `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN     string      `yaml:"FrontendCertificateARN,omitempty"`
+	ProviderConfiguration      ProviderMap `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration      FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
 }
 
-// AddProvider adds a new provider to the deployment configuration.
-func (c *Config) AddProvider(id string, p Provider) error {
-	if c.Providers == nil {
-		c.Providers = make(map[string]Provider)
+// UnmarshalFeatureMap parses the JSON configuration data and returns
+// an initialised FeatureMap. If `data` is an empty string an empty
+// FeatureMap is returned.
+func UnmarshalFeatureMap(data string) (FeatureMap, error) {
+	if data == "" {
+		return make(FeatureMap), nil
 	}
-	if _, ok := c.Providers[id]; ok {
-		return fmt.Errorf("provider %s already exists in the config", id)
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
+	var i FeatureMap
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return nil, err
 	}
-	c.Providers[id] = p
-	return nil
+	return i, nil
 }
 
-func ProviderFromLookup(id string, uses string, with genv.Config) Provider {
-	p := Provider{
-		Uses: uses,
-		With: make(map[string]string),
+// UnmarshalProviderMap parses the JSON configuration data and returns
+// an initialised struct. If `data` is an empty string an empty
+// IdentityConfig{} object is returned.
+func UnmarshalProviderMap(data string) (ProviderMap, error) {
+	if data == "" {
+		return make(ProviderMap), nil
+	}
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
+	var i ProviderMap
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return make(ProviderMap), err
+	}
+	return i, nil
+}
+
+// CLIPrompt prompts the user to enter a value for the config varsiable
+// in a CLI context. If the config variable implements Defaulter, the
+// default value is returned and the user is not prompted for any input.
+func CLIPrompt(f *gconfig.Field) error {
+	grey := color.New(color.FgHiBlack)
+	msg := f.Key()
+	if f.Usage() != "" {
+		msg = f.Usage() + " " + grey.Sprintf("(%s)", msg)
 	}
 
-	for _, v := range with {
-		val := v.Get()
-
-		if s, ok := v.(genv.Secret); ok && s.IsSecret() {
-			val = fmt.Sprintf("awsssm:///granted/providers/%s/%s", id, v.Key())
+	// @TODO work out how to integrate the optional prompt here
+	// you shoudl be able to choose to set or unset
+	// if you choose to set, it should use a default if it exists
+	// By design, we can't have an optional secret as they are mutually exclusive.
+	var p survey.Prompt
+	// if this value is a secret, use a password prompt to key the secret out of the terminal history
+	if f.IsSecret() {
+		if f.Get() != "" {
+			confMsg := msg + " would you like to update this secret?"
+			p = &survey.Confirm{
+				Message: confMsg,
+			}
+			var doUpdate bool
+			err := survey.AskOne(p, &doUpdate)
+			if err != nil {
+				return err
+			}
+			if !doUpdate {
+				return nil
+			}
 		}
-
-		p.With[v.Key()] = val
+		p = &survey.Password{
+			Message: msg,
+		}
+	} else {
+		defaultValue := f.Get()
+		if defaultValue == "" {
+			defaultValue = f.Default()
+		}
+		p = &survey.Input{
+			Message: msg,
+			Default: defaultValue,
+		}
 	}
-
-	return p
+	var val string
+	err := survey.AskOne(p, &val)
+	if err != nil {
+		return err
+	}
+	// set the value.
+	return f.Set(val)
 }
 
 // CfnParams converts the parameters to types supported by CloudFormation deployments.
@@ -237,14 +231,15 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &p.CognitoDomainPrefix,
 		},
 	}
+
 	if p.DeploymentSuffix != "" {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("DeploymentSuffix"),
 			ParameterValue: &p.DeploymentSuffix,
 		})
 	}
-	if c.Providers != nil {
-		config, err := json.Marshal(c.Providers)
+	if c.Deployment.Parameters.ProviderConfiguration != nil {
+		config, err := json.Marshal(c.Deployment.Parameters.ProviderConfiguration)
 		if err != nil {
 			return nil, err
 		}
@@ -254,22 +249,22 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &configStr,
 		})
 	}
-	if c.Notifications != nil {
-		if c.Notifications.Slack != nil {
-			config, err := json.Marshal(c.Notifications.Slack)
+	if c.Deployment.Parameters.NotificationsConfiguration != nil {
+		if c.Deployment.Parameters.NotificationsConfiguration != nil {
+			config, err := json.Marshal(c.Deployment.Parameters.NotificationsConfiguration)
 			if err != nil {
 				return nil, err
 			}
 			configStr := string(config)
 			res = append(res, types.Parameter{
-				ParameterKey:   aws.String("SlackConfiguration"),
+				ParameterKey:   aws.String("NotificationsConfiguration"),
 				ParameterValue: &configStr,
 			})
 		}
 
 	}
-	if c.Identity != nil {
-		config, err := json.Marshal(c.Identity)
+	if c.Deployment.Parameters.IdentityConfiguration != nil {
+		config, err := json.Marshal(c.Deployment.Parameters.IdentityConfiguration)
 		if err != nil {
 			return nil, err
 		}
@@ -383,13 +378,15 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 			StackName: "granted-approvals-" + stage,
 			Account:   acc,
 			Dev:       &dev,
-		},
-		Providers: map[string]Provider{
-			"test-vault": {
-				Uses: "commonfate/testvault@v1",
-				With: map[string]string{
-					"apiUrl":   "https://prod.testvault.granted.run",
-					"uniqueId": ksuid.New().String(),
+			Parameters: Parameters{
+				ProviderConfiguration: ProviderMap{
+					"test-vault": {
+						Uses: "commonfate/testvault@v1",
+						With: map[string]string{
+							"apiUrl":   "https://prod.testvault.granted.run",
+							"uniqueId": ksuid.New().String(),
+						},
+					},
 				},
 			},
 		},
@@ -424,7 +421,7 @@ func SetupDevConfig() (*Config, error) {
 
 	dev := true
 	c := Config{
-		Version: 1,
+		Version: 2,
 		Deployment: Deployment{
 			StackName: fmt.Sprintf("granted-approvals-%s", stage),
 			Account:   account,
@@ -508,7 +505,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	}
 
 	cfg := Config{
-		Version: 1,
+		Version: 2,
 		Deployment: Deployment{
 			StackName: name,
 			Account:   account,

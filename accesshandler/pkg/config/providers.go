@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/lookup"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/pkg/errors"
 )
 
@@ -78,7 +78,7 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 			return err
 		}
 
-		reg := lookup.Registry()
+		reg := providerregistry.Registry()
 
 		var p providers.Accessor
 
@@ -101,15 +101,15 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 
 		// if the provider implements Configer, we can provide it with
 		// configuration variables from the JSON data we have.
-		if c, ok := p.(providers.Configer); ok {
-			err := c.Config().Load(ctx, genv.SSMLoader{Data: pType.With})
+		if c, ok := p.(gconfig.Configer); ok {
+			err := c.Config().Load(ctx, gconfig.JSONLoader{Data: pType.With})
 			if err != nil {
 				return err
 			}
 		}
 
 		// if the provider implements Initer, we can initialise it.
-		if i, ok := p.(providers.Initer); ok {
+		if i, ok := p.(gconfig.Initer); ok {
 			err := i.Init(ctx)
 			if err != nil {
 				return err

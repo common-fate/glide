@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/sethvargo/go-retry"
 	"github.com/stretchr/testify/assert"
 )
@@ -61,15 +61,15 @@ func new(providerName string, p providers.Accessor, testcases []TestCase, opts .
 
 func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 	// configure the provider, if it supports it.
-	if c, ok := it.p.(providers.Configer); ok {
-		err := c.Config().Load(ctx, genv.JSONLoader{Data: it.providerConfig})
+	if c, ok := it.p.(gconfig.Configer); ok {
+		err := c.Config().Load(ctx, gconfig.JSONLoader{Data: it.providerConfig})
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// initialise the provider, if it supports it.
-	if c, ok := it.p.(providers.Initer); ok {
+	if c, ok := it.p.(gconfig.Initer); ok {
 		err := c.Init(ctx)
 		if err != nil {
 			t.Fatal(err)

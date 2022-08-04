@@ -71,7 +71,7 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 
-	ic, err := deploy.UnmarshalIdentity(cfg.IdentitySettings)
+	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package lookup
+package providerregistry
 
 import (
 	"errors"
@@ -61,7 +61,7 @@ func TestFromCLIOption(t *testing.T) {
 			want:    testRegistry.Providers["commonfate/azure-ad@v1"],
 		},
 		{
-			name:    "invalid format opkta",
+			name:    "invalid format okta",
 			give:    "commonfate/okta@v1",
 			wantErr: errors.New("couldn't extract provider key: commonfate/okta@v1"),
 		},

@@ -9,11 +9,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/pkg/errors"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,25 +45,33 @@ var configureSlackCommand = cli.Command{
 		clio.Info("Copy & paste the following link into your web browser to create a new Slack app for Granted Approvals:")
 		fmt.Printf("\n\n%s\n\n", appInstallURL)
 		clio.Info("After creating the app, install it to your workspace and find your Bot User OAuth Token in the OAuth & Permissions tab.")
-		p := &survey.Password{
-			Message: "Enter the Bot User OAuth Token for your Slack app",
+
+		var slack slacknotifier.SlackNotifier
+		cfg := slack.Config()
+		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration[slacknotifier.NotificationsTypeSlack]
+		if currentConfig != nil {
+			err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
+			if err != nil {
+				return err
+			}
 		}
-		var botUserToken string
-		err = survey.AskOne(p, &botUserToken)
+
+		for _, v := range cfg {
+			err := deploy.CLIPrompt(v)
+			if err != nil {
+				return err
+			}
+		}
+
+		// @TODO add the provider test call here before progressing
+		// e.g idp.IdentityProvider.TestConfig(ctx)
+
+		// if tests pass, dump the config and update in the deployment config
+		newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
 		if err != nil {
 			return err
 		}
-
-		suffixedPath, version, err := config.PutSecretVersion(ctx, config.SlackTokenPath, dc.Deployment.Parameters.DeploymentSuffix, botUserToken)
-		if err != nil {
-			return errors.Wrap(err, "failed while setting Slack parameters in ssm")
-		}
-
-		dc.Notifications = &deploy.NotificationsConfig{
-			Slack: &deploy.SlackConfig{
-				APIToken: config.AWSSSMParamToken(suffixedPath, version),
-			},
-		}
+		dc.Deployment.Parameters.NotificationsConfiguration.Upsert(slacknotifier.NotificationsTypeSlack, newConfig)
 		err = dc.Save(f)
 		if err != nil {
 			return err

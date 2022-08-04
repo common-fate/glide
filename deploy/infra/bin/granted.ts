@@ -7,6 +7,7 @@ import {
   DevEnvironmentConfig,
   DevEnvironments,
 } from "../lib/helpers/dev-accounts";
+import { IdentityProviderRegistry } from "../lib/helpers/registry";
 
 const app = new App();
 const stage = app.node.tryGetContext("stage");
@@ -17,7 +18,7 @@ const samlMetadata = app.node.tryGetContext("samlMetadata");
 const adminGroupId = app.node.tryGetContext("adminGroupId");
 const providerConfig = app.node.tryGetContext("providerConfiguration");
 const identityConfig = app.node.tryGetContext("identityConfiguration");
-const slackConfig = app.node.tryGetContext("slackConfiguration");
+const notificationsConfiguration = app.node.tryGetContext("notificationsConfiguration");
 const productionReleasesBucket = app.node.tryGetContext(
   "productionReleasesBucket"
 );
@@ -52,12 +53,12 @@ if (stackTarget === "dev") {
     providerConfig: providerConfig || "{}",
     // We have inadvertently propagated this "granted-approvals-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
     stackName: "granted-approvals-" + stage,
-    idpType: idpType || "COGNITO",
+    idpType: idpType || IdentityProviderRegistry.Cognito,
     samlMetadataUrl: samlMetadataUrl || "",
     devConfig,
     adminGroupId: adminGroupId || "granted_administrators",
     samlMetadata: samlMetadata || "",
-    slackConfiguration: slackConfig || "{}",
+    notificationsConfiguration: notificationsConfiguration || "{}",
     identityProviderSyncConfiguration: identityConfig || "{}",
   });
 } else if (stackTarget === "prod") {

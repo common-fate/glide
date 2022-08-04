@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 )
 
@@ -17,32 +16,16 @@ type Fixtures struct {
 }
 
 type Generator struct {
-	client       ad.AzureClient
-	tenantID     string
-	clientID     string
-	clientSecret string
+	client ad.Provider
 }
 
-// Configure the fixture generator
-func (g *Generator) Config() genv.Config {
-	return genv.Config{
-		genv.String("clientID", &g.clientID, "the azure client ID"),
-		genv.String("tenantID", &g.tenantID, "the azure tenant ID"),
-		genv.SecretString("clientSecret", &g.clientSecret, "the azure API token"),
-	}
+func (a *Generator) Config() gconfig.Config {
+	return a.client.Config()
 }
 
-func (g *Generator) Init(ctx context.Context) error {
-	client, err := ad.NewAzure(ctx, deploy.Azure{
-		TenantID:     g.tenantID,
-		ClientID:     g.clientID,
-		ClientSecret: g.clientSecret,
-	})
-	if err != nil {
-		return err
-	}
-	g.client = *client
-	return nil
+// Init the Azure provider.
+func (a *Generator) Init(ctx context.Context) error {
+	return a.client.Init(ctx)
 }
 
 // Generate fixtures by calling the azure API.

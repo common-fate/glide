@@ -8,21 +8,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"go.uber.org/zap"
 )
-
-//making our own azure client to interact with in access handler
-type AzureClient struct {
-	NewClient *http.Client
-	token     string
-	log       *zap.SugaredLogger
-}
-
-type ClientSecretCredential struct {
-	client confidential.Client
-}
 
 type ListUsersResponse struct {
 	OdataContext  string      `json:"@odata.context"`
@@ -61,7 +48,7 @@ type GroupMembers struct {
 	Value         []string `json:"value"`
 }
 
-func (c *AzureClient) ListUsers(ctx context.Context) ([]AzureUser, error) {
+func (c *Provider) ListUsers(ctx context.Context) ([]AzureUser, error) {
 
 	//get all users
 	idpUsers := []AzureUser{}
@@ -72,8 +59,8 @@ func (c *AzureClient) ListUsers(ctx context.Context) ([]AzureUser, error) {
 	for hasMore {
 
 		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", "Bearer "+c.token)
-		res, err := c.NewClient.Do(req)
+		req.Header.Add("Authorization", "Bearer "+c.token.Get())
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +93,7 @@ func (c *AzureClient) ListUsers(ctx context.Context) ([]AzureUser, error) {
 	return idpUsers, nil
 }
 
-func (c *AzureClient) ListGroups(context.Context) ([]AzureGroup, error) {
+func (c *Provider) ListGroups(context.Context) ([]AzureGroup, error) {
 	idpGroups := []AzureGroup{}
 	hasMore := true
 	var nextToken *string
@@ -114,8 +101,8 @@ func (c *AzureClient) ListGroups(context.Context) ([]AzureGroup, error) {
 	for hasMore {
 
 		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", "Bearer "+c.token)
-		res, err := c.NewClient.Do(req)
+		req.Header.Add("Authorization", "Bearer "+c.token.Get())
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -147,13 +134,13 @@ func (c *AzureClient) ListGroups(context.Context) ([]AzureGroup, error) {
 	return idpGroups, nil
 }
 
-func (c *AzureClient) GetGroup(ctx context.Context, groupID string) (*AzureGroup, error) {
+func (c *Provider) GetGroup(ctx context.Context, groupID string) (*AzureGroup, error) {
 
 	url := MSGraphBaseURL + "/groups/" + groupID
 
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer "+c.token)
-	res, err := c.NewClient.Do(req)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -177,13 +164,13 @@ func (c *AzureClient) GetGroup(ctx context.Context, groupID string) (*AzureGroup
 
 }
 
-func (c *AzureClient) GetUser(ctx context.Context, userID string) (*AzureUser, error) {
+func (c *Provider) GetUser(ctx context.Context, userID string) (*AzureUser, error) {
 
 	url := MSGraphBaseURL + "/users/" + userID
 
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer "+c.token)
-	res, err := c.NewClient.Do(req)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +198,7 @@ type AddUser struct {
 }
 
 //GroupMember.ReadWrite.All
-func (c *AzureClient) AddUserToGroup(ctx context.Context, userID string, groupID string) error {
+func (c *Provider) AddUserToGroup(ctx context.Context, userID string, groupID string) error {
 
 	url := MSGraphBaseURL + "/groups/" + groupID + "/members/$ref"
 
@@ -221,12 +208,12 @@ func (c *AzureClient) AddUserToGroup(ctx context.Context, userID string, groupID
 		return err
 	}
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(out))
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
 	req.Header.Add("Content-Type", "application/json")
 
-	c.log.Info("adding user to group")
+	zap.S().Info("adding user to group")
 
-	res, err := c.NewClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -243,16 +230,16 @@ func (c *AzureClient) AddUserToGroup(ctx context.Context, userID string, groupID
 }
 
 //GroupMember.ReadWrite.All
-func (c *AzureClient) RemoveUserFromGroup(ctx context.Context, userID string, groupID string) error {
+func (c *Provider) RemoveUserFromGroup(ctx context.Context, userID string, groupID string) error {
 
 	url := MSGraphBaseURL + "/groups/" + groupID + "/members/" + userID + "/$ref"
 
 	req, _ := http.NewRequest("DELETE", url, nil)
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
 
-	c.log.Info("removing user to group")
+	zap.S().Info("removing user to group")
 
-	res, err := c.NewClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -268,7 +255,7 @@ func (c *AzureClient) RemoveUserFromGroup(ctx context.Context, userID string, gr
 }
 
 //GroupMember.Read.All
-func (c *AzureClient) ListGroupUsers(ctx context.Context, groupID string) ([]AzureUser, error) {
+func (c *Provider) ListGroupUsers(ctx context.Context, groupID string) ([]AzureUser, error) {
 
 	var groupMembers []AzureUser
 
@@ -279,10 +266,10 @@ func (c *AzureClient) ListGroupUsers(ctx context.Context, groupID string) ([]Azu
 	for hasMore {
 		var jsonStr = []byte(`{ "securityEnabledOnly": false}`)
 		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-		req.Header.Add("Authorization", "Bearer "+c.token)
+		req.Header.Add("Authorization", "Bearer "+c.token.Get())
 		req.Header.Set("Content-Type", "application/json")
 
-		res, err := c.NewClient.Do(req)
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -329,7 +316,7 @@ type PasswordProfile struct {
 	Password                      string `json:"password"`
 }
 
-func (c *AzureClient) CreateUser(ctx context.Context, user CreateADUser) error {
+func (c *Provider) CreateUser(ctx context.Context, user CreateADUser) error {
 	url := MSGraphBaseURL + "/users"
 
 	out, err := json.Marshal(user)
@@ -337,10 +324,10 @@ func (c *AzureClient) CreateUser(ctx context.Context, user CreateADUser) error {
 		return err
 	}
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(out))
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := c.NewClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -356,13 +343,13 @@ func (c *AzureClient) CreateUser(ctx context.Context, user CreateADUser) error {
 
 }
 
-func (c *AzureClient) DeleteUser(ctx context.Context, userID string) error {
+func (c *Provider) DeleteUser(ctx context.Context, userID string) error {
 	url := MSGraphBaseURL + "/users/" + userID
 
 	req, _ := http.NewRequest("DELETE", url, nil)
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
 
-	res, err := c.NewClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -393,7 +380,7 @@ type CreateADGroupResponse struct {
 	DisplayName string `json:"displayName"`
 }
 
-func (c *AzureClient) CreateGroup(ctx context.Context, group CreateADGroup) (*CreateADGroupResponse, error) {
+func (c *Provider) CreateGroup(ctx context.Context, group CreateADGroup) (*CreateADGroupResponse, error) {
 	url := MSGraphBaseURL + "/groups"
 
 	out, err := json.Marshal(group)
@@ -401,10 +388,10 @@ func (c *AzureClient) CreateGroup(ctx context.Context, group CreateADGroup) (*Cr
 		return nil, err
 	}
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(out))
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := c.NewClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -425,13 +412,13 @@ func (c *AzureClient) CreateGroup(ctx context.Context, group CreateADGroup) (*Cr
 	return &groupRes, nil
 }
 
-func (c *AzureClient) DeleteGroup(ctx context.Context, groupID string) error {
+func (c *Provider) DeleteGroup(ctx context.Context, groupID string) error {
 	url := MSGraphBaseURL + "/groups/" + groupID
 
 	req, _ := http.NewRequest("DELETE", url, nil)
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	req.Header.Add("Authorization", "Bearer "+c.token.Get())
 
-	res, err := c.NewClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -444,39 +431,4 @@ func (c *AzureClient) DeleteGroup(ctx context.Context, groupID string) error {
 		return fmt.Errorf(string(b))
 	}
 	return nil
-}
-
-// NewAzure will fail if the Azure settings are not configured
-func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureClient, error) {
-	azAuth, err := NewClientSecretCredential(settings, http.DefaultClient)
-	if err != nil {
-		return nil, err
-	}
-	token, err := azAuth.GetToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-	log := zap.S().With("args", nil)
-
-	return &AzureClient{NewClient: http.DefaultClient, token: token, log: log}, nil
-}
-
-func NewClientSecretCredential(s deploy.Azure, httpClient *http.Client) (*ClientSecretCredential, error) {
-	cred, err := confidential.NewCredFromSecret(s.ClientSecret)
-	if err != nil {
-		return nil, err
-	}
-	c, err := confidential.New(s.ClientID, cred,
-		confidential.WithAuthority(fmt.Sprintf("%s/%s", ADAuthorityHost, s.TenantID)),
-		confidential.WithHTTPClient(httpClient))
-	if err != nil {
-		return nil, err
-	}
-	return &ClientSecretCredential{client: c}, nil
-}
-
-// GetToken requests an access token from Azure Active Directory. This method is called automatically by Azure SDK clients.
-func (c *ClientSecretCredential) GetToken(ctx context.Context) (string, error) {
-	ar, err := c.client.AcquireTokenByCredential(ctx, []string{"https://graph.microsoft.com/.default"})
-	return ar.AccessToken, err
 }

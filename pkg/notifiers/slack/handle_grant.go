@@ -8,11 +8,10 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
-func (n *Notifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger, slackClient *slack.Client, event events.CloudWatchEvent) error {
+func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 	var grantEvent gevent.GrantEventPayload
 	err := json.Unmarshal(event.Detail, &grantEvent)
 	if err != nil {
@@ -49,7 +48,7 @@ func (n *Notifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger,
 		zap.S().Infow("unhandled grant event", "detailType", event.DetailType)
 	}
 	if msg != "" {
-		_, err = SendMessage(ctx, slackClient, gq.Result.Grant.Subject, msg, fallback)
+		_, err = SendMessage(ctx, n.client, gq.Result.Grant.Subject, msg, fallback)
 		return err
 	}
 	return nil
