@@ -7,11 +7,10 @@
 <a align="center"  href="https://join.slack.com/t/commonfatecommunity/shared_invite/zt-q4m96ypu-_gYlRWD3k5rIsaSsqP7QMg"><img src="https://img.shields.io/badge/slack-commonfate-1F72FE.svg?logo=slack" alt="slack" /></a>
 </p>
 
-
 <p align="center">
-
-https://user-images.githubusercontent.com/77259048/182606232-4c164a27-7e7c-4f17-8f94-00a687adc242.mp4
-
+    <a href="https://granted.dev" alt="visit the Granted website">
+        <img src="./docs/img/approvals-1.png">
+    </a>
 </p>
 
 <br/>
@@ -25,6 +24,12 @@ Granted Approvals is an open source privileged access management framework which
 **Connect with your services**: install Access Providers to provision access to your SaaS services and cloud providers.
 
 **Approve quickly**: connect with your team's communication tools like Slack.
+
+<p align="center">
+
+https://user-images.githubusercontent.com/77259048/182606232-4c164a27-7e7c-4f17-8f94-00a687adc242.mp4
+
+</p>
 
 ## Documentation
 
