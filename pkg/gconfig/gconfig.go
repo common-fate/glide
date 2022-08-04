@@ -251,7 +251,7 @@ func (s *OptionalStringValue) Get() string {
 
 // Get the value of the string
 func (s *OptionalStringValue) IsSet() bool {
-	return s.Value == nil
+	return s.Value != nil
 }
 
 // String calls OptionalStringValue.Get()

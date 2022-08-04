@@ -95,7 +95,7 @@ func TestGeneralUsage(t *testing.T) {
 			assert.Equal(t, tc.wantField.hasChanged, tc.giveField.HasChanged())
 
 			if f, ok := tc.giveField.value.(*OptionalStringValue); ok {
-				assert.Equal(t, tc.giveField.Get() == "", f.IsSet())
+				assert.Equal(t, tc.giveField.Get() == "", !f.IsSet())
 
 			}
 		})
