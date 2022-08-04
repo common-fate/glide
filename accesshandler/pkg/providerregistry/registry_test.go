@@ -13,15 +13,15 @@ import (
 
 var testRegistry = ProviderRegistry{
 	Providers: map[string]RegisteredProvider{
-		"commonfate/okta@v1": {
-			Provider:    &okta.Provider{},
-			DefaultID:   "okta",
-			Description: "Okta groups",
-		},
 		"commonfate/azure-ad@v1": {
 			Provider:    &ad.Provider{},
 			DefaultID:   "azure-ad",
 			Description: "Azure-AD groups",
+		},
+		"commonfate/okta@v1": {
+			Provider:    &okta.Provider{},
+			DefaultID:   "okta",
+			Description: "Okta groups",
 		},
 	},
 }
