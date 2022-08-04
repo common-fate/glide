@@ -44,6 +44,10 @@ test.describe.serial("Approval/Request Workflows", () => {
 
     await page.waitForLoadState("networkidle");
 
+    await page.goto("/requests");
+
+    await page.waitForLoadState("networkidle");
+
     // Click on the first request
     await page.click(testId("req_" + uniqueReason), { force: true });
 
