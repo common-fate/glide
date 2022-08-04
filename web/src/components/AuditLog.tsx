@@ -1,6 +1,15 @@
 import { Box, VStack } from "@chakra-ui/layout";
-import { Skeleton, Text } from "@chakra-ui/react";
+import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Skeleton,
+  Text,
+} from "@chakra-ui/react";
 import React, { useMemo } from "react";
+import { useUser } from "../utils/context/userContext";
 import {
   useGetUser,
   useListRequestEvents,
@@ -47,12 +56,37 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
           <CFTimelineRow
             arrLength={l}
             header={
-              <Text>
-                {`Grant status changed from ${e.fromGrantStatus?.toLowerCase()} to
-              ${e.toGrantStatus?.toLowerCase()} due to reason: ${
-                  e.grantFailureReason
-                }`}
-              </Text>
+              <>
+                <Text>Grant failed due to an error:</Text>
+                <Accordion allowToggle>
+                  <AccordionItem borderStyle="none">
+                    <h2>
+                      <AccordionButton>
+                        <Text
+                          fontSize="sm"
+                          color="#757575"
+                          fontWeight="normal"
+                          flex="1"
+                          textAlign="left"
+                        >
+                          Details
+                        </Text>
+                        <AccordionIcon />
+                      </AccordionButton>
+                    </h2>
+                    <AccordionPanel pb={4}>
+                      <Text
+                        fontSize="sm"
+                        fontWeight="normal"
+                        flex="1"
+                        textAlign="left"
+                      >
+                        {e.grantFailureReason}
+                      </Text>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
+              </>
             }
             index={i}
             body={new Date(e.createdAt).toString()}
