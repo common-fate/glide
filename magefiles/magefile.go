@@ -354,7 +354,7 @@ func (Deploy) StagingFrontend(env, name string) error {
 		return err
 	}
 
-	vaultID := dep.Providers["test-vault"].With["uniqueId"]
+	vaultID := dep.Deployment.Parameters.ProviderConfiguration["test-vault"].With["uniqueId"]
 	vaultIDVar := fmt.Sprintf("vaultID=%s", vaultID)
 
 	sh.Run("echo", vaultIDVar, ">>", "$GITHUB_ENV")
