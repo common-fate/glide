@@ -18,7 +18,7 @@ type CognitoSync struct {
 
 func (s *CognitoSync) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("userPoolID", &s.userPoolID, "the Cognito user pool ID"),
+		gconfig.StringField("userPoolId", &s.userPoolID, "the Cognito user pool ID"),
 	}
 }
 

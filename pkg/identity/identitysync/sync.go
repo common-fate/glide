@@ -48,7 +48,7 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		// config is provided directly via env vars when the stack is deployed, rather than via a cloudformation parameter
 		found = true
 		err = cfg.Load(ctx, &gconfig.MapLoader{Values: map[string]string{
-			"userPoolID": opts.UserPoolId,
+			"userPoolId": opts.UserPoolId,
 		}})
 		if err != nil {
 			return nil, err
