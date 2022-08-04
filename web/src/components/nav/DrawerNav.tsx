@@ -40,7 +40,7 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
     },
     {
       label: "Reviews",
-      href: "/reviews",
+      href: "/reviews?status=pending",
       //   count: reviews?.requests?.length ?? 0,
     },
   ];

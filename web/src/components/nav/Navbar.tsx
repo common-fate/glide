@@ -96,7 +96,7 @@ export const Navbar: React.FC<{}> = () => {
                     )}
                   </TabsStyledNextButton>
                   <TabsStyledNextButton
-                    href="/reviews"
+                    href="/reviews?status=pending"
                     w="125px"
                     pr={showRewCount && 10}
                   >
@@ -155,6 +155,14 @@ export const Navbar: React.FC<{}> = () => {
                     />
                   </MenuButton>
                   <MenuList _dark={{ borderColor: "gray.500" }}>
+                    <MenuItem
+                      _hover={{ cursor: "auto", backgroundColor: "white" }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                      }}
+                    >
+                      {auth.user?.email}
+                    </MenuItem>
                     <MenuItem
                       icon={<DoorIcon color={"gray.700"} />}
                       onClick={auth.initiateSignOut}
