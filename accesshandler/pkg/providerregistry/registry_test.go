@@ -50,18 +50,18 @@ func TestFromCLIOption(t *testing.T) {
 		},
 		{
 			name:    "from CLIOptions okta",
-			give:    testRegistry.CLIOptions()[0],
+			give:    testRegistry.CLIOptions()[1],
 			wantKey: "commonfate/okta@v1",
 			want:    testRegistry.Providers["commonfate/okta@v1"],
 		},
 		{
 			name:    "from CLIOptions azure",
-			give:    testRegistry.CLIOptions()[1],
+			give:    testRegistry.CLIOptions()[0],
 			wantKey: "commonfate/azure-ad@v1",
 			want:    testRegistry.Providers["commonfate/azure-ad@v1"],
 		},
 		{
-			name:    "invalid format opkta",
+			name:    "invalid format okta",
 			give:    "commonfate/okta@v1",
 			wantErr: errors.New("couldn't extract provider key: commonfate/okta@v1"),
 		},

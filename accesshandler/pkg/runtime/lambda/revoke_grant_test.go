@@ -32,7 +32,7 @@ func TestRevokeGrant(t *testing.T) {
 	var testCfg TestConfig
 	err := envconfig.Process(ctx, &testCfg)
 	if err != nil {
-		t.Fatal(err)
+		t.Skip(err)
 	}
 	//create a new grant using create grant
 	runtime := Runtime{}
