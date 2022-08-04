@@ -32,7 +32,10 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
+		err = slack.Init(ctx)
+		if err != nil {
+			return err
+		}
 		err = slack.SendTestMessage(ctx, c.String("email"))
 		if err != nil {
 			return err
