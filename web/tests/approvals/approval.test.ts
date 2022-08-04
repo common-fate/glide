@@ -37,7 +37,7 @@ test.describe.serial("Approval/Request Workflows", () => {
 
     await clickFormElementByText("button", "Submit", page);
 
-    await page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("networkidle");
 
     // expect to see the reason in the list
     await expect(page).toHaveURL("/requests");
