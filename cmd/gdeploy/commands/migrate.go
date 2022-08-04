@@ -200,6 +200,7 @@ type Okta struct {
 }
 
 type Azure struct {
+	// V1 config had a casing issue with yaml
 	TenantID     string `yaml:"tenantID" json:"tenantId"`
 	ClientID     string `yaml:"clientID" json:"clientId"`
 	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
