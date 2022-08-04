@@ -15,7 +15,7 @@ interface Props {
   dynamoTable: Table;
   frontendUrl: string;
   userPool: WebUserPool;
-  slackConfiguration: string;
+  notificationsConfig: string;
 }
 export class Notifiers extends Construct {
   private _slackLambda: lambda.Function;
@@ -33,7 +33,7 @@ export class Notifiers extends Construct {
         APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
         APPROVALS_FRONTEND_URL: props.frontendUrl,
         APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        SLACK_SETTINGS: props.slackConfiguration,
+        NOTIFICATIONS_SETTINGS: props.notificationsConfig,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "slack-notifier",
@@ -58,22 +58,8 @@ export class Notifiers extends Construct {
         }),
       ],
     });
-    const enableSlackEventBusRule = new CfnCondition(
-      this,
-      "EnableSlackEventRuleCondition",
-      {
-        expression: Fn.conditionNot(
-          Fn.conditionOr(
-            Fn.conditionEquals(props.slackConfiguration, ""),
-            Fn.conditionEquals(props.slackConfiguration, "{}")
-          )
-        ),
-      }
-    );
-    (this._slackRule.node.defaultChild as CfnRule).addPropertyOverride(
-      "State",
-      Fn.conditionIf(enableSlackEventBusRule.logicalId, "ENABLED", "DISABLED")
-    );
+   
+    
 
     props.dynamoTable.grantReadWriteData(this._slackLambda);
     this._slackLambda.addToRolePolicy(

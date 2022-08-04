@@ -3,7 +3,7 @@ package okta
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"go.uber.org/zap"
@@ -11,14 +11,14 @@ import (
 
 type Provider struct {
 	client   *okta.Client
-	orgURL   string
-	apiToken string
+	orgURL   gconfig.StringValue
+	apiToken gconfig.SecretStringValue
 }
 
-func (o *Provider) Config() genv.Config {
-	return genv.Config{
-		genv.String("orgUrl", &o.orgURL, "the Okta organization URL"),
-		genv.SecretString("apiToken", &o.apiToken, "the Okta API token"),
+func (o *Provider) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("orgUrl", &o.orgURL, "the Okta organization URL"),
+		gconfig.SecretStringField("apiToken", &o.apiToken, "the Okta API token", gconfig.WithArgs("/granted/providers/%s/apiToken", 1)),
 	}
 }
 
@@ -26,7 +26,7 @@ func (o *Provider) Config() genv.Config {
 func (o *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configuring okta client", "orgUrl", o.orgURL)
 
-	_, client, err := okta.NewClient(ctx, okta.WithOrgUrl(o.orgURL), okta.WithToken(o.apiToken), okta.WithCache(false))
+	_, client, err := okta.NewClient(ctx, okta.WithOrgUrl(o.orgURL.Get()), okta.WithToken(o.apiToken.Get()), okta.WithCache(false))
 	if err != nil {
 		return err
 	}

@@ -10,6 +10,7 @@ import { CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
 import { generateOutputs } from "./helpers/outputs";
+import { IdentityProviderRegistry, IdentityProviderTypes } from "./helpers/registry";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -30,8 +31,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       type: "String",
       description:
         "Configure your identity provider, okta requires SamlSSOMetadataURL to be provided",
-      default: "COGNITO",
-      allowedValues: ["COGNITO", "OKTA", "GOOGLE", "AZURE"],
+      default: IdentityProviderRegistry.Cognito,
+      allowedValues: Object.values(IdentityProviderRegistry),
     });
 
     const samlMetadataUrl = new CfnParameter(this, "SamlSSOMetadataURL", {
@@ -84,9 +85,9 @@ export class CustomerGrantedStack extends cdk.Stack {
       description: "The Access Provider configuration in JSON format",
       default: "{}",
     });
-    const slackConfig = new CfnParameter(this, "SlackConfiguration", {
+    const notificationsConfiguration = new CfnParameter(this, "NotificationsConfiguration", {
       type: "String",
-      description: "The Slack notifications configuration in JSON format",
+      description: "The Notifications configuration in JSON format",
       default: "{}",
     });
     const identityConfig = new CfnParameter(this, "IdentityConfiguration", {
@@ -112,7 +113,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       appName,
       domainPrefix: cognitoDomainPrefix.valueAsString,
       callbackUrls: appFrontend.getProdCallbackUrls(),
-      idpType: idpType.valueAsString,
+      idpType: idpType.valueAsString as IdentityProviderTypes,
       samlMetadataUrl: samlMetadataUrl.valueAsString,
       samlMetadata: samlMetadata.valueAsString,
       devConfig: null,
@@ -137,7 +138,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId: grantedAdminGroupId.valueAsString,
       identityProviderSyncConfiguration: identityConfig.valueAsString,
-      slackConfiguration: slackConfig.valueAsString,
+      notificationsConfiguration: notificationsConfiguration.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

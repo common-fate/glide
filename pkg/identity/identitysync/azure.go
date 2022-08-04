@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 )
 
@@ -17,8 +17,37 @@ const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
 const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type AzureSync struct {
-	NewClient *http.Client
-	token     string
+	// This is initialised during the Init function call and is not saved in config
+	token        gconfig.SecretStringValue
+	tenantID     gconfig.StringValue
+	clientID     gconfig.StringValue
+	clientSecret gconfig.SecretStringValue
+}
+
+func (s *AzureSync) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("tenantId", &s.tenantID, "the Azure AD tenant ID"),
+		gconfig.StringField("clientId", &s.clientID, "the Azure AD client ID"),
+		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the Azure AD client secret", gconfig.WithNoArgs("/granted/secrets/identity/azure/secret")),
+	}
+}
+
+func (s *AzureSync) Init(ctx context.Context) error {
+	cred, err := confidential.NewCredFromSecret(s.clientSecret.Get())
+	if err != nil {
+		return err
+	}
+	c, err := confidential.New(s.clientID.Get(), cred,
+		confidential.WithAuthority(fmt.Sprintf("%s/%s", ADAuthorityHost, s.tenantID.Get())))
+	if err != nil {
+		return err
+	}
+	token, err := c.AcquireTokenByCredential(ctx, []string{"https://graph.microsoft.com/.default"})
+	if err != nil {
+		return err
+	}
+	s.token.Set(token.AccessToken)
+	return nil
 }
 
 type ListUsersResponse struct {
@@ -59,44 +88,6 @@ type UserGroups struct {
 	Value         []string `json:"value"`
 }
 
-type ClientSecretCredential struct {
-	client confidential.Client
-}
-
-// GetToken requests an access token from Azure Active Directory. This method is called automatically by Azure SDK clients.
-func (c *ClientSecretCredential) GetToken(ctx context.Context) (string, error) {
-	ar, err := c.client.AcquireTokenByCredential(ctx, []string{"https://graph.microsoft.com/.default"})
-	return ar.AccessToken, err
-}
-
-func NewClientSecretCredential(s deploy.Azure, httpClient *http.Client) (*ClientSecretCredential, error) {
-	cred, err := confidential.NewCredFromSecret(s.ClientSecret)
-	if err != nil {
-		return nil, err
-	}
-	c, err := confidential.New(s.ClientID, cred,
-		confidential.WithAuthority(fmt.Sprintf("%s/%s", ADAuthorityHost, s.TenantID)),
-		confidential.WithHTTPClient(httpClient))
-	if err != nil {
-		return nil, err
-	}
-	return &ClientSecretCredential{client: c}, nil
-}
-
-// NewAzure will fail if the Azure settings are not configured
-func NewAzure(ctx context.Context, settings deploy.Azure) (*AzureSync, error) {
-	azAuth, err := NewClientSecretCredential(settings, http.DefaultClient)
-	if err != nil {
-		return nil, err
-	}
-	token, err := azAuth.GetToken(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &AzureSync{NewClient: http.DefaultClient, token: token}, nil
-}
-
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
 func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IdpUser, error) {
 	u := identity.IdpUser{
@@ -126,10 +117,10 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]string, error) {
 	for hasMore {
 		var jsonStr = []byte(`{ "securityEnabledOnly": false}`)
 		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-		req.Header.Add("Authorization", "Bearer "+a.token)
+		req.Header.Add("Authorization", "Bearer "+a.token.Get())
 		req.Header.Set("Content-Type", "application/json")
 
-		res, err := a.NewClient.Do(req)
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -174,8 +165,8 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	for hasMore {
 
 		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", "Bearer "+a.token)
-		res, err := a.NewClient.Do(req)
+		req.Header.Add("Authorization", "Bearer "+a.token.Get())
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -230,8 +221,8 @@ func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error)
 	for hasMore {
 
 		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", "Bearer "+a.token)
-		res, err := a.NewClient.Do(req)
+		req.Header.Add("Authorization", "Bearer "+a.token.Get())
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}

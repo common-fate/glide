@@ -82,13 +82,13 @@ The `Provider` struct should contain unexported configuration params required to
 
 As required, your provider may implement the `Configer`, `Initer` and `ArgSchemarer` interfaces. Full descriptions are available in the [source code](../../accesshandler/pkg/providers/providers.go). These optional interfaces are run to initialise your provider.
 
-If implemented, `Config` is called first, followed by `Init`. Find out more about genv and how to use it [here](genv.md).
+If implemented, `Config` is called first, followed by `Init`. Find out more about gconfig and how to use it [here](../backend/gconfig.md).
 
 `ArgSchema` should return `jsonSchema`. This `jsonSchema` is used to render a dynamic form element in the frontend. We have been using `jsonschema.Reflect(&Args{})` however if you needed something more custom, you could implement that here.
 
 ```go
 type Configer interface {
-	Config() genv.Config
+	Config() gconfig.Config
 }
 type Initer interface {
 	Init(ctx context.Context) error
@@ -105,10 +105,10 @@ type Provider struct {
 	apiToken string
 }
 
-func (o *Provider) Config() genv.Config {
-	return genv.Config{
-		genv.String("orgUrl", &o.orgURL, "the Okta organization URL"),
-		genv.SecretString("apiToken", &o.apiToken, "the Okta API token"),
+func (o *Provider) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.String("orgUrl", &o.orgURL, "the Okta organization URL"),
+		gconfig.SecretString("apiToken", &o.apiToken, "the Okta API token"),
 	}
 }
 

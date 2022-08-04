@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -41,15 +40,15 @@ var DestroyCommand = cli.Command{
 		}
 
 		// configure the generator if it supports it
-		if configer, ok := g.(providers.Configer); ok {
-			err = configer.Config().Load(ctx, genv.JSONLoader{Data: configMap[name]})
+		if configer, ok := g.(gconfig.Configer); ok {
+			err = configer.Config().Load(ctx, gconfig.JSONLoader{Data: configMap[name]})
 			if err != nil {
 				return err
 			}
 		}
 
 		// init the generator if it supports it
-		if configurer, ok := g.(providers.Initer); ok {
+		if configurer, ok := g.(gconfig.Initer); ok {
 			err = configurer.Init(ctx)
 			if err != nil {
 				return err

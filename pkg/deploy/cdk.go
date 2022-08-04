@@ -24,31 +24,31 @@ func (c Config) CDKContextArgs() []string {
 	args = append(args, "-c", fmt.Sprintf("stage=%s", name))
 	args = append(args, "-c", fmt.Sprintf("cognitoDomainPrefix=cf-granted-%s", name))
 
-	if c.Providers != nil {
-		cfg, err := json.Marshal(c.Providers)
+	if c.Deployment.Parameters.ProviderConfiguration != nil {
+		cfg, err := json.Marshal(c.Deployment.Parameters.ProviderConfiguration)
 		if err != nil {
 			panic(err)
 		}
 
 		args = append(args, "-c", fmt.Sprintf("providerConfiguration=%s", string(cfg)))
 	}
-	if c.Identity != nil {
-		cfg, err := json.Marshal(c.Identity)
+	if c.Deployment.Parameters.IdentityConfiguration != nil {
+		cfg, err := json.Marshal(c.Deployment.Parameters.IdentityConfiguration)
 		if err != nil {
 			panic(err)
 		}
 
 		args = append(args, "-c", fmt.Sprintf("identityConfiguration=%s", string(cfg)))
 	}
-	if c.Notifications != nil {
-		if c.Notifications.Slack != nil {
-			cfg, err := json.Marshal(c.Notifications.Slack)
-			if err != nil {
-				panic(err)
-			}
-			args = append(args, "-c", fmt.Sprintf("slackConfiguration=%s", string(cfg)))
+
+	if c.Deployment.Parameters.NotificationsConfiguration != nil {
+		cfg, err := json.Marshal(c.Deployment.Parameters.NotificationsConfiguration)
+		if err != nil {
+			panic(err)
 		}
+		args = append(args, "-c", fmt.Sprintf("notificationsConfiguration=%s", string(cfg)))
 	}
+
 	if c.Deployment.Parameters.IdentityProviderType != "" {
 		args = append(args, "-c", fmt.Sprintf("idpType=%s", string(c.Deployment.Parameters.IdentityProviderType)))
 	}

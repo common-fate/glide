@@ -30,7 +30,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 	// the user should exist in AWS SSO.
 	g.Go(func() error {
 		res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
-			IdentityStoreId: &p.identityStoreID,
+			IdentityStoreId: aws.String(p.identityStoreID.Get()),
 			Filters: []types.Filter{{
 				AttributePath:  aws.String("UserName"),
 				AttributeValue: aws.String(subject),
@@ -52,7 +52,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 	// the permission set should exist.
 	g.Go(func() error {
 		_, err = p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-			InstanceArn:      &p.instanceARN,
+			InstanceArn:      aws.String(p.instanceARN.Get()),
 			PermissionSetArn: &a.PermissionSetARN,
 		})
 		if err != nil {

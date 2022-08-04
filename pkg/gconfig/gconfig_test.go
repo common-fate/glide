@@ -17,9 +17,9 @@ func TestSecretStringValue(t *testing.T) {
 		want string
 	}
 	var emptySecret SecretStringValue
-	emptyField := SecretStringField("test", &emptySecret, "testing", "")
+	emptyField := SecretStringField("test", &emptySecret, "testing", WithNoArgs(""))
 	var nonEmptySecret SecretStringValue
-	nonEmptyField := SecretStringField("test", &nonEmptySecret, "testing", "")
+	nonEmptyField := SecretStringField("test", &nonEmptySecret, "testing", WithNoArgs(""))
 	err := nonEmptyField.Set("value")
 	if err != nil {
 		t.Fatal(err)
@@ -59,9 +59,9 @@ func TestSecretStringValue(t *testing.T) {
 func TestGeneralUsage(t *testing.T) {
 	type testcase struct {
 		name      string
-		giveField *field
+		giveField *Field
 		giveValue string
-		wantField *field
+		wantField *Field
 	}
 	var secret SecretStringValue
 	secretAfterSetting := SecretStringValue{"some value"}
@@ -73,15 +73,19 @@ func TestGeneralUsage(t *testing.T) {
 	ov := "some value"
 	optionalValueSetting := OptionalStringValue{Value: &ov}
 
+	fn := WithNoArgs("granted/path")
 	// The following tests ensure that secrets stay secret in logs and prints
 	testcases := []testcase{
-		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", "granted/path"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathPrefix: "granted/path", hasChanged: true}},
-		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
-		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
+		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", fn), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: fn, hasChanged: true}},
+		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
+		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.NoError(t, tc.giveField.Set(tc.giveValue))
+			assert.Equal(t, tc.wantField.secretPathFunc == nil, tc.giveField.secretPathFunc == nil)
+			tc.giveField.secretPathFunc = nil
+			tc.wantField.secretPathFunc = nil
 			assert.Equal(t, tc.wantField, tc.giveField)
 			assert.Equal(t, tc.wantField.key, tc.giveField.Key())
 			assert.Equal(t, tc.wantField.usage, tc.giveField.Usage())
@@ -89,7 +93,7 @@ func TestGeneralUsage(t *testing.T) {
 			assert.Equal(t, tc.wantField.secret, tc.giveField.IsSecret())
 			assert.Equal(t, tc.wantField.value.Get(), tc.giveField.Get())
 			assert.Equal(t, tc.wantField.hasChanged, tc.giveField.HasChanged())
-			assert.Equal(t, tc.wantField.secretPathPrefix, tc.giveField.secretPathPrefix)
+
 			if f, ok := tc.giveField.value.(*OptionalStringValue); ok {
 				assert.Equal(t, tc.giveField.Get() == "", f.IsSet())
 
@@ -131,7 +135,7 @@ func TestLoad(t *testing.T) {
 	testcases := []testcase{
 		{name: "loading config works as expected when values are non nil", giveStruct: &test1, giveConfig: Config{
 			StringField("a", &test1.a, "usage"),
-			SecretStringField("b", &test1.b, "usage", "test-path"),
+			SecretStringField("b", &test1.b, "usage", WithNoArgs("test-path")),
 			OptionalStringField("c", &test1.c, "usage"),
 			OptionalStringField("d", &test1.d, "usage"),
 		}, giveLoader: &MapLoader{Values: map[string]string{
@@ -169,7 +173,7 @@ func TestDump(t *testing.T) {
 	b := SecretStringValue{"password"}
 	testcases := []testcase{
 		{name: "ok", giveConfig: Config{}, giveDumper: SafeDumper{}, wantMap: map[string]string{}, wantError: nil},
-		{name: "with values, redacted secret", giveConfig: Config{StringField("a", &a, ""), SecretStringField("b", &b, "", "")}, giveDumper: SafeDumper{}, wantMap: map[string]string{"a": "testing", "b": "*****"}, wantError: nil},
+		{name: "with values, redacted secret", giveConfig: Config{StringField("a", &a, ""), SecretStringField("b", &b, "", WithNoArgs(""))}, giveDumper: SafeDumper{}, wantMap: map[string]string{"a": "testing", "b": "*****"}, wantError: nil},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -193,7 +197,7 @@ func TestNilValuesPanic(t *testing.T) {
 	// These tests cases test that making a field with a nil value causes a panic because it is not the supported useage
 	testcases := []testcase{
 		{name: "StringField with nil value panics", callback: func() { StringField("", nil, "") }, wantPanic: ErrFieldValueMustNotBeNil},
-		{name: "SecretStringField with nil value panics", callback: func() { SecretStringField("", nil, "", "") }, wantPanic: ErrFieldValueMustNotBeNil},
+		{name: "SecretStringField with nil value panics", callback: func() { SecretStringField("", nil, "", WithNoArgs("")) }, wantPanic: ErrFieldValueMustNotBeNil},
 		{name: "OptionalStringField with nil value panics", callback: func() { OptionalStringField("", nil, "") }, wantPanic: ErrFieldValueMustNotBeNil},
 	}
 	for _, tc := range testcases {

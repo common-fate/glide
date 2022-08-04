@@ -3,47 +3,52 @@ package identitysync
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"golang.org/x/oauth2/google"
 	admin "google.golang.org/api/admin/directory/v1"
 	"google.golang.org/api/option"
 )
 
-type GcpSync struct {
-	client *admin.Service
-	// the ready to use google config
-	settings deploy.Google
+type GoogleSync struct {
+	client     *admin.Service
+	domain     gconfig.StringValue
+	adminEmail gconfig.StringValue
+	apiToken   gconfig.SecretStringValue
 }
 
-func NewGcp(ctx context.Context, settings deploy.Google) (*GcpSync, error) {
-	config, err := google.JWTConfigFromJSON([]byte(settings.APIToken), admin.AdminDirectoryUserReadonlyScope, admin.AdminDirectoryGroupReadonlyScope)
-	if err != nil {
-		return nil, err
+func (s *GoogleSync) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("domain", &s.domain, "the Google domain"),
+		gconfig.StringField("adminEmail", &s.adminEmail, "the Google admin email"),
+		gconfig.SecretStringField("apiToken", &s.apiToken, "the Google API token", gconfig.WithNoArgs("/granted/secrets/identity/google/token")),
 	}
+}
 
+func (s *GoogleSync) Init(ctx context.Context) error {
+	config, err := google.JWTConfigFromJSON([]byte(s.apiToken.Get()), admin.AdminDirectoryUserReadonlyScope, admin.AdminDirectoryGroupReadonlyScope)
+	if err != nil {
+		return err
+	}
 	//admin api requires spoofing an admin user to be calling the api, as service accounts cannot be admins
-	config.Subject = settings.AdminEmail
-
+	config.Subject = s.adminEmail.Get()
 	client := config.Client(ctx)
-
 	adminService, err := admin.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	return &GcpSync{client: adminService, settings: settings}, nil
-
+	s.client = adminService
+	return nil
 }
 
-func (c *GcpSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
+func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
 
 	idpGroups := []identity.IdpGroup{}
 	hasMore := true
 	var paginationToken string
 
 	for hasMore {
-		groups, err := c.client.Groups.List().Domain(c.settings.Domain).PageToken(paginationToken).Do()
+		groups, err := c.client.Groups.List().Domain(c.domain.Get()).PageToken(paginationToken).Do()
 
 		if err != nil {
 			return nil, err
@@ -59,13 +64,13 @@ func (c *GcpSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
 	return idpGroups, nil
 }
 
-func (c *GcpSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
+func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	users := []identity.IdpUser{}
 	hasMore := true
 	var paginationToken string
 	for hasMore {
 
-		userRes, err := c.client.Users.List().Domain(c.settings.Domain).PageToken(paginationToken).Do()
+		userRes, err := c.client.Users.List().Domain(c.domain.Get()).PageToken(paginationToken).Do()
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +90,7 @@ func (c *GcpSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 }
 
 // userFromOktaUser converts a Okta user to the identityprovider interface user type
-func (c *GcpSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admin.User) (identity.IdpUser, error) {
+func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admin.User) (identity.IdpUser, error) {
 	u := identity.IdpUser{
 		ID:        googleUser.Id,
 		FirstName: googleUser.Name.GivenName,

@@ -16,6 +16,7 @@ yarn-error.log*
 
 node_modules
 
+granted-deployment.old.yml
 granted-deployment.yml
 dist/
 

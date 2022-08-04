@@ -21,7 +21,7 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
-  slackConfiguration: string;
+  notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
 }
 
@@ -212,7 +212,7 @@ export class AppBackend extends Construct {
       eventBusSourceName: props.eventBusSourceName,
       frontendUrl: props.frontendUrl,
       userPool: props.userPool,
-      slackConfiguration: props.slackConfiguration,
+      notificationsConfig: props.notificationsConfiguration,
     });
 
     this._idpSync = new IdpSync(this, "IdpSync", {

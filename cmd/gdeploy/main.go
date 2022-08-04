@@ -68,6 +68,7 @@ func main() {
 			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
 			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
+			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 		},
 	}
 
@@ -119,6 +120,7 @@ func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
 
 func RequireDeploymentConfig() cli.BeforeFunc {
 	return func(c *cli.Context) error {
+
 		f := c.Path("file")
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
@@ -133,6 +135,19 @@ To fix this, take one of the following actions:
 		if err != nil {
 			return fmt.Errorf("failed to load config with error: %s", err)
 		}
+
+		if dc.Version == 1 && c.Command.Name != "migrate" {
+			return clio.NewCLIError("Your deployment is using a deprecated config file version.",
+				clio.LogMsg(`
+The configuration file format was updated in the latest release.
+You can use the below instructions to automatically update your configuration file.
+Before you can continue, you need to take the following action:
+  a) run 'gdeploy migrate' to automatically update your config file from version 1 -> 2
+  b) run 'gdeploy update' to update your deployment
+`),
+			)
+		}
+
 		c.Context = deploy.SetConfigInContext(c.Context, dc)
 		return nil
 	}

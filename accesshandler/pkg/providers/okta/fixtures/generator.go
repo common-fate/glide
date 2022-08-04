@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"github.com/segmentio/ksuid"
@@ -18,20 +18,20 @@ type Fixtures struct {
 
 type Generator struct {
 	client   *okta.Client
-	OrgURL   string
-	APIToken string
+	orgURL   gconfig.StringValue
+	apiToken gconfig.SecretStringValue
 }
 
 // Configure the fixture generator
-func (g *Generator) Config() genv.Config {
-	return genv.Config{
-		genv.String("orgUrl", &g.OrgURL, "Okta org URL"),
-		genv.SecretString("apiToken", &g.APIToken, "Okta API token"),
+func (g *Generator) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("orgUrl", &g.orgURL, "Okta org URL"),
+		gconfig.SecretStringField("apiToken", &g.apiToken, "Okta API token", gconfig.WithArgs("/granted/providers/%s/apiToken", 1)),
 	}
 }
 
 func (g *Generator) Init(ctx context.Context) error {
-	_, client, err := okta.NewClient(ctx, okta.WithOrgUrl(g.OrgURL), okta.WithToken(g.APIToken))
+	_, client, err := okta.NewClient(ctx, okta.WithOrgUrl(g.orgURL.Get()), okta.WithToken(g.apiToken.Get()))
 	if err != nil {
 		return err
 	}

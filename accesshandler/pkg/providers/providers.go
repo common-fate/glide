@@ -3,28 +3,9 @@ package providers
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/invopop/jsonschema"
 )
-
-// Configers expose variables to configure a provider. These are things
-// like API URLs and API tokens for the provider.
-// For example:
-//
-//	type Provider struct { apiKey string }
-//
-//	func (p *Provider) Config() genv.Config {
-//		return genv.Config{genv.String("apiKey", &p.apiKey, "the API key")}
-//	}
-type Configer interface {
-	Config() genv.Config
-}
-
-// Initers perform some initialisation behaviour such as setting up API clients.
-type Initer interface {
-	Init(ctx context.Context) error
-}
 
 // Accessors know how to grant and revoke access to something.
 // Accessors are considered the 'bare minimum' Granted providers.

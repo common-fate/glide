@@ -41,7 +41,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 	}
 
 	res, err := p.client.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
-		InstanceArn:      &p.instanceARN,
+		InstanceArn:      aws.String(p.instanceARN.Get()),
 		PermissionSetArn: &a.PermissionSetARN,
 		PrincipalType:    types.PrincipalTypeUser,
 		PrincipalId:      user.UserId,
@@ -81,7 +81,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 	}
 
 	_, err = p.client.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
-		InstanceArn:      &p.instanceARN,
+		InstanceArn:      aws.String(p.instanceARN.Get()),
 		PermissionSetArn: &a.PermissionSetARN,
 		PrincipalId:      user.UserId,
 		PrincipalType:    types.PrincipalTypeUser,
@@ -122,7 +122,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (b
 	for !done {
 		res, err := p.client.ListAccountAssignments(ctx, &ssoadmin.ListAccountAssignmentsInput{
 			AccountId:        &a.AccountID,
-			InstanceArn:      &p.instanceARN,
+			InstanceArn:      aws.String(p.instanceARN.Get()),
 			PermissionSetArn: &a.PermissionSetARN,
 			NextToken:        nextToken,
 		})
@@ -152,7 +152,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (b
 // getUser retrieves the AWS SSO user from a provided email address.
 func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, error) {
 	res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
-		IdentityStoreId: &p.identityStoreID,
+		IdentityStoreId: aws.String(p.identityStoreID.Get()),
 		Filters: []idtypes.Filter{{
 			AttributePath:  aws.String("UserName"),
 			AttributeValue: aws.String(email),

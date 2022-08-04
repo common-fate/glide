@@ -14,6 +14,8 @@ import (
 // SSMDumper will upload any secrets to SSM which have changed and then return the tokenised ssm path as the value
 type SSMDumper struct {
 	Suffix string
+	// secret path args are optional args passed through to the secret args functions
+	SecretPathArgs []interface{}
 }
 
 func (d SSMDumper) Dump(ctx context.Context, c Config) (map[string]string, error) {
@@ -21,7 +23,11 @@ func (d SSMDumper) Dump(ctx context.Context, c Config) (map[string]string, error
 	for _, s := range c {
 		if s.IsSecret() {
 			if s.hasChanged && !s.secretUpdated {
-				p, v, err := putSecretVersion(ctx, s.secretPathPrefix, d.Suffix, s.Get())
+				path, err := s.secretPathFunc(d.SecretPathArgs...)
+				if err != nil {
+					return nil, err
+				}
+				p, v, err := putSecretVersion(ctx, path, d.Suffix, s.Get())
 				if err != nil {
 					return nil, err
 				}

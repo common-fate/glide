@@ -14,6 +14,7 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/mg"
@@ -250,22 +251,22 @@ func Dotenv() error {
 		return err
 	}
 	idConf := "{}"
-	if cfg.Identity != nil {
-		b, err := json.Marshal(cfg.Identity)
+	if cfg.Deployment.Parameters.IdentityConfiguration != nil {
+		b, err := json.Marshal(cfg.Deployment.Parameters.IdentityConfiguration)
 		if err != nil {
 			return err
 		}
 		idConf = string(b)
 	}
 	providerConf := "{}"
-	if cfg.Providers != nil {
-		b, err := json.Marshal(cfg.Providers)
+	if cfg.Deployment.Parameters.ProviderConfiguration != nil {
+		b, err := json.Marshal(cfg.Deployment.Parameters.ProviderConfiguration)
 		if err != nil {
 			return err
 		}
 		providerConf = string(b)
 	}
-	idpType := "COGNITO"
+	idpType := identitysync.IDPTypeCognito
 	if cfg.Deployment.Parameters.IdentityProviderType != "" {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
@@ -13,6 +12,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/urfave/cli/v2"
 )
 
@@ -61,11 +61,11 @@ var syncCommand = cli.Command{
 		if res.FunctionError != nil {
 			return fmt.Errorf("user and group sync failed with lambda execution error: %s", *res.FunctionError)
 		} else if res.StatusCode == 200 {
-			idp := strings.ToLower(dc.Deployment.Parameters.IdentityProviderType)
+			idp := dc.Deployment.Parameters.IdentityProviderType
 			if idp == "" {
-				idp = "cognito"
+				idp = identitysync.IDPTypeCognito
 			}
-			clio.Success("Successfully synced users and groups from %s", idp)
+			clio.Success("Successfully synced users and groups using %s", idp)
 		} else {
 			return fmt.Errorf("user and group sync failed with lambda invoke status code: %d", res.StatusCode)
 		}

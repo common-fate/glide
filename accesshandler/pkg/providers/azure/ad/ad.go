@@ -2,9 +2,10 @@ package ad
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/genv"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"go.uber.org/zap"
 )
@@ -13,17 +14,18 @@ const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
 const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type Provider struct {
-	client       AzureClient
-	tenantID     string
-	clientID     string
-	clientSecret string
+	// The token is not set from configuration it is set during the Init method
+	token        gconfig.SecretStringValue
+	tenantID     gconfig.StringValue
+	clientID     gconfig.StringValue
+	clientSecret gconfig.SecretStringValue
 }
 
-func (a *Provider) Config() genv.Config {
-	return genv.Config{
-		genv.String("tenantID", &a.tenantID, "the azure tenant ID"),
-		genv.String("clientID", &a.clientID, "the azure client ID"),
-		genv.SecretString("clientSecret", &a.clientSecret, "the azure API token"),
+func (a *Provider) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("tenantId", &a.tenantID, "the azure tenant ID"),
+		gconfig.StringField("clientId", &a.clientID, "the azure client ID"),
+		gconfig.SecretStringField("clientSecret", &a.clientSecret, "the azure API token", gconfig.WithArgs("/granted/providers/%s/clientSecret", 1)),
 	}
 }
 
@@ -31,15 +33,20 @@ func (a *Provider) Config() genv.Config {
 func (a *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configuring azure client")
 
-	client, err := NewAzure(ctx, deploy.Azure{
-		TenantID:     a.tenantID,
-		ClientID:     a.clientID,
-		ClientSecret: a.clientSecret,
-	})
+	cred, err := confidential.NewCredFromSecret(a.clientSecret.Get())
 	if err != nil {
 		return err
 	}
-	a.client = *client
+	c, err := confidential.New(a.clientID.Get(), cred,
+		confidential.WithAuthority(fmt.Sprintf("%s/%s", ADAuthorityHost, a.tenantID.Get())))
+	if err != nil {
+		return err
+	}
+	token, err := c.AcquireTokenByCredential(ctx, []string{"https://graph.microsoft.com/.default"})
+	if err != nil {
+		return err
+	}
+	a.token.Set(token.AccessToken)
 	return nil
 }
 

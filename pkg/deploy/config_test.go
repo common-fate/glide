@@ -16,13 +16,12 @@ deployment:
   release: "v0.1.0"
   parameters:
     CognitoDomainPrefix: ""
-
-providers:
-  okta:
-    uses: "commonfate/okta@v1"
-    with:
-      orgUrl: "https://test.internal"
-      apiToken: "awsssm:///granted/okta/apiToken"
+    ProviderConfiguration:
+      okta:
+        uses: "commonfate/okta@v1"
+        with:
+          orgUrl: "https://test.internal"
+          apiToken: "awsssm:///granted/okta/apiToken"
 `
 
 func TestParseConfig(t *testing.T) {
@@ -31,7 +30,7 @@ func TestParseConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "commonfate/okta@v1", c.Providers["okta"].Uses)
+	assert.Equal(t, "commonfate/okta@v1", c.Deployment.Parameters.ProviderConfiguration["okta"].Uses)
 }
 
 func TestTestCfnParams(t *testing.T) {
@@ -56,11 +55,15 @@ func TestTestCfnParams(t *testing.T) {
 		{
 			name: "provider config",
 			give: Config{
-				Providers: map[string]Provider{
-					"okta": {
-						Uses: "commonfate/okta@v1",
-						With: map[string]string{
-							"orgUrl": "test.internal",
+				Deployment: Deployment{
+					Parameters: Parameters{
+						ProviderConfiguration: map[string]Provider{
+							"okta": {
+								Uses: "commonfate/okta@v1",
+								With: map[string]string{
+									"orgUrl": "test.internal",
+								},
+							},
 						},
 					},
 				},
@@ -81,44 +84,6 @@ func TestTestCfnParams(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.want, string(gotJSON))
-		})
-	}
-}
-
-func TestUnmarshalIdentity(t *testing.T) {
-	type testcase struct {
-		name string
-		give string
-		want IdentityConfig
-	}
-
-	testcases := []testcase{
-		{
-			name: "empty",
-			give: "",
-			want: IdentityConfig{},
-		},
-		{
-			name: "empty JSON",
-			give: "{}",
-			want: IdentityConfig{},
-		},
-		{
-			name: "ok",
-			give: `{"google": {"domain":"test"}}`,
-			want: IdentityConfig{Google: &Google{
-				Domain: "test",
-			}},
-		},
-	}
-
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := UnmarshalIdentity(tc.give)
-			if err != nil {
-				t.Fatal(err)
-			}
-			assert.Equal(t, tc.want, got)
 		})
 	}
 }
@@ -170,4 +135,30 @@ func TestCfnTemplateURL(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestProviderMap(t *testing.T) {
+	// Tests that the Add method works as expected
+	var p Parameters
+	err := p.ProviderConfiguration.Add("test", Provider{})
+	assert.NoError(t, err)
+	err = p.ProviderConfiguration.Add("test2", Provider{})
+	assert.NoError(t, err)
+
+	// Expect this to return an error
+	err = p.ProviderConfiguration.Add("test", Provider{})
+	assert.EqualError(t, err, "provider test already exists in the config")
+
+	// assert that the map is as expected
+	assert.Equal(t, ProviderMap{"test": Provider{}, "test2": Provider{}}, p.ProviderConfiguration)
+}
+func TestFeatureMap(t *testing.T) {
+	// Tests that the Add method works as expected
+	var p Parameters
+	p.IdentityConfiguration.Upsert("test", map[string]string{})
+	p.IdentityConfiguration.Upsert("test2", map[string]string{})
+	p.IdentityConfiguration.Upsert("test", map[string]string{})
+
+	// assert that the map is as expected
+	assert.Equal(t, FeatureMap{"test": map[string]string{}, "test2": map[string]string{}}, p.IdentityConfiguration)
 }

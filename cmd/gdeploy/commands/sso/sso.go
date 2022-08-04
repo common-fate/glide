@@ -2,24 +2,16 @@ package sso
 
 import (
 	"fmt"
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 
 	"github.com/urfave/cli/v2"
 )
-
-// idpTypes are the currently implemented SSO providers.
-var idpTypes = []string{
-	"Google",
-	"Okta",
-	"Azure",
-}
 
 var SSOCommand = cli.Command{
 	Name:        "sso",
@@ -38,173 +30,76 @@ var configureCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+		clio.Info("Follow the documentation for setting up SSO here: https://docs.commonfate.io/granted-approvals/sso/overview")
+		registry := identitysync.Registry()
 
-		docsURL := url.URL{
-			Scheme: "https",
-			Host:   "docs.commonfate.io",
-		}
-
-		docsURL.Path = "granted-approvals/sso/overview"
-
-		clio.Warn("Follow the documentation for setting up SSO here: %s", docsURL.String())
-
-		var idpType string
-		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: idpTypes}
-		err = survey.AskOne(p2, &idpType)
+		var selected string
+		p2 := &survey.Select{Message: "The SSO provider to deploy with", Options: registry.CLIOptions()} //Default: i
+		err = survey.AskOne(p2, &selected)
 		if err != nil {
 			return err
 		}
-		googleSelected := idpType == "Google"
-		oktaSelected := idpType == "Okta"
-		azureSelected := idpType == "Azure"
-		googleConfigured := dc.Identity != nil && dc.Identity.Google != nil
-		oktaConfigured := dc.Identity != nil && dc.Identity.Okta != nil
-		azureConfigured := dc.Identity != nil && dc.Identity.Azure != nil
-		isCurrentIDP := dc.Deployment.Parameters.IdentityProviderType == strings.ToUpper(idpType)
+		idpType, idp, err := registry.FromCLIOption(selected)
+		if err != nil {
+			return err
+		}
+		currentConfig := dc.Deployment.Parameters.IdentityConfiguration[idpType]
 		update := true
-
-		docsURL.Path = fmt.Sprintf("granted-approvals/sso/overview/%s", strings.ToLower(idpType))
-
-		clio.Warn("Don't know where to find an SSO credential? Best place to find out would be our docs!")
-		clio.Warn("Follow our %s setup guide at: %s", idpType, docsURL.String())
-
 		//if there are already params for that idp then ask if they want to update
-		if dc.Identity != nil {
-			if (googleSelected && googleConfigured) || (oktaSelected && oktaConfigured) || (azureSelected && azureConfigured) {
-				if isCurrentIDP {
-					p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
-					err = survey.AskOne(p3, &update)
-					if err != nil {
-						return err
-					}
-					if !update {
-						clio.Info("Closing SSO setup")
-						return nil
-					}
-				} else {
-					clio.Info("You already have configuration for %s but it's not currently set as your identity provider", idpType)
-					p3 := &survey.Confirm{Message: fmt.Sprintf("Do you need to update the configuration for %s as well as setting it as your identity provider?", idpType)}
-					var update bool
-					err = survey.AskOne(p3, &update)
-					if err != nil {
-						return err
-					}
+		if currentConfig != nil {
+			if idpType == dc.Deployment.Parameters.IdentityProviderType {
+				p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
+				err = survey.AskOne(p3, &update)
+				if err != nil {
+					return err
+				}
+				if !update {
+					clio.Info("Closing SSO setup")
+					return nil
+				}
+			} else {
+				clio.Info("You already have configuration for %s but it's not currently set as your identity provider", idpType)
+				p3 := &survey.Confirm{Message: fmt.Sprintf("Do you need to update the configuration for %s before setting it as your identity provider?", idpType)}
+				var update bool
+				err = survey.AskOne(p3, &update)
+				if err != nil {
+					return err
 				}
 			}
 		}
+
+		cfg := idp.IdentityProvider.Config()
 		if update {
-			if googleSelected {
-				var google deploy.Google
-				if googleConfigured {
-					google = *dc.Identity.Google
-				}
-				var token string
-				p1 := &survey.Password{Message: "API Token:"}
-				err = survey.AskOne(p1, &token)
+			clio.Info("Don't know where to find an SSO credential? Best place to find out would be our docs!")
+			clio.Info("Follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s", idpType, idpType)
+			// if there is existing config, process it into the idp struct
+			// This way, the cli prompt will have defaults loaded
+			if currentConfig != nil {
+				err := cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
 				if err != nil {
 					return err
-				}
-				p2 := &survey.Input{Message: "Google Workspace Domain:", Default: google.Domain}
-				err = survey.AskOne(p2, &google.Domain)
-				if err != nil {
-					return err
-				}
-				p3 := &survey.Input{Message: "Google Admin Email", Default: google.AdminEmail}
-				err = survey.AskOne(p3, &google.AdminEmail)
-				if err != nil {
-					return err
-				}
-				path, version, err := config.PutSecretVersion(ctx, config.GoogleTokenPath, dc.Deployment.Parameters.DeploymentSuffix, token)
-				if err != nil {
-					return err
-				}
-				google.APIToken = config.AWSSSMParamToken(path, version)
-				if err != nil {
-					return err
-				}
-				if dc.Identity == nil {
-					dc.Identity = &deploy.IdentityConfig{
-						Google: &google,
-					}
-				} else {
-					dc.Identity.Google = &google
-				}
-			} else if oktaSelected {
-				var okta deploy.Okta
-				if oktaConfigured {
-					okta = *dc.Identity.Okta
-				}
-				var token string
-				p1 := &survey.Password{Message: "API Token:"}
-				err = survey.AskOne(p1, &token)
-				if err != nil {
-					return err
-				}
-				p2 := &survey.Input{Message: "Okta Org URL:", Default: okta.OrgURL}
-				err = survey.AskOne(p2, &okta.OrgURL)
-				if err != nil {
-					return err
-				}
-				path, version, err := config.PutSecretVersion(ctx, config.OktaTokenPath, dc.Deployment.Parameters.DeploymentSuffix, token)
-				if err != nil {
-					return err
-				}
-				okta.APIToken = config.AWSSSMParamToken(path, version)
-				if err != nil {
-					return err
-				}
-				if dc.Identity == nil {
-					dc.Identity = &deploy.IdentityConfig{
-						Okta: &okta,
-					}
-				} else {
-					dc.Identity.Okta = &okta
-				}
-			} else if azureSelected {
-				var azure deploy.Azure
-				if azureConfigured {
-					azure = *dc.Identity.Azure
-				}
-				p1 := &survey.Input{Message: "Tenant ID:", Default: azure.TenantID}
-				err = survey.AskOne(p1, &azure.TenantID)
-				if err != nil {
-					return err
-				}
-
-				p2 := &survey.Input{Message: "Client ID:", Default: azure.ClientID}
-				err = survey.AskOne(p2, &azure.ClientID)
-				if err != nil {
-					return err
-				}
-
-				var token string
-				p3 := &survey.Password{Message: "Client Secret:"}
-				err = survey.AskOne(p3, &token)
-				if err != nil {
-					return err
-				}
-
-				path, version, err := config.PutSecretVersion(ctx, config.AzureSecretPath, dc.Deployment.Parameters.DeploymentSuffix, token)
-				if err != nil {
-					return err
-				}
-				azure.ClientSecret = config.AWSSSMParamToken(path, version)
-				if err != nil {
-					return err
-				}
-
-				if dc.Identity == nil {
-					dc.Identity = &deploy.IdentityConfig{
-						Azure: &azure,
-					}
-				} else {
-					dc.Identity.Azure = &azure
 				}
 			}
-			clio.Success(fmt.Sprintf("Sync successfully configured for %s", idpType))
+
+			for _, v := range cfg {
+				err := deploy.CLIPrompt(v)
+				if err != nil {
+					return err
+				}
+			}
+
+			// @TODO add the provider test call here before progressing
+			// e.g idp.IdentityProvider.TestConfig(ctx)
+
+			// if tests pass, dump the config and update in the deployment config
+			newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
+			if err != nil {
+				return err
+			}
+			dc.Deployment.Parameters.IdentityConfiguration.Upsert(idpType, newConfig)
 
 			clio.Info("The following parameters are required to setup a SAML app in your identity provider")
-
+			clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idpType)
 			o, err := dc.LoadSAMLOutput(ctx)
 			if err != nil {
 				return err
@@ -215,8 +110,6 @@ var configureCommand = cli.Command{
 				fromString = "String"
 				fromFile   = "File"
 			)
-			docsURL.Path = fmt.Sprintf("granted-approvals/sso/%s/#setting-up-saml-sso", strings.ToLower(idpType))
-			clio.Warn("Instructions for setting up SAML SSO for %s can be found here: %s", idpType, docsURL.String())
 			p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
 			metadataChoice := fromUrl
 			err = survey.AskOne(p4, &metadataChoice)
@@ -263,8 +156,8 @@ var configureCommand = cli.Command{
 				dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 			}
 		}
-		dc.Deployment.Parameters.IdentityProviderType = strings.ToUpper(idpType)
-
+		dc.Deployment.Parameters.IdentityProviderType = idpType
+		clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 		clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
@@ -276,6 +169,7 @@ Users in this group will be able to manage Access Rules.
 		}
 
 		clio.Info("Updating your deployment config")
+
 		err = dc.Save(f)
 		if err != nil {
 			return err
