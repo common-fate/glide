@@ -15,14 +15,18 @@ type Config struct {
 	EventBusArn       string `env:"EVENT_BUS_ARN,required"`
 	EventBusSource    string `env:"EVENT_BUS_SOURCE,required"`
 	IdpProvider       string `env:"IDENTITY_PROVIDER,required"`
-	IdentitySettings  string `env:"IDENTITY_SETTINGS,default=[]"`
+	// This should be an instance of deploy.FeatureMap which is a specific json format for this
+	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
+	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
 }
 
 type NotificationsConfig struct {
-	LogLevel            string `env:"LOG_LEVEL,default=info"`
-	DynamoTable         string `env:"APPROVALS_TABLE_NAME,required"`
-	FrontendURL         string `env:"APPROVALS_FRONTEND_URL,required"`
-	NotificationsConfig string `env:"NOTIFICATIONS_SETTINGS,default=[]"`
+	LogLevel    string `env:"LOG_LEVEL,default=info"`
+	DynamoTable string `env:"APPROVALS_TABLE_NAME,required"`
+	FrontendURL string `env:"APPROVALS_FRONTEND_URL,required"`
+	// This should be an instance of deploy.FeatureMap which is a specific json format for this
+	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
+	NotificationsConfig string `env:"NOTIFICATIONS_SETTINGS,default={}"`
 }
 
 type EventHandlerConfig struct {
@@ -31,11 +35,13 @@ type EventHandlerConfig struct {
 }
 
 type SyncConfig struct {
-	TableName        string `env:"APPROVALS_TABLE_NAME,required"`
-	IdpProvider      string `env:"IDENTITY_PROVIDER,required"`
-	UserPoolId       string `env:"APPROVALS_COGNITO_USER_POOL_ID,required"`
-	LogLevel         string `env:"LOG_LEVEL,default=info"`
-	IdentitySettings string `env:"IDENTITY_SETTINGS,default=[]"`
+	TableName   string `env:"APPROVALS_TABLE_NAME,required"`
+	IdpProvider string `env:"IDENTITY_PROVIDER,required"`
+	UserPoolId  string `env:"APPROVALS_COGNITO_USER_POOL_ID,required"`
+	LogLevel    string `env:"LOG_LEVEL,default=info"`
+	// This should be an instance of deploy.FeatureMap which is a specific json format for this
+	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
+	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
 }
 
 type FrontendDeployerConfig struct {
