@@ -16,8 +16,8 @@ deployment:
   release: "v0.1.0"
   parameters:
     CognitoDomainPrefix: ""
-	ProviderConfiguration:
-	  okta:
+    ProviderConfiguration:
+      okta:
         uses: "commonfate/okta@v1"
         with:
           orgUrl: "https://test.internal"

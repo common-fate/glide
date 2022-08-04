@@ -73,15 +73,19 @@ func TestGeneralUsage(t *testing.T) {
 	ov := "some value"
 	optionalValueSetting := OptionalStringValue{Value: &ov}
 
+	fn := WithNoArgs("granted/path")
 	// The following tests ensure that secrets stay secret in logs and prints
 	testcases := []testcase{
-		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", WithNoArgs("granted/path")), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: WithNoArgs("granted/path"), hasChanged: true}},
+		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", fn), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: fn, hasChanged: true}},
 		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
 		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.NoError(t, tc.giveField.Set(tc.giveValue))
+			assert.Equal(t, tc.wantField.secretPathFunc == nil, tc.giveField.secretPathFunc == nil)
+			tc.giveField.secretPathFunc = nil
+			tc.wantField.secretPathFunc = nil
 			assert.Equal(t, tc.wantField, tc.giveField)
 			assert.Equal(t, tc.wantField.key, tc.giveField.Key())
 			assert.Equal(t, tc.wantField.usage, tc.giveField.Usage())
@@ -89,7 +93,7 @@ func TestGeneralUsage(t *testing.T) {
 			assert.Equal(t, tc.wantField.secret, tc.giveField.IsSecret())
 			assert.Equal(t, tc.wantField.value.Get(), tc.giveField.Get())
 			assert.Equal(t, tc.wantField.hasChanged, tc.giveField.HasChanged())
-			assert.Equal(t, tc.wantField.secretPathFunc, tc.giveField.secretPathFunc)
+
 			if f, ok := tc.giveField.value.(*OptionalStringValue); ok {
 				assert.Equal(t, tc.giveField.Get() == "", f.IsSet())
 
