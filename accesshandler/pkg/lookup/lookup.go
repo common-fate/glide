@@ -3,6 +3,7 @@ package lookup
 import (
 	"fmt"
 	"regexp"
+	"sort"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
@@ -60,6 +61,7 @@ func (r ProviderRegistry) CLIOptions() []string {
 		opt := fmt.Sprintf("%s %s", v.Description, grey(id))
 		opts = append(opts, opt)
 	}
+	sort.Strings(opts)
 	return opts
 }
 

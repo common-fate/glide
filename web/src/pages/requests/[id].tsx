@@ -69,7 +69,7 @@ const Home: NextPage = () => {
             icon={<ArrowBackIcon />}
             rounded="full"
             variant="ghost"
-            to={data?.canReview ? "/reviews" : "/requests"}
+            to={data?.canReview ? "/reviews?status=pending" : "/requests"}
           />
 
           <Text as="h4" textStyle="Heading/H4">
