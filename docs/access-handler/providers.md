@@ -82,7 +82,7 @@ The `Provider` struct should contain unexported configuration params required to
 
 As required, your provider may implement the `Configer`, `Initer` and `ArgSchemarer` interfaces. Full descriptions are available in the [source code](../../accesshandler/pkg/providers/providers.go). These optional interfaces are run to initialise your provider.
 
-If implemented, `Config` is called first, followed by `Init`. Find out more about gconfig and how to use it [here](gconfig.md).
+If implemented, `Config` is called first, followed by `Init`. Find out more about gconfig and how to use it [here](../backend/gconfig.md).
 
 `ArgSchema` should return `jsonSchema`. This `jsonSchema` is used to render a dynamic form element in the frontend. We have been using `jsonschema.Reflect(&Args{})` however if you needed something more custom, you could implement that here.
 
