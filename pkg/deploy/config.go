@@ -421,7 +421,7 @@ func SetupDevConfig() (*Config, error) {
 
 	dev := true
 	c := Config{
-		Version: 1,
+		Version: 2,
 		Deployment: Deployment{
 			StackName: fmt.Sprintf("granted-approvals-%s", stage),
 			Account:   account,
@@ -505,7 +505,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	}
 
 	cfg := Config{
-		Version: 1,
+		Version: 2,
 		Deployment: Deployment{
 			StackName: name,
 			Account:   account,
