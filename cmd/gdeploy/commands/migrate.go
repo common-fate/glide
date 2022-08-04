@@ -45,10 +45,13 @@ var MigrateCommand = cli.Command{
 			clio.Info("cancelled migration")
 			return nil
 		}
+
 		cfgv2 := deploy.Config{
 			Version:    2,
 			Deployment: cfgv1.Deployment,
 		}
+		// identity provider type
+		cfgv2.Deployment.Parameters.IdentityProviderType = strings.ToLower(cfgv1.Deployment.Parameters.IdentityProviderType)
 
 		// providers
 		for k, v := range cfgv1.Providers {
