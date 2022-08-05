@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
+	"github.com/pkg/errors"
 )
 
 type OktaSync struct {
@@ -32,6 +33,18 @@ func (s *OktaSync) Init(ctx context.Context) error {
 		return err
 	}
 	s.client = client
+	return nil
+}
+
+func (s *OktaSync) TestConfig(ctx context.Context) error {
+	_, err := s.ListUsers(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list users while testing okta identity provider configuration")
+	}
+	_, err = s.ListGroups(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list groups while testing okta identity provider configuration")
+	}
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	admin "google.golang.org/api/admin/directory/v1"
 	"google.golang.org/api/option"
@@ -40,7 +41,17 @@ func (s *GoogleSync) Init(ctx context.Context) error {
 	s.client = adminService
 	return nil
 }
-
+func (s *GoogleSync) TestConfig(ctx context.Context) error {
+	_, err := s.ListUsers(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list users while testing google identity provider configuration")
+	}
+	_, err = s.ListGroups(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list groups while testing google identity provider configuration")
+	}
+	return nil
+}
 func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
 
 	idpGroups := []identity.IdpGroup{}

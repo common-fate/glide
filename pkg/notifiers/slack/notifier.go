@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
@@ -31,7 +32,13 @@ func (s *SlackNotifier) Init(ctx context.Context) error {
 	s.client = slack.New(s.apiToken.Get())
 	return nil
 }
-
+func (s *SlackNotifier) TestConfig(ctx context.Context) error {
+	_, err := s.client.GetUsersContext(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list users while testing slack configuration")
+	}
+	return nil
+}
 func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S()
 

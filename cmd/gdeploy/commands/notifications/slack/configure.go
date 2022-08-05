@@ -56,14 +56,14 @@ var configureSlackCommand = cli.Command{
 			}
 		}
 
-		for _, v := range cfg {
-			err := deploy.CLIPrompt(v)
-			if err != nil {
-				return err
-			}
-		}
+		// for _, v := range cfg {
+		// 	err := deploy.CLIPrompt(v)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
 
-		err = gconfig.RunConfigTest(ctx, slack)
+		err = deploy.RunConfigTest(ctx, &slack)
 		if err != nil {
 			return err
 		}
@@ -78,10 +78,10 @@ var configureSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
-		clio.Success("Successfully enabled Slack")
 
-		clio.Info("Run: `gdeploy notifications slack test --email=<your_slack_email>` to test your Slack notifications")
+		clio.Success("Successfully configured Slack")
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
+		clio.Warn("Run: `gdeploy notifications slack test --email=<your_slack_email>` to send a test DM")
 
 		return nil
 	},

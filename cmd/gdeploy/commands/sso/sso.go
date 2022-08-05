@@ -88,7 +88,7 @@ var configureCommand = cli.Command{
 				}
 			}
 
-			err = gconfig.RunConfigTest(ctx, idp.IdentityProvider)
+			err = deploy.RunConfigTest(ctx, idp.IdentityProvider)
 			if err != nil {
 				return err
 			}

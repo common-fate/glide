@@ -78,7 +78,7 @@ var addCommand = cli.Command{
 			}
 		}
 
-		err = gconfig.RunConfigTest(ctx, provider.Provider)
+		err = deploy.RunConfigTest(ctx, provider.Provider)
 		if err != nil {
 			return err
 		}

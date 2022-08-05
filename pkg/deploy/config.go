@@ -169,6 +169,30 @@ func UnmarshalProviderMap(data string) (ProviderMap, error) {
 	return i, nil
 }
 
+// RunConfigTest runs ConfigTest() if it is implemented on the interface
+func RunConfigTest(ctx context.Context, testable interface{}) error {
+	if tester, ok := testable.(gconfig.Tester); ok {
+		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		si.Suffix = " running tests using this configuration."
+		si.Writer = os.Stderr
+		si.Start()
+		defer si.Stop()
+		if initer, ok := testable.(gconfig.Initer); ok {
+			err := initer.Init(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		err := tester.TestConfig(ctx)
+		if err != nil {
+			return err
+		}
+		si.Stop()
+		clio.Success("Configuration tests passed!")
+	}
+	return nil
+}
+
 // CLIPrompt prompts the user to enter a value for the config varsiable
 // in a CLI context. If the config variable implements Defaulter, the
 // default value is returned and the user is not prompted for any input.
