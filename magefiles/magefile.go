@@ -355,15 +355,11 @@ func (Deploy) StagingFrontend(env, name string) error {
 	}
 
 	vaultID := dep.Deployment.Parameters.ProviderConfiguration["test-vault"].With["uniqueId"]
-	vaultIDVar := fmt.Sprintf("vaultID=%s", vaultID)
 
 	echoCmd := fmt.Sprintf("::set-output name=vaultID::%s", vaultID)
 
 	fmt.Printf(echoCmd)
 	fmt.Print("\n")
-
-	sh.Run("echo", echoCmd)
-	sh.Run("echo", vaultIDVar, ">>", "$GITHUB_ENV")
 
 	return cdkout.DeployFrontend()
 }

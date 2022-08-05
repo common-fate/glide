@@ -51,6 +51,9 @@ jobs:
     runs-on: ubuntu-20.04
     concurrency: deploy-preview
 
+    outputs:
+      vaultID: ${{ steps.deploy_preview.outputs.vaultID}}
+
     permissions:
       id-token: write
       contents: write
@@ -175,7 +178,7 @@ jobs:
           TEST_PASSWORD: "${{ secrets.TEST_PASSWORD}}"
           USER_POOL_ID: "${{ secrets.USER_POOL_ID}}"
           COGNITO_CLIENT_ID: "${{ secrets.COGNITO_CLIENT_ID}}"
-          VAULT_ID: "${{ steps.deploy_preview.outputs.vaultID }}"
+          VAULT_ID: "${{ needs.deploy.outputs.vaultID }}"
           CI: true
       - uses: actions/upload-artifact@v3
         if: failure()
