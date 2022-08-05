@@ -6,6 +6,8 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"github.com/okta/okta-sdk-golang/v2/okta"
+	"github.com/okta/okta-sdk-golang/v2/okta/query"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -33,6 +35,17 @@ func (o *Provider) Init(ctx context.Context) error {
 	zap.S().Info("okta client configured")
 
 	o.client = client
+	return nil
+}
+func (p *Provider) TestConfig(ctx context.Context) error {
+	_, _, err := p.client.User.ListUsers(ctx, &query.Params{})
+	if err != nil {
+		return errors.Wrap(err, "failed to list users while testing okta provider configuration")
+	}
+	_, _, err = p.client.Group.ListGroups(ctx, &query.Params{})
+	if err != nil {
+		return errors.Wrap(err, "failed to list groups while testing okta provider configuration")
+	}
 	return nil
 }
 
