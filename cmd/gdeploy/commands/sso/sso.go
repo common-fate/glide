@@ -88,9 +88,10 @@ var configureCommand = cli.Command{
 				}
 			}
 
-			// @TODO add the provider test call here before progressing
-			// e.g idp.IdentityProvider.TestConfig(ctx)
-
+			err = gconfig.RunConfigTest(ctx, idp.IdentityProvider)
+			if err != nil {
+				return err
+			}
 			// if tests pass, dump the config and update in the deployment config
 			newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
 			if err != nil {
