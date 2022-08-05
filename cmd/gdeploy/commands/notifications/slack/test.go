@@ -40,7 +40,7 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Success("Successfully send slack test message")
+		clio.Success("Successfully sent a slack test message to %s", c.String("email"))
 		return nil
 	},
 }

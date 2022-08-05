@@ -78,8 +78,10 @@ var addCommand = cli.Command{
 			}
 		}
 
-		// @TODO add the provider test call here before progressing
-		// e.g provider.Provider.TestConfig(ctx)
+		err = deploy.RunConfigTest(ctx, provider.Provider)
+		if err != nil {
+			return err
+		}
 
 		// if tests pass, dump the config and update in the deployment config
 		// secret path args requires the id, all provider config includes the provider ID in the path
