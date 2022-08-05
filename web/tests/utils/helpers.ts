@@ -87,6 +87,10 @@ export const CreateAccessRule = async (page: Page) => {
   await clickFormElementByID("react-select-2-listbox", page);
   await clickFormElementByID("group-select", page);
   await clickFormElementByID("react-select-2-listbox", page);
+  await clickFormElementByID("group-select", page);
+  await clickFormElementByID("react-select-2-listbox", page);
+  await clickFormElementByID("group-select", page);
+  await clickFormElementByID("react-select-2-listbox", page);
 
   //ensure granted_admins was added to selection box
   await clickFormElementByID("form-step-next-button", page);

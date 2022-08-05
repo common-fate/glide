@@ -37,6 +37,8 @@ test.describe.serial("Approval/Request Workflows", () => {
 
     await clickFormElementByText("button", "Submit", page);
 
+    await page.waitForNavigation();
+
     await page.waitForLoadState("networkidle");
 
     // expect to see the reason in the list
@@ -85,8 +87,11 @@ test.describe.serial("Approval/Request Workflows", () => {
     let apiContext = await playwright.request.newContext({});
     let user = process.env.TEST_USERNAME ?? "jordi@commonfate.io";
     let vault = process.env.VAULT_ID ?? "2CBsuomHFRE3mrpLGWFaxbyKXG6_5";
+
+    let encodedUser = encodeURIComponent(user);
+
     const res = await apiContext.get(
-      `https://prod.testvault.granted.run/vaults/${vault}/members/${user}`
+      `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`
     );
     let stringSuccess = await res.text();
     expect(stringSuccess).toBe(
