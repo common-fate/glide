@@ -56,12 +56,12 @@ var configureSlackCommand = cli.Command{
 			}
 		}
 
-		// for _, v := range cfg {
-		// 	err := deploy.CLIPrompt(v)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		for _, v := range cfg {
+			err := deploy.CLIPrompt(v)
+			if err != nil {
+				return err
+			}
+		}
 
 		err = deploy.RunConfigTest(ctx, &slack)
 		if err != nil {
