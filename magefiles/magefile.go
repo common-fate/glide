@@ -359,6 +359,9 @@ func (Deploy) StagingFrontend(env, name string) error {
 
 	echoCmd := fmt.Sprintf("::set-output name=vaultID::%s", vaultID)
 
+	fmt.Printf(echoCmd)
+	fmt.Print("\n")
+
 	sh.Run("echo", echoCmd)
 	sh.Run("echo", vaultIDVar, ">>", "$GITHUB_ENV")
 
