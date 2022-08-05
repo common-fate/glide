@@ -14,17 +14,5 @@ test("verify access is provisioned", async ({ page, context, playwright }) => {
   let stringErr = await res.text();
   expect(stringErr).toBe('{"error":"user is not a member of this vault"}');
 
-  // let user = process.env.TEST_USERNAME ?? "jordi@commonfate.io";
-  // let vault = "2CBsuomHFRE3mrpLGWFaxbyKXG6_5";
-
-  // const res2 = await apiContext.get(
-  //   `https://prod.testvault.granted.run/vaults/${vault}/members/${user}`
-  // );
-
-  // let stringSuccess = await res2.text();
-  // expect(stringSuccess).toBe(
-  //   `{"message":"success! user ${user} is a member of vault ${vault}"}`
-  // );
-
   await apiContext.dispose();
 });

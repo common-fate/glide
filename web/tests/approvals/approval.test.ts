@@ -85,14 +85,13 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForTimeout(5000);
 
     let apiContext = await playwright.request.newContext({});
-    let user = process.env.TEST_USERNAME ?? "jordi@commonfate.io";
-    let vault = process.env.VAULT_ID ?? "2CBsuomHFRE3mrpLGWFaxbyKXG6_5";
+    let user = process.env.TEST_ADMIN_USERNAME;
+    let vault = process.env.VAULT_ID;
 
     let encodedUser = encodeURIComponent(user);
+    let url = `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`;
 
-    const res = await apiContext.get(
-      `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`
-    );
+    const res = await apiContext.get(url);
     let stringSuccess = await res.text();
     expect(stringSuccess).toBe(
       `{"message":"success! user ${user} is a member of vault ${vault}"}`
