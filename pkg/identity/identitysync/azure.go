@@ -11,6 +11,7 @@ import (
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/pkg/errors"
 )
 
 const MSGraphBaseURL = "https://graph.microsoft.com/v1.0"
@@ -47,6 +48,17 @@ func (s *AzureSync) Init(ctx context.Context) error {
 		return err
 	}
 	s.token.Set(token.AccessToken)
+	return nil
+}
+func (s *AzureSync) TestConfig(ctx context.Context) error {
+	_, err := s.ListUsers(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list users while testing azure identity provider configuration")
+	}
+	_, err = s.ListGroups(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to list groups while testing azure identity provider configuration")
+	}
 	return nil
 }
 

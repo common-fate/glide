@@ -21,6 +21,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -167,6 +168,35 @@ func UnmarshalProviderMap(data string) (ProviderMap, error) {
 		return make(ProviderMap), err
 	}
 	return i, nil
+}
+
+// RunConfigTest runs ConfigTest() if it is implemented on the interface
+func RunConfigTest(ctx context.Context, testable interface{}) error {
+	if tester, ok := testable.(gconfig.Tester); ok {
+		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		si.Suffix = " running tests using this configuration."
+		si.Writer = os.Stderr
+		si.Start()
+		defer si.Stop()
+
+		// disable zap logging which can be emitted by components intended to run in a server environement.
+		// after the test, the original logger is restored
+		restore := zap.ReplaceGlobals(zap.NewNop())
+		defer restore()
+		if initer, ok := testable.(gconfig.Initer); ok {
+			err := initer.Init(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		err := tester.TestConfig(ctx)
+		if err != nil {
+			return err
+		}
+		si.Stop()
+		clio.Success("Configuration tests passed!")
+	}
+	return nil
 }
 
 // CLIPrompt prompts the user to enter a value for the config varsiable

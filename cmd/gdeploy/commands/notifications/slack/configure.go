@@ -63,8 +63,10 @@ var configureSlackCommand = cli.Command{
 			}
 		}
 
-		// @TODO add the provider test call here before progressing
-		// e.g idp.IdentityProvider.TestConfig(ctx)
+		err = deploy.RunConfigTest(ctx, &slack)
+		if err != nil {
+			return err
+		}
 
 		// if tests pass, dump the config and update in the deployment config
 		newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: dc.Deployment.Parameters.DeploymentSuffix})
@@ -76,10 +78,10 @@ var configureSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
-		clio.Success("Successfully enabled Slack")
 
-		clio.Info("Run: `gdeploy notifications slack test --email=<your_slack_email>` to test your Slack notifications")
+		clio.Success("Successfully configured Slack")
+		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
+		clio.Warn("Run: `gdeploy notifications slack test --email=<your_slack_email>` to send a test DM")
 
 		return nil
 	},
