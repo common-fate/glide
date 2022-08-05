@@ -21,6 +21,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -177,6 +178,11 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 		si.Writer = os.Stderr
 		si.Start()
 		defer si.Stop()
+
+		// disable zap logging which can be emitted by components intended to run in a server environement.
+		// after the test, the original logger is restored
+		restore := zap.ReplaceGlobals(zap.NewNop())
+		defer restore()
 		if initer, ok := testable.(gconfig.Initer); ok {
 			err := initer.Init(ctx)
 			if err != nil {
