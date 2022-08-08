@@ -401,7 +401,7 @@ func (c *Config) Save(f string) error {
 // NewStagingConfig sets up a Config for staging deployments.
 // These deployments currently still use the CDK rather than CloudFormation.
 func NewStagingConfig(ctx context.Context, stage string) *Config {
-	acc, _ := tryGetCurrentAccountID(ctx)
+	acc, _ := TryGetCurrentAccountID(ctx)
 	dev := true
 	conf := Config{
 		Deployment: Deployment{
@@ -433,7 +433,7 @@ func SetupDevConfig() (*Config, error) {
 		return nil, err
 	}
 	ctx := context.Background()
-	account, _ := tryGetCurrentAccountID(ctx)
+	account, _ := TryGetCurrentAccountID(ctx)
 
 	p = &survey.Input{Message: "Enter the account ID that you are deploying to", Default: account}
 	err = survey.AskOne(p, &account)
@@ -482,7 +482,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	if account == "" {
 		ctx := context.Background()
 		//Setting account to a fresh variable when set, was being unallocated when using the account variable
-		current, err := tryGetCurrentAccountID(ctx)
+		current, err := TryGetCurrentAccountID(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -580,8 +580,8 @@ You can try and enter a deployment version manually now, but there's no guarante
 	return version, err
 }
 
-// tryGetCurrentAccountID uses AWS STS to try and load the current account ID.
-func tryGetCurrentAccountID(ctx context.Context) (string, error) {
+// TryGetCurrentAccountID uses AWS STS to try and load the current account ID.
+func TryGetCurrentAccountID(ctx context.Context) (string, error) {
 	si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	si.Suffix = " loading AWS account ID from your current profile"
 	si.Writer = os.Stderr
