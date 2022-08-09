@@ -306,6 +306,15 @@ func (Deploy) Frontend() error {
 
 // Dev provisions a development environment
 func (Deploy) Dev() error {
+	// ensure the user has a valid aws session
+	ctx := context.Background()
+	_, err := deploy.TryGetCurrentAccountID(ctx)
+	if err != nil {
+		boldYellow := color.New(color.FgYellow, color.Bold)
+		boldYellow.Println("⚠️ Failed to get AWS caller identity, ensure you have a valid AWS session")
+		return nil
+	}
+
 	// deploy the CDK stack
 	mg.Deps(Deploy.CDK)
 	// setup the .env file
