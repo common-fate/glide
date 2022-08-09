@@ -129,7 +129,7 @@ export const Navbar: React.FC<{}> = () => {
                       aria-label="Admin"
                       id="admin-button"
                     >
-                      Admin
+                      Switch To Admin
                     </Button>
                   </ButtonGroup>
                 )}
