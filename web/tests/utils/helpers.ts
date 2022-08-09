@@ -85,17 +85,7 @@ export const CreateAccessRule = async (page: Page) => {
 
   //click on group select, add both groups for approval
   await clickFormElementByID("group-select", page);
-
-  let count = await page
-    .locator(`#react-select-2-listbox >> visible=true`)
-    .count();
-
-  for (let i = 0; i < count; i++) {
-    await clickFormElementByID("group-select", page);
-    await clickFormElementByID("react-select-2-listbox", page);
-    return;
-  }
-
+  await page.locator(testId("everyone")).first().click();
 
   //ensure granted_admins was added to selection box
   await clickFormElementByID("form-step-next-button", page);
