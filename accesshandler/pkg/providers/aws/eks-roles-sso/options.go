@@ -16,7 +16,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 
 	for hasMore {
 
-		roles, err := p.client.RbacV1().Roles(p.namespace.Get()).List(ctx, v1.ListOptions{Continue: *nextToken})
+		roles, err := p.kubeClient.RbacV1().Roles(p.namespace.Get()).List(ctx, v1.ListOptions{Continue: *nextToken})
 		if err != nil {
 			return []types.Option{}, err
 		}
