@@ -19,10 +19,11 @@ import (
 type Provider struct {
 	client      *kubernetes.Clientset
 	clusterName gconfig.StringValue
+	namespace   gconfig.StringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
-	return gconfig.Config{gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name")}
+	return gconfig.Config{gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"), gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace")}
 }
 
 func (p *Provider) Init(ctx context.Context) error {
