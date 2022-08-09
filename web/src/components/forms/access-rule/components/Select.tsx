@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { useFormContext, Controller } from "react-hook-form";
-import Select from "react-select";
+import Select, { components, OptionProps } from "react-select";
+import { SelectContainer } from "react-select/dist/declarations/src/components/containers";
 import {
   useGetUsers,
   useGetGroups,
@@ -46,6 +47,22 @@ interface MultiSelectProps extends SelectProps {
   }[];
   id?: string;
 }
+
+const CustomOption = ({
+  children,
+  ...innerProps
+}: OptionProps<
+  {
+    value: string;
+    label: string;
+  },
+  true
+>) => (
+  <div data-testid={innerProps.value}>
+    <components.Option {...innerProps}>{children}</components.Option>
+  </div>
+);
+
 const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
   fieldName,
@@ -68,6 +85,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             id={id}
             isDisabled={isDisabled}
             options={options}
+            components={{ Option: CustomOption }}
             isMulti
             styles={{
               multiValue: (provided, state) => {
