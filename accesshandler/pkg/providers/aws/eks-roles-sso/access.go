@@ -6,8 +6,7 @@ import (
 )
 
 type Args struct {
-	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission set"`
-	AccountID        string `json:"accountId" jsonschema:"title=Account"`
+	Role string `json:"role" jsonschema:"title=Role"`
 }
 
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error {
