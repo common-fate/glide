@@ -15,6 +15,11 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 	if err != nil {
 		return err
 	}
+	// create iam policy with eks permissions
+	// create permission set with policy
+	// create a kubernetes role-binding for subject to the kubernetes role
+	// create a role map entry for the iam role of the permission set to the kubernetes user in the aws-auth config map
+	// assign user to permission set
 
 	return nil
 }
@@ -25,6 +30,8 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 	if err != nil {
 		return err
 	}
+
+	// reverse the process from grant step
 
 	return err
 }

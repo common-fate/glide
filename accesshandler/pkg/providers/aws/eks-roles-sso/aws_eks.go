@@ -8,6 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"k8s.io/client-go/kubernetes"
@@ -17,13 +20,27 @@ import (
 )
 
 type Provider struct {
-	client      *kubernetes.Clientset
-	clusterName gconfig.StringValue
-	namespace   gconfig.StringValue
+	kubeClient    *kubernetes.Clientset
+	ssoClient     *ssoadmin.Client
+	clusterName   gconfig.StringValue
+	namespace     gconfig.StringValue
+	idStoreClient *identitystore.Client
+	orgClient     *organizations.Client
+	instanceARN   gconfig.StringValue
+	// The globally unique identifier for the identity store, such as d-1234567890.
+	identityStoreID gconfig.StringValue
+	// The aws region where the identity store runs
+	region gconfig.OptionalStringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
-	return gconfig.Config{gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"), gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace")}
+	return gconfig.Config{
+		gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"),
+		gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace"),
+		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
+		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
+		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
+	}
 }
 
 func (p *Provider) Init(ctx context.Context) error {
@@ -83,7 +100,12 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	p.client = client
+	p.kubeClient = client
+
+	p.ssoClient = ssoadmin.NewFromConfig(cfg)
+	p.orgClient = organizations.NewFromConfig(cfg)
+	p.idStoreClient = identitystore.NewFromConfig(cfg)
+
 	return nil
 }
 
