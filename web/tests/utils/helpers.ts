@@ -54,6 +54,7 @@ export const Logout = async (page: Page) => {
 export const CreateAccessRule = async (page: Page) => {
   await Logout(page);
   await LoginAdmin(page);
+  await page.waitForLoadState("networkidle");
   await clickFormElementByID("admin-button", page);
   await expect(page).toHaveTitle(/Granted/);
   await expect(
@@ -84,9 +85,7 @@ export const CreateAccessRule = async (page: Page) => {
 
   //click on group select, add both groups for approval
   await clickFormElementByID("group-select", page);
-  await clickFormElementByID("react-select-2-listbox", page);
-  await clickFormElementByID("group-select", page);
-  await clickFormElementByID("react-select-2-listbox", page);
+  await page.locator(testId("everyone")).first().click();
 
   //ensure granted_admins was added to selection box
   await clickFormElementByID("form-step-next-button", page);
@@ -96,7 +95,7 @@ export const CreateAccessRule = async (page: Page) => {
 
   //ensure granted_admins was added to selection box
   // await clickFormElementByID("approval-group-select", page);
-  await page.locator("#approval-group-select").click();
+  await page.locator("#approval-group-select >> visible=true").click();
   await page.keyboard.press("Enter");
   // await clickFormElementByID("approval-group-select", page);
   await page.locator("#approval-group-select").click();
@@ -105,6 +104,7 @@ export const CreateAccessRule = async (page: Page) => {
   await clickFormElementByID("rule-create-button", page);
 
   //check to see if the rule was successfully created
+  await page.waitForLoadState("networkidle");
 
   //check that we are redirected
   await expect(page).toHaveURL("/admin/access-rules");
