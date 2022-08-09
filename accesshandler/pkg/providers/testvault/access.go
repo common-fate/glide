@@ -54,6 +54,10 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (b
 		return false, err
 	}
 	vault := p.getPrefixedVault(a.Vault)
+
+	// encode uri component for subject
+	subject = url.QueryEscape(subject)
+
 	res, err := p.client.CheckVaultMembershipWithResponse(ctx, vault, subject)
 	if err != nil {
 		return false, err
