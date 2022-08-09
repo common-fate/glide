@@ -98,7 +98,7 @@ export const AdminNavbar: React.FC<{}> = () => {
                     px={3}
                     aria-label="Admin"
                   >
-                    User
+                    Switch To User
                   </Button>
                   <Menu>
                     <MenuButton

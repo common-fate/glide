@@ -58,11 +58,11 @@ func main() {
 			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
+			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
+			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
 			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
@@ -250,6 +250,20 @@ func RequireCleanGitWorktree() cli.BeforeFunc {
 			if stdout.Len() > 0 {
 				return clio.NewCLIError("Git worktree is not clean", clio.InfoMsg("We recommend that you commit all changes before creating or updating your deployment.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
 			}
+		}
+		return nil
+	}
+}
+
+func PreventDevUsage() cli.BeforeFunc {
+	return func(c *cli.Context) error {
+		ctx := c.Context
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
+			return clio.NewCLIError("Unsupported command used on developement deployment", clio.WarnMsg("It looks like you tried to use an unsupported command on your developement stack: '%s'.", c.Command.Name), clio.InfoMsg("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
 		}
 		return nil
 	}
