@@ -57,56 +57,64 @@ type Build mg.Namespace
 // Backend builds the Go API for the AWS Lambda runtime.
 func (Build) Backend() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
 }
 
 func (Build) Granter() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/granter", "cmd/lambda/granter/handler.go")
 }
 
 func (Build) FrontendDeployer() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
 }
 
 func (Build) AccessHandler() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
 }
 
 func (Build) Syncer() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
 }
 
 func (Build) SlackNotifier() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
 }
 
 func (Build) EventHandler() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
 }
 
 func (Build) Webhook() error {
 	env := map[string]string{
-		"GOOS": "linux",
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
 }
