@@ -85,11 +85,11 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForTimeout(5000);
 
     let apiContext = await playwright.request.newContext({});
-    let user = process.env.TEST_USERNAME;
-    let vault = process.env.VAULT_ID;
+    let user = process.env.TEST_ADMIN_USERNAME;
+    let vault = process.env.VAULT_ID + "_test-rule";
 
     let encodedUser = encodeURIComponent(user);
-    let url = `https://prod.testvault.granted.run/vaults/${vault}_test-rule/members/${encodedUser}`;
+    let url = `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`;
 
     const res = await apiContext.get(url);
     let stringSuccess = await res.text();
