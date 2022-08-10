@@ -89,7 +89,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     let vault = process.env.VAULT_ID;
 
     let encodedUser = encodeURIComponent(user);
-    let url = `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`;
+    let url = `https://prod.testvault.granted.run/vaults/${vault}_test-rule/members/${encodedUser}`;
 
     const res = await apiContext.get(url);
     let stringSuccess = await res.text();
