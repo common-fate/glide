@@ -28,7 +28,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 	vault := p.getPrefixedVault(a.Vault)
 	log.Info("assigning access to vault", "vault", vault)
 	_, err = p.client.AddMemberToVault(ctx, vault, tv.AddMemberToVaultJSONRequestBody{
-		User: EscapeEmailForURL(subject),
+		User: subject,
 	})
 	return err
 }
