@@ -66,9 +66,6 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (b
 	}
 	vault := p.getPrefixedVault(a.Vault)
 
-	// encode uri component for subject
-	subject = url.QueryEscape(subject)
-
 	res, err := p.client.CheckVaultMembershipWithResponse(ctx, vault, EscapeEmailForURL(subject))
 	if err != nil {
 		return false, err
@@ -88,7 +85,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	if err != nil {
 		return "", err
 	}
-	u.Path = path.Join("vaults", vault, "members", subject)
+	u.Path = path.Join("vaults", vault, "members", EscapeEmailForURL(subject))
 	urlString := u.String()
 	instructions := fmt.Sprintf("This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](%s) to check that your access has been provisioned.", urlString)
 	return instructions, nil
