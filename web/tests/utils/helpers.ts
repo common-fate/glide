@@ -51,7 +51,7 @@ export const Logout = async (page: Page) => {
   await page.goto("/logout", { waitUntil: "networkidle" });
 };
 
-export const CreateAccessRule = async (page: Page) => {
+export const CreateAccessRule = async (page: Page, ruleName: string) => {
   await Logout(page);
   await LoginAdmin(page);
   await page.waitForLoadState("networkidle");
@@ -76,7 +76,7 @@ export const CreateAccessRule = async (page: Page) => {
 
   //selec the test vault provider
   await clickFormElementByID("provider-selector", page);
-  await fillFormElementById("provider-vault", "test", page);
+  await fillFormElementById("provider-vault", ruleName, page);
   await clickFormElementByID("form-step-next-button", page);
 
   //select max duration for rule

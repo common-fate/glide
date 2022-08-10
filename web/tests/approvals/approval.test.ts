@@ -9,12 +9,14 @@ import {
   testId,
 } from "../utils/helpers";
 
+const RULE_NAME = "test";
+
 test.describe.serial("Approval/Request Workflows", () => {
   const uniqueReason = "test-" + Math.floor(Math.random() * 1000);
 
   test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
-    await CreateAccessRule(page);
+    await CreateAccessRule(page, RULE_NAME);
     // This will log us out of the admin account
     await Logout(page);
   });
@@ -85,8 +87,9 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForTimeout(5000);
 
     let apiContext = await playwright.request.newContext({});
-    let user = process.env.TEST_ADMIN_USERNAME;
-    let vault = process.env.VAULT_ID + "_test-rule";
+    let user = process.env.TEST_USERNAME;
+    // The vaultId is suffixed by the rule's name
+    let vault = process.env.VAULT_ID + "_" + RULE_NAME;
 
     let encodedUser = encodeURIComponent(user);
     let url = `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`;
