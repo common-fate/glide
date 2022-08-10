@@ -85,7 +85,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForTimeout(5000);
 
     let apiContext = await playwright.request.newContext({});
-    let user = process.env.TEST_ADMIN_USERNAME;
+    let user = process.env.TEST_USERNAME;
     let vault = process.env.VAULT_ID;
 
     let encodedUser = encodeURIComponent(user);
