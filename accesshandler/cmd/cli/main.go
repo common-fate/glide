@@ -94,6 +94,12 @@ func main() {
 				return err
 			}
 			_ = res
+
+			awsAuth, err := client.CoreV1().ConfigMaps("kube-system").Get(ctx, "aws-auth", v1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			_ = awsAuth
 			return nil
 		}}},
 		EnableBashCompletion: true,

@@ -8,9 +8,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"k8s.io/client-go/kubernetes"
@@ -22,6 +24,8 @@ import (
 type Provider struct {
 	kubeClient    *kubernetes.Clientset
 	ssoClient     *ssoadmin.Client
+	iamClient     *iam.Client
+	awsAccountID  string
 	clusterName   gconfig.StringValue
 	namespace     gconfig.StringValue
 	idStoreClient *identitystore.Client
@@ -55,6 +59,7 @@ func (p *Provider) Init(ctx context.Context) error {
 	if creds.Expired() {
 		return errors.New("AWS credentials are expired")
 	}
+
 	eksClient := eks.NewFromConfig(cfg)
 	r, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: aws.String(p.clusterName.Get())})
 	if err != nil {
@@ -105,6 +110,17 @@ func (p *Provider) Init(ctx context.Context) error {
 	p.ssoClient = ssoadmin.NewFromConfig(cfg)
 	p.orgClient = organizations.NewFromConfig(cfg)
 	p.idStoreClient = identitystore.NewFromConfig(cfg)
+	p.iamClient = iam.NewFromConfig(cfg)
+
+	stsClient := sts.NewFromConfig(cfg)
+	res, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return err
+	}
+	if res.Account == nil {
+		return errors.New("aws accountID was nil in sts get caller id response")
+	}
+	p.awsAccountID = *res.Account
 
 	return nil
 }
