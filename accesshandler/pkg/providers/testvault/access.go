@@ -17,7 +17,7 @@ type Args struct {
 }
 
 // Grant the access
-func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
@@ -33,7 +33,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 }
 
 // Revoke the access
-func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
@@ -47,7 +47,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 }
 
 // IsActive checks whether the access is active
-func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (bool, error) {
+func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
