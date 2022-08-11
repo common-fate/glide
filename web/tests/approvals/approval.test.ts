@@ -77,6 +77,13 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     await page.locator(testId("approve")).click();
+
+    // expect redirect
+    await page.waitForLoadState("networkidle");
+
+    let approvedText = await page.locator(testId("reason")).textContent();
+
+    await expect(approvedText).toBe(uniqueReason);
   });
 
   test("ensure access granted for matching user", async ({
@@ -84,7 +91,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     playwright,
   }) => {
     // wait 5s to give the granter time to approve the request
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(1000);
 
     let apiContext = await playwright.request.newContext({});
     let user = process.env.TEST_USERNAME;
