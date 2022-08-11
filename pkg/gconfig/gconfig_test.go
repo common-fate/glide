@@ -138,14 +138,14 @@ func TestLoad(t *testing.T) {
 			SecretStringField("b", &test1.b, "usage", WithNoArgs("test-path")),
 			OptionalStringField("c", &test1.c, "usage"),
 			OptionalStringField("d", &test1.d, "usage"),
-		}, giveLoader: &MapLoader{Values: map[string]string{
+		}, giveLoader: &MapLoader{Values: map[string]interface{}{
 			"a": "testvaluea",
 			"b": "testvalueb",
 			"c": "testvaluec",
 		}}, wantStruct: &test1Expected},
 		{name: "not found in map returns error", giveStruct: &test2, giveConfig: Config{
 			StringField("a", &test2.a, "usage"),
-		}, giveLoader: &MapLoader{Values: map[string]string{}}, wantError: errors.New("could not find a in map")},
+		}, giveLoader: &MapLoader{Values: map[string]interface{}{}}, wantError: errors.New("could not find a in map")},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

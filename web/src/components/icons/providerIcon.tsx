@@ -1,7 +1,18 @@
 import { IconProps } from "@chakra-ui/react";
 import React from "react";
 import { Provider } from "../../utils/backend-client/types";
-import { AWSIcon, GrantedKeysIcon, OktaIcon, AzureIcon } from "./Icons";
+import {
+  AWSIcon,
+  GrantedKeysIcon,
+  OktaIcon,
+  AzureIcon,
+  KubernetesIcon,
+  SnowflakeIcon,
+  OnePasswordIcon,
+  GitHubIcon,
+  DjangoIcon,
+  GRPCIcon,
+} from "./Icons";
 
 export const ProviderIcon = ({
   provider,
@@ -20,6 +31,18 @@ export const ProviderIcon = ({
       return <OktaIcon {...rest} />;
     case "azure-ad":
       return <AzureIcon {...rest} />;
+    case "kubernetes":
+      return <KubernetesIcon {...rest} />;
+    case "snowflake":
+      return <SnowflakeIcon {...rest} />;
+    case "1password":
+      return <OnePasswordIcon {...rest} />;
+    case "github":
+      return <GitHubIcon {...rest} />;
+    case "django":
+      return <DjangoIcon {...rest} />;
+    case "grpc":
+      return <GRPCIcon {...rest} />;
     default:
       return <GrantedKeysIcon {...rest} />;
   }

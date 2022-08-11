@@ -60,7 +60,7 @@ func TestTestCfnParams(t *testing.T) {
 						ProviderConfiguration: map[string]Provider{
 							"okta": {
 								Uses: "commonfate/okta@v1",
-								With: map[string]string{
+								With: map[string]interface{}{
 									"orgUrl": "test.internal",
 								},
 							},
@@ -155,10 +155,10 @@ func TestProviderMap(t *testing.T) {
 func TestFeatureMap(t *testing.T) {
 	// Tests that the Add method works as expected
 	var p Parameters
-	p.IdentityConfiguration.Upsert("test", map[string]string{})
-	p.IdentityConfiguration.Upsert("test2", map[string]string{})
-	p.IdentityConfiguration.Upsert("test", map[string]string{})
+	p.IdentityConfiguration.Upsert("test", map[string]interface{}{})
+	p.IdentityConfiguration.Upsert("test2", map[string]interface{}{})
+	p.IdentityConfiguration.Upsert("test", map[string]interface{}{})
 
 	// assert that the map is as expected
-	assert.Equal(t, FeatureMap{"test": map[string]string{}, "test2": map[string]string{}}, p.IdentityConfiguration)
+	assert.Equal(t, FeatureMap{"test": map[string]interface{}{}, "test2": map[string]interface{}{}}, p.IdentityConfiguration)
 }

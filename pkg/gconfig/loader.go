@@ -28,11 +28,11 @@ var secretGetterRegistry = map[string]SecretGetter{
 //
 // It's useful for writing tests which use genv to configure things.
 type MapLoader struct {
-	Values map[string]string
+	Values map[string]interface{}
 }
 
 // Under the hood, this just uses the json loader so we get all the SSM loading capability
-func (l *MapLoader) Load(ctx context.Context) (map[string]string, error) {
+func (l *MapLoader) Load(ctx context.Context) (map[string]interface{}, error) {
 	b, err := json.Marshal(l.Values)
 	if err != nil {
 		return nil, err
@@ -48,8 +48,8 @@ type JSONLoader struct {
 	Data []byte
 }
 
-func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
-	var res map[string]string
+func (l JSONLoader) Load(ctx context.Context) (map[string]interface{}, error) {
+	var res map[string]interface{}
 
 	err := json.Unmarshal(l.Data, &res)
 	if err != nil {
@@ -62,12 +62,17 @@ func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
 	// After unmarshalling the json, check for any value which match a secret getter
 	// if it does, get the secret value
 	for k, v := range res {
+		stringVal, ok := v.(string)
+		if !ok {
+			continue
+		}
+
 		for getterKey, getter := range secretGetterRegistry {
-			if strings.HasPrefix(v, getterKey) {
+			if strings.HasPrefix(stringVal, getterKey) {
 				// important: we need to copy the key and value in this closure,
 				// otherwise 'k' and 'v' will change to the next loop iteration
 				// while we're loading the value
-				name := strings.TrimPrefix(v, getterKey)
+				name := strings.TrimPrefix(stringVal, getterKey)
 				key := k
 				g.Go(func() error {
 					value, err := getter.GetSecret(gctx, name)

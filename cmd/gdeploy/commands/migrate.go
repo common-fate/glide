@@ -55,7 +55,7 @@ var MigrateCommand = cli.Command{
 
 		// providers
 		for k, v := range cfgv1.Providers {
-			newWith := make(map[string]string)
+			newWith := make(map[string]interface{})
 			for k2, w := range v.With {
 				// add a version to the provider ssm params
 				if strings.HasPrefix(w, "awsssm://") {
@@ -95,7 +95,7 @@ var MigrateCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				var newWith map[string]string
+				var newWith map[string]interface{}
 				err = json.Unmarshal(b, &newWith)
 				if err != nil {
 					return err
@@ -107,7 +107,7 @@ var MigrateCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				var newWith map[string]string
+				var newWith map[string]interface{}
 				err = json.Unmarshal(b, &newWith)
 				if err != nil {
 					return err
@@ -119,7 +119,7 @@ var MigrateCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				var newWith map[string]string
+				var newWith map[string]interface{}
 				err = json.Unmarshal(b, &newWith)
 				if err != nil {
 					return err
@@ -134,7 +134,7 @@ var MigrateCommand = cli.Command{
 				if err != nil {
 					return err
 				}
-				var newWith map[string]string
+				var newWith map[string]interface{}
 				err = json.Unmarshal(b, &newWith)
 				if err != nil {
 					return err

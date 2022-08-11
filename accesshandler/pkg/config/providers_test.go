@@ -14,7 +14,7 @@ import (
 )
 
 // testProvider configures a provider with testing variables based on the provided 'vals' argument.
-func testProvider(t *testing.T, p providers.Accessor, vals map[string]string) providers.Accessor {
+func testProvider(t *testing.T, p providers.Accessor, vals map[string]interface{}) providers.Accessor {
 	ctx := context.Background()
 
 	if c, ok := p.(gconfig.Configer); ok {
@@ -55,7 +55,7 @@ func TestConfigureProviders(t *testing.T) {
 				"test": {
 					ID:   "test",
 					Type: "okta",
-					Provider: testProvider(t, &okta.Provider{}, map[string]string{
+					Provider: testProvider(t, &okta.Provider{}, map[string]interface{}{
 						"orgUrl":   "https://test.internal",
 						"apiToken": "secret",
 					}),
@@ -69,7 +69,7 @@ func TestConfigureProviders(t *testing.T) {
 				"test": {
 					ID:   "test",
 					Type: "aws-sso",
-					Provider: testProvider(t, &sso.Provider{}, map[string]string{
+					Provider: testProvider(t, &sso.Provider{}, map[string]interface{}{
 						"identityStoreId": "id-123",
 						"instanceArn":     "arn::test",
 						"region":          "us-east-1",
@@ -84,7 +84,7 @@ func TestConfigureProviders(t *testing.T) {
 				"test": {
 					ID:   "test",
 					Type: "aws-sso",
-					Provider: testProvider(t, &sso.Provider{}, map[string]string{
+					Provider: testProvider(t, &sso.Provider{}, map[string]interface{}{
 						"identityStoreId": "id-123",
 						"instanceArn":     "arn::test",
 						"region":          "",

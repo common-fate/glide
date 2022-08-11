@@ -10,7 +10,7 @@ import (
 
 var GroupsCommand = cli.Command{
 	Name:        "group",
-	Subcommands: []*cli.Command{&membersCommand},
+	Subcommands: []*cli.Command{&membersCommand, &createCommand},
 	Action:      cli.ShowSubcommandHelp,
 }
 

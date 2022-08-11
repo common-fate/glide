@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Config is the list of variables which a provider can be configured with.
 type Config []*Field
 type Dumper interface {
-	Dump(ctx context.Context, cfg Config) (map[string]string, error)
+	Dump(ctx context.Context, cfg Config) (map[string]interface{}, error)
 }
 
 // Loader loads configuration for Granted providers.
@@ -24,7 +25,7 @@ type Loader interface {
 	// Returns an error if loading the values fails.
 	//
 	// The Loader should internally handle sourcing the configuration for example from a map or environment variables
-	Load(ctx context.Context) (map[string]string, error)
+	Load(ctx context.Context) (map[string]interface{}, error)
 }
 
 // Load configuration using a Loader.
@@ -54,7 +55,7 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 // use SafeDumper to get all values with secrets redacted
 //
 // SSMDumper first pushes any updated secrets to ssm then returns the ssm paths to the secrets
-func (c Config) Dump(ctx context.Context, dumper Dumper) (map[string]string, error) {
+func (c Config) Dump(ctx context.Context, dumper Dumper) (map[string]interface{}, error) {
 	if dumper == nil {
 		return nil, fmt.Errorf("cannot dump with nil dumper")
 	}
@@ -62,7 +63,7 @@ func (c Config) Dump(ctx context.Context, dumper Dumper) (map[string]string, err
 }
 
 type Valuer interface {
-	Set(s string)
+	Set(s interface{}) error
 	Get() string
 	String() string
 }
@@ -162,13 +163,12 @@ func (s Field) Default() string {
 }
 
 // Set the value of this string
-func (s *Field) Set(v string) error {
+func (s *Field) Set(v interface{}) error {
 	if s.value == nil {
 		return errors.New("cannot call Set on nil Valuer")
 	}
 	s.hasChanged = true
-	s.value.Set(v)
-	return nil
+	return s.value.Set(v)
 }
 
 // Get returns the value if it is set, or an empty string if it is not set
@@ -202,8 +202,13 @@ func (s *SecretStringValue) Get() string {
 }
 
 // Set the value of the secret
-func (s *SecretStringValue) Set(value string) {
-	s.Value = value
+func (s *SecretStringValue) Set(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return errors.New("value must be string")
+	}
+	s.Value = str
+	return nil
 }
 
 // String returns a redacted value for this secret
@@ -232,8 +237,13 @@ func (s *StringValue) String() string {
 }
 
 // Set the value of the string
-func (s *StringValue) Set(value string) {
-	s.Value = value
+func (s *StringValue) Set(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return errors.New("value must be string")
+	}
+	s.Value = str
+	return nil
 }
 
 // OptionalStringValue value implements the Valuer interface
@@ -260,8 +270,50 @@ func (s *OptionalStringValue) String() string {
 }
 
 // Set the value of the string
-func (s *OptionalStringValue) Set(value string) {
-	s.Value = &value
+func (s *OptionalStringValue) Set(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return errors.New("value must be string")
+	}
+	s.Value = &str
+	return nil
+}
+
+type JSONValue struct {
+	Dest interface{}
+}
+
+// Get the value of the string
+func (s *JSONValue) Get() string {
+	val, err := json.Marshal(s.Dest)
+	if err != nil {
+		return "<marshalling error>"
+	}
+	return string(val)
+}
+
+// String calls StringValue.Get()
+func (s *JSONValue) String() string {
+	return s.Get()
+}
+
+// Set the value of the string
+func (s *JSONValue) Set(value interface{}) error {
+	// ugly hack to ensure json.Unmarshal is called on what
+	// we're trying to parse.
+	// ideally we could use json.RawMessage here, but it makes
+	// deserialising YAML more difficult.
+	//
+	// we'd alternatively use mapstructure here, but this method is used
+	//  to construct JSON schemas for the Demo Access Provider
+	// and the jsonschema Properties field doesn't play nice with the mapstructure package.
+	valbyte, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	// undo the escaped `\"` characters in the JSON. Very ugly.
+	st := strings.ReplaceAll(string(valbyte), `\"`, `"`)
+	return json.Unmarshal([]byte(st), s.Dest)
 }
 
 type FieldOptFunc func(f *Field)
@@ -272,6 +324,25 @@ func WithDefaultFunc(df func() string) FieldOptFunc {
 	return func(f *Field) {
 		f.defaultFunc = df
 	}
+}
+
+// JSONField creates a field which takes a JSON string as input.
+// This field type is for non secrets.
+func JSONField(key string, dest interface{}, usage string, opts ...FieldOptFunc) *Field {
+	if dest == nil {
+		panic(ErrFieldValueMustNotBeNil)
+	}
+	f := &Field{
+		key: key,
+		value: &JSONValue{
+			Dest: dest,
+		},
+		usage: usage,
+	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
 }
 
 // StringField creates a new field with a StringValue

@@ -63,6 +63,6 @@ func (p *Provider) TestConfig(ctx context.Context) error {
 }
 
 // ArgSchema returns the schema for the AzureAD provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
+func (p *Provider) ArgSchema() *jsonschema.Schema {
 	return jsonschema.Reflect(&Args{})
 }

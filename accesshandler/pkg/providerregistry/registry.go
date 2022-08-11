@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/demo"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
@@ -20,6 +21,11 @@ type ProviderRegistry struct {
 func Registry() ProviderRegistry {
 	return ProviderRegistry{
 		Providers: map[string]RegisteredProvider{
+			"commonfate/demo@v1": {
+				Provider:    &demo.Provider{},
+				DefaultID:   "demo",
+				Description: "Demo Access Provider",
+			},
 			"commonfate/okta@v1": {
 				Provider:    &okta.Provider{},
 				DefaultID:   "okta",

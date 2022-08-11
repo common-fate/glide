@@ -6,8 +6,8 @@ import "context"
 // or diagnostic purposes. Secret values are redacted by virtue of the String() method of the value fields.
 type SafeDumper struct{}
 
-func (SafeDumper) Dump(ctx context.Context, c Config) (map[string]string, error) {
-	res := make(map[string]string)
+func (SafeDumper) Dump(ctx context.Context, c Config) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
 	for _, s := range c {
 		res[s.Key()] = s.String()
 	}

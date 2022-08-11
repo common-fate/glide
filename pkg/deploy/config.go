@@ -91,19 +91,23 @@ func (f *ProviderMap) Add(id string, feature Provider) error {
 }
 
 type Provider struct {
-	Uses string            `yaml:"uses" json:"uses"`
-	With map[string]string `yaml:"with" json:"with"`
+	Uses string                 `yaml:"uses" json:"uses"`
+	With map[string]interface{} `yaml:"with" json:"with"`
 }
 
+// func (p *Provider) UnmarshalYAML(value *yaml.Node) error {
+// 	return nil
+// }
+
 // Feature map represents the type used for features like identity and notifications
-type FeatureMap map[string]map[string]string
+type FeatureMap map[string]map[string]interface{}
 
 // Upserts the feature in the map, if the map is not initialised, it initialises it first
-func (f *FeatureMap) Upsert(id string, feature map[string]string) {
+func (f *FeatureMap) Upsert(id string, feature map[string]interface{}) {
 	// check if this is a nil map and initialise first if so
 	// This is a trick to check the underlying maps from the alias' value
-	if map[string]map[string]string(*f) == nil {
-		*f = make(map[string]map[string]string)
+	if map[string]map[string]interface{}(*f) == nil {
+		*f = make(map[string]map[string]interface{})
 	}
 	(*f)[id] = feature
 }
@@ -112,7 +116,7 @@ func (f *FeatureMap) Upsert(id string, feature map[string]string) {
 func (f FeatureMap) Remove(id string) {
 	// check if this is a nil map and initialise first if so
 	// This is a trick to check the underlying maps from the alias' value
-	if map[string]map[string]string(f) == nil {
+	if map[string]map[string]interface{}(f) == nil {
 		return
 	}
 	delete(f, id)
@@ -412,7 +416,7 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 				ProviderConfiguration: ProviderMap{
 					"test-vault": {
 						Uses: "commonfate/testvault@v1",
-						With: map[string]string{
+						With: map[string]interface{}{
 							"apiUrl":   "https://prod.testvault.granted.run",
 							"uniqueId": ksuid.New().String(),
 						},

@@ -18,8 +18,8 @@ type SSMDumper struct {
 	SecretPathArgs []interface{}
 }
 
-func (d SSMDumper) Dump(ctx context.Context, c Config) (map[string]string, error) {
-	res := make(map[string]string)
+func (d SSMDumper) Dump(ctx context.Context, c Config) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
 	for _, s := range c {
 		if s.IsSecret() {
 			if s.hasChanged && !s.secretUpdated {

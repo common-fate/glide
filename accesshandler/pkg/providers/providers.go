@@ -39,3 +39,9 @@ type ArgOptioner interface {
 type Instructioner interface {
 	Instructions(ctx context.Context, subject string, args []byte) (string, error)
 }
+
+// Typers can provide a custom type based on the provider's configuration.
+// This is currently only used for the Demo provider, where the type is set via provider config.
+type Typer interface {
+	Type() string
+}

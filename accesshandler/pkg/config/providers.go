@@ -26,11 +26,19 @@ type Provider struct {
 }
 
 func (p *Provider) ToAPI() types.Provider {
-	return types.Provider{
-		Id:   p.ID,
-		Type: p.Type,
+	t := p.Type
+
+	// return a custom type if the provider implements
+	// providers.Typer. This is used for the Demo Access Provider
+	// to return a user-defined type.
+	if typ, ok := p.Provider.(providers.Typer); ok {
+		t = typ.Type()
 	}
 
+	return types.Provider{
+		Id:   p.ID,
+		Type: t,
+	}
 }
 
 // ReadProviderConfig will fetch the provider config based on the runtime
