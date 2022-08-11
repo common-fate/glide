@@ -28,31 +28,42 @@ type Provider struct {
 	awsAccountID  string
 	clusterName   gconfig.StringValue
 	namespace     gconfig.StringValue
+	clusterRegion gconfig.StringValue
 	idStoreClient *identitystore.Client
 	orgClient     *organizations.Client
 	instanceARN   gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
-	region gconfig.OptionalStringValue
+	ssoRegion gconfig.StringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"),
 		gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace"),
+		gconfig.StringField("clusterRegion", &p.clusterRegion, "the region the EKS cluster is deployed"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
-		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
+		gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),
 	}
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-	cfg, err := config.LoadDefaultConfig(ctx)
+
+	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()))
 	if err != nil {
 		return err
 	}
-	creds, err := cfg.Credentials.Retrieve(ctx)
+	eksCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.clusterRegion.Get()))
+	if err != nil {
+		return err
+	}
+	defaultCfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return err
+	}
+	creds, err := eksCfg.Credentials.Retrieve(ctx)
 	if err != nil {
 		return err
 	}
@@ -60,7 +71,7 @@ func (p *Provider) Init(ctx context.Context) error {
 		return errors.New("AWS credentials are expired")
 	}
 
-	eksClient := eks.NewFromConfig(cfg)
+	eksClient := eks.NewFromConfig(eksCfg)
 	r, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: aws.String(p.clusterName.Get())})
 	if err != nil {
 		return err
@@ -107,12 +118,11 @@ func (p *Provider) Init(ctx context.Context) error {
 	}
 	p.kubeClient = client
 
-	p.ssoClient = ssoadmin.NewFromConfig(cfg)
-	p.orgClient = organizations.NewFromConfig(cfg)
-	p.idStoreClient = identitystore.NewFromConfig(cfg)
-	p.iamClient = iam.NewFromConfig(cfg)
-
-	stsClient := sts.NewFromConfig(cfg)
+	p.ssoClient = ssoadmin.NewFromConfig(ssoCfg)
+	p.orgClient = organizations.NewFromConfig(ssoCfg)
+	p.idStoreClient = identitystore.NewFromConfig(ssoCfg)
+	p.iamClient = iam.NewFromConfig(defaultCfg)
+	stsClient := sts.NewFromConfig(defaultCfg)
 	res, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return err
