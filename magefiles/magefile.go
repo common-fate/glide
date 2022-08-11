@@ -367,8 +367,7 @@ func (Deploy) StagingFrontend(env, name string) error {
 
 	echoCmd := fmt.Sprintf("::set-output name=vaultID::%s", vaultID)
 
-	fmt.Printf(echoCmd)
-	fmt.Print("\n")
+	fmt.Printf("%s\n", echoCmd)
 
 	return cdkout.DeployFrontend()
 }
