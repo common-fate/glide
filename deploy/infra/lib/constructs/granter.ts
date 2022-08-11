@@ -22,7 +22,7 @@ export class Granter extends Construct {
 
     this._lambda = new lambda.Function(this, "StepHandlerFunction", {
       code,
-      timeout: Duration.seconds(20),
+      timeout: Duration.minutes(5),
       environment: {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
@@ -157,6 +157,23 @@ export class Granter extends Construct {
         resources: ["*"],
       })
     );
+
+    //permissions for the eks access handler when it is added
+    //Ideally these should get set dynamically when the provider is added
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "eks:AccessKubernetesApi",
+          "eks:DescribeCluster",
+          "sso:CreatePermissionSet",
+          "sso:PutInlinePolicyToPermissionSet",
+          "sso:CreateAccountAssignment",
+          "iam:ListRoles"
+        ],
+        resources: ["*"],
+
+      })
+    )
 
     props.eventBus.grantPutEventsTo(this._lambda);
   }
