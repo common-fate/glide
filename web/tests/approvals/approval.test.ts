@@ -13,6 +13,7 @@ const RULE_NAME = "test";
 
 test.describe.serial("Approval/Request Workflows", () => {
   const uniqueReason = "test-" + Math.floor(Math.random() * 1000);
+  let accessInstructionLink: string;
 
   test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
@@ -71,40 +72,41 @@ test.describe.serial("Approval/Request Workflows", () => {
 
     await page.waitForLoadState("networkidle");
 
-    // Click on the first review
+    // Click on the specific request
     await page.locator(testId(uniqueReason)).first().click();
 
     await page.waitForLoadState("networkidle");
 
+    // Click approve
     await page.locator(testId("approve")).click();
 
-    // expect redirect
+    // Ensure it loads
     await page.waitForLoadState("networkidle");
 
+    // Validate its teh same request
     let approvedText = await page.locator(testId("reason")).textContent();
-
     await expect(approvedText).toBe(uniqueReason);
+
+    // Assign the accessInstructionLink for our next test
+    accessInstructionLink =
+      (await page
+        .locator(testId("accessInstructionLink"))
+        .getAttribute("href")) ?? "error";
+
+    // a preliminary check to make sure the link is valid, tested in next test
+    await expect(accessInstructionLink).toContain("https");
   });
 
-  test("ensure access granted for matching user", async ({
-    page,
-    playwright,
-  }) => {
-    // wait 5s to give the granter time to approve the request
-    await page.waitForTimeout(1000);
-
+  test("ensure access granted for matching user", async ({ playwright }) => {
     let apiContext = await playwright.request.newContext({});
     let user = process.env.TEST_USERNAME;
-    // The vaultId is suffixed by the rule's name
-    let vault = process.env.VAULT_ID + "_" + RULE_NAME;
 
-    let encodedUser = encodeURIComponent(user);
-    let url = `https://prod.testvault.granted.run/vaults/${vault}/members/${encodedUser}`;
-
-    const res = await apiContext.get(url);
+    const res = await apiContext.get(accessInstructionLink);
     let stringSuccess = await res.text();
-    expect(stringSuccess).toBe(
-      `{"message":"success! user ${user} is a member of vault ${vault}"}`
+
+    // ensure the vault has granted access
+    expect(stringSuccess).toContain(
+      `{"message":"success! user ${user} is a member of vault`
     );
     await apiContext.dispose();
   });
