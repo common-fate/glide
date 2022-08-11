@@ -158,6 +158,17 @@ export class Granter extends Construct {
       })
     );
 
+    //this is for the eks access handler
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "eks:AccessKubernetesApi"
+        ],
+        resources: ["*"],
+
+      })
+    )
+
     props.eventBus.grantPutEventsTo(this._lambda);
   }
   getStateMachineARN(): string {

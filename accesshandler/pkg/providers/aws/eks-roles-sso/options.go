@@ -12,20 +12,20 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 
 	opts := []types.Option{}
 	hasMore := true
-	var nextToken *string
+	var nextToken string
 
 	for hasMore {
 
-		roles, err := p.kubeClient.RbacV1().Roles(p.namespace.Get()).List(ctx, v1.ListOptions{Continue: *nextToken})
+		roles, err := p.kubeClient.RbacV1().Roles(p.namespace.Get()).List(ctx, v1.ListOptions{Continue: nextToken})
 		if err != nil {
 			return []types.Option{}, err
 		}
 		for _, r := range roles.Items {
 			opts = append(opts, types.Option{Label: r.Name, Value: r.Name})
 		}
-		nextToken = &roles.Continue
+		nextToken = roles.Continue
 		//exit the pagination
-		if nextToken == nil {
+		if nextToken == "" {
 			hasMore = false
 		}
 
