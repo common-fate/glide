@@ -35,10 +35,6 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 		return err
 	}
 
-	// how will we track all the items that we have created?
-	// We only ever need to create a single copy of the iam policy using a create or update operation
-	// The permission set is created per user and needs to be deleted afterwards, so how do we track this state, naming convention?
-	//
 	key := fmt.Sprintf("granted-approvals-%s", grantID)
 
 	// // @TODO work out what aws permissions are actually required for cluster access
@@ -48,9 +44,9 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 			{
 				Effect: "Allow",
 				Action: []string{
-					"eks:*",
+					"eks:AccessKubernetesApi",
 				},
-				Resource: []string{"*"},
+				Resource: []string{fmt.Sprintf("arn:aws:eks:%s:%s:cluster/%s", p.clusterRegion.Get(), p.awsAccountID, p.clusterName.Get())},
 			},
 		},
 	}
@@ -139,7 +135,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 		return err
 	}
 
-	substringToRemove := fmt.Sprintf("aws-reserved/sso.amazonaws.com/%s/", p.region.Get())
+	substringToRemove := fmt.Sprintf("aws-reserved/sso.amazonaws.com/%s/", p.ssoRegion.Get())
 	cleanedRoleArn := strings.Replace(*role.Arn, substringToRemove, "", 1)
 	dc = append(dc, MapRoleEntry{RoleARN: aws.String(cleanedRoleArn), Username: aws.String(key)})
 	var buf bytes.Buffer
@@ -240,124 +236,3 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	// we didn't find the user, so return false.
 	return false, nil
 }
-
-// func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
-// 	return "", nil
-// }
-// func (p *Provider) upsertPermissionBoundaryPolicy(ctx context.Context) (string, error) {
-// 	permissionBoundaryPolicyDocument := policy.Policy{
-// 		Version: "2012-10-17",
-// 		Statements: []policy.Statement{
-// 			{
-// 				Effect: "Allow",
-// 				NotAction: []string{
-// 					"iam:*",
-// 					"organizations:*",
-// 					"account:*",
-// 				},
-// 				Resource: []string{"*"},
-// 			},
-// 			{
-// 				Effect: "Allow",
-// 				Action: []string{
-// 					"iam:Get*",
-// 					"iam:List*",
-// 					"iam:Generate*",
-// 					"iam:Simulate*",
-// 					"iam:CreateServiceLinkedRole",
-// 					"iam:DeleteServiceLinkedRole",
-// 					"organizations:List*",
-// 					"organizations:Describe*",
-// 					"account:List*",
-// 					"account:Get*",
-// 				},
-// 				Resource: []string{"*"},
-// 			},
-// 		},
-// 	}
-// 	permissionBoundaryPolicyName := "GrantedApprovalsPermissionBoundaryDenyIAM"
-
-// 	// Define the ARN for the permission boundary policy
-// 	permissionBoundaryPolicyARN := fmt.Sprintf("arn:aws:iam::%s:policy/%s", p.awsAccountID, permissionBoundaryPolicyName)
-// 	existinPpermissionBoundaryPolicy, err := p.iamClient.GetPolicy(ctx, &iam.GetPolicyInput{
-// 		PolicyArn: &permissionBoundaryPolicyARN,
-// 	})
-
-// 	if err != nil {
-// 		// check if the error is a NoSuchEntityException - if it is, the Permission Boundary doesn't exist
-// 		var rnf *iamtypes.NoSuchEntityException
-// 		if errors.As(err, &rnf) {
-// 			_, err = p.iamClient.CreatePolicy(ctx, &iam.CreatePolicyInput{
-// 				PolicyName:     &permissionBoundaryPolicyName,
-// 				PolicyDocument: aws.String(permissionBoundaryPolicyDocument.String()),
-// 				Tags: []iamtypes.Tag{
-// 					{
-// 						Key:   aws.String("granted-approvals/managed"),
-// 						Value: aws.String("true"),
-// 					},
-// 				},
-// 			})
-// 			if err != nil {
-// 				return "", err
-// 			}
-// 		} else {
-// 			// if the error isn't NoSuchEntityException, something else went wrong, so stop what we're doing
-// 			// and return the error to the caller.
-// 			return "", err
-// 		}
-// 	} else {
-// 		// If the policy does exist, check it matches what we expect
-// 		// Get the default policy version
-// 		pv, err := p.iamClient.GetPolicyVersion(ctx, &iam.GetPolicyVersionInput{
-// 			PolicyArn: &permissionBoundaryPolicyARN,
-// 			VersionId: existinPpermissionBoundaryPolicy.Policy.DefaultVersionId,
-// 		})
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		// Decode the RFC3986 url
-
-// 		decodedValue, err := url.QueryUnescape(*pv.PolicyVersion.Document)
-// 		if err != nil {
-// 			return "", err
-// 		}
-// 		// Check if the policy matches what we expect
-// 		if permissionBoundaryPolicyDocument.String() != decodedValue {
-// 			// If the policy does not match, create a new policy version and set this as the default
-// 			// First we need to delete old versions of the policy so we do not run into an error creating too many versions
-// 			// First, check how many policy versions we have
-// 			v, err := p.iamClient.ListPolicyVersions(ctx, &iam.ListPolicyVersionsInput{
-// 				PolicyArn: &permissionBoundaryPolicyARN,
-// 			})
-// 			if err != nil {
-// 				return "", err
-// 			}
-// 			if len(v.Versions) == 5 {
-// 				// We have too many existing policy versions and need to delete the oldest
-// 				last := v.Versions[4]
-// 				// Ensure we aren't deleting the default version
-// 				if last.IsDefaultVersion {
-// 					last = v.Versions[3]
-// 				}
-// 				_, err = p.iamClient.DeletePolicyVersion(ctx, &iam.DeletePolicyVersionInput{
-// 					PolicyArn: &permissionBoundaryPolicyARN,
-// 					VersionId: last.VersionId,
-// 				})
-// 				if err != nil {
-// 					return "", err
-// 				}
-// 			}
-// 			_, err = p.iamClient.CreatePolicyVersion(ctx, &iam.CreatePolicyVersionInput{
-// 				PolicyArn:      &permissionBoundaryPolicyARN,
-// 				PolicyDocument: aws.String(permissionBoundaryPolicyDocument.String()),
-// 				SetAsDefault:   true,
-// 			})
-// 			if err != nil {
-// 				return "", err
-// 			}
-// 		}
-// 	}
-
-// 	return permissionBoundaryPolicyName, nil
-// }
