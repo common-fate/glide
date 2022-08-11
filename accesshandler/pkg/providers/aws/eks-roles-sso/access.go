@@ -93,7 +93,11 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	// we didn't find the user, so return false.
 	return false, nil
 }
-
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
+	instructions := fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\nOr use `assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name <Replace with your requestID>`", url, url, p.ssoRegion.Get(), p.awsAccountID)
+	return instructions, nil
+}
 func objectKeyFromGrantID(grantID string) string {
 	return fmt.Sprintf("granted-approvals-%s", grantID)
 }
