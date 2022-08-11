@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
@@ -26,6 +25,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	newCtx, _ := context.WithTimeout(ctx, time.Minute*5)
-	lambda.StartWithOptions(g.HandleRequest, lambda.WithContext(newCtx))
+
+	lambda.Start(g.HandleRequest)
 }

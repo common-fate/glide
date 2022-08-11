@@ -13,6 +13,8 @@ import (
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
+	"github.com/labstack/gommon/log"
+	"go.uber.org/zap"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
@@ -29,12 +31,16 @@ type Args struct {
 }
 
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
+	log := zap.S().With("args", args)
+	log.Info("granting with eks provider")
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
 		return err
 	}
 	permissionSetName := permissionSetNameFromGrantID(grantID)
+
+	log.Info("adding user to permission set ", permissionSetName)
 	// Create and assign user to permission set for this grant
 	roleARN, err := p.createPermissionSetAndAssignment(ctx, subject, permissionSetName)
 	if err != nil {
@@ -105,6 +111,8 @@ func permissionSetNameFromGrantID(grantID string) string {
 // createAWSAuthConfigMapRoleMapEntry appends an entry in the mapRoles section of the aws-auth config map
 // by first fetching the current config and appending the new entry to the list, then updating the config map
 func (p *Provider) createAWSAuthConfigMapRoleMapEntry(ctx context.Context, roleARN string, objectKey string) error {
+	log.Info("get k8s config map: aws-auth")
+
 	awsAuth, err := p.kubeClient.CoreV1().ConfigMaps("kube-system").Get(ctx, "aws-auth", v1meta.GetOptions{})
 	if err != nil {
 		return err
@@ -127,6 +135,7 @@ func (p *Provider) createAWSAuthConfigMapRoleMapEntry(ctx context.Context, roleA
 		return err
 	}
 	awsAuth.Data["mapRoles"] = buf.String()
+	log.Info("update k8s config map: aws-auth: ", awsAuth)
 
 	_, err = p.kubeClient.CoreV1().ConfigMaps("kube-system").Update(ctx, awsAuth, v1meta.UpdateOptions{})
 	return err
@@ -180,6 +189,7 @@ func (p *Provider) createKubernetesRoleBinding(ctx context.Context, objectKey st
 		Subjects: []v1.Subject{{Kind: "User", APIGroup: "rbac.authorization.k8s.io", Name: objectKey, Namespace: p.namespace.Get()}},
 		RoleRef:  v1.RoleRef{APIGroup: "rbac.authorization.k8s.io", Kind: "Role", Name: kubernetesRoleName},
 	}
+	log.Info("create kubernetes role binding ", rb)
 	_, err := p.kubeClient.RbacV1().RoleBindings(p.namespace.Get()).Create(ctx, &rb, v1meta.CreateOptions{})
 	return err
 }
