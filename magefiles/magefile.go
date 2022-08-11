@@ -371,6 +371,12 @@ func (Deploy) StagingFrontend(env, name string) error {
 		return err
 	}
 
+	vaultID := dep.Deployment.Parameters.ProviderConfiguration["test-vault"].With["uniqueId"]
+
+	echoCmd := fmt.Sprintf("::set-output name=vaultID::%s", vaultID)
+
+	fmt.Printf("%s\n", echoCmd)
+
 	return cdkout.DeployFrontend()
 }
 
