@@ -112,7 +112,7 @@ var configureCommand = cli.Command{
 				fromFile   = "File"
 			)
 
-			var updateMetadata bool
+			updateMetadata := true
 			if dc.Deployment.Parameters.SamlSSOMetadata != "" || dc.Deployment.Parameters.SamlSSOMetadataURL != "" {
 
 				p5 := &survey.Confirm{Message: "You already have a metadata string/url set, would you like to update it?"}
