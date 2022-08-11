@@ -87,6 +87,17 @@ export class AccessHandler extends Construct {
         resources: ["*"],
       })
     );
+    // permissions for EKS providers
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "eks:AccessKubernetesApi",
+          "eks:DescribeCluster",
+        ],
+        resources: ["*"],
+
+      })
+    )
     this._granter.getStateMachine().grantStartExecution(this._lambda);
 
     this._granter.getStateMachine().grantRead(this._lambda);
