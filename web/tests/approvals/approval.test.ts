@@ -102,7 +102,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     page,
   }) => {
     // wait 1s to allow the grant to be applied
-    page.waitForTimeout(1000);
+    page.waitForTimeout(5000);
 
     let apiContext = await playwright.request.newContext({});
     let user = process.env.TEST_USERNAME;
