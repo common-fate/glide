@@ -74,7 +74,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 		return err
 	}
 
-	return err
+	return p.removePermissionSet(ctx, permissionSetName)
 }
 
 func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error) {
@@ -184,12 +184,45 @@ func (p *Provider) createKubernetesRoleBinding(ctx context.Context, objectKey st
 	return err
 }
 func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string) error {
-	p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
-		InstanceArn: aws.String(p.instanceARN.Get()),
-		// @TODO
-		PermissionSetArn: aws.String(""),
+	hasMore := true
+	var nextToken *string
+	var arnMatch *string
+	for hasMore {
+		o, err := p.ssoClient.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
+			InstanceArn: aws.String(p.instanceARN.Get()),
+			NextToken:   nextToken,
+		})
+		if err != nil {
+			return err
+		}
+		nextToken = o.NextToken
+		hasMore = nextToken != nil
+
+		for _, arn := range o.PermissionSets {
+			po, err := p.ssoClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+				InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(arn),
+			})
+			if err != nil {
+				return err
+			}
+			if aws.ToString(po.PermissionSet.Name) == permissionSetName {
+				arnMatch = po.PermissionSet.PermissionSetArn
+				break
+			}
+		}
+		if arnMatch != nil {
+			break
+		}
+	}
+	// Permission set does not exist, do nothing
+	if arnMatch == nil {
+		return nil
+	}
+	_, err := p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
+		InstanceArn:      aws.String(p.instanceARN.Get()),
+		PermissionSetArn: arnMatch,
 	})
-	return nil
+	return err
 }
 
 // createPermissionSetAndAssignment creates a permission set with a name = grantID
