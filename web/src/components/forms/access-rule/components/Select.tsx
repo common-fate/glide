@@ -12,6 +12,7 @@ interface SelectProps {
   rules?: MultiSelectRules;
   isDisabled?: boolean;
   testId?: string;
+  onBlurSecondaryAction?: () => void;
 }
 // UserSelect required defaults to true
 export const UserSelect: React.FC<SelectProps> = (props) => {
@@ -105,7 +106,10 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             ref={ref}
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
-            onBlur={() => trigger(fieldName)}
+            onBlur={() => {
+              trigger(fieldName);
+              rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
+            }}
             data-testid={rest.testId}
             {...rest}
           />
