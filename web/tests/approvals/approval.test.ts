@@ -97,7 +97,13 @@ test.describe.serial("Approval/Request Workflows", () => {
     await expect(accessInstructionLink).toContain("https");
   });
 
-  test("ensure access granted for matching user", async ({ playwright }) => {
+  test("ensure access granted for matching user", async ({
+    playwright,
+    page,
+  }) => {
+    // wait 1s to allow the grant to be applied
+    page.waitForTimeout(1000);
+
     let apiContext = await playwright.request.newContext({});
     let user = process.env.TEST_USERNAME;
 
