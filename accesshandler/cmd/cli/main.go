@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/common-fate/granted-approvals/accesshandler/cmd/cli/commands/grants"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
@@ -28,7 +29,7 @@ func main() {
 			ctx := c.Context
 			var p eksrolessso.Provider
 			cfg := p.Config()
-			err := cfg.Load(ctx, gconfig.JSONLoader{Data: []byte(`{"identityStoreId":"d-976708da7d","instanceArn":"arn:aws:sso:::instance/ssoins-825968feece9a0b6","region":"ap-southeast-2","clusterName":"provider-eks-test","namespace":"default"}`)})
+			err := cfg.Load(ctx, gconfig.JSONLoader{Data: []byte(`{"clusterName":"provider-eks-test","clusterRegion":"ap-southeast-2","identityStoreId":"d-976708da7d","instanceArn":"arn:aws:sso:::instance/ssoins-825968feece9a0b6","namespace":"default","ssoRegion":"ap-southeast-2"}`)})
 			if err != nil {
 				return err
 			}
@@ -44,10 +45,18 @@ func main() {
 			if err != nil {
 				return err
 			}
-			err = p.Grant(ctx, "josh@commonfate.io", b, types.NewRequestID())
+			grantid := types.NewRequestID()
+			err = p.Grant(ctx, "jack@commonfate.io", b, grantid)
 			if err != nil {
 				return err
 			}
+			time.Sleep(time.Minute * 1)
+
+			err = p.Revoke(ctx, "jack@commonfate.io", b, grantid)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		}}},
 		EnableBashCompletion: true,

@@ -80,7 +80,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 		return err
 	}
 
-	return p.removePermissionSet(ctx, permissionSetName)
+	return p.removePermissionSet(ctx, permissionSetName, subject)
 }
 
 func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error) {
@@ -197,7 +197,7 @@ func (p *Provider) createKubernetesRoleBinding(ctx context.Context, objectKey st
 	_, err := p.kubeClient.RbacV1().RoleBindings(p.namespace.Get()).Create(ctx, &rb, v1meta.CreateOptions{})
 	return err
 }
-func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string) error {
+func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string, subject string) error {
 	hasMore := true
 	var nextToken *string
 	var arnMatch *string
@@ -232,7 +232,33 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 	if arnMatch == nil {
 		return nil
 	}
-	_, err := p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
+
+	//remove user associatioin from the permission set
+	// assign user to permission set
+	user, err := p.getUser(ctx, subject)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Deleting account assignment from permission set", arnMatch)
+	_, err = p.ssoClient.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
+		InstanceArn:      aws.String(p.instanceARN.Get()),
+		PermissionSetArn: arnMatch,
+		PrincipalType:    types.PrincipalTypeUser,
+		PrincipalId:      user.UserId,
+		TargetId:         &p.awsAccountID,
+		TargetType:       types.TargetTypeAwsAccount,
+	})
+	if err != nil {
+		return err
+	}
+
+	//Takes a while for the account assignment to take effect so we wait before attempting to delete the permission set
+	time.Sleep(time.Second * 30)
+
+	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
+
+	_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
 		InstanceArn:      aws.String(p.instanceARN.Get()),
 		PermissionSetArn: arnMatch,
 	})
@@ -287,6 +313,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 		TargetId:         &p.awsAccountID,
 		TargetType:       types.TargetTypeAwsAccount,
 	})
+
 	if err != nil {
 		return "", err
 	}
