@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import Select, { components, OptionProps } from "react-select";
-import { SelectContainer } from "react-select/dist/declarations/src/components/containers";
 import {
   useGetUsers,
   useGetGroups,
@@ -49,7 +48,7 @@ interface MultiSelectProps extends SelectProps {
   id?: string;
 }
 
-const CustomOption = ({
+export const CustomOption = ({
   children,
   ...innerProps
 }: OptionProps<
