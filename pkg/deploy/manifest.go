@@ -53,6 +53,7 @@ func GetManifest(ctx context.Context, region string) (Manifest, error) {
 	if err != nil {
 		return Manifest{}, err
 	}
+	cfg.Region = region
 	client := s3.NewFromConfig(cfg)
 
 	buffer := manager.NewWriteAtBuffer([]byte{})
