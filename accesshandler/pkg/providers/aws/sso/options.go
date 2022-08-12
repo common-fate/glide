@@ -95,7 +95,7 @@ func (p *Provider) checkPermissionSetIsTagged(ctx context.Context, permissionSet
 		nextToken = tags.NextToken
 		hasMore = nextToken != nil
 		for _, tag := range tags.Tags {
-			if aws.ToString(tag.Key) == "commonfate.io/permission-set" {
+			if aws.ToString(tag.Key) == "commonfate.io/managed-by-granted" {
 				return true, nil
 			}
 		}
