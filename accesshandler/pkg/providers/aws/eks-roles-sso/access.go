@@ -253,15 +253,22 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		return err
 	}
 
-	//Takes a while for the account assignment to take effect so we wait before attempting to delete the permission set
-	time.Sleep(time.Second * 30)
-
 	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
 
-	_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
-		InstanceArn:      aws.String(p.instanceARN.Get()),
-		PermissionSetArn: arnMatch,
+	//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
+	b := retry.NewFibonacci(time.Second)
+	b = retry.WithMaxDuration(time.Second*30, b)
+	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+		_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
+			InstanceArn:      aws.String(p.instanceARN.Get()),
+			PermissionSetArn: arnMatch,
+		})
+		if err != nil {
+			return retry.RetryableError(err)
+		}
+		return nil
 	})
+	log.Info("completed revoke")
 	return err
 }
 
