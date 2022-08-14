@@ -249,13 +249,11 @@ export const RequestAccessInstructions: React.FC = () => {
             </Text>
           ),
           code: (props) => {
-            console.log({ props });
             const { children, node } = props;
             let value = "";
             if (node.children.length == 1 && node.children[0].type == "text") {
               value = node.children[0].value;
             }
-            console.log({ value });
 
             const { hasCopied, onCopy } = useClipboard(value);
             return (
