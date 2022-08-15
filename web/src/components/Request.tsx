@@ -216,7 +216,7 @@ export const RequestAccessInstructions: React.FC = () => {
     request?.grant != null ? request.id : ""
   );
 
-  if (data === undefined || data.instructions == null) {
+  if (!data || !data.instructions) {
     return null;
   }
 
