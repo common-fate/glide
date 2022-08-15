@@ -84,8 +84,7 @@ export class AppBackend extends Construct {
       new iam.PolicyStatement({
         actions: ["ssm:GetParameter", "ssm:PutParameter"],
         resources: [
-          `arn:aws:ssm:${Stack.of(this).region}:${
-            Stack.of(this).account
+          `arn:aws:ssm:${Stack.of(this).region}:${Stack.of(this).account
           }:parameter/granted/secrets/identity/*`,
         ],
       })
@@ -99,7 +98,11 @@ export class AppBackend extends Construct {
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
+      environment: {
+        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
+      }
     });
+    this._dynamoTable.grantReadWriteData(webhookLambda);
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._appName,

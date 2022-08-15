@@ -1,4 +1,6 @@
 import {
+  Box,
+  Flex,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -20,9 +22,11 @@ import {
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
+import { CustomOption } from "../components/Select";
 import { CreateAccessRuleFormData } from "../CreateForm";
-
+import RSelect, { components, OptionProps } from "react-select";
 import { FormStep } from "./FormStep";
+import { colors } from "../../../../utils/theme/colors";
 
 export const ProviderStep: React.FC = () => {
   const methods = useFormContext<CreateAccessRuleFormData>();
@@ -118,46 +122,54 @@ const SelectField: React.FC<FieldProps> = (props) => {
   const { data } = useListProviderArgOptions(providerId, props.name);
   const withError = formState.errors.target?.with;
 
+  // @TODO: find a way to ensure validation chill bruh
+
   if (data === undefined) {
     return <Spinner />;
   }
   return (
-    <FormControl isInvalid={withError && withError[props.name]}>
+    <FormControl isInvalid={withError && withError[props.name]} w="100%">
       <FormLabel htmlFor="target.providerId">
         <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
       </FormLabel>
       <Controller
         control={control}
-        // not sure how much validation we will support in these schemas, is this the best way to pass validation rules through?
         rules={{ required: props.required }}
         name={`target.with.${props.name}`}
         render={({ field: { onChange, ref, value } }) => {
           return data.hasOptions ? (
-            <>
-              <Select
-                bg="white"
-                ref={ref}
-                value={data.options.find((o) => o.value === value)?.label}
-                minW={{ base: "200px", md: "300px" }}
-                onChange={(e: any) => {
-                  {
-                    onChange(
-                      data.options.find((o) => o.label === e.target.value)
-                        ?.value
-                    );
-                  }
-                  trigger(`target.with.${props.name}`);
-                }}
-              >
-                {<option></option>}
-                {data.options.map((o, i) => (
-                  <option key={o.label} value={o.label} label={o.label}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
-              <FormHelperText>{value}</FormHelperText>
-            </>
+            <Flex minW={{ base: "200px", md: "500px" }}>
+              <Box>
+                <RSelect
+                  options={data.options}
+                  components={{ Option: CustomOption }}
+                  ref={ref}
+                  value={data.options.find((o) => o.value === value)}
+                  onChange={(val) => {
+                    // TS improperly infers this as MultiValue<Option>, when Option works fine?
+                    onChange(val?.value);
+                    trigger(`target.with.${props.name}`);
+                  }}
+                  styles={{
+                    multiValue: (provided, state) => {
+                      return {
+                        minWidth: "100%",
+                        borderRadius: "20px",
+                        background: colors.neutrals[100],
+                      };
+                    },
+                    container: (provided, state) => {
+                      return {
+                        minWidth: "300px",
+                        width: "100%",
+                      };
+                    },
+                  }}
+                  // data-testid={rest.testId}
+                />
+                <FormHelperText>{value}</FormHelperText>
+              </Box>
+            </Flex>
           ) : (
             <>
               <Input
@@ -174,7 +186,7 @@ const SelectField: React.FC<FieldProps> = (props) => {
             </>
           );
         }}
-      ></Controller>
+      />
 
       <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>
     </FormControl>

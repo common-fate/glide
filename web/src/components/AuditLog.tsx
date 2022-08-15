@@ -1,4 +1,4 @@
-import { Box, VStack } from "@chakra-ui/layout";
+import { Box, Stack, VStack } from "@chakra-ui/layout";
 import {
   Accordion,
   AccordionButton,
@@ -6,13 +6,16 @@ import {
   AccordionItem,
   AccordionPanel,
   Skeleton,
-  Text,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text, Tr
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
-import { useUser } from "../utils/context/userContext";
 import {
   useGetUser,
-  useListRequestEvents,
+  useListRequestEvents
 } from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
 import { renderTiming } from "../utils/renderTiming";
@@ -164,6 +167,33 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             body={new Date(e.createdAt).toString()}
           />
         );
+      } else if (e.recordedEvent) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Stack w="100%">
+                <Text>
+                  {`Recorded event`}
+                </Text>
+                <TableContainer>
+                  <Table size="sm" variant={"unstyled"}>
+                    <Tbody>
+                      {Object.entries(e.recordedEvent).map(([k, v]) => (
+                        <Tr key={k} color="GrayText">
+                          <Td w="20%" borderColor="gray.200" borderWidth={"1px"} fontWeight="thin">{k}</Td>
+                          <Td borderColor="gray.200" borderWidth={"1px"}>{v}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </TableContainer>
+              </Stack>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
       }
     });
     return items;
@@ -195,7 +225,7 @@ const UserText: React.FC<{ userId: string }> = ({ userId }) => {
     return <Text></Text>;
   }
   if (data.firstName && data.lastName) {
-    <Text>{`${data.firstName} ${data.lastName}`}</Text>;
+    <Text as="span">{`${data.firstName} ${data.lastName}`}</Text>;
   }
-  return <Text>{data.email}</Text>;
+  return <Text as="span">{data.email}</Text>;
 };

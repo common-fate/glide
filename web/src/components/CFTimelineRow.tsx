@@ -20,7 +20,7 @@ export const CFTimelineRow = ({
   const textColor = useColorModeValue("gray.700", "white.300");
 
   return (
-    <Flex>
+    <Flex w="100%">
       <Flex
         flexDir="column"
         flexShrink={0}
@@ -47,6 +47,7 @@ export const CFTimelineRow = ({
         />
       </Flex>
       <Flex
+        w="100%"
         direction="column"
         justifyContent="flex-start"
         h="100%"

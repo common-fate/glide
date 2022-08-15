@@ -50,7 +50,7 @@ export const TimeStep: React.FC = () => {
                 {...rest}
                 max={maxDurationSeconds}
                 min={60}
-                defaultValue={time?.maxDurationSeconds}
+                defaultValue={3600}
               >
                 <Hours />
                 <Minutes />
