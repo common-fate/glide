@@ -323,6 +323,10 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 		apio.Error(ctx, w, err)
 		return
 	}
+	if res.StatusCode() != http.StatusOK {
+		apio.Error(ctx, w, errors.New("access handler returned non-200 status code"))
+		return
+	}
 
 	apio.JSON(ctx, w, res.JSON200, http.StatusOK)
 }
