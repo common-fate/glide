@@ -43,7 +43,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 				if err != nil {
 					return nil, err
 				}
-				hasTag, err := p.checkPermissionSetIsTagged(ctx, arnCopy)
+				hasTag, err := p.checkPermissionSetIsManagedByGranted(ctx, arnCopy)
 				if err != nil {
 					return nil, err
 				}
@@ -81,7 +81,8 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 
 }
 
-func (p *Provider) checkPermissionSetIsTagged(ctx context.Context, permissionSetARN string) (bool, error) {
+// checkPermissionSetIsManagedByGranted checks whether the permission set has the "commonfate.io/managed-by-granted" tag
+func (p *Provider) checkPermissionSetIsManagedByGranted(ctx context.Context, permissionSetARN string) (bool, error) {
 	hasMore := true
 	var nextToken *string
 	for hasMore {
