@@ -285,7 +285,7 @@ export const RequestAccessInstructions: React.FC = () => {
                     overflowX="auto"
                     color="neutrals.700"
                     padding={4}
-                    whiteSpace="pre"
+                    whiteSpace="pre-wrap"
                   >
                     {children}
                   </Text>
