@@ -3,11 +3,13 @@ package sso
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 
 	"github.com/urfave/cli/v2"
@@ -15,74 +17,8 @@ import (
 
 var SSOCommand = cli.Command{
 	Name:        "sso",
-	Subcommands: []*cli.Command{&configureCommand, &testCommand},
+	Subcommands: []*cli.Command{&configureCommand},
 	Action:      cli.ShowSubcommandHelp,
-}
-
-var testCommand = cli.Command{
-	Name:  "test",
-	Usage: "Test SSO configuration",
-	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		f := c.Path("file")
-		dc, err := deploy.ConfigFromContext(ctx)
-
-		// Prompt: Do you want to enter an group id, or select frokm a list of groups?
-		surveyQ := []string{"Enter group id", "Select from a list of groups"}
-		var surveryA string
-		err := survey.AskOne(&survey.Select{
-			Message: "Do you want to enter an group id, or select from a list of groups?",
-			Options: surveyQ,
-		}, &surveryA)
-		if err != nil {
-			return err
-		}
-
-		var groupID string
-
-		if surveryA == surveyQ[0] {
-			// Prompt: Enter group id
-			err := survey.AskOne(&survey.Input{
-				Message: "Enter group id",
-			}, &groupID)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Prompt: Select from a list of groups
-			var groupIDs []string
-
-			switch dc.Deployment.Parameters.IdentityProviderType {
-			case "okta":
-
-			}
-
-			// Fetch group IDs
-
-			// instantiate an
-
-			// @TODO: this will have to be conditionally implemented based on the provider
-			// identitysync.IdentityProvider.ListGroups()
-
-			err := survey.AskOne(&survey.MultiSelect{
-				Message: "Select from a list of groups",
-				Options: groupIDs,
-			}, &groupID)
-
-			if err != nil {
-				return err
-			}
-		}
-
-		// f := c.Path("file")
-		// dc, err := deploy.ConfigFromContext(ctx)
-		// if err != nil {
-		// 	return err
-		// }
-		clio.Info(" tesssst :) ")
-		// registry := identitysync.Registry()
-		return nil
-	},
 }
 
 var configureCommand = cli.Command{
@@ -112,9 +48,8 @@ var configureCommand = cli.Command{
 		currentConfig := dc.Deployment.Parameters.IdentityConfiguration[idpType]
 		update := true
 
-		TEMP_SKIP := false
 		//if there are already params for that idp then ask if they want to update
-		if currentConfig != nil && TEMP_SKIP {
+		if currentConfig != nil {
 			if idpType == dc.Deployment.Parameters.IdentityProviderType {
 				p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
 				err = survey.AskOne(p3, &update)
@@ -137,7 +72,7 @@ var configureCommand = cli.Command{
 		}
 
 		cfg := idp.IdentityProvider.Config()
-		if update && TEMP_SKIP {
+		if update {
 			clio.Info("Don't know where to find an SSO credential? Best place to find out would be our docs!")
 			clio.Info("Follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s", idpType, idpType)
 			// if there is existing config, process it into the idp struct
@@ -244,10 +179,69 @@ var configureCommand = cli.Command{
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
 `)
-		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:", Default: dc.Deployment.Parameters.AdministratorGroupID}
-		err = survey.AskOne(adminGroupPrompt, &dc.Deployment.Parameters.AdministratorGroupID)
+
+		// Prompt: Do you want to enter an group id, or select frokm a list of groups?
+		surveyQ := []string{"Select from a list of groups", "Enter group id"}
+		var surveryA string
+		err = survey.AskOne(&survey.Select{
+			Message: "The ID of the Granted Administrators group in your identity provider:",
+			Options: surveyQ,
+		}, &surveryA)
 		if err != nil {
 			return err
+		}
+
+		// Prompt: Select from a list of groups
+		if surveryA == surveyQ[0] {
+
+			err := idp.IdentityProvider.Init(ctx)
+			if err != nil {
+				return err
+			}
+
+			err = deploy.RunConfigTest(ctx, idp.IdentityProvider)
+			if err != nil {
+				return err
+			}
+			grps, err := idp.IdentityProvider.ListGroups(ctx)
+			if err != nil {
+				return err
+			}
+
+			// convert groups to a string map
+			groupMap := make(map[string]identity.IdpGroup)
+			groupNames := []string{}
+			chosenKey := ""
+			for _, g := range grps {
+				key := fmt.Sprintf("%s: %s", g.Name, g.Description)
+				groupMap[key] = g
+				groupNames = append(groupNames, key)
+			}
+
+			// sort groupNames alphabetically
+			sort.Strings(groupNames)
+
+			err = survey.AskOne(&survey.Select{
+				Message: "Select from a list of groups",
+				Options: groupNames,
+			}, &chosenKey)
+
+			if err != nil {
+				return err
+			}
+
+			dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].Name
+
+			// Prompt: Enter group id directly
+		} else {
+			err := survey.AskOne(&survey.Input{
+				Message: "Enter group id",
+				Default: dc.Deployment.Parameters.AdministratorGroupID,
+			}, &dc.Deployment.Parameters.AdministratorGroupID)
+			if err != nil {
+				return err
+			}
+
 		}
 
 		clio.Info("Updating your deployment config")
