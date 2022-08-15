@@ -48,7 +48,6 @@ import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
-import { CFCodeSnippet } from "./CFCodeSnippet";
 
 interface RequestProps {
   request?: RequestDetail;
