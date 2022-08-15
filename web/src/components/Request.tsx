@@ -61,7 +61,7 @@ interface RequestContext {
 
 const Context = createContext<RequestContext>({
   request: undefined,
-  setOverrideTiming: () => {},
+  setOverrideTiming: () => { },
 });
 
 export const RequestDisplay: React.FC<RequestProps> = ({
@@ -116,12 +116,12 @@ export const RequestStatusDisplay: React.FC<{
   const activeTimeString =
     request?.grant && request?.grant.status === "ACTIVE"
       ? "Active for the next " +
-        durationStringHoursMinutes(
-          intervalToDuration({
-            start: new Date(),
-            end: new Date(Date.parse(request.grant.end)),
-          })
-        )
+      durationStringHoursMinutes(
+        intervalToDuration({
+          start: new Date(),
+          end: new Date(Date.parse(request.grant.end)),
+        })
+      )
       : undefined;
 
   const status = getStatus(request, activeTimeString);
@@ -151,22 +151,23 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
 
   const version: VersionDisplay = request?.accessRule.isCurrent
     ? {
-        badge: "Latest",
-        label:
-          "This request was made for the current version of this access rule.",
-      }
+      badge: "Latest",
+      label:
+        "This request was made for the current version of this access rule.",
+    }
     : {
-        badge: "Old Version",
-        label:
-          "The access rule has been updated since this request was made. You can still approve this request.",
-      };
+      badge: "Old Version",
+      label:
+        "The access rule has been updated since this request was made. You can still approve this request.",
+    };
 
   return (
     <Stack
       rounded="md"
       bg="neutrals.100"
       flexDir="column"
-      w={{ base: "100%", md: "500px", lg: "716px" }}
+      w="100%"
+      // w={{ base: "100%", md: "500px", lg: "716px" }}
       p={8}
       spacing={6}
     >
@@ -615,7 +616,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
   const submitRevoke = async () => {
     if (request === undefined) return;
     try {
-      await revokeRequest(request.id, {}).then(() => {});
+      await revokeRequest(request.id, {}).then(() => { });
       toast({
         title: "Deactivated grant",
         status: "success",

@@ -43,7 +43,7 @@ const Home: NextPage = () => {
         </Center>
         {/* Main content */}
         <Container maxW="container.xl" py={16}>
-          <Stack spacing={12} direction={{ base: "column", md: "row" }}>
+          <Stack spacing={12}>
             <RequestDisplay request={data}>
               <RequestDetails>
                 {data?.canReview ? <RequestOverridableTime /> : <RequestTime />}

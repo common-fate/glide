@@ -1135,6 +1135,10 @@ components:
           type: boolean
         grantFailureReason:
           type: string
+        recordedEvent:
+          type: object
+          x-go-type: map[string]string
+          description: An event which was recorded relating to the grant.
       required:
         - id
         - requestId

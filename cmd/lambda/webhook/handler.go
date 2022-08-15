@@ -11,9 +11,8 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/recorder"
+	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
@@ -77,11 +76,11 @@ func (s *Server) Routes() http.Handler {
 	r.Post("/webhook/v1/slack/interactivity", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	r.Post("/webhook/v1/providers/{providerID}/recording", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		req := r.Header.Get("X-Granted-Request")
 
-		var b AuditEventBody
+		var b RecordingEventBody
 
 		err := apio.DecodeJSONBody(w, r, &b)
 		if err != nil {
@@ -103,17 +102,15 @@ func (s *Server) Routes() http.Handler {
 			return
 		}
 
-		e := recorder.Event{
-			ID:         types.NewRecorderEventID(),
-			RequestID:  req,
-			Data:       b.Data,
-			ReceivedAt: time.Now(),
-		}
+		e := access.NewRecordedEvent(req, time.Now(), b.Data)
+
 		err = s.db.Put(ctx, &e)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
+
+		zap.S().Infow("recorded event", "request.id", req, "event.id", e.ID)
 
 		w.WriteHeader(http.StatusCreated)
 	})
@@ -129,6 +126,6 @@ func (h *Lambda) Handler(ctx context.Context, req events.APIGatewayProxyRequest)
 	return adapter.ProxyWithContext(ctx, req)
 }
 
-type AuditEventBody struct {
+type RecordingEventBody struct {
 	Data map[string]string `json:"data"`
 }

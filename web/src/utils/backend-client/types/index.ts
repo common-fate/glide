@@ -111,3 +111,4 @@ export * from './requestEventToGrantStatus';
 export * from './listRequestEventsResponseResponse';
 export * from './requestEventFromGrantStatus';
 export * from './requestEvent';
+export * from './requestEventRecordedEvent';

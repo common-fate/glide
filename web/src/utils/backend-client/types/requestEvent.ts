@@ -9,6 +9,7 @@ import type { RequestStatus } from './requestStatus';
 import type { RequestTiming } from './requestTiming';
 import type { RequestEventFromGrantStatus } from './requestEventFromGrantStatus';
 import type { RequestEventToGrantStatus } from './requestEventToGrantStatus';
+import type { RequestEventRecordedEvent } from './requestEventRecordedEvent';
 
 export interface RequestEvent {
   id: string;
@@ -26,4 +27,6 @@ export interface RequestEvent {
   grantCreated?: boolean;
   requestCreated?: boolean;
   grantFailureReason?: string;
+  /** An event which was recorded relating to the grant. */
+  recordedEvent?: RequestEventRecordedEvent;
 }

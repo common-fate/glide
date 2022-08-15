@@ -25,6 +25,7 @@ type RequestEvent struct {
 	GrantCreated       *bool                 `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
 	GrantFailureReason *string               `json:"grantFailureReason,omitempty" dynamodbav:"grantFailureReason,omitempty"`
 	RequestCreated     *bool                 `json:"requestCreated,omitempty" dynamodbav:"requestCreated,omitempty"`
+	RecordedEvent      *map[string]string    `json:"recordedEvent,omitempty" dynamodbav:"recordedEvent,omitempty"`
 }
 
 func NewRequestCreatedEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
@@ -47,6 +48,10 @@ func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, 
 func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromTiming: &from, ToTiming: &to}
 }
+func NewRecordedEvent(requestID string, createdAt time.Time, event map[string]string) RequestEvent {
+	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, RecordedEvent: &event}
+}
+
 func (r *RequestEvent) ToAPI() types.RequestEvent {
 	var toTiming *types.RequestTiming
 	var fromTiming *types.RequestTiming
@@ -72,6 +77,7 @@ func (r *RequestEvent) ToAPI() types.RequestEvent {
 		GrantCreated:       r.GrantCreated,
 		RequestCreated:     r.RequestCreated,
 		GrantFailureReason: r.GrantFailureReason,
+		RecordedEvent:      r.RecordedEvent,
 	}
 }
 
