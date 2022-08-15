@@ -15,8 +15,74 @@ import (
 
 var SSOCommand = cli.Command{
 	Name:        "sso",
-	Subcommands: []*cli.Command{&configureCommand},
+	Subcommands: []*cli.Command{&configureCommand, &testCommand},
 	Action:      cli.ShowSubcommandHelp,
+}
+
+var testCommand = cli.Command{
+	Name:  "test",
+	Usage: "Test SSO configuration",
+	Action: func(c *cli.Context) error {
+		ctx := c.Context
+		f := c.Path("file")
+		dc, err := deploy.ConfigFromContext(ctx)
+
+		// Prompt: Do you want to enter an group id, or select frokm a list of groups?
+		surveyQ := []string{"Enter group id", "Select from a list of groups"}
+		var surveryA string
+		err := survey.AskOne(&survey.Select{
+			Message: "Do you want to enter an group id, or select from a list of groups?",
+			Options: surveyQ,
+		}, &surveryA)
+		if err != nil {
+			return err
+		}
+
+		var groupID string
+
+		if surveryA == surveyQ[0] {
+			// Prompt: Enter group id
+			err := survey.AskOne(&survey.Input{
+				Message: "Enter group id",
+			}, &groupID)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Prompt: Select from a list of groups
+			var groupIDs []string
+
+			switch dc.Deployment.Parameters.IdentityProviderType {
+			case "okta":
+
+			}
+
+			// Fetch group IDs
+
+			// instantiate an
+
+			// @TODO: this will have to be conditionally implemented based on the provider
+			// identitysync.IdentityProvider.ListGroups()
+
+			err := survey.AskOne(&survey.MultiSelect{
+				Message: "Select from a list of groups",
+				Options: groupIDs,
+			}, &groupID)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		// f := c.Path("file")
+		// dc, err := deploy.ConfigFromContext(ctx)
+		// if err != nil {
+		// 	return err
+		// }
+		clio.Info(" tesssst :) ")
+		// registry := identitysync.Registry()
+		return nil
+	},
 }
 
 var configureCommand = cli.Command{
@@ -45,8 +111,10 @@ var configureCommand = cli.Command{
 		}
 		currentConfig := dc.Deployment.Parameters.IdentityConfiguration[idpType]
 		update := true
+
+		TEMP_SKIP := false
 		//if there are already params for that idp then ask if they want to update
-		if currentConfig != nil {
+		if currentConfig != nil && TEMP_SKIP {
 			if idpType == dc.Deployment.Parameters.IdentityProviderType {
 				p3 := &survey.Confirm{Message: fmt.Sprintf("%s is currently set as your identity provider, do you want to update the configuration?", idpType)}
 				err = survey.AskOne(p3, &update)
@@ -69,7 +137,7 @@ var configureCommand = cli.Command{
 		}
 
 		cfg := idp.IdentityProvider.Config()
-		if update {
+		if update && TEMP_SKIP {
 			clio.Info("Don't know where to find an SSO credential? Best place to find out would be our docs!")
 			clio.Info("Follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s", idpType, idpType)
 			// if there is existing config, process it into the idp struct
