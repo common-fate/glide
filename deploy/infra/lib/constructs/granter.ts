@@ -190,4 +190,7 @@ export class Granter extends Construct {
   getGranterARN(): string {
     return this._lambda.functionArn;
   }
+  getGranterLambdaExecutionRoleARN(): string {
+    return this._lambda.role?.roleArn ?? "";
+  }
 }

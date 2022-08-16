@@ -18,29 +18,29 @@ import (
 
 // Output is the output from deploying the CDK stack to AWS.
 type Output struct {
-	CognitoClientID           string `json:"CognitoClientID"`
-	CloudFrontDomain          string `json:"CloudFrontDomain"`
-	FrontendDomainOutput      string `json:"FrontendDomainOutput"`
-	CloudFrontDistributionID  string `json:"CloudFrontDistributionID"`
-	S3BucketName              string `json:"S3BucketName"`
-	UserPoolID                string `json:"UserPoolID"`
-	UserPoolDomain            string `json:"UserPoolDomain"`
-	APIURL                    string `json:"APIURL"`
-	APILogGroupName           string `json:"APILogGroupName"`
-	IDPSyncLogGroupName       string `json:"IDPSyncLogGroupName"`
-	AccessHandlerLogGroupName string `json:"AccessHandlerLogGroupName"`
-	EventBusLogGroupName      string `json:"EventBusLogGroupName"`
-	EventsHandlerLogGroupName string `json:"EventsHandlerLogGroupName"`
-	GranterLogGroupName       string `json:"GranterLogGroupName"`
-	SlackNotifierLogGroupName string `json:"SlackNotifierLogGroupName"`
-	DynamoDBTable             string `json:"DynamoDBTable"`
-	GranterStateMachineArn    string `json:"GranterStateMachineArn"`
-	EventBusArn               string `json:"EventBusArn"`
-	EventBusSource            string `json:"EventBusSource"`
-	IdpSyncFunctionName       string `json:"IdpSyncFunctionName"`
-	Region                    string `json:"Region"`
-	AccessHandlerARN          string `json:"AccessHandlerAPIARN"`
-	GranterARN                string `json:"GranterARN"`
+	CognitoClientID                            string `json:"CognitoClientID"`
+	CloudFrontDomain                           string `json:"CloudFrontDomain"`
+	FrontendDomainOutput                       string `json:"FrontendDomainOutput"`
+	CloudFrontDistributionID                   string `json:"CloudFrontDistributionID"`
+	S3BucketName                               string `json:"S3BucketName"`
+	UserPoolID                                 string `json:"UserPoolID"`
+	UserPoolDomain                             string `json:"UserPoolDomain"`
+	APIURL                                     string `json:"APIURL"`
+	APILogGroupName                            string `json:"APILogGroupName"`
+	IDPSyncLogGroupName                        string `json:"IDPSyncLogGroupName"`
+	AccessHandlerLogGroupName                  string `json:"AccessHandlerLogGroupName"`
+	EventBusLogGroupName                       string `json:"EventBusLogGroupName"`
+	EventsHandlerLogGroupName                  string `json:"EventsHandlerLogGroupName"`
+	GranterLogGroupName                        string `json:"GranterLogGroupName"`
+	SlackNotifierLogGroupName                  string `json:"SlackNotifierLogGroupName"`
+	DynamoDBTable                              string `json:"DynamoDBTable"`
+	GranterStateMachineArn                     string `json:"GranterStateMachineArn"`
+	EventBusArn                                string `json:"EventBusArn"`
+	EventBusSource                             string `json:"EventBusSource"`
+	IdpSyncFunctionName                        string `json:"IdpSyncFunctionName"`
+	Region                                     string `json:"Region"`
+	GranterLambdaExecutionRoleARN              string `json:"GranterLambdaExecutionRoleARN"`
+	AccessHandlerRestAPILambdaExecutionRoleARN string `json:"AccessHandlerRestAPILambdaExecutionRoleARN"`
 }
 
 func (c Output) FrontendURL() string {
@@ -228,24 +228,4 @@ To fix this, take one of the following actions:
 	c.cachedOutput = &out
 
 	return out, nil
-}
-
-func (c Output) PrintProviderTable() {
-	data := [][]string{
-		{"Access Handler ARN", c.AccessHandlerARN},
-		{"Granter ARN", c.GranterARN},
-	}
-
-	table := tablewriter.NewWriter(os.Stderr)
-	table.SetHeader([]string{"Output Parameter", "Value"})
-
-	table.SetColumnColor(
-		tablewriter.Colors{tablewriter.FgHiBlackColor},
-		tablewriter.Colors{tablewriter.FgGreenColor, tablewriter.Bold},
-	)
-
-	for _, v := range data {
-		table.Append(v)
-	}
-	table.Render()
 }

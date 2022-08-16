@@ -116,4 +116,7 @@ export class AccessHandler extends Construct {
   getAccessHandlerARN(): string {
     return this._lambda.functionArn;
   }
+  getAccessHandlerRestAPILambdaExecutionRoleARN(): string {
+    return this._lambda.role?.roleArn ?? "";
+  }
 }

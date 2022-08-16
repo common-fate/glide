@@ -102,8 +102,8 @@ export class DevGrantedStack extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
       Region: this.region,
-      AccessHandlerAPIARN: accessHandler.getAccessHandlerARN(),
-      GranterARN: accessHandler.getGranter().getGranterARN()
+      AccessHandlerRestAPILambdaExecutionRoleARN: accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
+      GranterLambdaExecutionRoleARN: accessHandler.getGranter().getGranterLambdaExecutionRoleARN()
     });
   }
 }
