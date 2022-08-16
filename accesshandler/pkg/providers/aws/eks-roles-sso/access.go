@@ -13,7 +13,7 @@ import (
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
-	"github.com/labstack/gommon/log"
+
 	"go.uber.org/zap"
 
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
@@ -212,7 +212,7 @@ func (p *Provider) createKubernetesRoleBinding(ctx context.Context, objectKey st
 		Subjects: []v1.Subject{{Kind: "User", APIGroup: "rbac.authorization.k8s.io", Name: objectKey, Namespace: p.namespace.Get()}},
 		RoleRef:  v1.RoleRef{APIGroup: "rbac.authorization.k8s.io", Kind: "Role", Name: kubernetesRoleName},
 	}
-	log.Info("create kubernetes role binding ", rb)
+	zap.S().Info("create kubernetes role binding ", rb)
 	_, err := p.kubeClient.RbacV1().RoleBindings(p.namespace.Get()).Create(ctx, &rb, v1meta.CreateOptions{})
 	return err
 }
@@ -258,7 +258,7 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 	if err != nil {
 		return err
 	}
-
+	log := zap.S()
 	log.Info("Deleting account assignment from permission set", arnMatch)
 	_, err = p.ssoClient.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
 		InstanceArn:      aws.String(p.instanceARN.Get()),
@@ -276,7 +276,7 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 
 	//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
 	b := retry.NewFibonacci(time.Second)
-	b = retry.WithMaxDuration(time.Second*30, b)
+	b = retry.WithMaxDuration(time.Minute*2, b)
 	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
 		_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
 			InstanceArn:      aws.String(p.instanceARN.Get()),
@@ -369,7 +369,7 @@ func (p *Provider) getSanitisedRoleARNForPermissionSetAssignment(ctx context.Con
 func (p *Provider) getIAMRoleForPermissionSetWithRetry(ctx context.Context, permissionSetName string) (*iamtypes.Role, error) {
 	var roleOutput *iamtypes.Role
 	b := retry.NewFibonacci(time.Second)
-	b = retry.WithMaxDuration(time.Second*60, b)
+	b = retry.WithMaxDuration(time.Minute*2, b)
 	err := retry.Do(ctx, b, func(ctx context.Context) (err error) {
 		var marker *string
 		hasMore := true

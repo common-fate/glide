@@ -99,13 +99,6 @@ var addCommand = cli.Command{
 			return err
 		}
 
-		o, err := dc.LoadOutput(ctx)
-
-		if err != nil {
-			return err
-		}
-		o.PrintProviderTable()
-
 		clio.Success("wrote config to %s", f)
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
