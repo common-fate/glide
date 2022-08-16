@@ -232,10 +232,6 @@ const Home: NextPage = () => {
                     <Stack spacing={5} maxH="80vh">
                       {reqsUpcoming?.requests?.map((request, i) => (
                         <UserAccessCard
-                          onCancel={() => {
-                            mutatePast();
-                            mutate();
-                          }}
                           type="upcoming"
                           key={request.id}
                           req={request}
@@ -273,8 +269,9 @@ const Home: NextPage = () => {
                   </TabPanel>
                   <TabPanel overflowY="auto">
                     <Stack spacing={5} maxH="80vh">
-                      {reqsPast?.requests.map((request) => (
+                      {reqsPast?.requests.map((request, i) => (
                         <UserAccessCard
+                          index={i}
                           type="past"
                           key={request.id}
                           req={request}

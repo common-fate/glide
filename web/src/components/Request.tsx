@@ -1,19 +1,22 @@
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { CheckIcon, CopyIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Badge,
   Box,
   Button,
   ButtonGroup,
+  Code,
   Flex,
   HStack,
   IconButton,
   Link,
   Skeleton,
   SkeletonText,
+  Spacer,
   Stack,
   Text,
   Tooltip,
+  useClipboard,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
@@ -45,6 +48,7 @@ import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
+import { CodeProps } from "react-markdown/lib/ast-to-react";
 
 interface RequestProps {
   request?: RequestDetail;
@@ -227,12 +231,24 @@ export const RequestAccessInstructions: React.FC = () => {
       </Box>
       <ReactMarkdown
         components={{
-          a: (props) => <Link target="_blank" {...props} />,
+          a: (props) => (
+            <Link
+              data-testid="accessInstructionLink"
+              target="_blank"
+              {...props}
+            />
+          ),
           p: (props) => (
-            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
+            <Text
+              as="span"
+              color="neutrals.600"
+              textStyle={"Body/Small"}
+              data-testid="accessInstructions"
+            >
               {props.children}
             </Text>
           ),
+          code: CodeInstruction,
         }}
       >
         {data.instructions}
@@ -241,6 +257,51 @@ export const RequestAccessInstructions: React.FC = () => {
   );
 };
 
+const CodeInstruction: React.FC<CodeProps> = (props) => {
+  const { children, node } = props;
+  let value = "";
+  if (node.children.length == 1 && node.children[0].type == "text") {
+    value = node.children[0].value;
+  }
+
+  const { hasCopied, onCopy } = useClipboard(value);
+  return (
+    <Stack>
+      <Code
+        padding={0}
+        bg="white"
+        borderRadius="8px"
+        borderColor="neutrals.300"
+        borderWidth="1px"
+      >
+        <Flex
+          borderColor="neutrals.300"
+          borderBottomWidth="1px"
+          py="8px"
+          px="16px"
+          minH="36px"
+        >
+          <Spacer />
+          <IconButton
+            variant="ghost"
+            h="20px"
+            icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
+            onClick={onCopy}
+            aria-label={"Copy"}
+          />
+        </Flex>
+        <Text
+          overflowX="auto"
+          color="neutrals.700"
+          padding={4}
+          whiteSpace="pre-wrap"
+        >
+          {children}
+        </Text>
+      </Code>
+    </Stack>
+  );
+};
 export const RequestTime: React.FC = () => {
   const { request } = useContext(Context);
   const timing = request?.timing;

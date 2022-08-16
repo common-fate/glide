@@ -95,17 +95,24 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   max,
   min: minv,
 }) => {
-  const defaultValue = dv ?? 0;
-  const value = v ?? 0;
+  const defaultValue = dv ?? minv ?? 0;
+  const value = v ?? defaultValue;
   const min = minv || 0;
-  const [hours, setHours] = useState<number>(Math.floor(defaultValue / HOUR));
+  const [hours, setHours] = useState<number>(Math.floor(value / HOUR));
   const [minutes, setMinutes] = useState<number>(
-    Math.floor((defaultValue % HOUR) / MINUTE)
+    Math.floor((value % HOUR) / MINUTE)
   );
 
   // The children components can register which means you can use this duration input with hours, minutes or both
   const [hasHours, setHasHours] = useState(false);
   const [hasMinutes, setHasMinutes] = useState(false);
+
+  // on first load, if v is undefined, call onChange with the default value to update the form
+  useEffect(() => {
+    if (v == undefined) {
+      onChange(value);
+    }
+  }, [v, value]);
 
   useEffect(() => {
     // The following effect updates the hours and minutes values when the external value changes after a call to onChange

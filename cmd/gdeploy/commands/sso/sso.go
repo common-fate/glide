@@ -111,52 +111,65 @@ var configureCommand = cli.Command{
 				fromString = "String"
 				fromFile   = "File"
 			)
-			p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
-			metadataChoice := fromUrl
-			err = survey.AskOne(p4, &metadataChoice)
-			if err != nil {
-				return err
+
+			updateMetadata := true
+			if dc.Deployment.Parameters.SamlSSOMetadata != "" || dc.Deployment.Parameters.SamlSSOMetadataURL != "" {
+
+				p5 := &survey.Confirm{Message: "You already have a metadata string/url set, would you like to update it?"}
+				err = survey.AskOne(p5, &updateMetadata)
+				if err != nil {
+					return err
+				}
 			}
-			switch metadataChoice {
-			case fromUrl:
-				p5 := &survey.Input{Message: "Metadata URL"}
-				err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+			if updateMetadata {
+				p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
+				metadataChoice := fromUrl
+				err = survey.AskOne(p4, &metadataChoice)
 				if err != nil {
 					return err
 				}
-			case fromString:
-				p5 := &survey.Input{Message: "Metadata XML String"}
-				err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
-				if err != nil {
-					return err
-				}
-			case fromFile:
-				p5 := &survey.Input{Message: "Metadata XML file"}
-				var res string
-				err := survey.AskOne(p5, &res, func(options *survey.AskOptions) error {
-					options.Validators = append(options.Validators, func(ans interface{}) error {
-						p := ans.(string)
-						fileInfo, err := os.Stat(p)
-						if err != nil {
-							return err
-						}
-						if fileInfo.IsDir() {
-							return fmt.Errorf("path is a directory, must be a file")
-						}
+				switch metadataChoice {
+				case fromUrl:
+					p5 := &survey.Input{Message: "Metadata URL"}
+					err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+					if err != nil {
+						return err
+					}
+				case fromString:
+					p5 := &survey.Input{Message: "Metadata XML String"}
+					err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+					if err != nil {
+						return err
+					}
+				case fromFile:
+					p5 := &survey.Input{Message: "Metadata XML file"}
+					var res string
+					err := survey.AskOne(p5, &res, func(options *survey.AskOptions) error {
+						options.Validators = append(options.Validators, func(ans interface{}) error {
+							p := ans.(string)
+							fileInfo, err := os.Stat(p)
+							if err != nil {
+								return err
+							}
+							if fileInfo.IsDir() {
+								return fmt.Errorf("path is a directory, must be a file")
+							}
+							return nil
+						})
 						return nil
 					})
-					return nil
-				})
-				if err != nil {
-					return err
+					if err != nil {
+						return err
+					}
+					b, err := os.ReadFile(res)
+					if err != nil {
+						return err
+					}
+					dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 				}
-				b, err := os.ReadFile(res)
-				if err != nil {
-					return err
-				}
-				dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 			}
 		}
+
 		dc.Deployment.Parameters.IdentityProviderType = idpType
 		clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 		clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.

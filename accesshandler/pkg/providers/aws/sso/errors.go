@@ -12,6 +12,16 @@ func (e *PermissionSetNotFoundErr) Error() string {
 	return fmt.Sprintf("permission set %s was not found or you don't have access to it", e.PermissionSet)
 }
 
+type PermissionSetNotManagedByGrantedError struct {
+	PermissionSet string
+	// the underlying AWS error
+	AWSErr error
+}
+
+func (e *PermissionSetNotManagedByGrantedError) Error() string {
+	return fmt.Sprintf("permission set %s is not tagged with 'commonfate.io/managed-by-granted' and cannot be accessed by this provider", e.PermissionSet)
+}
+
 type UserNotFoundError struct {
 	Email string
 }
