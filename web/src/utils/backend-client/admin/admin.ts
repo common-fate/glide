@@ -19,7 +19,9 @@ import type {
   ListRequestsResponseResponse,
   AdminListRequestsParams,
   ListUserResponseResponse,
+  GetUsersParams,
   ListGroupsResponseResponse,
+  GetGroupsParams,
   Group
 } from '.././types'
 import { customInstance, ErrorType } from '../../custom-instance'
@@ -274,30 +276,31 @@ export const useAdminListRequests = <TError = ErrorType<unknown>>(
  * @summary Returns a list of users
  */
 export const getUsers = (
-    
+    params?: GetUsersParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListUserResponseResponse>(
-      {url: `/api/v1/admin/users`, method: 'get'
+      {url: `/api/v1/admin/users`, method: 'get',
+        params,
     },
       options);
     }
   
 
-export const getGetUsersKey = () => [`/api/v1/admin/users`];
+export const getGetUsersKey = (params?: GetUsersParams,) => [`/api/v1/admin/users`, ...(params ? [params]: [])];
 
     
 export type GetUsersQueryResult = NonNullable<Awaited<ReturnType<typeof getUsers>>>
 export type GetUsersQueryError = ErrorType<unknown>
 
 export const useGetUsers = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getUsers>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+ params?: GetUsersParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getUsers>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? (() => getGetUsersKey())
-  const swrFn = () => getUsers(requestOptions);
+  const swrKey = swrOptions?.swrKey ?? (() => getGetUsersKey(params))
+  const swrFn = () => getUsers(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -312,30 +315,31 @@ export const useGetUsers = <TError = ErrorType<unknown>>(
  * @summary List groups
  */
 export const getGroups = (
-    
+    params?: GetGroupsParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListGroupsResponseResponse>(
-      {url: `/api/v1/admin/groups`, method: 'get'
+      {url: `/api/v1/admin/groups`, method: 'get',
+        params,
     },
       options);
     }
   
 
-export const getGetGroupsKey = () => [`/api/v1/admin/groups`];
+export const getGetGroupsKey = (params?: GetGroupsParams,) => [`/api/v1/admin/groups`, ...(params ? [params]: [])];
 
     
 export type GetGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof getGroups>>>
 export type GetGroupsQueryError = ErrorType<unknown>
 
 export const useGetGroups = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroups>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+ params?: GetGroupsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroups>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? (() => getGetGroupsKey())
-  const swrFn = () => getGroups(requestOptions);
+  const swrKey = swrOptions?.swrKey ?? (() => getGetGroupsKey(params))
+  const swrFn = () => getGroups(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
