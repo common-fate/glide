@@ -8,9 +8,10 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { DevEnvironmentConfig } from "../helpers/dev-accounts";
-import { IdentityProviderRegistry, IdentityProviderTypes } from "../helpers/registry";
-
-
+import {
+  IdentityProviderRegistry,
+  IdentityProviderTypes,
+} from "../helpers/registry";
 
 interface Props {
   appName: string;
@@ -41,7 +42,10 @@ export class WebUserPool extends Construct {
       "CreateSAMLResourcesCondition",
       {
         expression: cdk.Fn.conditionNot(
-          cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.Cognito)
+          cdk.Fn.conditionEquals(
+            this._idpType,
+            IdentityProviderRegistry.Cognito
+          )
         ),
       }
     );
@@ -49,7 +53,10 @@ export class WebUserPool extends Construct {
       this,
       "CreateCognitoResourcesCondition",
       {
-        expression: cdk.Fn.conditionEquals(this._idpType, IdentityProviderRegistry.Cognito),
+        expression: cdk.Fn.conditionEquals(
+          this._idpType,
+          IdentityProviderRegistry.Cognito
+        ),
       }
     );
     if (props.devConfig !== null) {
@@ -208,6 +215,7 @@ export class SamlUserPoolClient extends Construct {
         userPassword: true,
         userSrp: true,
       },
+      accessTokenValidity: cdk.Duration.hours(8),
       disableOAuth: false,
       oAuth: {
         flows: {
@@ -258,6 +266,7 @@ export class CognitoUserPoolClient extends Construct {
         userPassword: true,
         userSrp: true,
       },
+      accessTokenValidity: cdk.Duration.hours(8),
       disableOAuth: false,
       oAuth: {
         flows: {

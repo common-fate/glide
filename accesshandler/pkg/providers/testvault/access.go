@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 
 	tv "github.com/common-fate/testvault"
 	"go.uber.org/zap"
@@ -32,6 +33,16 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	return err
 }
 
+// EscapeEmailForURL - ensure an email address is properly escaped for use in URL path
+func EscapeEmailForURL(email string) string {
+	email = strings.Replace(email, "+", "%2B", -1) // Replace any + with a %2B
+	email = strings.Replace(email, "@", "%40", -1) // Replace any @ with a %40
+	email = strings.Replace(email, ".", "%2E", -1) // Replace any . with a %2E
+	email = strings.Replace(email, "-", "%2D", -1) // Replace any - with a %2D
+	email = strings.Replace(email, "_", "%5F", -1) // Replace any _ with a %5F
+	return email
+}
+
 // Revoke the access
 func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
@@ -42,7 +53,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	log := zap.S().With("args", a)
 	vault := p.getPrefixedVault(a.Vault)
 	log.Info("removing vault member", "vault", vault)
-	_, err = p.client.RemoveMemberFromVault(ctx, vault, subject)
+	_, err = p.client.RemoveMemberFromVault(ctx, vault, EscapeEmailForURL(subject))
 	return err
 }
 
@@ -54,7 +65,8 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 		return false, err
 	}
 	vault := p.getPrefixedVault(a.Vault)
-	res, err := p.client.CheckVaultMembershipWithResponse(ctx, vault, subject)
+
+	res, err := p.client.CheckVaultMembershipWithResponse(ctx, vault, EscapeEmailForURL(subject))
 	if err != nil {
 		return false, err
 	}
@@ -75,7 +87,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	if err != nil {
 		return []string{}, err
 	}
-	u.Path = path.Join("vaults", vault, "members", subject)
+	u.Path = path.Join("vaults", vault, "members", EscapeEmailForURL(subject))
 	urlString := u.String()
 	instr[0] = fmt.Sprintf("This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](%s) to check that your access has been provisioned.", urlString)
 	return instr, nil

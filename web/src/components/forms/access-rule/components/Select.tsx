@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useFormContext, Controller } from "react-hook-form";
-import Select from "react-select";
+import Select, { components, OptionProps } from "react-select";
 import {
   useGetUsers,
   useGetGroups,
@@ -11,6 +11,7 @@ interface SelectProps {
   rules?: MultiSelectRules;
   isDisabled?: boolean;
   testId?: string;
+  onBlurSecondaryAction?: () => void;
 }
 // UserSelect required defaults to true
 export const UserSelect: React.FC<SelectProps> = (props) => {
@@ -46,6 +47,22 @@ interface MultiSelectProps extends SelectProps {
   }[];
   id?: string;
 }
+
+export const CustomOption = ({
+  children,
+  ...innerProps
+}: OptionProps<
+  {
+    value: string;
+    label: string;
+  },
+  true
+>) => (
+  <div data-testid={innerProps.value}>
+    <components.Option {...innerProps}>{children}</components.Option>
+  </div>
+);
+
 const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
   fieldName,
@@ -68,6 +85,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             id={id}
             isDisabled={isDisabled}
             options={options}
+            components={{ Option: CustomOption }}
             isMulti
             styles={{
               multiValue: (provided, state) => {
@@ -87,7 +105,10 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             ref={ref}
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
-            onBlur={() => trigger(fieldName)}
+            onBlur={() => {
+              trigger(fieldName);
+              rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
+            }}
             data-testid={rest.testId}
             {...rest}
           />

@@ -19,7 +19,8 @@ import {
 test("non admin cannot create access rule", async ({ page }) => {
   await Logout(page);
   await LoginUser(page);
-  await expect(page).toHaveTitle(/Granted/, { timeout: 5000 });
+  await page.waitForLoadState("networkidle");
+  await expect(page).toHaveTitle(/Granted/);
   await page
     .goto("/admin/access-rules")
     .then(() =>
@@ -31,5 +32,5 @@ test("non admin cannot create access rule", async ({ page }) => {
 
 //test access rule create
 test("admin can create access rule", async ({ page }) => {
-  await CreateAccessRule(page);
+  await CreateAccessRule(page,"test");
 });

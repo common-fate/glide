@@ -124,6 +124,7 @@ func permissionSetNameFromGrantID(grantID string) string {
 // createAWSAuthConfigMapRoleMapEntry appends an entry in the mapRoles section of the aws-auth config map
 // by first fetching the current config and appending the new entry to the list, then updating the config map
 func (p *Provider) createAWSAuthConfigMapRoleMapEntry(ctx context.Context, roleARN string, objectKey string) error {
+	log := zap.S()
 	log.Info("get k8s config map: aws-auth")
 
 	awsAuth, err := p.kubeClient.CoreV1().ConfigMaps("kube-system").Get(ctx, "aws-auth", v1meta.GetOptions{})

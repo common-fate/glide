@@ -62,6 +62,7 @@ export const ApprovalStep: React.FC = () => {
             fieldName="approval.groups"
             isDisabled={!approval?.required}
             rules={{ required: approverRequired }}
+            onBlurSecondaryAction={() => methods.trigger("approval.users")}
           />
 
           <FormErrorMessage>
@@ -81,6 +82,7 @@ export const ApprovalStep: React.FC = () => {
             fieldName="approval.users"
             isDisabled={!approval?.required}
             rules={{ required: approverRequired }}
+            onBlurSecondaryAction={() => methods.trigger("approval.groups")}
           />
 
           <FormErrorMessage>
