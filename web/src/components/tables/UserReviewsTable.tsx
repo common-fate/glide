@@ -3,7 +3,7 @@ import format from "date-fns/format";
 import { useMemo } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
-import { usePaginatorApi } from "src/utils/usePaginatorApi";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
 import { Request, RequestStatus } from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
