@@ -163,8 +163,6 @@ export class Granter extends Construct {
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({
         actions: [
-          "eks:AccessKubernetesApi",
-          "eks:DescribeCluster",
           "sso:CreatePermissionSet",
           "sso:PutInlinePolicyToPermissionSet",
           "sso:CreateAccountAssignment",

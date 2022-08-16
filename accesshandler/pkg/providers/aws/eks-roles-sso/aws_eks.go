@@ -25,13 +25,17 @@ type Provider struct {
 	kubeClient    *kubernetes.Clientset
 	ssoClient     *ssoadmin.Client
 	iamClient     *iam.Client
-	awsAccountID  string
-	clusterName   gconfig.StringValue
-	namespace     gconfig.StringValue
-	clusterRegion gconfig.StringValue
 	idStoreClient *identitystore.Client
 	orgClient     *organizations.Client
-	instanceARN   gconfig.StringValue
+	awsAccountID  string
+
+	// configured by gconfig
+	clusterAccessRoleARN gconfig.StringValue
+	clusterName          gconfig.StringValue
+	namespace            gconfig.StringValue
+	clusterRegion        gconfig.StringValue
+	// sso instance
+	instanceARN gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
@@ -43,6 +47,7 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"),
 		gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace"),
 		gconfig.StringField("clusterRegion", &p.clusterRegion, "the region the EKS cluster is deployed"),
+		gconfig.StringField("clusterAccessRoleArn", &p.clusterAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the EKS cluster"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
 		gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),
@@ -50,12 +55,7 @@ func (p *Provider) Config() gconfig.Config {
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-
 	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()))
-	if err != nil {
-		return err
-	}
-	eksCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.clusterRegion.Get()))
 	if err != nil {
 		return err
 	}
@@ -63,19 +63,42 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	creds, err := eksCfg.Credentials.Retrieve(ctx)
+	// using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
+	eksCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+		defaultCfg, err := config.LoadDefaultConfig(ctx)
+		if err != nil {
+			return aws.Credentials{}, err
+		}
+		stsclient := sts.NewFromConfig(defaultCfg)
+		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
+			RoleArn:         aws.String(p.clusterAccessRoleARN.Get()),
+			RoleSessionName: aws.String("accesshandler-eks-roles-sso"),
+			DurationSeconds: aws.Int32(15 * 60),
+		})
+		if err != nil {
+			return aws.Credentials{}, err
+		}
+		return aws.Credentials{
+			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
+			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
+			SessionToken:    aws.ToString(res.Credentials.SessionToken),
+			CanExpire:       res.Credentials.Expiration != nil,
+			Expires:         aws.ToTime(res.Credentials.Expiration),
+		}, nil
+	}))
+
+	eksCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.clusterRegion.Get()))
 	if err != nil {
 		return err
 	}
-	if creds.Expired() {
-		return errors.New("AWS credentials are expired")
-	}
+	eksCfg.Credentials = eksCredentialCache
 
 	eksClient := eks.NewFromConfig(eksCfg)
 	r, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: aws.String(p.clusterName.Get())})
 	if err != nil {
 		return err
 	}
+
 	pem, err := base64.StdEncoding.DecodeString(aws.ToString(r.Cluster.CertificateAuthority.Data))
 	if err != nil {
 		return err
