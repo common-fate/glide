@@ -180,69 +180,43 @@ Create a group called 'Granted Administrators' in your identity provider and cop
 Users in this group will be able to manage Access Rules.
 `)
 
-		// Prompt: Do you want to enter an group id, or select frokm a list of groups?
-		surveyQ := []string{"Select from a list of groups", "Enter group id"}
-		var surveryA string
-		err = survey.AskOne(&survey.Select{
-			Message: "The ID of the Granted Administrators group in your identity provider:",
-			Options: surveyQ,
-		}, &surveryA)
+		err = idp.IdentityProvider.Init(ctx)
 		if err != nil {
 			return err
 		}
 
-		// Prompt: Select from a list of groups
-		if surveryA == surveyQ[0] {
-
-			err := idp.IdentityProvider.Init(ctx)
-			if err != nil {
-				return err
-			}
-
-			err = deploy.RunConfigTest(ctx, idp.IdentityProvider)
-			if err != nil {
-				return err
-			}
-			grps, err := idp.IdentityProvider.ListGroups(ctx)
-			if err != nil {
-				return err
-			}
-
-			// convert groups to a string map
-			groupMap := make(map[string]identity.IdpGroup)
-			groupNames := []string{}
-			chosenKey := ""
-			for _, g := range grps {
-				key := fmt.Sprintf("%s: %s", g.Name, g.Description)
-				groupMap[key] = g
-				groupNames = append(groupNames, key)
-			}
-
-			// sort groupNames alphabetically
-			sort.Strings(groupNames)
-
-			err = survey.AskOne(&survey.Select{
-				Message: "Select from a list of groups",
-				Options: groupNames,
-			}, &chosenKey)
-
-			if err != nil {
-				return err
-			}
-
-			dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].Name
-
-			// Prompt: Enter group id directly
-		} else {
-			err := survey.AskOne(&survey.Input{
-				Message: "Enter group id",
-				Default: dc.Deployment.Parameters.AdministratorGroupID,
-			}, &dc.Deployment.Parameters.AdministratorGroupID)
-			if err != nil {
-				return err
-			}
-
+		err = deploy.RunConfigTest(ctx, idp.IdentityProvider)
+		if err != nil {
+			return err
 		}
+		grps, err := idp.IdentityProvider.ListGroups(ctx)
+		if err != nil {
+			return err
+		}
+
+		// convert groups to a string map
+		groupMap := make(map[string]identity.IdpGroup)
+		groupNames := []string{}
+		chosenKey := ""
+		for _, g := range grps {
+			key := fmt.Sprintf("%s: %s", g.Name, g.Description)
+			groupMap[key] = g
+			groupNames = append(groupNames, key)
+		}
+
+		// sort groupNames alphabetically
+		sort.Strings(groupNames)
+
+		err = survey.AskOne(&survey.Select{
+			Message: "The ID of the Granted Administrators group in your identity provider:",
+			Options: groupNames,
+		}, &chosenKey)
+
+		if err != nil {
+			return err
+		}
+
+		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].Name
 
 		clio.Info("Updating your deployment config")
 
