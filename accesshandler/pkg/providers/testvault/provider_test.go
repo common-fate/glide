@@ -75,7 +75,7 @@ func TestInstructions(t *testing.T) {
 		uniqueID: gconfig.StringValue{Value: "1234"},
 	}
 	args := `{"vault": "my-vault"}`
-	got, err := p.Instructions(context.Background(), "testuser", []byte(args))
+	got, err := p.Instructions(context.Background(), "testuser", []byte(args), "")
 	if err != nil {
 		t.Fatal(err)
 	}
