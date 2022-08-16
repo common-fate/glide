@@ -189,4 +189,7 @@ export class Granter extends Construct {
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }
+  getGranterARN(): string {
+    return this._lambda.functionArn;
+  }
 }

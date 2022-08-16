@@ -39,6 +39,8 @@ type Output struct {
 	EventBusSource            string `json:"EventBusSource"`
 	IdpSyncFunctionName       string `json:"IdpSyncFunctionName"`
 	Region                    string `json:"Region"`
+	AccessHandlerARN          string `json:"AccessHandlerAPIARN"`
+	GranterARN                string `json:"GranterARN"`
 }
 
 func (c Output) FrontendURL() string {
@@ -226,4 +228,24 @@ To fix this, take one of the following actions:
 	c.cachedOutput = &out
 
 	return out, nil
+}
+
+func (c Output) PrintProviderTable() {
+	data := [][]string{
+		{"Access Handler ARN", c.AccessHandlerARN},
+		{"Granter ARN", c.GranterARN},
+	}
+
+	table := tablewriter.NewWriter(os.Stderr)
+	table.SetHeader([]string{"Output Parameter", "Value"})
+
+	table.SetColumnColor(
+		tablewriter.Colors{tablewriter.FgHiBlackColor},
+		tablewriter.Colors{tablewriter.FgGreenColor, tablewriter.Bold},
+	)
+
+	for _, v := range data {
+		table.Append(v)
+	}
+	table.Render()
 }

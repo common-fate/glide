@@ -123,4 +123,7 @@ export class AccessHandler extends Construct {
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }
+  getAccessHandlerARN(): string {
+    return this._lambda.functionArn;
+  }
 }
