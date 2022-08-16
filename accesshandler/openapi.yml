@@ -403,10 +403,8 @@ components:
         The `instructions` field will be null if no instructions are available.
       properties:
         instructions:
-          type: array
           description: Instructions on how to access the role or resource.
-          items:
-            type: string
+          type: string
   requestBodies: {}
   responses:
     HealthResponse:

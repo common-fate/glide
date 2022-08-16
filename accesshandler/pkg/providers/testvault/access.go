@@ -74,23 +74,26 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	return exists, nil
 }
 
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) ([]string, error) {
-	instr := make([]string, 1)
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
 
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
-		return []string{}, err
+		return "", err
 	}
 	vault := p.getPrefixedVault(a.Vault)
 	u, err := url.Parse(p.apiURL.Get())
 	if err != nil {
-		return []string{}, err
+		return "", err
 	}
 	u.Path = path.Join("vaults", vault, "members", EscapeEmailForURL(subject))
 	urlString := u.String()
-	instr[0] = fmt.Sprintf("This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](%s) to check that your access has been provisioned.", urlString)
-	return instr, nil
+
+	i := ""
+	i += fmt.Sprintf("This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](%s) to check that your access has been provisioned.", urlString)
+	i += "```\n"
+
+	return i, nil
 }
 
 // getPrefixedVault gets the vault ID with the unique ID prefixed to it.

@@ -229,23 +229,21 @@ export const RequestAccessInstructions: React.FC = () => {
       <Box textStyle="Body/Medium" mb={2}>
         Access Instructions
       </Box>
-      {data.instructions.map((instruction) => {
-        return (
-          <ReactMarkdown
-            components={{
-              a: (props) => <Link target="_blank" {...props} />,
-              p: (props) => (
-                <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
-                  {props.children}
-                </Text>
-              ),
-              code: CodeInstruction,
-            }}
-          >
-            {instruction}
-          </ReactMarkdown>
-        );
-      })}
+      return (
+      <ReactMarkdown
+        components={{
+          a: (props) => <Link target="_blank" {...props} />,
+          p: (props) => (
+            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
+              {props.children}
+            </Text>
+          ),
+          code: CodeInstruction,
+        }}
+      >
+        {data.instructions}
+      </ReactMarkdown>
+      );
     </Stack>
   );
 };

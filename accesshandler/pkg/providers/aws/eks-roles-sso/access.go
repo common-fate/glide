@@ -94,18 +94,27 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	// we didn't find the user, so return false.
 	return false, nil
 }
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) ([]string, error) {
-	instr := make([]string, 2)
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
-		return []string{}, err
+		return "", err
 	}
-	instr[0] = fmt.Sprintf("You will need to assume the role which has access to this cluster, you can run the following to gain access to the role: `assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s`", url, p.ssoRegion.Get(), p.awsAccountID, a.GrantId)
-	instr[1] = fmt.Sprintf("Then you can add the kube config to setup your local kubeconfig. Here is a one liner to get that setup for you `aws eks update-kubeconfig --name %s`", p.clusterName.Value)
 
-	return instr, nil
+	i := "# Browser\n"
+	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
+	i += "# CLI\n"
+	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
+	i += "```\n"
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.awsAccountID, a.GrantId)
+	i += "```\n"
+	i += "# K8s \n"
+	i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
+	i += "```\n"
+	i += fmt.Sprintf("aws eks update-kubeconfig --name %s", p.clusterName.Value)
+	i += "```\n"
+	return i, nil
 }
 func objectKeyFromGrantID(grantID string) string {
 	return fmt.Sprintf("granted-approvals-%s", grantID)

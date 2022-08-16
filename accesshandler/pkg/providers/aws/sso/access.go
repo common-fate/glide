@@ -171,24 +171,26 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 
 	return &res.Users[0], nil
 }
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) ([]string, error) {
-	instr := make([]string, 1)
-
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
-		return []string{}, err
+		return "", err
 	}
 	po, err := p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
 		InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(a.PermissionSetARN),
 	})
 	if err != nil {
-		return []string{}, err
+		return "", err
 	}
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 
-	instr[0] = fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)", url)
-	instr[1] = "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
-	instr[2] = fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.region.Get(), a.AccountID, aws.ToString(po.PermissionSet.Name))
-	return instr, nil
+	i := "# Browser\n"
+	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
+	i += "# CLI\n"
+	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
+	i += "```\n"
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.region.Get(), a.AccountID, aws.ToString(po.PermissionSet.Name))
+	i += "```\n"
+	return i, nil
 }
