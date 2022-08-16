@@ -345,6 +345,11 @@ paths:
           in: query
           name: status
           description: Filter Access Rules by a particular status.
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
     post:
       summary: Create Access Rule
       operationId: admin-create-access-rule

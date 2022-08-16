@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { useMemo, useState } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useAdminListAccessRules } from "../../utils/backend-client/admin/admin";
 import {
   AccessRule,
@@ -48,8 +49,9 @@ export const AccessRuleTable = () => {
     [search]
   );
 
-  const { data } = useAdminListAccessRules({
-    status: status,
+  const paginator = usePaginatorApi<typeof useAdminListAccessRules>({
+    swrHook: useAdminListAccessRules,
+    hookProps: { status: status },
   });
 
   const [selectedAccessRule, setSelectedAccessRule] = useState<AccessRule>();
@@ -260,9 +262,10 @@ export const AccessRuleTable = () => {
 
       {TableRenderer<AccessRuleDetail>({
         columns: cols,
-        data: data?.accessRules,
+        data: paginator?.data?.accessRules,
         emptyText: "No access rules",
         linkTo: true,
+        apiPaginator: paginator,
       })}
 
       <RuleConfigModal
