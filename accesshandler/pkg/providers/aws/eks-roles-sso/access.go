@@ -95,7 +95,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	return false, nil
 }
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
-	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
@@ -112,7 +112,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "# K8s \n"
 	i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
 	i += "```\n"
-	i += fmt.Sprintf("aws eks update-kubeconfig --name %s", p.clusterName.Value)
+	i += fmt.Sprintf("aws eks update-kubeconfig --name %s", p.clusterName.Get())
 	i += "```\n"
 	return i, nil
 }
