@@ -60,6 +60,7 @@ export const ApprovalStep: React.FC = () => {
           <GroupSelect
             testId="approval-group-select"
             fieldName="approval.groups"
+            shouldShowGroupMembers={true}
             isDisabled={!approval?.required}
             rules={{ required: approverRequired }}
           />
