@@ -62,7 +62,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	return exists, nil
 }
 
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) ([]string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) ([]string, error) {
 	instr := make([]string, 1)
 
 	var a Args

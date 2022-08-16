@@ -27,7 +27,8 @@ import (
 )
 
 type Args struct {
-	Role string `json:"role" jsonschema:"title=Role"`
+	Role    string `json:"role" jsonschema:"title=Role"`
+	GrantId string `json:"GrantId" jsonschema:"title=GrantId"`
 }
 
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
@@ -96,9 +97,13 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) ([]string, error) {
 	instr := make([]string, 2)
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
-
-	instr[0] = fmt.Sprintf("You will need to assume the role which has access to this cluster, you can run the following to gain access to the role: `assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name <Replace with your requestID>`", url, p.ssoRegion.Get(), p.awsAccountID)
-	instr[1] = fmt.Sprintf("You will first need to setup your local kubeconfig. Here is a one liner to get that setup for you `aws eks update-kubeconfig --name %s`", p.clusterName.Value)
+	var a Args
+	err := json.Unmarshal(args, &a)
+	if err != nil {
+		return []string{}, err
+	}
+	instr[0] = fmt.Sprintf("You will need to assume the role which has access to this cluster, you can run the following to gain access to the role: `assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s`", url, p.ssoRegion.Get(), p.awsAccountID, a.GrantId)
+	instr[1] = fmt.Sprintf("Then you can add the kube config to setup your local kubeconfig. Here is a one liner to get that setup for you `aws eks update-kubeconfig --name %s`", p.clusterName.Value)
 
 	return instr, nil
 }
