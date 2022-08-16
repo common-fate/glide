@@ -24,7 +24,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import type { NextPage } from "next";
-import React from "react";
+import React, { useRef } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { RequestStatusDisplay } from "../../components/Request";
 import { ProviderIcon } from "../../components/icons/providerIcon";
@@ -56,17 +56,53 @@ const Home: NextPage = () => {
 
   const { data: rules } = useListUserAccessRules();
 
+  const [nextToken, setNextToken] = React.useState<string | undefined>();
+
   const {
     data: reqsUpcoming,
     isValidating,
     mutate,
-  } = useUserListRequestsUpcoming();
+  } = useUserListRequestsUpcoming({
+    nextToken,
+  });
 
   const { data: reqsPast, mutate: mutatePast } = useUserListRequestsPast();
 
   const { isOpen, onClose, onToggle } = useDisclosure();
 
   const user = useUser();
+
+  const upcomingRef = useRef();
+  const pastRef = useRef();
+
+
+  const ref = useRef();
+
+  const useIntersection = (element, rootMargin) => {
+    const [isVisible, setState] = React.useState(false);
+
+    React.useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setState(entry.isIntersecting);
+        },
+        { rootMargin }
+      );
+
+      element.current && observer.observe(element.current);
+
+      return () => observer.unobserve(element.current);
+    }, []);
+
+    return isVisible;
+  };
+
+  const inViewport = useIntersection(ref, "0px");
+  // const inViewport = useIntersection(ref, "-200px"); // Trigger if 200px is visible from the element
+
+  if (inViewport) {
+    console.log("in viewport:", ref.current);
+  }
 
   return (
     <>
@@ -229,13 +265,21 @@ const Home: NextPage = () => {
                 </TabList>
                 <TabPanels>
                   <TabPanel overflowY="auto">
-                    <Stack spacing={5} maxH="80vh">
+                    <Stack
+                      spacing={5}
+                      maxH="80vh"
+                      // ref={upcomingRef}
+                      // onScroll={() => handleScroll("upcoming")}
+                    >
                       {reqsUpcoming?.requests?.map((request, i) => (
                         <UserAccessCard
                           type="upcoming"
                           key={request.id}
                           req={request}
                           index={i}
+                          // ref={
+                          //   reqsUpcoming?.requests.length == i + 1 ? ref : null
+                          // }
                         />
                       ))}
                       {reqsUpcoming === undefined && (
@@ -245,6 +289,14 @@ const Home: NextPage = () => {
                           <Skeleton h="224px" w="100%" rounded="md" />
                         </>
                       )}
+                      <div
+                        ref={ref}
+                        style={{
+                          height: "500px",
+                          backgroundColor: "pink",
+                          width: "100%",
+                        }}
+                      />
                       {!isValidating && reqsUpcoming?.requests.length === 0 && (
                         <Center
                           bg="neutrals.100"
@@ -268,7 +320,12 @@ const Home: NextPage = () => {
                     </Stack>
                   </TabPanel>
                   <TabPanel overflowY="auto">
-                    <Stack spacing={5} maxH="80vh">
+                    <Stack
+                      spacing={5}
+                      maxH="80vh"
+                      // ref={pastRef}
+                      // onScroll={() => handleScroll("past")}
+                    >
                       {reqsPast?.requests.map((request, i) => (
                         <UserAccessCard
                           index={i}
@@ -328,17 +385,19 @@ const getRequestOption = (req: Request): RequestOption => {
   return undefined;
 };
 
-const UserAccessCard: React.FC<{
-  req: Request;
-  type: "upcoming" | "past";
-  index: number;
-}> = ({ req, type, index }) => {
+const UserAccessCard: React.FC<
+  {
+    req: Request;
+    type: "upcoming" | "past";
+    index: number;
+  } & LinkBoxProps
+> = ({ req, type, index, ...rest }) => {
   const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
 
   const option = getRequestOption(req);
 
   return (
-    <LinkBox>
+    <LinkBox {...rest}>
       <Link to={"/requests/" + req.id}>
         <LinkOverlay>
           <Flex
