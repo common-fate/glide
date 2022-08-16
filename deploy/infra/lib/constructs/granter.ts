@@ -175,6 +175,12 @@ export class Granter extends Construct {
 
       })
     )
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+      })
+    );
 
     props.eventBus.grantPutEventsTo(this._lambda);
   }
