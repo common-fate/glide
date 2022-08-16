@@ -300,6 +300,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 				Effect: "Allow",
 				Action: []string{
 					"eks:AccessKubernetesApi",
+					"eks:DescribeCluster",
 				},
 				Resource: []string{fmt.Sprintf("arn:aws:eks:%s:%s:cluster/%s", p.clusterRegion.Get(), p.awsAccountID, p.clusterName.Get())},
 			},
