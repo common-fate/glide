@@ -48,8 +48,8 @@ func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, 
 func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromTiming: &from, ToTiming: &to}
 }
-func NewRecordedEvent(requestID string, createdAt time.Time, event map[string]string) RequestEvent {
-	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, RecordedEvent: &event}
+func NewRecordedEvent(requestID string, actor *string, createdAt time.Time, event map[string]string) RequestEvent {
+	return RequestEvent{ID: types.NewHistoryID(), Actor: actor, CreatedAt: createdAt, RequestID: requestID, RecordedEvent: &event}
 }
 
 func (r *RequestEvent) ToAPI() types.RequestEvent {

@@ -12,6 +12,7 @@ import {
   GitHubIcon,
   DjangoIcon,
   GRPCIcon,
+  PythonIcon,
 } from "./Icons";
 
 export const ProviderIcon = ({
@@ -43,6 +44,8 @@ export const ProviderIcon = ({
       return <DjangoIcon {...rest} />;
     case "grpc":
       return <GRPCIcon {...rest} />;
+    case "python":
+      return <PythonIcon {...rest} />;
     default:
       return <GrantedKeysIcon {...rest} />;
   }

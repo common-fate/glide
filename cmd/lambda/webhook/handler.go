@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -78,7 +79,7 @@ func (s *Server) Routes() http.Handler {
 	})
 	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		req := r.Header.Get("X-Granted-Request")
+		// req := r.Header.Get("X-Granted-Request")
 
 		var b RecordingEventBody
 
@@ -87,22 +88,28 @@ func (s *Server) Routes() http.Handler {
 			apio.Error(ctx, w, err)
 			return
 		}
+		q := storage.ListRequests{}
 
 		// verify that the request exists
-		gr := storage.GetRequest{
-			ID: req,
-		}
-		_, err = s.db.Query(ctx, &gr)
-		if err == ddb.ErrNoItems {
-			apio.ErrorString(ctx, w, "Granted request not found", http.StatusNotFound)
-			return
-		}
+		// gr := storage.GetRequest{
+		// 	ID: req,
+		// }
+		_, err = s.db.Query(ctx, &q)
+		// if err == ddb.ErrNoItems {
+		// 	apio.ErrorString(ctx, w, "Granted request not found", http.StatusNotFound)
+		// 	return
+		// }
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
+		if len(q.Result) == 0 {
+			apio.Error(ctx, w, errors.New("no requests found"))
+		}
 
-		e := access.NewRecordedEvent(req, time.Now(), b.Data)
+		req := q.Result[0]
+
+		e := access.NewRecordedEvent(req.ID, &req.RequestedBy, time.Now(), b.Data)
 
 		err = s.db.Put(ctx, &e)
 		if err != nil {
@@ -110,7 +117,7 @@ func (s *Server) Routes() http.Handler {
 			return
 		}
 
-		zap.S().Infow("recorded event", "request.id", req, "event.id", e.ID)
+		zap.S().Infow("recorded event", "request.id", req.ID, "event.id", e.ID)
 
 		w.WriteHeader(http.StatusCreated)
 	})

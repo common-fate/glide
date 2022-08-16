@@ -17,3 +17,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 	zap.S().Info("demo provider: revoking access")
 	return nil
 }
+
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+	return p.instructions.Value, nil
+}

@@ -9,8 +9,8 @@ import (
 )
 
 type Provider struct {
-	// schemaString gconfig.StringValue
 	providerType gconfig.StringValue
+	instructions gconfig.StringValue
 	// optionsString gconfig.StringValue
 	// schema is parsed from schemaString during Init()
 	schema jsonschema.Schema
@@ -22,6 +22,7 @@ func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.JSONField("schema", &p.schema, "The JSON schema for the provider"),
 		gconfig.JSONField("options", &p.options, "The argument options for the provider"),
+		gconfig.StringField("instructions", &p.instructions, "The access instructions for the provider"),
 		gconfig.StringField("type", &p.providerType, "The type of the provider to display in the UI"),
 	}
 }

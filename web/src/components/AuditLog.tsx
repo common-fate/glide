@@ -10,12 +10,13 @@ import {
   TableContainer,
   Tbody,
   Td,
-  Text, Tr
+  Text,
+  Tr,
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
 import {
   useGetUser,
-  useListRequestEvents
+  useListRequestEvents,
 } from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
 import { renderTiming } from "../utils/renderTiming";
@@ -174,15 +175,25 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             header={
               <Stack w="100%">
                 <Text>
-                  {`Recorded event`}
+                  {`Action performed by `}
+                  <UserText userId={e.actor || ""} />
                 </Text>
                 <TableContainer>
                   <Table size="sm" variant={"unstyled"}>
                     <Tbody>
                       {Object.entries(e.recordedEvent).map(([k, v]) => (
                         <Tr key={k} color="GrayText">
-                          <Td w="20%" borderColor="gray.200" borderWidth={"1px"} fontWeight="thin">{k}</Td>
-                          <Td borderColor="gray.200" borderWidth={"1px"}>{v}</Td>
+                          <Td
+                            w="20%"
+                            borderColor="gray.200"
+                            borderWidth={"1px"}
+                            fontWeight="thin"
+                          >
+                            {k}
+                          </Td>
+                          <Td borderColor="gray.200" borderWidth={"1px"}>
+                            {v}
+                          </Td>
                         </Tr>
                       ))}
                     </Tbody>

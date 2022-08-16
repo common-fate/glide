@@ -6,6 +6,7 @@ import { AuditLog } from "../../components/AuditLog";
 import { UserLayout } from "../../components/Layout";
 import {
   RequestAccessInstructions,
+  RequestAccessToken,
   RequestCancelButton,
   RequestDetails,
   RequestDisplay,
@@ -50,6 +51,7 @@ const Home: NextPage = () => {
         <RequestDetails>
           <RequestTime />
           <RequestAccessInstructions />
+          <RequestAccessToken />
           <RequestCancelButton />
           <RequestRevoke onSubmitRevoke={mutate} />
         </RequestDetails>

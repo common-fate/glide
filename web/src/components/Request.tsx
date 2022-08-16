@@ -8,12 +8,16 @@ import {
   Flex,
   HStack,
   IconButton,
+  Input,
+  InputGroup,
+  InputRightElement,
   Link,
   Skeleton,
   SkeletonText,
   Stack,
   Text,
   Tooltip,
+  useClipboard,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
@@ -249,6 +253,44 @@ export const RequestAccessInstructions: React.FC = () => {
       >
         {data.instructions}
       </ReactMarkdown>
+    </Stack>
+  );
+};
+
+
+export const RequestAccessToken: React.FC = () => {
+  const [token, setToken] = useState<string>("z5sL3u61cj2G2kcmO1P0VuXlhXaDAAjsWzokwbw3")
+  const toast = useToast()
+  const handleClick = () => {
+    navigator.clipboard.writeText(token)
+    toast({
+      title: "Access token copied to clipboard",
+      status: "success",
+      variant: "subtle",
+      duration: 2200,
+      isClosable: true,
+    });
+
+  }
+
+  return (
+    <Stack>
+      <Box textStyle="Body/Medium" mb={2}>
+        Access Token
+      </Box>
+      <InputGroup size='md' bg="white">
+        <Input
+          pr='4.5rem'
+          type={'password'}
+          value={token}
+          readOnly
+        />
+        <InputRightElement width='4.5rem' pr={1}>
+          <Button h='1.75rem' size='sm' onClick={handleClick}>
+            {'Copy'}
+          </Button>
+        </InputRightElement>
+      </InputGroup>
     </Stack>
   );
 };
