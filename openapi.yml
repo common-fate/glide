@@ -1030,10 +1030,13 @@ components:
           type: string
         id:
           type: string
+        memberCount:
+          type: integer
       required:
         - name
         - description
         - id
+        - memberCount
     IdpStatus:
       title: IdpStatus
       x-stoplight:
