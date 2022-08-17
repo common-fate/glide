@@ -185,7 +185,7 @@ Users in this group will be able to manage Access Rules.
 			return err
 		}
 
-		err = deploy.RunConfigTest(ctx, idp.IdentityProvider)
+		
 		if err != nil {
 			return err
 		}
