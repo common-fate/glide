@@ -547,6 +547,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListGroupsResponse"
+      parameters: []
     parameters: []
   "/api/v1/admin/groups/{groupId}":
     parameters:
@@ -1002,10 +1003,13 @@ components:
           type: string
         id:
           type: string
+        memberCount:
+          type: integer
       required:
         - name
         - description
         - id
+        - memberCount
     IdpStatus:
       title: IdpStatus
       x-stoplight:
