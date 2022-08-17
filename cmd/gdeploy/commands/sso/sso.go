@@ -186,9 +186,6 @@ Users in this group will be able to manage Access Rules.
 		}
 
 		
-		if err != nil {
-			return err
-		}
 		grps, err := idp.IdentityProvider.ListGroups(ctx)
 		if err != nil {
 			return err
