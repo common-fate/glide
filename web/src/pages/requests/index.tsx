@@ -12,6 +12,7 @@ import {
   SkeletonCircle,
   SkeletonText,
   Spacer,
+  Spinner,
   Stack,
   Tab,
   TabList,
@@ -43,6 +44,9 @@ import {
 import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
+import { mutate } from "swr";
+import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
+import { useIntersection } from "../../utils/useIntersection";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -58,12 +62,18 @@ const Home: NextPage = () => {
 
   const [nextToken, setNextToken] = React.useState<string | undefined>();
 
-  const {
-    data: reqsUpcoming,
-    isValidating,
-    mutate,
-  } = useUserListRequestsUpcoming({
-    nextToken,
+  // const { data: reqsUpcoming, isValidating } = useUserListRequestsUpcoming({
+  //   nextToken,
+  // });
+
+  const isValidating = false; // TODO
+
+  const { data: reqsUpcoming, ...upcomingApi } = useInfiniteScrollApi<
+    typeof useUserListRequestsUpcoming
+  >({
+    swrHook: useUserListRequestsUpcoming,
+    hookProps: {},
+    listObjKey: "requests",
   });
 
   const { data: reqsPast, mutate: mutatePast } = useUserListRequestsPast();
@@ -75,33 +85,18 @@ const Home: NextPage = () => {
   const upcomingRef = useRef();
   const pastRef = useRef();
 
+  // DE = list response loads normally
+  // DE = when scrolling to bottom, pagination is triggered
+  // DE = the paginated response is appended to a *virtual* list (should contain all pages)
+  // DE = mutate/revalidation queries still update the UI
 
   const ref = useRef();
 
-  const useIntersection = (element, rootMargin) => {
-    const [isVisible, setState] = React.useState(false);
+  const inViewport = useIntersection(ref, "0px"); // Trigger if 200px is visible from the element
 
-    React.useEffect(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          setState(entry.isIntersecting);
-        },
-        { rootMargin }
-      );
-
-      element.current && observer.observe(element.current);
-
-      return () => observer.unobserve(element.current);
-    }, []);
-
-    return isVisible;
-  };
-
-  const inViewport = useIntersection(ref, "0px");
-  // const inViewport = useIntersection(ref, "-200px"); // Trigger if 200px is visible from the element
-
-  if (inViewport) {
-    console.log("in viewport:", ref.current);
+  if (inViewport && !isValidating && upcomingApi.canNextPage) {
+    console.log(`next token is ${reqsUpcoming?.next}`);
+    upcomingApi.incrementPage();
   }
 
   return (
@@ -274,7 +269,7 @@ const Home: NextPage = () => {
                       {reqsUpcoming?.requests?.map((request, i) => (
                         <UserAccessCard
                           type="upcoming"
-                          key={request.id}
+                          key={request.id + i}
                           req={request}
                           index={i}
                           // ref={
@@ -289,14 +284,6 @@ const Home: NextPage = () => {
                           <Skeleton h="224px" w="100%" rounded="md" />
                         </>
                       )}
-                      <div
-                        ref={ref}
-                        style={{
-                          height: "500px",
-                          backgroundColor: "pink",
-                          width: "100%",
-                        }}
-                      />
                       {!isValidating && reqsUpcoming?.requests.length === 0 && (
                         <Center
                           bg="neutrals.100"
@@ -316,7 +303,32 @@ const Home: NextPage = () => {
                           </Text>
                         </Center>
                       )}
-                      <Spacer minH={12} />
+                      <Center
+                        minH={12}
+                        ref={ref}
+                        as="button"
+                        disabled={!upcomingApi.canNextPage}
+                        onClick={upcomingApi.incrementPage}
+                        color="neutrals.500"
+                        h={10}
+                        w="100%"
+                        _hover={{
+                          _disabled: {
+                            textDecor: "none",
+                          },
+                          textDecor: "underline",
+                        }}
+                      >
+                        {upcomingApi.isValidating ? (
+                          <Spinner />
+                        ) : upcomingApi.canNextPage ? (
+                          "Load more"
+                        ) : reqsUpcoming?.requests?.length > 4 ? (
+                          "That's it!"
+                        ) : (
+                          ""
+                        )}
+                      </Center>
                     </Stack>
                   </TabPanel>
                   <TabPanel overflowY="auto">

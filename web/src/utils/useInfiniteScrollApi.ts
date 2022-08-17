@@ -45,18 +45,20 @@ export const useInfiniteScrollApi = <T extends (...args: any[]) => any>({
         virtualData.next != data?.next
       ) {
         setVirtualData((curr) => {
+          let prevListItems =
+            curr?.[listObjKey].length > 0 ? curr?.[listObjKey] : [];
           return {
             ...curr,
-            [listObjKey]: [...curr?.[listObjKey], ...data?.[listObjKey]],
+            [listObjKey]: [...prevListItems, ...data?.[listObjKey]],
             next: data?.next,
           };
         });
       }
     }
-  }, [data]);
+  }, [data, isValidating]);
 
   const incrementPage = () => {
-    setNextToken(data.next);
+    data?.next && setNextToken(data.next);
   };
 
   const canNextPage = useMemo(() => !!virtualData?.next, [virtualData]);
