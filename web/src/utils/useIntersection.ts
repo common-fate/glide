@@ -3,6 +3,8 @@ import React from "react";
 /**
  * useIntersection
  * Uses the IntersectionObserver API to determine when a component is in view.
+ *
+ * NOTE: it's behavior is not 100% reliable, can do with further testing
  */
 export const useIntersection = (
   /** Pass in the ref of a given element i.e.

@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Center,
+  CenterProps,
   Container,
   Flex,
   Grid,
@@ -11,7 +12,6 @@ import {
   Skeleton,
   SkeletonCircle,
   SkeletonText,
-  Spacer,
   Spinner,
   Stack,
   Tab,
@@ -21,30 +21,25 @@ import {
   Tabs,
   Text,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
-import axios from "axios";
 import type { NextPage } from "next";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
-import { RequestStatusDisplay } from "../../components/Request";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
+import { RequestStatusDisplay } from "../../components/Request";
 import {
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
 } from "../../utils/backend-client/default/default";
 import {
-  cancelRequest,
   useListUserAccessRules,
   useUserGetAccessRule,
-  useUserListRequests,
 } from "../../utils/backend-client/end-user/end-user";
 import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
-import { mutate } from "swr";
 import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
 import { useIntersection } from "../../utils/useIntersection";
 
@@ -60,23 +55,23 @@ const Home: NextPage = () => {
 
   const { data: rules } = useListUserAccessRules();
 
-  const [nextToken, setNextToken] = React.useState<string | undefined>();
-
-  // const { data: reqsUpcoming, isValidating } = useUserListRequestsUpcoming({
-  //   nextToken,
-  // });
-
-  const isValidating = false; // TODO
-
-  const { data: reqsUpcoming, ...upcomingApi } = useInfiniteScrollApi<
-    typeof useUserListRequestsUpcoming
-  >({
+  const {
+    data: reqsUpcoming,
+    isValidating,
+    ...upcomingApi
+  } = useInfiniteScrollApi<typeof useUserListRequestsUpcoming>({
     swrHook: useUserListRequestsUpcoming,
     hookProps: {},
     listObjKey: "requests",
   });
 
-  const { data: reqsPast, mutate: mutatePast } = useUserListRequestsPast();
+  const { data: reqsPast, ...pastApi } = useInfiniteScrollApi<
+    typeof useUserListRequestsPast
+  >({
+    swrHook: useUserListRequestsPast,
+    hookProps: {},
+    listObjKey: "requests",
+  });
 
   const { isOpen, onClose, onToggle } = useDisclosure();
 
@@ -85,19 +80,14 @@ const Home: NextPage = () => {
   const upcomingRef = useRef();
   const pastRef = useRef();
 
-  // DE = list response loads normally
-  // DE = when scrolling to bottom, pagination is triggered
-  // DE = the paginated response is appended to a *virtual* list (should contain all pages)
-  // DE = mutate/revalidation queries still update the UI
+  const inViewport = useIntersection(upcomingRef, "90px"); // Trigger if 200px is visible from the element
 
-  const ref = useRef();
-
-  const inViewport = useIntersection(ref, "0px"); // Trigger if 200px is visible from the element
-
-  if (inViewport && !isValidating && upcomingApi.canNextPage) {
-    console.log(`next token is ${reqsUpcoming?.next}`);
+  useEffect(() => {
+    console.log("in view");
     upcomingApi.incrementPage();
-  }
+    // if (inViewport && !isValidating && upcomingApi.canNextPage) {
+    // }
+  }, [inViewport]);
 
   return (
     <>
@@ -260,21 +250,13 @@ const Home: NextPage = () => {
                 </TabList>
                 <TabPanels>
                   <TabPanel overflowY="auto">
-                    <Stack
-                      spacing={5}
-                      maxH="80vh"
-                      // ref={upcomingRef}
-                      // onScroll={() => handleScroll("upcoming")}
-                    >
+                    <Stack spacing={5} maxH="80vh">
                       {reqsUpcoming?.requests?.map((request, i) => (
                         <UserAccessCard
                           type="upcoming"
                           key={request.id + i}
                           req={request}
                           index={i}
-                          // ref={
-                          //   reqsUpcoming?.requests.length == i + 1 ? ref : null
-                          // }
                         />
                       ))}
                       {reqsUpcoming === undefined && (
@@ -303,23 +285,13 @@ const Home: NextPage = () => {
                           </Text>
                         </Center>
                       )}
-                      <Center
-                        minH={12}
-                        ref={ref}
-                        as="button"
+                      <LoadMoreButton
+                        // dont apply ref when validating
+                        ref={upcomingRef}
                         disabled={!upcomingApi.canNextPage}
                         onClick={upcomingApi.incrementPage}
-                        color="neutrals.500"
-                        h={10}
-                        w="100%"
-                        _hover={{
-                          _disabled: {
-                            textDecor: "none",
-                          },
-                          textDecor: "underline",
-                        }}
                       >
-                        {upcomingApi.isValidating ? (
+                        {isValidating && reqsUpcoming?.requests ? (
                           <Spinner />
                         ) : upcomingApi.canNextPage ? (
                           "Load more"
@@ -328,7 +300,7 @@ const Home: NextPage = () => {
                         ) : (
                           ""
                         )}
-                      </Center>
+                      </LoadMoreButton>
                     </Stack>
                   </TabPanel>
                   <TabPanel overflowY="auto">
@@ -370,7 +342,22 @@ const Home: NextPage = () => {
                           </Text>
                         </Center>
                       )}
-                      <Spacer minH={12} />
+                      <LoadMoreButton
+                        // dont apply ref when validating
+                        ref={isValidating ? null : pastRef}
+                        disabled={!pastApi.canNextPage}
+                        onClick={pastApi.incrementPage}
+                      >
+                        {pastApi.isValidating && reqsPast?.requests ? (
+                          <Spinner />
+                        ) : pastApi.canNextPage ? (
+                          "Load more"
+                        ) : reqsPast?.requests?.length > 4 ? (
+                          "That's it!"
+                        ) : (
+                          ""
+                        )}
+                      </LoadMoreButton>
                     </Stack>
                   </TabPanel>
                 </TabPanels>
@@ -386,6 +373,22 @@ const Home: NextPage = () => {
 
 export default Home;
 
+const LoadMoreButton = (props: CenterProps) => (
+  <Center
+    minH={12}
+    as="button"
+    color="neutrals.500"
+    h={10}
+    w="100%"
+    _hover={{
+      _disabled: {
+        textDecor: "none",
+      },
+      textDecor: "underline",
+    }}
+    {...props}
+  />
+);
 /** things that end users can do to requests */
 type RequestOption = "cancel" | "extend" | undefined;
 
