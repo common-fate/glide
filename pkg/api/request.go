@@ -36,14 +36,20 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, p
 		RequestEndComparator: storage.GreaterThan,
 		CompareTo:            time.Now(),
 	}
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	qR, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
 
+	var next *string
+	if qR.NextPage != "" {
+		next = &qR.NextPage
+	}
+
 	res := types.ListRequestsResponse{
 		Requests: make([]types.Request, len(q.Result)),
+		Next:     next,
 	}
 	for i, r := range q.Result {
 		res.Requests[i] = r.ToAPI()
