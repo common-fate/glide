@@ -323,12 +323,16 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 		apio.Error(ctx, w, err)
 		return
 	}
-	if res.StatusCode() != http.StatusOK {
+
+	switch res.StatusCode() {
+	case http.StatusOK:
+		apio.JSON(ctx, w, res.JSON200, http.StatusOK)
+	case http.StatusNotFound:
+		apio.JSON(ctx, w, res.JSON404.Error, res.StatusCode())
+	case http.StatusBadRequest:
 		apio.JSON(ctx, w, res.JSON400.Error, res.StatusCode())
-		return
 	}
 
-	apio.JSON(ctx, w, res.JSON200, http.StatusOK)
 }
 
 func (a *API) ListRequestEvents(w http.ResponseWriter, r *http.Request, requestId string) {
