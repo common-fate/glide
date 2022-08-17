@@ -169,7 +169,8 @@ export class Granter extends Construct {
           "sso:ListPermissionSets",
           "sso:DescribePermissionSet",
           "sso:DeletePermissionSet",
-          "iam:ListRoles"
+          "iam:ListRoles",
+          "sts:AssumeRole"
         ],
         resources: ["*"],
 

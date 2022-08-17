@@ -95,7 +95,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	return false, nil
 }
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
-	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID)
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {

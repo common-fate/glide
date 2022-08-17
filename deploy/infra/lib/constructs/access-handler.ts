@@ -83,6 +83,7 @@ export class AccessHandler extends Construct {
           "sso:ListAccountAssignments",
           "identitystore:ListUsers",
           "organizations:DescribeAccount",
+          "sts:AssumeRole"
         ],
         resources: ["*"],
       })
