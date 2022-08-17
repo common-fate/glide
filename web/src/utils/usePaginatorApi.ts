@@ -56,7 +56,7 @@ export const usePaginatorApi = <T extends (...args: any[]) => any>({
   const [pageOptions, setPageOptions] = useState<number[]>([pageIndex]);
 
   useEffect(() => {
-    if (data && data.next && pageOptions.length == 1) {
+    if (data?.next && pageOptions?.length === 1) {
       setPageOptions((curr) => [...curr, pageIndex + 1]);
       setTokenStack((curr) => [...curr, data.next]);
     }
