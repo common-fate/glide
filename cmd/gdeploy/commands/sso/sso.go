@@ -216,7 +216,7 @@ Users in this group will be able to manage Access Rules.
 			return err
 		}
 
-		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].Name
+		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
 
 		clio.Info("Updating your deployment config")
 
