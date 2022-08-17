@@ -3,11 +3,13 @@ package sso
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 
 	"github.com/urfave/cli/v2"
@@ -45,6 +47,7 @@ var configureCommand = cli.Command{
 		}
 		currentConfig := dc.Deployment.Parameters.IdentityConfiguration[idpType]
 		update := true
+
 		//if there are already params for that idp then ask if they want to update
 		if currentConfig != nil {
 			if idpType == dc.Deployment.Parameters.IdentityProviderType {
@@ -179,11 +182,41 @@ var configureCommand = cli.Command{
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
 `)
-		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:", Default: dc.Deployment.Parameters.AdministratorGroupID}
-		err = survey.AskOne(adminGroupPrompt, &dc.Deployment.Parameters.AdministratorGroupID)
+
+		err = idp.IdentityProvider.Init(ctx)
 		if err != nil {
 			return err
 		}
+
+		
+		grps, err := idp.IdentityProvider.ListGroups(ctx)
+		if err != nil {
+			return err
+		}
+
+		// convert groups to a string map
+		groupMap := make(map[string]identity.IdpGroup)
+		groupNames := []string{}
+		chosenKey := ""
+		for _, g := range grps {
+			key := fmt.Sprintf("%s: %s", g.Name, g.Description)
+			groupMap[key] = g
+			groupNames = append(groupNames, key)
+		}
+
+		// sort groupNames alphabetically
+		sort.Strings(groupNames)
+
+		err = survey.AskOne(&survey.Select{
+			Message: "The ID of the Granted Administrators group in your identity provider:",
+			Options: groupNames,
+		}, &chosenKey)
+
+		if err != nil {
+			return err
+		}
+
+		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
 
 		clio.Info("Updating your deployment config")
 
