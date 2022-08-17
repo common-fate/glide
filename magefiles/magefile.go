@@ -291,6 +291,7 @@ func Dotenv() error {
 	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
 	myEnv["GRANTED_RUNTIME"] = "lambda"
+	myEnv["AWS_KMS_KEY"] = o.KmsKey
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
