@@ -100,6 +100,13 @@ export class AccessHandler extends Construct {
       })
     );
 
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+      })
+    );
+
     props.eventBus.grantPutEventsTo(this._lambda);
   }
   getGranter(): Granter {
