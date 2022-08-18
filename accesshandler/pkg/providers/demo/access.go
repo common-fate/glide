@@ -35,7 +35,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 
 	i := p.instructions.Value
 	i += "\n # Access Token\n"
-	i += fmt.Sprintf("<input type=\"text\" value=\"%s\" class=\"pword\"></input>", "DOG")
+	i += fmt.Sprintf("<input type=\"text\" value=\"%s\" class=\"pword\"></input>", "VALUE123")
 
 	return i, nil
 }
