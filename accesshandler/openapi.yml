@@ -397,14 +397,17 @@ components:
       x-stoplight:
         id: 56g6qww0dpbvx
       type: object
-      properties:
-        instructions:
-          type: string
-          description: Instructions on how to access the role or resource.
       description: |-
         Instructions on how to access the requested resource.
 
         The `instructions` field will be null if no instructions are available.
+      properties:
+        instructions:
+          type: string
+          description: Instructions on how to access the role or resource.
+        accessToken:
+          type: string
+          nullable: true
   requestBodies: {}
   responses:
     HealthResponse:
