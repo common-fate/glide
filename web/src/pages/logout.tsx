@@ -1,11 +1,8 @@
 import { Center } from "@chakra-ui/react";
-import React from "react";
-import { useUser } from "../utils/context/userContext";
-
-type Props = {};
+import { useCognito } from "../utils/context/cognitoContext";
 
 const Logout = () => {
-  const auth = useUser();
+  const auth = useCognito();
   auth.initiateSignOut();
 
   return <Center h="80vh">Logging you out 👋</Center>;
