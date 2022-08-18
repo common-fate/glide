@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -284,14 +285,19 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return nil
 		}
 
-		// release value are added as URL for UAT. In such case it should skip this check.
-		_, err = url.ParseRequestURI(dc.Deployment.Release)
-		if err == nil {
-			return nil
+		isValidReleaseNumber, err := regexp.MatchString(`v\d.\d+.\d+`, dc.Deployment.Release)
+		if err != nil {
+			return err
 		}
 
-		if build.Version != dc.Deployment.Release {
+		if isValidReleaseNumber && build.Version != dc.Deployment.Release {
 			return clio.NewCLIError("Uncompatible gdeploy version and granted-approval version. You need to update gDeploy to the latest version.")
+		}
+
+		// release value are added as URL for UAT. In such case it should skip this check.
+		_, err = url.ParseRequestURI(dc.Deployment.Release)
+		if err != nil {
+			return clio.NewCLIError("Invalid URL value for release in 'granted-deployment.yml file.")
 		}
 
 		return nil
