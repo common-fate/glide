@@ -212,7 +212,7 @@ const Home: NextPage = () => {
             >
               {rule ? (
                 <>
-                  <Flex data-testid="reason" align="center" mr="auto">
+                  <Flex data-testid="rule-name" align="center" mr="auto">
                     <ProviderIcon provider={rule?.target.provider} />
                     <Text ml={2} textStyle="Body/Medium" color="neutrals.600">
                       {rule?.name}
