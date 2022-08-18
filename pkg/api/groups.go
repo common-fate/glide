@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -12,14 +13,19 @@ import (
 
 // Your GET endpoint
 // (GET /api/v1/groups/)
-func (a *API) GetGroups(w http.ResponseWriter, r *http.Request) {
+func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.GetGroupsParams) {
 	ctx := r.Context()
+
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+	}
 
 	q := storage.ListGroupsForStatus{
 		Status: types.IdpStatusACTIVE,
 	}
 
-	_, err := a.DB.Query(ctx, &q)
+	_, err := a.DB.Query(ctx, &q, queryOpts...)
 
 	if err != nil {
 		apio.Error(ctx, w, err)

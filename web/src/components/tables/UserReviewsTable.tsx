@@ -3,6 +3,7 @@ import format from "date-fns/format";
 import { useMemo } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
 import { Request, RequestStatus } from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
@@ -25,9 +26,13 @@ export const UserReviewsTable = () => {
   const { status } = search;
 
   // const [status, setStatus] = useState<RequestStatus | undefined>();
-  const { data } = useUserListRequests({
-    reviewer: true,
-    status: status ? (status.toUpperCase() as RequestStatus) : undefined,
+
+  const paginator = usePaginatorApi<typeof useUserListRequests>({
+    swrHook: useUserListRequests,
+    hookProps: {
+      reviewer: true,
+      status: status ? (status.toUpperCase() as RequestStatus) : undefined,
+    },
   });
 
   const cols: Column<Request>[] = useMemo(
@@ -134,7 +139,8 @@ export const UserReviewsTable = () => {
       </Flex>
       {TableRenderer<Request>({
         columns: cols,
-        data: data?.requests,
+        data: paginator?.data?.requests,
+        apiPaginator: paginator,
         emptyText: "🎉 No outstanding reviews",
         rowProps: (row) => ({
           "_hover": { bg: "gray.50" },

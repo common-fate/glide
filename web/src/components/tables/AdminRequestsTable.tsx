@@ -135,14 +135,6 @@ export const AdminRequestsTable = () => {
         data: paginator?.data?.requests,
         emptyText: "No requests",
         apiPaginator: paginator,
-        rowProps: (row) => ({
-          // _hover: { bg: "gray.50" },
-          // cursor: "pointer",
-          // alignItems: "center",
-          // onClick: () => {
-          //   navigate({ to: "/admin/requests/" + row.values.id });
-          // },
-        }),
         linkTo: true,
       })}
     </>
