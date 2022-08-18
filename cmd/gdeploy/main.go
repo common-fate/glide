@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"time"
@@ -58,8 +59,8 @@ func main() {
 			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
 			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
@@ -265,6 +266,34 @@ func PreventDevUsage() cli.BeforeFunc {
 		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
 			return clio.NewCLIError("Unsupported command used on developement deployment", clio.WarnMsg("It looks like you tried to use an unsupported command on your developement stack: '%s'.", c.Command.Name), clio.InfoMsg("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
 		}
+		return nil
+	}
+}
+
+// Check whether gdeploy version matches with the granted-approval.
+func VerifyGDeployCompatibility() cli.BeforeFunc {
+	return func(c *cli.Context) error {
+		ctx := c.Context
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		// skip compatibility check for dev deployments.
+		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
+			return nil
+		}
+
+		// release value are added as URL for UAT. In such case it should skip this check.
+		_, err = url.ParseRequestURI(dc.Deployment.Release)
+		if err == nil {
+			return nil
+		}
+
+		if build.Version != dc.Deployment.Release {
+			return clio.NewCLIError("Uncompatible gdeploy version and granted-approval version. You need to update gDeploy to the latest version.")
+		}
+
 		return nil
 	}
 }
