@@ -149,6 +149,8 @@ paths:
                 $ref: "#/components/schemas/AccessInstructions"
         "400":
           $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: get-access-instructions
       description: |-
         Get access instructions for a provider.
