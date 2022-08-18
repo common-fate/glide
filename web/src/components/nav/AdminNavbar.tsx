@@ -25,6 +25,7 @@ import {
 } from "@chakra-ui/react";
 import * as React from "react";
 import { Link } from "react-location";
+import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
 import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogoAdmin } from "../icons/Logos";
@@ -39,8 +40,8 @@ export const AdminNavbar: React.FC<{}> = () => {
     setHasMounted(true);
   }, []);
 
-  const auth = useUser();
-
+  const user = useUser();
+  const auth = useCognito();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
@@ -118,7 +119,7 @@ export const AdminNavbar: React.FC<{}> = () => {
                       <Avatar
                         variant="withBorder"
                         boxSize="10"
-                        name={auth?.user?.email}
+                        name={user.user?.email}
                       />
                     </MenuButton>
                     <MenuList _dark={{ borderColor: "gray.500" }}>
@@ -128,7 +129,7 @@ export const AdminNavbar: React.FC<{}> = () => {
                           e.preventDefault();
                         }}
                       >
-                        {auth.user?.email}
+                        {user.user?.email}
                       </MenuItem>
                       <MenuItem
                         icon={<DoorIcon color={"gray.400"} />}
