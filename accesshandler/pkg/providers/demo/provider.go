@@ -16,7 +16,6 @@ type Provider struct {
 	schema jsonschema.Schema
 	// options is parsed from optionsString during Init()
 	options map[string][]types.Option
-	token   gconfig.SecretStringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
