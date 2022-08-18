@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -79,7 +80,12 @@ func (s *Server) Routes() http.Handler {
 	})
 	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		// req := r.Header.Get("X-Granted-Request")
+		token := r.Header.Get("X-Granted-Request")
+
+		if token != "TOKEN-123" {
+			apio.Error(ctx, w, fmt.Errorf("Invalid token provided"))
+			return
+		}
 
 		var b RecordingEventBody
 

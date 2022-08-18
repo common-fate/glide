@@ -49,6 +49,7 @@ import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
+// import remarkGfm from "remark-gfm";
 
 interface RequestProps {
   request?: RequestDetail;
@@ -65,7 +66,7 @@ interface RequestContext {
 
 const Context = createContext<RequestContext>({
   request: undefined,
-  setOverrideTiming: () => { },
+  setOverrideTiming: () => {},
 });
 
 export const RequestDisplay: React.FC<RequestProps> = ({
@@ -120,12 +121,12 @@ export const RequestStatusDisplay: React.FC<{
   const activeTimeString =
     request?.grant && request?.grant.status === "ACTIVE"
       ? "Active for the next " +
-      durationStringHoursMinutes(
-        intervalToDuration({
-          start: new Date(),
-          end: new Date(Date.parse(request.grant.end)),
-        })
-      )
+        durationStringHoursMinutes(
+          intervalToDuration({
+            start: new Date(),
+            end: new Date(Date.parse(request.grant.end)),
+          })
+        )
       : undefined;
 
   const status = getStatus(request, activeTimeString);
@@ -155,15 +156,15 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
 
   const version: VersionDisplay = request?.accessRule.isCurrent
     ? {
-      badge: "Latest",
-      label:
-        "This request was made for the current version of this access rule.",
-    }
+        badge: "Latest",
+        label:
+          "This request was made for the current version of this access rule.",
+      }
     : {
-      badge: "Old Version",
-      label:
-        "The access rule has been updated since this request was made. You can still approve this request.",
-    };
+        badge: "Old Version",
+        label:
+          "The access rule has been updated since this request was made. You can still approve this request.",
+      };
 
   return (
     <Stack
@@ -231,6 +232,7 @@ export const RequestAccessInstructions: React.FC = () => {
         Access Instructions
       </Box>
       <ReactMarkdown
+        // remarkPlugins={[remarkGfm]}
         components={{
           a: (props) => (
             <Link
@@ -249,6 +251,16 @@ export const RequestAccessInstructions: React.FC = () => {
               {props.children}
             </Text>
           ),
+          /**
+           * We support accessToken markdown by adding the following:
+           * <input type="text" value="{{ accessToken }}" className="pword" />
+           */
+          // input: (props) =>
+          //   props.className == "pword" && typeof props.value == "string" ? (
+          //     <RequestAccessToken tokenIn={props.value} />
+          //   ) : (
+          //     <Input children={props.children} />
+          //   ),
         }}
       >
         {data.instructions}
@@ -257,12 +269,15 @@ export const RequestAccessInstructions: React.FC = () => {
   );
 };
 
-
-export const RequestAccessToken: React.FC = () => {
-  const [token, setToken] = useState<string>("z5sL3u61cj2G2kcmO1P0VuXlhXaDAAjsWzokwbw3")
-  const toast = useToast()
+export const RequestAccessToken: React.FC<{ tokenIn: string }> = ({
+  tokenIn,
+}) => {
+  const [token, setToken] = useState<string>(
+    tokenIn || "z5sL3u61cj2G2kcmO1P0VuXlhXaDAAjsWzokwbw3"
+  );
+  const toast = useToast();
   const handleClick = () => {
-    navigator.clipboard.writeText(token)
+    navigator.clipboard.writeText(token);
     toast({
       title: "Access token copied to clipboard",
       status: "success",
@@ -270,24 +285,18 @@ export const RequestAccessToken: React.FC = () => {
       duration: 2200,
       isClosable: true,
     });
-
-  }
+  };
 
   return (
     <Stack>
       <Box textStyle="Body/Medium" mb={2}>
         Access Token
       </Box>
-      <InputGroup size='md' bg="white">
-        <Input
-          pr='4.5rem'
-          type={'password'}
-          value={token}
-          readOnly
-        />
-        <InputRightElement width='4.5rem' pr={1}>
-          <Button h='1.75rem' size='sm' onClick={handleClick}>
-            {'Copy'}
+      <InputGroup size="md" bg="white">
+        <Input pr="4.5rem" type={"password"} value={token} readOnly />
+        <InputRightElement width="4.5rem" pr={1}>
+          <Button h="1.75rem" size="sm" onClick={handleClick}>
+            {"Copy"}
           </Button>
         </InputRightElement>
       </InputGroup>
@@ -658,7 +667,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
   const submitRevoke = async () => {
     if (request === undefined) return;
     try {
-      await revokeRequest(request.id, {}).then(() => { });
+      await revokeRequest(request.id, {}).then(() => {});
       toast({
         title: "Deactivated grant",
         status: "success",
