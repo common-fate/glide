@@ -14,6 +14,7 @@ import {
   Link,
   Skeleton,
   SkeletonText,
+  Spinner,
   Stack,
   Text,
   Tooltip,
@@ -33,6 +34,7 @@ import {
   reviewRequest,
   revokeRequest,
   useGetAccessInstructions,
+  useGetAccessToken,
   useGetUser,
 } from "../utils/backend-client/end-user/end-user";
 import {
@@ -254,16 +256,6 @@ export const RequestAccessInstructions: React.FC = () => {
               {props.children}
             </Text>
           ),
-          /**
-           * We support accessToken markdown by adding the following:
-           * <input type="text" value="{{ accessToken }}" className="pword" />
-           */
-          input: (props) =>
-            props.className == "pword" && typeof props.value == "string" ? (
-              <RequestAccessToken tokenIn={props.value} />
-            ) : (
-              <Input children={props.children} />
-            ),
         }}
         children={data.instructions}
       />
@@ -271,15 +263,18 @@ export const RequestAccessInstructions: React.FC = () => {
   );
 };
 
-export const RequestAccessToken: React.FC<{ tokenIn: string }> = ({
-  tokenIn,
-}) => {
-  const [token, setToken] = useState<string>(
-    tokenIn || "z5sL3u61cj2G2kcmO1P0VuXlhXaDAAjsWzokwbw3"
-  );
+export const RequestAccessToken = () => {
+  const { request } = useContext(Context);
+  const { data } = useGetAccessToken(request?.id);
+
+  // const [token, setToken] = useState<string>();
+
   const toast = useToast();
+
+  if (!data) return <Spinner />;
+
   const handleClick = () => {
-    navigator.clipboard.writeText(token);
+    navigator.clipboard.writeText(data);
     toast({
       title: "Access token copied to clipboard",
       status: "success",
@@ -291,8 +286,11 @@ export const RequestAccessToken: React.FC<{ tokenIn: string }> = ({
 
   return (
     <Stack>
-      <InputGroup size="md" bg="white">
-        <Input pr="4.5rem" type={"password"} value={token} readOnly />
+      <Box textStyle="Body/Medium" mb={2}>
+        Access Token
+      </Box>
+      <InputGroup size="md" bg="white" maxW="400px">
+        <Input pr="4.5rem" type={"password"} value={data} readOnly />
         <InputRightElement width="4.5rem" pr={1}>
           <Button h="1.75rem" size="sm" onClick={handleClick}>
             {"Copy"}

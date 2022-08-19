@@ -22,6 +22,7 @@ import type {
   ReviewResponseResponse,
   ReviewRequestBody,
   CancelRequest200,
+  AccessToken,
   User,
   AuthUserResponseResponse
 } from '.././types'
@@ -382,6 +383,47 @@ export const useGetAccessInstructions = <TError = ErrorType<unknown>>(
   const isEnable = !!(requestId)
   const swrKey = swrOptions?.swrKey ?? (() => isEnable ? getGetAccessInstructionsKey(requestId) : null);
   const swrFn = () => getAccessInstructions(requestId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Get access token for a request.
+
+Returns information on how to access the role or resource.
+ * @summary Get Access Token
+ */
+export const getAccessToken = (
+    requestId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AccessToken>(
+      {url: `/api/v1/requests/${requestId}/access-token`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetAccessTokenKey = (requestId: string,) => [`/api/v1/requests/${requestId}/access-token`];
+
+    
+export type GetAccessTokenQueryResult = NonNullable<Awaited<ReturnType<typeof getAccessToken>>>
+export type GetAccessTokenQueryError = ErrorType<ErrorResponseResponse>
+
+export const useGetAccessToken = <TError = ErrorType<ErrorResponseResponse>>(
+ requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getAccessToken>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnable = !!(requestId)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnable ? getGetAccessTokenKey(requestId) : null);
+  const swrFn = () => getAccessToken(requestId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
