@@ -9,7 +9,6 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
-import { useUser } from "../utils/context/userContext";
 import {
   useGetUser,
   useListRequestEvents,
