@@ -77,17 +77,17 @@ const Home: NextPage = () => {
 
   const user = useUser();
 
-  const upcomingRef = useRef();
-  const pastRef = useRef();
+  // const upcomingRef = useRef();
+  // const pastRef = useRef();
 
-  const inViewport = useIntersection(upcomingRef, "90px"); // Trigger if 200px is visible from the element
+  // const inViewport = useIntersection(upcomingRef, "90px"); // Trigger if 200px is visible from the element
 
-  useEffect(() => {
-    console.log("in view");
-    upcomingApi.incrementPage();
-    // if (inViewport && !isValidating && upcomingApi.canNextPage) {
-    // }
-  }, [inViewport]);
+  // useEffect(() => {
+  //   console.log("in view");
+  //   upcomingApi.incrementPage();
+  //   // if (inViewport && !isValidating && upcomingApi.canNextPage) {
+  //   // }
+  // }, [inViewport]);
 
   return (
     <>
@@ -287,7 +287,7 @@ const Home: NextPage = () => {
                       )}
                       <LoadMoreButton
                         // dont apply ref when validating
-                        ref={upcomingRef}
+                        // ref={upcomingRef}
                         disabled={!upcomingApi.canNextPage}
                         onClick={upcomingApi.incrementPage}
                       >
@@ -344,7 +344,7 @@ const Home: NextPage = () => {
                       )}
                       <LoadMoreButton
                         // dont apply ref when validating
-                        ref={isValidating ? null : pastRef}
+                        // ref={isValidating ? null : pastRef}
                         disabled={!pastApi.canNextPage}
                         onClick={pastApi.incrementPage}
                       >
