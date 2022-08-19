@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -60,7 +59,7 @@ func main() {
 			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility()),
 			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
 			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
@@ -285,19 +284,11 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return nil
 		}
 
-		isValidReleaseNumber, err := regexp.MatchString(`v\d.\d+.\d+`, dc.Deployment.Release)
-		if err != nil {
-			return err
-		}
-
-		if isValidReleaseNumber && build.Version != dc.Deployment.Release {
-			return clio.NewCLIError("Uncompatible gdeploy version and granted-approval version. You need to update gDeploy to the latest version.")
-		}
-
 		// release value are added as URL for UAT. In such case it should skip this check.
+		// cases when release value is invalid URL or has version number instead of URL.
 		_, err = url.ParseRequestURI(dc.Deployment.Release)
-		if err != nil {
-			return clio.NewCLIError("Invalid URL value for release in 'granted-deployment.yml file.")
+		if err != nil && build.Version != dc.Deployment.Release {
+			return clio.NewCLIError(fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . ", dc.Deployment.Release, build.Version))
 		}
 
 		return nil
