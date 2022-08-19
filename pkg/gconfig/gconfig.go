@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -397,4 +398,79 @@ func OptionalStringField(key string, dest *OptionalStringValue, usage string, op
 		opt(f)
 	}
 	return f
+}
+
+func BoolField(key string, dest *BoolValue, usage string, opts ...FieldOptFunc) *Field {
+	if dest == nil {
+		panic(ErrFieldValueMustNotBeNil)
+	}
+
+	stringVal := StringValue{Value: strconv.FormatBool(dest.Get())}
+	f := &Field{
+		key:   key,
+		value: &stringVal,
+		usage: usage,
+	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	return f
+}
+
+// StringValue value implements the Valuer interface
+type BoolValue struct {
+	Value bool
+}
+
+// Get the value of the string
+func (s *BoolValue) Get() bool {
+	return s.Value
+}
+
+// String calls StringValue.Get()
+func (s *BoolValue) String() bool {
+	return s.Get()
+}
+
+// Set the value of the string
+func (s *BoolValue) Set(value interface{}) error {
+	str, ok := value.(bool)
+	if !ok {
+		return errors.New("value must be bool")
+	}
+	s.Value = str
+	return nil
+}
+
+// OptionalBoolValue value implements the Valuer interface
+type OptionalBoolValue struct {
+	Value *bool
+}
+
+// Get the value of the string
+func (s *OptionalBoolValue) Get() bool {
+	if s.Value == nil {
+		return false
+	}
+	return *s.Value
+}
+
+// Get the value of the string
+func (s *OptionalBoolValue) IsSet() bool {
+	return s.Value != nil
+}
+
+// String calls OptionalStringValue.Get()
+func (s *OptionalBoolValue) String() bool {
+	return s.Get()
+}
+
+// Set the value of the string
+func (s *OptionalBoolValue) Set(value interface{}) error {
+	str, ok := value.(bool)
+	if !ok {
+		return errors.New("value must be string")
+	}
+	s.Value = &str
+	return nil
 }

@@ -9,8 +9,7 @@ import (
 )
 
 type Args struct {
-	Token   string `json:"token" jsonschema:"title=Token"`
-	GrantId string `json:"GrantId" jsonschema:"title=GrantId"`
+	Server string `json:"server" jsonschema:"title=Server"`
 }
 
 // Grant the access
