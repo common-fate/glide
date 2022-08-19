@@ -75,14 +75,14 @@ func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, param
 		RequestEndComparator: storage.LessThanEqual,
 		CompareTo:            time.Now(),
 	}
-	qR, err := a.DB.Query(ctx, &q, queryOpts...)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
 
 	var next *string
-	if qR.NextPage != "" {
+	if qr.NextPage != "" {
 		next = &qR.NextPage
 	}
 
