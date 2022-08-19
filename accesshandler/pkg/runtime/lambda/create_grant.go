@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
+	"github.com/segmentio/ksuid"
 
 	"github.com/common-fate/apikit/logger"
 
@@ -62,5 +63,11 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 	if err != nil {
 		return nil, err
 	}
+	hasToken := true
+
+	if hasToken {
+		grant.AccessToken = aws.String(ksuid.New().String())
+	}
+
 	return &grant, nil
 }

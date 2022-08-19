@@ -14,4 +14,5 @@ The `instructions` field will be null if no instructions are available.
 export interface AccessInstructions {
   /** Instructions on how to access the role or resource. */
   instructions?: string;
+  accessToken?: string | null;
 }

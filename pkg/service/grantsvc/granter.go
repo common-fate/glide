@@ -160,6 +160,10 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 			UpdatedAt: now,
 		}
 
+		//save access token to dynamo
+		newAccessToken := access.AccessToken{RequestId: opts.Request.ID, Token: *res.JSON201.Grant.AccessToken}
+
+		g.DB.Put(ctx, &newAccessToken)
 		return &opts.Request, nil
 	}
 
