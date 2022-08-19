@@ -83,7 +83,7 @@ func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, param
 
 	var next *string
 	if qr.NextPage != "" {
-		next = &qR.NextPage
+		next = &qr.NextPage
 	}
 
 	res := types.ListRequestsResponse{
