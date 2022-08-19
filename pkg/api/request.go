@@ -36,7 +36,7 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, p
 		RequestEndComparator: storage.GreaterThan,
 		CompareTo:            time.Now(),
 	}
-	qR, err := a.DB.Query(ctx, &q, queryOpts...)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
