@@ -270,7 +270,7 @@ func PreventDevUsage() cli.BeforeFunc {
 	}
 }
 
-// Check whether gdeploy version matches with the granted-approval.
+// BeforeFunc wrapper for CheckReleaseVersion.
 func VerifyGDeployCompatibility() cli.BeforeFunc {
 	return func(c *cli.Context) error {
 		ctx := c.Context
@@ -279,18 +279,24 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return err
 		}
 
-		// skip compatibility check for dev deployments.
-		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
-			return nil
-		}
+		return CheckReleaseVersion(dc.Deployment, build.Version)
+	}
+}
 
-		// release value are added as URL for UAT. In such case it should skip this check.
-		// cases when release value is invalid URL or has version number instead of URL.
-		_, err = url.ParseRequestURI(dc.Deployment.Release)
-		if err != nil && build.Version != dc.Deployment.Release {
-			return clio.NewCLIError(fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . ", dc.Deployment.Release, build.Version))
-		}
-
+// Validate if the passed deployment configuration's release value and gdeploy version
+// matches or not. Return CLI error if different.
+func CheckReleaseVersion(d deploy.Deployment, buildVersion string) *clio.CLIError {
+	// skip compatibility check for dev deployments.
+	if d.Dev != nil && *d.Dev {
 		return nil
 	}
+
+	// release value are added as URL for UAT. In such case it should skip this check.
+	// cases when release value is invalid URL or has version number instead of URL.
+	_, err := url.ParseRequestURI(d.Release)
+	if err != nil && buildVersion != d.Release {
+		return clio.NewCLIError(fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . ", d.Release, buildVersion))
+	}
+
+	return nil
 }
