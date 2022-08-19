@@ -18,7 +18,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.17.8"
+          go-version: "1.19.0"
           cache: true
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -65,7 +65,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.17.8
+          go-version: 1.19.0
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -123,7 +123,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.17.8"
+          go-version: "1.19.0"
           cache: true
       - name: generate fixtures
         run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta --path accesshandler/fixtures
