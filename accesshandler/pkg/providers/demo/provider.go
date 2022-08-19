@@ -2,7 +2,6 @@ package demo
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -13,12 +12,8 @@ import (
 type Provider struct {
 	providerType gconfig.StringValue
 	instructions gconfig.StringValue
-	// optionsString gconfig.StringValue
-	// schema is parsed from schemaString during Init()
-	//schema jsonschema.Schema
-	// options is parsed from optionsString during Init()
-	options  map[string][]types.Option
-	hasToken gconfig.BoolValue
+	options      map[string][]types.Option
+	hasToken     gconfig.BoolValue
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -34,18 +29,14 @@ func (p *Provider) Config() gconfig.Config {
 // // Init the provider.
 func (p *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configuring demo provider", "providerType", p.providerType)
-	// unmarshal the JSON schema
-	// err := json.Unmarshal([]byte(p.schemaString.Value), &p.schema)
-	// if err != nil {
-	// 	return err
-	// }
-	// unmarshal the options
-	err := json.Unmarshal([]byte("{"server": {""}}"), &p.options)
-	if err != nil {
-		return err
-	}
 
-	p.hasToken.Set(true)
+	//manually set the options for now
+	optionsJson := []types.Option{}
+
+	optionsJson = append(optionsJson, types.Option{Label: "ECS Demo", Value: "ecs-demo"})
+
+	p.options = make(map[string][]types.Option)
+	p.options["server"] = optionsJson
 
 	return nil
 }
