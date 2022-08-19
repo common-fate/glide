@@ -68,7 +68,7 @@ func main() {
 			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
 			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
 			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
-			WithBeforeFuncs(&release.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility()),
+			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
 			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
 		},
 	}
