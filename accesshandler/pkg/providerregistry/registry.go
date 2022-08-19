@@ -36,7 +36,7 @@ func Registry() ProviderRegistry {
 				DefaultID:   "aws-sso",
 				Description: "AWS SSO PermissionSets",
 			},
-			"commonfate/aws-eks-roles-sso@v1": {
+			"commonfate/aws-eks-roles-sso@v1alpha1": {
 				Provider:    &eksrolessso.Provider{},
 				DefaultID:   "aws-eks-roles-sso",
 				Description: "AWS EKS Roles SSO",
