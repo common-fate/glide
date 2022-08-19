@@ -17,8 +17,8 @@ var requestCommand = cli.Command{
 	Name:  "request.created",
 	Usage: "emit a request created event",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "rule", Aliases: []string{"r"}, Usage: "the rule ID", Required: true},
-		&cli.StringFlag{Name: "user", Aliases: []string{"u"}, Usage: "the email of the requestor", Required: true},
+		&cli.StringFlag{Name: "rule", Aliases: []string{"r"}, Usage: "The rule ID", Required: true},
+		&cli.StringFlag{Name: "user", Aliases: []string{"u"}, Usage: "The email of the requestor", Required: true},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context

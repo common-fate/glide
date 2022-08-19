@@ -15,7 +15,7 @@ var Command = cli.Command{
 	Name:        "restore",
 	Description: "Restore active Granted Approvals table from an existing backup",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "confirm", Usage: "if provided, will automatically deploy without asking for confirmation"},
+		&cli.BoolFlag{Name: "confirm", Usage: "If provided, will automatically deploy without asking for confirmation"},
 		&cli.StringFlag{Name: "arn", Usage: "The ARN of the backup to restore"},
 		&cli.StringFlag{Name: "table-name", Usage: "The name of a new table to restore this backup to"},
 	},

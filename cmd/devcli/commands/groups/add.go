@@ -23,8 +23,8 @@ var membersCommand = cli.Command{
 var addCommand = cli.Command{
 	Name: "add",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "the username of the user to add", Required: true},
-		&cli.StringFlag{Name: "group", Aliases: []string{"g"}, Usage: "the group ID to add the user to", Required: true},
+		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "The username of the user to add", Required: true},
+		&cli.StringFlag{Name: "group", Aliases: []string{"g"}, Usage: "The group ID to add the user to", Required: true},
 	},
 	Description: "Add a Cognito user to a group",
 	Action: func(c *cli.Context) error {

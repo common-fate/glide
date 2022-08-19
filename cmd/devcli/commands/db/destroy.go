@@ -15,7 +15,7 @@ import (
 var destroyCommand = cli.Command{
 	Name: "destroy",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "the name of the table", Required: true},
+		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "The name of the table", Required: true},
 		&cli.StringFlag{Name: "region", Aliases: []string{"r"}, Usage: "AWS region to provision the table into"},
 	},
 	Description: "Destroy a DynamoDB database",
