@@ -51,7 +51,6 @@ const Home: NextPage = () => {
         <RequestDetails>
           <RequestTime />
           <RequestAccessInstructions />
-          <RequestAccessToken />
           <RequestCancelButton />
           <RequestRevoke onSubmitRevoke={mutate} />
         </RequestDetails>

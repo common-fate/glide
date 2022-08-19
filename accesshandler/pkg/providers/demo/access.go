@@ -9,8 +9,7 @@ import (
 )
 
 type Args struct {
-	Token   string `json:"token" jsonschema:"title=Token"`
-	GrantId string `json:"GrantId" jsonschema:"title=GrantId"`
+	Server string `json:"server" jsonschema:"title=Server"`
 }
 
 // Grant the access
@@ -35,7 +34,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 
 	i := p.instructions.Value
 	i += "\n # Access Token\n"
-	i += fmt.Sprintf("<input type=\"text\" value=\"%s\" class=\"pword\"></input>", "DOG")
+	i += fmt.Sprintf("<input type=\"text\" value=\"%s\" class=\"pword\"></input>", "VALUE123")
 
 	return i, nil
 }

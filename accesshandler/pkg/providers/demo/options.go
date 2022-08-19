@@ -13,6 +13,8 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 		return opts, nil
 	}
 
+	// eventually options will be pulled live from ECS
+
 	return nil, &providers.InvalidArgumentError{Arg: arg}
 
 }

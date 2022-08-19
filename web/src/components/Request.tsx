@@ -24,6 +24,7 @@ import {
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
 import React, { createContext, useContext, useState } from "react";
+import ReactDom from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { durationStringHoursMinutes } from "../utils/durationString";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
@@ -49,7 +50,7 @@ import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
-// import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 interface RequestProps {
   request?: RequestDetail;
@@ -232,7 +233,9 @@ export const RequestAccessInstructions: React.FC = () => {
         Access Instructions
       </Box>
       <ReactMarkdown
+        rehypePlugins={[rehypeRaw]}
         // remarkPlugins={[remarkGfm]}
+        skipHtml={false}
         components={{
           a: (props) => (
             <Link
@@ -255,16 +258,15 @@ export const RequestAccessInstructions: React.FC = () => {
            * We support accessToken markdown by adding the following:
            * <input type="text" value="{{ accessToken }}" className="pword" />
            */
-          // input: (props) =>
-          //   props.className == "pword" && typeof props.value == "string" ? (
-          //     <RequestAccessToken tokenIn={props.value} />
-          //   ) : (
-          //     <Input children={props.children} />
-          //   ),
+          input: (props) =>
+            props.className == "pword" && typeof props.value == "string" ? (
+              <RequestAccessToken tokenIn={props.value} />
+            ) : (
+              <Input children={props.children} />
+            ),
         }}
-      >
-        {data.instructions}
-      </ReactMarkdown>
+        children={data.instructions}
+      />
     </Stack>
   );
 };
@@ -289,9 +291,6 @@ export const RequestAccessToken: React.FC<{ tokenIn: string }> = ({
 
   return (
     <Stack>
-      <Box textStyle="Body/Medium" mb={2}>
-        Access Token
-      </Box>
       <InputGroup size="md" bg="white">
         <Input pr="4.5rem" type={"password"} value={token} readOnly />
         <InputRightElement width="4.5rem" pr={1}>
