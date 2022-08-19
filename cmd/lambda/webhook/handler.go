@@ -83,7 +83,8 @@ func (s *Server) Routes() http.Handler {
 		token := r.Header.Get("X-Granted-Request")
 
 		if token != "TOKEN-123" {
-			apio.Error(ctx, w, fmt.Errorf("Invalid token provided"))
+			w.WriteHeader(http.StatusBadRequest)
+			apio.Error(ctx, w, fmt.Errorf("invalid token provided"))
 			return
 		}
 
