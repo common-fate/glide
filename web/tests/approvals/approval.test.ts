@@ -18,8 +18,6 @@ test.describe.serial("Approval/Request Workflows", () => {
   test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
     await CreateAccessRule(page, RULE_NAME);
-    // This will log us out of the admin account
-    await Logout(page);
   });
 
   test("test request workflow", async ({ page }) => {
@@ -37,7 +35,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.click(testId("r_0"));
 
     await fillFormElementById("reasonField", uniqueReason, page);
-
+    await page.waitForSelector(testId("rule-name"))
     await clickFormElementByText("button", "Submit", page);
 
     await page.waitForNavigation();

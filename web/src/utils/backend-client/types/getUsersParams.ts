@@ -6,9 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Group {
-  name: string;
-  description: string;
-  id: string;
-  memberCount: number;
-}
+export type GetUsersParams = { nextToken?: string };

@@ -46,9 +46,9 @@ export const getAdminListRequestsMock = () => ({requests: [...Array(faker.dataty
 
 export const getGetUsersMock = () => ({users: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => ({id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.random.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word()})), next: faker.random.arrayElement([faker.random.word(), null])})
 
-export const getGetGroupsMock = () => ({groups: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => ({name: faker.random.word(), description: faker.random.word(), id: faker.random.word()})), next: faker.random.arrayElement([faker.random.word(), null])})
+export const getGetGroupsMock = () => ({groups: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => ({name: faker.random.word(), description: faker.random.word(), id: faker.random.word(), memberCount: faker.datatype.number()})), next: faker.random.arrayElement([faker.random.word(), null])})
 
-export const getGetGroupMock = () => ({name: faker.random.word(), description: faker.random.word(), id: faker.random.word()})
+export const getGetGroupMock = () => ({name: faker.random.word(), description: faker.random.word(), id: faker.random.word(), memberCount: faker.datatype.number()})
 
 export const getAdminMSW = () => [
 rest.get('*/api/v1/admin/access-rules', (_req, res, ctx) => {

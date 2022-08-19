@@ -11,6 +11,8 @@ import useSwr,{
 } from 'swr'
 import type {
   ListRequestsResponseResponse,
+  UserListRequestsUpcomingParams,
+  UserListRequestsPastParams,
   AccessRuleDetail,
   ErrorResponseResponse,
   Provider,
@@ -38,30 +40,31 @@ import { customInstance, ErrorType } from '../../custom-instance'
  * @summary Your GET endpoint
  */
 export const userListRequestsUpcoming = (
-    
+    params?: UserListRequestsUpcomingParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListRequestsResponseResponse>(
-      {url: `/api/v1/requests/upcoming`, method: 'get'
+      {url: `/api/v1/requests/upcoming`, method: 'get',
+        params,
     },
       options);
     }
   
 
-export const getUserListRequestsUpcomingKey = () => [`/api/v1/requests/upcoming`];
+export const getUserListRequestsUpcomingKey = (params?: UserListRequestsUpcomingParams,) => [`/api/v1/requests/upcoming`, ...(params ? [params]: [])];
 
     
 export type UserListRequestsUpcomingQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsUpcoming>>>
 export type UserListRequestsUpcomingQueryError = ErrorType<unknown>
 
 export const useUserListRequestsUpcoming = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsUpcoming>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+ params?: UserListRequestsUpcomingParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsUpcoming>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? (() => getUserListRequestsUpcomingKey())
-  const swrFn = () => userListRequestsUpcoming(requestOptions);
+  const swrKey = swrOptions?.swrKey ?? (() => getUserListRequestsUpcomingKey(params))
+  const swrFn = () => userListRequestsUpcoming(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -77,30 +80,31 @@ export const useUserListRequestsUpcoming = <TError = ErrorType<unknown>>(
  * @summary Your GET endpoint
  */
 export const userListRequestsPast = (
-    
+    params?: UserListRequestsPastParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListRequestsResponseResponse>(
-      {url: `/api/v1/requests/past`, method: 'get'
+      {url: `/api/v1/requests/past`, method: 'get',
+        params,
     },
       options);
     }
   
 
-export const getUserListRequestsPastKey = () => [`/api/v1/requests/past`];
+export const getUserListRequestsPastKey = (params?: UserListRequestsPastParams,) => [`/api/v1/requests/past`, ...(params ? [params]: [])];
 
     
 export type UserListRequestsPastQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsPast>>>
 export type UserListRequestsPastQueryError = ErrorType<unknown>
 
 export const useUserListRequestsPast = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsPast>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
+ params?: UserListRequestsPastParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsPast>>, TError> & {swrKey: Key}, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const swrKey = swrOptions?.swrKey ?? (() => getUserListRequestsPastKey())
-  const swrFn = () => userListRequestsPast(requestOptions);
+  const swrKey = swrOptions?.swrKey ?? (() => getUserListRequestsPastKey(params))
+  const swrFn = () => userListRequestsPast(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

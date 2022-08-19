@@ -1,13 +1,17 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { Column } from "react-table";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useGetGroups } from "../../utils/backend-client/admin/admin";
 import { Group } from "../../utils/backend-client/types";
 import GroupModal from "../modals/GroupModal";
 import { TableRenderer } from "./TableRenderer";
 
 export const GroupsTable = () => {
-  const { data } = useGetGroups();
+  const paginator = usePaginatorApi<typeof useGetGroups>({
+    swrHook: useGetGroups,
+    hookProps: {},
+  });
 
   const [selectedGroup, setSelectedGroup] = useState<Group>();
 
@@ -68,9 +72,11 @@ export const GroupsTable = () => {
       <Flex justify="space-between" my={5}></Flex>
       {TableRenderer<Group>({
         columns: cols,
-        data: data?.groups,
+        data: paginator?.data?.groups,
         emptyText: "No groups",
+        apiPaginator: paginator,
       })}
+
       <GroupModal
         isOpen={selectedGroup !== undefined}
         onClose={() => setSelectedGroup(undefined)}

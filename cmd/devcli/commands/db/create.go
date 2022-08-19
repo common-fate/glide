@@ -18,9 +18,9 @@ import (
 var createCommand = cli.Command{
 	Name: "create",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "the name of the table", Required: true},
+		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "The name of the table", Required: true},
 		&cli.StringFlag{Name: "region", Aliases: []string{"r"}, Usage: "AWS region to provision the table into"},
-		&cli.StringFlag{Name: "env", Aliases: []string{"e"}, Usage: "the name of the environment variable to write", Value: "TESTING_DYNAMODB_TABLE"},
+		&cli.StringFlag{Name: "env", Aliases: []string{"e"}, Usage: "The name of the environment variable to write", Value: "TESTING_DYNAMODB_TABLE"},
 		&cli.BoolFlag{Name: "wait", Usage: "Wait until the table is ready"},
 	},
 	Description: "Create a DynamoDB database",

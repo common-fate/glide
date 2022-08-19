@@ -20,9 +20,14 @@ import (
 
 // List my requests
 // (GET /api/v1/requests/upcoming)
-func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params types.UserListRequestsUpcomingParams) {
 	ctx := r.Context()
 	uid := auth.UserIDFromContext(ctx)
+
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+	}
 
 	// the items in the list will be sorted by the request endtime not requestedAt
 	// is this going to be a problem?
@@ -31,7 +36,7 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request) {
 		RequestEndComparator: storage.GreaterThan,
 		CompareTo:            time.Now(),
 	}
-	_, err := a.DB.Query(ctx, &q)
+	_, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
@@ -48,7 +53,7 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request) {
 
 // List my requests
 // (GET /api/v1/requests/past)
-func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, params types.UserListRequestsPastParams) {
 	ctx := r.Context()
 	uid := auth.UserIDFromContext(ctx)
 
@@ -81,10 +86,16 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 	uid := auth.UserIDFromContext(ctx)
 	var err error
 	var requests []access.Request
+
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+	}
+
 	if params.Reviewer != nil && *params.Reviewer {
 		if params.Status != nil {
 			q := &storage.ListRequestsForReviewerAndStatus{ReviewerID: uid, Status: access.Status(*params.Status)}
-			_, err = a.DB.Query(ctx, q)
+			_, err = a.DB.Query(ctx, q, queryOpts...)
 			if err != nil {
 				apio.Error(ctx, w, err)
 				return
@@ -92,7 +103,7 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 			requests = q.Result
 		} else {
 			q := &storage.ListRequestsForReviewer{ReviewerID: uid}
-			_, err = a.DB.Query(ctx, q)
+			_, err = a.DB.Query(ctx, q, queryOpts...)
 			if err != nil {
 				apio.Error(ctx, w, err)
 				return
@@ -102,7 +113,7 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 
 	} else if params.Status != nil {
 		q := &storage.ListRequestsForUserAndStatus{Status: access.Status(*params.Status), UserId: uid}
-		_, err = a.DB.Query(ctx, q)
+		_, err = a.DB.Query(ctx, q, queryOpts...)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
@@ -110,7 +121,7 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 		requests = q.Result
 	} else {
 		q := &storage.ListRequestsForUser{UserId: uid}
-		_, err = a.DB.Query(ctx, q)
+		_, err = a.DB.Query(ctx, q, queryOpts...)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
@@ -325,7 +336,17 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 		return
 	}
 
-	apio.JSON(ctx, w, res.JSON200, http.StatusOK)
+	switch res.StatusCode() {
+	case http.StatusOK:
+		apio.JSON(ctx, w, res.JSON200, http.StatusOK)
+	case http.StatusNotFound:
+		apio.JSON(ctx, w, res.JSON404.Error, res.StatusCode())
+	case http.StatusBadRequest:
+		apio.JSON(ctx, w, res.JSON400.Error, res.StatusCode())
+	default:
+		apio.Error(ctx, w, fmt.Errorf("unexpected status code: %d", res.StatusCode()))
+	}
+
 }
 
 func (a *API) ListRequestEvents(w http.ResponseWriter, r *http.Request, requestId string) {

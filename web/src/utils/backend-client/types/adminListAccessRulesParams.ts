@@ -7,4 +7,4 @@
  */
 import type { AdminListAccessRulesStatus } from './adminListAccessRulesStatus';
 
-export type AdminListAccessRulesParams = { status?: AdminListAccessRulesStatus };
+export type AdminListAccessRulesParams = { status?: AdminListAccessRulesStatus; nextToken?: string };

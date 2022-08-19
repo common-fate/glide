@@ -26,15 +26,17 @@ func TestListGroups(t *testing.T) {
 			wantCode: http.StatusOK,
 			idpGroups: []identity.Group{
 				{
-					ID:   "123",
-					Name: "test",
+					ID:    "123",
+					Name:  "test",
+					Users: nil,
 				},
 				{
-					ID:   "1234",
-					Name: "test",
+					ID:    "1234",
+					Name:  "test",
+					Users: []string{"1", "2"},
 				},
 			},
-			wantBody: `{"groups":[{"description":"","id":"123","name":"test"},{"description":"","id":"1234","name":"test"}],"next":null}`,
+			wantBody: `{"groups":[{"description":"","id":"123","memberCount":0,"name":"test"},{"description":"","id":"1234","memberCount":2,"name":"test"}],"next":null}`,
 		},
 	}
 
@@ -87,8 +89,9 @@ func TestGetGroup(t *testing.T) {
 				ID:          "123",
 				Name:        "Test",
 				Description: "hello",
+				Users:       []string{"one", "two", "three"},
 			},
-			wantBody: `{"description":"hello","id":"123","name":"Test"}`,
+			wantBody: `{"description":"hello","id":"123","memberCount":3,"name":"Test"}`,
 		},
 		{
 			name:     "group not found",
