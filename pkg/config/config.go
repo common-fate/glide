@@ -18,7 +18,7 @@ type Config struct {
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
 	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
-	KMSKey           string `env:"AWS_KMS_KEY,required"`
+	KMSKeyARN        string `env:"AWS_KMS_KEY,required"`
 }
 
 type NotificationsConfig struct {

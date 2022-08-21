@@ -321,7 +321,7 @@ export class AppBackend extends Construct {
     return this._idpSync;
   }
 
-  getKMSKey(): string {
+  getKmsKeyArn(): string {
     return this._kmskey.keyArn
   }
 }
