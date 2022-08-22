@@ -34,15 +34,19 @@ func TestAccessRevoke(t *testing.T) {
 		{
 			name: "Trying to revoke inactive grant",
 
-			withRevokeGrantResponse: ah_types.PostGrantsRevokeResponse{JSON200: &struct {
-				Grant *ah_types.Grant "json:\"grant,omitempty\""
-			}{Grant: &ah_types.Grant{
-				ID:      "123",
-				Start:   iso8601.New(testStartTime.Time),
-				End:     iso8601.New(testEndTime),
-				Subject: "test@test.com",
-				Status:  "REVOKED",
-			}}},
+			withRevokeGrantResponse: ah_types.PostGrantsRevokeResponse{
+				JSON200: &struct {
+					AdditionalProperties ah_types.AdditionalProperties "json:\"additionalProperties\""
+					Grant                ah_types.Grant                "json:\"grant\""
+				}{AdditionalProperties: ah_types.AdditionalProperties{},
+					Grant: ah_types.Grant{
+						ID:      "123",
+						Start:   iso8601.New(testStartTime.Time),
+						End:     iso8601.New(testEndTime.Add(time.Minute * 2)),
+						Subject: "test@test.com",
+						Status:  "REVOKED",
+					}},
+			},
 			wantErr: ErrGrantInactive,
 
 			give: RevokeGrantOpts{Request: access.Request{

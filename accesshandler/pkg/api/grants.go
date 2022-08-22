@@ -71,8 +71,10 @@ func (a *API) PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId s
 		return
 	}
 
+	//TODO: do we want to return anything in this additional properteis for revoke?
 	res := types.GrantResponse{
-		Grant: g,
+		AdditionalProperties: types.AdditionalProperties{},
+		Grant:                *g,
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

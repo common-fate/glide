@@ -49,13 +49,15 @@ func TestCreateGrant(t *testing.T) {
 			},
 			withCreateGrantResponse: &ah_types.PostGrantsResponse{
 				JSON201: &struct {
-					Grant *ah_types.Grant "json:\"grant,omitempty\""
-				}{Grant: &ah_types.Grant{
-					ID:      grantId,
-					Start:   iso8601.New(now),
-					End:     iso8601.New(now.Add(time.Minute)),
-					Subject: "test@test.com",
-				}},
+					AdditionalProperties ah_types.AdditionalProperties "json:\"additionalProperties\""
+					Grant                ah_types.Grant                "json:\"grant\""
+				}{AdditionalProperties: ah_types.AdditionalProperties{},
+					Grant: ah_types.Grant{
+						ID:      grantId,
+						Start:   iso8601.New(overrideStart),
+						End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+						Subject: "test@test.com",
+					}},
 			},
 			withUser: identity.User{
 				Email: "test@test.com",
@@ -96,13 +98,15 @@ func TestCreateGrant(t *testing.T) {
 			},
 			withCreateGrantResponse: &ah_types.PostGrantsResponse{
 				JSON201: &struct {
-					Grant *ah_types.Grant "json:\"grant,omitempty\""
-				}{Grant: &ah_types.Grant{
-					ID:      grantId,
-					Start:   iso8601.New(overrideStart),
-					End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-					Subject: "test@test.com",
-				}},
+					AdditionalProperties ah_types.AdditionalProperties "json:\"additionalProperties\""
+					Grant                ah_types.Grant                "json:\"grant\""
+				}{AdditionalProperties: ah_types.AdditionalProperties{},
+					Grant: ah_types.Grant{
+						ID:      grantId,
+						Start:   iso8601.New(overrideStart),
+						End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+						Subject: "test@test.com",
+					}},
 			},
 			withUser: identity.User{
 				Email: "test@test.com",

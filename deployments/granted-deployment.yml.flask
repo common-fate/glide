@@ -1,0 +1,22 @@
+version: 2
+deployment:
+  stackName: granted-approvals-jack-2
+  account: "385788203919"
+  region: ap-southeast-2
+  release: ""
+  dev: true
+  parameters:
+    CognitoDomainPrefix: ""
+    AdministratorGroupID: granted_administrators
+    ProviderConfiguration:
+      demo:
+        uses: commonfate/demo@v1
+        with:
+          hasToken: "true"
+          instructions: flask provider instructions
+          type: python
+      testvault:
+        uses: commonfate/testvault@v1
+        with:
+          apiUrl: https://prod.testvault.granted.run
+          uniqueId: 2DOhMnswyn47DXuRKG8EbkTSPHp

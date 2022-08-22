@@ -16,7 +16,7 @@ import (
 )
 
 //calls out to the provider to revoke access to the grant and disables execution to the granter state function
-func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker string) (*types.Grant, error) {
+func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker string) (types.Grant, error) {
 
 	logger.Get(ctx).Infow("revoking grant", "grant", grantID)
 

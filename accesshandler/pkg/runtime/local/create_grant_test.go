@@ -34,7 +34,7 @@ func TestCreateGrant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = r.CreateGrant(ctx, *vcg)
+	_, _, err = r.CreateGrant(ctx, *vcg)
 	if err != nil {
 		t.Fatal(err)
 	}

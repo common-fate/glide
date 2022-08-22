@@ -3,6 +3,7 @@ package lambda
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -11,7 +12,9 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 
+	provider_config "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 )
@@ -65,7 +68,11 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 		return types.Grant{}, types.AdditionalProperties{}, err
 	}
 
-	//@TODO add provider lookup in here
+	prov, ok := provider_config.Providers[vcg.Provider]
+	if !ok {
+		return types.Grant{}, types.AdditionalProperties{}, fmt.Errorf("provider not found")
+	}
+
 	var ad types.AdditionalProperties
 	if _, ok := prov.Provider.(providers.RequiresAccessToken); ok {
 		at := ksuid.New().String()
