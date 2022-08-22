@@ -43,7 +43,7 @@ export class AppBackend extends Construct {
 
     this.createDynamoTables();
 
-    this._kmskey =  new kms.Key(this, 'granted-pagination-key', {
+    this._kmskey =  new kms.Key(this, 'PaginationKMSKey', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pendingWindow: cdk.Duration.days(7),
       alias: 'granted-pagination-key',

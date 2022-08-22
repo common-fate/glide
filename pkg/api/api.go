@@ -77,7 +77,7 @@ type Opts struct {
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	EventSender         *gevent.Sender
 	DynamoTable         string
-	KmsKeyARN           string
+	KMSKeyARN           string
 	AdminGroup          string
 }
 
@@ -90,7 +90,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		return nil, errors.New("AccessHandlerClient must be provided")
 	}
 
-	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.KmsKeyARN)
+	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.KMSKeyARN)
 	if err != nil {
 		return nil, err
 	}
