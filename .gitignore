@@ -29,3 +29,4 @@ userAuthCookies.json
 adminAuthCookies.json
 *test-results*
 testOutputs.json
+deployments/

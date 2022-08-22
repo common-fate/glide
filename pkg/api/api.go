@@ -77,6 +77,7 @@ type Opts struct {
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	EventSender         *gevent.Sender
 	DynamoTable         string
+	PaginationKMSKeyARN string
 	AdminGroup          string
 }
 
@@ -89,7 +90,11 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		return nil, errors.New("AccessHandlerClient must be provided")
 	}
 
-	db, err := ddb.New(ctx, opts.DynamoTable)
+	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
+	if err != nil {
+		return nil, err
+	}
+	db, err := ddb.New(ctx, opts.DynamoTable, ddb.WithPageTokenizer(tokenizer))
 	if err != nil {
 		return nil, err
 	}

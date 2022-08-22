@@ -50,6 +50,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.8 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kms v1.17.4 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.0 // indirect
 	github.com/chzyer/readline v1.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
@@ -148,7 +149,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.0
 	github.com/briandowns/spinner v1.18.1
-	github.com/common-fate/ddb v0.9.0
+	github.com/common-fate/ddb v0.10.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

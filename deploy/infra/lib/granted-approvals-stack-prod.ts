@@ -179,6 +179,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
+      PaginationKMSKeyARN: appBackend.getKmsKeyArn()
     });
   }
 }
