@@ -1,4 +1,4 @@
-package demo
+package flask
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type Args struct {
 
 // Grant the access
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error {
-	zap.S().Info("demo provider: granting access")
+	zap.S().Info("flask provider: granting access")
 	return nil
 }
 

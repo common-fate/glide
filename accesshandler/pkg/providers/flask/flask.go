@@ -1,4 +1,4 @@
-package demo
+package flask
 
 import (
 	"context"
@@ -39,6 +39,10 @@ func (p *Provider) Init(ctx context.Context) error {
 	p.options["server"] = optionsJson
 
 	return nil
+}
+
+func (p *Provider) RequiresAccessToken() {
+
 }
 
 // ArgSchema returns the schema for the provider.
