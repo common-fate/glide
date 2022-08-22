@@ -951,7 +951,9 @@ components:
         with:
           type: object
           additionalProperties:
-            type: string
+            type: array
+            items:
+              $ref: "#/components/schemas/WithOption"
       required:
         - providerId
         - with
@@ -1170,6 +1172,19 @@ components:
         - id
         - requestId
         - createdAt
+    WithOption:
+      title: WithOption
+      x-stoplight:
+        id: xoejiu5ci05du
+      type: object
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+      required:
+        - value
+        - label
   responses:
     ErrorResponse:
       description: An error returned from the service.

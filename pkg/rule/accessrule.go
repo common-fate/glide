@@ -132,13 +132,23 @@ func (a *Approval) IsRequired() bool {
 	return len(a.Users) > 0 || len(a.Groups) > 0
 }
 
+type Option struct {
+	Value string `json:"value"  dynamodbav:"value"`
+	Label string `json:"label"  dynamodbav:"label"`
+}
+type Selectable struct {
+	Option Option `json:"option"  dynamodbav:"option"`
+	Valid  bool   `json:"valid"  dynamodbav:"valid"`
+}
+
 // Provider defines model for Provider.
 // I expect this will be different to what gets returned in the api response
 type Target struct {
 	// References the provider's unique ID
-	ProviderID   string            `json:"providerId"  dynamodbav:"providerId"`
-	ProviderType string            `json:"providerType"  dynamodbav:"providerType"`
-	With         map[string]string `json:"with"  dynamodbav:"with"`
+	ProviderID     string                  `json:"providerId"  dynamodbav:"providerId"`
+	ProviderType   string                  `json:"providerType"  dynamodbav:"providerType"`
+	With           map[string]string       `json:"with"  dynamodbav:"with"`
+	WithSelectable map[string][]Selectable `json:"withSelectable"  dynamodbav:"withSelectable"`
 }
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {

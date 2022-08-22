@@ -68,10 +68,11 @@ type Request struct {
 	// Rule is the ID of the Access Rule which the request relates to.
 	Rule string `json:"rule" dynamodbav:"rule"`
 	// RuleVersion is the version string of the rule that this request relates to
-	RuleVersion     string      `json:"ruleVersion" dynamodbav:"ruleVersion"`
-	Status          Status      `json:"status" dynamodbav:"status"`
-	Data            RequestData `json:"data" dynamodbav:"data"`
-	RequestedTiming Timing      `json:"requestedTiming" dynamodbav:"requestedTiming"`
+	RuleVersion     string            `json:"ruleVersion" dynamodbav:"ruleVersion"`
+	With            map[string]string `json:"with"  dynamodbav:"with"`
+	Status          Status            `json:"status" dynamodbav:"status"`
+	Data            RequestData       `json:"data" dynamodbav:"data"`
+	RequestedTiming Timing            `json:"requestedTiming" dynamodbav:"requestedTiming"`
 	// When a request is approver, the approver has the option to override the timing, if they do so, this will be populated.
 	// If the timing was not overriden, then the original request timeing should be used.
 	// Override timing should only be set by an approving review
