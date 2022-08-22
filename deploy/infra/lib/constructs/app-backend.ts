@@ -76,6 +76,8 @@ export class AppBackend extends Construct {
       handler: "approvals",
     });
 
+    this._KMSkey.grantEncryptDecrypt(this._lambda)
+
     this._lambda.addToRolePolicy(
       new PolicyStatement({
         resources: [props.userPool.getUserPool().userPoolArn],
