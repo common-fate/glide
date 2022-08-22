@@ -253,6 +253,10 @@ github.com/common-fate/ddb v0.9.0 h1:fO33jhGl3dzgKoLghkfG1CKaMaDpdFC5OjMuqdB+CNM
 github.com/common-fate/ddb v0.9.0/go.mod h1:eTZT6jPc3DmANheO+6S+gDerJMa+Tam8xVZHGAllkE8=
 github.com/common-fate/ddb v0.9.1-0.20220817081741-9886aced2ab9 h1:X7fJn37gWnVx8FyiaKUSRxy+PnOw6g2c/QTUB5Z234Y=
 github.com/common-fate/ddb v0.9.1-0.20220817081741-9886aced2ab9/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
+github.com/common-fate/ddb v0.9.1-0.20220822003010-834663da017c h1:jRg+1JQi2Eo5xc0FsYvK5f6R+yTGPO5roU3PAbqmASQ=
+github.com/common-fate/ddb v0.9.1-0.20220822003010-834663da017c/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
+github.com/common-fate/ddb v0.9.1-0.20220822003456-151c7f8a3831 h1:owtMEJoFVRtSV5rv+vMRSN0rwncpfk4wvxhHB7B7bRg=
+github.com/common-fate/ddb v0.9.1-0.20220822003456-151c7f8a3831/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/testvault v0.1.0 h1:XVhbmcNySGIA203FywYW7wL44Mlcg23UUek3bdg5tzQ=

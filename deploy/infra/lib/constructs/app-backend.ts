@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as kms from 'aws-cdk-lib/aws-KMS';
+import * as kms from 'aws-cdk-lib/aws-kms';
 import { EventBus } from "aws-cdk-lib/aws-events";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
