@@ -102,7 +102,7 @@ export class DevGrantedStack extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
       Region: this.region,
-      KmsKey: approvals.getKmsKeyArn()
+      KMSKeyARN: approvals.getKmsKeyArn()
     });
   }
 }

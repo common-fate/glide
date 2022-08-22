@@ -57,7 +57,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		EventBusSource:            "abcdefg",
 		IdpSyncFunctionName:       "abcdefg",
 		Region:                    "abcdefg",
-		KmsKeyArn:                 "abcdefg",
+		KMSKeyArn:                 "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {

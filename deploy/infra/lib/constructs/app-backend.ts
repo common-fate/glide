@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as kms from 'aws-cdk-lib/aws-kms';
+import * as kms from 'aws-cdk-lib/aws-KMS';
 import { EventBus } from "aws-cdk-lib/aws-events";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
@@ -34,7 +34,7 @@ export class AppBackend extends Construct {
   private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
-  private _kmskey: cdk.aws_kms.Key;
+  private _KMSkey: cdk.aws_kms.Key;
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -43,7 +43,7 @@ export class AppBackend extends Construct {
 
     this.createDynamoTables();
 
-    this._kmskey =  new kms.Key(this, 'PaginationKMSKey', {
+    this._KMSkey =  new kms.Key(this, 'PaginationKMSKey', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pendingWindow: cdk.Duration.days(7),
       alias: 'granted-pagination-key',
@@ -322,6 +322,6 @@ export class AppBackend extends Construct {
   }
 
   getKmsKeyArn(): string {
-    return this._kmskey.keyArn
+    return this._KMSkey.keyArn
   }
 }

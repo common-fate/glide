@@ -23,7 +23,7 @@ export type StackOutputs = {
   EventBusSource: string;
   IdpSyncFunctionName: string;
   Region: string;
-  KmsKey: string
+  KMSKeyARN: string
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs
