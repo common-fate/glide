@@ -36,13 +36,14 @@ import (
 func main() {
 	app := &cli.App{
 		Name:        "gdeploy",
-		Description: "Granted deployment administration",
+		Description: "Granted Approvals deployment administration utility",
+		Usage:       "Granted Approvals deployment administration utility",
 		Version:     build.Version,
 		HideVersion: false,
 		Flags: []cli.Flag{
-			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "the deployment config file"},
-			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "ignore checking if this is a clean repository during create and update commands"},
-			&cli.BoolFlag{Name: "verbose", Usage: "enable verbose logging, effectively sets environment variable GRANTED_LOG=DEBUG"},
+			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "The deployment configuration yml file path"},
+			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "Ignore checking if this is a clean repository during create and update commands"},
+			&cli.BoolFlag{Name: "verbose", Usage: "Enable verbose logging, effectively sets environment variable GRANTED_LOG=DEBUG"},
 		},
 		Writer: color.Output,
 		Before: func(ctx *cli.Context) error {

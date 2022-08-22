@@ -44,13 +44,18 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 	var err error
 	var rules []rule.AccessRule
 
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+	}
+
 	if params.Status != nil {
 		q := storage.ListAccessRulesForStatus{Status: rule.Status(*params.Status)}
-		_, err = a.DB.Query(ctx, &q)
+		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	} else {
 		q := storage.ListCurrentAccessRules{}
-		_, err = a.DB.Query(ctx, &q)
+		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	}
 	// don't return an error response when there are not rules

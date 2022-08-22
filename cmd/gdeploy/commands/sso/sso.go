@@ -3,11 +3,13 @@ package sso
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 
 	"github.com/urfave/cli/v2"
@@ -45,6 +47,7 @@ var configureCommand = cli.Command{
 		}
 		currentConfig := dc.Deployment.Parameters.IdentityConfiguration[idpType]
 		update := true
+
 		//if there are already params for that idp then ask if they want to update
 		if currentConfig != nil {
 			if idpType == dc.Deployment.Parameters.IdentityProviderType {
@@ -99,88 +102,121 @@ var configureCommand = cli.Command{
 			}
 			dc.Deployment.Parameters.IdentityConfiguration.Upsert(idpType, newConfig)
 
-			clio.Info("The following parameters are required to setup a SAML app in your identity provider")
-			clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idpType)
-			o, err := dc.LoadSAMLOutput(ctx)
-			if err != nil {
-				return err
-			}
-			o.PrintSAMLTable()
-			var (
-				fromUrl    = "URL"
-				fromString = "String"
-				fromFile   = "File"
-			)
-
-			updateMetadata := true
-			if dc.Deployment.Parameters.SamlSSOMetadata != "" || dc.Deployment.Parameters.SamlSSOMetadataURL != "" {
-
-				p5 := &survey.Confirm{Message: "You already have a metadata string/url set, would you like to update it?"}
-				err = survey.AskOne(p5, &updateMetadata)
+			// SAML metadata is not required for Cognito signin provider.
+			if idpType != identitysync.IDPTypeCognito {
+				clio.Info("The following parameters are required to setup a SAML app in your identity provider")
+				clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idpType)
+				o, err := dc.LoadSAMLOutput(ctx)
 				if err != nil {
 					return err
 				}
-			}
-			if updateMetadata {
-				p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
-				metadataChoice := fromUrl
-				err = survey.AskOne(p4, &metadataChoice)
-				if err != nil {
-					return err
+				o.PrintSAMLTable()
+				var (
+					fromUrl    = "URL"
+					fromString = "String"
+					fromFile   = "File"
+				)
+
+				updateMetadata := true
+				if dc.Deployment.Parameters.SamlSSOMetadata != "" || dc.Deployment.Parameters.SamlSSOMetadataURL != "" {
+
+					p5 := &survey.Confirm{Message: "You already have a metadata string/url set, would you like to update it?"}
+					err = survey.AskOne(p5, &updateMetadata)
+					if err != nil {
+						return err
+					}
 				}
-				switch metadataChoice {
-				case fromUrl:
-					p5 := &survey.Input{Message: "Metadata URL"}
-					err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+				if updateMetadata {
+					p4 := &survey.Select{Message: "Would you like to use a metadata URL, an XML string, or load XML from a file?", Options: []string{fromUrl, fromString, fromFile}}
+					metadataChoice := fromUrl
+					err = survey.AskOne(p4, &metadataChoice)
 					if err != nil {
 						return err
 					}
-				case fromString:
-					p5 := &survey.Input{Message: "Metadata XML String"}
-					err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
-					if err != nil {
-						return err
-					}
-				case fromFile:
-					p5 := &survey.Input{Message: "Metadata XML file"}
-					var res string
-					err := survey.AskOne(p5, &res, func(options *survey.AskOptions) error {
-						options.Validators = append(options.Validators, func(ans interface{}) error {
-							p := ans.(string)
-							fileInfo, err := os.Stat(p)
-							if err != nil {
-								return err
-							}
-							if fileInfo.IsDir() {
-								return fmt.Errorf("path is a directory, must be a file")
-							}
+					switch metadataChoice {
+					case fromUrl:
+						p5 := &survey.Input{Message: "Metadata URL"}
+						err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+						if err != nil {
+							return err
+						}
+					case fromString:
+						p5 := &survey.Input{Message: "Metadata XML String"}
+						err = survey.AskOne(p5, &dc.Deployment.Parameters.SamlSSOMetadataURL)
+						if err != nil {
+							return err
+						}
+					case fromFile:
+						p5 := &survey.Input{Message: "Metadata XML file"}
+						var res string
+						err := survey.AskOne(p5, &res, func(options *survey.AskOptions) error {
+							options.Validators = append(options.Validators, func(ans interface{}) error {
+								p := ans.(string)
+								fileInfo, err := os.Stat(p)
+								if err != nil {
+									return err
+								}
+								if fileInfo.IsDir() {
+									return fmt.Errorf("path is a directory, must be a file")
+								}
+								return nil
+							})
 							return nil
 						})
-						return nil
-					})
-					if err != nil {
-						return err
+						if err != nil {
+							return err
+						}
+						b, err := os.ReadFile(res)
+						if err != nil {
+							return err
+						}
+						dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 					}
-					b, err := os.ReadFile(res)
-					if err != nil {
-						return err
-					}
-					dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 				}
+				clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 			}
 		}
 
 		dc.Deployment.Parameters.IdentityProviderType = idpType
-		clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 		clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
 Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
 Users in this group will be able to manage Access Rules.
 `)
-		adminGroupPrompt := &survey.Input{Message: "The ID of the Granted Administrators group in your identity provider:", Default: dc.Deployment.Parameters.AdministratorGroupID}
-		err = survey.AskOne(adminGroupPrompt, &dc.Deployment.Parameters.AdministratorGroupID)
+
+		err = idp.IdentityProvider.Init(ctx)
 		if err != nil {
 			return err
 		}
+
+		
+		grps, err := idp.IdentityProvider.ListGroups(ctx)
+		if err != nil {
+			return err
+		}
+
+		// convert groups to a string map
+		groupMap := make(map[string]identity.IdpGroup)
+		groupNames := []string{}
+		chosenKey := ""
+		for _, g := range grps {
+			key := fmt.Sprintf("%s: %s", g.Name, g.Description)
+			groupMap[key] = g
+			groupNames = append(groupNames, key)
+		}
+
+		// sort groupNames alphabetically
+		sort.Strings(groupNames)
+
+		err = survey.AskOne(&survey.Select{
+			Message: "The ID of the Granted Administrators group in your identity provider:",
+			Options: groupNames,
+		}, &chosenKey)
+
+		if err != nil {
+			return err
+		}
+
+		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
 
 		clio.Info("Updating your deployment config")
 

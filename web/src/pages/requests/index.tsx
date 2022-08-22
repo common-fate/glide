@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Center,
+  CenterProps,
   Container,
   Flex,
   Grid,
@@ -11,7 +12,7 @@ import {
   Skeleton,
   SkeletonCircle,
   SkeletonText,
-  Spacer,
+  Spinner,
   Stack,
   Tab,
   TabList,
@@ -20,29 +21,27 @@ import {
   Tabs,
   Text,
   useDisclosure,
-  useToast,
 } from "@chakra-ui/react";
-import axios from "axios";
 import type { NextPage } from "next";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
-import { RequestStatusDisplay } from "../../components/Request";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
+import { RequestStatusDisplay } from "../../components/Request";
 import {
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
 } from "../../utils/backend-client/default/default";
 import {
-  cancelRequest,
   useListUserAccessRules,
   useUserGetAccessRule,
-  useUserListRequests,
 } from "../../utils/backend-client/end-user/end-user";
 import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
+import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
+import { useIntersection } from "../../utils/useIntersection";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -59,14 +58,36 @@ const Home: NextPage = () => {
   const {
     data: reqsUpcoming,
     isValidating,
-    mutate,
-  } = useUserListRequestsUpcoming();
+    ...upcomingApi
+  } = useInfiniteScrollApi<typeof useUserListRequestsUpcoming>({
+    swrHook: useUserListRequestsUpcoming,
+    hookProps: {},
+    listObjKey: "requests",
+  });
 
-  const { data: reqsPast, mutate: mutatePast } = useUserListRequestsPast();
+  const { data: reqsPast, ...pastApi } = useInfiniteScrollApi<
+    typeof useUserListRequestsPast
+  >({
+    swrHook: useUserListRequestsPast,
+    hookProps: {},
+    listObjKey: "requests",
+  });
 
   const { isOpen, onClose, onToggle } = useDisclosure();
 
   const user = useUser();
+
+  // const upcomingRef = useRef();
+  // const pastRef = useRef();
+
+  // const inViewport = useIntersection(upcomingRef, "90px"); // Trigger if 200px is visible from the element
+
+  // useEffect(() => {
+  //   console.log("in view");
+  //   upcomingApi.incrementPage();
+  //   // if (inViewport && !isValidating && upcomingApi.canNextPage) {
+  //   // }
+  // }, [inViewport]);
 
   return (
     <>
@@ -233,7 +254,7 @@ const Home: NextPage = () => {
                       {reqsUpcoming?.requests?.map((request, i) => (
                         <UserAccessCard
                           type="upcoming"
-                          key={request.id}
+                          key={request.id + i}
                           req={request}
                           index={i}
                         />
@@ -264,11 +285,31 @@ const Home: NextPage = () => {
                           </Text>
                         </Center>
                       )}
-                      <Spacer minH={12} />
+                      <LoadMoreButton
+                        // dont apply ref when validating
+                        // ref={upcomingRef}
+                        disabled={!upcomingApi.canNextPage}
+                        onClick={upcomingApi.incrementPage}
+                      >
+                        {isValidating && reqsUpcoming?.requests ? (
+                          <Spinner />
+                        ) : upcomingApi.canNextPage ? (
+                          "Load more"
+                        ) : reqsUpcoming?.requests?.length > 4 ? (
+                          "That's it!"
+                        ) : (
+                          ""
+                        )}
+                      </LoadMoreButton>
                     </Stack>
                   </TabPanel>
                   <TabPanel overflowY="auto">
-                    <Stack spacing={5} maxH="80vh">
+                    <Stack
+                      spacing={5}
+                      maxH="80vh"
+                      // ref={pastRef}
+                      // onScroll={() => handleScroll("past")}
+                    >
                       {reqsPast?.requests.map((request, i) => (
                         <UserAccessCard
                           index={i}
@@ -301,7 +342,22 @@ const Home: NextPage = () => {
                           </Text>
                         </Center>
                       )}
-                      <Spacer minH={12} />
+                      <LoadMoreButton
+                        // dont apply ref when validating
+                        // ref={isValidating ? null : pastRef}
+                        disabled={!pastApi.canNextPage}
+                        onClick={pastApi.incrementPage}
+                      >
+                        {pastApi.isValidating && reqsPast?.requests ? (
+                          <Spinner />
+                        ) : pastApi.canNextPage ? (
+                          "Load more"
+                        ) : reqsPast?.requests?.length > 4 ? (
+                          "That's it!"
+                        ) : (
+                          ""
+                        )}
+                      </LoadMoreButton>
                     </Stack>
                   </TabPanel>
                 </TabPanels>
@@ -317,6 +373,22 @@ const Home: NextPage = () => {
 
 export default Home;
 
+const LoadMoreButton = (props: CenterProps) => (
+  <Center
+    minH={12}
+    as="button"
+    color="neutrals.500"
+    h={10}
+    w="100%"
+    _hover={{
+      _disabled: {
+        textDecor: "none",
+      },
+      textDecor: "underline",
+    }}
+    {...props}
+  />
+);
 /** things that end users can do to requests */
 type RequestOption = "cancel" | "extend" | undefined;
 
@@ -328,17 +400,19 @@ const getRequestOption = (req: Request): RequestOption => {
   return undefined;
 };
 
-const UserAccessCard: React.FC<{
-  req: Request;
-  type: "upcoming" | "past";
-  index: number;
-}> = ({ req, type, index }) => {
+const UserAccessCard: React.FC<
+  {
+    req: Request;
+    type: "upcoming" | "past";
+    index: number;
+  } & LinkBoxProps
+> = ({ req, type, index, ...rest }) => {
   const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
 
   const option = getRequestOption(req);
 
   return (
-    <LinkBox>
+    <LinkBox {...rest}>
       <Link to={"/requests/" + req.id}>
         <LinkOverlay>
           <Flex

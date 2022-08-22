@@ -8,6 +8,7 @@ __debug_bin
 .DS_Store
 .vscode/settings.json
 .vscode/
+deployments/
 # debug
 npm-debug.log*
 yarn-debug.log*

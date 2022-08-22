@@ -111,3 +111,7 @@ export * from './requestEventToGrantStatus';
 export * from './listRequestEventsResponseResponse';
 export * from './requestEventFromGrantStatus';
 export * from './requestEvent';
+export * from './userListRequestsPastParams';
+export * from './userListRequestsUpcomingParams';
+export * from './getUsersParams';
+export * from './getGroupsParams';

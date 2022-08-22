@@ -16,7 +16,7 @@ var addCommand = cli.Command{
 	Name:        "add",
 	Description: "Add an access provider",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "overwrite", Usage: "force SSM parameters to be overwritten if they exist"},
+		&cli.BoolFlag{Name: "overwrite", Usage: "Force SSM parameters to be overwritten if they exist"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
