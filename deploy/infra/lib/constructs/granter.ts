@@ -151,6 +151,7 @@ export class Granter extends Construct {
           "sso:CreateAccountAssignment",
           "sso:DeleteAccountAssignment",
           "sso:ListAccountAssignments",
+          "sso:ListTagsForResource",
           "identitystore:ListUsers",
           "organizations:DescribeAccount",
         ],

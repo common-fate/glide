@@ -77,6 +77,7 @@ export class AccessHandler extends Construct {
       new iam.PolicyStatement({
         actions: [
           "sso:ListPermissionSets",
+          "sso:ListTagsForResource",
           "sso:DescribePermissionSet",
           "organizations:ListAccounts",
           "sso:DeleteAccountAssignment",
