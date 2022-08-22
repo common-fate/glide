@@ -70,6 +70,7 @@ export class AppBackend extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
