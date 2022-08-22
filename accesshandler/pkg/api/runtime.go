@@ -19,7 +19,7 @@ type Runtime interface {
 
 	// CreateGrant creates a grant by executing runtime-specific workflow logic, such as
 	// initiating an AWS Step Functions workflow.
-	CreateGrant(ctx context.Context, grant types.ValidCreateGrant) (*types.Grant, error)
+	CreateGrant(ctx context.Context, grant types.ValidCreateGrant) (types.Grant, types.AdditionalProperties, error)
 
 	// RevokeGrant revokes a grant by executing runtime-specific workflow logic, such as
 	// initiating an AWS Step Functions workflow.

@@ -43,6 +43,11 @@ type AccessInstructions struct {
 	Instructions *string `json:"instructions,omitempty"`
 }
 
+// additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider.
+type AdditionalProperties struct {
+	AccessToken *string `json:"accessToken,omitempty"`
+}
+
 // A grant to be created.
 type CreateGrant struct {
 	// The end time of the grant in ISO8601 format.
@@ -71,8 +76,6 @@ type CreateGrant_With struct {
 
 // A temporary assignment of a user to a principal.
 type Grant struct {
-	AccessToken *string `json:"accessToken,omitempty"`
-
 	// The end time of the grant in ISO8601 format.
 	End iso8601.Time `json:"end"`
 	ID  string       `json:"id"`
@@ -141,8 +144,11 @@ type ErrorResponse struct {
 
 // GrantResponse defines model for GrantResponse.
 type GrantResponse struct {
+	// additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider.
+	AdditionalProperties AdditionalProperties `json:"additionalProperties"`
+
 	// A temporary assignment of a user to a principal.
-	Grant *Grant `json:"grant,omitempty"`
+	Grant Grant `json:"grant"`
 }
 
 // HealthResponse defines model for HealthResponse.
@@ -962,8 +968,11 @@ type PostGrantsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *struct {
+		// additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider.
+		AdditionalProperties AdditionalProperties `json:"additionalProperties"`
+
 		// A temporary assignment of a user to a principal.
-		Grant *Grant `json:"grant,omitempty"`
+		Grant Grant `json:"grant"`
 	}
 	JSON400 *struct {
 		Error *string `json:"error,omitempty"`
@@ -993,8 +1002,11 @@ type PostGrantsRevokeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
+		// additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider.
+		AdditionalProperties AdditionalProperties `json:"additionalProperties"`
+
 		// A temporary assignment of a user to a principal.
-		Grant *Grant `json:"grant,omitempty"`
+		Grant Grant `json:"grant"`
 	}
 	JSON400 *struct {
 		Error *string `json:"error,omitempty"`
@@ -1337,8 +1349,11 @@ func ParsePostGrantsResponse(rsp *http.Response) (*PostGrantsResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
 		var dest struct {
+			// additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider.
+			AdditionalProperties AdditionalProperties `json:"additionalProperties"`
+
 			// A temporary assignment of a user to a principal.
-			Grant *Grant `json:"grant,omitempty"`
+			Grant Grant `json:"grant"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -1384,8 +1399,11 @@ func ParsePostGrantsRevokeResponse(rsp *http.Response) (*PostGrantsRevokeRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
+			// additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider.
+			AdditionalProperties AdditionalProperties `json:"additionalProperties"`
+
 			// A temporary assignment of a user to a principal.
-			Grant *Grant `json:"grant,omitempty"`
+			Grant Grant `json:"grant"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -2077,43 +2095,45 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"oqhr+aSoZrfvt78HAAD//5OLD+68JgAA",
+	"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",
+	"rqYETigAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

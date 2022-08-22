@@ -18,6 +18,12 @@ type Accessor interface {
 	Revoke(ctx context.Context, subject string, args []byte) error
 }
 
+// If a provider implements RequiresAccessToken
+// It indicates that an access token should be generated for use by this provider.
+type RequiresAccessToken interface {
+	RequiresAccessToken()
+}
+
 // Validators know how to validate access without actually granting it.
 type Validator interface {
 	// Validate arguments and a subject for access without actually granting it.

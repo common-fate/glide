@@ -11,3 +11,4 @@ export * from './providerHealth';
 export * from './argOptionsResponseResponse';
 export * from './provider';
 export * from './accessInstructions';
+export * from './additionalProperties';
