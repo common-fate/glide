@@ -1,12 +1,9 @@
 import {
-  Box,
-  Flex,
+  chakra,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   FormLabel,
   Input,
-  Select,
   Spinner,
   Text,
 } from "@chakra-ui/react";
@@ -22,11 +19,9 @@ import {
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { CustomOption } from "../components/Select";
+import { MultiSelectOptions } from "../components/Select";
 import { CreateAccessRuleFormData } from "../CreateForm";
-import RSelect, { components, OptionProps } from "react-select";
 import { FormStep } from "./FormStep";
-import { colors } from "../../../../utils/theme/colors";
 
 export const ProviderStep: React.FC = () => {
   const methods = useFormContext<CreateAccessRuleFormData>();
@@ -40,7 +35,8 @@ export const ProviderStep: React.FC = () => {
       <ProviderPreview
         target={{
           provider: provider,
-          with: target.with,
+          with: {},
+          // with: target.with,
         }}
       />
     );
@@ -81,6 +77,9 @@ export const ProviderStep: React.FC = () => {
   );
 };
 
+// Enable chakra styling of the react json schema form component!!!!
+// https://chakra-ui.com/docs/styled-system/chakra-factory
+const StyledForm = chakra(Form);
 const ProviderWithQuestions: React.FC = () => {
   const { watch } = useFormContext();
   const providerId = watch("target.providerId");
@@ -93,10 +92,17 @@ const ProviderWithQuestions: React.FC = () => {
     return <Spinner />;
   }
   return (
-    <Form
+    <StyledForm
+      // using chakra styling props to set the width to 100%
+      w="100%"
       // tagname is a prop that allows us to prevent this using a <form> element to wrap this, this avoids a nested form error
       tagName={"div"}
       uiSchema={{
+        "ui:options": {
+          chakra: {
+            w: "100%",
+          },
+        },
         "ui:submitButtonOptions": {
           props: {
             disabled: true,
@@ -109,15 +115,15 @@ const ProviderWithQuestions: React.FC = () => {
       showErrorList={false}
       schema={data}
       fields={{
-        StringField: SelectField,
+        StringField: WithField,
       }}
-    ></Form>
+    ></StyledForm>
   );
 };
 
-// SelectField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
-const SelectField: React.FC<FieldProps> = (props) => {
-  const { control, watch, formState, unregister, trigger } = useFormContext();
+// WithField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
+const WithField: React.FC<FieldProps> = (props) => {
+  const { watch, formState, register } = useFormContext();
   const providerId = watch("target.providerId");
   const { data } = useListProviderArgOptions(providerId, props.name);
   const withError = formState.errors.target?.with;
@@ -132,62 +138,19 @@ const SelectField: React.FC<FieldProps> = (props) => {
       <FormLabel htmlFor="target.providerId">
         <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
       </FormLabel>
-      <Controller
-        control={control}
-        rules={{ required: props.required }}
-        name={`target.with.${props.name}`}
-        render={({ field: { onChange, ref, value } }) => {
-          return data.hasOptions ? (
-            <Flex minW={{ base: "200px", md: "500px" }}>
-              <Box>
-                <RSelect
-                  options={data.options}
-                  components={{ Option: CustomOption }}
-                  ref={ref}
-                  value={data.options.find((o) => o.value === value)}
-                  onChange={(val) => {
-                    // TS improperly infers this as MultiValue<Option>, when Option works fine?
-                    onChange(val?.value);
-                    trigger(`target.with.${props.name}`);
-                  }}
-                  styles={{
-                    multiValue: (provided, state) => {
-                      return {
-                        minWidth: "100%",
-                        borderRadius: "20px",
-                        background: colors.neutrals[100],
-                      };
-                    },
-                    container: (provided, state) => {
-                      return {
-                        minWidth: "300px",
-                        width: "100%",
-                      };
-                    },
-                  }}
-                  // data-testid={rest.testId}
-                />
-                <FormHelperText>{value}</FormHelperText>
-              </Box>
-            </Flex>
-          ) : (
-            <>
-              <Input
-                id="provider-vault"
-                bg="white"
-                ref={ref}
-                onChange={(e) => {
-                  onChange(e);
-                  trigger(`target.with.${props.name}`); // this triggers the form to revalidate
-                }}
-                value={value}
-                placeholder={props.schema.default?.toString() ?? ""}
-              />
-            </>
-          );
-        }}
-      />
-
+      {data.hasOptions ? (
+        <MultiSelectOptions
+          fieldName={`target.with.${props.name}`}
+          options={data.options}
+        />
+      ) : (
+        <Input
+          id="provider-vault"
+          bg="white"
+          placeholder={props.schema.default?.toString() ?? ""}
+          {...register(`target.with.${props.name}`)}
+        />
+      )}
       <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>
     </FormControl>
   );

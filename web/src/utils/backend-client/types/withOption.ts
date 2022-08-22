@@ -5,6 +5,8 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { WithOption } from './withOption';
 
-export type CreateAccessRuleTargetWith = {[key: string]: WithOption[]};
+export interface WithOption {
+  value: string;
+  label: string;
+}
