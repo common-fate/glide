@@ -60,7 +60,7 @@ func New(ctx context.Context, cfg Config, opts ...func(*Server)) (*Server, error
 		return nil, errors.New("IdentitySyncer must be provided")
 	}
 
-	tokenizer, err := ddb.NewKMSTokenizer(ctx, cfg.Config.KMSKeyARN)
+	tokenizer, err := ddb.NewKMSTokenizer(ctx, cfg.Config.PaginationKMSKeyARN)
 	if err != nil {
 		return nil, err
 	}

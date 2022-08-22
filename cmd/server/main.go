@@ -85,7 +85,7 @@ func run() error {
 	api, err := api.New(ctx, api.Opts{
 		Log:                 log,
 		DynamoTable:         cfg.DynamoTable,
-		KMSKeyARN:           cfg.KMSKeyARN,
+		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
 		AccessHandlerClient: ahc,
 		EventSender:         eventBus,
 		AdminGroup:          cfg.AdminGroup,

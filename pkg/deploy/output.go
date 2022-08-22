@@ -39,7 +39,7 @@ type Output struct {
 	EventBusSource            string `json:"EventBusSource"`
 	IdpSyncFunctionName       string `json:"IdpSyncFunctionName"`
 	Region                    string `json:"Region"`
-	KMSKeyArn                 string `json:"KMSKeyArn"`
+	PaginationKMSKeyARN       string `json:"PaginationKMSKeyARN"`
 }
 
 func (c Output) FrontendURL() string {
