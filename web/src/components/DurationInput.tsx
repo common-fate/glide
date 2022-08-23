@@ -1,6 +1,5 @@
-import { HStack } from "@chakra-ui/layout";
 import {
-  forwardRef,
+  HStack,
   InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -36,8 +35,12 @@ interface DurationInputContext {
 }
 
 const Context = createContext<DurationInputContext>({
-  setValue: (a, b) => {},
-  register: (d) => {},
+  setValue: (a, b) => {
+    undefined;
+  },
+  register: (d) => {
+    undefined;
+  },
   minHours: 0,
   minMinutes: 0,
   hours: 0,
@@ -136,8 +139,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   // however they are not aware of each other, so edge cases are handled in here
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
-      case "HOUR":
-        let newTime = v * HOUR + minutes * MINUTE;
+      case "HOUR": {
+        const newTime = v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(
             v * HOUR +
@@ -150,9 +153,11 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         }
 
         break;
-      case "MINUTE":
+      }
+      case "MINUTE": {
         onChange(hours * HOUR + v * MINUTE);
         break;
+      }
     }
   };
 

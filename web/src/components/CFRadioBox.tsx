@@ -1,5 +1,5 @@
 import { CheckCircleIcon } from "@chakra-ui/icons";
-import { Box, HStack } from "@chakra-ui/layout";
+import { Box, HStack } from "@chakra-ui/react";
 import { RadioProps, useRadio } from "@chakra-ui/react";
 
 export const CFRadioBox: React.FC<RadioProps> = (props) => {

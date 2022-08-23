@@ -29,7 +29,7 @@ import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
-export const Navbar: React.FC<{}> = () => {
+export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
   const user = useUser();

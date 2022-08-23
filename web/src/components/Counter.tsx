@@ -7,7 +7,7 @@ interface Props extends TagProps {
 
 const Counter = ({ count, children, ...rest }: Props) => {
   // If the number > 2 digits, good to have less padding
-  let p = count && count >= 10 ? 1 : 2;
+  const p = count && count >= 10 ? 1 : 2;
 
   return (
     <Tag pl={p} pr={p} fontWeight="500" rounded="full" size="sm" {...rest}>

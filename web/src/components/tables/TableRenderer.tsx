@@ -199,7 +199,7 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
           {instance?.page.map((row, i) => {
             instance.prepareRow(row);
 
-            let extraProps = rowProps ? rowProps(row) : {};
+            const extraProps = rowProps ? rowProps(row) : {};
 
             //optional prop to turn clickable rows on or off
             if (props.linkTo) {

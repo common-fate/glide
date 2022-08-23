@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
 	"github.com/briandowns/spinner"
@@ -55,21 +58,21 @@ func main() {
 		Commands: []*cli.Command{
 			// It's possible that these wrappers would be better defined on the commands themselves rather than in this main function
 			// It would be easier to see exactly what runs when a command runs
-			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
-			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials()),
-			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
-			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), RequireAWSCredentials()),
+			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
+			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
 			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
-			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), RequireAWSCredentials()),
+			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 		},
 	}
 
@@ -274,4 +277,90 @@ func PreventDevUsage() cli.BeforeFunc {
 		}
 		return nil
 	}
+}
+
+// BeforeFunc wrapper for IsReleaseVersionDifferent func.
+// Prompt user to save `gdeploy` version as release version to `granted-deployment.yml`
+// if release version  and gdeploy version is different.
+func VerifyGDeployCompatibility() cli.BeforeFunc {
+	return func(c *cli.Context) error {
+		ctx := c.Context
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		isVersionMismatch, err := IsReleaseVersionDifferent(dc.Deployment, build.Version)
+		if err != nil {
+			return err
+		}
+
+		if isVersionMismatch {
+			var shouldUpdate bool
+			prompt := &survey.Confirm{
+				Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", dc.Deployment.Release, build.Version, build.Version),
+			}
+
+			err = survey.AskOne(prompt, &shouldUpdate)
+			if err != nil {
+				return err
+			}
+
+			if shouldUpdate {
+				dc.Deployment.Release = build.Version
+
+				f := c.Path("file")
+
+				err := dc.Save(f)
+				if err != nil {
+					return err
+				}
+
+				clio.Success("Release version updated to %s", build.Version)
+
+				return nil
+
+			}
+
+			return clio.NewCLIError("Please update gdeploy version to match your release version in 'granted-deployment.yml'.")
+		}
+
+		return nil
+
+	}
+}
+
+// Validate if the passed deployment configuration's release value and gdeploy version matches or not.
+// Returns true if version same.
+// Returns false if we can skip this check.
+// Returns error for anything else.
+func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string) (bool, error) {
+	// skip compatibility check for dev deployments.
+	if d.Dev != nil && *d.Dev {
+		return false, nil
+	}
+
+	isValidReleaseNumber, err := regexp.MatchString(`v\d.\d+.\d+`, d.Release)
+	if err != nil {
+		return false, err
+	}
+
+	if isValidReleaseNumber {
+		if buildVersion == d.Release {
+			return false, nil
+		}
+
+		if buildVersion != d.Release {
+			return true, nil
+		}
+	}
+
+	// release value are added as URL for UAT. In such case it should skip this check.
+	// if invalid URL, return with error.
+	_, err = url.ParseRequestURI(d.Release)
+	if err != nil {
+		return false, fmt.Errorf("Invalid URL. Please update your release version in 'granted-deployment.yml' to %s", buildVersion)
+	}
+
+	return false, nil
 }
