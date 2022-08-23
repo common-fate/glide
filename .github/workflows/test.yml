@@ -70,7 +70,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.29
+          version: latest
           args: --timeout=3m
 
   test-frontend:
