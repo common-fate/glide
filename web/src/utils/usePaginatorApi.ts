@@ -72,7 +72,7 @@ export const usePaginatorApi = <T extends (...args: any[]) => any>({
       setNextToken(data.next);
       // Otherwise incrementing internally between pages
     } else {
-      let tokenIfPresent = tokenStack[pageIndex + 1];
+      const tokenIfPresent = tokenStack[pageIndex + 1];
       if (tokenIfPresent) {
         setNextToken(tokenStack[pageIndex + 1]);
       } else {

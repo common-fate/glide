@@ -51,7 +51,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   }, []);
 
   useEffect(() => {
-    let data: ApproveRequestFormData = {
+    const data: ApproveRequestFormData = {
       timing: {
         durationSeconds: request.timing.durationSeconds,
         startTime: request.timing.startTime,

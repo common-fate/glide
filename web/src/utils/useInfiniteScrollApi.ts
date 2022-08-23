@@ -49,7 +49,7 @@ export const useInfiniteScrollApi = <T extends (...args: any[]) => any>({
       virtualData.next != data?.next
     ) {
       setVirtualData((curr) => {
-        let prevListItems =
+        const prevListItems =
           curr?.[listObjKey].length > 0 ? curr?.[listObjKey] : [];
         return {
           ...curr,

@@ -137,7 +137,7 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
       case "HOUR":
-        let newTime = v * HOUR + minutes * MINUTE;
+        const newTime = v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(
             v * HOUR +
