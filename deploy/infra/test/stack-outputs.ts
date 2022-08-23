@@ -29,6 +29,7 @@ const testOutputs: StackOutputs = {
   GranterLambdaExecutionRoleARN: "abcdefg",
   AccessHandlerRestAPILambdaExecutionRoleARN:"abcdefg",
  
+  PaginationKMSKeyARN: "abcdefg"
 };
 
 // Write the json object to ./testOutputs.json so that it can be parsed by a go test in pkg/deploy.output_test.go

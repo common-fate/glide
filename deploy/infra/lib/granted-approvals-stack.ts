@@ -104,6 +104,7 @@ export class DevGrantedStack extends cdk.Stack {
       Region: this.region,
       AccessHandlerRestAPILambdaExecutionRoleARN: accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
       GranterLambdaExecutionRoleARN: accessHandler.getGranter().getGranterLambdaExecutionRoleARN()
+      PaginationKMSKeyARN: approvals.getKmsKeyArn()
     });
   }
 }

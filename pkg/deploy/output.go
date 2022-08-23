@@ -41,6 +41,7 @@ type Output struct {
 	Region                                     string `json:"Region"`
 	GranterLambdaExecutionRoleARN              string `json:"GranterLambdaExecutionRoleARN"`
 	AccessHandlerRestAPILambdaExecutionRoleARN string `json:"AccessHandlerRestAPILambdaExecutionRoleARN"`
+	PaginationKMSKeyARN                        string `json:"PaginationKMSKeyARN"`
 }
 
 func (c Output) FrontendURL() string {

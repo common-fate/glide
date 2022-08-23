@@ -36,14 +36,20 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, p
 		RequestEndComparator: storage.GreaterThan,
 		CompareTo:            time.Now(),
 	}
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
 
+	var next *string
+	if qr.NextPage != "" {
+		next = &qr.NextPage
+	}
+
 	res := types.ListRequestsResponse{
 		Requests: make([]types.Request, len(q.Result)),
+		Next:     next,
 	}
 	for i, r := range q.Result {
 		res.Requests[i] = r.ToAPI()
@@ -57,6 +63,11 @@ func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, param
 	ctx := r.Context()
 	uid := auth.UserIDFromContext(ctx)
 
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+	}
+
 	// the items in the list will be sorted by the request endtime not requestedAt
 	// is this going to be a problem?
 	q := storage.ListRequestsForUserAndRequestend{
@@ -64,14 +75,20 @@ func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, param
 		RequestEndComparator: storage.LessThanEqual,
 		CompareTo:            time.Now(),
 	}
-	_, err := a.DB.Query(ctx, &q)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
 
+	var next *string
+	if qr.NextPage != "" {
+		next = &qr.NextPage
+	}
+
 	res := types.ListRequestsResponse{
 		Requests: make([]types.Request, len(q.Result)),
+		Next:     next,
 	}
 	for i, r := range q.Result {
 		res.Requests[i] = r.ToAPI()

@@ -183,7 +183,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.19.0
-	github.com/common-fate/ddb v0.9.0
+	github.com/common-fate/ddb v0.10.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

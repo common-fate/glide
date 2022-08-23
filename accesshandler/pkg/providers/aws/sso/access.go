@@ -15,7 +15,7 @@ import (
 )
 
 type Args struct {
-	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission set"`
+	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission Set,description=The Permission Set field lists all the SSO Permission Sets which have a resource tag with key 'commonfate.io/managed-by-granted'. Granted Approvals can only manage SSO Permission Sets which have been created in the delegated SSO management account. See our documentation for more information. https://docs.commonfate.io/granted-approvals/providers/aws-sso"`
 	AccountID        string `json:"accountId" jsonschema:"title=Account"`
 }
 
