@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
 	"github.com/briandowns/spinner"
@@ -279,13 +280,13 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return err
 		}
 
-		return CheckReleaseVersion(dc.Deployment, build.Version)
+		return CheckReleaseVersion(c, &dc, dc.Deployment, build.Version)
 	}
 }
 
 // Validate if the passed deployment configuration's release value and gdeploy version
 // matches or not. Return CLI error if different.
-func CheckReleaseVersion(d deploy.Deployment, buildVersion string) *clio.CLIError {
+func CheckReleaseVersion(c *cli.Context, dc *deploy.Config, d deploy.Deployment, buildVersion string) error {
 	// skip compatibility check for dev deployments.
 	if d.Dev != nil && *d.Dev {
 		return nil
@@ -295,7 +296,28 @@ func CheckReleaseVersion(d deploy.Deployment, buildVersion string) *clio.CLIErro
 	// cases when release value is invalid URL or has version number instead of URL.
 	_, err := url.ParseRequestURI(d.Release)
 	if err != nil && buildVersion != d.Release {
-		return clio.NewCLIError(fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . ", d.Release, buildVersion))
+		shouldUpdate := false
+		prompt := &survey.Confirm{
+			Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", d.Release, buildVersion, buildVersion),
+		}
+		survey.AskOne(prompt, &shouldUpdate)
+
+		if shouldUpdate {
+			dc.Deployment.Release = buildVersion
+
+			f := c.Path("file")
+
+			err := dc.Save(f)
+			if err != nil {
+				return err
+			}
+
+			clio.Success("Release version updated to %s", buildVersion)
+
+			return nil
+		}
+
+		return clio.NewCLIError("Please update gdeploy version to match your release version in 'granted-deployment.yml'. ")
 	}
 
 	return nil
