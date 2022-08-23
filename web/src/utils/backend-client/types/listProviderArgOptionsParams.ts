@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type GetProviderArgs200 = { [key: string]: any };
+export type ListProviderArgOptionsParams = { refresh?: boolean };
