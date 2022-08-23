@@ -260,8 +260,8 @@ github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed h1:75bNrGY5m/
 github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed/go.mod h1:5WXBU3NBnQ6ZuqQyazwL5Ou6yT7UpC8c3yK8F9mGh9k=
 github.com/common-fate/cloudform v0.3.0 h1:dl0dLX4trbj+fAZexZ+jMVto/TyamCRJ28pB/+9uxTM=
 github.com/common-fate/cloudform v0.3.0/go.mod h1:a9sj6SQK4zNb7Ef/Y/5y83qYrHJ8jtWpjAiQXbNyT3g=
-github.com/common-fate/ddb v0.10.0 h1:FHngNyqeo8oIqOdiw1diBf+102CeCPHJhgdn1I3P0Yk=
-github.com/common-fate/ddb v0.10.0/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
+github.com/common-fate/ddb v0.12.0 h1:YjjkLconEO0q2sVn901eHrkiKp6iW/YkFoljN5RmgTE=
+github.com/common-fate/ddb v0.12.0/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/testvault v0.1.0 h1:XVhbmcNySGIA203FywYW7wL44Mlcg23UUek3bdg5tzQ=
