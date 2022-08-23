@@ -2,7 +2,7 @@ package api
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -128,7 +128,7 @@ func TestReviewRequest(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}

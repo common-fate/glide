@@ -5,7 +5,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"text/template"
 
@@ -46,7 +46,7 @@ func (o Output) DeployFrontend() error {
 	}
 
 	prodPath := "web/public/aws-exports.json"
-	err = ioutil.WriteFile(prodPath, []byte(awsExportsProd), 0666)
+	err = os.WriteFile(prodPath, []byte(awsExportsProd), 0666)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (o Output) DeployFrontend() error {
 	// also write the application config JSON to the NextJS output folder,
 	// in case the variables have changed since the last frontend build.
 	outPath := "web/dist/aws-exports.json"
-	err = ioutil.WriteFile(outPath, []byte(awsExportsProd), 0666)
+	err = os.WriteFile(outPath, []byte(awsExportsProd), 0666)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func (o Output) DeployFrontend() error {
 	}
 
 	devPath := "web/src/utils/aws-exports.js"
-	err = ioutil.WriteFile(devPath, []byte(awsExportsDev), 0666)
+	err = os.WriteFile(devPath, []byte(awsExportsDev), 0666)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 package deploy
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +20,7 @@ var testCDKOutput = Output{
 }
 
 func TestRenderLocalFrontend(t *testing.T) {
-	want, err := ioutil.ReadFile("testdata/aws-exports.js.snapshot")
+	want, err := os.ReadFile("testdata/aws-exports.js.snapshot")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestRenderLocalFrontend(t *testing.T) {
 }
 
 func TestRenderProductionFrontend(t *testing.T) {
-	want, err := ioutil.ReadFile("testdata/aws-exports.json.snapshot")
+	want, err := os.ReadFile("testdata/aws-exports.json.snapshot")
 	if err != nil {
 		t.Fatal(err)
 	}

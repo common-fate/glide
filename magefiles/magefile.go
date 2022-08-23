@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -135,7 +134,7 @@ func (Build) Frontend() error {
 	mg.Deps(Deps.NPM, Build.FrontendAWSExports)
 	dirs := []string{"web/*"}
 
-	files, err := ioutil.ReadDir("web")
+	files, err := os.ReadDir("web")
 	if err != nil {
 		return err
 	}

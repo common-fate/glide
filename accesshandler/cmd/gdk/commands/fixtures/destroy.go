@@ -2,7 +2,6 @@ package fixtures
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -58,7 +57,7 @@ var DestroyCommand = cli.Command{
 		p := c.Path("path")
 		fixturePath := filepath.Join(p, name+".json")
 
-		data, err := ioutil.ReadFile(fixturePath)
+		data, err := os.ReadFile(fixturePath)
 		if err != nil {
 			return err
 		}
