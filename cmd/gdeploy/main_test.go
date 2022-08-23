@@ -21,10 +21,10 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 
 	testCases := []testcase{{
 		name:     "Ok",
-		gVersion: build.Version,
+		gVersion: "v2.10.11",
 		want:     "false",
 		dConfig: deploy.Deployment{
-			Release: build.Version,
+			Release: "v2.10.11",
 		},
 	},
 		{
