@@ -25,7 +25,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 		var mu sync.Mutex
 
 		g, gctx := errgroup.WithContext(ctx)
-		g.SetLimit(50) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
+		g.SetLimit(5) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
 
 		hasMore := true
 		var nextToken *string
@@ -60,7 +60,14 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 					if hasTag {
 						mu.Lock()
 						defer mu.Unlock()
-						opts = append(opts, types.Option{Label: *po.PermissionSet.Name, Value: ARNCopy})
+						var label string
+						if po.PermissionSet.Name != nil {
+							label = *po.PermissionSet.Name
+						}
+						if po.PermissionSet.Description != nil {
+							label = label + ": " + *po.PermissionSet.Description
+						}
+						opts = append(opts, types.Option{Label: label, Value: ARNCopy})
 					}
 					return nil
 				})
