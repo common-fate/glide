@@ -2,6 +2,7 @@ package sso
 
 import (
 	"context"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -9,6 +10,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 // List options for arg
@@ -17,7 +19,14 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 	case "permissionSetArn":
 		log := zap.S().With("arg", arg)
 		log.Info("getting sso permission set options")
+
 		opts := []types.Option{}
+		// prevent concurrent writes to `opts` in goroutines
+		var mu sync.Mutex
+
+		g, gctx := errgroup.WithContext(ctx)
+		g.SetLimit(50) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
+
 		hasMore := true
 		var nextToken *string
 
@@ -26,32 +35,44 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 				InstanceArn: aws.String(p.instanceARN.Get()),
 				NextToken:   nextToken,
 			})
-
 			if err != nil {
+				// ensure we don't have stale goroutines hanging around - just send the error into the errgroup
+				// and then call Wait() to wrap up goroutines.
+				g.Go(func() error { return err })
+				_ = g.Wait()
 				return nil, err
 			}
+
+			for _, ARN := range o.PermissionSets {
+				ARNCopy := ARN
+
+				g.Go(func() error {
+					po, err := p.client.DescribePermissionSet(gctx, &ssoadmin.DescribePermissionSetInput{
+						InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(ARNCopy),
+					})
+					if err != nil {
+						return err
+					}
+					hasTag, err := p.checkPermissionSetIsManagedByGranted(gctx, ARNCopy)
+					if err != nil {
+						return err
+					}
+					if hasTag {
+						mu.Lock()
+						defer mu.Unlock()
+						opts = append(opts, types.Option{Label: *po.PermissionSet.Name, Value: ARNCopy})
+					}
+					return nil
+				})
+			}
+
 			nextToken = o.NextToken
 			hasMore = nextToken != nil
+		}
 
-			for _, arn := range o.PermissionSets {
-				// the user should exist in AWS SSO.
-				arnCopy := arn
-
-				po, err := p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-					InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(arnCopy),
-				})
-				if err != nil {
-					return nil, err
-				}
-				hasTag, err := p.checkPermissionSetIsManagedByGranted(ctx, arnCopy)
-				if err != nil {
-					return nil, err
-				}
-				if hasTag {
-					opts = append(opts, types.Option{Label: *po.PermissionSet.Name, Value: arnCopy})
-				}
-
-			}
+		err := g.Wait()
+		if err != nil {
+			return nil, err
 		}
 
 		return opts, nil
@@ -89,6 +110,7 @@ func (p *Provider) checkPermissionSetIsManagedByGranted(ctx context.Context, per
 		tags, err := p.client.ListTagsForResource(ctx, &ssoadmin.ListTagsForResourceInput{
 			InstanceArn: aws.String(p.instanceARN.Get()),
 			ResourceArn: aws.String(permissionSetARN),
+			NextToken:   nextToken,
 		})
 		if err != nil {
 			return false, err
