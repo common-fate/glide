@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/common-fate/granted-approvals/internal/build"
@@ -9,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCheckReleaseVersion(t *testing.T) {
+func TestIsReleaseVersionDifferent(t *testing.T) {
 
 	type testcase struct {
 		name     string
@@ -21,7 +22,7 @@ func TestCheckReleaseVersion(t *testing.T) {
 	testCases := []testcase{{
 		name:     "Ok",
 		gVersion: build.Version,
-		want:     "",
+		want:     "false",
 		dConfig: deploy.Deployment{
 			Release: build.Version,
 		},
@@ -32,7 +33,8 @@ func TestCheckReleaseVersion(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "httpgmail.com",
 			},
-			want: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . ", "httpgmail.com", build.Version)},
+			want: fmt.Sprintf("Invalid URL. Please update your release version in 'granted-deployment.yml' to %s", build.Version),
+		},
 
 		{
 			name:     "Valid URL",
@@ -40,7 +42,8 @@ func TestCheckReleaseVersion(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "https://gmail.com",
 			},
-			want: ""},
+			want: "false",
+		},
 
 		{
 			name:     "gdeploy and granted-approval version match",
@@ -48,7 +51,8 @@ func TestCheckReleaseVersion(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "v1.02.02",
 			},
-			want: ""},
+			want: "false",
+		},
 
 		{
 			name:     "gdeploy and granted-approval version different",
@@ -56,19 +60,20 @@ func TestCheckReleaseVersion(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "v1.02.022",
 			},
-			want: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . ", "v1.02.022", "v1.02.02")},
+			want: "true",
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
 			var got string
-			res := CheckReleaseVersion(tc.dConfig, tc.gVersion)
+			isDifferent, err := IsReleaseVersionDifferent(tc.dConfig, tc.gVersion)
 
-			if res == nil {
-				got = ""
+			if err != nil {
+				got = err.Error()
 			} else {
-				got = res.Error()
+				got = strconv.FormatBool(isDifferent)
 			}
 
 			assert.Equal(t, tc.want, got)
