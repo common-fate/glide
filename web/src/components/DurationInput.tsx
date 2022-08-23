@@ -1,6 +1,5 @@
-import { HStack } from "@chakra-ui/react";
 import {
-  forwardRef,
+  HStack,
   InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -36,8 +35,12 @@ interface DurationInputContext {
 }
 
 const Context = createContext<DurationInputContext>({
-  setValue: (a, b) => {},
-  register: (d) => {},
+  setValue: (a, b) => {
+    undefined;
+  },
+  register: (d) => {
+    undefined;
+  },
   minHours: 0,
   minMinutes: 0,
   hours: 0,

@@ -18,7 +18,7 @@ module.exports = {
     sourceType: "module",
     project: "./tsconfig.json",
   },
-  ignorePatterns: ["globalSetup.ts", "playwright.config.ts","vite.config.ts"],
+  ignorePatterns: ["globalSetup.ts", "playwright.config.ts","vite.config.ts","tests/**"],
   plugins: ["@typescript-eslint"],
   rules: {
     "@typescript-eslint/await-thenable": "error",
