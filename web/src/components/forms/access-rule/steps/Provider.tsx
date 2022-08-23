@@ -158,7 +158,7 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
     const res = await listProviderArgOptions(providerId, argId, {
       refresh: true,
     });
-    mutate(res);
+    await mutate(res);
     setLoading(false);
   };
 
