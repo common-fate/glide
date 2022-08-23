@@ -1,6 +1,6 @@
 import { Auth } from "@aws-amplify/auth";
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
-import { Center } from "@chakra-ui/layout";
+import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import CFSpinner from "../../pages/CFSpinner";
 import awsExports from "../aws-exports";
