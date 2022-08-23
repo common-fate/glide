@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -271,7 +272,9 @@ func PreventDevUsage() cli.BeforeFunc {
 	}
 }
 
-// BeforeFunc wrapper for CheckReleaseVersion.
+// BeforeFunc wrapper for IsReleaseVersionDifferent func.
+// Prompt user to save `gdeploy` version as release version to `granted-deployment.yml`
+// if release version  and gdeploy version is different.
 func VerifyGDeployCompatibility() cli.BeforeFunc {
 	return func(c *cli.Context) error {
 		ctx := c.Context
@@ -280,45 +283,73 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return err
 		}
 
-		return CheckReleaseVersion(c, &dc, dc.Deployment, build.Version)
+		isVersionMismatch, err := IsReleaseVersionDifferent(dc.Deployment, build.Version)
+		if err != nil {
+			return err
+		}
+
+		if isVersionMismatch {
+			var shouldUpdate bool
+			prompt := &survey.Confirm{
+				Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", dc.Deployment.Release, build.Version, build.Version),
+			}
+			survey.AskOne(prompt, &shouldUpdate)
+
+			if shouldUpdate {
+				dc.Deployment.Release = build.Version
+
+				f := c.Path("file")
+
+				err := dc.Save(f)
+				if err != nil {
+					return err
+				}
+
+				clio.Success("Release version updated to %s", build.Version)
+
+				return nil
+
+			}
+
+			return clio.NewCLIError("Please update gdeploy version to match your release version in 'granted-deployment.yml'.")
+		}
+
+		return nil
+
 	}
 }
 
-// Validate if the passed deployment configuration's release value and gdeploy version
-// matches or not. Return CLI error if different.
-func CheckReleaseVersion(c *cli.Context, dc *deploy.Config, d deploy.Deployment, buildVersion string) error {
+// Validate if the passed deployment configuration's release value and gdeploy version matches or not.
+// Returns true if version same.
+// Returns false if we can skip this check.
+// Returns error for anything else.
+func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string) (bool, error) {
 	// skip compatibility check for dev deployments.
 	if d.Dev != nil && *d.Dev {
-		return nil
+		return false, nil
+	}
+
+	isValidReleaseNumber, err := regexp.MatchString(`v\d.\d+.\d+`, d.Release)
+	if err != nil {
+		return false, err
+	}
+
+	if isValidReleaseNumber {
+		if buildVersion == d.Release {
+			return false, nil
+		}
+
+		if buildVersion != d.Release {
+			return true, nil
+		}
 	}
 
 	// release value are added as URL for UAT. In such case it should skip this check.
-	// cases when release value is invalid URL or has version number instead of URL.
-	_, err := url.ParseRequestURI(d.Release)
-	if err != nil && buildVersion != d.Release {
-		shouldUpdate := false
-		prompt := &survey.Confirm{
-			Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", d.Release, buildVersion, buildVersion),
-		}
-		survey.AskOne(prompt, &shouldUpdate)
-
-		if shouldUpdate {
-			dc.Deployment.Release = buildVersion
-
-			f := c.Path("file")
-
-			err := dc.Save(f)
-			if err != nil {
-				return err
-			}
-
-			clio.Success("Release version updated to %s", buildVersion)
-
-			return nil
-		}
-
-		return clio.NewCLIError("Please update gdeploy version to match your release version in 'granted-deployment.yml'. ")
+	// if invalid URL, return with error.
+	_, err = url.ParseRequestURI(d.Release)
+	if err != nil {
+		return false, errors.New(fmt.Sprintf("Invalid URL. Please update your release version in 'granted-deployment.yml' to %s", buildVersion))
 	}
 
-	return nil
+	return false, nil
 }
