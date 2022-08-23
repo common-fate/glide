@@ -46,9 +46,7 @@ export class AppBackend extends Construct {
     this._KMSkey =  new kms.Key(this, 'PaginationKMSKey', {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pendingWindow: cdk.Duration.days(7),
-      alias: 'granted-approvals-pagination-key',
       description: 'used for encrypting and decrypting pagination tokens for granted approvals',
-     
     });
 
     const code = lambda.Code.fromAsset(
