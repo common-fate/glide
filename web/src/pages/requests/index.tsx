@@ -129,7 +129,7 @@ const Home: NextPage = () => {
                   minW={{ base: "unset", xl: "488px" }}
                   gap={6}
                 >
-                  {!!rules ? (
+                  {rules ? (
                     rules.accessRules.length > 0 ? (
                       rules.accessRules.map((r, i) => (
                         <Link

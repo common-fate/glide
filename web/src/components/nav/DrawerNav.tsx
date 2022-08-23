@@ -71,8 +71,12 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
       value={{
         colorMode: isAdmin ? "dark" : "light",
         // noop
-        toggleColorMode: () => {},
-        setColorMode: () => {},
+        toggleColorMode: () => {
+          undefined;
+        },
+        setColorMode: () => {
+          undefined;
+        },
       }}
     >
       <Drawer

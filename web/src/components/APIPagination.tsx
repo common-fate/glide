@@ -1,10 +1,10 @@
-import { ButtonProps, chakra, CSSObject, HStack } from "@chakra-ui/react";
-import React from "react";
 import {
-  TableInstance,
-  TableState,
-  UsePaginationInstanceProps,
-} from "react-table";
+  ButtonProps,
+  chakra,
+  SystemStyleObject,
+  HStack,
+} from "@chakra-ui/react";
+import { TableInstance, UsePaginationInstanceProps } from "react-table";
 import { PaginationProps } from "../utils/usePaginatorApi";
 
 export const APIPagination = ({
@@ -12,10 +12,8 @@ export const APIPagination = ({
   ...props
 }: {
   paginator?: PaginationProps<any>;
-} & UsePaginationInstanceProps<{}> &
+} & UsePaginationInstanceProps<Record<string, never>> &
   TableInstance<any>) => {
-  console.log({ props });
-
   return (
     <HStack spacing={2}>
       <PaginationButton
@@ -57,11 +55,11 @@ export const APIPagination = ({
 };
 
 export const PaginationButton = (props: ButtonProps) => {
-  const commonStyle: CSSObject = {
+  const commonStyle: SystemStyleObject = {
     bg: "neutrals.200",
   };
 
-  const activeStyle: CSSObject = {
+  const activeStyle: SystemStyleObject = {
     bg: "brandGreen.100",
     color: "white",
   };

@@ -31,7 +31,7 @@ import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogoAdmin } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
-export const AdminNavbar: React.FC<{}> = () => {
+export const AdminNavbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
   // Keep track of whether app has mounted (hydration is done)
@@ -50,8 +50,12 @@ export const AdminNavbar: React.FC<{}> = () => {
         value={{
           colorMode: "dark",
           // noop
-          toggleColorMode: () => {},
-          setColorMode: () => {},
+          toggleColorMode: () => {
+            undefined;
+          },
+          setColorMode: () => {
+            undefined;
+          },
         }}
       >
         {/* <DarkMode /> */}

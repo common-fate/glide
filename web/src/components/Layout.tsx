@@ -2,8 +2,6 @@ import React from "react";
 import { AdminNavbar } from "./nav/AdminNavbar";
 import { Navbar } from "./nav/Navbar";
 
-type Props = {};
-
 export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({
   children,
 }) => {

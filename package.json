@@ -7,15 +7,11 @@
   "author": "",
   "license": "ISC",
   "pnpm": {
-    "overrides": {
-      "@aws-amplify/analytics": "5.2.8",
-      "@chakra-ui/utils": "2.0.0"
-    },
     "peerDependencyRules": {
       "allowedVersions": {
-        "react": "18",
-        "react-dom": "18",
-        "@types/react": "18"
+        "react": "^18",
+        "react-dom": "^18",
+        "@types/react": "^18"
       }
     }
   }

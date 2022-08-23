@@ -7,7 +7,7 @@ import {
 } from "react-table";
 
 export const Pagination = (
-  props: UsePaginationInstanceProps<{}> & TableInstance<any>
+  props: UsePaginationInstanceProps<Record<string, never>> & TableInstance<any>
 ) => {
   return (
     <HStack spacing={2}>

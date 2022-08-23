@@ -114,7 +114,7 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
         duration: 2200,
         isClosable: true,
       });
-      mutate();
+      void mutate();
       navigate({ to: "/admin/access-rules" });
     } catch (err) {
       let description: string | undefined;

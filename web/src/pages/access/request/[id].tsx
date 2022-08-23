@@ -159,7 +159,7 @@ const Home: NextPage = () => {
     setLoading(true);
     const duration = data.timing.durationSeconds ?? 2;
 
-    let r: CreateRequestRequestBody = {
+    const r: CreateRequestRequestBody = {
       accessRuleId: ruleId,
       timing: {
         durationSeconds: duration,
