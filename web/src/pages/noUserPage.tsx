@@ -1,12 +1,9 @@
-import { Flex, Text, Stack, Heading, Button } from "@chakra-ui/react";
-import { ICredentials } from "@aws-amplify/core";
+import { Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 
-import { useNavigate } from "react-location";
 import { useCognito } from "../utils/context/cognitoContext";
 
 export const NoUser = () => {
   const { cognitoAuthenticatedUserEmail, initiateSignOut } = useCognito();
-  const navigate = useNavigate();
   return (
     <Flex
       height="100vh"
@@ -38,10 +35,11 @@ export const NoUser = () => {
 
         <Button
           onClick={() => {
-            console.log("clicked");
-            initiateSignOut().then(() => {
-              window.location.reload();
-            });
+            initiateSignOut()
+              .then(() => {
+                window.location.reload();
+              })
+              .catch((e) => console.error(e));
           }}
           top="40px"
           alignSelf="center"

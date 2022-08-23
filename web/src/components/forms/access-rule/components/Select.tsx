@@ -122,7 +122,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
             onBlur={() => {
-              trigger(fieldName);
+              void trigger(fieldName);
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
             }}
             data-testid={rest.testId}

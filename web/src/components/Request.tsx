@@ -65,7 +65,9 @@ interface RequestContext {
 
 const Context = createContext<RequestContext>({
   request: undefined,
-  setOverrideTiming: () => {},
+  setOverrideTiming: () => {
+    undefined;
+  },
 });
 
 export const RequestDisplay: React.FC<RequestProps> = ({
@@ -613,7 +615,7 @@ export const RequestCancelButton: React.FC = () => {
     if (request === undefined) return;
     try {
       await cancelRequest(request.id, {});
-      mutate();
+      void mutate();
       toast({
         title: "Request cancelled",
         status: "success",
@@ -665,7 +667,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
   const submitRevoke = async () => {
     if (request === undefined) return;
     try {
-      await revokeRequest(request.id, {}).then(() => {});
+      await revokeRequest(request.id, {});
       toast({
         title: "Deactivated grant",
         status: "success",

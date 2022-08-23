@@ -18,9 +18,10 @@ module.exports = {
     sourceType: "module",
     project: "./tsconfig.json",
   },
-  ignorePatterns: ["globalSetup.ts", "playwright.config.ts","vite.config.ts","tests/**"],
+  ignorePatterns: ["globalSetup.ts", "playwright.config.ts","vite.config.ts","tests/**","**/client.d.ts"],
   plugins: ["@typescript-eslint"],
   rules: {
+    "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/explicit-module-boundary-types": "off",

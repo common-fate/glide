@@ -139,7 +139,7 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   // however they are not aware of each other, so edge cases are handled in here
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
-      case "HOUR":
+      case "HOUR": {
         const newTime = v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(
@@ -153,9 +153,11 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         }
 
         break;
-      case "MINUTE":
+      }
+      case "MINUTE": {
         onChange(hours * HOUR + v * MINUTE);
         break;
+      }
     }
   };
 

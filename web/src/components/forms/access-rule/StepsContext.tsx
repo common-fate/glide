@@ -33,9 +33,8 @@ function stepReducer(state: StepState, action: StepAction) {
           ...state,
           step: payload,
         };
-      } else {
-        return state;
       }
+      return state;
 
     case StepActionKind.NEXT:
       if (state.step !== -1 && state.step < state.numberOfSteps - 1) {
@@ -44,12 +43,12 @@ function stepReducer(state: StepState, action: StepAction) {
           step: state.step + 1,
         };
       }
+      break;
     case StepActionKind.CLOSE:
       return {
         ...state,
         step: -1,
       };
-
     default:
       return state;
   }

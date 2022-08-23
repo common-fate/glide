@@ -65,9 +65,9 @@ export const ProviderStep: React.FC = () => {
             name={"target.providerId"}
             render={({ field: { ref, onChange, ...rest } }) => (
               <ProviderRadioSelector
-                onChange={(t) => {
+                onChange={async (t) => {
                   onChange(t);
-                  methods.trigger("target.providerId");
+                  await methods.trigger("target.providerId");
                 }}
                 {...rest}
               />
@@ -154,8 +154,9 @@ const SelectField: React.FC<FieldProps> = (props) => {
                   value={data.options.find((o) => o.value === value)}
                   onChange={(val) => {
                     // TS improperly infers this as MultiValue<Option>, when Option works fine?
+                    // @ts-ignore
                     onChange(val?.value);
-                    trigger(`target.with.${props.name}`);
+                    void trigger(`target.with.${props.name}`);
                   }}
                   styles={{
                     multiValue: (provided, state) => {
@@ -185,7 +186,7 @@ const SelectField: React.FC<FieldProps> = (props) => {
                 ref={ref}
                 onChange={(e) => {
                   onChange(e);
-                  trigger(`target.with.${props.name}`); // this triggers the form to revalidate
+                  void trigger(`target.with.${props.name}`); // this triggers the form to revalidate
                 }}
                 value={value}
                 placeholder={props.schema.default?.toString() ?? ""}

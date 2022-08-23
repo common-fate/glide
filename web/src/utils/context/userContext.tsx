@@ -24,17 +24,19 @@ const UserProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     setLoadingMe(true);
-    getMe().then((u) => {
-      if (u) {
-        setUser(u.user);
-        setIsAdmin(u.isAdmin);
-        setLoadingMe(false);
-      } else {
-        setUser(undefined);
-        setIsAdmin(undefined);
-        setLoadingMe(false);
-      }
-    });
+    getMe()
+      .then((u) => {
+        if (u) {
+          setUser(u.user);
+          setIsAdmin(u.isAdmin);
+          setLoadingMe(false);
+        } else {
+          setUser(undefined);
+          setIsAdmin(undefined);
+          setLoadingMe(false);
+        }
+      })
+      .catch((e) => console.error(e));
   }, []);
 
   if (loadingMe && user === undefined) {
