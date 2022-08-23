@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad/args",
   "$ref": "#/$defs/Args",
   "$defs": {
@@ -12,9 +12,7 @@
       },
       "additionalProperties": false,
       "type": "object",
-      "required": [
-        "groupId"
-      ]
+      "required": ["groupId"]
     }
   }
 }
