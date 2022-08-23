@@ -37,9 +37,17 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const options = useMemo(() => {
     return (
       data?.groups.map((g) => {
-        const totalMembersInGroup = g.memberCount <= 1 ? `${g.memberCount} member` : `${g.memberCount} members`;
+        const totalMembersInGroup =
+          g.memberCount <= 1
+            ? `${g.memberCount} member`
+            : `${g.memberCount} members`;
 
-        return { value: g.id, label: shouldShowGroupMembers ? `${g.name} (${totalMembersInGroup})` : g.name };
+        return {
+          value: g.id,
+          label: shouldShowGroupMembers
+            ? `${g.name} (${totalMembersInGroup})`
+            : g.name,
+        };
       }) ?? []
     );
   }, [data]);
