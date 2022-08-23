@@ -6,7 +6,8 @@ import {
   FormHelperText,
   FormLabel,
   Input,
-  Select,
+  Skeleton,
+  SkeletonText,
   Spinner,
   Text,
 } from "@chakra-ui/react";
@@ -14,19 +15,19 @@ import Form from "@rjsf/chakra-ui";
 import { FieldProps } from "@rjsf/core";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import RSelect from "react-select";
 import {
   useGetProvider,
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/default/default";
+import { colors } from "../../../../utils/theme/colors";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { CustomOption } from "../components/Select";
 import { CreateAccessRuleFormData } from "../CreateForm";
-import RSelect, { components, OptionProps } from "react-select";
 import { FormStep } from "./FormStep";
-import { colors } from "../../../../utils/theme/colors";
 
 export const ProviderStep: React.FC = () => {
   const methods = useFormContext<CreateAccessRuleFormData>();
@@ -110,6 +111,8 @@ const ProviderWithQuestions: React.FC = () => {
       schema={data}
       fields={{
         StringField: SelectField,
+        // I would have overridden the DescriptionField to make it formatted nicer but its broken in RJSF :(
+        // using a FieldTemplate does allow you to overide the whole thing sort of, but then we may as well write our own library
       }}
     ></Form>
   );
@@ -121,11 +124,15 @@ const SelectField: React.FC<FieldProps> = (props) => {
   const providerId = watch("target.providerId");
   const { data } = useListProviderArgOptions(providerId, props.name);
   const withError = formState.errors.target?.with;
-
-  // @TODO: find a way to ensure validation chill bruh
-
   if (data === undefined) {
-    return <Spinner />;
+    return (
+      <FormControl isInvalid={withError && withError[props.name]} w="100%">
+        <FormLabel htmlFor="target.providerId">
+          <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
+        </FormLabel>
+        <Skeleton h={8} />
+      </FormControl>
+    );
   }
   return (
     <FormControl isInvalid={withError && withError[props.name]} w="100%">
