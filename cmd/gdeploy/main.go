@@ -57,21 +57,21 @@ func main() {
 		Commands: []*cli.Command{
 			// It's possible that these wrappers would be better defined on the commands themselves rather than in this main function
 			// It would be easier to see exactly what runs when a command runs
-			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
+			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
 			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
+			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
 			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
-			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
+			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 		},
 	}
 
