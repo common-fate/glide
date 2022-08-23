@@ -31,7 +31,7 @@ export const useInfiniteScrollApi = <T extends (...args: any[]) => any>({
     nextToken: nextToken,
   });
 
-  const [virtualData, setVirtualData] = useState();
+  const [virtualData, setVirtualData] = useState<any | undefined>();
 
   // only set virtual data on first load
   useEffect(() => {
@@ -48,12 +48,12 @@ export const useInfiniteScrollApi = <T extends (...args: any[]) => any>({
       virtualData &&
       virtualData.next != data?.next
     ) {
-      setVirtualData((curr) => {
+      setVirtualData((curr: any) => {
         const prevListItems =
           curr?.[listObjKey].length > 0 ? curr?.[listObjKey] : [];
         return {
           ...curr,
-          [listObjKey]: [...prevListItems, ...data?.[listObjKey]],
+          [listObjKey]: [...prevListItems, ...(data?.[listObjKey] ?? [])],
           next: data?.next,
         };
       });

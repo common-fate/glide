@@ -74,6 +74,7 @@ export const CustomOption = ({
   },
   true
 >) => (
+  // @ts-ignore
   <div data-testid={innerProps.value}>
     <components.Option {...innerProps}>{children}</components.Option>
   </div>
