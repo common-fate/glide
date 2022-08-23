@@ -54,6 +54,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.13.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kms v1.17.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
