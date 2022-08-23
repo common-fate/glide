@@ -1,4 +1,4 @@
-import { BoxProps, HStack, Stack, Text } from "@chakra-ui/layout";
+import { BoxProps, HStack, Stack, Text } from "@chakra-ui/react";
 import React from "react";
 import { CFCard } from "./CFCard";
 

@@ -37,9 +37,17 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const options = useMemo(() => {
     return (
       data?.groups.map((g) => {
-        const totalMembersInGroup = g.memberCount <= 1 ? `${g.memberCount} member` : `${g.memberCount} members`;
+        const totalMembersInGroup =
+          g.memberCount <= 1
+            ? `${g.memberCount} member`
+            : `${g.memberCount} members`;
 
-        return { value: g.id, label: shouldShowGroupMembers ? `${g.name} (${totalMembersInGroup})` : g.name };
+        return {
+          value: g.id,
+          label: shouldShowGroupMembers
+            ? `${g.name} (${totalMembersInGroup})`
+            : g.name,
+        };
       }) ?? []
     );
   }, [data]);
@@ -66,6 +74,7 @@ export const CustomOption = ({
   },
   true
 >) => (
+  // @ts-ignore
   <div data-testid={innerProps.value}>
     <components.Option {...innerProps}>{children}</components.Option>
   </div>
@@ -114,7 +123,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
             onBlur={() => {
-              trigger(fieldName);
+              void trigger(fieldName);
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
             }}
             data-testid={rest.testId}

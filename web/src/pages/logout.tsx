@@ -3,7 +3,7 @@ import { useCognito } from "../utils/context/cognitoContext";
 
 const Logout = () => {
   const auth = useCognito();
-  auth.initiateSignOut();
+  auth.initiateSignOut().catch((e) => console.error(e));
 
   return <Center h="80vh">Logging you out 👋</Center>;
 };
