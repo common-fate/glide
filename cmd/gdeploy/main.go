@@ -293,7 +293,11 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			prompt := &survey.Confirm{
 				Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", dc.Deployment.Release, build.Version, build.Version),
 			}
-			survey.AskOne(prompt, &shouldUpdate)
+
+			err = survey.AskOne(prompt, &shouldUpdate)
+			if err != nil {
+				return err
+			}
 
 			if shouldUpdate {
 				dc.Deployment.Release = build.Version
@@ -348,7 +352,7 @@ func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string) (bool, 
 	// if invalid URL, return with error.
 	_, err = url.ParseRequestURI(d.Release)
 	if err != nil {
-		return false, errors.New(fmt.Sprintf("Invalid URL. Please update your release version in 'granted-deployment.yml' to %s", buildVersion))
+		return false, fmt.Errorf("Invalid URL. Please update your release version in 'granted-deployment.yml' to %s", buildVersion)
 	}
 
 	return false, nil
