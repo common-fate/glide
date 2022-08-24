@@ -8,7 +8,7 @@ type Instructions struct {
 	Conclusion   []Block
 }
 
-// renders for the terminal, including colours
+// renders for the terminal
 func (i Instructions) RenderTerminal() string {
 	out := ""
 	for _, block := range i.Introduction {
@@ -19,24 +19,6 @@ func (i Instructions) RenderTerminal() string {
 	}
 	for _, block := range i.Conclusion {
 		out += fmt.Sprintln(block.RenderTerminal())
-	}
-	return out
-}
-
-// renders without colours
-func (i Instructions) RenderString() string {
-	out := ""
-	for _, step := range i.Steps {
-		out += fmt.Sprintln(step.RenderString())
-	}
-	return out
-}
-
-// render markdown
-func (i Instructions) RenderMarkdown() string {
-	out := ""
-	for _, step := range i.Steps {
-		out += fmt.Sprintln(step.RenderMarkdown())
 	}
 	return out
 }
