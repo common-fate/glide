@@ -107,7 +107,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.awsAccountID, a.GrantId)
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.eksClusterRoleAccountID, a.GrantId)
 	i += "```\n"
 	i += "# K8s \n"
 	i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
@@ -265,7 +265,7 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		PermissionSetArn: arnMatch,
 		PrincipalType:    types.PrincipalTypeUser,
 		PrincipalId:      user.UserId,
-		TargetId:         &p.awsAccountID,
+		TargetId:         &p.eksClusterRoleAccountID,
 		TargetType:       types.TargetTypeAwsAccount,
 	})
 	if err != nil {
@@ -302,7 +302,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 					"eks:AccessKubernetesApi",
 					"eks:DescribeCluster",
 				},
-				Resource: []string{fmt.Sprintf("arn:aws:eks:%s:%s:cluster/%s", p.clusterRegion.Get(), p.awsAccountID, p.clusterName.Get())},
+				Resource: []string{fmt.Sprintf("arn:aws:eks:%s:%s:cluster/%s", p.clusterRegion.Get(), p.eksClusterRoleAccountID, p.clusterName.Get())},
 			},
 		},
 	}
@@ -337,7 +337,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 		PermissionSetArn: permSet.PermissionSet.PermissionSetArn,
 		PrincipalType:    types.PrincipalTypeUser,
 		PrincipalId:      user.UserId,
-		TargetId:         &p.awsAccountID,
+		TargetId:         &p.eksClusterRoleAccountID,
 		TargetType:       types.TargetTypeAwsAccount,
 	})
 

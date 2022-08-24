@@ -27,7 +27,8 @@ type Provider struct {
 	iamClient     *iam.Client
 	idStoreClient *identitystore.Client
 	orgClient     *organizations.Client
-	awsAccountID  string
+	// the account that the eks cluster runs in, this is fetched after assuming the cluster role
+	eksClusterRoleAccountID string
 
 	// configured by gconfig
 	clusterAccessRoleARN gconfig.StringValue
@@ -40,6 +41,8 @@ type Provider struct {
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
 	ssoRegion gconfig.StringValue
+	// a role which can be assumed and has required sso permissions
+	ssoRoleARN gconfig.StringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -51,18 +54,40 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
 		gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),
+		gconfig.StringField("ssoRoleARN", &p.ssoRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),
 	}
 }
 
 func (p *Provider) Init(ctx context.Context) error {
+	// using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
+	ssoCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+		defaultCfg, err := config.LoadDefaultConfig(ctx)
+		if err != nil {
+			return aws.Credentials{}, err
+		}
+		stsclient := sts.NewFromConfig(defaultCfg)
+		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
+			RoleArn:         aws.String(p.ssoRoleARN.Get()),
+			RoleSessionName: aws.String("accesshandler-eks-roles-sso"),
+			DurationSeconds: aws.Int32(15 * 60),
+		})
+		if err != nil {
+			return aws.Credentials{}, err
+		}
+		return aws.Credentials{
+			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
+			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
+			SessionToken:    aws.ToString(res.Credentials.SessionToken),
+			CanExpire:       res.Credentials.Expiration != nil,
+			Expires:         aws.ToTime(res.Credentials.Expiration),
+		}, nil
+	}))
 	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()))
 	if err != nil {
 		return err
 	}
-	defaultCfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return err
-	}
+	ssoCfg.Credentials = ssoCredentialCache
+
 	// using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
 	eksCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
 		defaultCfg, err := config.LoadDefaultConfig(ctx)
@@ -144,8 +169,8 @@ func (p *Provider) Init(ctx context.Context) error {
 	p.ssoClient = ssoadmin.NewFromConfig(ssoCfg)
 	p.orgClient = organizations.NewFromConfig(ssoCfg)
 	p.idStoreClient = identitystore.NewFromConfig(ssoCfg)
-	p.iamClient = iam.NewFromConfig(defaultCfg)
-	stsClient := sts.NewFromConfig(defaultCfg)
+	p.iamClient = iam.NewFromConfig(ssoCfg)
+	stsClient := sts.NewFromConfig(eksCfg)
 	res, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
 		return err
@@ -153,7 +178,7 @@ func (p *Provider) Init(ctx context.Context) error {
 	if res.Account == nil {
 		return errors.New("aws accountID was nil in sts get caller id response")
 	}
-	p.awsAccountID = *res.Account
+	p.eksClusterRoleAccountID = *res.Account
 
 	return nil
 }

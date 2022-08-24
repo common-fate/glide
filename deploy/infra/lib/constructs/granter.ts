@@ -159,23 +159,7 @@ export class Granter extends Construct {
       })
     );
 
-    //permissions for the eks access handler when it is added
-    //Ideally these should get set dynamically when the provider is added
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "sso:CreatePermissionSet",
-          "sso:PutInlinePolicyToPermissionSet",
-          "sso:CreateAccountAssignment",
-          "sso:ListPermissionSets",
-          "sso:DescribePermissionSet",
-          "sso:DeletePermissionSet",
-          "iam:ListRoles",
-        ],
-        resources: ["*"],
-
-      })
-    )
+    
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["sts:AssumeRole"],
