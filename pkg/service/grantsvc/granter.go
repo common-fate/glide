@@ -161,7 +161,8 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 		}
 
 		//save access token to dynamo
-		newAccessToken := access.AccessToken{RequestId: opts.Request.ID, Token: *res.JSON201.AdditionalProperties.AccessToken}
+		newAccessToken := access.AccessToken{RequestId: opts.Request.ID, Token: *res.JSON201.AdditionalProperties.AccessToken, Start: res.JSON201.Grant.Start.Time,
+			End: res.JSON201.Grant.End.Time, CreatedAt: now}
 
 		err = g.DB.Put(ctx, &newAccessToken)
 		if err != nil {
