@@ -160,8 +160,8 @@ github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.11/go.mod h1:VzSpt5UmgzuMgFu
 github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 h1:xuRJFkbY5i3uFLTJjtHJG6Mws6RncMYZnr7/NPJ0Evo=
 github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12/go.mod h1:cfJ466odzMzYWjRkSVknkUT4ptKwjWQL2wrCtw2S+wk=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.5.0/go.mod h1:3iBezuZtNxZnKX7Zv2JB/lGyGCSYOES8TMq4WSXPBl0=
-github.com/aws/aws-sdk-go-v2/service/eks v1.21.6 h1:tNV2MipFuOkkZYzz4DuELq0FKxzm800gwIVT+U71CQY=
-github.com/aws/aws-sdk-go-v2/service/eks v1.21.6/go.mod h1:HbiYKoswTPZ11smkmDg5iY8M6sjjQGVo9cLK3EaQfao=
+github.com/aws/aws-sdk-go-v2/service/eks v1.21.8 h1:uF8ubOoj49FDr0/Lyo5tR7OpKgT/xNcwuzEHMZBI0Ok=
+github.com/aws/aws-sdk-go-v2/service/eks v1.21.8/go.mod h1:R9cRhIInyI6RvK1CjhZSksjWN3wnNAx9ZtAqe5Jjvw0=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.7 h1:u9Atlh9wY2tQZoQgPFS5MMvXVe5NxPB/13lEBsU9qYo=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.7/go.mod h1:QNCHVAOSHaOXtRSETokmSLxl4xoy3gg2K1mlO6sF+Ag=
 github.com/aws/aws-sdk-go-v2/service/iam v1.18.13 h1:Z9OEfkGxCCcnOjKoc5rdusCyXx9e867+aCjzMzU1bKM=
@@ -227,8 +227,8 @@ github.com/bketelsen/crypt v0.0.3-0.20200106085610-5cbc8cc4026c/go.mod h1:MKsuJm
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
 github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
-github.com/briandowns/spinner v1.19.0 h1:s8aq38H+Qju89yhp89b4iIiMzMm8YN3p6vGpwyh/a8E=
-github.com/briandowns/spinner v1.19.0/go.mod h1:mQak9GHqbspjC/5iUx3qMlIho8xBS/ppAL/hX5SmPJU=
+github.com/briandowns/spinner v1.18.1 h1:yhQmQtM1zsqFsouh09Bk/jCjd50pC3EOGsh28gLVvwY=
+github.com/briandowns/spinner v1.18.1/go.mod h1:mQak9GHqbspjC/5iUx3qMlIho8xBS/ppAL/hX5SmPJU=
 github.com/cenkalti/backoff/v4 v4.1.3 h1:cFAlzYUlVYDysBEH2T5hyJZMh3+5+WCBvSnK6Q8UtC4=
 github.com/cenkalti/backoff/v4 v4.1.3/go.mod h1:scbssz8iZGpm3xbr14ovlUdkxfGXNInqkPWOWmG2CLw=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -260,8 +260,8 @@ github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed h1:75bNrGY5m/
 github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed/go.mod h1:5WXBU3NBnQ6ZuqQyazwL5Ou6yT7UpC8c3yK8F9mGh9k=
 github.com/common-fate/cloudform v0.3.0 h1:dl0dLX4trbj+fAZexZ+jMVto/TyamCRJ28pB/+9uxTM=
 github.com/common-fate/cloudform v0.3.0/go.mod h1:a9sj6SQK4zNb7Ef/Y/5y83qYrHJ8jtWpjAiQXbNyT3g=
-github.com/common-fate/ddb v0.12.0 h1:YjjkLconEO0q2sVn901eHrkiKp6iW/YkFoljN5RmgTE=
-github.com/common-fate/ddb v0.12.0/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
+github.com/common-fate/ddb v0.13.0 h1:0WkelmqTwtJSoXCgQB2GAJXxr+qM8eqhblHmgY6mqvg=
+github.com/common-fate/ddb v0.13.0/go.mod h1:Z4JJVRI62wOGCef0D+ZA6W21GfdQvchw9X/Olf0uXtg=
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/testvault v0.1.0 h1:XVhbmcNySGIA203FywYW7wL44Mlcg23UUek3bdg5tzQ=

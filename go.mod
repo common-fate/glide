@@ -10,6 +10,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.11
+	github.com/aws/aws-sdk-go-v2/service/eks v1.21.8
+	github.com/aws/aws-sdk-go-v2/service/iam v1.18.13
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.14.10
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.6
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
@@ -178,13 +180,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.6
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.12
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.18.1
-	github.com/aws/aws-sdk-go-v2/service/eks v1.21.6
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.7
-	github.com/aws/aws-sdk-go-v2/service/iam v1.18.13
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
-	github.com/briandowns/spinner v1.19.0
-	github.com/common-fate/ddb v0.12.0
+	github.com/briandowns/spinner v1.18.1
+	github.com/common-fate/ddb v0.13.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
