@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
@@ -34,6 +35,11 @@ func Registry() ProviderRegistry {
 				Provider:    &sso.Provider{},
 				DefaultID:   "aws-sso",
 				Description: "AWS SSO PermissionSets",
+			},
+			"commonfate/aws-eks-roles-sso@v1alpha1": {
+				Provider:    &eksrolessso.Provider{},
+				DefaultID:   "aws-eks-roles-sso",
+				Description: "AWS EKS Roles SSO",
 			},
 			"commonfate/testvault@v1": {
 				Provider:    &testvault.Provider{},

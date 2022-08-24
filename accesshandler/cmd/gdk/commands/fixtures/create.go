@@ -3,7 +3,6 @@ package fixtures
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -76,7 +75,7 @@ var CreateCommand = cli.Command{
 			return err
 		}
 
-		err = ioutil.WriteFile(fixturePath, fixtures, 0666)
+		err = os.WriteFile(fixturePath, fixtures, 0666)
 		if err != nil {
 			return err
 		}

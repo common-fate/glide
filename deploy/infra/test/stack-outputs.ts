@@ -26,6 +26,9 @@ const testOutputs: StackOutputs = {
   EventBusSource: "abcdefg",
   IdpSyncFunctionName: "abcdefg",
   Region: "abcdefg",
+  GranterLambdaExecutionRoleARN: "abcdefg",
+  AccessHandlerRestAPILambdaExecutionRoleARN:"abcdefg",
+ 
   PaginationKMSKeyARN: "abcdefg"
 };
 

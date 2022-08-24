@@ -334,6 +334,7 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 		apio.ErrorString(ctx, w, "request has no grant", http.StatusBadRequest)
 		return
 	}
+	q.Result.Grant.With.AdditionalProperties["GrantId"] = q.ID
 
 	argsJSON, err := json.Marshal(q.Result.Grant.With)
 	if err != nil {

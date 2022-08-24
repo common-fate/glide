@@ -88,6 +88,7 @@ export class AccessHandler extends Construct {
         resources: ["*"],
       })
     );
+   
     this._granter.getStateMachine().grantStartExecution(this._lambda);
 
     this._granter.getStateMachine().grantRead(this._lambda);
@@ -95,6 +96,13 @@ export class AccessHandler extends Construct {
     this._lambda.addToRolePolicy(
       new PolicyStatement({
         actions: ["states:StopExecution"],
+        resources: ["*"],
+      })
+    );
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
         resources: ["*"],
       })
     );
@@ -112,5 +120,11 @@ export class AccessHandler extends Construct {
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
+  }
+  getAccessHandlerARN(): string {
+    return this._lambda.functionArn;
+  }
+  getAccessHandlerRestAPILambdaExecutionRoleARN(): string {
+    return this._lambda.role?.roleArn ?? "";
   }
 }
