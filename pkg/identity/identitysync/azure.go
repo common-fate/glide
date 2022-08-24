@@ -27,9 +27,11 @@ type AzureSync struct {
 
 func (s *AzureSync) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("tenantId", &s.tenantID, "the Azure AD tenant ID"),
-		gconfig.StringField("clientId", &s.clientID, "the Azure AD client ID"),
-		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the Azure AD client secret", gconfig.WithNoArgs("/granted/secrets/identity/azure/secret")),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("tenantId", &s.tenantID, "the Azure AD tenant ID"),
+			gconfig.StringField("clientId", &s.clientID, "the Azure AD client ID"),
+			gconfig.SecretStringField("clientSecret", &s.clientSecret, "the Azure AD client secret", gconfig.WithNoArgs("/granted/secrets/identity/azure/secret")),
+		},
 	}
 }
 

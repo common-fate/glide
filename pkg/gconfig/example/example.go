@@ -25,9 +25,11 @@ type SomeConfigurableStruct struct {
 // This returns a Config which defines the field types and enables loading and usage of the values
 func (s *SomeConfigurableStruct) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("orgUrl", &s.orgURL, "the Okta organization URL"),
-		// @TODO I could shift this into a convenient , with args and without args helpers
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Okta API token", gconfig.WithNoArgs("granted/identity/secrets/okta/apiToken")),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("orgUrl", &s.orgURL, "the Okta organization URL"),
+			// @TODO I could shift this into a convenient , with args and without args helpers
+			gconfig.SecretStringField("apiToken", &s.apiToken, "the Okta API token", gconfig.WithNoArgs("granted/identity/secrets/okta/apiToken")),
+		},
 	}
 }
 

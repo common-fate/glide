@@ -134,18 +134,17 @@ func TestLoad(t *testing.T) {
 
 	testcases := []testcase{
 		{name: "loading config works as expected when values are non nil", giveStruct: &test1, giveConfig: Config{
-			StringField("a", &test1.a, "usage"),
-			SecretStringField("b", &test1.b, "usage", WithNoArgs("test-path")),
-			OptionalStringField("c", &test1.c, "usage"),
-			OptionalStringField("d", &test1.d, "usage"),
-		}, giveLoader: &MapLoader{Values: map[string]string{
+			Fields: []*Field{StringField("a", &test1.a, "usage"),
+				SecretStringField("b", &test1.b, "usage", WithNoArgs("test-path")),
+				OptionalStringField("c", &test1.c, "usage"),
+				OptionalStringField("d", &test1.d, "usage"),
+			}}, giveLoader: &MapLoader{Values: map[string]string{
 			"a": "testvaluea",
 			"b": "testvalueb",
 			"c": "testvaluec",
 		}}, wantStruct: &test1Expected},
 		{name: "not found in map returns error", giveStruct: &test2, giveConfig: Config{
-			StringField("a", &test2.a, "usage"),
-		}, giveLoader: &MapLoader{Values: map[string]string{}}, wantError: errors.New("could not find a in map")},
+			Fields: []*Field{StringField("a", &test2.a, "usage")}}, giveLoader: &MapLoader{Values: map[string]string{}}, wantError: errors.New("could not find a in map")},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -173,7 +172,7 @@ func TestDump(t *testing.T) {
 	b := SecretStringValue{"password"}
 	testcases := []testcase{
 		{name: "ok", giveConfig: Config{}, giveDumper: SafeDumper{}, wantMap: map[string]string{}, wantError: nil},
-		{name: "with values, redacted secret", giveConfig: Config{StringField("a", &a, ""), SecretStringField("b", &b, "", WithNoArgs(""))}, giveDumper: SafeDumper{}, wantMap: map[string]string{"a": "testing", "b": "*****"}, wantError: nil},
+		{name: "with values, redacted secret", giveConfig: Config{Fields: []*Field{StringField("a", &a, ""), SecretStringField("b", &b, "", WithNoArgs(""))}}, giveDumper: SafeDumper{}, wantMap: map[string]string{"a": "testing", "b": "*****"}, wantError: nil},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {

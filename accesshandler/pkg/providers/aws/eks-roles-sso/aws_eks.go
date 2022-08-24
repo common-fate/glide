@@ -47,14 +47,16 @@ type Provider struct {
 
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"),
-		gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace"),
-		gconfig.StringField("clusterRegion", &p.clusterRegion, "the region the EKS cluster is deployed"),
-		gconfig.StringField("clusterAccessRoleArn", &p.clusterAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the EKS cluster"),
-		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
-		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
-		gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),
-		gconfig.StringField("ssoRoleARN", &p.ssoRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"),
+			gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace"),
+			gconfig.StringField("clusterRegion", &p.clusterRegion, "the region the EKS cluster is deployed"),
+			gconfig.StringField("clusterAccessRoleArn", &p.clusterAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the EKS cluster"),
+			gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
+			gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
+			gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),
+			gconfig.StringField("ssoRoleARN", &p.ssoRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),
+		},
 	}
 }
 

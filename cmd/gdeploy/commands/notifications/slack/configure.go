@@ -56,7 +56,7 @@ var configureSlackCommand = cli.Command{
 			}
 		}
 
-		for _, v := range cfg {
+		for _, v := range cfg.Fields {
 			err := deploy.CLIPrompt(v)
 			if err != nil {
 				return err

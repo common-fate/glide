@@ -18,8 +18,10 @@ type Provider struct {
 
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("apiUrl", &p.apiURL, "The TestVault API URL", gconfig.WithDefaultFunc(func() string { return "https://prod.testvault.granted.run" })),
-		gconfig.StringField("uniqueId", &p.uniqueID, "A unique ID used as a prefix for vault IDs", gconfig.WithDefaultFunc(func() string { return ksuid.New().String() })),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("apiUrl", &p.apiURL, "The TestVault API URL", gconfig.WithDefaultFunc(func() string { return "https://prod.testvault.granted.run" })),
+			gconfig.StringField("uniqueId", &p.uniqueID, "A unique ID used as a prefix for vault IDs", gconfig.WithDefaultFunc(func() string { return ksuid.New().String() })),
+		},
 	}
 }
 

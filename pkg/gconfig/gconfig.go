@@ -8,7 +8,10 @@ import (
 )
 
 // Config is the list of variables which a provider can be configured with.
-type Config []*Field
+type Config struct {
+	Description string
+	Fields      []*Field
+}
 type Dumper interface {
 	Dump(ctx context.Context, cfg Config) (map[string]string, error)
 }
@@ -33,7 +36,7 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 	if err != nil {
 		return err
 	}
-	for _, s := range c {
+	for _, s := range c.Fields {
 		key := s.Key()
 		val, ok := loaded[key]
 		if !ok && !s.IsOptional() {

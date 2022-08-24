@@ -84,7 +84,7 @@ var configureCommand = cli.Command{
 				}
 			}
 
-			for _, v := range cfg {
+			for _, v := range cfg.Fields {
 				err := deploy.CLIPrompt(v)
 				if err != nil {
 					return err
@@ -188,7 +188,6 @@ Users in this group will be able to manage Access Rules.
 			return err
 		}
 
-		
 		grps, err := idp.IdentityProvider.ListGroups(ctx)
 		if err != nil {
 			return err

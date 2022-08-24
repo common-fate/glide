@@ -25,8 +25,10 @@ type Generator struct {
 // Configure the fixture generator
 func (g *Generator) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("orgUrl", &g.orgURL, "Okta org URL"),
-		gconfig.SecretStringField("apiToken", &g.apiToken, "Okta API token", gconfig.WithArgs("/granted/providers/%s/apiToken", 1)),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("orgUrl", &g.orgURL, "Okta org URL"),
+			gconfig.SecretStringField("apiToken", &g.apiToken, "Okta API token", gconfig.WithArgs("/granted/providers/%s/apiToken", 1)),
+		},
 	}
 }
 

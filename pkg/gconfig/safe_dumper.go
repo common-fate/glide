@@ -8,7 +8,7 @@ type SafeDumper struct{}
 
 func (SafeDumper) Dump(ctx context.Context, c Config) (map[string]string, error) {
 	res := make(map[string]string)
-	for _, s := range c {
+	for _, s := range c.Fields {
 		res[s.Key()] = s.String()
 	}
 	return res, nil

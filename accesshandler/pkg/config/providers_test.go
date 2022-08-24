@@ -111,10 +111,10 @@ func TestConfigureProviders(t *testing.T) {
 
 				if c, ok := p.Provider.(gconfig.Configer); ok {
 					gotc := got.Provider.(gconfig.Configer)
-					assert.Len(t, gotc.Config(), len(c.Config()))
-					for _, v := range c.Config() {
+					assert.Len(t, gotc.Config(), len(c.Config().Fields))
+					for _, v := range c.Config().Fields {
 						found := false
-						for _, v1 := range gotc.Config() {
+						for _, v1 := range gotc.Config().Fields {
 							if v.Key() == v1.Key() {
 								found = true
 								assert.Equal(t, v.Get(), v1.Get())

@@ -24,7 +24,9 @@ type SlackNotifier struct {
 
 func (s *SlackNotifier) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Slack API token", gconfig.WithNoArgs("/granted/secrets/notifications/slack/token")),
+		Fields: []*gconfig.Field{
+			gconfig.SecretStringField("apiToken", &s.apiToken, "the Slack API token", gconfig.WithNoArgs("/granted/secrets/notifications/slack/token")),
+		},
 	}
 }
 

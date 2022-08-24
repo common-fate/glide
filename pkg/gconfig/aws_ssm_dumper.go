@@ -20,7 +20,7 @@ type SSMDumper struct {
 
 func (d SSMDumper) Dump(ctx context.Context, c Config) (map[string]string, error) {
 	res := make(map[string]string)
-	for _, s := range c {
+	for _, s := range c.Fields {
 		if s.IsSecret() {
 			if s.hasChanged && !s.secretUpdated {
 				path, err := s.secretPathFunc(d.SecretPathArgs...)

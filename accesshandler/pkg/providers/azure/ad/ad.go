@@ -24,9 +24,10 @@ type Provider struct {
 
 func (a *Provider) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("tenantId", &a.tenantID, "the azure tenant ID"),
-		gconfig.StringField("clientId", &a.clientID, "the azure client ID"),
-		gconfig.SecretStringField("clientSecret", &a.clientSecret, "the azure API token", gconfig.WithArgs("/granted/providers/%s/clientSecret", 1)),
+		Fields: []*gconfig.Field{gconfig.StringField("tenantId", &a.tenantID, "the azure tenant ID"),
+			gconfig.StringField("clientId", &a.clientID, "the azure client ID"),
+			gconfig.SecretStringField("clientSecret", &a.clientSecret, "the azure API token", gconfig.WithArgs("/granted/providers/%s/clientSecret", 1)),
+		},
 	}
 }
 

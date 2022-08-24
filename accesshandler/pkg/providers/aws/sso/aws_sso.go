@@ -26,9 +26,11 @@ type Provider struct {
 
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
-		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
-		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
+			gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
+			gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
+		},
 	}
 }
 

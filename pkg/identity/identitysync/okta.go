@@ -18,8 +18,10 @@ type OktaSync struct {
 
 func (s *OktaSync) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("orgUrl", &s.orgURL, "the Okta organization URL"),
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Okta API token", gconfig.WithNoArgs("/granted/secrets/identity/okta/token")),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("orgUrl", &s.orgURL, "the Okta organization URL"),
+			gconfig.SecretStringField("apiToken", &s.apiToken, "the Okta API token", gconfig.WithNoArgs("/granted/secrets/identity/okta/token")),
+		},
 	}
 }
 

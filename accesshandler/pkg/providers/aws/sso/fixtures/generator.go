@@ -28,9 +28,11 @@ type Generator struct {
 // Configure the fixture generator
 func (g *Generator) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("instanceArn", &g.InstanceARN, ""),
-		gconfig.SecretStringField("fixturesAccountId", &g.AccountID, "", gconfig.WithNoArgs("")),
-		gconfig.SecretStringField("fixturesUser", &g.User, "", gconfig.WithNoArgs("")),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("instanceArn", &g.InstanceARN, ""),
+			gconfig.SecretStringField("fixturesAccountId", &g.AccountID, "", gconfig.WithNoArgs("")),
+			gconfig.SecretStringField("fixturesUser", &g.User, "", gconfig.WithNoArgs("")),
+		},
 	}
 }
 

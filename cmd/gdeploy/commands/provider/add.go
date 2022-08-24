@@ -70,7 +70,7 @@ var addCommand = cli.Command{
 		var pcfg gconfig.Config
 		if configer, ok := provider.Provider.(gconfig.Configer); ok {
 			pcfg = configer.Config()
-			for _, v := range pcfg {
+			for _, v := range pcfg.Fields {
 				err := deploy.CLIPrompt(v)
 				if err != nil {
 					return err

@@ -20,9 +20,11 @@ type GoogleSync struct {
 
 func (s *GoogleSync) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("domain", &s.domain, "the Google domain"),
-		gconfig.StringField("adminEmail", &s.adminEmail, "the Google admin email"),
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Google API token", gconfig.WithNoArgs("/granted/secrets/identity/google/token")),
+		Fields: []*gconfig.Field{
+			gconfig.StringField("domain", &s.domain, "the Google domain"),
+			gconfig.StringField("adminEmail", &s.adminEmail, "the Google admin email"),
+			gconfig.SecretStringField("apiToken", &s.apiToken, "the Google API token", gconfig.WithNoArgs("/granted/secrets/identity/google/token")),
+		},
 	}
 }
 
