@@ -148,6 +148,8 @@ export class Granter extends Construct {
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({
         actions: [
+          "sso:CreatePermissionSet",
+          "sso:PutInlinePolicyToPermissionSet",
           "sso:CreateAccountAssignment",
           "sso:DeleteAccountAssignment",
           "sso:ListAccountAssignments",

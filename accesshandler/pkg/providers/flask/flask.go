@@ -28,8 +28,6 @@ type Provider struct {
 	// configured by gconfig
 	ecsTaskARN gconfig.StringValue
 
-	ecsRegion     gconfig.StringValue
-	ecsServerName gconfig.StringValue
 	// sso instance
 	instanceARN gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
@@ -45,8 +43,8 @@ func (p *Provider) Config() gconfig.Config {
 
 		gconfig.StringField("type", &p.providerType, "The type of the provider to display in the UI"),
 
-		gconfig.StringField("ecsServerName", &p.ecsServerName, "The ECS server name"),
-		gconfig.StringField("ecsRegion", &p.ecsRegion, "the region the ESC cluster is deployed"),
+		// gconfig.StringField("ecsServerName", &p.ecsServerName, "The ECS server name"),
+		// gconfig.StringField("ecsRegion", &p.ecsRegion, "the region the ESC cluster is deployed"),
 		gconfig.StringField("ecsTaskARN", &p.ecsTaskARN, "The ARN of the AWS IAM Role with permission to run ECS exec commands"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
@@ -74,38 +72,8 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	// // using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
-	// ecsCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-	// 	defaultCfg, err := config.LoadDefaultConfig(ctx)
-	// 	if err != nil {
-	// 		return aws.Credentials{}, err
-	// 	}
-	// 	stsclient := sts.NewFromConfig(defaultCfg)
-	// 	res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
-	// 		RoleArn:         aws.String(p.ecsAccessRoleARN.Get()),
-	// 		RoleSessionName: aws.String("accesshandler-ecs-roles-sso"),
-	// 		DurationSeconds: aws.Int32(15 * 60),
-	// 	})
-	// 	if err != nil {
-	// 		return aws.Credentials{}, err
-	// 	}
-	// 	return aws.Credentials{
-	// 		AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
-	// 		SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
-	// 		SessionToken:    aws.ToString(res.Credentials.SessionToken),
-	// 		CanExpire:       res.Credentials.Expiration != nil,
-	// 		Expires:         aws.ToTime(res.Credentials.Expiration),
-	// 	}, nil
-	// }))
 
-	// ecsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ecsRegion.Get()))
-	// if err != nil {
-	// 	return err
-	// }
-	// ecsCfg.Credentials = ecsCredentialCache
-
-	//TODO: verify here if the ecs task has exec is enabled on the ecs task
-	//ecsClient := ecs.NewFromConfig(ecsCfg)
+	// TODO: verify here if the ecs task has exec is enabled on the ecs task
 
 	p.ssoClient = ssoadmin.NewFromConfig(ssoCfg)
 	p.orgClient = organizations.NewFromConfig(ssoCfg)

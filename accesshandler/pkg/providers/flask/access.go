@@ -75,6 +75,7 @@ func permissionSetNameFromGrantID(grantID string) string {
 
 // createPermissionSetAndAssignment creates a permission set with a name = grantID
 func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string) (roleARN string, err error) {
+	//create  policy allowing for execute commands for the ecs task
 	ecsPolicyDocument := policy.Policy{
 		Version: "2012-10-17",
 		Statements: []policy.Statement{
@@ -83,7 +84,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 				Action: []string{
 					"ecs:ExecuteCommand",
 				},
-				Resource: []string{fmt.Sprintf("arn:aws:ecs:%s:%s:cluster/%s", p.ecsRegion.Get(), p.awsAccountID, p.ecsServerName.Get())},
+				Resource: []string{p.ecsTaskARN.Get()},
 			},
 		},
 	}
