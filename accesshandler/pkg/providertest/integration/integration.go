@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/segmentio/ksuid"
 	"github.com/sethvargo/go-retry"
 	"github.com/stretchr/testify/assert"
 )
@@ -95,7 +96,8 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 			})
 
 			t.Run("access", func(t *testing.T) {
-				err := it.p.Grant(ctx, tc.Subject, []byte(tc.Args))
+				testGrantID := ksuid.New().String()
+				err := it.p.Grant(ctx, tc.Subject, []byte(tc.Args), testGrantID)
 				AssertAccessError(t, tc.WantValidationErr, err, "granting access")
 
 				if tc.WantValidationErr == nil {
@@ -104,7 +106,7 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 						if !ok {
 							t.Skip("Provider does not implement IsActiver")
 						} else {
-							err = CheckIsProvisioned(ctx, checker, true)
+							err = CheckIsProvisioned(ctx, checker, tc.Subject, []byte(tc.Args), testGrantID, true)
 							if err != nil {
 								t.Fatal(err)
 							}
@@ -115,7 +117,7 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 				b := retry.NewFibonacci(time.Second)
 				b = retry.WithMaxDuration(time.Second*30, b)
 				err = retry.Do(ctx, b, func(ctx context.Context) error {
-					return it.p.Revoke(ctx, tc.Subject, []byte(tc.Args))
+					return it.p.Revoke(ctx, tc.Subject, []byte(tc.Args), testGrantID)
 				})
 				AssertAccessError(t, tc.WantValidationErr, err, "revoking access")
 
@@ -125,7 +127,7 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 						if !ok {
 							t.Skip("Provider does not implement IsActiver")
 						} else {
-							err = CheckIsProvisioned(ctx, checker, false)
+							err = CheckIsProvisioned(ctx, checker, tc.Subject, []byte(tc.Args), testGrantID, false)
 							if err != nil {
 								t.Fatal(err)
 							}

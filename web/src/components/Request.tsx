@@ -231,22 +231,12 @@ export const RequestAccessInstructions: React.FC = () => {
       <Box textStyle="Body/Medium" mb={2}>
         Access Instructions
       </Box>
+      return (
       <ReactMarkdown
         components={{
-          a: (props) => (
-            <Link
-              data-testid="accessInstructionLink"
-              target="_blank"
-              {...props}
-            />
-          ),
+          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
           p: (props) => (
-            <Text
-              as="span"
-              color="neutrals.600"
-              textStyle={"Body/Small"}
-              data-testid="accessInstructions"
-            >
+            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
               {props.children}
             </Text>
           ),
@@ -255,6 +245,7 @@ export const RequestAccessInstructions: React.FC = () => {
       >
         {data.instructions}
       </ReactMarkdown>
+      );
     </Stack>
   );
 };

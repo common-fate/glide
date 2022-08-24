@@ -81,16 +81,18 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	switch in.Action {
 	case ACTIVATE:
 		log.Infow("activating grant")
-		err = prov.Provider.Grant(ctx, string(grant.Subject), args)
+		err = prov.Provider.Grant(ctx, string(grant.Subject), args, grant.ID)
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
-		err = prov.Provider.Revoke(ctx, string(grant.Subject), args)
+		err = prov.Provider.Revoke(ctx, string(grant.Subject), args, grant.ID)
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
 	}
 
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
+		log.Error("granting error: %s", err.Error())
+
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
 			return Output{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())

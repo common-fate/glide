@@ -23,6 +23,8 @@ export type StackOutputs = {
   EventBusSource: string;
   IdpSyncFunctionName: string;
   Region: string;
+  GranterLambdaExecutionRoleARN: string;
+  AccessHandlerRestAPILambdaExecutionRoleARN: string;
   PaginationKMSKeyARN: string
 };
 /**

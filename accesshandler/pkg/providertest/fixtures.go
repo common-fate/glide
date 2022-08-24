@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 )
@@ -27,7 +27,7 @@ func LoadFixture(ctx context.Context, name string, f interface{}) error {
 
 	fixtureFile := filepath.Join(projectPath, "fixtures", fmt.Sprintf("%s.json", name))
 
-	bytes, err := ioutil.ReadFile(fixtureFile)
+	bytes, err := os.ReadFile(fixtureFile)
 	if err != nil {
 		return err
 	}
