@@ -203,6 +203,11 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 // in a CLI context. If the config variable implements Defaulter, the
 // default value is returned and the user is not prompted for any input.
 func CLIPrompt(f *gconfig.Field) error {
+	// render instructions if they exist
+	if f.Instructions() != nil {
+		fmt.Println(f.Instructions().RenderTerminal())
+	}
+
 	grey := color.New(color.FgHiBlack)
 	msg := f.Key()
 	if f.Usage() != "" {

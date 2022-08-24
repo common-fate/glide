@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/granted-approvals/pkg/instructions"
 	"github.com/invopop/jsonschema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -45,13 +46,53 @@ type Provider struct {
 	ssoRoleARN gconfig.StringValue
 }
 
+var instruct = instructions.Instructions{
+	Introduction: []instructions.Block{instructions.TextBlock("The following guide will walk you through where to create the IAM roles and provide you with the Policy and trust policy that you need.")},
+	Steps: []instructions.Step{
+		instructions.Step{
+			Title: "Create the policy",
+			Blocks: []instructions.Block{
+				instructions.TextBlock("Copy this policy json"),
+				instructions.CodeBlock{
+					Language: "json",
+					Code: `{
+	"Version": "2012-10-17",
+	"Statement": [
+				{
+			"Action": [
+				"sso:CreateAccountAssignment",
+						"sso:DeleteAccountAssignment",
+						"sso:ListAccountAssignments",
+						"sso:ListTagsForResource",
+						"identitystore:ListUsers",
+						"organizations:DescribeAccount",
+						"sso:CreatePermissionSet",
+						"sso:PutInlinePolicyToPermissionSet",
+						"sso:ListPermissionSets",
+						"sso:DescribePermissionSet",
+						"sso:DeletePermissionSet",
+						"iam:ListRoles"
+			],
+			"Resource": "*",
+			"Effect": "Allow"
+		}
+	]
+}`,
+				},
+			},
+		},
+	},
+	Conclusion: []instructions.Block{instructions.TextBlock("Now when prompted, enter the role ARN")},
+}
+
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
+		Description: "The eks provider works by assuming some predefined roles in your AWS accounts. Before we can deploy the provider and start using it, you will need to create these IAM roles.",
 		Fields: []*gconfig.Field{
 			gconfig.StringField("clusterName", &p.clusterName, "The EKS cluster name"),
 			gconfig.StringField("namespace", &p.namespace, "The kubernetes cluster namespace"),
 			gconfig.StringField("clusterRegion", &p.clusterRegion, "the region the EKS cluster is deployed"),
-			gconfig.StringField("clusterAccessRoleArn", &p.clusterAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the EKS cluster"),
+			gconfig.StringField("clusterAccessRoleArn", &p.clusterAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the EKS cluster", gconfig.WithInstructions(instruct)),
 			gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 			gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
 			gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),

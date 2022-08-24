@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/common-fate/granted-approvals/pkg/instructions"
 )
 
 // Config is the list of variables which a provider can be configured with.
@@ -123,6 +125,8 @@ type Field struct {
 	// this value is typically derived from the secretPathPrefix a suffix and a version number
 	secretPath  string
 	defaultFunc func() string
+	// optional instructions
+	instructions *instructions.Instructions
 }
 
 func (s Field) HasChanged() bool {
@@ -154,6 +158,11 @@ func (s Field) Key() string {
 // Usage returns the usage string for this field
 func (s Field) Usage() string {
 	return s.usage
+}
+
+// Instructions returns the instructions for this field if they exist else nil
+func (s Field) Instructions() *instructions.Instructions {
+	return s.instructions
 }
 
 // Default returns the default value if available else and empty string
@@ -274,6 +283,13 @@ type FieldOptFunc func(f *Field)
 func WithDefaultFunc(df func() string) FieldOptFunc {
 	return func(f *Field) {
 		f.defaultFunc = df
+	}
+}
+
+// WithInstructions adds the instructions to the field definition
+func WithInstructions(i instructions.Instructions) FieldOptFunc {
+	return func(f *Field) {
+		f.instructions = &i
 	}
 }
 
