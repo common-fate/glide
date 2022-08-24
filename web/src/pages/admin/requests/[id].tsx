@@ -1,6 +1,5 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
-import type { NextPage } from "next";
 import { Link, useMatch } from "react-location";
 import { AuditLog } from "../../../components/AuditLog";
 import { AdminLayout } from "../../../components/Layout";
@@ -15,7 +14,7 @@ import {
 } from "../../../components/Request";
 import { useAdminGetRequest } from "../../../utils/backend-client/end-user/end-user";
 
-const Home: NextPage = () => {
+const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();

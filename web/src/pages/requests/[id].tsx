@@ -1,6 +1,5 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
-import type { NextPage } from "next";
 import { MakeGenerics, useMatch, useSearch, Link } from "react-location";
 import { AuditLog } from "../../components/AuditLog";
 import { UserLayout } from "../../components/Layout";
@@ -16,12 +15,14 @@ import {
   RequestTime,
 } from "../../components/Request";
 import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
+
 type MyLocationGenerics = MakeGenerics<{
   Search: {
     action?: "approve" | "close";
   };
 }>;
-const Home: NextPage = () => {
+
+const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
