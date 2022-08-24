@@ -17,14 +17,12 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/groups"
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sso"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/users"
 	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
@@ -58,13 +56,11 @@ func main() {
 		Commands: []*cli.Command{
 			// It's possible that these wrappers would be better defined on the commands themselves rather than in this main function
 			// It would be easier to see exactly what runs when a command runs
-			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
 			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
 			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&identity.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),

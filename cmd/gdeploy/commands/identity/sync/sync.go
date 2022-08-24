@@ -1,4 +1,4 @@
-package users
+package sync
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var syncCommand = cli.Command{
+var SyncCommand = cli.Command{
 	Name: "sync",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
