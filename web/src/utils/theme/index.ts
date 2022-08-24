@@ -1,12 +1,8 @@
 // theme/index.js
-import { progressAnatomy } from "@chakra-ui/anatomy";
 import { extendTheme, ThemeOverride, withDefaultProps } from "@chakra-ui/react";
-import { PartsStyleFunction } from "@chakra-ui/theme-tools";
 import { colors } from "./colors";
-import checkbox from "./checkbox";
-import radiocard from "./radio-card";
 
-const progressBaseStyle: PartsStyleFunction<typeof progressAnatomy> = () => ({
+const progressBaseStyle = () => ({
   track: {
     borderRadius: "8px",
   },

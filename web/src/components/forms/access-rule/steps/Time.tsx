@@ -2,10 +2,11 @@ import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { DurationInput, Hours, Minutes } from "../../../DurationInput";
+import { CreateAccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 
 export const TimeStep: React.FC = () => {
-  const methods = useFormContext();
+  const methods = useFormContext<CreateAccessRuleFormData>();
   const time = methods.watch("timeConstraints");
   const maxDurationSeconds = 24 * 3600;
 

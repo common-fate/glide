@@ -13,13 +13,13 @@ export const ProviderIcon = ({
   provider,
   ...rest
 }: {
-  provider: Provider | undefined;
+  provider: string | undefined;
 } & IconProps): React.ReactElement => {
   if (provider === undefined) {
     // @ts-ignore
     return null;
   }
-  switch (provider.type) {
+  switch (provider) {
     case "aws-sso":
       return <AWSIcon {...rest} />;
     case "okta":

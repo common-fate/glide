@@ -29,7 +29,7 @@ export const RuleNameCell: React.FC<Props> = ({
         {...rest}
       >
         <HStack>
-          <ProviderIcon provider={data?.target.provider} />
+          <ProviderIcon provider={data?.target.provider.type} />
           <Text
             _groupHover={{
               textDecor: isAdmin ? "underline" : undefined,
