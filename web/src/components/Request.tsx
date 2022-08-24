@@ -234,7 +234,7 @@ export const RequestAccessInstructions: React.FC = () => {
       return (
       <ReactMarkdown
         components={{
-          a: (props) => <Link target="_blank" {...props} />,
+          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
           p: (props) => (
             <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
               {props.children}

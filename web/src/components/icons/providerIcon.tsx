@@ -19,7 +19,6 @@ export const ProviderIcon = ({
     // @ts-ignore
     return null;
   }
-  console.log(provider.type);
   switch (provider.type) {
     case "aws-sso":
       return <AWSIcon {...rest} />;
