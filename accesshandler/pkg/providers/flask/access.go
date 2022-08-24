@@ -45,7 +45,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 }
 
 // Revoke the access
-func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
 	zap.S().Info("demo provider: revoking access")
 	return nil
 }

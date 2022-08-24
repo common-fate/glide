@@ -25,5 +25,4 @@ export interface Grant {
   start: string;
   /** The end time of the grant in ISO8601 format. */
   end: string;
-  accessToken?: string;
 }

@@ -18,19 +18,11 @@ import {
 } from '.././types'
 
 export const getListUserAccessRulesMock = () => ({accessRules: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => ({id: faker.random.word(), version: faker.random.word(), name: faker.random.word(), description: faker.random.word(), target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-<<<<<<< HEAD
-        'cl745mrv000004849a1tifse9': faker.random.word()
+        'cl772xa8x0000wwonf015bodg': faker.random.word()
       }}, timeConstraints: {maxDurationSeconds: faker.datatype.number()}, isCurrent: faker.datatype.boolean()})), next: faker.random.arrayElement([faker.random.word(), null])})
 
 export const getUserGetAccessRuleMock = () => ({id: faker.random.word(), version: faker.random.word(), name: faker.random.word(), description: faker.random.word(), target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl745mrv900014849bxfagsa2': faker.random.word()
-=======
-        'cl75l0k3m000090496znf4bjz': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number()}, isCurrent: faker.datatype.boolean()})), next: faker.random.arrayElement([faker.random.word(), null])})
-
-export const getUserGetAccessRuleMock = () => ({id: faker.random.word(), version: faker.random.word(), name: faker.random.word(), description: faker.random.word(), target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl75l0k3s000190491fq2eimo': faker.random.word()
->>>>>>> main
+        'cl772xa920001wwoncpiv48bt': faker.random.word()
       }}, timeConstraints: {maxDurationSeconds: faker.datatype.number()}, isCurrent: faker.datatype.boolean()})
 
 export const getUserGetAccessRuleApproversMock = () => ({users: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => (faker.random.word())), next: faker.random.arrayElement([faker.random.word(), null])})
@@ -38,11 +30,7 @@ export const getUserGetAccessRuleApproversMock = () => ({users: [...Array(faker.
 export const getUserListRequestsMock = () => ({requests: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => ({id: faker.random.word(), requestor: faker.random.word(), status: faker.random.arrayElement(Object.values(RequestStatus)), reason: faker.random.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number(), startTime: faker.random.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRule: {id: faker.random.word(), version: faker.random.word()}, updatedAt: faker.random.word(), grant: faker.random.arrayElement([{status: faker.random.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), subject: faker.internet.email(), provider: faker.random.word(), start: faker.random.word(), end: faker.random.word()}, undefined]), approvalMethod: faker.random.arrayElement([faker.random.arrayElement(Object.values(ApprovalMethod)), undefined])})), next: faker.random.arrayElement([faker.random.word(), null])})
 
 export const getUserGetRequestMock = () => ({id: faker.random.word(), requestor: faker.random.word(), status: faker.random.arrayElement(Object.values(RequestStatus)), reason: faker.random.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number(), startTime: faker.random.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRule: {id: faker.random.word(), version: faker.random.word(), name: faker.random.word(), description: faker.random.word(), target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-<<<<<<< HEAD
-        'cl745mrwa000248495gxuhzbq': faker.random.word()
-=======
-        'cl75l0k4h000290493o68ceij': faker.random.word()
->>>>>>> main
+        'cl772xa9n0002wwonfs2lcajr': faker.random.word()
       }}, timeConstraints: {maxDurationSeconds: faker.datatype.number()}, isCurrent: faker.datatype.boolean()}, updatedAt: faker.random.word(), grant: faker.random.arrayElement([{status: faker.random.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), subject: faker.internet.email(), provider: faker.random.word(), start: faker.random.word(), end: faker.random.word()}, undefined]), canReview: faker.datatype.boolean(), approvalMethod: faker.random.arrayElement([faker.random.arrayElement(Object.values(ApprovalMethod)), undefined])})
 
 export const getListRequestEventsMock = () => ({events: [...Array(faker.datatype.number({min: 1, max: 10}))].map(() => ({id: faker.random.word(), requestId: faker.random.word(), createdAt: faker.random.word(), actor: faker.random.arrayElement([faker.random.word(), undefined]), fromStatus: faker.random.arrayElement([faker.random.arrayElement(Object.values(RequestStatus)), undefined]), toStatus: faker.random.arrayElement([faker.random.arrayElement(Object.values(RequestStatus)), undefined]), fromTiming: faker.random.arrayElement([{durationSeconds: faker.datatype.number(), startTime: faker.random.arrayElement([faker.random.word(), undefined])}, undefined]), toTiming: faker.random.arrayElement([{durationSeconds: faker.datatype.number(), startTime: faker.random.arrayElement([faker.random.word(), undefined])}, undefined]), fromGrantStatus: faker.random.arrayElement([faker.random.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), undefined]), toGrantStatus: faker.random.arrayElement([faker.random.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), undefined]), grantCreated: faker.random.arrayElement([faker.datatype.boolean(), undefined]), requestCreated: faker.random.arrayElement([faker.datatype.boolean(), undefined]), grantFailureReason: faker.random.arrayElement([faker.random.word(), undefined]), recordedEvent: faker.random.arrayElement([{}, undefined])})), next: faker.random.arrayElement([faker.random.word(), null])})
@@ -60,11 +48,7 @@ export const getGetUserMock = () => ({id: faker.random.word(), email: faker.rand
 export const getGetMeMock = () => ({user: {id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.random.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word()}, isAdmin: faker.datatype.boolean()})
 
 export const getAdminGetRequestMock = () => ({id: faker.random.word(), requestor: faker.random.word(), status: faker.random.arrayElement(Object.values(RequestStatus)), reason: faker.random.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number(), startTime: faker.random.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRule: {id: faker.random.word(), version: faker.random.word(), name: faker.random.word(), description: faker.random.word(), target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-<<<<<<< HEAD
-        'cl745mry4000a48498disbm3k': faker.random.word()
-=======
-        'cl75l0k5n000a904918jy1qm7': faker.random.word()
->>>>>>> main
+        'cl772xaak000awwonhirlfhco': faker.random.word()
       }}, timeConstraints: {maxDurationSeconds: faker.datatype.number()}, isCurrent: faker.datatype.boolean()}, updatedAt: faker.random.word(), grant: faker.random.arrayElement([{status: faker.random.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), subject: faker.internet.email(), provider: faker.random.word(), start: faker.random.word(), end: faker.random.word()}, undefined]), canReview: faker.datatype.boolean(), approvalMethod: faker.random.arrayElement([faker.random.arrayElement(Object.values(ApprovalMethod)), undefined])})
 
 export const getEndUserMSW = () => [
