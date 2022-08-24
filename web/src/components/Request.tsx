@@ -54,7 +54,6 @@ import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
-import rehypeRaw from "rehype-raw";
 import { CodeProps } from "react-markdown/lib/ast-to-react";
 
 interface RequestProps {
@@ -241,7 +240,6 @@ export const RequestAccessInstructions: React.FC = () => {
       </Box>
       return (
       <ReactMarkdown
-        rehypePlugins={[rehypeRaw]}
         // remarkPlugins={[remarkGfm]}
         skipHtml={false}
         components={{
@@ -261,7 +259,8 @@ export const RequestAccessInstructions: React.FC = () => {
 
 export const RequestAccessToken = () => {
   const { request } = useContext(Context);
-  const { data } = useGetAccessToken(request?.id);
+
+  const { data } = useGetAccessToken(request.id || "");
 
   // const [token, setToken] = useState<string>();
 

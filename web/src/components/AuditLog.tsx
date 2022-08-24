@@ -1,18 +1,19 @@
-import { Box, Stack, VStack } from "@chakra-ui/layout";
-import { Box, VStack } from "@chakra-ui/react";
 import {
   Accordion,
   AccordionButton,
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  Box,
   Skeleton,
+  Stack,
   Table,
   TableContainer,
   Tbody,
   Td,
   Text,
   Tr,
+  VStack,
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
 import {
