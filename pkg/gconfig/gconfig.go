@@ -183,7 +183,7 @@ func (s *Field) Get() string {
 // String calls the Valuer.String() method for this fields value.
 // If this field is a secret, then the response will be a redacted string.
 // Use Field.Get() to retrieve the raw value for the field
-func (s *Field) String() string {
+func (s Field) String() string {
 	if s.value == nil {
 		return ""
 	}
@@ -233,7 +233,7 @@ func (s *StringValue) Get() string {
 }
 
 // String calls StringValue.Get()
-func (s *StringValue) String() string {
+func (s StringValue) String() string {
 	return s.Get()
 }
 
@@ -266,7 +266,7 @@ func (s *OptionalStringValue) IsSet() bool {
 }
 
 // String calls OptionalStringValue.Get()
-func (s *OptionalStringValue) String() string {
+func (s OptionalStringValue) String() string {
 	return s.Get()
 }
 

@@ -1,10 +1,11 @@
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { CheckIcon, CopyIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Badge,
   Box,
   Button,
   ButtonGroup,
+  Code,
   Flex,
   HStack,
   IconButton,
@@ -15,6 +16,7 @@ import {
   Skeleton,
   SkeletonText,
   Spinner,
+  Spacer,
   Stack,
   Text,
   Tooltip,
@@ -53,6 +55,7 @@ import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { RequestStatusCell, StatusCell } from "./StatusCell";
 import rehypeRaw from "rehype-raw";
+import { CodeProps } from "react-markdown/lib/ast-to-react";
 
 interface RequestProps {
   request?: RequestDetail;
@@ -69,7 +72,9 @@ interface RequestContext {
 
 const Context = createContext<RequestContext>({
   request: undefined,
-  setOverrideTiming: () => {},
+  setOverrideTiming: () => {
+    undefined;
+  },
 });
 
 export const RequestDisplay: React.FC<RequestProps> = ({
@@ -225,7 +230,7 @@ export const RequestAccessInstructions: React.FC = () => {
     request?.grant != null ? request.id : ""
   );
 
-  if (data === undefined || data.instructions == null) {
+  if (!data || !data.instructions) {
     return null;
   }
 
@@ -234,28 +239,19 @@ export const RequestAccessInstructions: React.FC = () => {
       <Box textStyle="Body/Medium" mb={2}>
         Access Instructions
       </Box>
+      return (
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         // remarkPlugins={[remarkGfm]}
         skipHtml={false}
         components={{
-          a: (props) => (
-            <Link
-              data-testid="accessInstructionLink"
-              target="_blank"
-              {...props}
-            />
-          ),
+          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
           p: (props) => (
-            <Text
-              as="span"
-              color="neutrals.600"
-              textStyle={"Body/Small"}
-              data-testid="accessInstructions"
-            >
+            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
               {props.children}
             </Text>
           ),
+          code: CodeInstruction,
         }}
         children={data.instructions}
       />
@@ -301,6 +297,51 @@ export const RequestAccessToken = () => {
   );
 };
 
+const CodeInstruction: React.FC<CodeProps> = (props) => {
+  const { children, node } = props;
+  let value = "";
+  if (node.children.length == 1 && node.children[0].type == "text") {
+    value = node.children[0].value;
+  }
+
+  const { hasCopied, onCopy } = useClipboard(value);
+  return (
+    <Stack>
+      <Code
+        padding={0}
+        bg="white"
+        borderRadius="8px"
+        borderColor="neutrals.300"
+        borderWidth="1px"
+      >
+        <Flex
+          borderColor="neutrals.300"
+          borderBottomWidth="1px"
+          py="8px"
+          px="16px"
+          minH="36px"
+        >
+          <Spacer />
+          <IconButton
+            variant="ghost"
+            h="20px"
+            icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
+            onClick={onCopy}
+            aria-label={"Copy"}
+          />
+        </Flex>
+        <Text
+          overflowX="auto"
+          color="neutrals.700"
+          padding={4}
+          whiteSpace="pre-wrap"
+        >
+          {children}
+        </Text>
+      </Code>
+    </Stack>
+  );
+};
 export const RequestTime: React.FC = () => {
   const { request } = useContext(Context);
   const timing = request?.timing;
@@ -612,7 +653,7 @@ export const RequestCancelButton: React.FC = () => {
     if (request === undefined) return;
     try {
       await cancelRequest(request.id, {});
-      mutate();
+      void mutate();
       toast({
         title: "Request cancelled",
         status: "success",
@@ -664,7 +705,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
   const submitRevoke = async () => {
     if (request === undefined) return;
     try {
-      await revokeRequest(request.id, {}).then(() => {});
+      await revokeRequest(request.id, {});
       toast({
         title: "Deactivated grant",
         status: "success",

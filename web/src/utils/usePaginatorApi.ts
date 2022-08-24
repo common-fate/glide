@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 
 type InputParams<T extends (...args: any[]) => any> = {
   pageSize?: number | undefined;
@@ -55,6 +55,13 @@ export const usePaginatorApi = <T extends (...args: any[]) => any>({
 
   const [pageOptions, setPageOptions] = useState<number[]>([pageIndex]);
 
+  useEffect(() => {
+    if (data?.next && pageOptions?.length === 1) {
+      setPageOptions((curr) => [...curr, pageIndex + 1]);
+      setTokenStack((curr) => [...curr, data.next]);
+    }
+  }, [data, pageOptions, pageIndex]);
+
   const incrementPage = () => {
     // For adding a new page to the stack
     if (!pageOptions.includes(pageIndex + 1)) {
@@ -65,7 +72,7 @@ export const usePaginatorApi = <T extends (...args: any[]) => any>({
       setNextToken(data.next);
       // Otherwise incrementing internally between pages
     } else {
-      let tokenIfPresent = tokenStack[pageIndex + 1];
+      const tokenIfPresent = tokenStack[pageIndex + 1];
       if (tokenIfPresent) {
         setNextToken(tokenStack[pageIndex + 1]);
       } else {

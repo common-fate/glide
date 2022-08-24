@@ -49,7 +49,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 		return nil
 	})
 
-	// the permission set should exist.
+	// the permission set should exist. and be tagged as managed-by-granted
 	g.Go(func() error {
 		_, err = p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
 			InstanceArn:      aws.String(p.instanceARN.Get()),
@@ -57,6 +57,10 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 		})
 		if err != nil {
 			return &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}
+		}
+		isManaged, err := p.checkPermissionSetIsManagedByGranted(ctx, a.PermissionSetARN)
+		if err != nil || !isManaged {
+			return &PermissionSetNotManagedByGrantedError{PermissionSet: a.PermissionSetARN, AWSErr: err}
 		}
 		return nil
 	})

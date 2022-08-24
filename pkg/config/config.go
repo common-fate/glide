@@ -17,7 +17,8 @@ type Config struct {
 	IdpProvider       string `env:"IDENTITY_PROVIDER,required"`
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
-	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
+	IdentitySettings    string `env:"IDENTITY_SETTINGS,default={}"`
+	PaginationKMSKeyARN string `env:"PAGINATION_KMS_KEY_ARN,required"`
 }
 
 type NotificationsConfig struct {

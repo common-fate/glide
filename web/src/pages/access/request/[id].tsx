@@ -159,7 +159,7 @@ const Home: NextPage = () => {
     setLoading(true);
     const duration = data.timing.durationSeconds ?? 2;
 
-    let r: CreateRequestRequestBody = {
+    const r: CreateRequestRequestBody = {
       accessRuleId: ruleId,
       timing: {
         durationSeconds: duration,
@@ -212,7 +212,7 @@ const Home: NextPage = () => {
             >
               {rule ? (
                 <>
-                  <Flex align="center" mr="auto">
+                  <Flex data-testid="rule-name" align="center" mr="auto">
                     <ProviderIcon provider={rule?.target.provider} />
                     <Text ml={2} textStyle="Body/Medium" color="neutrals.600">
                       {rule?.name}

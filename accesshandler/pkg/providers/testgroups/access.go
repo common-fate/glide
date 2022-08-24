@@ -11,7 +11,7 @@ type Args struct {
 
 // Grant the access. The testgroups provider is a no-op provider for testing, so this doesn't
 // actually call any external APIs.
-func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
@@ -25,7 +25,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 
 // Revoke the access. The testgroups provider is a no-op provider for testing, so this doesn't
 // actually call any external APIs.s
-func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {

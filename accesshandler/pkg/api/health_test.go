@@ -1,7 +1,7 @@
 package api
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -36,7 +36,7 @@ func TestHealth(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -105,6 +105,7 @@ func (p *Provider) Init(ctx context.Context) error {
 	}
 	ecsCfg.Credentials = ecsCredentialCache
 
+	//TODO: verify here if the ecs task has exec is enabled on the ecs task
 	//ecsClient := ecs.NewFromConfig(ecsCfg)
 
 	p.ssoClient = ssoadmin.NewFromConfig(ssoCfg)

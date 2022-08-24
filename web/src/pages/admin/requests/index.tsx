@@ -1,10 +1,8 @@
-import { Container, Stack } from "@chakra-ui/layout";
+import { Container } from "@chakra-ui/react";
 import { AdminLayout } from "../../../components/Layout";
 import { AdminRequestsTable } from "../../../components/tables/AdminRequestsTable";
 
-type Props = {};
-
-const Requests = (props: Props) => {
+const Requests = () => {
   return (
     <AdminLayout>
       <Container maxW="1200px" pb={5}>

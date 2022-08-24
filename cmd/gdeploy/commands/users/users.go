@@ -20,8 +20,8 @@ var UsersCommand = cli.Command{
 var createCommand = cli.Command{
 	Name: "create",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "the username of the user to create (should be an email address)", Required: true},
-		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "whether to make the user a Granted Approvals administrator"},
+		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "The username of the user to create (should be an email address)", Required: true},
+		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "Whether to make the user a Granted Approvals administrator"},
 	},
 	Description: "Create a Cognito user",
 	Action: func(c *cli.Context) error {

@@ -21,6 +21,7 @@ import {
 import * as React from "react";
 import { useMemo } from "react";
 import { Link } from "react-location";
+import { useCognito } from "../../utils/context/cognitoContext";
 import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
 import { useUser } from "../../utils/context/userContext";
 import Counter from "../Counter";
@@ -28,11 +29,11 @@ import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
-export const Navbar: React.FC<{}> = () => {
+export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
-  const auth = useUser();
-
+  const user = useUser();
+  const auth = useCognito();
   const { data: requests } = useUserListRequests({ status: "PENDING" });
   const { data: reviews } = useUserListRequests({ reviewer: true });
 
@@ -118,7 +119,7 @@ export const Navbar: React.FC<{}> = () => {
             </HStack>
             {isDesktop ? (
               <HStack spacing="4">
-                {auth.isAdmin && (
+                {user.isAdmin && (
                   <ButtonGroup variant="ghost" spacing="1">
                     <Button
                       as={Link}
@@ -151,7 +152,7 @@ export const Navbar: React.FC<{}> = () => {
                     <Avatar
                       variant="withBorder"
                       boxSize="10"
-                      name={auth?.user?.email}
+                      name={user.user?.email}
                     />
                   </MenuButton>
                   <MenuList _dark={{ borderColor: "gray.500" }}>
@@ -161,7 +162,7 @@ export const Navbar: React.FC<{}> = () => {
                         e.preventDefault();
                       }}
                     >
-                      {auth.user?.email}
+                      {user.user?.email}
                     </MenuItem>
                     <MenuItem
                       icon={<DoorIcon color={"gray.700"} />}

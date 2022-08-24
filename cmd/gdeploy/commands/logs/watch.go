@@ -18,8 +18,8 @@ import (
 var watchCommand = cli.Command{
 	Name: "watch",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "stack", Aliases: []string{"s"}, Usage: "the deployment stack to get logs for", DefaultText: "your active stage in deployment.toml", Required: false},
-		&cli.StringSliceFlag{Name: "service", Aliases: []string{"sr"}, Usage: "the service to watch logs for. Services: " + strings.Join(ServiceNames, ", "), Required: false},
+		&cli.StringFlag{Name: "stack", Aliases: []string{"s"}, Usage: "The deployment stack to get logs for", DefaultText: "Your active stage in deployment.toml", Required: false},
+		&cli.StringSliceFlag{Name: "service", Aliases: []string{"sr"}, Usage: "The service to watch logs for. Services: " + strings.Join(ServiceNames, ", "), Required: false},
 	},
 	Description: "Stream logs from CloudWatch",
 	Action: func(c *cli.Context) error {

@@ -3,7 +3,6 @@ package fixtures
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -17,8 +16,8 @@ import (
 var CreateCommand = cli.Command{
 	Name: "create",
 	Flags: []cli.Flag{
-		&cli.PathFlag{Name: "path", Value: "fixtures", Usage: "the path to the fixture JSON file to read or write to"},
-		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "the name of the provider to generate fixtures for", Required: true},
+		&cli.PathFlag{Name: "path", Value: "fixtures", Usage: "The path to the fixture JSON file to read or write to"},
+		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "The name of the provider to generate fixtures for", Required: true},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
@@ -76,7 +75,7 @@ var CreateCommand = cli.Command{
 			return err
 		}
 
-		err = ioutil.WriteFile(fixturePath, fixtures, 0666)
+		err = os.WriteFile(fixturePath, fixtures, 0666)
 		if err != nil {
 			return err
 		}

@@ -12,10 +12,10 @@ import (
 // When writing a provider you must implement this interface.
 type Accessor interface {
 	// Grant the access.
-	Grant(ctx context.Context, subject string, args []byte) error
+	Grant(ctx context.Context, subject string, args []byte, grantID string) error
 
 	// Revoke the access.
-	Revoke(ctx context.Context, subject string, args []byte) error
+	Revoke(ctx context.Context, subject string, args []byte, grantID string) error
 }
 
 // If a provider implements RequiresAccessToken

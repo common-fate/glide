@@ -13,6 +13,7 @@ import {
   DjangoIcon,
   GRPCIcon,
   PythonIcon,
+  EKSIcon,
 } from "./Icons";
 
 export const ProviderIcon = ({
@@ -46,6 +47,8 @@ export const ProviderIcon = ({
       return <GRPCIcon {...rest} />;
     case "python":
       return <PythonIcon {...rest} />;
+    case "aws-eks-roles-sso":
+      return <EKSIcon {...rest} />;
     default:
       return <GrantedKeysIcon {...rest} />;
   }

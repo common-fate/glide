@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -135,7 +134,7 @@ func (Build) Frontend() error {
 	mg.Deps(Deps.NPM, Build.FrontendAWSExports)
 	dirs := []string{"web/*"}
 
-	files, err := ioutil.ReadDir("web")
+	files, err := os.ReadDir("web")
 	if err != nil {
 		return err
 	}
@@ -291,6 +290,7 @@ func Dotenv() error {
 	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
 	myEnv["GRANTED_RUNTIME"] = "lambda"
+	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {

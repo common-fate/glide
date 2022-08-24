@@ -60,7 +60,11 @@ func New(ctx context.Context, cfg Config, opts ...func(*Server)) (*Server, error
 		return nil, errors.New("IdentitySyncer must be provided")
 	}
 
-	db, err := ddb.New(ctx, cfg.Config.DynamoTable)
+	tokenizer, err := ddb.NewKMSTokenizer(ctx, cfg.Config.PaginationKMSKeyARN)
+	if err != nil {
+		return nil, err
+	}
+	db, err := ddb.New(ctx, cfg.Config.DynamoTable, ddb.WithPageTokenizer(tokenizer))
 	if err != nil {
 		return nil, err
 	}

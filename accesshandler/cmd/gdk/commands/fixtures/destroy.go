@@ -2,7 +2,6 @@ package fixtures
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -16,8 +15,8 @@ import (
 var DestroyCommand = cli.Command{
 	Name: "destroy",
 	Flags: []cli.Flag{
-		&cli.PathFlag{Name: "path", Value: "fixtures", Usage: "the path to the fixture JSON file to read or write to"},
-		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "the name of the provider to generate fixtures for", Required: true},
+		&cli.PathFlag{Name: "path", Value: "fixtures", Usage: "The path to the fixture JSON file to read or write to"},
+		&cli.StringFlag{Name: "name", Aliases: []string{"n"}, Usage: "The name of the provider to generate fixtures for", Required: true},
 	},
 	Action: func(c *cli.Context) error {
 		_ = godotenv.Load()
@@ -58,7 +57,7 @@ var DestroyCommand = cli.Command{
 		p := c.Path("path")
 		fixturePath := filepath.Join(p, name+".json")
 
-		data, err := ioutil.ReadFile(fixturePath)
+		data, err := os.ReadFile(fixturePath)
 		if err != nil {
 			return err
 		}

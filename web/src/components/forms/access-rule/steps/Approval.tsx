@@ -60,9 +60,10 @@ export const ApprovalStep: React.FC = () => {
           <GroupSelect
             testId="approval-group-select"
             fieldName="approval.groups"
+            shouldShowGroupMembers={true}
             isDisabled={!approval?.required}
             rules={{ required: approverRequired }}
-            onBlurSecondaryAction={() => methods.trigger("approval.users")}
+            onBlurSecondaryAction={() => void methods.trigger("approval.users")}
           />
 
           <FormErrorMessage>
@@ -82,7 +83,9 @@ export const ApprovalStep: React.FC = () => {
             fieldName="approval.users"
             isDisabled={!approval?.required}
             rules={{ required: approverRequired }}
-            onBlurSecondaryAction={() => methods.trigger("approval.groups")}
+            onBlurSecondaryAction={() =>
+              void methods.trigger("approval.groups")
+            }
           />
 
           <FormErrorMessage>

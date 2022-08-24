@@ -149,6 +149,8 @@ paths:
                 $ref: "#/components/schemas/AccessInstructions"
         "400":
           $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: get-access-instructions
       description: |-
         Get access instructions for a provider.
@@ -403,6 +405,7 @@ components:
         The `instructions` field will be null if no instructions are available.
       properties:
         instructions:
+<<<<<<< HEAD
           type: string
           description: Instructions on how to access the role or resource.
         accessToken:
@@ -417,6 +420,10 @@ components:
         accessToken:
           type: string
       description: "additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider."
+=======
+          description: Instructions on how to access the role or resource.
+          type: string
+>>>>>>> main
   requestBodies: {}
   responses:
     HealthResponse:

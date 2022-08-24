@@ -13,7 +13,7 @@ var CreateCommand = cli.Command{
 	Usage:       "Create a new Granted Approvals deployment by deploying CloudFormation",
 	Description: "Create a new Granted Approvals deployment based on a deployment configuration file (granted-deployment.yml by default). Deploys resources to AWS using CloudFormation.",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "confirm", Usage: "if provided, will automatically deploy without asking for confirmation"},
+		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically deploy without asking for confirmation"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context

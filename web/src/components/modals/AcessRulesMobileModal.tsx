@@ -31,7 +31,7 @@ const AcessRulesMobileModal = (props: Props) => {
         <ModalHeader mt={10}>All Access</ModalHeader>
         <ModalBody>
           <Stack gap={6}>
-            {!!rules ? (
+            {rules ? (
               rules.accessRules.length > 0 ? (
                 rules.accessRules.map((r) => (
                   <Box

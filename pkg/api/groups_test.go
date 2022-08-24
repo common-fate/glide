@@ -1,7 +1,7 @@
 package api
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,15 +26,17 @@ func TestListGroups(t *testing.T) {
 			wantCode: http.StatusOK,
 			idpGroups: []identity.Group{
 				{
-					ID:   "123",
-					Name: "test",
+					ID:    "123",
+					Name:  "test",
+					Users: nil,
 				},
 				{
-					ID:   "1234",
-					Name: "test",
+					ID:    "1234",
+					Name:  "test",
+					Users: []string{"1", "2"},
 				},
 			},
-			wantBody: `{"groups":[{"description":"","id":"123","name":"test"},{"description":"","id":"1234","name":"test"}],"next":null}`,
+			wantBody: `{"groups":[{"description":"","id":"123","memberCount":0,"name":"test"},{"description":"","id":"1234","memberCount":2,"name":"test"}],"next":null}`,
 		},
 	}
 
@@ -59,7 +61,7 @@ func TestListGroups(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -87,8 +89,9 @@ func TestGetGroup(t *testing.T) {
 				ID:          "123",
 				Name:        "Test",
 				Description: "hello",
+				Users:       []string{"one", "two", "three"},
 			},
-			wantBody: `{"description":"hello","id":"123","name":"Test"}`,
+			wantBody: `{"description":"hello","id":"123","memberCount":3,"name":"Test"}`,
 		},
 		{
 			name:     "group not found",
@@ -118,7 +121,7 @@ func TestGetGroup(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}

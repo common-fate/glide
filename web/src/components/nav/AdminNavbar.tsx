@@ -25,12 +25,13 @@ import {
 } from "@chakra-ui/react";
 import * as React from "react";
 import { Link } from "react-location";
+import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
 import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogoAdmin } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
-export const AdminNavbar: React.FC<{}> = () => {
+export const AdminNavbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
   // Keep track of whether app has mounted (hydration is done)
@@ -39,8 +40,8 @@ export const AdminNavbar: React.FC<{}> = () => {
     setHasMounted(true);
   }, []);
 
-  const auth = useUser();
-
+  const user = useUser();
+  const auth = useCognito();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
@@ -49,8 +50,12 @@ export const AdminNavbar: React.FC<{}> = () => {
         value={{
           colorMode: "dark",
           // noop
-          toggleColorMode: () => {},
-          setColorMode: () => {},
+          toggleColorMode: () => {
+            undefined;
+          },
+          setColorMode: () => {
+            undefined;
+          },
         }}
       >
         {/* <DarkMode /> */}
@@ -118,7 +123,7 @@ export const AdminNavbar: React.FC<{}> = () => {
                       <Avatar
                         variant="withBorder"
                         boxSize="10"
-                        name={auth?.user?.email}
+                        name={user.user?.email}
                       />
                     </MenuButton>
                     <MenuList _dark={{ borderColor: "gray.500" }}>
@@ -128,7 +133,7 @@ export const AdminNavbar: React.FC<{}> = () => {
                           e.preventDefault();
                         }}
                       >
-                        {auth.user?.email}
+                        {user.user?.email}
                       </MenuItem>
                       <MenuItem
                         icon={<DoorIcon color={"gray.400"} />}

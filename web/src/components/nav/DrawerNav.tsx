@@ -12,6 +12,7 @@ import {
   Stack,
 } from "@chakra-ui/react";
 import * as React from "react";
+import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
 import { useInnerHeight } from "../../utils/hooks/useInnerHeight";
 import Counter from "../Counter";
@@ -24,7 +25,8 @@ import { StyledButton } from "./Navbar";
 type DrawerNavProps = Omit<DrawerProps, "children"> & { isAdmin?: boolean };
 
 export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
-  const auth = useUser();
+  const user = useUser();
+  const auth = useCognito();
   const innerHeight = useInnerHeight();
 
   type NavItem = {
@@ -69,8 +71,12 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
       value={{
         colorMode: isAdmin ? "dark" : "light",
         // noop
-        toggleColorMode: () => {},
-        setColorMode: () => {},
+        toggleColorMode: () => {
+          undefined;
+        },
+        setColorMode: () => {
+          undefined;
+        },
       }}
     >
       <Drawer
@@ -140,7 +146,7 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
               </Stack>
 
               <Box mt={2} pl={2}>
-                <UserAvatarDetails size="sm" user={auth?.user?.id} />
+                <UserAvatarDetails size="sm" user={user.user?.id} />
               </Box>
             </Box>
           </DrawerBody>

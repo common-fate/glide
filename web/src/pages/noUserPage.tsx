@@ -1,15 +1,9 @@
-import { Flex, Text, Stack, Heading, Button } from "@chakra-ui/react";
-import { ICredentials } from "@aws-amplify/core";
+import { Button, Flex, Heading, Stack, Text } from "@chakra-ui/react";
 
-import { useNavigate } from "react-location";
+import { useCognito } from "../utils/context/cognitoContext";
 
-interface Props {
-  userEmail?: string;
-  initiateSignOut: () => Promise<any>;
-}
-
-export const NoUser = (props: Props) => {
-  const navigate = useNavigate();
+export const NoUser = () => {
+  const { cognitoAuthenticatedUserEmail, initiateSignOut } = useCognito();
   return (
     <Flex
       height="100vh"
@@ -22,9 +16,9 @@ export const NoUser = (props: Props) => {
         <Text>
           You&apos;ve successfully logged in, but we couldn&apos;t find a
           matching user account for you in our database. (
-          {props.userEmail
+          {cognitoAuthenticatedUserEmail
             ?.split("_")
-            .slice(1, props.userEmail?.split("_").length)
+            .slice(1, cognitoAuthenticatedUserEmail?.split("_").length)
             .join()}
           ){/* Removes prefixed idp provider that amplify adds */}
         </Text>
@@ -41,10 +35,11 @@ export const NoUser = (props: Props) => {
 
         <Button
           onClick={() => {
-            console.log("clicked");
-            props.initiateSignOut().then(() => {
-              window.location.reload();
-            });
+            initiateSignOut()
+              .then(() => {
+                window.location.reload();
+              })
+              .catch((e) => console.error(e));
           }}
           top="40px"
           alignSelf="center"

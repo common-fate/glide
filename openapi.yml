@@ -127,6 +127,12 @@ paths:
           $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-upcoming
       description: display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          description: encrypted token containing pagination info
+          name: nextToken
   /api/v1/requests/past:
     get:
       summary: Your GET endpoint
@@ -137,6 +143,12 @@ paths:
       operationId: user-list-requests-past
       description: |
         display show cancelled, expired, and revoked requests.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
   "/api/v1/requests/{requestId}":
     parameters:
       - schema:
@@ -360,6 +372,11 @@ paths:
           in: query
           name: status
           description: Filter Access Rules by a particular status.
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
     post:
       summary: Create Access Rule
       operationId: admin-create-access-rule
@@ -563,7 +580,12 @@ paths:
           $ref: "#/components/responses/ListUserResponse"
       operationId: get-users
       description: Fetch a list of users
-      parameters: []
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
   /api/v1/admin/groups:
     get:
       summary: List groups
@@ -574,6 +596,12 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListGroupsResponse"
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
     parameters: []
   "/api/v1/admin/groups/{groupId}":
     parameters:
@@ -1029,10 +1057,13 @@ components:
           type: string
         id:
           type: string
+        memberCount:
+          type: integer
       required:
         - name
         - description
         - id
+        - memberCount
     IdpStatus:
       title: IdpStatus
       x-stoplight:

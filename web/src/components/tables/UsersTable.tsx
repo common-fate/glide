@@ -2,12 +2,16 @@ import { Flex } from "@chakra-ui/react";
 import format from "date-fns/format";
 import { useMemo } from "react";
 import { Column } from "react-table";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useGetUsers } from "../../utils/backend-client/admin/admin";
 import { User } from "../../utils/backend-client/types";
 import { TableRenderer } from "./TableRenderer";
 
 export const UsersTable = () => {
-  const { data } = useGetUsers();
+  const paginator = usePaginatorApi<typeof useGetUsers>({
+    swrHook: useGetUsers,
+    hookProps: {},
+  });
 
   const cols: Column<User>[] = useMemo(
     () => [
@@ -53,8 +57,9 @@ export const UsersTable = () => {
       <Flex justify="space-between" my={5}></Flex>
       {TableRenderer<User>({
         columns: cols,
-        data: data?.users,
+        data: paginator?.data?.users,
         emptyText: "No users",
+        apiPaginator: paginator,
       })}
     </>
   );

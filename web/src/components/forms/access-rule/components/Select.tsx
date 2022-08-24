@@ -13,6 +13,11 @@ interface SelectProps {
   testId?: string;
   onBlurSecondaryAction?: () => void;
 }
+
+interface GroupSelectProps extends SelectProps {
+  shouldShowGroupMembers?: boolean;
+}
+
 // UserSelect required defaults to true
 export const UserSelect: React.FC<SelectProps> = (props) => {
   const { data } = useGetUsers();
@@ -26,12 +31,23 @@ export const UserSelect: React.FC<SelectProps> = (props) => {
   return <MultiSelect id="user-select" options={options} {...props} />;
 };
 
-export const GroupSelect: React.FC<SelectProps> = (props) => {
+export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
+  const { shouldShowGroupMembers = false } = props;
   const { data } = useGetGroups();
   const options = useMemo(() => {
     return (
       data?.groups.map((g) => {
-        return { value: g.id, label: g.name };
+        const totalMembersInGroup =
+          g.memberCount <= 1
+            ? `${g.memberCount} member`
+            : `${g.memberCount} members`;
+
+        return {
+          value: g.id,
+          label: shouldShowGroupMembers
+            ? `${g.name} (${totalMembersInGroup})`
+            : g.name,
+        };
       }) ?? []
     );
   }, [data]);
@@ -58,6 +74,7 @@ export const CustomOption = ({
   },
   true
 >) => (
+  // @ts-ignore
   <div data-testid={innerProps.value}>
     <components.Option {...innerProps}>{children}</components.Option>
   </div>
@@ -106,7 +123,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => onChange(val.map((c) => c.value))}
             onBlur={() => {
-              trigger(fieldName);
+              void trigger(fieldName);
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
             }}
             data-testid={rest.testId}

@@ -12,12 +12,12 @@ var InitCommand = cli.Command{
 	Name:        "init",
 	Description: "Set up a new Granted deployment configuration file",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "overwrite", Usage: "force an existing deployment configuration file to be overwritten"},
-		&cli.StringFlag{Name: "name", Usage: "the name of the CloudFormation stack to create"},
-		&cli.StringFlag{Name: "account", Usage: "the account ID to deploy to"},
-		&cli.StringFlag{Name: "region", Usage: "the region to deploy to"},
-		&cli.StringFlag{Name: "version", Usage: "the version to deploy"},
-		&cli.StringFlag{Name: "cognito-domain-prefix", Usage: "the prefix for the Cognito Sign in URL"},
+		&cli.BoolFlag{Name: "overwrite", Usage: "Force an existing deployment configuration file to be overwritten"},
+		&cli.StringFlag{Name: "name", Usage: "The name of the CloudFormation stack to create"},
+		&cli.StringFlag{Name: "account", Usage: "The account ID to deploy to"},
+		&cli.StringFlag{Name: "region", Usage: "The region to deploy to"},
+		&cli.StringFlag{Name: "version", Usage: "The version to deploy"},
+		&cli.StringFlag{Name: "cognito-domain-prefix", Usage: "The prefix for the Cognito Sign in URL"},
 	},
 	Action: func(c *cli.Context) error {
 		err := ensureConfigDoesntExist(c)
