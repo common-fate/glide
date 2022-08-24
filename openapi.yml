@@ -686,7 +686,13 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: list-provider-arg-options
-      description: ""
+      description: "Returns the options for a particular Access Provider argument. The options may be cached. To refresh the cache, pass the `refresh` query parameter."
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: refresh
+          description: invalidate the cache and refresh the provider's options.
 components:
   schemas:
     User:

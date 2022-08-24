@@ -1,5 +1,6 @@
 import {
   HStack,
+  InputGroup,
   InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -267,52 +268,54 @@ const InputElement: React.FC<InputElementProps> = ({
     }
   }, [value]);
   return (
-    <NumberInput
-      // variant="reveal"
-      precision={0}
-      id="minute-duration-input"
-      defaultValue={defaultValue}
-      max={max}
-      min={min}
-      step={1}
-      role="group"
-      w="100px"
-      value={v}
-      // if you backspace the value then click out, this resets the value to the current value
-      onBlur={() => {
-        if (typeof v === "string" || isNaN(v)) {
-          setV(value);
-        }
-      }}
-      onChange={(s: string, n: number) => {
-        if (isNaN(n)) {
-          setV(s);
-        } else if (max && n > max) {
-          // don't allow typed inputs greater than max
-          setV(max);
-          onChange(max);
-        } else {
-          setV(n);
-          onChange(n);
-        }
-      }}
-      className="peer"
-    >
-      <NumberInputField bg="white" id={inputId} />
-      <InputRightElement
-        pos="absolute"
-        right={10}
-        w="8px"
-        color="neutrals.500"
-        userSelect="none"
-        textAlign="left"
+    <InputGroup w="unset">
+      <NumberInput
+        // variant="reveal"
+        precision={0}
+        id="minute-duration-input"
+        defaultValue={defaultValue}
+        max={max}
+        min={min}
+        step={1}
+        role="group"
+        w="100px"
+        value={v}
+        // if you backspace the value then click out, this resets the value to the current value
+        onBlur={() => {
+          if (typeof v === "string" || isNaN(v)) {
+            setV(value);
+          }
+        }}
+        onChange={(s: string, n: number) => {
+          if (isNaN(n)) {
+            setV(s);
+          } else if (max && n > max) {
+            // don't allow typed inputs greater than max
+            setV(max);
+            onChange(max);
+          } else {
+            setV(n);
+            onChange(n);
+          }
+        }}
+        className="peer"
       >
-        {rightElement}
-      </InputRightElement>
-      <NumberInputStepper>
-        <NumberIncrementStepper id="increment" />
-        <NumberDecrementStepper id="decrement" />
-      </NumberInputStepper>
-    </NumberInput>
+        <NumberInputField bg="white" id={inputId} />
+        <InputRightElement
+          pos="absolute"
+          right={10}
+          w="8px"
+          color="neutrals.500"
+          userSelect="none"
+          textAlign="left"
+        >
+          {rightElement}
+        </InputRightElement>
+        <NumberInputStepper>
+          <NumberIncrementStepper id="increment" />
+          <NumberDecrementStepper id="decrement" />
+        </NumberInputStepper>
+      </NumberInput>
+    </InputGroup>
   );
 };

@@ -42,6 +42,7 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	cfg.RetryMaxAttempts = 5
 	creds, err := cfg.Credentials.Retrieve(ctx)
 	if err != nil {
 		return err

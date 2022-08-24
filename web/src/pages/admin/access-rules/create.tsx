@@ -1,5 +1,4 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
-import { GetStaticProps } from "next";
 import CreateAccessRuleForm from "../../../components/forms/access-rule/CreateForm";
 
 import { AdminLayout } from "../../../components/Layout";
