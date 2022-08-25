@@ -124,12 +124,11 @@ func (p *Provider) checkPermissionSetIsManagedByGranted(ctx context.Context, per
 		}
 		nextToken = tags.NextToken
 		hasMore = nextToken != nil
-		// for _, tag := range tags.Tags {
-		// 	if aws.ToString(tag.Key) == "commonfate.io/managed-by-granted" {
-		// 		return true, nil
-		// 	}
-		// }
-		return true, nil
+		for _, tag := range tags.Tags {
+			if aws.ToString(tag.Key) == "commonfate.io/managed-by-granted" {
+				return true, nil
+			}
+		}
 	}
 	return false, nil
 }
