@@ -36,7 +36,7 @@ export class AccessHandler extends Construct {
 
     this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
       code,
-      timeout: Duration.seconds(20),
+      timeout: Duration.seconds(60),
       environment: {
         GRANTED_RUNTIME: "lambda",
         STATE_MACHINE_ARN: this._granter.getStateMachineARN(),

@@ -8,6 +8,7 @@ import {
   Grid,
   Link as ChakraLink,
   LinkBox,
+  LinkBoxProps,
   LinkOverlay,
   Skeleton,
   SkeletonCircle,
@@ -22,8 +23,7 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
-import type { NextPage } from "next";
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
@@ -41,7 +41,6 @@ import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
 import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
-import { useIntersection } from "../../utils/useIntersection";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -49,7 +48,7 @@ type MyLocationGenerics = MakeGenerics<{
   };
 }>;
 
-const Home: NextPage = () => {
+const Home = () => {
   const search = useSearch<MyLocationGenerics>();
   const navigate = useNavigate<MyLocationGenerics>();
 
@@ -148,7 +147,7 @@ const Home: NextPage = () => {
                             data-testid={"r_" + i}
                           >
                             <ProviderIcon
-                              provider={r.target.provider}
+                              provider={r.target.provider.type}
                               mb={3}
                               h="8"
                               w="8"
@@ -288,14 +287,14 @@ const Home: NextPage = () => {
                       <LoadMoreButton
                         // dont apply ref when validating
                         // ref={upcomingRef}
-                        disabled={!upcomingApi.canNextPage}
+                        // isDisabled={!upcomingApi.canNextPage}
                         onClick={upcomingApi.incrementPage}
                       >
                         {isValidating && reqsUpcoming?.requests ? (
                           <Spinner />
                         ) : upcomingApi.canNextPage ? (
                           "Load more"
-                        ) : reqsUpcoming?.requests?.length > 4 ? (
+                        ) : (reqsUpcoming?.requests?.length ?? 0) > 4 ? (
                           "That's it!"
                         ) : (
                           ""
@@ -345,14 +344,14 @@ const Home: NextPage = () => {
                       <LoadMoreButton
                         // dont apply ref when validating
                         // ref={isValidating ? null : pastRef}
-                        disabled={!pastApi.canNextPage}
+                        // disabled={!pastApi.canNextPage}
                         onClick={pastApi.incrementPage}
                       >
                         {pastApi.isValidating && reqsPast?.requests ? (
                           <Spinner />
                         ) : pastApi.canNextPage ? (
                           "Load more"
-                        ) : reqsPast?.requests?.length > 4 ? (
+                        ) : (reqsPast?.requests?.length ?? 0) > 4 ? (
                           "That's it!"
                         ) : (
                           ""
@@ -431,7 +430,7 @@ const UserAccessCard: React.FC<
                   {rule ? (
                     <Flex align="center" mr="auto">
                       <ProviderIcon
-                        provider={rule?.target.provider}
+                        provider={rule?.target.provider.type}
                         h={10}
                         w={10}
                       />

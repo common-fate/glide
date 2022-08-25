@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import checker from "vite-plugin-checker";
 import rollupNodePolyFill from "rollup-plugin-node-polyfills";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), checker({ typescript: true })],
   optimizeDeps: {
     esbuildOptions: {
       // Node.js global to browser globalThis
