@@ -44,7 +44,7 @@ export const GeneralStep: React.FC = () => {
           <Input
             bg="neutrals.0"
             {...methods.register("name", { required: true })}
-            onBlur={() => methods.trigger("name")}
+            onBlur={() => void methods.trigger("name")}
           />
           <FormErrorMessage>Name is required.</FormErrorMessage>
         </FormControl>
@@ -59,7 +59,7 @@ export const GeneralStep: React.FC = () => {
               required: true,
               maxLength: 128,
             })}
-            onBlur={() => methods.trigger("description")}
+            onBlur={() => void methods.trigger("description")}
           />
           <FormErrorMessage>Description is required.</FormErrorMessage>
         </FormControl>

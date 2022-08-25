@@ -1,4 +1,4 @@
-import { Container, Stack } from "@chakra-ui/layout";
+import { Container, Stack } from "@chakra-ui/react";
 import { AdminLayout } from "../../components/Layout";
 import { UsersTable } from "../../components/tables/UsersTable";
 

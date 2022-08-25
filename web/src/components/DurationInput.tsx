@@ -1,6 +1,6 @@
-import { HStack } from "@chakra-ui/layout";
 import {
-  forwardRef,
+  HStack,
+  InputGroup,
   InputRightElement,
   NumberDecrementStepper,
   NumberIncrementStepper,
@@ -36,8 +36,12 @@ interface DurationInputContext {
 }
 
 const Context = createContext<DurationInputContext>({
-  setValue: (a, b) => {},
-  register: (d) => {},
+  setValue: (a, b) => {
+    undefined;
+  },
+  register: (d) => {
+    undefined;
+  },
   minHours: 0,
   minMinutes: 0,
   hours: 0,
@@ -136,8 +140,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   // however they are not aware of each other, so edge cases are handled in here
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
-      case "HOUR":
-        let newTime = v * HOUR + minutes * MINUTE;
+      case "HOUR": {
+        const newTime = v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(
             v * HOUR +
@@ -150,9 +154,11 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         }
 
         break;
-      case "MINUTE":
+      }
+      case "MINUTE": {
         onChange(hours * HOUR + v * MINUTE);
         break;
+      }
     }
   };
 
@@ -262,52 +268,54 @@ const InputElement: React.FC<InputElementProps> = ({
     }
   }, [value]);
   return (
-    <NumberInput
-      // variant="reveal"
-      precision={0}
-      id="minute-duration-input"
-      defaultValue={defaultValue}
-      max={max}
-      min={min}
-      step={1}
-      role="group"
-      w="100px"
-      value={v}
-      // if you backspace the value then click out, this resets the value to the current value
-      onBlur={() => {
-        if (typeof v === "string" || isNaN(v)) {
-          setV(value);
-        }
-      }}
-      onChange={(s: string, n: number) => {
-        if (isNaN(n)) {
-          setV(s);
-        } else if (max && n > max) {
-          // don't allow typed inputs greater than max
-          setV(max);
-          onChange(max);
-        } else {
-          setV(n);
-          onChange(n);
-        }
-      }}
-      className="peer"
-    >
-      <NumberInputField bg="white" id={inputId} />
-      <InputRightElement
-        pos="absolute"
-        right={10}
-        w="8px"
-        color="neutrals.500"
-        userSelect="none"
-        textAlign="left"
+    <InputGroup w="unset">
+      <NumberInput
+        // variant="reveal"
+        precision={0}
+        id="minute-duration-input"
+        defaultValue={defaultValue}
+        max={max}
+        min={min}
+        step={1}
+        role="group"
+        w="100px"
+        value={v}
+        // if you backspace the value then click out, this resets the value to the current value
+        onBlur={() => {
+          if (typeof v === "string" || isNaN(v)) {
+            setV(value);
+          }
+        }}
+        onChange={(s: string, n: number) => {
+          if (isNaN(n)) {
+            setV(s);
+          } else if (max && n > max) {
+            // don't allow typed inputs greater than max
+            setV(max);
+            onChange(max);
+          } else {
+            setV(n);
+            onChange(n);
+          }
+        }}
+        className="peer"
       >
-        {rightElement}
-      </InputRightElement>
-      <NumberInputStepper>
-        <NumberIncrementStepper id="increment" />
-        <NumberDecrementStepper id="decrement" />
-      </NumberInputStepper>
-    </NumberInput>
+        <NumberInputField bg="white" id={inputId} />
+        <InputRightElement
+          pos="absolute"
+          right={10}
+          w="8px"
+          color="neutrals.500"
+          userSelect="none"
+          textAlign="left"
+        >
+          {rightElement}
+        </InputRightElement>
+        <NumberInputStepper>
+          <NumberIncrementStepper id="increment" />
+          <NumberDecrementStepper id="decrement" />
+        </NumberInputStepper>
+      </NumberInput>
+    </InputGroup>
   );
 };

@@ -1,4 +1,4 @@
-import { Box, VStack } from "@chakra-ui/layout";
+import { Box, VStack } from "@chakra-ui/react";
 import {
   Accordion,
   AccordionButton,

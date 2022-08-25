@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -99,7 +99,7 @@ func TestUserCreateRequest(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -176,7 +176,7 @@ func TestUserCancelRequest(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -284,7 +284,7 @@ func TestUserGetRequest(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			} else {
@@ -443,7 +443,7 @@ func TestUserListRequests(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			} else {
@@ -619,7 +619,7 @@ func TestUserListRequestEvents(t *testing.T) {
 
 			assert.Equal(t, tc.wantCode, rr.Code)
 
-			data, err := ioutil.ReadAll(rr.Body)
+			data, err := io.ReadAll(rr.Body)
 			if err != nil {
 				t.Fatal(err)
 			} else {

@@ -183,7 +183,7 @@ export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
               onChange(val);
             }}
             onBlur={() => {
-              trigger(fieldName);
+              void trigger(fieldName);
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
             }}
             data-testid={rest.testId}

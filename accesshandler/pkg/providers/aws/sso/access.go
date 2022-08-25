@@ -15,12 +15,12 @@ import (
 )
 
 type Args struct {
-	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission set"`
+	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission Set,description=The Permission Set field lists all the SSO Permission Sets which have a resource tag with key 'commonfate.io/managed-by-granted'. Granted Approvals can only manage SSO Permission Sets which have been created in the delegated SSO management account. See our documentation for more information. https://docs.commonfate.io/granted-approvals/providers/aws-sso"`
 	AccountID        string `json:"accountId" jsonschema:"title=Account"`
 }
 
 // Grant the access by calling the AWS SSO API.
-func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
@@ -60,7 +60,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte) error
 }
 
 // Revoke the access by calling the AWS SSO API.
-func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
@@ -103,7 +103,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte) erro
 }
 
 // IsActive checks whether the access is active by calling the AWS SSO API.
-func (p *Provider) IsActive(ctx context.Context, subject string, args []byte) (bool, error) {
+func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {

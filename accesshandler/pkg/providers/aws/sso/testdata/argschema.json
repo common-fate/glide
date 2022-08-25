@@ -1,11 +1,15 @@
 {
-  "$schema": "http://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso/args",
   "$ref": "#/$defs/Args",
   "$defs": {
     "Args": {
       "properties": {
-        "permissionSetArn": { "type": "string", "title": "Permission set" },
+        "permissionSetArn": {
+          "type": "string",
+          "title": "Permission Set",
+          "description": "The Permission Set field lists all the SSO Permission Sets which have a resource tag with key 'commonfate.io/managed-by-granted'. Granted Approvals can only manage SSO Permission Sets which have been created in the delegated SSO management account. See our documentation for more information. https://docs.commonfate.io/granted-approvals/providers/aws-sso"
+        },
         "accountId": { "type": "string", "title": "Account" }
       },
       "additionalProperties": false,

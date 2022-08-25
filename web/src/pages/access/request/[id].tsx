@@ -24,7 +24,6 @@ import {
   Wrap,
 } from "@chakra-ui/react";
 import { addSeconds, format } from "date-fns";
-import type { NextPage } from "next";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
@@ -68,7 +67,7 @@ export const getWhenHelperText = (
   return "Choose a time in future for the access to be activated";
 };
 
-const Home: NextPage = () => {
+const Home = () => {
   const [loading, setLoading] = useState(false);
   const {
     params: { id: ruleId },
@@ -159,7 +158,7 @@ const Home: NextPage = () => {
     setLoading(true);
     const duration = data.timing.durationSeconds ?? 2;
 
-    let r: CreateRequestRequestBody = {
+    const r: CreateRequestRequestBody = {
       accessRuleId: ruleId,
       timing: {
         durationSeconds: duration,
@@ -213,7 +212,7 @@ const Home: NextPage = () => {
               {rule ? (
                 <>
                   <Flex data-testid="rule-name" align="center" mr="auto">
-                    <ProviderIcon provider={rule?.target.provider} />
+                    <ProviderIcon provider={rule?.target.provider.type} />
                     <Text ml={2} textStyle="Body/Medium" color="neutrals.600">
                       {rule?.name}
                     </Text>

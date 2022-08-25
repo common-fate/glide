@@ -14,6 +14,7 @@ func main() {
 	var cfg config.GranterConfig
 	ctx := context.Background()
 	_ = godotenv.Load()
+	ctx.Deadline()
 
 	err := envconfig.Process(ctx, &cfg)
 	if err != nil {
@@ -24,5 +25,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	lambda.Start(g.HandleRequest)
 }

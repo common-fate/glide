@@ -65,7 +65,9 @@ interface RequestContext {
 
 const Context = createContext<RequestContext>({
   request: undefined,
-  setOverrideTiming: () => {},
+  setOverrideTiming: () => {
+    undefined;
+  },
 });
 
 export const RequestDisplay: React.FC<RequestProps> = ({
@@ -183,7 +185,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon provider={request?.accessRule.target.provider} />
+            <ProviderIcon provider={request?.accessRule.target.provider.type} />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge
@@ -229,22 +231,12 @@ export const RequestAccessInstructions: React.FC = () => {
       <Box textStyle="Body/Medium" mb={2}>
         Access Instructions
       </Box>
+      return (
       <ReactMarkdown
         components={{
-          a: (props) => (
-            <Link
-              data-testid="accessInstructionLink"
-              target="_blank"
-              {...props}
-            />
-          ),
+          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
           p: (props) => (
-            <Text
-              as="span"
-              color="neutrals.600"
-              textStyle={"Body/Small"}
-              data-testid="accessInstructions"
-            >
+            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
               {props.children}
             </Text>
           ),
@@ -253,6 +245,7 @@ export const RequestAccessInstructions: React.FC = () => {
       >
         {data.instructions}
       </ReactMarkdown>
+      );
     </Stack>
   );
 };
@@ -613,7 +606,7 @@ export const RequestCancelButton: React.FC = () => {
     if (request === undefined) return;
     try {
       await cancelRequest(request.id, {});
-      mutate();
+      void mutate();
       toast({
         title: "Request cancelled",
         status: "success",
@@ -665,7 +658,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
   const submitRevoke = async () => {
     if (request === undefined) return;
     try {
-      await revokeRequest(request.id, {}).then(() => {});
+      await revokeRequest(request.id, {});
       toast({
         title: "Deactivated grant",
         status: "success",

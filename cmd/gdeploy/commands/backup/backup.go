@@ -16,7 +16,7 @@ var Command = cli.Command{
 	Name:        "backup",
 	Description: "Backup Granted Approvals",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "confirm", Usage: "If provided, will automatically deploy without asking for confirmation"},
+		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically continue without asking for confirmation"},
 	},
 	Subcommands: []*cli.Command{&BackupStatus},
 	Action: func(c *cli.Context) error {

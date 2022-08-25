@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -56,7 +55,7 @@ func TestArgSchema(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := ioutil.ReadFile("./testdata/argschema.json")
+	want, err := os.ReadFile("./testdata/argschema.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +74,7 @@ func TestInstructions(t *testing.T) {
 		uniqueID: gconfig.StringValue{Value: "1234"},
 	}
 	args := `{"vault": "my-vault"}`
-	got, err := p.Instructions(context.Background(), "testuser", []byte(args))
+	got, err := p.Instructions(context.Background(), "testuser", []byte(args), "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -24,7 +24,7 @@ export interface StepState {
 }
 
 // Our reducer function that uses a switch statement to handle our actions
-function stepReducer(state: StepState, action: StepAction) {
+function stepReducer(state: StepState, action: StepAction): StepState {
   const { type, payload } = action;
   switch (type) {
     case StepActionKind.EDIT:
@@ -33,9 +33,8 @@ function stepReducer(state: StepState, action: StepAction) {
           ...state,
           step: payload,
         };
-      } else {
-        return state;
       }
+      return state;
 
     case StepActionKind.NEXT:
       if (state.step !== -1 && state.step < state.numberOfSteps - 1) {
@@ -44,15 +43,16 @@ function stepReducer(state: StepState, action: StepAction) {
           step: state.step + 1,
         };
       }
+      break;
     case StepActionKind.CLOSE:
       return {
         ...state,
         step: -1,
       };
-
     default:
       return state;
   }
+  return state;
 }
 
 export interface StepsContextProps {

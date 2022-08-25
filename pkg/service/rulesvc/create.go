@@ -35,14 +35,16 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 	for k, v := range in.Target.With.AdditionalProperties {
 		// min length 1 is configured in the api spec so len(0) is handled by builtin validation
 		if len(v) == 1 {
-			target.With[k] = v[0].Value
+			target.With[k] = v[0]
 		} else {
 			// store the selectables with value and label
 			target.WithSelectable[k] = make([]rule.Selectable, len(v))
-			for i, opt := range v {
+			for i, _ := range v {
 				target.WithSelectable[k][i] = rule.Selectable{
-					Option: rule.Option{Value: opt.Value, Label: opt.Label},
-					Valid:  true,
+					// @todo need to fetch the options again and map values to labels
+
+					// Option: rule.Option{Value: opt.Value, Label: opt.Label},
+					Valid: true,
 				}
 			}
 		}

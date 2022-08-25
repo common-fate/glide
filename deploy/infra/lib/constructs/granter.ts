@@ -22,7 +22,7 @@ export class Granter extends Construct {
 
     this._lambda = new lambda.Function(this, "StepHandlerFunction", {
       code,
-      timeout: Duration.seconds(20),
+      timeout: Duration.minutes(5),
       environment: {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
@@ -151,9 +151,18 @@ export class Granter extends Construct {
           "sso:CreateAccountAssignment",
           "sso:DeleteAccountAssignment",
           "sso:ListAccountAssignments",
+          "sso:ListTagsForResource",
           "identitystore:ListUsers",
           "organizations:DescribeAccount",
         ],
+        resources: ["*"],
+      })
+    );
+
+    
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
         resources: ["*"],
       })
     );
@@ -168,5 +177,11 @@ export class Granter extends Construct {
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
+  }
+  getGranterARN(): string {
+    return this._lambda.functionArn;
+  }
+  getGranterLambdaExecutionRoleARN(): string {
+    return this._lambda.role?.roleArn ?? "";
   }
 }

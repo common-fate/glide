@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as kms from "aws-cdk-lib/aws-kms";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
@@ -33,6 +34,7 @@ export class AppBackend extends Construct {
   private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
+  private _KMSkey: cdk.aws_kms.Key;
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -41,13 +43,20 @@ export class AppBackend extends Construct {
 
     this.createDynamoTables();
 
+    this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pendingWindow: cdk.Duration.days(7),
+      description:
+        "used for encrypting and decrypting pagination tokens for granted approvals",
+    });
+
     const code = lambda.Code.fromAsset(
       path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
     );
 
     this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
       code,
-      timeout: Duration.seconds(20),
+      timeout: Duration.seconds(60),
       environment: {
         APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
         APPROVALS_FRONTEND_URL: props.frontendUrl,
@@ -60,10 +69,13 @@ export class AppBackend extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
     });
+
+    this._KMSkey.grantEncryptDecrypt(this._lambda);
 
     this._lambda.addToRolePolicy(
       new PolicyStatement({
@@ -309,5 +321,9 @@ export class AppBackend extends Construct {
   }
   getIdpSync(): IdpSync {
     return this._idpSync;
+  }
+
+  getKmsKeyArn(): string {
+    return this._KMSkey.keyArn;
   }
 }

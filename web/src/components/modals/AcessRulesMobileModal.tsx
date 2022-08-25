@@ -31,7 +31,7 @@ const AcessRulesMobileModal = (props: Props) => {
         <ModalHeader mt={10}>All Access</ModalHeader>
         <ModalBody>
           <Stack gap={6}>
-            {!!rules ? (
+            {rules ? (
               rules.accessRules.length > 0 ? (
                 rules.accessRules.map((r) => (
                   <Box
@@ -46,7 +46,7 @@ const AcessRulesMobileModal = (props: Props) => {
                     rounded="md"
                   >
                     <ProviderIcon
-                      provider={r.target.provider}
+                      provider={r.target.provider.type}
                       mb={3}
                       h="8"
                       w="8"

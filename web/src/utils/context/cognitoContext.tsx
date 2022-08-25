@@ -1,6 +1,6 @@
 import { Auth } from "@aws-amplify/auth";
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
-import { Center } from "@chakra-ui/layout";
+import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import CFSpinner from "../../pages/CFSpinner";
 import awsExports from "../aws-exports";
@@ -50,18 +50,20 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
       fetch("/aws-exports.json", {
         headers: awsConfigRequestHeaders,
         method: "GET",
-      }).then((r) =>
-        r.json().then((j) => {
-          Amplify.configure(j);
-          const apiURL = j.API.endpoints[0]?.endpoint;
-          if (apiURL == null) {
-            console.error("could not load API URL");
-          } else {
-            setAPIURL(apiURL);
-          }
-          setAmplifyInitializing(false);
-        })
-      );
+      })
+        .then((r) =>
+          r.json().then((j) => {
+            Amplify.configure(j);
+            const apiURL = j.API.endpoints[0]?.endpoint;
+            if (apiURL == null) {
+              console.error("could not load API URL");
+            } else {
+              setAPIURL(apiURL);
+            }
+            setAmplifyInitializing(false);
+          })
+        )
+        .catch((e) => console.error(e));
     }
   }, []);
 
@@ -109,8 +111,7 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
   }
   // force the ts type for cognitoAuthenticatedUserEmail to be a string in the context return by expricitly checking it
   if (!loading && cognitoAuthenticatedUserEmail === undefined) {
-    console.log("init auth pls");
-    initiateAuth();
+    initiateAuth().catch((e) => console.error(e));
     return (
       <Center h="100vh">
         <CFSpinner />

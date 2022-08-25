@@ -1,9 +1,8 @@
 import { Box, Container } from "@chakra-ui/react";
-import type { NextPage } from "next";
 import { UserLayout } from "../../components/Layout";
 import { UserReviewsTable } from "../../components/tables/UserReviewsTable";
 
-const Home: NextPage = () => {
+const Home = () => {
   return (
     <div>
       <UserLayout>

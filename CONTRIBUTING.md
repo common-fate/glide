@@ -3,7 +3,7 @@
 ## Requirements
 
 - [Mage](https://magefile.org/): install via `brew install mage`
-- Go 1.17.8
+- Go 1.19.0
 - NodeJS
 - [pnpm](https://pnpm.io/): install via `brew install pnpm`
 

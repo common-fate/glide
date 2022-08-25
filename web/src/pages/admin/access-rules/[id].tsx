@@ -14,9 +14,8 @@ import EditAccessRuleForm from "../../../components/forms/access-rule/AccessRule
 import { AdminLayout } from "../../../components/Layout";
 import { useMatch } from "react-location";
 import { useAdminGetAccessRule } from "../../../utils/backend-client/admin/admin";
-type Props = {};
 
-const Index = (props: Props) => {
+const Index = () => {
   const {
     params: { id: ruleId },
   } = useMatch();

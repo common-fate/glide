@@ -11,7 +11,7 @@ import (
 )
 
 type IsActiver interface {
-	IsActive(ctx context.Context) (bool, error)
+	IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error)
 }
 
 // CheckIsProvisioned calls the underlying integration's API to check that access was
@@ -26,12 +26,12 @@ type IsActiver interface {
 // For some integrations the API is eventually consistent, and access won't be
 // reflected immediately when calling this function. To handle this, CheckIsProvisioned
 // uses go-retry to call the API again with a backoff with a maximum duration of 10 seconds.
-func CheckIsProvisioned(ctx context.Context, access IsActiver, want bool) error {
+func CheckIsProvisioned(ctx context.Context, access IsActiver, subject string, args []byte, grantID string, want bool) error {
 	b := retry.NewFibonacci(time.Second)
 	b = retry.WithMaxDuration(time.Second*10, b)
 
 	return retry.Do(ctx, b, func(ctx context.Context) error {
-		exists, err := access.IsActive(ctx)
+		exists, err := access.IsActive(ctx, subject, args, grantID)
 		if err != nil {
 			return err
 		}

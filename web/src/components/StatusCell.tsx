@@ -73,7 +73,7 @@ export const RequestStatusCell: React.FC<RequestStatusCellProps> = ({
   approvalMethod,
   ...rest
 }) => {
-  let isAuto = approvalMethod === "AUTOMATIC" && value;
+  const isAuto = approvalMethod === "AUTOMATIC" && value;
 
   return (
     <StatusCell
