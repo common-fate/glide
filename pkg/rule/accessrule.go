@@ -86,6 +86,7 @@ func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 	}
 }
 func (a AccessRule) ToAPI() types.AccessRule {
+
 	return types.AccessRule{
 		ID:          a.ID,
 		Version:     a.Version,
@@ -94,15 +95,7 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
 		},
-		Target: types.AccessRuleTarget{
-			Provider: types.Provider{
-				Id:   a.Target.ProviderID,
-				Type: a.Target.ProviderType,
-			},
-			With: types.AccessRuleTarget_With{
-				AdditionalProperties: a.Target.With,
-			},
-		},
+		Target:    a.Target.ToAPI(),
 		IsCurrent: a.Current,
 	}
 }
@@ -149,6 +142,35 @@ type Target struct {
 	ProviderType   string                  `json:"providerType"  dynamodbav:"providerType"`
 	With           map[string]string       `json:"with"  dynamodbav:"with"`
 	WithSelectable map[string][]Selectable `json:"withSelectable"  dynamodbav:"withSelectable"`
+}
+
+func (t Target) ToAPI() types.AccessRuleTarget {
+	at := types.AccessRuleTarget{
+		Provider: types.Provider{
+			Id:   t.ProviderID,
+			Type: t.ProviderType,
+		},
+		With: types.AccessRuleTarget_With{
+			AdditionalProperties: t.With,
+		},
+		WithSelectable: types.AccessRuleTarget_WithSelectable{
+			AdditionalProperties: make(map[string][]types.Selectable),
+		},
+	}
+	for k, v := range t.WithSelectable {
+		opts := make([]types.Selectable, len(v))
+		for i, op := range v {
+			opts[i] = types.Selectable{
+				Option: types.WithOption{
+					Label: op.Option.Label,
+					Value: op.Option.Value,
+				},
+				Valid: op.Valid,
+			}
+		}
+		at.WithSelectable.AdditionalProperties[k] = opts
+	}
+	return at
 }
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {

@@ -26,7 +26,7 @@ import { colors } from "../../../../utils/theme/colors";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { MultiSelectOptions } from "../components/Select";
+import { MultiSelect, MultiSelectOptions } from "../components/Select";
 import { CreateAccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 import { JSONSchema7 } from "json-schema";
@@ -66,6 +66,7 @@ export const ProviderStep: React.FC = () => {
         target={{
           provider: provider,
           with: {},
+          withSelectable: {},
           // with: target.with,
         }}
       />
@@ -217,7 +218,7 @@ const WithField: React.FC<FieldProps> = (props) => {
       </FormLabel>
       {data.hasOptions ? (
         <HStack>
-          <MultiSelectOptions
+          <MultiSelect
             fieldName={`target.with.${props.name}`}
             options={data.options}
           />

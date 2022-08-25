@@ -975,9 +975,16 @@ components:
           type: object
           additionalProperties:
             type: string
+        withSelectable:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/Selectable"
       required:
         - provider
         - with
+        - withSelectable
     ApproverConfig:
       title: ApproverConfig
       type: object
@@ -1192,6 +1199,26 @@ components:
       required:
         - value
         - label
+    Selectable:
+      title: Selectable
+      x-stoplight:
+        id: ab18xdxwinqhb
+      type: object
+      properties:
+        option:
+          $ref: "#/components/schemas/WithOption"
+        valid:
+          type: boolean
+      required:
+        - option
+        - valid
+    CreateRequestWith:
+      title: CreateRequestWith
+      x-stoplight:
+        id: 8oa3c4w7ml7tx
+      type: object
+      additionalProperties:
+        type: string
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -1459,6 +1486,8 @@ components:
                 type: string
               timing:
                 $ref: "#/components/schemas/RequestTiming"
+              with:
+                $ref: "#/components/schemas/CreateRequestWith"
             required:
               - accessRuleId
               - timing
