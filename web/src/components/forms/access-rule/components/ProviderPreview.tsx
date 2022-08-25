@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   useGetProviderArgs,
   useListProviderArgOptions,
-} from "../../../../utils/backend-client/default/default";
+} from "../../../../utils/backend-client/admin/admin";
 import { AccessRuleTarget } from "../../../../utils/backend-client/types";
 import { ProviderIcon } from "../../../icons/providerIcon";
 

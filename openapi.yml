@@ -599,7 +599,8 @@ paths:
   /api/v1/admin/providers:
     get:
       summary: List providers
-      tags: []
+      tags:
+        - Admin
       responses:
         "200":
           description: OK
@@ -619,7 +620,8 @@ paths:
   "/api/v1/admin/providers/{providerId}":
     get:
       summary: List providers
-      tags: []
+      tags:
+        - Admin
       responses:
         "200":
           description: OK
@@ -648,7 +650,8 @@ paths:
         required: true
     get:
       summary: Get provider arg schema
-      tags: []
+      tags:
+        - Admin
       responses:
         "200":
           description: OK
@@ -677,7 +680,8 @@ paths:
         required: true
     get:
       summary: List provider arg options
-      tags: []
+      tags:
+        - Admin
       responses:
         "200":
           $ref: "#/components/responses/ArgOptionsResponse"
@@ -693,6 +697,98 @@ paths:
           in: query
           name: refresh
           description: invalidate the cache and refresh the provider's options.
+  /api/v1/admin/providersetups:
+    get:
+      summary: List the provider setups in progress
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/ListProviderSetupsResponse"
+      operationId: list-providersetups
+      description: List providers which are still in the process of being set up.
+    parameters: []
+    post:
+      summary: Begin the setup process for a new Access Provider
+      operationId: create-providersetup
+      responses:
+        "201":
+          $ref: "#/components/responses/ProviderSetupResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Begins the guided setup process for a new Access Provider.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateProviderSetupRequest"
+  "/api/v1/admin/providersetups/{providersetupId}":
+    get:
+      summary: Get an in-progress provider setup
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/ProviderSetupResponse"
+      operationId: get-providersetup
+      description: Get the setup instructions for an Access Provider.
+    parameters:
+      - schema:
+          type: string
+        name: providersetupId
+        in: path
+        required: true
+    delete:
+      summary: Delete an in-progress provider setup
+      operationId: delete-providersetup
+      responses:
+        "200":
+          $ref: "#/components/responses/ProviderSetupResponse"
+      description: |-
+        Removes an in-progress provider setup and deletes all data relating to it.
+
+        Returns the deleted provider.
+  "/api/v1/admin/providersetups/{providersetupId}/instructions":
+    get:
+      summary: Get the setup instructions for an Access Provider
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSetupInstructions"
+      operationId: get-providersetup-instructions
+      description: Get the setup instructions for an Access Provider.
+    parameters:
+      - schema:
+          type: string
+        name: providersetupId
+        in: path
+        required: true
+  "/api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete":
+    parameters:
+      - schema:
+          type: integer
+        name: stepIndex
+        in: path
+        required: true
+        description: The step index to update the completion status for.
+      - schema:
+          type: string
+        name: providersetupId
+        in: path
+        required: true
+    put:
+      summary: Update the completion status for a Provider setup step
+      operationId: submit-providersetup-step
+      responses:
+        "200":
+          $ref: "#/components/responses/ProviderSetupResponse"
+      description: The updated provider setup.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderSetupStepCompleteRequest"
+      tags:
+        - Admin
 components:
   schemas:
     User:
@@ -1176,6 +1272,125 @@ components:
         - id
         - requestId
         - createdAt
+    ProviderSetup:
+      title: ProviderSetup
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A provider in the process of being set up through the guided setup workflow in Granted. These providers are **not** yet active.
+      properties:
+        id:
+          type: string
+          description: A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `granted-deployment.yml` file.
+        type:
+          type: string
+          description: The type of the Access Provider being set up.
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - COMPLETE
+          description: The status of the setup process.
+        steps:
+          type: array
+          description: An overview of the steps indicating whether they are complete.
+          items:
+            $ref: "#/components/schemas/ProviderSetupStepOverview"
+        configValues:
+          type: object
+          description: The current configuration values.
+          additionalProperties: false
+          x-go-type: "map[string]string"
+      required:
+        - id
+        - type
+        - status
+        - steps
+        - configValues
+    ProviderSetupInstructions:
+      title: ProviderSetupInstructions
+      x-stoplight:
+        id: w5avwzeow2bj9
+      type: object
+      properties:
+        stepDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderSetupStepDetails"
+      required:
+        - stepDetails
+    ProviderSetupStepOverview:
+      title: ProviderSetupStepOverview
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: Indicates whether a setup step is complete or not.
+      properties:
+        complete:
+          type: boolean
+          description: Whether the step has been completed.
+      required:
+        - complete
+    ProviderSetupStepDetails:
+      title: ProviderSetupStepDetails
+      x-stoplight:
+        id: w5avwzeow2bj9
+      type: object
+      properties:
+        title:
+          type: string
+        instructions:
+          type: string
+        configFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderConfigField"
+      required:
+        - title
+        - instructions
+        - configFields
+    ProviderConfigField:
+      title: ProviderConfigField
+      x-stoplight:
+        id: w5avwzeow2bj9
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        isOptional:
+          type: boolean
+          description: Whether the config value is optional.
+        isSecret:
+          type: boolean
+          description: Whether or not the config field is a secret (like an API key or a password)
+        secretPath:
+          type: string
+          description: "the path to where the secret will be stored, in a secrets manager like AWS SSM Paramater Store."
+      required:
+        - id
+        - name
+        - description
+        - isOptional
+        - isSecret
+    ProviderConfigValue:
+      title: ProviderConfigValue
+      x-stoplight:
+        id: fv4rhbdwpfki9
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the config field.
+        value:
+          type: string
+          description: The value entered by the user.
+      required:
+        - id
+        - value
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -1351,6 +1566,25 @@ components:
             required:
               - events
               - next
+    ProviderSetupResponse:
+      description: Returns a ProviderSetup object.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProviderSetup"
+    ListProviderSetupsResponse:
+      description: A list of in-progress Access Providers being set up by the Granted administrators.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              providerSetups:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProviderSetup"
+            required:
+              - providerSetups
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -1464,6 +1698,36 @@ components:
         An approver's review of an Access Request.
         The access request timing can be overriden by including override timing in the request body.
         If it is omitted, the original request timing will be used.
+    ProviderSetupStepCompleteRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              complete:
+                type: boolean
+                description: Whether the step is complete or not.
+              configValues:
+                type: object
+                additionalProperties:
+                  type: string
+                description: The config values entered by the user which correspond to the setup step.
+                x-go-type: "map[string]string"
+            required:
+              - complete
+              - configValues
+    CreateProviderSetupRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              providerType:
+                type: string
+                description: The type of the provider to set up.
+            required:
+              - providerType
+      description: Begin the guided setup process for a new Access Provider.
 tags:
   - name: End User
   - name: Admin

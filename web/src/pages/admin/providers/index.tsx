@@ -5,7 +5,7 @@ import { Link } from "react-location";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
-import { useListProviders } from "../../../utils/backend-client/default/default";
+import { useListProviders } from "../../../utils/backend-client/admin/admin";
 import { Provider } from "../../../utils/backend-client/types";
 
 const AdminProvidersTable = () => {
@@ -48,7 +48,7 @@ const Providers = () => {
           variant="ghost"
           leftIcon={<SmallAddIcon />}
           as={Link}
-          to="/admin/providers/create"
+          to="/admin/providers/setup"
           id="new-provider-button"
         >
           New Access Provider

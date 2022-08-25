@@ -49,6 +49,17 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 	return nil
 }
 
+// FindFieldByKey looks up a field by its key.
+// If the field doesn't exist in the config, an error is returned.
+func (c Config) FindFieldByKey(key string) (*Field, error) {
+	for _, field := range c {
+		if field.Key() == key {
+			return field, nil
+		}
+	}
+	return nil, fmt.Errorf("field with key %s not found", key)
+}
+
 // Dump renders a map[string]string where the values are mapped in different ways based on the provided dumper
 //
 // use SafeDumper to get all values with secrets redacted

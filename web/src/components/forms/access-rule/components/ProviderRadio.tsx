@@ -10,7 +10,7 @@ import {
   UseRadioGroupProps,
 } from "@chakra-ui/react";
 import React from "react";
-import { useListProviders } from "../../../../utils/backend-client/default/default";
+import { useListProviders } from "../../../../utils/backend-client/admin/admin";
 import { Provider } from "../../../../utils/backend-client/types";
 import { ProviderIcon } from "../../../icons/providerIcon";
 

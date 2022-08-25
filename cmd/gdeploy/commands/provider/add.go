@@ -36,7 +36,7 @@ var addCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		var provider providerregistry.RegisteredProvider
+		var provider *providerregistry.RegisteredProvider
 		uses, provider, err := r.FromCLIOption(chosen)
 		if err != nil {
 			return err

@@ -57,7 +57,9 @@ func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
 
 // ConfigureProviders sets the global Providers variable with the provided config.
 // The JSON config looks as follows:
-// 	{"<ID>": {"uses": "<TYPE>", "with": {"var1": "value1", "var2": "value2", ...}}}
+//
+//	{"<ID>": {"uses": "<TYPE>", "with": {"var1": "value1", "var2": "value2", ...}}}
+//
 // where <ID> is the identifier of the provider, <TYPE> is it's type,
 // and the other key/value pairs are config variables for the provider.
 // config is assumed to be unescaped json
@@ -83,7 +85,7 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 		var p providers.Accessor
 
 		// match the type with our registry of providers.
-		rp, err := reg.Lookup(pType.Uses)
+		rp, err := reg.LookupByUses(pType.Uses)
 		if err != nil {
 			return errors.Wrapf(err, "looking up provider %s", k)
 		}
@@ -127,7 +129,8 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 
 // providerFromUses extracts provider type and version from the uses field.
 // for example:
-// 	"commonfate/aws-sso@v1 -> type: aws-sso, version: v1
+//
+//	"commonfate/aws-sso@v1 -> type: aws-sso, version: v1
 func providerFromUses(uses string) (Provider, error) {
 	re, err := regexp.Compile(`[\w-_]+/([\w-_]+)@(.*)`)
 	if err != nil {

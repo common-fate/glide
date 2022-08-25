@@ -2,6 +2,7 @@ package providers
 
 import (
 	"context"
+	"embed"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/invopop/jsonschema"
@@ -38,4 +39,9 @@ type ArgOptioner interface {
 // resource that we've granted access to
 type Instructioner interface {
 	Instructions(ctx context.Context, subject string, args []byte) (string, error)
+}
+
+// SetupDocers return an embedded filesystem containing setup documentation.
+type SetupDocer interface {
+	SetupDocs() embed.FS
 }

@@ -31,6 +31,11 @@ func NewRequestID() string {
 func NewRequestReviewID() string {
 	return newResourceID("rev")
 }
+
 func NewHistoryID() string {
 	return newResourceID("his")
+}
+
+func NewProviderSetupID() string {
+	return newResourceID("pse")
 }

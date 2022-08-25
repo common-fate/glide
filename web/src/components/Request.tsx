@@ -1,22 +1,19 @@
-import { CheckIcon, CopyIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Badge,
   Box,
   Button,
   ButtonGroup,
-  Code,
   Flex,
   HStack,
   IconButton,
   Link,
   Skeleton,
   SkeletonText,
-  Spacer,
   Stack,
   Text,
   Tooltip,
-  useClipboard,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
@@ -24,7 +21,6 @@ import axios from "axios";
 import { intervalToDuration } from "date-fns";
 import React, { createContext, useContext, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { durationStringHoursMinutes } from "../utils/durationString";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
   cancelRequest,
@@ -39,17 +35,17 @@ import {
   RequestStatus,
   ReviewDecision,
 } from "../utils/backend-client/types";
-import { RequestTiming } from "../utils/backend-client/types/requestTiming";
 import { Request } from "../utils/backend-client/types/request";
+import { RequestTiming } from "../utils/backend-client/types/requestTiming";
 import { useUser } from "../utils/context/userContext";
+import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
+import { CodeInstruction } from "./CodeInstruction";
 import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
-import { RequestStatusCell, StatusCell } from "./StatusCell";
-import { CodeProps } from "react-markdown/lib/ast-to-react";
-import { CodeInstruction } from "./CodeInstruction";
+import { StatusCell } from "./StatusCell";
 
 interface RequestProps {
   request?: RequestDetail;
