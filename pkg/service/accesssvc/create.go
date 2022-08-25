@@ -64,6 +64,7 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		RequestedTiming: access.TimingFromRequestTiming(in.Timing),
 		Rule:            rule.ID,
 		RuleVersion:     rule.Version,
+		With:            in.With.AdditionalProperties,
 	}
 
 	// If the approval is not required, auto-approve the request
@@ -197,5 +198,41 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 			},
 		}
 	}
+	if len(request.With.AdditionalProperties) != len(rule.Target.WithSelectable) {
+		return &apio.APIError{
+			Err:    errors.New("request validation failed"),
+			Status: http.StatusBadRequest,
+			Fields: []apio.FieldError{
+				{
+					Field: "with",
+					Error: "unexpected with values",
+				},
+			},
+		}
+	}
+	for arg, options := range rule.Target.WithSelectable {
+		value, ok := request.With.AdditionalProperties[arg]
+		if !ok || !optionsContains(options, value) {
+			return &apio.APIError{
+				Err:    errors.New("request validation failed"),
+				Status: http.StatusBadRequest,
+				Fields: []apio.FieldError{
+					{
+						Field: "with",
+						Error: fmt.Sprintf("unexpected with value for %s", arg),
+					},
+				},
+			}
+		}
+	}
 	return nil
+}
+func optionsContains(set []rule.Selectable, str string) bool {
+	for _, s := range set {
+		if s.Option.Value == str {
+			return true
+		}
+	}
+
+	return false
 }

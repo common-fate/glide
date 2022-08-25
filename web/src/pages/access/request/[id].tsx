@@ -150,6 +150,7 @@ const Home = () => {
         durationSeconds: duration,
       },
       reason: data.reason,
+      with: data.with,
     };
     if (data.when === "scheduled") {
       r.timing.startTime = new Date(data.startDateTime).toISOString();
