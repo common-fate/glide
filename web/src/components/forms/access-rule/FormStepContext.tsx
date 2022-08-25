@@ -22,6 +22,7 @@ const [
 // FormStepcontext is used to give the FormStep number to the formFormStep automatically
 const FormStepProvider: React.FC<{
   step: number;
+  children?: React.ReactNode;
 }> = ({ children, step }) => {
   const { stepDispatch, stepState } = useSteps();
   const active = step === stepState.step && !stepState.isReadOnly;

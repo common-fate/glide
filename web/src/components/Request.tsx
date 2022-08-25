@@ -192,7 +192,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon provider={request?.accessRule.target.provider} />
+            <ProviderIcon provider={request?.accessRule.target.provider.type} />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge

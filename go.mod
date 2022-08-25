@@ -175,13 +175,13 @@ require (
 	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
-	github.com/aws/aws-lambda-go v1.34.1
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.9
-	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.6
-	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.12
-	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.18.1
-	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.7
-	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.6
+	github.com/aws/aws-lambda-go v1.32.0
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.6
+	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2
+	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10
+	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
+	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
+	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.18.1
 	github.com/common-fate/ddb v0.13.0

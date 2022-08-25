@@ -43,7 +43,7 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
-        <ProviderIcon provider={target.provider} />
+        <ProviderIcon provider={target.provider.type} />
 
         <Text>{target.provider.id}</Text>
       </HStack>

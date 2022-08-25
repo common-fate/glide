@@ -46,13 +46,92 @@ importers:
       ts-node: 9.1.1_typescript@4.7.4
       typescript: 4.7.4
 
+  setup/ui:
+    specifiers:
+      '@chakra-ui/icons': ^2.0.8
+      '@chakra-ui/react': ^2.2.8
+      '@emotion/react': ^11.10.0
+      '@emotion/styled': ^11.10.0
+      '@faker-js/faker': ^6.3.1
+      '@openapi-integration/swr-request-generator': ^0.7.3
+      '@types/node': ^17.0.29
+      '@types/react': ^18.0.8
+      '@types/react-dom': 18.0.5
+      '@types/react-sticky': ^6.0.4
+      '@types/react-table': ^7.7.11
+      '@typescript-eslint/eslint-plugin': 5.33.0
+      '@typescript-eslint/parser': ^5.34.0
+      '@vitejs/plugin-react': ^1.3.2
+      axios: ^0.27.2
+      date-fns: ^2.28.0
+      dotenv: ^16.0.1
+      eslint: 8.13.0
+      eslint-config-prettier: ^8.5.0
+      eslint-plugin-prettier: ^4.2.1
+      framer-motion: ^6.3.4
+      msw: ^0.39.2
+      openapi-client-axios-typegen: ^5.0.2
+      orval: ^6.7.1
+      react: ^18
+      react-dom: ^18
+      react-hook-form: ^7.31.1
+      react-location: ^3.3.4
+      react-markdown: ^8.0.3
+      react-select: ^5.3.2
+      react-sticky: ^6.0.3
+      rollup-plugin-node-polyfills: ^0.2.1
+      source-map-explorer: ^2.5.2
+      swr: ^1.3.0
+      typescript: 4.7.4
+      vite: ^2.9.13
+    dependencies:
+      '@chakra-ui/icons': 2.0.8_hsmxbru7kh4m4fkmapdkd6vvgu
+      '@chakra-ui/react': 2.2.8_4oe3egbbnrct5gzkv6tybil42y
+      '@emotion/react': 11.10.0_tu23i5xxn6kbev62oblybgbdem
+      '@emotion/styled': 11.10.0_j46kbo7layvgw6ebzgyotlgnfu
+      axios: 0.27.2
+      date-fns: 2.29.2
+      framer-motion: 6.5.1_biqbaboplfbrettd7655fr4n2y
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      react-hook-form: 7.34.2_react@18.2.0
+      react-location: 3.3.4_biqbaboplfbrettd7655fr4n2y
+      react-markdown: 8.0.3_ug65io7jkbhmo4fihdmbrh3ina
+      react-select: 5.4.0_2anycei3urvvifsxzguyargkdi
+      react-sticky: 6.0.3_biqbaboplfbrettd7655fr4n2y
+      swr: 1.3.0_react@18.2.0
+    devDependencies:
+      '@faker-js/faker': 6.3.1
+      '@openapi-integration/swr-request-generator': 0.7.3_lodash@4.17.21+tslib@2.4.0
+      '@types/node': 17.0.45
+      '@types/react': 18.0.17
+      '@types/react-dom': 18.0.5
+      '@types/react-sticky': 6.0.4
+      '@types/react-table': 7.7.12
+      '@typescript-eslint/eslint-plugin': 5.33.0_zb3g4yc7pr7kzwwykreve3443m
+      '@typescript-eslint/parser': 5.34.0_rnu4jypy7o2rmzgwaq2ddxen4a
+      '@vitejs/plugin-react': 1.3.2
+      dotenv: 16.0.1
+      eslint: 8.13.0
+      eslint-config-prettier: 8.5.0_eslint@8.13.0
+      eslint-plugin-prettier: 4.2.1_pocjtgpqfbjsffzopzmt6hweki
+      msw: 0.39.2
+      openapi-client-axios-typegen: 5.0.2_js-yaml@4.1.0
+      orval: 6.9.6_jnhljqpivabueh2bsxdqitk6pa
+      rollup-plugin-node-polyfills: 0.2.1
+      source-map-explorer: 2.5.2
+      typescript: 4.7.4
+      vite: 2.9.15
+
   web:
     specifiers:
       '@aws-amplify/api': ^4.0.42
       '@aws-amplify/auth': ^4.5.6
       '@aws-amplify/core': ^4.5.6
+      '@chakra-ui/anatomy': ^2.0.5
       '@chakra-ui/icons': ^2.0.8
       '@chakra-ui/react': ^2.2.8
+      '@chakra-ui/theme-tools': ^2.0.10
       '@emotion/react': ^11.10.0
       '@emotion/styled': ^11.10.0
       '@faker-js/faker': ^6.3.1
@@ -92,12 +171,15 @@ importers:
       swr: ^1.3.0
       typescript: 4.7.4
       vite: ^2.9.13
+      vite-plugin-checker: ^0.4.9
     dependencies:
       '@aws-amplify/api': 4.0.50_react-native@0.69.4
       '@aws-amplify/auth': 4.6.3_react-native@0.69.4
       '@aws-amplify/core': 4.7.1_react-native@0.69.4
+      '@chakra-ui/anatomy': 2.0.5
       '@chakra-ui/icons': 2.0.8_hsmxbru7kh4m4fkmapdkd6vvgu
       '@chakra-ui/react': 2.2.8_4oe3egbbnrct5gzkv6tybil42y
+      '@chakra-ui/theme-tools': 2.0.10_jymh7qwbtg2qca3scalvdmkcti
       '@emotion/react': 11.10.0_tu23i5xxn6kbev62oblybgbdem
       '@emotion/styled': 11.10.0_j46kbo7layvgw6ebzgyotlgnfu
       '@rjsf/chakra-ui': 4.2.3_dht37eerbanxbmy4fjgfi5txvi
@@ -138,6 +220,7 @@ importers:
       source-map-explorer: 2.5.2
       typescript: 4.7.4
       vite: 2.9.15
+      vite-plugin-checker: 0.4.9_vite@2.9.15
 
 packages:
 
@@ -2836,6 +2919,10 @@ packages:
     resolution: {integrity: sha512-wWLvPrLOCO+nDb+cMcEJ/iDxgWEizRXOlIZCinCzkeEYhcWibINx6wh49uVUyMT/dIs/JTHQ4mUb9IzqJ1RY+g==}
     dev: false
 
+  /@chakra-ui/anatomy/2.0.5:
+    resolution: {integrity: sha512-KPnGuRh7/2OjRndRWb1iMww2i8duJT4dtSBjZtKpe/gvgoSfWarVJb8KUc4FZ+EB7sPkFA0VhHVO7m8bJ7D8TQ==}
+    dev: false
+
   /@chakra-ui/avatar/2.0.9_hsmxbru7kh4m4fkmapdkd6vvgu:
     resolution: {integrity: sha512-kx77nTL9h8451lgAMZkD8UWGoxTjHKzeW55Ls4e7muqj3fl+hS3eNQ1zw66DDEFuYxBVyxZi1YgWFI7/Lgnx4w==}
     peerDependencies:
@@ -3749,6 +3836,17 @@ packages:
       react: 18.2.0
     dev: false
 
+  /@chakra-ui/theme-tools/2.0.10_jymh7qwbtg2qca3scalvdmkcti:
+    resolution: {integrity: sha512-w9FaQRIjygJUR/viVkGSYKAe9/5ThZEfaGtnqG4dHY/rAnm73rCqUJsUR4xwZAzr8HpXXuJVmwk8cjSElS3yXw==}
+    peerDependencies:
+      '@chakra-ui/styled-system': '>=2.0.0'
+    dependencies:
+      '@chakra-ui/anatomy': 2.0.5
+      '@chakra-ui/styled-system': 2.2.7
+      '@chakra-ui/utils': 2.0.9
+      '@ctrl/tinycolor': 3.4.1
+    dev: false
+
   /@chakra-ui/theme-tools/2.0.9_jymh7qwbtg2qca3scalvdmkcti:
     resolution: {integrity: sha512-mdLONajdFWaXzEKvuod7ikioWTrAIAlZnXt55XfBOU3htJgRls49y/DltirN8+EUz6RlZ7oZfCYNf6aRMJH+rg==}
     peerDependencies:
@@ -3848,6 +3946,15 @@ packages:
 
   /@chakra-ui/utils/2.0.8:
     resolution: {integrity: sha512-5xSzOYSYbJEh+myY1mC6rOX+mzM/F2fiDqAw0zybHhfUab4zPHCO5RlgYVJ0L1DlGZUogVgRP6szH1xoBCcWQg==}
+    dependencies:
+      '@types/lodash.mergewith': 4.6.6
+      css-box-model: 1.2.1
+      framesync: 5.3.0
+      lodash.mergewith: 4.6.2
+    dev: false
+
+  /@chakra-ui/utils/2.0.9:
+    resolution: {integrity: sha512-7ct5562Jw6pZdtj63XfUkEUXXsCCVqdqIXyLtQ9VgOKtRQWwDxzc8uPI5Zjdw9AleEITZFUH8TNKWn75nm54kQ==}
     dependencies:
       '@types/lodash.mergewith': 4.6.6
       css-box-model: 1.2.1
@@ -5438,6 +5545,12 @@ packages:
       '@types/react': 18.0.17
     dev: true
 
+  /@types/react-sticky/6.0.4:
+    resolution: {integrity: sha512-n5yneeM7PrUu4nqk7oV0c0p9LqHXO2D+17DhQ/Z7UiWhaoSvKJXBkSzAdNRRxZO/njttKd0Ch9hLnaFPqZlAdg==}
+    dependencies:
+      '@types/react': 18.0.17
+    dev: true
+
   /@types/react-table/7.7.12:
     resolution: {integrity: sha512-bRUent+NR/WwtDGwI/BqhZ8XnHghwHw0HUKeohzB5xN3K2qKWYE5w19e7GCuOkL1CXD9Gi1HFy7TIm2AvgWUHg==}
     dependencies:
@@ -6737,6 +6850,11 @@ packages:
   /commander/7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
     engines: {node: '>= 10'}
+    dev: true
+
+  /commander/8.3.0:
+    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
+    engines: {node: '>= 12'}
     dev: true
 
   /commondir/1.0.1:
@@ -9858,7 +9976,6 @@ packages:
 
   /lodash.debounce/4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
-    dev: false
 
   /lodash.defaults/4.2.0:
     resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
@@ -9898,6 +10015,10 @@ packages:
 
   /lodash.omitby/4.6.0:
     resolution: {integrity: sha512-5OrRcIVR75M288p4nbI2WLAf3ndw2GD9fyNv3Bc15+WCxJDdZ4lYndSxGd7hnG6PVjiJTeJE2dHEGhIuKGicIQ==}
+    dev: true
+
+  /lodash.pick/4.4.0:
+    resolution: {integrity: sha512-hXt6Ul/5yWjfklSGvLQl8vM//l3FtyHZeuelpzK6mm99pNvN9yTDruNZPEJZD1oWrqo+izBmB7oUfWgcCX7s4Q==}
     dev: true
 
   /lodash.set/4.3.2:
@@ -11283,6 +11404,10 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
+  /performance-now/2.1.0:
+    resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
+    dev: false
+
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
 
@@ -11510,6 +11635,12 @@ packages:
 
   /quick-format-unescaped/4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
+    dev: false
+
+  /raf/3.4.1:
+    resolution: {integrity: sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==}
+    dependencies:
+      performance-now: 2.1.0
     dev: false
 
   /range-parser/1.2.1:
@@ -11790,6 +11921,18 @@ packages:
       object-assign: 4.1.1
       react: 18.2.0
       react-is: 18.2.0
+    dev: false
+
+  /react-sticky/6.0.3_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-LNH4UJlRatOqo29/VHxDZOf6fwbgfgcHO4mkEFvrie5FuaZCSTGtug5R8NGqJ0kSnX8gHw8qZN37FcvnFBJpTQ==}
+    peerDependencies:
+      react: '>=15 || ^18'
+      react-dom: '>=15 || ^18'
+    dependencies:
+      prop-types: 15.8.1
+      raf: 3.4.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /react-style-singleton/2.2.1_ug65io7jkbhmo4fihdmbrh3ina:
@@ -12896,7 +13039,6 @@ packages:
 
   /tiny-invariant/1.2.0:
     resolution: {integrity: sha512-1Uhn/aqw5C6RI4KejVeTg6mIS7IqxnLJ8Mv2tV5rTc0qWobay7pDUz6Wi392Cnc8ak1H0F2cjoRzb2/AW4+Fvg==}
-    dev: false
 
   /tmp/0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
@@ -13460,6 +13602,30 @@ packages:
       vfile-message: 3.1.2
     dev: false
 
+  /vite-plugin-checker/0.4.9_vite@2.9.15:
+    resolution: {integrity: sha512-Oii9mTum8bqZovWejcR739kCqST32oG6LdB/XMdwcLVzmcjq0gf1iVDIedVzJJ7t6GLQAYgjNwvB0fuMiT3tlg==}
+    hasBin: true
+    peerDependencies:
+      vite: ^2.0.0 || ^3.0.0-0
+    dependencies:
+      '@babel/code-frame': 7.18.6
+      ansi-escapes: 4.3.2
+      chalk: 4.1.2
+      chokidar: 3.5.3
+      commander: 8.3.0
+      fast-glob: 3.2.11
+      lodash.debounce: 4.0.8
+      lodash.pick: 4.4.0
+      npm-run-path: 4.0.1
+      strip-ansi: 6.0.1
+      tiny-invariant: 1.2.0
+      vite: 2.9.15
+      vscode-languageclient: 7.0.0
+      vscode-languageserver: 7.0.0
+      vscode-languageserver-textdocument: 1.0.5
+      vscode-uri: 3.0.3
+    dev: true
+
   /vite/2.9.15:
     resolution: {integrity: sha512-fzMt2jK4vQ3yK56te3Kqpkaeq9DkcZfBbzHwYpobasvgYmP2SoAr6Aic05CsB4CzCZbsDv4sujX3pkEGhLabVQ==}
     engines: {node: '>=12.2.0'}
@@ -13495,6 +13661,46 @@ packages:
     dependencies:
       acorn: 8.8.0
       acorn-walk: 8.2.0
+    dev: true
+
+  /vscode-jsonrpc/6.0.0:
+    resolution: {integrity: sha512-wnJA4BnEjOSyFMvjZdpiOwhSq9uDoK8e/kpRJDTaMYzwlkrhG1fwDIZI94CLsLzlCK5cIbMMtFlJlfR57Lavmg==}
+    engines: {node: '>=8.0.0 || >=10.0.0'}
+    dev: true
+
+  /vscode-languageclient/7.0.0:
+    resolution: {integrity: sha512-P9AXdAPlsCgslpP9pRxYPqkNYV7Xq8300/aZDpO35j1fJm/ncize8iGswzYlcvFw5DQUx4eVk+KvfXdL0rehNg==}
+    engines: {vscode: ^1.52.0}
+    dependencies:
+      minimatch: 3.1.2
+      semver: 7.3.7
+      vscode-languageserver-protocol: 3.16.0
+    dev: true
+
+  /vscode-languageserver-protocol/3.16.0:
+    resolution: {integrity: sha512-sdeUoAawceQdgIfTI+sdcwkiK2KU+2cbEYA0agzM2uqaUy2UpnnGHtWTHVEtS0ES4zHU0eMFRGN+oQgDxlD66A==}
+    dependencies:
+      vscode-jsonrpc: 6.0.0
+      vscode-languageserver-types: 3.16.0
+    dev: true
+
+  /vscode-languageserver-textdocument/1.0.5:
+    resolution: {integrity: sha512-1ah7zyQjKBudnMiHbZmxz5bYNM9KKZYz+5VQLj+yr8l+9w3g+WAhCkUkWbhMEdC5u0ub4Ndiye/fDyS8ghIKQg==}
+    dev: true
+
+  /vscode-languageserver-types/3.16.0:
+    resolution: {integrity: sha512-k8luDIWJWyenLc5ToFQQMaSrqCHiLwyKPHKPQZ5zz21vM+vIVUSvsRpcbiECH4WR88K2XZqc4ScRcZ7nk/jbeA==}
+    dev: true
+
+  /vscode-languageserver/7.0.0:
+    resolution: {integrity: sha512-60HTx5ID+fLRcgdHfmz0LDZAXYEV68fzwG0JWwEPBode9NuMYTIxuYXPg4ngO8i8+Ou0lM7y6GzaYWbiDL0drw==}
+    hasBin: true
+    dependencies:
+      vscode-languageserver-protocol: 3.16.0
+    dev: true
+
+  /vscode-uri/3.0.3:
+    resolution: {integrity: sha512-EcswR2S8bpR7fD0YPeS7r2xXExrScVMxg4MedACaWHEtx9ftCF/qHG1xGkolzTPcEmjTavCQgbVzHUIdTMzFGA==}
     dev: true
 
   /w3c-hr-time/1.0.2:
