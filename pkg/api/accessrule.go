@@ -237,7 +237,8 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 	for k := range rule.Target.WithSelectable {
 		kCopy := k
 		g.Go(func() error {
-			_, opts, err := a.loadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
+			// load from the cache, if the user has requested it, the cache is very likely to be valid
+			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
 			if err != nil {
 				return err
 			}

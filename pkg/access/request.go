@@ -58,6 +58,11 @@ func (g *Grant) ToAPI() types.Grant {
 	return req
 }
 
+type Option struct {
+	Value string `json:"value" dynamodbav:"value"`
+	Label string `json:"label" dynamodbav:"label"`
+}
+
 type Request struct {
 	// ID is a read-only field after the request has been created.
 	ID string `json:"id" dynamodbav:"id"`
@@ -68,8 +73,10 @@ type Request struct {
 	// Rule is the ID of the Access Rule which the request relates to.
 	Rule string `json:"rule" dynamodbav:"rule"`
 	// RuleVersion is the version string of the rule that this request relates to
-	RuleVersion     string            `json:"ruleVersion" dynamodbav:"ruleVersion"`
-	With            map[string]string `json:"with"  dynamodbav:"with"`
+	RuleVersion string `json:"ruleVersion" dynamodbav:"ruleVersion"`
+	// SelectedWith stores a denormalised version of the option with a label at the time the request was created
+	// Allowing it to be easily displayed in the frontend for context and reducing latency on loading requests
+	SelectedWith    map[string]Option `json:"selectedWith"  dynamodbav:"selectedWith"`
 	Status          Status            `json:"status" dynamodbav:"status"`
 	Data            RequestData       `json:"data" dynamodbav:"data"`
 	RequestedTiming Timing            `json:"requestedTiming" dynamodbav:"requestedTiming"`

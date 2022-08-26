@@ -143,8 +143,8 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 	for k, v := range opts.AccessRule.Target.With {
 		req.With.AdditionalProperties[k] = v
 	}
-	for k, v := range opts.Request.With {
-		req.With.AdditionalProperties[k] = v
+	for k, v := range opts.Request.SelectedWith {
+		req.With.AdditionalProperties[k] = v.Value
 	}
 	res, err := g.AHClient.PostGrantsWithResponse(ctx, req)
 	if err != nil {
