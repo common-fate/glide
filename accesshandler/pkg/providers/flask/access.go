@@ -21,7 +21,7 @@ import (
 )
 
 type Args struct {
-	Server string `json:"server" jsonschema:"title=Server"`
+	TaskARN string `json:"taskArn" jsonschema:"title=TaskARN"`
 }
 
 // Grant the access
@@ -37,7 +37,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 
 	log.Info("adding user to permission set ", permissionSetName)
 	// Create and assign user to permission set for this grant
-	_, err = p.createPermissionSetAndAssignment(ctx, subject, permissionSetName)
+	_, err = p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskARN)
 	if err != nil {
 		return err
 	}
@@ -46,20 +46,113 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 
 // Revoke the access
 func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
-	zap.S().Info("demo provider: revoking access")
-	return nil
+	var a Args
+	err := json.Unmarshal(args, &a)
+	if err != nil {
+		return err
+	}
+
+	permissionSetName := permissionSetNameFromGrantID(grantID)
+
+	return p.removePermissionSet(ctx, permissionSetName, subject)
+}
+
+func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string, subject string) error {
+	hasMore := true
+	var nextToken *string
+	var arnMatch *string
+	for hasMore {
+		o, err := p.ssoClient.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
+			InstanceArn: aws.String(p.instanceARN.Get()),
+			NextToken:   nextToken,
+		})
+		if err != nil {
+			return err
+		}
+		nextToken = o.NextToken
+		hasMore = nextToken != nil
+
+		for _, arn := range o.PermissionSets {
+			po, err := p.ssoClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+				InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(arn),
+			})
+			if err != nil {
+				return err
+			}
+			if aws.ToString(po.PermissionSet.Name) == permissionSetName {
+				arnMatch = po.PermissionSet.PermissionSetArn
+				break
+			}
+		}
+		if arnMatch != nil {
+			break
+		}
+	}
+	// Permission set does not exist, do nothing
+	if arnMatch == nil {
+		return nil
+	}
+
+	//remove user associatioin from the permission set
+	// assign user to permission set
+	user, err := p.getUser(ctx, subject)
+	if err != nil {
+		return err
+	}
+	log := zap.S()
+	log.Info("Deleting account assignment from permission set", arnMatch)
+	_, err = p.ssoClient.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
+		InstanceArn:      aws.String(p.instanceARN.Get()),
+		PermissionSetArn: arnMatch,
+		PrincipalType:    types.PrincipalTypeUser,
+		PrincipalId:      user.UserId,
+		TargetId:         &p.awsAccountID,
+		TargetType:       types.TargetTypeAwsAccount,
+	})
+	if err != nil {
+		return err
+	}
+
+	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
+
+	//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
+	b := retry.NewFibonacci(time.Second)
+	b = retry.WithMaxDuration(time.Minute*2, b)
+	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+		_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
+			InstanceArn:      aws.String(p.instanceARN.Get()),
+			PermissionSetArn: arnMatch,
+		})
+		if err != nil {
+			return retry.RetryableError(err)
+		}
+		return nil
+	})
+	log.Info("completed revoke")
+	return err
 }
 
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
 
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
 		return "", err
 	}
 
-	i := "Flask instructions TODO!"
-
+	i := "# Browser\n"
+	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
+	i += "# CLI\n"
+	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
+	i += "```\n"
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, "")
+	i += "```\n"
+	// i += "# K8s \n"
+	// i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
+	// i += "```\n"
+	// i += fmt.Sprintf("aws eks update-kubeconfig --name %s", p.clusterName.Get())
+	// i += "```\n"
 	return i, nil
 }
 
@@ -74,7 +167,7 @@ func permissionSetNameFromGrantID(grantID string) string {
 }
 
 // createPermissionSetAndAssignment creates a permission set with a name = grantID
-func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string) (roleARN string, err error) {
+func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskARN string) (roleARN string, err error) {
 	//create  policy allowing for execute commands for the ecs task
 	ecsPolicyDocument := policy.Policy{
 		Version: "2012-10-17",
@@ -83,8 +176,9 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 				Effect: "Allow",
 				Action: []string{
 					"ecs:ExecuteCommand",
+					"ecs:DescribeTasks",
 				},
-				Resource: []string{p.ecsTaskARN.Get()},
+				Resource: []string{taskARN, p.ecsClusterARN.Get()},
 			},
 		},
 	}

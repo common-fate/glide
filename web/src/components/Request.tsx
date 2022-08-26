@@ -260,7 +260,12 @@ export const RequestAccessInstructions: React.FC = () => {
 export const RequestAccessToken = () => {
   const { request } = useContext(Context);
 
-  const { data } = useGetAccessToken(request.id || "");
+  let reqId = "";
+
+  if (request) {
+    reqId = request.id;
+  }
+  const { data } = useGetAccessToken(reqId);
 
   // const [token, setToken] = useState<string>();
 

@@ -180,6 +180,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3

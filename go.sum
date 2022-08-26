@@ -175,6 +175,8 @@ github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.9/go.mod h1:Meb0gqL2S
 github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 h1:xuRJFkbY5i3uFLTJjtHJG6Mws6RncMYZnr7/NPJ0Evo=
 github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12/go.mod h1:cfJ466odzMzYWjRkSVknkUT4ptKwjWQL2wrCtw2S+wk=
 github.com/aws/aws-sdk-go-v2/service/ec2 v1.5.0/go.mod h1:3iBezuZtNxZnKX7Zv2JB/lGyGCSYOES8TMq4WSXPBl0=
+github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15 h1:dseu9SGI3VepG39If8W1HTyNrI/PFyh8PoJUDjnYCtQ=
+github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15/go.mod h1:KIyoYPeoCLYhO0mA82lUwtZnEyQPVdgg6aPSGQOD0TA=
 github.com/aws/aws-sdk-go-v2/service/eks v1.21.8 h1:uF8ubOoj49FDr0/Lyo5tR7OpKgT/xNcwuzEHMZBI0Ok=
 github.com/aws/aws-sdk-go-v2/service/eks v1.21.8/go.mod h1:R9cRhIInyI6RvK1CjhZSksjWN3wnNAx9ZtAqe5Jjvw0=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2 h1:AXmIYPAixAeHbU/VbaVl+LON+whIYY58SPS2EVuU+to=
