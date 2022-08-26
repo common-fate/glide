@@ -347,6 +347,7 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 	res, err := a.AccessHandlerClient.GetAccessInstructionsWithResponse(ctx, q.Result.Grant.Provider, &ahtypes.GetAccessInstructionsParams{
 		Subject: q.Result.Grant.Subject,
 		Args:    args,
+		GrantId: q.ID,
 	})
 	if err != nil {
 		apio.Error(ctx, w, err)

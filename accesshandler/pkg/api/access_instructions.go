@@ -28,7 +28,7 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, prov
 		return
 	}
 
-	instructions, err := i.Instructions(ctx, params.Subject, []byte(params.Args))
+	instructions, err := i.Instructions(ctx, params.Subject, []byte(params.Args), params.GrantId)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

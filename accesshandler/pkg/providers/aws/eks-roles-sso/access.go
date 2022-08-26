@@ -27,8 +27,7 @@ import (
 )
 
 type Args struct {
-	Role    string `json:"role" jsonschema:"title=Role"`
-	GrantId string `json:"GrantId" jsonschema:"title=GrantId"`
+	Role string `json:"role" jsonschema:"title=Role"`
 }
 
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
@@ -94,7 +93,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	// we didn't find the user, so return false.
 	return false, nil
 }
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
 	err := json.Unmarshal(args, &a)
@@ -107,7 +106,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.eksClusterRoleAccountID, a.GrantId)
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.eksClusterRoleAccountID, grantId)
 	i += "```\n"
 	i += "# K8s \n"
 	i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
