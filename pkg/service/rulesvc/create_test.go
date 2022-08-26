@@ -52,7 +52,7 @@ func TestCreateAccessRule(t *testing.T) {
 			ProviderID:     in.Target.ProviderId,
 			ProviderType:   "okta",
 			With:           make(map[string]string),
-			WithSelectable: make(map[string][]rule.Selectable),
+			WithSelectable: make(map[string][]string),
 		},
 		TimeConstraints: in.TimeConstraints,
 		Current:         true,

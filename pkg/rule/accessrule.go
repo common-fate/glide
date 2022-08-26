@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -70,15 +71,7 @@ func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 		},
 		Approval: approval,
 
-		Target: types.AccessRuleTarget{
-			Provider: types.Provider{
-				Id:   a.Target.ProviderID,
-				Type: a.Target.ProviderType,
-			},
-			With: types.AccessRuleTarget_With{
-				AdditionalProperties: a.Target.With,
-			},
-		},
+		Target: a.Target.ToAPI(),
 
 		Status:    status,
 		Version:   a.Version,
@@ -96,6 +89,20 @@ func (a AccessRule) ToAPI() types.AccessRule {
 			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
 		},
 		Target:    a.Target.ToAPI(),
+		IsCurrent: a.Current,
+	}
+}
+
+func (a AccessRule) ToAPIWithSelectables(argOptions []cache.ProviderOption) types.AccessRuleWithSelectables {
+	return types.AccessRuleWithSelectables{
+		ID:          a.ID,
+		Version:     a.Version,
+		Description: a.Description,
+		Name:        a.Name,
+		TimeConstraints: types.TimeConstraints{
+			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
+		},
+		Target:    a.Target.ToAPIDetail([]cache.ProviderOption{}),
 		IsCurrent: a.Current,
 	}
 }
@@ -125,27 +132,18 @@ func (a *Approval) IsRequired() bool {
 	return len(a.Users) > 0 || len(a.Groups) > 0
 }
 
-type Option struct {
-	Value string `json:"value"  dynamodbav:"value"`
-	Label string `json:"label"  dynamodbav:"label"`
-}
-type Selectable struct {
-	Option Option `json:"option"  dynamodbav:"option"`
-	Valid  bool   `json:"valid"  dynamodbav:"valid"`
-}
-
 // Provider defines model for Provider.
 // I expect this will be different to what gets returned in the api response
 type Target struct {
 	// References the provider's unique ID
-	ProviderID     string                  `json:"providerId"  dynamodbav:"providerId"`
-	ProviderType   string                  `json:"providerType"  dynamodbav:"providerType"`
-	With           map[string]string       `json:"with"  dynamodbav:"with"`
-	WithSelectable map[string][]Selectable `json:"withSelectable"  dynamodbav:"withSelectable"`
+	ProviderID     string              `json:"providerId"  dynamodbav:"providerId"`
+	ProviderType   string              `json:"providerType"  dynamodbav:"providerType"`
+	With           map[string]string   `json:"with"  dynamodbav:"with"`
+	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
 }
 
 func (t Target) ToAPI() types.AccessRuleTarget {
-	at := types.AccessRuleTarget{
+	return types.AccessRuleTarget{
 		Provider: types.Provider{
 			Id:   t.ProviderID,
 			Type: t.ProviderType,
@@ -154,18 +152,47 @@ func (t Target) ToAPI() types.AccessRuleTarget {
 			AdditionalProperties: t.With,
 		},
 		WithSelectable: types.AccessRuleTarget_WithSelectable{
+			AdditionalProperties: t.WithSelectable,
+		},
+	}
+}
+
+func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleTargetDetail {
+	at := types.AccessRuleTargetDetail{
+		Provider: types.Provider{
+			Id:   t.ProviderID,
+			Type: t.ProviderType,
+		},
+		With: types.AccessRuleTargetDetail_With{
+			AdditionalProperties: t.With,
+		},
+		WithSelectable: types.AccessRuleTargetDetail_WithSelectable{
 			AdditionalProperties: make(map[string][]types.Selectable),
 		},
 	}
 	for k, v := range t.WithSelectable {
 		opts := make([]types.Selectable, len(v))
-		for i, op := range v {
+		for i, opt := range v {
+			// initially set it to false
 			opts[i] = types.Selectable{
 				Option: types.WithOption{
-					Label: op.Option.Label,
-					Value: op.Option.Value,
+					Label: opt,
+					Value: opt,
 				},
-				Valid: op.Valid,
+				Valid: false,
+			}
+			for _, ao := range argOptions {
+				// if a value is found, set it to true with a label
+				if ao.Arg == k && ao.Value == opt {
+					opts[i] = types.Selectable{
+						Option: types.WithOption{
+							Label: ao.Label,
+							Value: opt,
+						},
+						Valid: true,
+					}
+					break
+				}
 			}
 		}
 		at.WithSelectable.AdditionalProperties[k] = opts

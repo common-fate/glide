@@ -29,7 +29,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 		ProviderID:     in.Target.ProviderId,
 		ProviderType:   p.Type,
 		With:           make(map[string]string),
-		WithSelectable: make(map[string][]rule.Selectable),
+		WithSelectable: make(map[string][]string),
 	}
 
 	for k, values := range in.Target.With.AdditionalProperties {
@@ -38,14 +38,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 			target.With[k] = values[0]
 		} else {
 			// store the selectables with value and label
-			target.WithSelectable[k] = make([]rule.Selectable, len(values))
-			for i, value := range values {
-				target.WithSelectable[k][i] = rule.Selectable{
-					// @todo need to fetch the options again and map values to options to get the label, but its really shlow so leaving it out for now
-					Option: rule.Option{Value: value, Label: value},
-					Valid:  true,
-				}
-			}
+			target.WithSelectable[k] = values
 		}
 	}
 

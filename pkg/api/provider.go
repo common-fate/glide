@@ -103,56 +103,26 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 	if params.Refresh != nil && *params.Refresh {
 		a.refreshProviderArgOptions(w, r, providerId, argId)
 	} else {
-		a.getCachedProviderArgOptions(w, r, providerId, argId)
+		a.listCachedProviderArgOptions(w, r, providerId, argId)
 	}
 }
 
-// getCachedProviderArgOptions handles the case where we fetch arg options from the DynamoDB cache.
+// listCachedProviderArgOptions handles the case where we fetch arg options from the DynamoDB cache.
 // If cached options aren't present it falls back to refetching options from the Access Handler.
 // If options are refetched, the cache is updated.
-func (a *API) getCachedProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
+func (a *API) listCachedProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
 	ctx := r.Context()
-
-	q := storage.GetProviderOptions{
-		ProviderID: providerId,
-		ArgID:      argId,
-	}
-
-	_, err := a.DB.Query(ctx, &q)
+	hasOpts, opts, err := a.loadCachedProviderArgOptions(ctx, providerId, argId)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
-
-	var res types.ArgOptionsResponse
-
-	if err == ddb.ErrNoItems {
-		// we don't have any cached, so try and refetch them.
-		res, err = a.fetchProviderOptions(ctx, providerId, argId)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		var cachedOpts []ddb.Keyer
-		for _, o := range res.Options {
-			cachedOpts = append(cachedOpts, &cache.ProviderOption{
-				Provider: providerId,
-				Arg:      argId,
-				Label:    o.Label,
-				Value:    o.Value,
-			})
-		}
-		err = a.DB.PutBatch(ctx, cachedOpts...)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-	} else {
-		// we have cached options
-		res = types.ArgOptionsResponse{
-			HasOptions: true,
-		}
-		for _, o := range q.Result {
+	// we have cached options
+	res := types.ArgOptionsResponse{
+		HasOptions: hasOpts,
+	}
+	if hasOpts {
+		for _, o := range opts {
 			res.Options = append(res.Options, ahTypes.Option{
 				Label: o.Label,
 				Value: o.Value,
@@ -162,6 +132,49 @@ func (a *API) getCachedProviderArgOptions(w http.ResponseWriter, r *http.Request
 
 	// return the argument options back to the client
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// loadCachedProviderArgOptions handles the case where we fetch arg options from the DynamoDB cache.
+// If cached options aren't present it falls back to refetching options from the Access Handler.
+// If options are refetched, the cache is updated.
+func (a *API) loadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error) {
+	q := storage.GetProviderOptions{
+		ProviderID: providerId,
+		ArgID:      argId,
+	}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return false, nil, err
+	}
+	var res types.ArgOptionsResponse
+	if err == ddb.ErrNoItems {
+		// we don't have any cached, so try and refetch them.
+		res, err = a.fetchProviderOptions(ctx, providerId, argId)
+		if err != nil {
+			return false, nil, err
+		}
+		if !res.HasOptions {
+			return false, nil, nil
+		}
+		var keyers []ddb.Keyer
+		var cachedOpts []cache.ProviderOption
+		for _, o := range res.Options {
+			op := cache.ProviderOption{
+				Provider: providerId,
+				Arg:      argId,
+				Label:    o.Label,
+				Value:    o.Value,
+			}
+			keyers = append(keyers, &op)
+			cachedOpts = append(cachedOpts, op)
+		}
+		err = a.DB.PutBatch(ctx, keyers...)
+		if err != nil {
+			return false, nil, err
+		}
+		return true, cachedOpts, nil
+	}
+	return true, q.Result, nil
 }
 
 // refreshProviderArgOptions deletes any cached options and then refetches them from the Access Handler.

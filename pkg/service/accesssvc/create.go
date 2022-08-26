@@ -212,7 +212,7 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 	}
 	for arg, options := range rule.Target.WithSelectable {
 		value, ok := request.With.AdditionalProperties[arg]
-		if !ok || !optionsContains(options, value) {
+		if !ok || !contains(options, value) {
 			return &apio.APIError{
 				Err:    errors.New("request validation failed"),
 				Status: http.StatusBadRequest,
@@ -227,12 +227,11 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 	}
 	return nil
 }
-func optionsContains(set []rule.Selectable, str string) bool {
+func contains(set []string, str string) bool {
 	for _, s := range set {
-		if s.Option.Value == str {
+		if s == str {
 			return true
 		}
 	}
-
 	return false
 }

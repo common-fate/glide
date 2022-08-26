@@ -3,14 +3,17 @@ package api
 import (
 	"errors"
 	"net/http"
+	"sync"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/auth"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
@@ -228,8 +231,28 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	apiRule := rule.ToAPI()
-	apio.JSON(ctx, w, apiRule, http.StatusOK)
+	var options []cache.ProviderOption
+	var mu sync.Mutex
+	g, gctx := errgroup.WithContext(ctx)
+	for k := range rule.Target.WithSelectable {
+		kCopy := k
+		g.Go(func() error {
+			_, opts, err := a.loadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			options = append(options, opts...)
+			return nil
+		})
+	}
+	err = g.Wait()
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, rule.ToAPIWithSelectables(options), http.StatusOK)
 }
 
 func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request, ruleId string) {
