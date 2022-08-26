@@ -126,3 +126,5 @@ export * from './accessRuleTargetDetailWith';
 export * from './accessRuleTargetDetailWithSelectable';
 export * from './accessRuleWithSelectables';
 export * from './accessRuleTargetDetail';
+export * from './requestSelectedWith';
+export * from './requestDetailSelectedWith';

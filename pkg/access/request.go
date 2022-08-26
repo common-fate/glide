@@ -131,6 +131,16 @@ func (r *Request) ToAPI() types.Request {
 		Status:         types.RequestStatus(r.Status),
 		UpdatedAt:      r.UpdatedAt,
 		ApprovalMethod: r.ApprovalMethod,
+		SelectedWith: types.Request_SelectedWith{
+			AdditionalProperties: make(map[string]types.WithOption),
+		},
+	}
+
+	for k, v := range r.SelectedWith {
+		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
+			Label: v.Label,
+			Value: v.Value,
+		}
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -157,6 +167,16 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
+		SelectedWith: &types.RequestDetail_SelectedWith{
+			AdditionalProperties: make(map[string]types.WithOption),
+		},
+	}
+
+	for k, v := range r.SelectedWith {
+		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
+			Label: v.Label,
+			Value: v.Value,
+		}
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()

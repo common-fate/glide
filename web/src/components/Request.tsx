@@ -19,6 +19,7 @@ import {
   useClipboard,
   useDisclosure,
   useToast,
+  VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
@@ -93,7 +94,7 @@ interface VersionDisplay {
 }
 
 const getStatus = (
-  request: Request | undefined,
+  request: Request | RequestDetail | undefined,
   activeTimeString: string | undefined
 ) => {
   if (activeTimeString !== undefined) {
@@ -117,7 +118,7 @@ const getStatus = (
 };
 
 export const RequestStatusDisplay: React.FC<{
-  request: Request | undefined;
+  request: Request | RequestDetail | undefined;
 }> = ({ request }) => {
   const activeTimeString =
     request?.grant && request?.grant.status === "ACTIVE"
@@ -152,6 +153,37 @@ export const RequestStatusDisplay: React.FC<{
   );
 };
 
+export const RequestSelectedWithDisplay: React.FC<{
+  request: Request | RequestDetail | undefined;
+}> = ({ request }) => {
+  if (request?.selectedWith === undefined) {
+    <Skeleton
+      minW="30ch"
+      minH="6"
+      isLoaded={request?.selectedWith !== undefined}
+      mr="auto"
+    />;
+  }
+
+  if (
+    request?.selectedWith !== undefined &&
+    Object.entries(request.selectedWith).length === 0
+  ) {
+    return (
+      <VStack>
+        {request?.selectedWith &&
+          Object.entries(request?.selectedWith).map(([k, v]) => {
+            return (
+              <Text>
+                {k} {v.label} {v.value}
+              </Text>
+            );
+          })}
+      </VStack>
+    );
+  }
+  return null;
+};
 export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
   const { request } = useContext(Context);
 
@@ -201,6 +233,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
             </Tooltip>
           </HStack>
         </Skeleton>
+        <RequestSelectedWithDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
           <Flex
             color="neutrals.600"
