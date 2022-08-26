@@ -23,10 +23,11 @@ import {
   UseRadioGroupProps,
   Wrap,
 } from "@chakra-ui/react";
-import { addSeconds, format } from "date-fns";
+import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
+import Select from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
@@ -42,12 +43,8 @@ import {
   useUserGetAccessRule,
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
-import {
-  CreateRequestRequestBody,
-  WithOption,
-} from "../../../utils/backend-client/types";
+import { CreateRequestRequestBody } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
-import Select, { components, OptionProps } from "react-select";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -225,6 +222,7 @@ const Home = () => {
                       const name = "with." + k;
                       return (
                         <FormControl
+                          key={"selectable-" + k}
                           pos="relative"
                           id={name}
                           isInvalid={
@@ -246,9 +244,12 @@ const Home = () => {
                             }) => (
                               <Select
                                 isMulti={false}
-                                options={v.map((op) => {
-                                  return op.option;
-                                })}
+                                options={v
+                                  // exclude invalid options
+                                  .filter((op) => op.valid)
+                                  .map((op) => {
+                                    return op.option;
+                                  })}
                                 value={
                                   v.find((op) => value === op.option.value)
                                     ?.option
