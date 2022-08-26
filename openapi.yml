@@ -881,7 +881,7 @@ components:
     AccessRuleWithSelectables:
       title: AccessRuleWithSelectables
       type: object
-      description: Access Rule contains information for an end user to make a request for access.
+      description: Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
       properties:
         id:
           type: string
