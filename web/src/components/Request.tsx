@@ -166,17 +166,26 @@ export const RequestSelectedWithDisplay: React.FC<{
   }
 
   if (
-    request?.selectedWith !== undefined &&
-    Object.entries(request.selectedWith).length === 0
+    request?.selectedWith &&
+    Object.entries(request.selectedWith).length > 0
   ) {
     return (
-      <VStack>
+      <VStack align={"left"}>
+        <Box textStyle="Body/Medium" mb={2}>
+          User Selections
+        </Box>
         {request?.selectedWith &&
           Object.entries(request?.selectedWith).map(([k, v]) => {
             return (
-              <Text>
-                {k} {v.label} {v.value}
-              </Text>
+              <Box key={"selected-" + k} textStyle="Body/Small" mb={2}>
+                {k}
+                <Text color="neutrals.600" textStyle="Body/Small">
+                  {v.label}
+                </Text>
+                <Text color="neutrals.600" textStyle="Body/Small">
+                  {v.value}
+                </Text>
+              </Box>
             );
           })}
       </VStack>
