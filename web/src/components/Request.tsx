@@ -172,7 +172,7 @@ export const RequestSelectedWithDisplay: React.FC<{
     return (
       <VStack align={"left"}>
         <Box textStyle="Body/Medium" mb={2}>
-          User Selections
+          Target Selections
         </Box>
         {request?.selectedWith &&
           Object.entries(request?.selectedWith).map(([k, v]) => {
