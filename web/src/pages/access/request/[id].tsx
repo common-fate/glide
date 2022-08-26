@@ -23,7 +23,7 @@ import {
   UseRadioGroupProps,
   Wrap,
 } from "@chakra-ui/react";
-import { format } from "date-fns";
+import { addSeconds, format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";

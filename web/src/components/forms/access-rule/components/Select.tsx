@@ -125,7 +125,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
               onChange(val.map((c) => c.value));
             }}
             onBlur={() => {
-              trigger(fieldName);
+              void trigger(fieldName);
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
             }}
             data-testid={rest.testId}

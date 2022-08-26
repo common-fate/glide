@@ -128,3 +128,4 @@ export * from './accessRuleWithSelectables';
 export * from './accessRuleTargetDetail';
 export * from './requestSelectedWith';
 export * from './requestDetailSelectedWith';
+export * from './listProviderArgOptionsParams';
