@@ -102,7 +102,7 @@ func (a AccessRule) ToAPIWithSelectables(argOptions []cache.ProviderOption) type
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
 		},
-		Target:    a.Target.ToAPIDetail([]cache.ProviderOption{}),
+		Target:    a.Target.ToAPIDetail(argOptions),
 		IsCurrent: a.Current,
 	}
 }
