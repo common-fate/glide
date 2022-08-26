@@ -101,6 +101,15 @@ func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
 	// e.g check if deployment config exists before checking for aws credentials
 	b := cmd.Before
 	cmd.Before = func(c *cli.Context) error {
+		args := c.Args().Slice()
+
+		// if help argument is provided then skip this check.
+		for _, arg := range args {
+			if arg == "-h" || arg == "--help" || arg == "help" {
+				return nil
+			}
+		}
+
 		for _, f := range funcs {
 			err := f(c)
 			if err != nil {

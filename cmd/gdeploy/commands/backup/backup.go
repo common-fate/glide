@@ -15,6 +15,7 @@ import (
 var Command = cli.Command{
 	Name:        "backup",
 	Description: "Backup Granted Approvals",
+	Usage:       "Backup Granted Approvals",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically continue without asking for confirmation"},
 	},
