@@ -679,6 +679,24 @@ export const useGetProvidersetupInstructions = <TError = ErrorType<unknown>>(
 }
 
 /**
+ * Validates the configuration values for an access provider being setup.
+
+Will return a HTTP200 OK response even if there are validation errors. The errors can be found by inspecting the validation diagnostics in the `configValidation` field.
+
+Will return a HTTP400 response if the provider cannot be validated (for example, the config values for the provider are incomplete).
+ * @summary Validate the configuration for a Provider Setup
+ */
+export const validateProvidersetup = (
+    providersetupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups/${providersetupId}/validate`, method: 'post'
+    },
+      options);
+    }
+  
+
+/**
  * The updated provider setup.
  * @summary Update the completion status for a Provider setup step
  */

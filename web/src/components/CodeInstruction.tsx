@@ -14,7 +14,12 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
   // @ts-ignore
   const { children, node } = props;
   let value = "";
-  if (node.children.length == 1 && node.children[0].type == "text") {
+  if (
+    node &&
+    node.children &&
+    node.children.length == 1 &&
+    node.children[0].type == "text"
+  ) {
     value = node.children[0].value;
   }
 

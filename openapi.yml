@@ -765,6 +765,27 @@ paths:
         name: providersetupId
         in: path
         required: true
+  "/api/v1/admin/providersetups/{providersetupId}/validate":
+    parameters:
+      - schema:
+          type: string
+        name: providersetupId
+        in: path
+        required: true
+    post:
+      summary: Validate the configuration for a Provider Setup
+      operationId: validate-providersetup
+      responses:
+        "200":
+          $ref: "#/components/responses/ProviderSetupResponse"
+      tags:
+        - Admin
+      description: |-
+        Validates the configuration values for an access provider being setup.
+
+        Will return a HTTP200 OK response even if there are validation errors. The errors can be found by inspecting the validation diagnostics in the `configValidation` field.
+
+        Will return a HTTP400 response if the provider cannot be validated (for example, the config values for the provider are incomplete).
   "/api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete":
     parameters:
       - schema:
@@ -1288,8 +1309,11 @@ components:
         status:
           type: string
           enum:
-            - IN_PROGRESS
             - COMPLETE
+            - VALIDATION_FAILED
+            - VALIDATING
+            - INITIAL_CONFIGURATION_IN_PROGRESS
+            - VALIDATION_SUCEEDED
           description: The status of the setup process.
         steps:
           type: array
@@ -1301,12 +1325,17 @@ components:
           description: The current configuration values.
           additionalProperties: false
           x-go-type: "map[string]string"
+        configValidation:
+          type: array
+          items:
+            $ref: ./accesshandler/openapi.yml#/components/schemas/ProviderConfigValidation
       required:
         - id
         - type
         - status
         - steps
         - configValues
+        - configValidation
     ProviderSetupInstructions:
       title: ProviderSetupInstructions
       x-stoplight:
@@ -1391,6 +1420,56 @@ components:
       required:
         - id
         - value
+    ProviderSetupValidation:
+      title: ProviderSetupValidation
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A validation against the configuration values of the Access Provider.
+      properties:
+        id:
+          type: string
+          description: "The ID of the validation, such as `list-sso-users`."
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - SUCCESS
+            - PENDING
+            - ERROR
+          description: The status of the validation.
+        fieldsValidated:
+          type: array
+          description: "The particular config fields validated, if any."
+          items: {}
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderSetupDiagnosticLog"
+      required:
+        - id
+        - status
+        - fieldsValidated
+    ProviderSetupDiagnosticLog:
+      title: ProviderSetupDiagnosticLog
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A log entry related to a provider setup validation.
+      properties:
+        level:
+          type: string
+          description: The log level.
+          enum:
+            - INFO
+            - WARNING
+            - ERROR
+        msg:
+          type: string
+          description: The log message.
+      required:
+        - level
+        - msg
   responses:
     ErrorResponse:
       description: An error returned from the service.

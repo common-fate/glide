@@ -58,7 +58,7 @@ const Page = () => {
               data-testid={"provider_" + provider.type}
               onClick={() => createProvider(provider.type)}
             >
-              <ProviderIcon provider={provider.shortType} mb={3} h="8" w="8" />
+              <ProviderIcon shortType={provider.shortType} mb={3} h="8" w="8" />
 
               <Text textStyle="Body/SmallBold" color="neutrals.700">
                 {provider.name}

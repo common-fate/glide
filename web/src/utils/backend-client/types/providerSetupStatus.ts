@@ -14,6 +14,9 @@ export type ProviderSetupStatus = typeof ProviderSetupStatus[keyof typeof Provid
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProviderSetupStatus = {
-  IN_PROGRESS: 'IN_PROGRESS',
   COMPLETE: 'COMPLETE',
+  VALIDATION_FAILED: 'VALIDATION_FAILED',
+  VALIDATING: 'VALIDATING',
+  INITIAL_CONFIGURATION_IN_PROGRESS: 'INITIAL_CONFIGURATION_IN_PROGRESS',
+  VALIDATION_SUCEEDED: 'VALIDATION_SUCEEDED',
 } as const;

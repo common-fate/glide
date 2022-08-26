@@ -101,22 +101,7 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 			return err
 		}
 
-		// if the provider implements Configer, we can provide it with
-		// configuration variables from the JSON data we have.
-		if c, ok := p.(gconfig.Configer); ok {
-			err := c.Config().Load(ctx, gconfig.JSONLoader{Data: pType.With})
-			if err != nil {
-				return err
-			}
-		}
-
-		// if the provider implements Initer, we can initialise it.
-		if i, ok := p.(gconfig.Initer); ok {
-			err := i.Init(ctx)
-			if err != nil {
-				return err
-			}
-		}
+		SetupProvider(ctx, p, gconfig.JSONLoader{Data: pType.With})
 
 		prov.Provider = p
 		prov.ID = k
@@ -124,6 +109,27 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 		all[k] = prov
 	}
 	Providers = all
+	return nil
+}
+
+// SetupProvider runs through the initialisation process for a provider.
+func SetupProvider(ctx context.Context, p providers.Accessor, l gconfig.Loader) error {
+	// if the provider implements Configer, we can provide it with
+	// configuration variables from the JSON data we have.
+	if c, ok := p.(gconfig.Configer); ok {
+		err := c.Config().Load(ctx, l)
+		if err != nil {
+			return err
+		}
+	}
+
+	// if the provider implements Initer, we can initialise it.
+	if i, ok := p.(gconfig.Initer); ok {
+		err := i.Init(ctx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

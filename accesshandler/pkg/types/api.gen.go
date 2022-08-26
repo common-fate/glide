@@ -26,11 +26,26 @@ import (
 
 // Defines values for GrantStatus.
 const (
-	ACTIVE  GrantStatus = "ACTIVE"
-	ERROR   GrantStatus = "ERROR"
-	EXPIRED GrantStatus = "EXPIRED"
-	PENDING GrantStatus = "PENDING"
-	REVOKED GrantStatus = "REVOKED"
+	GrantStatusACTIVE  GrantStatus = "ACTIVE"
+	GrantStatusERROR   GrantStatus = "ERROR"
+	GrantStatusEXPIRED GrantStatus = "EXPIRED"
+	GrantStatusPENDING GrantStatus = "PENDING"
+	GrantStatusREVOKED GrantStatus = "REVOKED"
+)
+
+// Defines values for LogLevel.
+const (
+	LogLevelERROR   LogLevel = "ERROR"
+	LogLevelINFO    LogLevel = "INFO"
+	LogLevelWARNING LogLevel = "WARNING"
+)
+
+// Defines values for ProviderConfigValidationStatus.
+const (
+	ERROR      ProviderConfigValidationStatus = "ERROR"
+	INPROGRESS ProviderConfigValidationStatus = "IN_PROGRESS"
+	PENDING    ProviderConfigValidationStatus = "PENDING"
+	SUCCESS    ProviderConfigValidationStatus = "SUCCESS"
 )
 
 // Instructions on how to access the requested resource.
@@ -97,6 +112,18 @@ type Grant_With struct {
 	AdditionalProperties map[string]string `json:"-"`
 }
 
+// A log entry.
+type Log struct {
+	// The log level.
+	Level LogLevel `json:"level"`
+
+	// The log message.
+	Msg string `json:"msg"`
+}
+
+// The log level.
+type LogLevel string
+
 // Option defines model for Option.
 type Option struct {
 	Label string `json:"label"`
@@ -108,6 +135,23 @@ type Provider struct {
 	Id   string `json:"id"`
 	Type string `json:"type"`
 }
+
+// A validation against the configuration values of the Access Provider.
+type ProviderConfigValidation struct {
+	// The particular config fields validated, if any.
+	FieldsValidated []string `json:"fieldsValidated"`
+
+	// The ID of the validation, such as `list-sso-users`.
+	Id   string `json:"id"`
+	Logs []Log  `json:"logs"`
+	Name string `json:"name"`
+
+	// The status of the validation.
+	Status ProviderConfigValidationStatus `json:"status"`
+}
+
+// The status of the validation.
+type ProviderConfigValidationStatus string
 
 // ProviderHealth defines model for ProviderHealth.
 type ProviderHealth struct {
@@ -146,6 +190,20 @@ type HealthResponse struct {
 	Health *ProviderHealth `json:"health,omitempty"`
 }
 
+// ValidateResponse defines model for ValidateResponse.
+type ValidateResponse struct {
+	Validations []ProviderConfigValidation `json:"validations"`
+}
+
+// ValidateRequest defines model for ValidateRequest.
+type ValidateRequest struct {
+	// The full type definition of the provider
+	Uses string `json:"uses"`
+
+	// The provider's configuration.
+	With map[string]string `json:"with"`
+}
+
 // PostGrantsJSONBody defines parameters for PostGrants.
 type PostGrantsJSONBody = CreateGrant
 
@@ -169,6 +227,9 @@ type PostGrantsJSONRequestBody = PostGrantsJSONBody
 
 // PostGrantsRevokeJSONRequestBody defines body for PostGrantsRevoke for application/json ContentType.
 type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
+
+// ValidateSetupJSONRequestBody defines body for ValidateSetup for application/json ContentType.
+type ValidateSetupJSONRequestBody ValidateRequest
 
 // Getter for additional properties for CreateGrant_With. Returns the specified
 // element and whether it was found
@@ -379,6 +440,11 @@ type ClientInterface interface {
 
 	// ListProviderArgOptions request
 	ListProviderArgOptions(ctx context.Context, providerId string, argId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ValidateSetup request with any body
+	ValidateSetupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ValidateSetup(ctx context.Context, body ValidateSetupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetGrants(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -503,6 +569,30 @@ func (c *Client) GetProviderArgs(ctx context.Context, providerId string, reqEdit
 
 func (c *Client) ListProviderArgOptions(ctx context.Context, providerId string, argId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListProviderArgOptionsRequest(c.Server, providerId, argId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ValidateSetupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewValidateSetupRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ValidateSetup(ctx context.Context, body ValidateSetupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewValidateSetupRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -852,6 +942,46 @@ func NewListProviderArgOptionsRequest(server string, providerId string, argId st
 	return req, nil
 }
 
+// NewValidateSetupRequest calls the generic ValidateSetup builder with application/json body
+func NewValidateSetupRequest(server string, body ValidateSetupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewValidateSetupRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewValidateSetupRequestWithBody generates requests for ValidateSetup with any type of body
+func NewValidateSetupRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/setup/validate")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -925,6 +1055,11 @@ type ClientWithResponsesInterface interface {
 
 	// ListProviderArgOptions request
 	ListProviderArgOptionsWithResponse(ctx context.Context, providerId string, argId string, reqEditors ...RequestEditorFn) (*ListProviderArgOptionsResponse, error)
+
+	// ValidateSetup request with any body
+	ValidateSetupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ValidateSetupResponse, error)
+
+	ValidateSetupWithResponse(ctx context.Context, body ValidateSetupJSONRequestBody, reqEditors ...RequestEditorFn) (*ValidateSetupResponse, error)
 }
 
 type GetGrantsResponse struct {
@@ -1186,6 +1321,33 @@ func (r ListProviderArgOptionsResponse) StatusCode() int {
 	return 0
 }
 
+type ValidateSetupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Validations []ProviderConfigValidation `json:"validations"`
+	}
+	JSON400 *struct {
+		Error *string `json:"error,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ValidateSetupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ValidateSetupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetGrantsWithResponse request returning *GetGrantsResponse
 func (c *ClientWithResponses) GetGrantsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetGrantsResponse, error) {
 	rsp, err := c.GetGrants(ctx, reqEditors...)
@@ -1281,6 +1443,23 @@ func (c *ClientWithResponses) ListProviderArgOptionsWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseListProviderArgOptionsResponse(rsp)
+}
+
+// ValidateSetupWithBodyWithResponse request with arbitrary body returning *ValidateSetupResponse
+func (c *ClientWithResponses) ValidateSetupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ValidateSetupResponse, error) {
+	rsp, err := c.ValidateSetupWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseValidateSetupResponse(rsp)
+}
+
+func (c *ClientWithResponses) ValidateSetupWithResponse(ctx context.Context, body ValidateSetupJSONRequestBody, reqEditors ...RequestEditorFn) (*ValidateSetupResponse, error) {
+	rsp, err := c.ValidateSetup(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseValidateSetupResponse(rsp)
 }
 
 // ParseGetGrantsResponse parses an HTTP response from a GetGrantsWithResponse call
@@ -1668,6 +1847,43 @@ func ParseListProviderArgOptionsResponse(rsp *http.Response) (*ListProviderArgOp
 	return response, nil
 }
 
+// ParseValidateSetupResponse parses an HTTP response from a ValidateSetupWithResponse call
+func ParseValidateSetupResponse(rsp *http.Response) (*ValidateSetupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ValidateSetupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Validations []ProviderConfigValidation `json:"validations"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List Grants
@@ -1697,6 +1913,9 @@ type ServerInterface interface {
 	// List provider arg options
 	// (GET /api/v1/providers/{providerId}/args/{argId}/options)
 	ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string)
+	// Validate an Access Provider's settings
+	// (POST /api/v1/setup/validate)
+	ValidateSetup(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -1938,6 +2157,21 @@ func (siw *ServerInterfaceWrapper) ListProviderArgOptions(w http.ResponseWriter,
 	handler(w, r.WithContext(ctx))
 }
 
+// ValidateSetup operation middleware
+func (siw *ServerInterfaceWrapper) ValidateSetup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ValidateSetup(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -2078,6 +2312,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/providers/{providerId}/args/{argId}/options", wrapper.ListProviderArgOptions)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/setup/validate", wrapper.ValidateSetup)
+	})
 
 	return r
 }
@@ -2085,43 +2322,51 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"9vcAAAD//7xHZUKiJgAA",
+	"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",
+	"BaKtpXxSVFHb++3/AwAA///9yTHIci8AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

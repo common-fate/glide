@@ -7,6 +7,8 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
+	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -155,6 +157,68 @@ func (a *API) SubmitProvidersetupStep(w http.ResponseWriter, r *http.Request, pr
 		apio.ErrorString(ctx, w, icf.Error(), http.StatusBadRequest)
 		return
 	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, setup.ToAPI(), http.StatusOK)
+}
+
+// Validate the configuration for a Provider Setup
+// (POST /api/v1/admin/providersetups/{providersetupId}/validate)
+func (a *API) ValidateProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
+	ctx := r.Context()
+	q := storage.GetProviderSetup{
+		ID: providersetupId,
+	}
+
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.ErrorString(ctx, w, "provider setup not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	setup := q.Result
+
+	res, err := a.AccessHandlerClient.ValidateSetupWithResponse(ctx, ahtypes.ValidateSetupJSONRequestBody{
+		Uses: setup.ProviderType + "@" + setup.ProviderVersion,
+		With: setup.ConfigValues,
+	})
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	if res.StatusCode() != http.StatusOK {
+		if res.JSON400 != nil {
+			// the config was invalid, so return the error from the access handler to the client so they know
+			// what to fix in order to make it valid.
+			apio.ErrorString(ctx, w, *res.JSON400.Error, http.StatusBadRequest)
+		}
+		apio.Error(ctx, w, fmt.Errorf("unhandled access handler code: %d", res.StatusCode()))
+	}
+	for _, validation := range res.JSON200.Validations {
+		v := providersetup.Validation{
+			Name:            validation.Name,
+			Status:          validation.Status,
+			FieldsValidated: validation.FieldsValidated,
+		}
+		for _, log := range validation.Logs {
+			v.Logs = append(v.Logs, providersetup.DiagnosticLog{
+				Level: log.Level,
+				Msg:   log.Msg,
+			})
+		}
+		setup.ConfigValidation[validation.Id] = v
+	}
+	// update the status of the setup based on the validation results.
+	setup.UpdateValidationStatus()
+
+	err = a.DB.Put(ctx, setup)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

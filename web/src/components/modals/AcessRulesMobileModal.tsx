@@ -46,7 +46,7 @@ const AcessRulesMobileModal = (props: Props) => {
                     rounded="md"
                   >
                     <ProviderIcon
-                      provider={r.target.provider.type}
+                      shortType={r.target.provider.type}
                       mb={3}
                       h="8"
                       w="8"

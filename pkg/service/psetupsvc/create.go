@@ -49,11 +49,12 @@ func (s *Service) Create(ctx context.Context, providerType string) (*providerset
 	}
 
 	ps := providersetup.Setup{
-		ID:              types.NewProviderSetupID(),
-		ProviderType:    providerType,
-		ProviderVersion: version,
-		Status:          types.INPROGRESS,
-		ConfigValues:    map[string]string{},
+		ID:               types.NewProviderSetupID(),
+		ProviderType:     providerType,
+		ProviderVersion:  version,
+		Status:           types.INITIALCONFIGURATIONINPROGRESS,
+		ConfigValues:     map[string]string{},
+		ConfigValidation: map[string]providersetup.Validation{},
 	}
 
 	reg := providerVersions[version]
@@ -62,6 +63,18 @@ func (s *Service) Create(ctx context.Context, providerType string) (*providerset
 	if configer, ok := reg.Provider.(gconfig.Configer); ok {
 		for _, field := range configer.Config() {
 			ps.ConfigValues[field.Key()] = ""
+		}
+	}
+
+	// initialise the config validation steps if the provider supports it.
+	if confvalider, ok := reg.Provider.(providers.ConfigValidator); ok {
+		validations := confvalider.ValidateConfig()
+		for k, v := range validations {
+			ps.ConfigValidation[k] = providersetup.Validation{
+				Name:            v.Name,
+				FieldsValidated: v.FieldsValidated,
+				Status:          "PENDING",
+			}
 		}
 	}
 

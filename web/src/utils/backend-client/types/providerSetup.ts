@@ -8,6 +8,7 @@
 import type { ProviderSetupStatus } from './providerSetupStatus';
 import type { ProviderSetupStepOverview } from './providerSetupStepOverview';
 import type { ProviderSetupConfigValues } from './providerSetupConfigValues';
+import type { ProviderConfigValidation } from './accesshandler-openapi.yml/providerConfigValidation';
 
 /**
  * A provider in the process of being set up through the guided setup workflow in Granted. These providers are **not** yet active.
@@ -23,4 +24,5 @@ export interface ProviderSetup {
   steps: ProviderSetupStepOverview[];
   /** The current configuration values. */
   configValues: ProviderSetupConfigValues;
+  configValidation: ProviderConfigValidation[];
 }

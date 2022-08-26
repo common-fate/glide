@@ -130,3 +130,7 @@ export * from './providerSetupConfigValues';
 export * from './providerSetupStepOverview';
 export * from './providerSetupStepDetails';
 export * from './providerSetupStepCompleteRequestBodyConfigValues';
+export * from './providerSetupDiagnosticLog';
+export * from './providerSetupDiagnosticLogLevel';
+export * from './providerSetupValidationStatus';
+export * from './providerSetupValidation';
