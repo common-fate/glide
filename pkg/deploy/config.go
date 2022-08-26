@@ -199,6 +199,20 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 	return nil
 }
 
+// Make identity related parameters nil.
+func (c *Config) MakeIdentityTypeDefault(filepath string) error {
+
+	c.Deployment.Parameters.IdentityProviderType = ""
+	c.Deployment.Parameters.AdministratorGroupID = ""
+	c.Deployment.Parameters.IdentityConfiguration = nil
+
+	if err := c.Save(filepath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CLIPrompt prompts the user to enter a value for the config varsiable
 // in a CLI context. If the config variable implements Defaulter, the
 // default value is returned and the user is not prompted for any input.

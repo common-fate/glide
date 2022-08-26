@@ -17,13 +17,14 @@ import (
 
 var SSOCommand = cli.Command{
 	Name:        "sso",
-	Subcommands: []*cli.Command{&configureCommand},
+	Subcommands: []*cli.Command{&enableCommand, &disableCommand},
 	Action:      cli.ShowSubcommandHelp,
 }
 
-var configureCommand = cli.Command{
-	Name:        "configure",
+var enableCommand = cli.Command{
+	Name:        "enable",
 	Description: "Set up SSO for a deployment",
+	Usage:       "Configure SSO for a deployment",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
@@ -188,7 +189,6 @@ Users in this group will be able to manage Access Rules.
 			return err
 		}
 
-		
 		grps, err := idp.IdentityProvider.ListGroups(ctx)
 		if err != nil {
 			return err
@@ -230,6 +230,35 @@ Users in this group will be able to manage Access Rules.
   1) Run 'gdeploy update' to apply the changes to your CloudFormation deployment.
   2) Run 'gdeploy users sync' to trigger an immediate sync of your user directory.
 `)
+		return nil
+	},
+}
+
+var disableCommand = cli.Command{
+	Name:        "disable",
+	Description: "Clear current sso configuration. Defaults back to cognito.",
+	Usage:       "Clear current sso configuration. Defaults back to cognito.",
+	Action: func(c *cli.Context) error {
+		ctx := c.Context
+
+		f := c.Path("file")
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err != nil {
+			return err
+		}
+
+		if dc.Deployment.Parameters.IdentityProviderType == "" || dc.Deployment.Parameters.IdentityProviderType == identitysync.IDPTypeCognito {
+			clio.Info("You don't currently have SSO configuration to disable. Using Cognito as Identity Provider.")
+
+			return nil
+		}
+
+		if err := dc.MakeIdentityTypeDefault(f); err != nil {
+			return err
+		}
+
+		clio.Info("SSO configuration has been disabled. Defaulting Identity Provider as Cognito.")
+
 		return nil
 	},
 }
