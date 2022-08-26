@@ -68,42 +68,44 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		RuleVersion:     rule.Version,
 		SelectedWith:    make(map[string]access.Option),
 	}
-	argOptionsLabels := make(map[string]map[string]string)
-	var mu sync.Mutex
-	g, gctx := errgroup.WithContext(ctx)
-	for k := range in.With.AdditionalProperties {
-		kCopy := k
-		g.Go(func() error {
-			_, opts, err := s.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
-			if err != nil {
-				return err
-			}
-			labels := make(map[string]string)
-			for _, op := range opts {
-				labels[op.Value] = op.Label
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			argOptionsLabels[kCopy] = labels
-			return nil
-		})
-	}
-	err = g.Wait()
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range in.With.AdditionalProperties {
-		labels, ok := argOptionsLabels[k]
-		if !ok {
-			return nil, fmt.Errorf("options not found for arg %s", k)
+	if in.With != nil {
+		argOptionsLabels := make(map[string]map[string]string)
+		var mu sync.Mutex
+		g, gctx := errgroup.WithContext(ctx)
+		for k := range in.With.AdditionalProperties {
+			kCopy := k
+			g.Go(func() error {
+				_, opts, err := s.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
+				if err != nil {
+					return err
+				}
+				labels := make(map[string]string)
+				for _, op := range opts {
+					labels[op.Value] = op.Label
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				argOptionsLabels[kCopy] = labels
+				return nil
+			})
 		}
-		label, ok := labels[v]
-		if !ok {
-			return nil, fmt.Errorf("no matching option found for value %s for arg %s", v, k)
+		err = g.Wait()
+		if err != nil {
+			return nil, err
 		}
-		req.SelectedWith[k] = access.Option{
-			Value: v,
-			Label: label,
+		for k, v := range in.With.AdditionalProperties {
+			labels, ok := argOptionsLabels[k]
+			if !ok {
+				return nil, fmt.Errorf("options not found for arg %s", k)
+			}
+			label, ok := labels[v]
+			if !ok {
+				return nil, fmt.Errorf("no matching option found for value %s for arg %s", v, k)
+			}
+			req.SelectedWith[k] = access.Option{
+				Value: v,
+				Label: label,
+			}
 		}
 	}
 
@@ -238,28 +240,43 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 			},
 		}
 	}
-	if len(request.With.AdditionalProperties) != len(rule.Target.WithSelectable) {
-		return &apio.APIError{
-			Err:    errors.New("request validation failed"),
-			Status: http.StatusBadRequest,
-			Fields: []apio.FieldError{
-				{
-					Field: "with",
-					Error: "unexpected with values",
-				},
-			},
-		}
-	}
-	for arg, options := range rule.Target.WithSelectable {
-		value, ok := request.With.AdditionalProperties[arg]
-		if !ok || !contains(options, value) {
+	if !(request.With == nil && rule.Target.WithSelectable == nil) {
+		if request.With != nil && rule.Target.WithSelectable != nil {
+			if len(request.With.AdditionalProperties) != len(rule.Target.WithSelectable) {
+				return &apio.APIError{
+					Err:    errors.New("request validation failed"),
+					Status: http.StatusBadRequest,
+					Fields: []apio.FieldError{
+						{
+							Field: "with",
+							Error: "unexpected with values",
+						},
+					},
+				}
+			}
+			for arg, options := range rule.Target.WithSelectable {
+				value, ok := request.With.AdditionalProperties[arg]
+				if !ok || !contains(options, value) {
+					return &apio.APIError{
+						Err:    errors.New("request validation failed"),
+						Status: http.StatusBadRequest,
+						Fields: []apio.FieldError{
+							{
+								Field: "with",
+								Error: fmt.Sprintf("unexpected with value for %s", arg),
+							},
+						},
+					}
+				}
+			}
+		} else {
 			return &apio.APIError{
 				Err:    errors.New("request validation failed"),
 				Status: http.StatusBadRequest,
 				Fields: []apio.FieldError{
 					{
 						Field: "with",
-						Error: fmt.Sprintf("unexpected with value for %s", arg),
+						Error: "unexpected with values",
 					},
 				},
 			}

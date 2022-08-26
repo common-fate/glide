@@ -33,6 +33,8 @@ type Granter interface {
 type EventPutter interface {
 	Put(ctx context.Context, detail gevent.EventTyper) error
 }
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/cache.go -package=mocks . CacheService
 type CacheService interface {
 	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
 	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
