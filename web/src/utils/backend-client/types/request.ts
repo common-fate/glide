@@ -10,6 +10,7 @@ import type { RequestTiming } from './requestTiming';
 import type { RequestAccessRule } from './requestAccessRule';
 import type { Grant } from './grant';
 import type { ApprovalMethod } from './approvalMethod';
+import type { RequestSelectedWith } from './requestSelectedWith';
 
 /**
  * A request to access something made by an end user in Granted.
@@ -25,4 +26,5 @@ export interface Request {
   updatedAt: string;
   grant?: Grant;
   approvalMethod?: ApprovalMethod;
+  selectedWith: RequestSelectedWith;
 }
