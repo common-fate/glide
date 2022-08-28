@@ -171,7 +171,7 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 
 	return &res.Users[0], nil
 }
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
