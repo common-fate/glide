@@ -1,4 +1,4 @@
-import { ArrowBackIcon, QuestionIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, QuestionIcon, WarningIcon } from "@chakra-ui/icons";
 import {
   Button,
   Center,
@@ -17,14 +17,18 @@ import {
   TabPanels,
   Tabs,
   Text,
+  useStatStyles,
 } from "@chakra-ui/react";
-import { Link, Navigate, useMatch } from "react-location";
+import { useState } from "react";
+import { Link, Navigate, useMatch, useNavigate } from "react-location";
+import ReactMarkdown from "react-markdown";
 import { CodeInstruction } from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
 import {
   useGetProvidersetup,
   useGetProvidersetupInstructions,
 } from "../../../../../utils/backend-client/admin/admin";
+import { deleteProvidersetup } from "../../../../../utils/backend-client/default/default";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
 
 const Page = () => {
@@ -32,13 +36,20 @@ const Page = () => {
     params: { id },
   } = useMatch();
 
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { data, mutate } = useGetProvidersetup(id);
-  const { data: instructions } = useGetProvidersetupInstructions(id);
 
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(
     (rp) => rp.type === data?.type
   );
+
+  const handleCommandRan = async () => {
+    setLoading(true);
+    await deleteProvidersetup(id);
+    navigate({ to: "/admin/providers/setup/update-deployment" });
+  };
 
   if (data === undefined) {
     return (
@@ -78,6 +89,16 @@ const Page = () => {
   if (data.status !== "VALIDATION_SUCEEDED") {
     return <Navigate to={`/admin/providers/setup/${data.id}`} />;
   }
+
+  const gdeployCommand =
+    "```" +
+    `gdeploy provider add --uses ${data.type}@${data.version} ${Object.entries(
+      data.configValues
+    )
+      .filter(([_, v]) => v != null && v !== "")
+      .map(([k, v]) => `--with ${k}=${v}`)
+      .join(" ")}` +
+    "```";
 
   return (
     <AdminLayout>
@@ -148,23 +169,39 @@ const Page = () => {
             <ListItem>
               <Stack>
                 <Text>Run the following command:</Text>
-                <CodeInstruction>
-                  <Text>
-                    gdeploy provider setup --type aws-sso --config
-                    instanceArn=d-1234
-                  </Text>
-                </CodeInstruction>
-              </Stack>
-            </ListItem>
-            <ListItem>
-              <Stack>
-                <Text>Apply the update to your deployment:</Text>
-                <CodeInstruction>
-                  <Text>gdeploy update</Text>
-                </CodeInstruction>
+                <ReactMarkdown
+                  components={{
+                    a: (props) => (
+                      <Link target="_blank" rel="noreferrer" {...props} />
+                    ),
+                    p: (props) => (
+                      <Text
+                        as="span"
+                        color="neutrals.600"
+                        textStyle={"Body/Small"}
+                      >
+                        {props.children}
+                      </Text>
+                    ),
+                    code: CodeInstruction as any,
+                  }}
+                >
+                  {gdeployCommand}
+                </ReactMarkdown>
+                );
               </Stack>
             </ListItem>
           </OrderedList>
+          <Stack>
+            <Button onClick={handleCommandRan} isLoading={loading}>
+              I've run the command and updated my deployment YAML file
+            </Button>
+            <Center>
+              <Text textStyle="Body/ExtraSmall">
+                <WarningIcon /> You won't be able to come back to this page.
+              </Text>
+            </Center>
+          </Stack>
         </Stack>
         <Center mt={5}>
           <Text textStyle={"Body/Small"}>

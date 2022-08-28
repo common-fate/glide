@@ -90,6 +90,31 @@ func (f *ProviderMap) Add(id string, feature Provider) error {
 	return nil
 }
 
+// GetIDForNewProvider returns an ID for a provider based on the following rules:
+//
+// 1. If the provider isn't used in the config, the default ID is returned (e.g. `aws-sso`).
+// 2. If the provider exists in the config, a numbered suffix is added to the default ID
+// (e.g. `aws-sso-2`). The numbers start at 2 and increment until an available ID is found.
+func (c Config) GetIDForNewProvider(defaultID string) string {
+	p := c.Deployment.Parameters.ProviderConfiguration
+	if _, ok := p[defaultID]; !ok {
+		// the default ID isn't used, so we can use that as our ID.
+		return defaultID
+	}
+
+	i := 2
+	for {
+		id := fmt.Sprintf("%s-%d", defaultID, i)
+
+		if _, ok := p[id]; !ok {
+			// the default ID isn't used, so we can use that as our ID.
+			return id
+		}
+
+		i++
+	}
+}
+
 type Provider struct {
 	Uses string            `yaml:"uses" json:"uses"`
 	With map[string]string `yaml:"with" json:"with"`

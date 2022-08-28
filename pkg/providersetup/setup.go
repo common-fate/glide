@@ -1,6 +1,8 @@
 package providersetup
 
 import (
+	"sort"
+
 	"github.com/common-fate/ddb"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
@@ -48,6 +50,7 @@ func (s *Setup) ToAPI() types.ProviderSetup {
 	ret := types.ProviderSetup{
 		Id:               s.ID,
 		Type:             s.ProviderType,
+		Version:          s.ProviderVersion,
 		Steps:            []types.ProviderSetupStepOverview{},
 		Status:           s.Status,
 		ConfigValues:     s.ConfigValues,
@@ -60,7 +63,17 @@ func (s *Setup) ToAPI() types.ProviderSetup {
 		})
 	}
 
-	for k, v := range s.ConfigValidation {
+	// sort the validation IDs so that they are returned in a
+	// consistent order to the client.
+	var validationIDs []string
+	for k := range s.ConfigValidation {
+		validationIDs = append(validationIDs, k)
+	}
+
+	sort.Strings(validationIDs)
+
+	for _, k := range validationIDs {
+		v := s.ConfigValidation[k]
 		validation := ahtypes.ProviderConfigValidation{
 			Id:              k,
 			Name:            v.Name,

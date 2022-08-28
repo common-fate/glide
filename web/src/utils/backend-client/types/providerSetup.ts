@@ -18,6 +18,8 @@ export interface ProviderSetup {
   id: string;
   /** The type of the Access Provider being set up. */
   type: string;
+  /** The version of the provider. */
+  version: string;
   /** The status of the setup process. */
   status: ProviderSetupStatus;
   /** An overview of the steps indicating whether they are complete. */

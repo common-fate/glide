@@ -105,5 +105,22 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 				return diagnostics.Info("AWS SSO returned %d users (more may exist, pagination has been ignored)", len(res.Users))
 			},
 		},
+		"assume-role": {
+			Name:            "Assume AWS SSO Access Role",
+			FieldsValidated: []string{"roleArn"},
+			Run: func(ctx context.Context) diagnostics.Logs {
+				return diagnostics.Info("Assumed Access Role successfully")
+			},
+		},
+		"describe-organization": {
+			Name: "Verify AWS organization access",
+			Run: func(ctx context.Context) diagnostics.Logs {
+				res, err := p.orgClient.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
+			},
+		},
 	}
 }
