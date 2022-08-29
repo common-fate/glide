@@ -1,7 +1,6 @@
 package identitysync
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -92,5 +91,5 @@ func (r IdentityProviderRegistry) GetIdentityProviderValue(key string) (opt stri
 			return value, nil
 		}
 	}
-	return "", errors.New(fmt.Sprintf("Invalid value: %s for IdentityProviderType in `granted-deployment.yml` ", key))
+	return "", fmt.Errorf("Invalid value: %s for IdentityProviderType in `granted-deployment.yml` ", key)
 }

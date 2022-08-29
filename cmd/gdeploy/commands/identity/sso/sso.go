@@ -141,6 +141,9 @@ func updateOrAddSSO(c *cli.Context, selectedIdpType string) error {
 
 	registry := identitysync.Registry()
 	idpType, idp, err := registry.FromCLIOption(selectedIdpType)
+	if err != nil {
+		return err
+	}
 
 	cfg := idp.IdentityProvider.Config()
 
