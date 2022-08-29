@@ -106,23 +106,64 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 		return err
 	}
 
-	_, err = p.client.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
-		InstanceArn:      aws.String(p.instanceARN.Get()),
-		PermissionSetArn: &a.PermissionSetARN,
-		PrincipalId:      user.UserId,
-		PrincipalType:    types.PrincipalTypeUser,
-		TargetId:         &a.AccountID,
-		TargetType:       types.TargetTypeAwsAccount,
+	// Attempt to initiate deletion of the permission set assignment.
+	// This process can fail if its done too soon after granting, though it shouldn't fail otherwise unless the permission set assignment no longer exists.
+	// in this case, there would be no access, but something has happened outside the control of the access handler
+	b := retry.NewFibonacci(time.Second)
+	b = retry.WithMaxDuration(time.Minute*1, b)
+	var deleteRes *ssoadmin.DeleteAccountAssignmentOutput
+	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+		deleteRes, err = p.client.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
+			InstanceArn:      aws.String(p.instanceARN.Get()),
+			PermissionSetArn: &a.PermissionSetARN,
+			PrincipalId:      user.UserId,
+			PrincipalType:    types.PrincipalTypeUser,
+			TargetId:         &a.AccountID,
+			TargetType:       types.TargetTypeAwsAccount,
+		})
+		// AWS SSO is eventually consistent, so if we try and revoke a grant quickly after it has
+		// been created we receive an error of type types.ConflictException.
+		// If this happens, we wrap the error in retry.RetryableError() to indicate that this error
+		// is temporary. The caller can try calling Revoke() again in future to revoke the access.
+		var conflictErr *types.ConflictException
+		if errors.As(err, &conflictErr) {
+			// mark the error as retryable
+			return retry.RetryableError(err)
+		}
+		// Any other errors, return the error and fail
+		if err != nil {
+			return err
+		}
+		return nil
 	})
+	if err != nil {
+		return err
+	}
 
-	// AWS SSO is eventually consistent, so if we try and revoke a grant quickly after it has
-	// been created we receive an error of type types.ConflictException.
-	// If this happens, we wrap the error in retry.RetryableError() to indicate that this error
-	// is temporary. The caller can try calling Revoke() again in future to revoke the access.
-	var conflictErr *types.ConflictException
-	if errors.As(err, &conflictErr) {
-		// mark the error as retryable
-		return retry.RetryableError(err)
+	// Wait for the deletion to be successful, if it is not successful, then return the failure reason.
+	// this ensures that we can alert when permissions are not removed.
+	b2 := retry.NewFibonacci(time.Second)
+	b2 = retry.WithMaxDuration(time.Minute*2, b2)
+	var status *ssoadmin.DescribeAccountAssignmentDeletionStatusOutput
+	err = retry.Do(ctx, b2, func(ctx context.Context) (err error) {
+		status, err = p.client.DescribeAccountAssignmentDeletionStatus(ctx, &ssoadmin.DescribeAccountAssignmentDeletionStatusInput{
+			AccountAssignmentDeletionRequestId: deleteRes.AccountAssignmentDeletionStatus.RequestId,
+			InstanceArn:                        aws.String("arn:aws:sso:::instance/ssoins-825968feece9a0b6"),
+		})
+		if err != nil {
+			return retry.RetryableError(err)
+		}
+		if status.AccountAssignmentDeletionStatus.Status == "IN_PROGRESS" {
+			return retry.RetryableError(errors.New("still in progress"))
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// if the assignment deletion was not successful, return the error and reason
+	if status.AccountAssignmentDeletionStatus.FailureReason != nil {
+		return fmt.Errorf("failed deleting account assignment: %s", *status.AccountAssignmentDeletionStatus.FailureReason)
 	}
 
 	return err
