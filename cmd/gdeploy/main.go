@@ -188,10 +188,7 @@ https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
 			}
 			if dc.Deployment.Account != "" {
 				// include the account id in the log message if available
-				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.", dc.Deployment.Account,
-					clio.LogMsg(`For more information see:
-https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
-				`))
+				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
 			}
 		}
 
