@@ -1,9 +1,11 @@
 package identitysync
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -28,11 +30,6 @@ type IdentityProviderRegistry struct {
 func Registry() IdentityProviderRegistry {
 	return IdentityProviderRegistry{
 		IdentityProviders: map[string]RegisteredIdentityProvider{
-			IDPTypeCognito: {
-				IdentityProvider: &CognitoSync{},
-				Description:      "Cognito",
-				DocsID:           "cognito",
-			},
 			IDPTypeOkta: {
 				IdentityProvider: &OktaSync{},
 				Description:      "Okta",
@@ -87,4 +84,13 @@ func (r IdentityProviderRegistry) FromCLIOption(opt string) (key string, p Regis
 		return "", RegisteredIdentityProvider{}, fmt.Errorf("couldn't find provider with key: %s", key)
 	}
 	return key, p, nil
+}
+
+func (r IdentityProviderRegistry) GetIdentityProviderValue(key string) (opt string, err error) {
+	for _, value := range r.CLIOptions() {
+		if strings.Contains(value, key) {
+			return value, nil
+		}
+	}
+	return "", errors.New(fmt.Sprintf("Invalid value: %s for IdentityProviderType in `granted-deployment.yml` ", key))
 }
