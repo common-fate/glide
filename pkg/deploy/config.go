@@ -205,6 +205,8 @@ func (c *Config) MakeIdentityTypeDefault(filepath string) error {
 	c.Deployment.Parameters.IdentityProviderType = ""
 	c.Deployment.Parameters.AdministratorGroupID = ""
 	c.Deployment.Parameters.IdentityConfiguration = nil
+	c.Deployment.Parameters.SamlSSOMetadataURL = ""
+	c.Deployment.Parameters.SamlSSOMetadata = ""
 
 	if err := c.Save(filepath); err != nil {
 		return err
