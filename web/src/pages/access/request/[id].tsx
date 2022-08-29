@@ -23,10 +23,11 @@ import {
   UseRadioGroupProps,
   Wrap,
 } from "@chakra-ui/react";
-import { addSeconds, format } from "date-fns";
+import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
+import Select from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
@@ -44,7 +45,6 @@ import {
 } from "../../../utils/backend-client/end-user/end-user";
 import { CreateRequestRequestBody } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
-
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -117,23 +117,6 @@ const Home = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   const durationSeconds = watch("timing.durationSeconds");
-  const readableDuration = useMemo(() => {
-    if (!durationSeconds) return "";
-    const durationHours = durationSeconds * 60 * 60;
-    if (when === "asap") {
-      return durationString(durationHours);
-    }
-    const endTime = addSeconds(new Date(startTimeDate), durationHours);
-
-    // avoid showing 'Invalid Date' text if the date can't be parsed properly
-    // (for example if the user just enters 'e' in the field).
-    const endTimeValid = endTime instanceof Date && !isNaN(endTime.getTime());
-    if (!endTimeValid) return "";
-
-    return `${durationString(
-      durationHours
-    )}, until ${endTime.toLocaleTimeString()}`;
-  }, [durationSeconds, startTimeDate, when]);
 
   useEffect(() => {
     const md = rule?.timeConstraints?.maxDurationSeconds;
@@ -164,6 +147,7 @@ const Home = () => {
         durationSeconds: duration,
       },
       reason: data.reason,
+      with: data.with,
     };
     if (data.when === "scheduled") {
       r.timing.startTime = new Date(data.startDateTime).toISOString();
@@ -232,6 +216,63 @@ const Home = () => {
 
             <Box mt={12}>
               <Stack spacing={10}>
+                {rule &&
+                  Object.entries(rule.target.withSelectable).map(
+                    ([k, v], i) => {
+                      const name = "with." + k;
+                      return (
+                        <FormControl
+                          key={"selectable-" + k}
+                          pos="relative"
+                          id={name}
+                          isInvalid={
+                            errors.with && errors.with[k] !== undefined
+                          }
+                        >
+                          <FormLabel
+                            textStyle="Body/Medium"
+                            fontWeight="normal"
+                          >
+                            {k}
+                          </FormLabel>
+
+                          <Controller
+                            name={`with.${k}`}
+                            control={control}
+                            render={({
+                              field: { value, onChange, ...rest },
+                            }) => (
+                              <Select
+                                isMulti={false}
+                                options={v
+                                  // exclude invalid options
+                                  .filter((op) => op.valid)
+                                  .map((op) => {
+                                    return op.option;
+                                  })}
+                                value={
+                                  v.find((op) => value === op.option.value)
+                                    ?.option
+                                }
+                                onChange={(val) => {
+                                  onChange(val?.value);
+                                }}
+                                {...rest}
+                              />
+                            )}
+                          />
+                          <FormHelperText color="neutrals.600" minH="17px">
+                            {isValidatingApprovers ? (
+                              <SkeletonText w="24ch" noOfLines={1} />
+                            ) : (
+                              getWhenHelperText(when, requiresApproval)
+                            )}
+                          </FormHelperText>
+                        </FormControl>
+                      );
+                    }
+                  )}
+
                 <FormControl
                   pos="relative"
                   id="when"

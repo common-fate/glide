@@ -169,6 +169,12 @@ paths:
           name: args
           description: the argument payload in JSON format
           required: true
+        - schema:
+            type: string
+          in: query
+          name: grantId
+          description: ID of the grant instructions
+          required: true
     parameters:
       - schema:
           type: string

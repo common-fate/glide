@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/iso8601"
 
 	"github.com/common-fate/ddb/ddbmock"
+	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	ah_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/granted-approvals/pkg/access"
@@ -66,6 +67,9 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: make(map[string]string),
+				},
 			},
 
 			wantRequest: &access.Request{
@@ -74,6 +78,7 @@ func TestCreateGrant(t *testing.T) {
 					Duration:  time.Minute,
 					StartTime: &now,
 				},
+
 				Grant: &access.Grant{
 					CreatedAt: clk.Now(),
 					UpdatedAt: clk.Now(),
@@ -115,6 +120,9 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 				Subject: "test@test.com",
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: make(map[string]string),
+				},
 			},
 
 			wantRequest: &access.Request{

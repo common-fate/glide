@@ -58,6 +58,11 @@ func (g *Grant) ToAPI() types.Grant {
 	return req
 }
 
+type Option struct {
+	Value string `json:"value" dynamodbav:"value"`
+	Label string `json:"label" dynamodbav:"label"`
+}
+
 type Request struct {
 	// ID is a read-only field after the request has been created.
 	ID string `json:"id" dynamodbav:"id"`
@@ -68,10 +73,13 @@ type Request struct {
 	// Rule is the ID of the Access Rule which the request relates to.
 	Rule string `json:"rule" dynamodbav:"rule"`
 	// RuleVersion is the version string of the rule that this request relates to
-	RuleVersion     string      `json:"ruleVersion" dynamodbav:"ruleVersion"`
-	Status          Status      `json:"status" dynamodbav:"status"`
-	Data            RequestData `json:"data" dynamodbav:"data"`
-	RequestedTiming Timing      `json:"requestedTiming" dynamodbav:"requestedTiming"`
+	RuleVersion string `json:"ruleVersion" dynamodbav:"ruleVersion"`
+	// SelectedWith stores a denormalised version of the option with a label at the time the request was created
+	// Allowing it to be easily displayed in the frontend for context and reducing latency on loading requests
+	SelectedWith    map[string]Option `json:"selectedWith"  dynamodbav:"selectedWith"`
+	Status          Status            `json:"status" dynamodbav:"status"`
+	Data            RequestData       `json:"data" dynamodbav:"data"`
+	RequestedTiming Timing            `json:"requestedTiming" dynamodbav:"requestedTiming"`
 	// When a request is approver, the approver has the option to override the timing, if they do so, this will be populated.
 	// If the timing was not overriden, then the original request timeing should be used.
 	// Override timing should only be set by an approving review
@@ -123,6 +131,16 @@ func (r *Request) ToAPI() types.Request {
 		Status:         types.RequestStatus(r.Status),
 		UpdatedAt:      r.UpdatedAt,
 		ApprovalMethod: r.ApprovalMethod,
+		SelectedWith: types.Request_SelectedWith{
+			AdditionalProperties: make(map[string]types.WithOption),
+		},
+	}
+
+	for k, v := range r.SelectedWith {
+		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
+			Label: v.Label,
+			Value: v.Value,
+		}
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -149,6 +167,16 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
+		SelectedWith: &types.RequestDetail_SelectedWith{
+			AdditionalProperties: make(map[string]types.WithOption),
+		},
+	}
+
+	for k, v := range r.SelectedWith {
+		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
+			Label: v.Label,
+			Value: v.Value,
+		}
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()

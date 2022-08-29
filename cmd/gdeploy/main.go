@@ -169,7 +169,10 @@ func RequireAWSCredentials() cli.BeforeFunc {
 		si.Writer = os.Stderr
 		si.Start()
 		defer si.Stop()
-		needCredentialsLog := clio.LogMsg("Please export valid AWS credentials to run this command.")
+		needCredentialsLog := clio.LogMsg(`Please export valid AWS credentials to run this command.
+For more information see:
+https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
+		`)
 		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
@@ -185,7 +188,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 			}
 			if dc.Deployment.Account != "" {
 				// include the account id in the log message if available
-				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.", dc.Deployment.Account)
+				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
 			}
 		}
 

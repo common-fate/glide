@@ -10,6 +10,7 @@ import type { RequestTiming } from './requestTiming';
 import type { AccessRule } from './accessRule';
 import type { Grant } from './grant';
 import type { ApprovalMethod } from './approvalMethod';
+import type { RequestDetailSelectedWith } from './requestDetailSelectedWith';
 
 /**
  * A request to access something made by an end user in Granted.
@@ -27,4 +28,5 @@ export interface RequestDetail {
   /** true if the requesting user is a reviewer of this request. */
   canReview: boolean;
   approvalMethod?: ApprovalMethod;
+  selectedWith?: RequestDetailSelectedWith;
 }

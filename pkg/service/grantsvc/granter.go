@@ -134,13 +134,18 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 		Id:       opts.Request.ID,
 		Provider: opts.AccessRule.Target.ProviderID,
 		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: opts.AccessRule.Target.With,
+			AdditionalProperties: make(map[string]string),
 		},
 		Subject: openapi_types.Email(q.Result.Email),
 		Start:   iso8601.New(start),
 		End:     iso8601.New(end),
 	}
-
+	for k, v := range opts.AccessRule.Target.With {
+		req.With.AdditionalProperties[k] = v
+	}
+	for k, v := range opts.Request.SelectedWith {
+		req.With.AdditionalProperties[k] = v.Value
+	}
 	res, err := g.AHClient.PostGrantsWithResponse(ctx, req)
 	if err != nil {
 		return nil, err

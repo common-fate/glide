@@ -43,7 +43,7 @@ type ArgOptioner interface {
 // Instructioners provide instructions on how a user can access a role or
 // resource that we've granted access to
 type Instructioner interface {
-	Instructions(ctx context.Context, subject string, args []byte) (string, error)
+	Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error)
 }
 
 // Typers can provide a custom type based on the provider's configuration.

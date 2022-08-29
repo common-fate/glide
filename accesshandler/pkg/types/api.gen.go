@@ -172,6 +172,9 @@ type GetAccessInstructionsParams struct {
 
 	// the argument payload in JSON format
 	Args string `form:"args" json:"args"`
+
+	// ID of the grant instructions
+	GrantId string `form:"grantId" json:"grantId"`
 }
 
 // PostGrantsJSONRequestBody defines body for PostGrants for application/json ContentType.
@@ -766,6 +769,18 @@ func NewGetAccessInstructionsRequest(server string, providerId string, params *G
 	}
 
 	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, params.Args); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "grantId", runtime.ParamLocationQuery, params.GrantId); err != nil {
 		return nil, err
 	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 		return nil, err
@@ -1888,6 +1903,20 @@ func (siw *ServerInterfaceWrapper) GetAccessInstructions(w http.ResponseWriter, 
 		return
 	}
 
+	// ------------- Required query parameter "grantId" -------------
+	if paramValue := r.URL.Query().Get("grantId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "grantId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "grantId", r.URL.Query(), &params.GrantId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "grantId", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetAccessInstructions(w, r, providerId, params)
 	}
@@ -2142,10 +2171,10 @@ var swaggerSpec = []string{
 	"VcJbr2e+afVS26DXgOOH8us8Wg1a8xSM7ZP5Wn2xJDzqhVTjZPQsk25nySHLHUwOvgd5oJXyhps7iawn",
 	"V9W2/7p0tdGTY9fN2elevw1715WdratAe7leXy9hGVuy2turq3OyN5mQs3eu+GTkM54oy1tGnNq5fuwe",
 	"YiMJ9hjrH/RJ0Aux3ju+R2uGMim+0u0+WFk/3BaglrVT6vbQ9h4J+vYs/49AcrZMJbMp99+XZx98d3Jg",
-	"e6Zi/bXFyzeLtR5jPxJ1T0nZT4nVtajzh6a2nN85ANGNm4oDRIlFxKXdirgqyreCFmVBV+JI+//0cN26",
-	"8x0k4VmJpGeAY8uT9h+AcdFMviH8R/D9+IGpGH80/mE1XKmgm2XeR7ut/28NFzH138+eVM/1/Hvt+3m1",
-	"VbdYt5Y2/JZ+DXoXs078SnygMrb4diLW/cHpeJzKkKWJ1GZ6NDnao0jevtJ9aB1gUdfqSVkDrz6tfg8A",
-	"AP//QRW4KoQoAAA=",
+	"e6Zi/by96/K+7Iu2bNW36ROLpm8W4z1OfiTan1IqPIUj1qLdH9bacn7nwEf4bCpKEBsWiZd2K+KqN9+C",
+	"WpSFZIlf7f9LxHXrrnmQ/Gclgp8Bji1P+H8Apkcz+Ub0H8H34wemYvzR+GfXcIWEbpZ5H923/jc2XDzV",
+	"f3t7Uh3Z86+57+fVVr1k3Vra8Fv6NehdzDrxK/GBytii34lY9yWn43EqQ5YmUpvp0eRojyJ5+wr7oZUD",
+	"UNfqSVl7rz6tfg8AAP//blSPiPwoAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

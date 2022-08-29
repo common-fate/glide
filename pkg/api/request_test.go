@@ -50,7 +50,7 @@ func TestUserCreateRequest(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusCreated,
-			wantBody: `{"accessRule":{"id":"rul_123","version":"0001-01-01T00:00:00Z"},"id":"123","requestedAt":"0001-01-01T00:00:00Z","requestor":"testuser","status":"PENDING","timing":{"durationSeconds":10},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"id":"rul_123","version":"0001-01-01T00:00:00Z"},"id":"123","requestedAt":"0001-01-01T00:00:00Z","requestor":"testuser","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":10},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:     "no duration",
@@ -219,7 +219,7 @@ func TestUserGetRequest(t *testing.T) {
 			},
 			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
 			// canReview is false in the response
-			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:     "reviewer can see request they can review",
@@ -240,7 +240,7 @@ func TestUserGetRequest(t *testing.T) {
 				RuleVersion: "efgh",
 			}},
 			// note canReview is true in the response
-			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"canReview":true,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"canReview":true,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:              "noRequestFound",
@@ -328,7 +328,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:       "ok requestor with status",
@@ -341,7 +341,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:         "ok reviewer",
@@ -354,7 +354,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:         "ok requestor with status",
@@ -368,7 +368,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:           "internal error user",
