@@ -23,7 +23,7 @@ func TestIntegration(t *testing.T) {
 	}
 
 	var f fixtures.Fixtures
-	err := providertest.LoadFixture(ctx, "aws_sso", &f)
+	err := providertest.LoadFixture(ctx, "aws_sso_v2", &f)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	integration.RunTests(t, ctx, "aws_sso", &Provider{}, testcases, integration.WithProviderConfig(configMap["aws_sso"]))
+	integration.RunTests(t, ctx, "aws_sso_v2", &Provider{}, testcases, integration.WithProviderConfig(configMap["aws_sso_v2"]))
 }
 
 func TestArgSchema(t *testing.T) {

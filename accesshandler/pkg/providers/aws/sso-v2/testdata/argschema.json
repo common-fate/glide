@@ -1,14 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso/args",
+  "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2/args",
   "$ref": "#/$defs/Args",
   "$defs": {
     "Args": {
       "properties": {
-        "permissionSetArn": {
-          "type": "string",
-          "title": "Permission Set"
-        },
+        "permissionSetArn": { "type": "string", "title": "Permission Set" },
         "accountId": { "type": "string", "title": "Account" }
       },
       "additionalProperties": false,
