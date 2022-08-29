@@ -240,43 +240,39 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 			},
 		}
 	}
-	if !(request.With == nil && rule.Target.WithSelectable == nil) {
-		if request.With != nil && rule.Target.WithSelectable != nil {
-			if len(request.With.AdditionalProperties) != len(rule.Target.WithSelectable) {
-				return &apio.APIError{
-					Err:    errors.New("request validation failed"),
-					Status: http.StatusBadRequest,
-					Fields: []apio.FieldError{
-						{
-							Field: "with",
-							Error: "unexpected with values",
-						},
-					},
-				}
-			}
-			for arg, options := range rule.Target.WithSelectable {
-				value, ok := request.With.AdditionalProperties[arg]
-				if !ok || !contains(options, value) {
-					return &apio.APIError{
-						Err:    errors.New("request validation failed"),
-						Status: http.StatusBadRequest,
-						Fields: []apio.FieldError{
-							{
-								Field: "with",
-								Error: fmt.Sprintf("unexpected with value for %s", arg),
-							},
-						},
-					}
-				}
-			}
-		} else {
+	given := types.CreateRequestWith{AdditionalProperties: make(map[string]string)}
+	expected := make(map[string][]string)
+
+	if request.With != nil {
+		given = *request.With
+	}
+	if rule.Target.WithSelectable != nil {
+		expected = rule.Target.WithSelectable
+	}
+
+	if len(given.AdditionalProperties) != len(expected) {
+		return &apio.APIError{
+			Err:    errors.New("request validation failed"),
+			Status: http.StatusBadRequest,
+			Fields: []apio.FieldError{
+				{
+					Field: "with",
+					Error: "unexpected with values",
+				},
+			},
+		}
+	}
+
+	for arg, options := range expected {
+		value, ok := given.AdditionalProperties[arg]
+		if !ok || !contains(options, value) {
 			return &apio.APIError{
 				Err:    errors.New("request validation failed"),
 				Status: http.StatusBadRequest,
 				Fields: []apio.FieldError{
 					{
 						Field: "with",
-						Error: "unexpected with values",
+						Error: fmt.Sprintf("unexpected with value for %s", arg),
 					},
 				},
 			}
