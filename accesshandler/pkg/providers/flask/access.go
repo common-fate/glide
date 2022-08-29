@@ -132,7 +132,7 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 	return err
 }
 
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte) (string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
 
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
@@ -146,7 +146,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, "")
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, grantId)
 	i += "```\n"
 	// i += "# K8s \n"
 	// i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
