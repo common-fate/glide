@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
@@ -113,6 +115,22 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 	})
 	if err != nil {
 		return err
+	}
+	log.Info("Ending SSO session", aws.String(p.instanceARN.Get()))
+	defaultCfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Info("loading config failed")
+	}
+
+	client := ssm.NewFromConfig(defaultCfg)
+
+	input := ssm.TerminateSessionInput{
+		// Correct way to obtain sessionId?
+		SessionId: &permissionSetName,
+	}
+	_, err = client.TerminateSession(ctx, &input)
+	if err != nil {
+		log.Info("failed to terminate session")
 	}
 
 	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
