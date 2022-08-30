@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"k8s.io/client-go/kubernetes"
@@ -59,65 +60,14 @@ func (p *Provider) Config() gconfig.Config {
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-	// using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
-	ssoCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-		defaultCfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		stsclient := sts.NewFromConfig(defaultCfg)
-		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
-			RoleArn:         aws.String(p.ssoRoleARN.Get()),
-			RoleSessionName: aws.String("accesshandler-eks-roles-sso"),
-			DurationSeconds: aws.Int32(15 * 60),
-		})
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		return aws.Credentials{
-			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
-			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
-			SessionToken:    aws.ToString(res.Credentials.SessionToken),
-			CanExpire:       res.Credentials.Expiration != nil,
-			Expires:         aws.ToTime(res.Credentials.Expiration),
-		}, nil
-	}))
-	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()))
+	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-eks-roles-sso"))))
 	if err != nil {
 		return err
 	}
-	ssoCfg.Credentials = ssoCredentialCache
-
-	// using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
-	eksCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-		defaultCfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		stsclient := sts.NewFromConfig(defaultCfg)
-		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
-			RoleArn:         aws.String(p.clusterAccessRoleARN.Get()),
-			RoleSessionName: aws.String("accesshandler-eks-roles-sso"),
-			DurationSeconds: aws.Int32(15 * 60),
-		})
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		return aws.Credentials{
-			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
-			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
-			SessionToken:    aws.ToString(res.Credentials.SessionToken),
-			CanExpire:       res.Credentials.Expiration != nil,
-			Expires:         aws.ToTime(res.Credentials.Expiration),
-		}, nil
-	}))
-
-	eksCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.clusterRegion.Get()))
+	eksCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.clusterRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.clusterAccessRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-eks-roles-sso"))))
 	if err != nil {
 		return err
 	}
-	eksCfg.Credentials = eksCredentialCache
-
 	eksClient := eks.NewFromConfig(eksCfg)
 	r, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: aws.String(p.clusterName.Get())})
 	if err != nil {

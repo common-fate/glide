@@ -19,8 +19,9 @@ type GeneratorDestroyer interface {
 
 var FixtureRegistry = map[string]GeneratorDestroyer{
 	"aws_sso": &ssof.Generator{},
-	"okta":    &oktaf.Generator{},
-	"azure":   &adf.Generator{},
+
+	"okta":  &oktaf.Generator{},
+	"azure": &adf.Generator{},
 }
 
 func LookupGenerator(name string) (GeneratorDestroyer, error) {
