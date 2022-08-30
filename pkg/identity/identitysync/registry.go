@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/fatih/color"
 )
@@ -83,13 +82,4 @@ func (r IdentityProviderRegistry) FromCLIOption(opt string) (key string, p Regis
 		return "", RegisteredIdentityProvider{}, fmt.Errorf("couldn't find provider with key: %s", key)
 	}
 	return key, p, nil
-}
-
-func (r IdentityProviderRegistry) GetIdentityProviderValue(key string) (opt string, err error) {
-	for _, value := range r.CLIOptions() {
-		if strings.Contains(value, key) {
-			return value, nil
-		}
-	}
-	return "", fmt.Errorf("Invalid value: %s for IdentityProviderType in `granted-deployment.yml` ", key)
 }
