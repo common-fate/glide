@@ -22,6 +22,7 @@ import (
 var MigrateCommand = cli.Command{
 	Name:        "migrate",
 	Description: "migrate from config version 1 to config version 2",
+	Usage:       "migrate from config version 1 to config version 2",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		file := c.String("file")

@@ -5,8 +5,10 @@ import (
 )
 
 var Command = cli.Command{
-	Name:   "release",
-	Action: cli.ShowSubcommandHelp,
+	Name:        "release",
+	Description: "Check or update your deployment release version",
+	Usage:       "Check or update your deployment release version",
+	Action:      cli.ShowSubcommandHelp,
 	Subcommands: []*cli.Command{
 		&getCommand,
 		&setCommand,

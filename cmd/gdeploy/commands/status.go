@@ -9,6 +9,7 @@ import (
 var StatusCommand = cli.Command{
 	Name:        "status",
 	Description: "Check the status of a Granted deployment",
+	Usage:       "Check the status of a Granted deployment",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
