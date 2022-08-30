@@ -41,8 +41,8 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 		return err
 	}
 
-	res, err := p.client.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
-		InstanceArn:      aws.String(p.instanceARN.Get()),
+	res, err := p.SSO.Clients.SSOAdminClient.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
+		InstanceArn:      aws.String(p.SSO.Config.InstanceARN.Get()),
 		PermissionSetArn: &a.PermissionSetARN,
 		PrincipalType:    types.PrincipalTypeUser,
 		PrincipalId:      user.UserId,
@@ -62,9 +62,9 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	b = retry.WithMaxDuration(time.Minute*2, b)
 	var statusRes *ssoadmin.DescribeAccountAssignmentCreationStatusOutput
 	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
-		statusRes, err = p.client.DescribeAccountAssignmentCreationStatus(ctx, &ssoadmin.DescribeAccountAssignmentCreationStatusInput{
+		statusRes, err = p.SSO.Clients.SSOAdminClient.DescribeAccountAssignmentCreationStatus(ctx, &ssoadmin.DescribeAccountAssignmentCreationStatusInput{
 			AccountAssignmentCreationRequestId: res.AccountAssignmentCreationStatus.RequestId,
-			InstanceArn:                        aws.String(p.instanceARN.Get()),
+			InstanceArn:                        aws.String(p.SSO.Config.InstanceARN.Get()),
 		})
 		if err != nil {
 			return retry.RetryableError(err)
@@ -113,8 +113,8 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	b = retry.WithMaxDuration(time.Minute*1, b)
 	var deleteRes *ssoadmin.DeleteAccountAssignmentOutput
 	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
-		deleteRes, err = p.client.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
-			InstanceArn:      aws.String(p.instanceARN.Get()),
+		deleteRes, err = p.SSO.Clients.SSOAdminClient.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
+			InstanceArn:      aws.String(p.SSO.Config.InstanceARN.Get()),
 			PermissionSetArn: &a.PermissionSetARN,
 			PrincipalId:      user.UserId,
 			PrincipalType:    types.PrincipalTypeUser,
@@ -146,7 +146,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	b2 = retry.WithMaxDuration(time.Minute*2, b2)
 	var status *ssoadmin.DescribeAccountAssignmentDeletionStatusOutput
 	err = retry.Do(ctx, b2, func(ctx context.Context) (err error) {
-		status, err = p.client.DescribeAccountAssignmentDeletionStatus(ctx, &ssoadmin.DescribeAccountAssignmentDeletionStatusInput{
+		status, err = p.SSO.Clients.SSOAdminClient.DescribeAccountAssignmentDeletionStatus(ctx, &ssoadmin.DescribeAccountAssignmentDeletionStatusInput{
 			AccountAssignmentDeletionRequestId: deleteRes.AccountAssignmentDeletionStatus.RequestId,
 			InstanceArn:                        aws.String("arn:aws:sso:::instance/ssoins-825968feece9a0b6"),
 		})
@@ -187,9 +187,9 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 
 	// keep calling the API to iterate through the pages.
 	for !done {
-		res, err := p.client.ListAccountAssignments(ctx, &ssoadmin.ListAccountAssignmentsInput{
+		res, err := p.SSO.Clients.SSOAdminClient.ListAccountAssignments(ctx, &ssoadmin.ListAccountAssignmentsInput{
 			AccountId:        &a.AccountID,
-			InstanceArn:      aws.String(p.instanceARN.Get()),
+			InstanceArn:      aws.String(p.SSO.Config.InstanceARN.Get()),
 			PermissionSetArn: &a.PermissionSetARN,
 			NextToken:        nextToken,
 		})
@@ -218,8 +218,8 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 
 // getUser retrieves the AWS SSO user from a provided email address.
 func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, error) {
-	res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
-		IdentityStoreId: aws.String(p.identityStoreID.Get()),
+	res, err := p.SSO.Clients.IdentityStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+		IdentityStoreId: aws.String(p.SSO.Config.IdentityStoreID.Get()),
 		Filters: []idtypes.Filter{{
 			AttributePath:  aws.String("UserName"),
 			AttributeValue: aws.String(email),
@@ -244,20 +244,20 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	if err != nil {
 		return "", err
 	}
-	po, err := p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-		InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(a.PermissionSetARN),
+	po, err := p.SSO.Clients.SSOAdminClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+		InstanceArn: aws.String(p.SSO.Config.InstanceARN.Get()), PermissionSetArn: aws.String(a.PermissionSetARN),
 	})
 	if err != nil {
 		return "", err
 	}
-	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
+	url := fmt.Sprintf("https://%s.awsapps.com/start", p.SSO.Config.IdentityStoreID.Get())
 
 	i := "# Browser\n"
 	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.region.Get(), a.AccountID, aws.ToString(po.PermissionSet.Name))
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.SSO.Config.Region.Get(), a.AccountID, aws.ToString(po.PermissionSet.Name))
 	i += "```\n"
 	return i, nil
 }

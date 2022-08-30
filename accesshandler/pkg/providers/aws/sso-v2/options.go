@@ -31,8 +31,8 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 		var nextToken *string
 
 		for hasMore {
-			o, err := p.client.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
-				InstanceArn: aws.String(p.instanceARN.Get()),
+			o, err := p.SSO.Clients.SSOAdminClient.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
+				InstanceArn: aws.String(p.SSO.Config.InstanceARN.Get()),
 				NextToken:   nextToken,
 			})
 			if err != nil {
@@ -47,8 +47,8 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 				ARNCopy := ARN
 
 				g.Go(func() error {
-					po, err := p.client.DescribePermissionSet(gctx, &ssoadmin.DescribePermissionSetInput{
-						InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(ARNCopy),
+					po, err := p.SSO.Clients.SSOAdminClient.DescribePermissionSet(gctx, &ssoadmin.DescribePermissionSetInput{
+						InstanceArn: aws.String(p.SSO.Config.InstanceARN.Get()), PermissionSetArn: aws.String(ARNCopy),
 					})
 					if err != nil {
 						return err
@@ -86,7 +86,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 		hasMore := true
 		var nextToken *string
 		for hasMore {
-			o, err := p.orgClient.ListAccounts(ctx, &organizations.ListAccountsInput{
+			o, err := p.SSO.Clients.OrganisationsClient.ListAccounts(ctx, &organizations.ListAccountsInput{
 				NextToken: nextToken,
 			})
 			if err != nil {

@@ -29,8 +29,8 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 
 	// the user should exist in AWS SSO.
 	g.Go(func() error {
-		res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
-			IdentityStoreId: aws.String(p.identityStoreID.Get()),
+		res, err := p.SSO.Clients.IdentityStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+			IdentityStoreId: aws.String(p.SSO.Config.IdentityStoreID.Get()),
 			Filters: []types.Filter{{
 				AttributePath:  aws.String("UserName"),
 				AttributeValue: aws.String(subject),
@@ -51,8 +51,8 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 
 	// the permission set should exist.
 	g.Go(func() error {
-		_, err = p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-			InstanceArn:      aws.String(p.instanceARN.Get()),
+		_, err = p.SSO.Clients.SSOAdminClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+			InstanceArn:      aws.String(p.SSO.Config.InstanceARN.Get()),
 			PermissionSetArn: &a.PermissionSetARN,
 		})
 		if err != nil {
@@ -70,7 +70,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 }
 
 func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) error {
-	_, err := p.orgClient.DescribeAccount(ctx, &organizations.DescribeAccountInput{
+	_, err := p.SSO.Clients.OrganisationsClient.DescribeAccount(ctx, &organizations.DescribeAccountInput{
 		AccountId: &accountID,
 	})
 	var anf *orgtypes.AccountNotFoundException
