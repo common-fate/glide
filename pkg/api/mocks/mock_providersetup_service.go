@@ -8,6 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
+	providerregistry "github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	deploy "github.com/common-fate/granted-approvals/pkg/deploy"
 	providersetup "github.com/common-fate/granted-approvals/pkg/providersetup"
 	types "github.com/common-fate/granted-approvals/pkg/types"
 	gomock "github.com/golang/mock/gomock"
@@ -52,16 +54,16 @@ func (mr *MockProviderSetupServiceMockRecorder) CompleteStep(arg0, arg1, arg2, a
 }
 
 // Create mocks base method.
-func (m *MockProviderSetupService) Create(arg0 context.Context, arg1 string) (*providersetup.Setup, error) {
+func (m *MockProviderSetupService) Create(arg0 context.Context, arg1 string, arg2 deploy.ProviderMap, arg3 providerregistry.ProviderRegistry) (*providersetup.Setup, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*providersetup.Setup)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockProviderSetupServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockProviderSetupServiceMockRecorder) Create(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProviderSetupService)(nil).Create), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProviderSetupService)(nil).Create), arg0, arg1, arg2, arg3)
 }

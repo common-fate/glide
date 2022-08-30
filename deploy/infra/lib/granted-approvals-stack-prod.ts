@@ -136,6 +136,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: providerConfig.valueAsString,
     });
+
     const appBackend = new AppBackend(this, "API", {
       appName,
       userPool: webUserPool,

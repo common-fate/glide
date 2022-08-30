@@ -3,7 +3,6 @@ package psetupsvc
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
@@ -22,34 +21,18 @@ type Service struct {
 }
 
 var (
-	ErrProviderTypeNotFound  = errors.New("provider type not found")
 	ErrProviderSetupNotFound = errors.New("provider setup not found")
 )
 
 // Create a new provider setup.
 // Checks that the provider type matches one in our registry.
 func (s *Service) Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error) {
-	providerVersions, ok := r.Providers[providerType]
-	if !ok {
-		return nil, ErrProviderTypeNotFound
-	}
 
-	// this is a bit of a hack - it's difficult to compare provider versions
-	// with our current versioning schema as there is no easy way to determine
-	// what the 'latest' version is.
-	if len(providerVersions) > 1 {
-		// multiple versions for a given provider are not yet handled by this service.
-		return nil, fmt.Errorf("provider %s has multiple versions", providerType)
+	// find the latest version of provider from our registry
+	version, reg, err := r.GetLatestByType(providerType)
+	if err != nil {
+		return nil, err
 	}
-
-	// this is also a bit hacky - ideally we can call a method to find out the latest version.
-	var version string
-	for versions := range providerVersions {
-		version = versions
-	}
-
-	// find the provider from our registry
-	reg := providerVersions[version]
 
 	// We need to derive an ID for the provider we're going to set up.
 	// Provider IDs are short strings like 'aws-sso'.
@@ -73,7 +56,7 @@ func (s *Service) Create(ctx context.Context, providerType string, existingProvi
 		Type: providerType,
 	}
 
-	_, err := s.DB.Query(ctx, &q)
+	_, err = s.DB.Query(ctx, &q)
 	if err != nil {
 		return nil, err
 	}

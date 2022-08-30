@@ -1,6 +1,7 @@
 package providerregistry
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -14,6 +15,11 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
+	"github.com/hashicorp/go-version"
+)
+
+var (
+	ErrProviderTypeNotFound = errors.New("provider type not found")
 )
 
 type ProviderRegistry struct {
@@ -64,7 +70,7 @@ func Registry() ProviderRegistry {
 				},
 			},
 			"commonfate/aws-eks-roles-sso": {
-				"v1alpha1": {
+				"v1-alpha1": {
 					Provider:    &eksrolessso.Provider{},
 					DefaultID:   "aws-eks-roles-sso",
 					Description: "AWS EKS Roles SSO",
@@ -103,6 +109,28 @@ func (r ProviderRegistry) Lookup(providerType, version string) (*RegisteredProvi
 	}
 
 	return &p, nil
+}
+
+// GetLatestByType gets the latest version of a particular provider by it's type.
+func (r ProviderRegistry) GetLatestByType(providerType string) (latestVersion string, p *RegisteredProvider, err error) {
+	providerVersions, ok := r.Providers[providerType]
+	if !ok {
+		return "", nil, ErrProviderTypeNotFound
+	}
+
+	var latest = &version.Version{}
+	for k := range providerVersions {
+		ver, err := version.NewVersion(k)
+		if err != nil {
+			return "", nil, err
+		}
+		if ver.GreaterThan(latest) {
+			latest = ver
+			latestVersion = k
+		}
+	}
+	pv := providerVersions[latestVersion]
+	return latestVersion, &pv, nil
 }
 
 func parseUses(uses string) (providerType string, version string, err error) {

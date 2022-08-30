@@ -6,11 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -120,32 +117,96 @@ func TestProvidersHaveNoPublicAttributes(t *testing.T) {
 	}
 }
 
-// TestSetupDocs tests that the setup documentation is valid for all
+// TestGetLatestByType tests that the setup documentation is valid for all
 // providers that implement SetupDocs()
-func TestSetupDocs(t *testing.T) {
-	for _, tc := range Registry().All() {
-		t.Run(tc.DefaultID, func(t *testing.T) {
-			sd, ok := tc.Provider.(providers.SetupDocer)
-			if !ok {
-				t.Skip("provider does not implement SetupDocs()")
-			}
+func TestGetLatestByType(t *testing.T) {
+	type testcase struct {
+		name         string
+		give         ProviderRegistry
+		providerType string
+		want         *RegisteredProvider
+		wantVersion  string
+		wantErr      error
+	}
 
-			var cfg gconfig.Config
+	testcases := []testcase{
+		{
+			name: "ok",
+			give: ProviderRegistry{
+				Providers: map[string]map[string]RegisteredProvider{
+					"test": {
+						"v1": {
+							DefaultID: "testing",
+						},
+					},
+				},
+			},
+			providerType: "test",
+			want: &RegisteredProvider{
+				DefaultID: "testing",
+			},
+			wantVersion: "v1",
+		},
+		{
+			name: "multiple versions",
+			give: ProviderRegistry{
+				Providers: map[string]map[string]RegisteredProvider{
+					"test": {
+						"v1": {
+							DefaultID: "testing",
+						},
+						"v2": {
+							DefaultID: "secondversion",
+						},
+					},
+				},
+			},
+			providerType: "test",
+			want: &RegisteredProvider{
+				DefaultID: "secondversion",
+			},
+			wantVersion: "v2",
+		},
+		{
+			name: "alpha version",
+			give: ProviderRegistry{
+				Providers: map[string]map[string]RegisteredProvider{
+					"test": {
+						"v1alpha1": {
+							DefaultID: "alpha",
+						},
+						"v1": {
+							DefaultID: "release",
+						},
+					},
+				},
+			},
+			providerType: "test",
+			want: &RegisteredProvider{
+				DefaultID: "release",
+			},
+			wantVersion: "v1",
+		},
+		{
+			name: "invalid verison",
+			give: ProviderRegistry{
+				Providers: map[string]map[string]RegisteredProvider{
+					"test": {
+						"somethingelse": {},
+					},
+				},
+			},
+			providerType: "test",
+			wantErr:      errors.New("Malformed version: somethingelse"),
+		},
+	}
 
-			// grab the config from the provider, if it supports it
-			if configer, ok := tc.Provider.(gconfig.Configer); ok {
-				cfg = configer.Config()
-			}
-
-			// run with empty template data as we just want to see whether
-			// the setup docs will parse properly, we're not interested in the
-			// exact output.
-			td := psetup.TemplateData{}
-
-			_, err := psetup.ParseDocsFS(sd.SetupDocs(), cfg, td)
-			if err != nil {
-				t.Fatal(err)
-			}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			ver, got, err := tc.give.GetLatestByType(tc.providerType)
+			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.wantVersion, ver)
+			assert.Equal(t, tc.wantErr, err)
 		})
 	}
 }
