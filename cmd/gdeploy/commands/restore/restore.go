@@ -14,6 +14,7 @@ import (
 var Command = cli.Command{
 	Name:        "restore",
 	Description: "Restore active Granted Approvals table from an existing backup",
+	Usage:       "Restore active Granted Approvals table from an existing backup",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically continue without asking for confirmation"},
 		&cli.StringFlag{Name: "arn", Usage: "The ARN of the backup to restore"},

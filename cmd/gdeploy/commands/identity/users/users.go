@@ -13,7 +13,7 @@ import (
 
 var UsersCommand = cli.Command{
 	Name:        "users",
-	Subcommands: []*cli.Command{&createCommand, &syncCommand},
+	Subcommands: []*cli.Command{&createCommand},
 	Action:      cli.ShowSubcommandHelp,
 }
 

@@ -4,6 +4,8 @@ import "github.com/urfave/cli/v2"
 
 var Command = cli.Command{
 	Name:        "logs",
+	Description: "Monitor Granted deployment logs",
+	Usage:       "Monitor Granted deployment logs",
 	Action:      cli.ShowSubcommandHelp,
 	Subcommands: []*cli.Command{&getCommand, &watchCommand},
 }
