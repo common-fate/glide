@@ -14,6 +14,6 @@ export interface ProviderConfigField {
   isOptional: boolean;
   /** Whether or not the config field is a secret (like an API key or a password) */
   isSecret: boolean;
-  /** the path to where the secret will be stored, in a secrets manager like AWS SSM Paramater Store. */
+  /** the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store. */
   secretPath?: string;
 }

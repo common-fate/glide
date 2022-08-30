@@ -240,7 +240,7 @@ func TestGetIDForNewProvider(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := tc.give.GetIDForNewProvider(tc.giveID)
+			got := tc.give.Deployment.Parameters.ProviderConfiguration.GetIDForNewProvider(tc.giveID)
 			assert.Equal(t, tc.want, got)
 		})
 	}

@@ -12,11 +12,13 @@ import {
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  Badge,
   Box,
   Button,
   Center,
   Circle,
   CircularProgress,
+  Code,
   Container,
   Flex,
   FormControl,
@@ -26,13 +28,22 @@ import {
   HStack,
   IconButton,
   Input,
+  InputGroup,
+  InputRightElement,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
   Spinner,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Link, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
 import { Sticky, StickyContainer } from "react-sticky";
@@ -204,7 +215,7 @@ const Page = () => {
                 setupId={id}
                 step={step}
                 index={index}
-                complete={data.steps[index].complete}
+                complete={data.steps[index]?.complete}
               />
             ))}
           </Accordion>
@@ -421,7 +432,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const { mutate } = useGetProvidersetup(setupId);
-  const { register, handleSubmit } = useForm<Record<string, string>>({
+  const { control, handleSubmit } = useForm<Record<string, string>>({
     defaultValues: configValues,
   });
 
@@ -431,7 +442,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
       complete: true,
       configValues: data,
     });
-    void mutate(res);
+    await mutate(res);
     setLoading(false);
     onComplete?.();
   };
@@ -503,14 +514,40 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                   {step.configFields.length > 0 && (
                     <Stack>
                       {readOnly !== true && <Text>Enter your values</Text>}
-                      {step.configFields.map((field) => (
+                      {step.configFields.map((f) => (
                         <FormControl
                           isReadOnly={readOnly}
-                          isRequired={!field.isOptional}
-                          key={field.id}
+                          isRequired={!f.isOptional}
+                          key={f.id}
                         >
-                          <FormLabel>{field.name}</FormLabel>
-                          <Input bg="white" {...register(field.id)} />
+                          <FormLabel>
+                            {f.name}{" "}
+                            {f.isSecret && (
+                              <Popover>
+                                <PopoverTrigger>
+                                  <Badge as="button">Secret</Badge>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                  <PopoverArrow />
+                                  <PopoverCloseButton />
+                                  <PopoverHeader>Sensitive value</PopoverHeader>
+                                  <PopoverBody>
+                                    This value will be written to{" "}
+                                    <Code>{f.secretPath}</Code>
+                                  </PopoverBody>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </FormLabel>
+                          <Controller
+                            control={control}
+                            name={f.id}
+                            render={({ field }) => {
+                              return (
+                                <SecretInput isSecret={f.isSecret} {...field} />
+                              );
+                            }}
+                          />
                         </FormControl>
                       ))}
                     </Stack>
@@ -536,6 +573,58 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
         </Grid>
       </AccordionPanel>
     </AccordionItem>
+  );
+};
+
+interface SecretInputProps {
+  onChange: (n: string) => void;
+  value?: string;
+  defaultValue?: string;
+  isSecret: boolean;
+  ref: React.LegacyRef<HTMLInputElement>;
+}
+
+export const SecretInput: React.FC<SecretInputProps> = ({
+  onChange,
+  value,
+  defaultValue,
+  ref,
+  isSecret,
+}) => {
+  const [locked, setLocked] = useState(
+    // we assume anything that starts with awsssm:// is a reference to a secret, rather than a secret itself.
+    isSecret && value?.startsWith("awsssm://")
+  );
+  useEffect(() => {
+    if (!locked && isSecret) {
+      onChange("");
+    }
+  }, [locked, isSecret]);
+
+  return (
+    <InputGroup size="md">
+      <Input
+        ref={ref}
+        pr={locked ? "4.5rem" : undefined}
+        bg="white"
+        defaultValue={defaultValue}
+        isReadOnly={locked}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {locked && (
+        <InputRightElement width="4.5rem">
+          <Button
+            variant={"solid"}
+            h="1.75rem"
+            size="sm"
+            onClick={() => setLocked(false)}
+          >
+            Reset
+          </Button>
+        </InputRightElement>
+      )}
+    </InputGroup>
   );
 };
 

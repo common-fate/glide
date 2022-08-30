@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
@@ -66,12 +67,37 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 
 	// verify that all fields actually correspond to the provider
 	for key, value := range body.ConfigValues {
-		_, err = cfg.FindFieldByKey(key)
+		f, err := cfg.FindFieldByKey(key)
 		if err != nil {
 			return nil, InvalidConfigFieldError{Key: key}
 		}
-		// todo: if the field is secret, it should be written to SSM
-		setup.ConfigValues[key] = value
+
+		// any secret starting with 'awsssm://' is assumed to be an existing reference
+		// to a secret and is not set.
+		if strings.HasPrefix(value, "awsssm://") {
+			continue
+		}
+
+		f.Set(value)
+	}
+
+	// todo: this doesn't handle deployment suffixes
+	newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{SecretPathArgs: []interface{}{setupID}})
+	if err != nil {
+		return nil, err
+	}
+
+	// when using SSMDumper here it returns 'awsssm://' for values which haven't been Set.
+	// to work around this, we eliminate empty values from the returned map to avoid overwriting
+	// the existing reference to the SSM secret.
+	for k := range newConfig {
+		if newConfig[k] == "awsssm://" {
+			delete(newConfig, k)
+		}
+	}
+
+	for k, v := range newConfig {
+		setup.ConfigValues[k] = v
 	}
 
 	err = s.DB.Put(ctx, setup)

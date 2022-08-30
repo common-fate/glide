@@ -9,8 +9,10 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
+	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
@@ -26,9 +28,7 @@ var (
 
 // Create a new provider setup.
 // Checks that the provider type matches one in our registry.
-func (s *Service) Create(ctx context.Context, providerType string) (*providersetup.Setup, error) {
-	r := providerregistry.Registry()
-
+func (s *Service) Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error) {
 	providerVersions, ok := r.Providers[providerType]
 	if !ok {
 		return nil, ErrProviderTypeNotFound
@@ -48,16 +48,52 @@ func (s *Service) Create(ctx context.Context, providerType string) (*providerset
 		version = versions
 	}
 
+	// find the provider from our registry
+	reg := providerVersions[version]
+
+	// We need to derive an ID for the provider we're going to set up.
+	// Provider IDs are short strings like 'aws-sso'.
+	// The ID is used as part of the namespace to write any secrets into.
+	// In most cases, people will only use a single instance of a provider.
+	// However, Granted also supports using multiple copies of one provider.
+	// In this case, the ID needs to be incremented (e.g. 'aws-sso-2')
+	// to avoid writing any secrets over the other instance.
+	//
+	// We derive IDs by building a map containing the following:
+	// 1. all of the providers that are registered in the granted-deployment.yml config file, noting their IDs and type.
+	// 2. all of the providers which are in the process of being set up through the guided setup UI (found by querying DynamoDB).
+	// we then call GetIDForNewProvider() on this map which will return the next available ID for us to use.
+	pmap := new(deploy.ProviderMap)
+
+	for k, v := range existingProviders {
+		pmap.Add(k, v)
+	}
+
+	q := storage.ListProviderSetupsForType{
+		Type: providerType,
+	}
+
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range q.Result {
+		pmap.Add(p.ID, deploy.Provider{
+			Uses: p.ProviderType + "@" + p.ProviderVersion,
+		})
+	}
+
+	newID := pmap.GetIDForNewProvider(reg.DefaultID)
+
 	ps := providersetup.Setup{
-		ID:               types.NewProviderSetupID(),
+		ID:               newID,
 		ProviderType:     providerType,
 		ProviderVersion:  version,
 		Status:           types.INITIALCONFIGURATIONINPROGRESS,
 		ConfigValues:     map[string]string{},
 		ConfigValidation: map[string]providersetup.Validation{},
 	}
-
-	reg := providerVersions[version]
 
 	// initialise the config values if the provider supports it.
 	if configer, ok := reg.Provider.(gconfig.Configer); ok {
@@ -117,33 +153,17 @@ func buildSetupInstructions(setupID string, p providers.Accessor, td psetup.Temp
 	setuper, ok := p.(providers.SetupDocer)
 	if !ok && !hasConfig {
 		// the provider doesn't have any setup documentation and it doesn't support configuration.
-		// currently, we expect every provider to require some form of configuration, so returning an error here
-		// avoids putting the application in a weird state where users are trying to test configuration
-		// in a provider which doesn't support it.
-		return nil, errors.New("provider does not support configuration nor access instructions")
+		return nil, nil
 	} else if !ok {
 		// return some placeholder documentation for the provider.
-		fallback := providersetup.Step{
-			SetupID:      setupID,
+		fallback := psetup.Step{
 			Title:        "Configure the provider",
 			Instructions: "This Access Provider does not include any setup documentation.",
+			ConfigFields: cfg,
 		}
-		for _, c := range cfg {
-			cf := types.ProviderConfigField{
-				Description: c.Usage(),
-				Id:          c.Key(),
-				IsOptional:  c.IsOptional(),
-				IsSecret:    c.IsSecret(),
-				Name:        c.Key(),
-			}
-			path := c.SecretPath()
-			if path != "" {
-				cf.SecretPath = &path
-			}
 
-			fallback.ConfigFields = append(fallback.ConfigFields, cf)
-		}
-		return []providersetup.Step{fallback}, nil
+		result := providersetup.BuildStepFromParsedInstructions(setupID, 0, fallback)
+		return []providersetup.Step{result}, nil
 	}
 
 	instructions, err := psetup.ParseDocsFS(setuper.SetupDocs(), cfg, td)

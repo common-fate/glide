@@ -74,6 +74,7 @@ export class DevGrantedStack extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId,
+      providerConfig: props.providerConfig,
       identityProviderSyncConfiguration: identityProviderSyncConfiguration,
       notificationsConfiguration: notificationsConfiguration,
     });
@@ -103,8 +104,10 @@ export class DevGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
       Region: this.region,
       AccessHandlerRestAPILambdaExecutionRoleARN: accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
-      GranterLambdaExecutionRoleARN: accessHandler.getGranter().getGranterLambdaExecutionRoleARN(),
-      PaginationKMSKeyARN: approvals.getKmsKeyArn()
+      GranterLambdaExecutionRoleARN: accessHandler
+        .getGranter()
+        .getGranterLambdaExecutionRoleARN(),
+      PaginationKMSKeyARN: approvals.getKmsKeyArn(),
     });
   }
 }

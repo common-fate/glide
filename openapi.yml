@@ -1402,7 +1402,7 @@ components:
           description: Whether or not the config field is a secret (like an API key or a password)
         secretPath:
           type: string
-          description: "the path to where the secret will be stored, in a secrets manager like AWS SSM Paramater Store."
+          description: "the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store."
       required:
         - id
         - name

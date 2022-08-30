@@ -8,8 +8,10 @@ import (
 
 	"github.com/benbjohnson/clock"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
@@ -44,7 +46,8 @@ import (
 // signature matches the ServerInterface interface.
 type API struct {
 	// DB is the DynamoDB client which provides direct storage access.
-	DB ddb.Storage
+	DB               ddb.Storage
+	ProviderMetadata deploy.ProviderMap
 	// Requests is the service which provides business logic for Access Requests.
 	Access              AccessService
 	Rules               AccessRuleService
@@ -58,7 +61,7 @@ type API struct {
 
 // ProviderSetupService contains business logic for managing the guided provider setup workflows.
 type ProviderSetupService interface {
-	Create(ctx context.Context, providerType string) (*providersetup.Setup, error)
+	Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error)
 	CompleteStep(ctx context.Context, setupID string, stepIndex int, body types.ProviderSetupStepCompleteRequest) (*providersetup.Setup, error)
 }
 
@@ -87,6 +90,7 @@ var _ types.ServerInterface = &API{}
 type Opts struct {
 	Log                 *zap.SugaredLogger
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
+	ProviderMetadata    deploy.ProviderMap
 	EventSender         *gevent.Sender
 	DynamoTable         string
 	PaginationKMSKeyARN string

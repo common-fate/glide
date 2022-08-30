@@ -22,6 +22,7 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
+  providerConfig: string;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
 }
@@ -65,6 +66,7 @@ export class AppBackend extends Construct {
         APPROVALS_ADMIN_GROUP: props.adminGroupId,
         MOCK_ACCESS_HANDLER: "false",
         ACCESS_HANDLER_URL: props.accessHandlerApi.url,
+        PROVIDER_CONFIG: props.providerConfig,
         // SENTRY_DSN: can be added here
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,

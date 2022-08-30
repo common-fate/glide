@@ -36,7 +36,7 @@ func (p *Provider) ToAPI() types.Provider {
 // ReadProviderConfig will fetch the provider config based on the runtime
 //
 // the config will be read from PROVIDER_CONFIG environment variable.
-func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
+func ReadProviderConfig(ctx context.Context) ([]byte, error) {
 	var providerCfg string
 	var ok bool
 	providerCfg, ok = os.LookupEnv("PROVIDER_CONFIG")

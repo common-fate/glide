@@ -1,6 +1,8 @@
 package providersetup
 
 import (
+	"fmt"
+
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
@@ -35,15 +37,15 @@ func (s *Step) ToAPI() types.ProviderSetupStepDetails {
 	}
 }
 
-func BuildStepFromParsedInstructions(setupID string, index int, s psetup.Step) Step {
+func BuildStepFromParsedInstructions(providerID string, index int, s psetup.Step) Step {
 	step := Step{
-		SetupID:      setupID,
+		SetupID:      providerID,
 		Index:        index,
 		Title:        s.Title,
 		Instructions: s.Instructions,
 	}
 	for _, field := range s.ConfigFields {
-		configField := types.ProviderConfigField{
+		cf := types.ProviderConfigField{
 			Id:          field.Key(),
 			Name:        field.Key(),
 			Description: field.Usage(),
@@ -51,12 +53,12 @@ func BuildStepFromParsedInstructions(setupID string, index int, s psetup.Step) S
 			IsOptional:  field.IsOptional(),
 		}
 
-		secretPath := field.SecretPath()
-		if secretPath != "" {
-			configField.SecretPath = &secretPath
+		if cf.IsSecret {
+			path := fmt.Sprintf("awsssm://granted/secrets/%s/%s", providerID, cf.Id)
+			cf.SecretPath = &path
 		}
 
-		step.ConfigFields = append(step.ConfigFields, configField)
+		step.ConfigFields = append(step.ConfigFields, cf)
 	}
 	return step
 }

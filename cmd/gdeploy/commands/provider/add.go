@@ -58,7 +58,7 @@ var addCommand = cli.Command{
 
 		id := c.String("id")
 		if id == "" {
-			id = dc.GetIDForNewProvider(provider.DefaultID)
+			id = dc.Deployment.Parameters.ProviderConfiguration.GetIDForNewProvider(provider.DefaultID)
 		}
 
 		if _, ok := dc.Deployment.Parameters.ProviderConfiguration[id]; ok {

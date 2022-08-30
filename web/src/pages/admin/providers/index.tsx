@@ -1,12 +1,38 @@
-import { SmallAddIcon } from "@chakra-ui/icons";
-import { Button, Center, Code, Container, Text } from "@chakra-ui/react";
-import { useMemo } from "react";
+import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
+import {
+  Button,
+  Center,
+  CircularProgress,
+  Code,
+  Container,
+  Flex,
+  HStack,
+  IconButton,
+  LinkBox,
+  LinkOverlay,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Stack,
+  Text,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { Lorem } from "@faker-js/faker/lorem";
+import { useMemo, useState } from "react";
 import { Link } from "react-location";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
-import { useListProviders } from "../../../utils/backend-client/admin/admin";
-import { Provider } from "../../../utils/backend-client/types";
+import {
+  useListProviders,
+  useListProvidersetups,
+} from "../../../utils/backend-client/admin/admin";
+import { deleteProvidersetup } from "../../../utils/backend-client/default/default";
+import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
 
 const AdminProvidersTable = () => {
   const { data } = useListProviders();
@@ -34,6 +60,10 @@ const AdminProvidersTable = () => {
 };
 
 const Providers = () => {
+  const { data } = useListProvidersetups();
+
+  const setups = data?.providerSetups ?? [];
+
   return (
     <AdminLayout>
       <Container
@@ -42,6 +72,13 @@ const Providers = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
+        {setups.length > 0 && (
+          <Stack p={1}>
+            {setups.map((s) => (
+              <ProviderSetupBanner setup={s} key={s.id} />
+            ))}
+          </Stack>
+        )}
         <Button
           my={5}
           size="sm"
@@ -62,6 +99,104 @@ const Providers = () => {
         </Center>
       </Container>
     </AdminLayout>
+  );
+};
+
+interface ProviderSetupBannerProps {
+  setup: ProviderSetup;
+}
+
+const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
+  const stepsOverview = setup.steps ?? [];
+  const { data, mutate } = useListProvidersetups();
+  const { onOpen, isOpen, onClose } = useDisclosure();
+  const [loading, setLoading] = useState(false);
+
+  const handleCancelSetup = async () => {
+    setLoading(true);
+    await deleteProvidersetup(setup.id);
+    const oldSetups = data?.providerSetups ?? [];
+    mutate({ providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)] });
+    setLoading(false);
+    onClose();
+  };
+
+  const completedSteps = stepsOverview.filter((s) => s.complete).length;
+
+  const completedPercentage =
+    stepsOverview.length ?? 0 > 0
+      ? (completedSteps / stepsOverview.length) * 100
+      : 0;
+
+  return (
+    <LinkBox
+      as={Flex}
+      position="relative"
+      justify="space-between"
+      bg="neutrals.100"
+      rounded="md"
+      p={8}
+      flexDirection={{ base: "column", md: "row" }}
+    >
+      <LinkOverlay as={Link} to={"/admin/providers/setup/" + setup.id}>
+        <Stack>
+          <Text textStyle={"Body/Medium"}>Continue setting up {setup.id}</Text>
+          <Text>
+            {setup.type}@{setup.version}
+          </Text>
+        </Stack>
+      </LinkOverlay>
+      <HStack spacing={3}>
+        <Text>
+          {completedSteps} of {setup.steps.length} steps complete
+        </Text>
+        <CircularProgress value={completedPercentage} color="#449157" />
+      </HStack>
+      <IconButton
+        position="absolute"
+        top={1}
+        right={1}
+        size="xs"
+        variant={"unstyled"}
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpen();
+        }}
+        icon={<CloseIcon />}
+        aria-label="Cancel setup"
+      />
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Cancel setting up {setup.id}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            Are you sure you want to stop setting up this provider? You'll lose
+            any configuration values that we've stored.
+          </ModalBody>
+
+          <ModalFooter>
+            <Button
+              variant={"solid"}
+              colorScheme="red"
+              rounded="full"
+              mr={3}
+              onClick={handleCancelSetup}
+              isLoading={loading}
+            >
+              Stop setup
+            </Button>
+            <Button
+              variant={"brandSecondary"}
+              onClick={onClose}
+              isDisabled={loading}
+            >
+              Go back
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </LinkBox>
   );
 };
 

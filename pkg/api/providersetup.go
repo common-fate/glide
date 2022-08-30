@@ -7,11 +7,13 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // List the provider setups in progress
@@ -47,7 +49,7 @@ func (a *API) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps, err := a.ProviderSetup.Create(ctx, b.ProviderType)
+	ps, err := a.ProviderSetup.Create(ctx, b.ProviderType, a.ProviderMetadata, providerregistry.Registry())
 	if err == psetupsvc.ErrProviderTypeNotFound {
 		apio.ErrorString(ctx, w, fmt.Sprintf("invalid provider type %s", b.ProviderType), http.StatusBadRequest)
 		return
@@ -64,27 +66,58 @@ func (a *API) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
 // (DELETE /api/v1/admin/providersetups/{providersetupId})
 func (a *API) DeleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
 	ctx := r.Context()
-	q := storage.GetProviderSetup{
-		ID: providersetupId,
-	}
 
-	_, err := a.DB.Query(ctx, &q)
-	if err == ddb.ErrNoItems {
-		apio.ErrorString(ctx, w, "provider setup not found", http.StatusNotFound)
-		return
-	}
+	g, gctx := errgroup.WithContext(ctx)
+
+	var setup providersetup.Setup
+	g.Go(func() error {
+		q := storage.GetProviderSetup{
+			ID: providersetupId,
+		}
+
+		_, err := a.DB.Query(gctx, &q)
+		if err == ddb.ErrNoItems {
+			return &apio.APIError{Status: http.StatusNotFound, Err: errors.New("provider setup not found")}
+		}
+		if err != nil {
+			return err
+		}
+		setup = *q.Result
+		return nil
+	})
+
+	var steps []providersetup.Step
+	g.Go(func() error {
+		q := storage.ListProviderSetupSteps{
+			SetupID: providersetupId,
+		}
+
+		_, err := a.DB.Query(gctx, &q)
+		if err != nil {
+			return err
+		}
+		steps = q.Result
+		return nil
+	})
+	err := g.Wait()
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	err = a.DB.Delete(ctx, q.Result)
+	items := []ddb.Keyer{&setup}
+	for _, step := range steps {
+		s := step
+		items = append(items, &s)
+	}
+
+	err = a.DB.DeleteBatch(ctx, items...)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	res := q.Result.ToAPI()
+	res := setup.ToAPI()
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 

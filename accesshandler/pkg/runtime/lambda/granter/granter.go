@@ -47,7 +47,7 @@ func NewGranter(ctx context.Context, c config.GranterConfig) (*Granter, error) {
 		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	b, err := config.ReadProviderConfig(ctx, "lambda")
+	b, err := config.ReadProviderConfig(ctx)
 	if err != nil {
 		return nil, err
 	}

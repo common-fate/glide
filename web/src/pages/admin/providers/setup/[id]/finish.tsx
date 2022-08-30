@@ -7,27 +7,18 @@ import {
   Container,
   HStack,
   IconButton,
+  Link as ChakraLink,
   ListItem,
   OrderedList,
-  Link as ChakraLink,
   Stack,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
   Text,
-  useStatStyles,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Link, Navigate, useMatch, useNavigate } from "react-location";
 import ReactMarkdown from "react-markdown";
 import { CodeInstruction } from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
-import {
-  useGetProvidersetup,
-  useGetProvidersetupInstructions,
-} from "../../../../../utils/backend-client/admin/admin";
+import { useGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
 import { deleteProvidersetup } from "../../../../../utils/backend-client/default/default";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
 
@@ -92,9 +83,9 @@ const Page = () => {
 
   const gdeployCommand =
     "```" +
-    `gdeploy provider add --uses ${data.type}@${data.version} ${Object.entries(
-      data.configValues
-    )
+    `gdeploy provider add --id ${data.id} --uses ${data.type}@${
+      data.version
+    } ${Object.entries(data.configValues)
       .filter(([_, v]) => v != null && v !== "")
       .map(([k, v]) => `--with ${k}=${v}`)
       .join(" ")}` +
