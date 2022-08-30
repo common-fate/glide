@@ -15,11 +15,9 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
-	"go.uber.org/zap"
 )
 
 type Provider struct {
-	providerType  gconfig.StringValue
 	ecsClient     *ecs.Client
 	ssoClient     *ssoadmin.Client
 	iamClient     *iam.Client
@@ -48,8 +46,6 @@ type Provider struct {
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 
-		gconfig.StringField("type", &p.providerType, "The type of the provider to display in the UI"),
-
 		gconfig.StringField("ecsClusterARN", &p.ecsClusterARN, "The ARN of the AWS IAM Role with permission to run ECS exec commands"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
@@ -63,7 +59,6 @@ func (p *Provider) Config() gconfig.Config {
 
 // // Init the provider.
 func (p *Provider) Init(ctx context.Context) error {
-	zap.S().Infow("configuring demo provider", "providerType", p.providerType)
 
 	//manually set the options for now
 	optionsJson := []types.Option{}
@@ -157,10 +152,4 @@ func (p *Provider) RequiresAccessToken() {
 // ArgSchema returns the schema for the provider.
 func (p *Provider) ArgSchema() *jsonschema.Schema {
 	return jsonschema.Reflect(&Args{})
-}
-
-// Type implements providers.Typer so that we can override the type
-// to display a nice icon in the UI.
-func (p *Provider) Type() string {
-	return p.providerType.String()
 }
