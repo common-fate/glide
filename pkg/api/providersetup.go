@@ -75,7 +75,7 @@ func (a *API) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ps, err := a.ProviderSetup.Create(ctx, b.ProviderType, a.ProviderMetadata, providerregistry.Registry())
-	if err == psetupsvc.ErrProviderTypeNotFound {
+	if err == providerregistry.ErrProviderTypeNotFound {
 		apio.ErrorString(ctx, w, fmt.Sprintf("invalid provider type %s", b.ProviderType), http.StatusBadRequest)
 		return
 	}
