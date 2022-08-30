@@ -105,6 +105,18 @@ export class AppBackend extends Construct {
       })
     );
 
+    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:PutParameter"],
+        resources: [
+          `arn:aws:ssm:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:parameter/granted/providers/*`,
+        ],
+      })
+    );
+
     // used to handle webhook events from third party integrations such as Slack
     const webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
       code: lambda.Code.fromAsset(
