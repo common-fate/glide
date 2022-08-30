@@ -101,7 +101,10 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 			return err
 		}
 
-		SetupProvider(ctx, p, gconfig.JSONLoader{Data: pType.With})
+		err = SetupProvider(ctx, p, gconfig.JSONLoader{Data: pType.With})
+		if err != nil {
+			return err
+		}
 
 		prov.Provider = p
 		prov.ID = k

@@ -49,7 +49,10 @@ func (s *Service) Create(ctx context.Context, providerType string, existingProvi
 	pmap := new(deploy.ProviderMap)
 
 	for k, v := range existingProviders {
-		pmap.Add(k, v)
+		err = pmap.Add(k, v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	q := storage.ListProviderSetupsForType{
@@ -62,9 +65,12 @@ func (s *Service) Create(ctx context.Context, providerType string, existingProvi
 	}
 
 	for _, p := range q.Result {
-		pmap.Add(p.ID, deploy.Provider{
+		err = pmap.Add(p.ID, deploy.Provider{
 			Uses: p.ProviderType + "@" + p.ProviderVersion,
 		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	newID := pmap.GetIDForNewProvider(reg.DefaultID)

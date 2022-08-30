@@ -29,7 +29,7 @@ type ProviderRegistry struct {
 // All returns all the registered providers. The key of the map is
 // a 'uses' field like "commonfate/okta@v1"
 func (pr ProviderRegistry) All() map[string]RegisteredProvider {
-	var all map[string]RegisteredProvider
+	all := map[string]RegisteredProvider{}
 
 	for ptype, pversions := range pr.Providers {
 		for pversion, rp := range pversions {

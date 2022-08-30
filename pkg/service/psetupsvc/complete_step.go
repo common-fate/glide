@@ -78,7 +78,10 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 			continue
 		}
 
-		f.Set(value)
+		err = f.Set(value)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// todo: this doesn't handle deployment suffixes
