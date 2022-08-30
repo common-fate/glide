@@ -158,21 +158,25 @@ func (r ProviderRegistry) CLIOptions() []string {
 	return opts
 }
 
-func (r ProviderRegistry) FromCLIOption(opt string) (uses string, p *RegisteredProvider, err error) {
+func (r ProviderRegistry) FromCLIOption(opt string) (uses string, p RegisteredProvider, err error) {
 	re, err := regexp.Compile(`[\w ]+\((.*)\)`)
 	if err != nil {
-		return "", nil, err
+		return "", RegisteredProvider{}, err
 	}
 	got := re.FindStringSubmatch(opt)
 	if got == nil {
-		return "", nil, fmt.Errorf("couldn't extract provider key: %s", opt)
+		return "", RegisteredProvider{}, fmt.Errorf("couldn't extract provider key: %s", opt)
 	}
 	uses = got[1]
-	p, err = r.LookupByUses(uses)
+	provider, err := r.LookupByUses(uses)
 	if err != nil {
-		return "", nil, err
+		return "", RegisteredProvider{}, err
 	}
-	return uses, p, nil
+	if provider == nil {
+		return "", RegisteredProvider{}, errors.New("provider was nil")
+	}
+
+	return uses, *provider, nil
 }
 
 type RegisteredProvider struct {
