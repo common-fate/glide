@@ -11,7 +11,7 @@ import (
 // Options list the argument options for the provider
 func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
 	switch arg {
-	case "taskArn":
+	case "taskdefinitionARN":
 		opts := []types.Option{}
 		hasMore := true
 		var nextToken *string
@@ -31,7 +31,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 				return []types.Option{}, err
 			}
 			for _, t := range describedTasks.Tasks {
-				opts = append(opts, types.Option{Label: *t.TaskArn, Value: *t.TaskArn})
+				opts = append(opts, types.Option{Label: *t.TaskDefinitionArn, Value: *t.TaskDefinitionArn})
 			}
 			//exit the pagination
 			nextToken = tasks.NextToken

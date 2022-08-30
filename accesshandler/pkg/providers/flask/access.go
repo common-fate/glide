@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
@@ -16,12 +17,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
+	"github.com/labstack/gommon/log"
 	"github.com/sethvargo/go-retry"
 	"go.uber.org/zap"
 )
 
 type Args struct {
-	TaskARN string `json:"taskArn" jsonschema:"title=TaskARN"`
+	TaskDefinitionARN string `json:"taskdefinitionARN" jsonschema:"title=TaskDefinitionARN"`
 }
 
 // Grant the access
@@ -37,7 +39,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 
 	log.Info("adding user to permission set ", permissionSetName)
 	// Create and assign user to permission set for this grant
-	_, err = p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskARN)
+	_, err = p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskDefinitionARN)
 	if err != nil {
 		return err
 	}
@@ -148,6 +150,11 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "```\n"
 	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, grantId)
 	i += "```\n"
+
+	i += "Once you have assumed the role, access the Flask shell session using the following command:\n\n"
+	i += "```\n"
+	i += `aws ecs execute-command --cluster GrantedEcsFlaskFixtureStack-ClusterEB0386A7-53H6BC06IGxR --task b4afd7cbfa4440f4842366c890d877c3 --container DefaultContainer --interactive --command "flask shell"\n`
+	i += "```\n"
 	// i += "# K8s \n"
 	// i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
 	// i += "```\n"
@@ -166,9 +173,52 @@ func permissionSetNameFromGrantID(grantID string) string {
 	return permissionSetName
 }
 
+// Looks through all of the tasks for a ecs cluster and matches the task definition to find the task ARN value
+func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinitionARN string) (string, error) {
+
+	hasMore := true
+	var nextToken *string
+	log.Info("getting taskARN from task definition", TaskDefinitionARN)
+
+	for hasMore {
+
+		tasks, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get()), NextToken: nextToken})
+		if err != nil {
+			return "", err
+		}
+
+		describedTasks, err := p.ecsClient.DescribeTasks(ctx, &ecs.DescribeTasksInput{
+			Tasks:   tasks.TaskArns,
+			Cluster: aws.String(p.ecsClusterARN.Get()),
+		})
+		if err != nil {
+			return "", err
+		}
+
+		for _, t := range describedTasks.Tasks {
+			log.Info("comparing arns: ", TaskDefinitionARN, *t.TaskDefinitionArn)
+
+			if *t.TaskDefinitionArn == TaskDefinitionARN {
+				return *t.TaskArn, nil
+			}
+		}
+		//exit the pagination
+		nextToken = tasks.NextToken
+		hasMore = nextToken != nil
+
+	}
+	return "", nil
+
+}
+
 // createPermissionSetAndAssignment creates a permission set with a name = grantID
-func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskARN string) (roleARN string, err error) {
+func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskdefARN string) (roleARN string, err error) {
 	//create  policy allowing for execute commands for the ecs task
+
+	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskdefARN)
+	if err != nil {
+		return "", err
+	}
 	ecsPolicyDocument := policy.Policy{
 		Version: "2012-10-17",
 		Statements: []policy.Statement{
