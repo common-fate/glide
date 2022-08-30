@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -28,11 +29,35 @@ func (a *API) ListProvidersetups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// track any existing provider setups which need to be deleted
+	toDelete := []ddb.Keyer{}
+	var deleteIDs []string
+
+	logger.Get(ctx).Infow("prov metadata", "meta", a.ProviderMetadata)
+
 	res := types.ListProviderSetupsResponse{
-		ProviderSetups: make([]types.ProviderSetup, len(q.Result)),
+		ProviderSetups: []types.ProviderSetup{},
 	}
-	for i, s := range q.Result {
-		res.ProviderSetups[i] = s.ToAPI()
+	for _, s := range q.Result {
+		// if any provider setup IDs correspond to IDs we now have in our deployment YAML,
+		// they can be deleted as the user has successfully redeployed Granted and updated their provider config.
+		_, exists := a.ProviderMetadata[s.ID]
+		if exists {
+			toDelete = append(toDelete, &s)
+			deleteIDs = append(deleteIDs, s.ID)
+		} else {
+			res.ProviderSetups = append(res.ProviderSetups, s.ToAPI())
+		}
+	}
+
+	// clear any existing provider setups which need deleting.
+	if len(toDelete) > 0 {
+		logger.Get(ctx).Infow("deleting provider setups which were found in provider metadata", "provider.ids", deleteIDs)
+		err = a.DB.DeleteBatch(ctx, toDelete...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
