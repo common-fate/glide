@@ -6,6 +6,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -70,6 +71,14 @@ var addCommand = cli.Command{
 		withArgs := c.StringSlice("with")
 
 		if len(withArgs) == 0 {
+			// we need AWS credentials to dump any secrets and test the provider.
+			// grab the AWS credential checker middleware and execute it manually.
+			checkCreds := middleware.RequireAWSCredentials()
+			err := checkCreds(c)
+			if err != nil {
+				return err
+			}
+
 			var pcfg gconfig.Config
 			// set up the config for the specific provider by prompting the user.
 			if configer, ok := provider.Provider.(gconfig.Configer); ok {
