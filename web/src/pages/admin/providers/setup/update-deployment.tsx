@@ -1,15 +1,11 @@
-import { ArrowBackIcon, QuestionIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Button, Container, IconButton, Stack, Text } from "@chakra-ui/react";
-import { Link, useMatch } from "react-location";
+import { Link } from "react-location";
 import ReactMarkdown from "react-markdown";
 import { CodeInstruction } from "../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../components/Layout";
 
 const Page = () => {
-  const {
-    params: { id },
-  } = useMatch();
-
   return (
     <AdminLayout>
       <Stack
