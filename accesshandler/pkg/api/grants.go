@@ -28,13 +28,21 @@ func (a *API) PostGrants(w http.ResponseWriter, r *http.Request) {
 	}
 	_, ok := config.Providers[b.Provider]
 	if !ok {
-		apio.NewRequestError(errors.New("provider does not exist"), http.StatusBadRequest)
+		err = apio.NewRequestError(errors.New("provider does not exist"), http.StatusBadRequest)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
 		return
 	}
 	g, err := b.Validate(ctx, a.Clock.Now())
 	if err != nil {
 		// return the error details to the client if validation failed
-		apio.NewRequestError(err, http.StatusBadRequest)
+		err = apio.NewRequestError(err, http.StatusBadRequest)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
 		return
 	}
 

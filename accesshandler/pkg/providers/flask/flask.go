@@ -50,8 +50,6 @@ func (p *Provider) Config() gconfig.Config {
 
 		gconfig.StringField("type", &p.providerType, "The type of the provider to display in the UI"),
 
-		// gconfig.StringField("ecsServerName", &p.ecsServerName, "The ECS server name"),
-		// gconfig.StringField("ecsRegion", &p.ecsRegion, "the region the ESC cluster is deployed"),
 		gconfig.StringField("ecsClusterARN", &p.ecsClusterARN, "The ARN of the AWS IAM Role with permission to run ECS exec commands"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),

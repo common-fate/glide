@@ -316,13 +316,14 @@ export const RequestAccessToken = () => {
   if (!data) return <Spinner />;
 
   const handleClick = () => {
-    navigator.clipboard.writeText(data);
-    toast({
-      title: "Access token copied to clipboard",
-      status: "success",
-      variant: "subtle",
-      duration: 2200,
-      isClosable: true,
+    navigator.clipboard.writeText(data).then(() => {
+      toast({
+        title: "Access token copied to clipboard",
+        status: "success",
+        variant: "subtle",
+        duration: 2200,
+        isClosable: true,
+      });
     });
   };
 

@@ -200,7 +200,6 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 		}
 
 		for _, t := range describedTasks.Tasks {
-			log.Info("comparing arns: ", TaskDefinitionARN, *t.TaskDefinitionArn)
 
 			if *t.TaskDefinitionArn == TaskDefinitionARN {
 				return *t.TaskArn, nil

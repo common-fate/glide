@@ -138,7 +138,6 @@ func (s *Server) Routes() http.Handler {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		return
 
 	})
 
