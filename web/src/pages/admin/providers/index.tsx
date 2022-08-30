@@ -21,7 +21,6 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
-import { Lorem } from "@faker-js/faker/lorem";
 import { useMemo, useState } from "react";
 import { Link } from "react-location";
 import { Column } from "react-table";
@@ -116,7 +115,9 @@ const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
     setLoading(true);
     await deleteProvidersetup(setup.id);
     const oldSetups = data?.providerSetups ?? [];
-    mutate({ providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)] });
+    void mutate({
+      providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)],
+    });
     setLoading(false);
     onClose();
   };
