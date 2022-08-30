@@ -106,17 +106,44 @@ func (s *Service) Create(ctx context.Context, providerType string) (*providerset
 // Retrieves setup instructions for a particular access provider
 func buildSetupInstructions(setupID string, p providers.Accessor, td psetup.TemplateData) ([]providersetup.Step, error) {
 	var cfg gconfig.Config
+	var hasConfig bool
 
 	// try and load the configuration from the provider.
 	if configer, ok := p.(gconfig.Configer); ok {
 		cfg = configer.Config()
+		hasConfig = true
 	}
 
 	setuper, ok := p.(providers.SetupDocer)
-	if !ok {
-		// the provider doesn't have any setup documentation.
-		// in future we can render a placeholder step here containing any config values for the provider.
-		return nil, nil
+	if !ok && !hasConfig {
+		// the provider doesn't have any setup documentation and it doesn't support configuration.
+		// currently, we expect every provider to require some form of configuration, so returning an error here
+		// avoids putting the application in a weird state where users are trying to test configuration
+		// in a provider which doesn't support it.
+		return nil, errors.New("provider does not support configuration nor access instructions")
+	} else if !ok {
+		// return some placeholder documentation for the provider.
+		fallback := providersetup.Step{
+			SetupID:      setupID,
+			Title:        "Configure the provider",
+			Instructions: "This Access Provider does not include any setup documentation.",
+		}
+		for _, c := range cfg {
+			cf := types.ProviderConfigField{
+				Description: c.Usage(),
+				Id:          c.Key(),
+				IsOptional:  c.IsOptional(),
+				IsSecret:    c.IsSecret(),
+				Name:        c.Key(),
+			}
+			path := c.SecretPath()
+			if path != "" {
+				cf.SecretPath = &path
+			}
+
+			fallback.ConfigFields = append(fallback.ConfigFields, cf)
+		}
+		return []providersetup.Step{fallback}, nil
 	}
 
 	instructions, err := psetup.ParseDocsFS(setuper.SetupDocs(), cfg, td)
