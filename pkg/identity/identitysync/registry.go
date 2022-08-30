@@ -19,6 +19,8 @@ type RegisteredIdentityProvider struct {
 	IdentityProvider IdentityProvider
 	Description      string
 	DocsID           string
+	// Hidden indicates whether the provider should be hidden from the CLI setup options
+	Hidden bool
 }
 
 type IdentityProviderRegistry struct {
@@ -28,6 +30,12 @@ type IdentityProviderRegistry struct {
 func Registry() IdentityProviderRegistry {
 	return IdentityProviderRegistry{
 		IdentityProviders: map[string]RegisteredIdentityProvider{
+			IDPTypeCognito: {
+				IdentityProvider: &CognitoSync{},
+				Description:      "Cognito",
+				DocsID:           "cognito",
+				Hidden:           true,
+			},
 			IDPTypeOkta: {
 				IdentityProvider: &OktaSync{},
 				Description:      "Okta",
@@ -58,6 +66,10 @@ func (r IdentityProviderRegistry) Lookup(uses string) (*RegisteredIdentityProvid
 func (r IdentityProviderRegistry) CLIOptions() []string {
 	var opts []string
 	for k, v := range r.IdentityProviders {
+		// don't show hidden providers e.g. cognito
+		if v.Hidden {
+			continue
+		}
 		grey := color.New(color.FgHiBlack).SprintFunc()
 		id := "(" + k + ")"
 		opt := fmt.Sprintf("%s %s", v.Description, grey(id))
