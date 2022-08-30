@@ -94,6 +94,8 @@ func run() error {
 		return err
 	}
 
+	log.Infow("read provider config", "config", pmeta)
+
 	api, err := api.New(ctx, api.Opts{
 		Log:                 log,
 		DynamoTable:         cfg.DynamoTable,

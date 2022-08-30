@@ -118,7 +118,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	clk := clock.New()
 
 	a := API{
-		AdminGroup: opts.AdminGroup,
+		ProviderMetadata: opts.ProviderMetadata,
+		AdminGroup:       opts.AdminGroup,
 		Access: &accesssvc.Service{
 			Clock: clk,
 			DB:    db,
