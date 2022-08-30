@@ -222,6 +222,21 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 	if err != nil {
 		return "", err
 	}
+
+	//  "Resource": [
+	// 	"arn:aws:ecs:ap-southeast-2:616777145260:cluster/GrantedEcsFlaskFixtureStack-ClusterEB0386A7-53H6BC06IGxR",
+	// 	"arn:aws:ecs:ap-southeast-2:616777145260:task/GrantedEcsFlaskFixtureStack-ClusterEB0386A7-53H6BC06IGxR/*",
+	// 	"arn:aws:ecs:ap-southeast-2:616777145260:task-definition/GrantedEcsFlaskFixtureStackTaskDefD8594F9A:1"
+	// ]
+
+	taskId := strings.Split(taskARN, "/")[2]
+	taskWildcard := strings.Replace(taskARN, taskId, "*", -1)
+
+	//policy created:
+	//Resources:
+	// - ecs cluster arn
+	// - ecs task wildcard
+	// - ecs task definition resource
 	ecsPolicyDocument := policy.Policy{
 		Version: "2012-10-17",
 		Statements: []policy.Statement{
@@ -231,7 +246,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 					"ecs:ExecuteCommand",
 					"ecs:DescribeTasks",
 				},
-				Resource: []string{taskARN, p.ecsClusterARN.Get()},
+				Resource: []string{taskWildcard, p.ecsClusterARN.Get(), taskdefARN},
 			},
 		},
 	}
