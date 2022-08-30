@@ -33,7 +33,7 @@ var addCommand = cli.Command{
 		r := providerregistry.Registry()
 
 		uses := c.String("uses")
-		var provider *providerregistry.RegisteredProvider
+		var provider providerregistry.RegisteredProvider
 
 		if uses == "" {
 			p := survey.Select{
@@ -51,10 +51,11 @@ var addCommand = cli.Command{
 			}
 			clio.Info("Follow the documentation for setting up the %s provider here: https://docs.commonfate.io/granted-approvals/providers/%s", provider.Description, provider.DefaultID)
 		} else {
-			provider, err = r.LookupByUses(uses)
+			p, err := r.LookupByUses(uses)
 			if err != nil {
 				return err
 			}
+			provider = *p
 		}
 
 		id := c.String("id")
