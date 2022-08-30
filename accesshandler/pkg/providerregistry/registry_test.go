@@ -77,7 +77,7 @@ func TestFromCLIOption(t *testing.T) {
 		{
 			name:    "provider not found",
 			give:    "Test Provider (commonfate/something-else@v1)",
-			wantErr: errors.New("couldn't find provider with key: commonfate/something-else@v1"),
+			wantErr: errors.New("error looking up commonfate/something-else@v1: could not find provider type commonfate/something-else"),
 		},
 	}
 
