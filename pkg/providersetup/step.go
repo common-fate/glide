@@ -48,7 +48,7 @@ func BuildStepFromParsedInstructions(providerID string, index int, s psetup.Step
 		cf := types.ProviderConfigField{
 			Id:          field.Key(),
 			Name:        field.Key(),
-			Description: field.Usage(),
+			Description: field.Description(),
 			IsSecret:    field.IsSecret(),
 			IsOptional:  field.IsOptional(),
 		}

@@ -229,8 +229,8 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 func CLIPrompt(f *gconfig.Field) error {
 	grey := color.New(color.FgHiBlack)
 	msg := f.Key()
-	if f.Usage() != "" {
-		msg = f.Usage() + " " + grey.Sprintf("(%s)", msg)
+	if f.Description() != "" {
+		msg = f.Description() + " " + grey.Sprintf("(%s)", msg)
 	}
 
 	// @TODO work out how to integrate the optional prompt here
