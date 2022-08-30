@@ -143,6 +143,15 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 		return "", err
 	}
 
+	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, a.TaskDefinitionARN)
+	if err != nil {
+		return "", err
+	}
+
+	//get the id out from the task arn
+	splitARN := strings.Split(taskARN, "/")
+	id := splitARN[len(splitARN)-1]
+
 	i := "# Browser\n"
 	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
 	i += "# CLI\n"
@@ -153,13 +162,8 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 
 	i += "Once you have assumed the role, access the Flask shell session using the following command:\n\n"
 	i += "```\n"
-	i += `aws ecs execute-command --cluster GrantedEcsFlaskFixtureStack-ClusterEB0386A7-53H6BC06IGxR --task b4afd7cbfa4440f4842366c890d877c3 --container DefaultContainer --interactive --command "flask shell"\n`
+	i += fmt.Sprintf("aws ecs execute-command --cluster %s --task %s --container %s --interactive --command 'flask shell'\n", p.ecsClusterARN.Get(), id, "DefaultContainer")
 	i += "```\n"
-	// i += "# K8s \n"
-	// i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
-	// i += "```\n"
-	// i += fmt.Sprintf("aws eks update-kubeconfig --name %s", p.clusterName.Get())
-	// i += "```\n"
 	return i, nil
 }
 
