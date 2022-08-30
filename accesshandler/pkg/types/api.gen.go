@@ -220,6 +220,9 @@ type GetAccessInstructionsParams struct {
 
 	// the argument payload in JSON format
 	Args string `form:"args" json:"args"`
+
+	// ID of the grant instructions
+	GrantId string `form:"grantId" json:"grantId"`
 }
 
 // PostGrantsJSONRequestBody defines body for PostGrants for application/json ContentType.
@@ -846,6 +849,18 @@ func NewGetAccessInstructionsRequest(server string, providerId string, params *G
 	}
 
 	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "args", runtime.ParamLocationQuery, params.Args); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "grantId", runtime.ParamLocationQuery, params.GrantId); err != nil {
 		return nil, err
 	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 		return nil, err
@@ -2082,6 +2097,20 @@ func (siw *ServerInterfaceWrapper) GetAccessInstructions(w http.ResponseWriter, 
 	err = runtime.BindQueryParameter("form", true, true, "args", r.URL.Query(), &params.Args)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "args", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "grantId" -------------
+	if paramValue := r.URL.Query().Get("grantId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "grantId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "grantId", r.URL.Query(), &params.GrantId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "grantId", Err: err})
 		return
 	}
 

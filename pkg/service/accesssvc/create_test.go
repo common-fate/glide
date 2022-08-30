@@ -57,6 +57,7 @@ func TestNewRequest(t *testing.T) {
 					UpdatedAt:      clk.Now(),
 					Grant:          &access.Grant{},
 					ApprovalMethod: &autoApproval,
+					SelectedWith:   make(map[string]access.Option),
 				},
 			},
 			withCreateGrantResponse: createGrantResponse{
@@ -67,6 +68,7 @@ func TestNewRequest(t *testing.T) {
 					UpdatedAt:      clk.Now(),
 					Grant:          &access.Grant{},
 					ApprovalMethod: &autoApproval,
+					SelectedWith:   make(map[string]access.Option),
 				},
 			},
 		},
@@ -125,6 +127,7 @@ func TestNewRequest(t *testing.T) {
 					CreatedAt:      clk.Now(),
 					UpdatedAt:      clk.Now(),
 					ApprovalMethod: &reviewed,
+					SelectedWith:   make(map[string]access.Option),
 				},
 				Reviewers: []access.Reviewer{
 					{
@@ -135,6 +138,7 @@ func TestNewRequest(t *testing.T) {
 							CreatedAt:      clk.Now(),
 							UpdatedAt:      clk.Now(),
 							ApprovalMethod: &reviewed,
+							SelectedWith:   make(map[string]access.Option),
 						},
 					},
 				},
@@ -159,6 +163,7 @@ func TestNewRequest(t *testing.T) {
 					CreatedAt:      clk.Now(),
 					UpdatedAt:      clk.Now(),
 					ApprovalMethod: &reviewed,
+					SelectedWith:   make(map[string]access.Option),
 				},
 				Reviewers: []access.Reviewer{
 					{
@@ -170,6 +175,7 @@ func TestNewRequest(t *testing.T) {
 							CreatedAt:      clk.Now(),
 							UpdatedAt:      clk.Now(),
 							ApprovalMethod: &reviewed,
+							SelectedWith:   make(map[string]access.Option),
 						},
 					},
 				},
@@ -200,6 +206,7 @@ func TestNewRequest(t *testing.T) {
 					CreatedAt:      clk.Now(),
 					UpdatedAt:      clk.Now(),
 					ApprovalMethod: &reviewed,
+					SelectedWith:   make(map[string]access.Option),
 				},
 				Reviewers: []access.Reviewer{
 					{
@@ -211,6 +218,7 @@ func TestNewRequest(t *testing.T) {
 							CreatedAt:      clk.Now(),
 							UpdatedAt:      clk.Now(),
 							ApprovalMethod: &reviewed,
+							SelectedWith:   make(map[string]access.Option),
 						},
 					},
 				},
@@ -235,12 +243,14 @@ func TestNewRequest(t *testing.T) {
 
 			g := accessMocks.NewMockGranter(ctrl)
 			g.EXPECT().CreateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
-
+			ca := accessMocks.NewMockCacheService(ctrl)
+			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil).AnyTimes()
 			s := Service{
 				Clock:       clk,
 				DB:          db,
 				Granter:     g,
 				EventPutter: ep,
+				Cache:       ca,
 			}
 			got, err := s.CreateRequest(context.Background(), &tc.giveUser, tc.giveInput)
 			if got != nil {

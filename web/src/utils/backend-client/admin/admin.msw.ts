@@ -5,182 +5,753 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import {
-  rest
-} from 'msw'
-import {
-  faker
-} from '@faker-js/faker'
+import { rest } from "msw";
+import { faker } from "@faker-js/faker";
 import {
   AccessRuleStatus,
   RequestStatus,
   ApprovalMethod,
-  IdpStatus
-} from '.././types'
+  IdpStatus,
+} from ".././types";
 
-export const getAdminListAccessRulesMock = () => ({accessRules: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7gd0hx40003cghgajp44os7': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})), next: faker.helpers.arrayElement([faker.random.word(), null])})
+export const getAdminListAccessRulesMock = () => ({
+  accessRules: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    version: faker.random.word(),
+    status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    approval: {
+      users: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+      groups: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+    },
+    name: faker.random.word(),
+    description: faker.random.word(),
+    metadata: {
+      createdAt: faker.random.word(),
+      createdBy: faker.random.word(),
+      updatedAt: faker.random.word(),
+      updatedBy: faker.random.word(),
+      updateMessage: faker.helpers.arrayElement([
+        faker.random.word(),
+        undefined,
+      ]),
+    },
+    target: {
+      provider: { id: faker.random.word(), type: faker.random.word() },
+      with: {
+        cl7a5kpjz000bjw49fcya9nwa: faker.random.word(),
+      },
+      withSelectable: {
+        cl7a5kpjz000cjw49g9dh55kh: Array.from(
+          { length: faker.datatype.number({ min: 1, max: 10 }) },
+          (_, i) => i + 1
+        ).map(() => faker.random.word()),
+      },
+    },
+    timeConstraints: {
+      maxDurationSeconds: faker.datatype.number({ min: 60, max: undefined }),
+    },
+    isCurrent: faker.datatype.boolean(),
+  })),
+  next: faker.helpers.arrayElement([faker.random.word(), null]),
+});
 
-export const getAdminCreateAccessRuleMock = () => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7gd0hx50004cghg2udwbaox': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})
+export const getAdminCreateAccessRuleMock = () => ({
+  id: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)),
+  groups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => faker.random.word()),
+  approval: {
+    users: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+  },
+  name: faker.random.word(),
+  description: faker.random.word(),
+  metadata: {
+    createdAt: faker.random.word(),
+    createdBy: faker.random.word(),
+    updatedAt: faker.random.word(),
+    updatedBy: faker.random.word(),
+    updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined]),
+  },
+  target: {
+    provider: { id: faker.random.word(), type: faker.random.word() },
+    with: {
+      cl7a5kpjz000djw4904a46hp5: faker.random.word(),
+    },
+    withSelectable: {
+      cl7a5kpk0000ejw490gln2lai: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+    },
+  },
+  timeConstraints: {
+    maxDurationSeconds: faker.datatype.number({ min: 60, max: undefined }),
+  },
+  isCurrent: faker.datatype.boolean(),
+});
 
-export const getAdminGetAccessRuleMock = () => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7gd0hx80005cghgbmgxduvv': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})
+export const getAdminGetAccessRuleMock = () => ({
+  id: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)),
+  groups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => faker.random.word()),
+  approval: {
+    users: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+  },
+  name: faker.random.word(),
+  description: faker.random.word(),
+  metadata: {
+    createdAt: faker.random.word(),
+    createdBy: faker.random.word(),
+    updatedAt: faker.random.word(),
+    updatedBy: faker.random.word(),
+    updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined]),
+  },
+  target: {
+    provider: { id: faker.random.word(), type: faker.random.word() },
+    with: {
+      cl7a5kpk3000fjw49c3oz78mb: faker.random.word(),
+    },
+    withSelectable: {
+      cl7a5kpk3000gjw49b8j62dfv: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+    },
+  },
+  timeConstraints: {
+    maxDurationSeconds: faker.datatype.number({ min: 60, max: undefined }),
+  },
+  isCurrent: faker.datatype.boolean(),
+});
 
-export const getAdminUpdateAccessRuleMock = () => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7gd0hx80006cghgbinq12bb': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})
+export const getAdminUpdateAccessRuleMock = () => ({
+  id: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)),
+  groups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => faker.random.word()),
+  approval: {
+    users: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+  },
+  name: faker.random.word(),
+  description: faker.random.word(),
+  metadata: {
+    createdAt: faker.random.word(),
+    createdBy: faker.random.word(),
+    updatedAt: faker.random.word(),
+    updatedBy: faker.random.word(),
+    updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined]),
+  },
+  target: {
+    provider: { id: faker.random.word(), type: faker.random.word() },
+    with: {
+      cl7a5kpk4000hjw492fdv1g5l: faker.random.word(),
+    },
+    withSelectable: {
+      cl7a5kpk4000ijw497n4a43b1: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+    },
+  },
+  timeConstraints: {
+    maxDurationSeconds: faker.datatype.number({ min: 60, max: undefined }),
+  },
+  isCurrent: faker.datatype.boolean(),
+});
 
-export const getAdminGetAccessRuleVersionsMock = () => ({accessRules: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7gd0hxc0008cghg8pf98s1k': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})), next: faker.helpers.arrayElement([faker.random.word(), null])})
+export const getAdminGetAccessRuleVersionsMock = () => ({
+  accessRules: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    version: faker.random.word(),
+    status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    approval: {
+      users: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+      groups: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+    },
+    name: faker.random.word(),
+    description: faker.random.word(),
+    metadata: {
+      createdAt: faker.random.word(),
+      createdBy: faker.random.word(),
+      updatedAt: faker.random.word(),
+      updatedBy: faker.random.word(),
+      updateMessage: faker.helpers.arrayElement([
+        faker.random.word(),
+        undefined,
+      ]),
+    },
+    target: {
+      provider: { id: faker.random.word(), type: faker.random.word() },
+      with: {
+        cl7a5kpk7000ljw49hyeo1trq: faker.random.word(),
+      },
+      withSelectable: {
+        cl7a5kpk7000mjw499s2rbhx1: Array.from(
+          { length: faker.datatype.number({ min: 1, max: 10 }) },
+          (_, i) => i + 1
+        ).map(() => faker.random.word()),
+      },
+    },
+    timeConstraints: {
+      maxDurationSeconds: faker.datatype.number({ min: 60, max: undefined }),
+    },
+    isCurrent: faker.datatype.boolean(),
+  })),
+  next: faker.helpers.arrayElement([faker.random.word(), null]),
+});
 
-export const getAdminGetAccessRuleVersionMock = () => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7gd0hxe0009cghg5lg7ezys': faker.random.word()
-      }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})
+export const getAdminGetAccessRuleVersionMock = () => ({
+  id: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)),
+  groups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => faker.random.word()),
+  approval: {
+    users: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+  },
+  name: faker.random.word(),
+  description: faker.random.word(),
+  metadata: {
+    createdAt: faker.random.word(),
+    createdBy: faker.random.word(),
+    updatedAt: faker.random.word(),
+    updatedBy: faker.random.word(),
+    updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined]),
+  },
+  target: {
+    provider: { id: faker.random.word(), type: faker.random.word() },
+    with: {
+      cl7a5kpk9000njw4967y465fi: faker.random.word(),
+    },
+    withSelectable: {
+      cl7a5kpk9000ojw495zhwc7da: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+    },
+  },
+  timeConstraints: {
+    maxDurationSeconds: faker.datatype.number({ min: 60, max: undefined }),
+  },
+  isCurrent: faker.datatype.boolean(),
+});
 
-export const getAdminListRequestsMock = () => ({requests: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requestor: faker.random.word(), status: faker.helpers.arrayElement(Object.values(RequestStatus)), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRule: {id: faker.random.word(), version: faker.random.word()}, updatedAt: faker.random.word(), grant: faker.helpers.arrayElement([{status: faker.helpers.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), subject: faker.internet.email(), provider: faker.random.word(), start: faker.random.word(), end: faker.random.word()}, undefined]), approvalMethod: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ApprovalMethod)), undefined])})), next: faker.helpers.arrayElement([faker.random.word(), null])})
+export const getAdminListRequestsMock = () => ({
+  requests: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    requestor: faker.random.word(),
+    status: faker.helpers.arrayElement(Object.values(RequestStatus)),
+    reason: faker.helpers.arrayElement([faker.random.word(), undefined]),
+    timing: {
+      durationSeconds: faker.datatype.number({
+        min: undefined,
+        max: undefined,
+      }),
+      startTime: faker.helpers.arrayElement([faker.random.word(), undefined]),
+    },
+    requestedAt: faker.random.word(),
+    accessRule: { id: faker.random.word(), version: faker.random.word() },
+    updatedAt: faker.random.word(),
+    grant: faker.helpers.arrayElement([
+      {
+        status: faker.helpers.arrayElement([
+          "PENDING",
+          "ACTIVE",
+          "ERROR",
+          "REVOKED",
+          "EXPIRED",
+        ]),
+        subject: faker.internet.email(),
+        provider: faker.random.word(),
+        start: faker.random.word(),
+        end: faker.random.word(),
+      },
+      undefined,
+    ]),
+    approvalMethod: faker.helpers.arrayElement([
+      faker.helpers.arrayElement(Object.values(ApprovalMethod)),
+      undefined,
+    ]),
+    selectedWith: {
+      cl7a5kpkb000pjw49gfdzhznr: {
+        value: faker.random.word(),
+        label: faker.random.word(),
+      },
+    },
+  })),
+  next: faker.helpers.arrayElement([faker.random.word(), null]),
+});
 
-export const getGetUsersMock = () => ({users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.helpers.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word()})), next: faker.helpers.arrayElement([faker.random.word(), null])})
+export const getGetUsersMock = () => ({
+  users: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    email: faker.random.word(),
+    firstName: faker.random.word(),
+    picture: faker.random.word(),
+    status: faker.helpers.arrayElement(Object.values(IdpStatus)),
+    lastName: faker.random.word(),
+    updatedAt: faker.random.word(),
+  })),
+  next: faker.helpers.arrayElement([faker.random.word(), null]),
+});
 
-export const getGetGroupsMock = () => ({groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.random.word(), description: faker.random.word(), id: faker.random.word(), memberCount: faker.datatype.number({min: undefined, max: undefined})})), next: faker.helpers.arrayElement([faker.random.word(), null])})
+export const getGetGroupsMock = () => ({
+  groups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    name: faker.random.word(),
+    description: faker.random.word(),
+    id: faker.random.word(),
+    memberCount: faker.datatype.number({ min: undefined, max: undefined }),
+  })),
+  next: faker.helpers.arrayElement([faker.random.word(), null]),
+});
 
-export const getGetGroupMock = () => ({name: faker.random.word(), description: faker.random.word(), id: faker.random.word(), memberCount: faker.datatype.number({min: undefined, max: undefined})})
+export const getGetGroupMock = () => ({
+  name: faker.random.word(),
+  description: faker.random.word(),
+  id: faker.random.word(),
+  memberCount: faker.datatype.number({ min: undefined, max: undefined }),
+});
 
-export const getListProvidersMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), type: faker.random.word()})))
+export const getListProvidersMock = () =>
+  Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({ id: faker.random.word(), type: faker.random.word() }));
 
-export const getGetProviderMock = () => ({id: faker.random.word(), type: faker.random.word()})
+export const getGetProviderMock = () => ({
+  id: faker.random.word(),
+  type: faker.random.word(),
+});
 
-export const getGetProviderArgsMock = () => ({})
+export const getGetProviderArgsMock = () => ({});
 
-export const getListProviderArgOptionsMock = () => ({hasOptions: faker.datatype.boolean(), options: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({label: faker.random.word(), value: faker.random.word()}))})
+export const getListProviderArgOptionsMock = () => ({
+  hasOptions: faker.datatype.boolean(),
+  options: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({ label: faker.random.word(), value: faker.random.word() })),
+});
 
-export const getListProvidersetupsMock = () => ({providerSetups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), type: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(['COMPLETE','VALIDATION_FAILED','VALIDATING','INITIAL_CONFIGURATION_IN_PROGRESS','VALIDATION_SUCEEDED']), steps: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({complete: faker.datatype.boolean()})), configValues: {}, configValidation: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), status: faker.helpers.arrayElement(['IN_PROGRESS','SUCCESS','PENDING','ERROR']), fieldsValidated: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), logs: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(['INFO','WARNING','ERROR']), msg: faker.random.word()}))}))}))})
+export const getListProvidersetupsMock = () => ({
+  providerSetups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    type: faker.random.word(),
+    version: faker.random.word(),
+    status: faker.helpers.arrayElement([
+      "COMPLETE",
+      "VALIDATION_FAILED",
+      "VALIDATING",
+      "INITIAL_CONFIGURATION_IN_PROGRESS",
+      "VALIDATION_SUCEEDED",
+    ]),
+    steps: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({ complete: faker.datatype.boolean() })),
+    configValues: {},
+    configValidation: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({
+      id: faker.random.word(),
+      name: faker.random.word(),
+      status: faker.helpers.arrayElement([
+        "IN_PROGRESS",
+        "SUCCESS",
+        "PENDING",
+        "ERROR",
+      ]),
+      fieldsValidated: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => faker.random.word()),
+      logs: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => ({
+        level: faker.helpers.arrayElement(["INFO", "WARNING", "ERROR"]),
+        msg: faker.random.word(),
+      })),
+    })),
+  })),
+});
 
-export const getGetProvidersetupMock = () => ({id: faker.random.word(), type: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(['COMPLETE','VALIDATION_FAILED','VALIDATING','INITIAL_CONFIGURATION_IN_PROGRESS','VALIDATION_SUCEEDED']), steps: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({complete: faker.datatype.boolean()})), configValues: {}, configValidation: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), status: faker.helpers.arrayElement(['IN_PROGRESS','SUCCESS','PENDING','ERROR']), fieldsValidated: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), logs: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(['INFO','WARNING','ERROR']), msg: faker.random.word()}))}))})
+export const getGetProvidersetupMock = () => ({
+  id: faker.random.word(),
+  type: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement([
+    "COMPLETE",
+    "VALIDATION_FAILED",
+    "VALIDATING",
+    "INITIAL_CONFIGURATION_IN_PROGRESS",
+    "VALIDATION_SUCEEDED",
+  ]),
+  steps: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({ complete: faker.datatype.boolean() })),
+  configValues: {},
+  configValidation: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    name: faker.random.word(),
+    status: faker.helpers.arrayElement([
+      "IN_PROGRESS",
+      "SUCCESS",
+      "PENDING",
+      "ERROR",
+    ]),
+    fieldsValidated: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    logs: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({
+      level: faker.helpers.arrayElement(["INFO", "WARNING", "ERROR"]),
+      msg: faker.random.word(),
+    })),
+  })),
+});
 
-export const getGetProvidersetupInstructionsMock = () => ({stepDetails: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({title: faker.random.word(), instructions: faker.random.word(), configFields: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), description: faker.random.word(), isOptional: faker.datatype.boolean(), isSecret: faker.datatype.boolean(), secretPath: faker.helpers.arrayElement([faker.random.word(), undefined])}))}))})
+export const getGetProvidersetupInstructionsMock = () => ({
+  stepDetails: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    title: faker.random.word(),
+    instructions: faker.random.word(),
+    configFields: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({
+      id: faker.random.word(),
+      name: faker.random.word(),
+      description: faker.random.word(),
+      isOptional: faker.datatype.boolean(),
+      isSecret: faker.datatype.boolean(),
+      secretPath: faker.helpers.arrayElement([faker.random.word(), undefined]),
+    })),
+  })),
+});
 
-export const getValidateProvidersetupMock = () => ({id: faker.random.word(), type: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(['COMPLETE','VALIDATION_FAILED','VALIDATING','INITIAL_CONFIGURATION_IN_PROGRESS','VALIDATION_SUCEEDED']), steps: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({complete: faker.datatype.boolean()})), configValues: {}, configValidation: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), status: faker.helpers.arrayElement(['IN_PROGRESS','SUCCESS','PENDING','ERROR']), fieldsValidated: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), logs: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(['INFO','WARNING','ERROR']), msg: faker.random.word()}))}))})
+export const getValidateProvidersetupMock = () => ({
+  id: faker.random.word(),
+  type: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement([
+    "COMPLETE",
+    "VALIDATION_FAILED",
+    "VALIDATING",
+    "INITIAL_CONFIGURATION_IN_PROGRESS",
+    "VALIDATION_SUCEEDED",
+  ]),
+  steps: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({ complete: faker.datatype.boolean() })),
+  configValues: {},
+  configValidation: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    name: faker.random.word(),
+    status: faker.helpers.arrayElement([
+      "IN_PROGRESS",
+      "SUCCESS",
+      "PENDING",
+      "ERROR",
+    ]),
+    fieldsValidated: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    logs: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({
+      level: faker.helpers.arrayElement(["INFO", "WARNING", "ERROR"]),
+      msg: faker.random.word(),
+    })),
+  })),
+});
 
-export const getSubmitProvidersetupStepMock = () => ({id: faker.random.word(), type: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(['COMPLETE','VALIDATION_FAILED','VALIDATING','INITIAL_CONFIGURATION_IN_PROGRESS','VALIDATION_SUCEEDED']), steps: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({complete: faker.datatype.boolean()})), configValues: {}, configValidation: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), status: faker.helpers.arrayElement(['IN_PROGRESS','SUCCESS','PENDING','ERROR']), fieldsValidated: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), logs: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(['INFO','WARNING','ERROR']), msg: faker.random.word()}))}))})
+export const getSubmitProvidersetupStepMock = () => ({
+  id: faker.random.word(),
+  type: faker.random.word(),
+  version: faker.random.word(),
+  status: faker.helpers.arrayElement([
+    "COMPLETE",
+    "VALIDATION_FAILED",
+    "VALIDATING",
+    "INITIAL_CONFIGURATION_IN_PROGRESS",
+    "VALIDATION_SUCEEDED",
+  ]),
+  steps: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({ complete: faker.datatype.boolean() })),
+  configValues: {},
+  configValidation: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.random.word(),
+    name: faker.random.word(),
+    status: faker.helpers.arrayElement([
+      "IN_PROGRESS",
+      "SUCCESS",
+      "PENDING",
+      "ERROR",
+    ]),
+    fieldsValidated: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+    logs: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({
+      level: faker.helpers.arrayElement(["INFO", "WARNING", "ERROR"]),
+      msg: faker.random.word(),
+    })),
+  })),
+});
 
 export const getAdminMSW = () => [
-rest.get('*/api/v1/admin/access-rules', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminListAccessRulesMock()),
-        )
-      }),rest.post('*/api/v1/admin/access-rules', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminCreateAccessRuleMock()),
-        )
-      }),rest.get('*/api/v1/admin/access-rules/:ruleId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminGetAccessRuleMock()),
-        )
-      }),rest.put('*/api/v1/admin/access-rules/:ruleId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminUpdateAccessRuleMock()),
-        )
-      }),rest.get('*/api/v1/admin/access-rules/:ruleId/versions', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminGetAccessRuleVersionsMock()),
-        )
-      }),rest.get('*/api/v1/admin/access-rules/:ruleId/versions/:version', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminGetAccessRuleVersionMock()),
-        )
-      }),rest.get('*/api/v1/admin/requests', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getAdminListRequestsMock()),
-        )
-      }),rest.get('*/api/v1/admin/users', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetUsersMock()),
-        )
-      }),rest.get('*/api/v1/admin/groups', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetGroupsMock()),
-        )
-      }),rest.get('*/api/v1/admin/groups/:groupId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetGroupMock()),
-        )
-      }),rest.get('*/api/v1/admin/providers', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getListProvidersMock()),
-        )
-      }),rest.get('*/api/v1/admin/providers/:providerId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProviderMock()),
-        )
-      }),rest.get('*/api/v1/admin/providers/:providerId/args', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProviderArgsMock()),
-        )
-      }),rest.get('*/api/v1/admin/providers/:providerId/args/:argId/options', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getListProviderArgOptionsMock()),
-        )
-      }),rest.get('*/api/v1/admin/providersetups', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getListProvidersetupsMock()),
-        )
-      }),rest.get('*/api/v1/admin/providersetups/:providersetupId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProvidersetupMock()),
-        )
-      }),rest.get('*/api/v1/admin/providersetups/:providersetupId/instructions', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProvidersetupInstructionsMock()),
-        )
-      }),rest.post('*/api/v1/admin/providersetups/:providersetupId/validate', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getValidateProvidersetupMock()),
-        )
-      }),rest.put('*/api/v1/admin/providersetups/:providersetupId/steps/:stepIndex/complete', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getSubmitProvidersetupStepMock()),
-        )
-      }),]
+  rest.get("*/api/v1/admin/access-rules", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getAdminListAccessRulesMock())
+    );
+  }),
+  rest.post("*/api/v1/admin/access-rules", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getAdminCreateAccessRuleMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/access-rules/:ruleId", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getAdminGetAccessRuleMock())
+    );
+  }),
+  rest.put("*/api/v1/admin/access-rules/:ruleId", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getAdminUpdateAccessRuleMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/access-rules/:ruleId/versions", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getAdminGetAccessRuleVersionsMock())
+    );
+  }),
+  rest.get(
+    "*/api/v1/admin/access-rules/:ruleId/versions/:version",
+    (_req, res, ctx) => {
+      return res(
+        ctx.delay(1000),
+        ctx.status(200, "Mocked status"),
+        ctx.json(getAdminGetAccessRuleVersionMock())
+      );
+    }
+  ),
+  rest.get("*/api/v1/admin/requests", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getAdminListRequestsMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/users", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getGetUsersMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/groups", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getGetGroupsMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/groups/:groupId", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getGetGroupMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/providers", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getListProvidersMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/providers/:providerId", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getGetProviderMock())
+    );
+  }),
+  rest.get("*/api/v1/admin/providers/:providerId/args", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getGetProviderArgsMock())
+    );
+  }),
+  rest.get(
+    "*/api/v1/admin/providers/:providerId/args/:argId/options",
+    (_req, res, ctx) => {
+      return res(
+        ctx.delay(1000),
+        ctx.status(200, "Mocked status"),
+        ctx.json(getListProviderArgOptionsMock())
+      );
+    }
+  ),
+  rest.get("*/api/v1/admin/providersetups", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getListProvidersetupsMock())
+    );
+  }),
+  rest.get(
+    "*/api/v1/admin/providersetups/:providersetupId",
+    (_req, res, ctx) => {
+      return res(
+        ctx.delay(1000),
+        ctx.status(200, "Mocked status"),
+        ctx.json(getGetProvidersetupMock())
+      );
+    }
+  ),
+  rest.get(
+    "*/api/v1/admin/providersetups/:providersetupId/instructions",
+    (_req, res, ctx) => {
+      return res(
+        ctx.delay(1000),
+        ctx.status(200, "Mocked status"),
+        ctx.json(getGetProvidersetupInstructionsMock())
+      );
+    }
+  ),
+  rest.post(
+    "*/api/v1/admin/providersetups/:providersetupId/validate",
+    (_req, res, ctx) => {
+      return res(
+        ctx.delay(1000),
+        ctx.status(200, "Mocked status"),
+        ctx.json(getValidateProvidersetupMock())
+      );
+    }
+  ),
+  rest.put(
+    "*/api/v1/admin/providersetups/:providersetupId/steps/:stepIndex/complete",
+    (_req, res, ctx) => {
+      return res(
+        ctx.delay(1000),
+        ctx.status(200, "Mocked status"),
+        ctx.json(getSubmitProvidersetupStepMock())
+      );
+    }
+  ),
+];

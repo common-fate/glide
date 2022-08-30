@@ -49,9 +49,10 @@ func TestCreateAccessRule(t *testing.T) {
 			UpdatedBy: userID,
 		},
 		Target: rule.Target{
-			ProviderID:   in.Target.ProviderId,
-			ProviderType: "okta",
-			With:         in.Target.With.AdditionalProperties,
+			ProviderID:     in.Target.ProviderId,
+			ProviderType:   "okta",
+			With:           make(map[string]string),
+			WithSelectable: make(map[string][]string),
 		},
 		TimeConstraints: in.TimeConstraints,
 		Current:         true,

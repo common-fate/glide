@@ -1,9 +1,7 @@
 import {
-  Box,
-  Flex,
+  chakra,
   FormControl,
   FormErrorMessage,
-  FormHelperText,
   FormLabel,
   HStack,
   IconButton,
@@ -28,7 +26,7 @@ import { colors } from "../../../../utils/theme/colors";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { CustomOption } from "../components/Select";
+import { MultiSelect, MultiSelectOptions } from "../components/Select";
 import { CreateAccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 import { JSONSchema7 } from "json-schema";
@@ -67,7 +65,9 @@ export const ProviderStep: React.FC = () => {
       <ProviderPreview
         target={{
           provider: provider,
-          with: target.with,
+          with: {},
+          withSelectable: {},
+          // with: target.with,
         }}
       />
     );
@@ -108,6 +108,9 @@ export const ProviderStep: React.FC = () => {
   );
 };
 
+// Enable chakra styling of the react json schema form component!!!!
+// https://chakra-ui.com/docs/styled-system/chakra-factory
+const StyledForm = chakra(Form);
 const ProviderWithQuestions: React.FC = () => {
   const { watch } = useFormContext();
   const providerId = watch("target.providerId");
@@ -120,10 +123,17 @@ const ProviderWithQuestions: React.FC = () => {
     return <Spinner />;
   }
   return (
-    <Form
+    <StyledForm
+      // using chakra styling props to set the width to 100%
+      w="100%"
       // tagname is a prop that allows us to prevent this using a <form> element to wrap this, this avoids a nested form error
       tagName={"div"}
       uiSchema={{
+        "ui:options": {
+          chakra: {
+            w: "100%",
+          },
+        },
         "ui:submitButtonOptions": {
           props: {
             disabled: true,
@@ -136,11 +146,11 @@ const ProviderWithQuestions: React.FC = () => {
       showErrorList={false}
       schema={data}
       fields={{
-        StringField: SelectField,
+        StringField: WithField,
         // I would have overridden the DescriptionField to make it formatted nicer but its broken in RJSF :(
         // using a FieldTemplate does allow you to overide the whole thing sort of, but then we may as well write our own library
       }}
-    ></Form>
+    ></StyledForm>
   );
 };
 
@@ -173,13 +183,14 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
   );
 };
 
-// SelectField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
-const SelectField: React.FC<FieldProps> = (props) => {
+// WithField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
+const WithField: React.FC<FieldProps> = (props) => {
   const {
     control,
     watch,
     formState,
     trigger,
+    register,
   } = useFormContext<CreateAccessRuleFormData>();
   const providerId = watch("target.providerId");
   const { data } = useListProviderArgOptions(providerId, props.name);
@@ -205,65 +216,22 @@ const SelectField: React.FC<FieldProps> = (props) => {
       <FormLabel htmlFor="target.providerId">
         <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
       </FormLabel>
-      <Controller
-        control={control}
-        rules={{ required: props.required }}
-        name={`target.with.${props.name}`}
-        render={({ field: { onChange, ref, value } }) => {
-          return data.hasOptions ? (
-            <HStack minW={{ base: "200px", md: "500px" }}>
-              <Box>
-                <HStack>
-                  <RSelect
-                    options={data.options}
-                    components={{ Option: CustomOption }}
-                    ref={ref}
-                    value={data.options.find((o) => o.value === value)}
-                    onChange={(val) => {
-                      // TS improperly infers this as MultiValue<Option>, when Option works fine?
-                      // @ts-ignore
-                      onChange(val?.value);
-                      void trigger(`target.with.${props.name}`);
-                    }}
-                    styles={{
-                      multiValue: (provided, state) => {
-                        return {
-                          minWidth: "100%",
-                          borderRadius: "20px",
-                          background: colors.neutrals[100],
-                        };
-                      },
-                      container: (provided, state) => {
-                        return {
-                          minWidth: "300px",
-                          width: "100%",
-                        };
-                      },
-                    }}
-                    // data-testid={rest.testId}
-                  />
-                  <RefreshButton providerId={providerId} argId={props.name} />
-                </HStack>
-                <FormHelperText>{value}</FormHelperText>
-              </Box>
-            </HStack>
-          ) : (
-            <>
-              <Input
-                id="provider-vault"
-                bg="white"
-                ref={ref}
-                onChange={(e) => {
-                  onChange(e);
-                  void trigger(`target.with.${props.name}`); // this triggers the form to revalidate
-                }}
-                value={value}
-                placeholder={props.schema.default?.toString() ?? ""}
-              />
-            </>
-          );
-        }}
-      />
+      {data.hasOptions ? (
+        <HStack>
+          <MultiSelect
+            fieldName={`target.with.${props.name}`}
+            options={data.options}
+          />
+          <RefreshButton providerId={providerId} argId={props.name} />
+        </HStack>
+      ) : (
+        <Input
+          id="provider-vault"
+          bg="white"
+          placeholder={props.schema.default?.toString() ?? ""}
+          {...register(`target.with.${props.name}`)}
+        />
+      )}
       <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>
     </FormControl>
   );

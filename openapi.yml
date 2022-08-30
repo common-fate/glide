@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessRule"
+                $ref: "#/components/schemas/AccessRuleWithSelectables"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "404":
@@ -881,6 +881,10 @@ components:
           $ref: "#/components/schemas/Grant"
         approvalMethod:
           $ref: "#/components/schemas/ApprovalMethod"
+        selectedWith:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/WithOption"
       required:
         - id
         - requestor
@@ -889,6 +893,7 @@ components:
         - requestedAt
         - accessRule
         - updatedAt
+        - selectedWith
     RequestDetail:
       title: Request
       type: object
@@ -922,6 +927,10 @@ components:
           description: true if the requesting user is a reviewer of this request.
         approvalMethod:
           $ref: "#/components/schemas/ApprovalMethod"
+        selectedWith:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/WithOption"
       required:
         - id
         - requestor
@@ -974,6 +983,40 @@ components:
           example: Admin access to Okta
         target:
           $ref: "#/components/schemas/AccessRuleTarget"
+        timeConstraints:
+          $ref: "#/components/schemas/TimeConstraints"
+        isCurrent:
+          type: boolean
+      required:
+        - id
+        - version
+        - name
+        - description
+        - target
+        - timeConstraints
+        - isCurrent
+    AccessRuleWithSelectables:
+      title: AccessRuleWithSelectables
+      type: object
+      description: Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
+        version:
+          type: string
+          description: |
+            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+            When a rule is updated, it's ID remains consistent.
+        name:
+          type: string
+          example: Okta admin
+        description:
+          type: string
+          example: Admin access to Okta
+        target:
+          $ref: "#/components/schemas/AccessRuleTargetDetail"
         timeConstraints:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
@@ -1074,7 +1117,10 @@ components:
         with:
           type: object
           additionalProperties:
-            type: string
+            type: array
+            items:
+              type: string
+          description: "The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule."
       required:
         - providerId
         - with
@@ -1089,9 +1135,37 @@ components:
           type: object
           additionalProperties:
             type: string
+        withSelectable:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
       required:
         - provider
         - with
+        - withSelectable
+    AccessRuleTargetDetail:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A target for an access rule
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        with:
+          type: object
+          additionalProperties:
+            type: string
+        withSelectable:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: "#/components/schemas/Selectable"
+      required:
+        - provider
+        - with
+        - withSelectable
     ApproverConfig:
       title: ApproverConfig
       type: object
@@ -1293,6 +1367,39 @@ components:
         - id
         - requestId
         - createdAt
+    WithOption:
+      title: WithOption
+      x-stoplight:
+        id: xoejiu5ci05du
+      type: object
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+      required:
+        - value
+        - label
+    Selectable:
+      title: Selectable
+      x-stoplight:
+        id: ab18xdxwinqhb
+      type: object
+      properties:
+        option:
+          $ref: "#/components/schemas/WithOption"
+        valid:
+          type: boolean
+      required:
+        - option
+        - valid
+    CreateRequestWith:
+      title: CreateRequestWith
+      x-stoplight:
+        id: 8oa3c4w7ml7tx
+      type: object
+      additionalProperties:
+        type: string
     ProviderSetup:
       title: ProviderSetup
       x-stoplight:
@@ -1760,6 +1867,8 @@ components:
                 type: string
               timing:
                 $ref: "#/components/schemas/RequestTiming"
+              with:
+                $ref: "#/components/schemas/CreateRequestWith"
             required:
               - accessRuleId
               - timing

@@ -11,6 +11,7 @@ import (
 var InitCommand = cli.Command{
 	Name:        "init",
 	Description: "Set up a new Granted deployment configuration file",
+	Usage:       "Set up a new Granted deployment configuration file",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "overwrite", Usage: "Force an existing deployment configuration file to be overwritten"},
 		&cli.StringFlag{Name: "name", Usage: "The name of the CloudFormation stack to create"},

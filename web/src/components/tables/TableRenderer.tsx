@@ -1,11 +1,7 @@
 import {
   Box,
   Center,
-  Flex,
-  HStack,
-  Skeleton,
   SkeletonText,
-  Stack,
   Table,
   TableRowProps,
   Tbody,
@@ -14,8 +10,8 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react";
-import React, { useCallback } from "react";
-import { Link, useNavigate } from "react-location";
+import React from "react";
+import { useNavigate } from "react-location";
 import {
   Column,
   Row,
@@ -23,7 +19,6 @@ import {
   TableOptions,
   usePagination,
   UsePaginationInstanceProps,
-  UsePaginationOptions,
   useTable,
 } from "react-table";
 import { PaginationProps } from "../../utils/usePaginatorApi";

@@ -16,6 +16,7 @@ import {
   Tooltip,
   useDisclosure,
   useToast,
+  VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
@@ -90,7 +91,7 @@ interface VersionDisplay {
 }
 
 const getStatus = (
-  request: Request | undefined,
+  request: Request | RequestDetail | undefined,
   activeTimeString: string | undefined
 ) => {
   if (activeTimeString !== undefined) {
@@ -114,7 +115,7 @@ const getStatus = (
 };
 
 export const RequestStatusDisplay: React.FC<{
-  request: Request | undefined;
+  request: Request | RequestDetail | undefined;
 }> = ({ request }) => {
   const activeTimeString =
     request?.grant && request?.grant.status === "ACTIVE"
@@ -149,6 +150,46 @@ export const RequestStatusDisplay: React.FC<{
   );
 };
 
+export const RequestSelectedWithDisplay: React.FC<{
+  request: Request | RequestDetail | undefined;
+}> = ({ request }) => {
+  if (request?.selectedWith === undefined) {
+    <Skeleton
+      minW="30ch"
+      minH="6"
+      isLoaded={request?.selectedWith !== undefined}
+      mr="auto"
+    />;
+  }
+
+  if (
+    request?.selectedWith &&
+    Object.entries(request.selectedWith).length > 0
+  ) {
+    return (
+      <VStack align={"left"}>
+        <Box textStyle="Body/Medium" mb={2}>
+          Target Selections
+        </Box>
+        {request?.selectedWith &&
+          Object.entries(request?.selectedWith).map(([k, v]) => {
+            return (
+              <Box key={"selected-" + k} textStyle="Body/Small" mb={2}>
+                {k}
+                <Text color="neutrals.600" textStyle="Body/Small">
+                  {v.label}
+                </Text>
+                <Text color="neutrals.600" textStyle="Body/Small">
+                  {v.value}
+                </Text>
+              </Box>
+            );
+          })}
+      </VStack>
+    );
+  }
+  return null;
+};
 export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
   const { request } = useContext(Context);
 
@@ -200,6 +241,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
             </Tooltip>
           </HStack>
         </Skeleton>
+        <RequestSelectedWithDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
           <Flex
             color="neutrals.600"

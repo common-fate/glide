@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
@@ -18,6 +19,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type CreateRequestResult struct {
@@ -64,6 +66,47 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		RequestedTiming: access.TimingFromRequestTiming(in.Timing),
 		Rule:            rule.ID,
 		RuleVersion:     rule.Version,
+		SelectedWith:    make(map[string]access.Option),
+	}
+	if in.With != nil {
+		argOptionsLabels := make(map[string]map[string]string)
+		var mu sync.Mutex
+		g, gctx := errgroup.WithContext(ctx)
+		for k := range in.With.AdditionalProperties {
+			kCopy := k
+			g.Go(func() error {
+				_, opts, err := s.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
+				if err != nil {
+					return err
+				}
+				labels := make(map[string]string)
+				for _, op := range opts {
+					labels[op.Value] = op.Label
+				}
+				mu.Lock()
+				defer mu.Unlock()
+				argOptionsLabels[kCopy] = labels
+				return nil
+			})
+		}
+		err = g.Wait()
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range in.With.AdditionalProperties {
+			labels, ok := argOptionsLabels[k]
+			if !ok {
+				return nil, fmt.Errorf("options not found for arg %s", k)
+			}
+			label, ok := labels[v]
+			if !ok {
+				return nil, fmt.Errorf("no matching option found for value %s for arg %s", v, k)
+			}
+			req.SelectedWith[k] = access.Option{
+				Value: v,
+				Label: label,
+			}
+		}
 	}
 
 	// If the approval is not required, auto-approve the request
@@ -197,5 +240,51 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 			},
 		}
 	}
+	given := types.CreateRequestWith{AdditionalProperties: make(map[string]string)}
+	expected := make(map[string][]string)
+
+	if request.With != nil {
+		given = *request.With
+	}
+	if rule.Target.WithSelectable != nil {
+		expected = rule.Target.WithSelectable
+	}
+
+	if len(given.AdditionalProperties) != len(expected) {
+		return &apio.APIError{
+			Err:    errors.New("request validation failed"),
+			Status: http.StatusBadRequest,
+			Fields: []apio.FieldError{
+				{
+					Field: "with",
+					Error: "unexpected with values",
+				},
+			},
+		}
+	}
+
+	for arg, options := range expected {
+		value, ok := given.AdditionalProperties[arg]
+		if !ok || !contains(options, value) {
+			return &apio.APIError{
+				Err:    errors.New("request validation failed"),
+				Status: http.StatusBadRequest,
+				Fields: []apio.FieldError{
+					{
+						Field: "with",
+						Error: fmt.Sprintf("unexpected with value for %s", arg),
+					},
+				},
+			}
+		}
+	}
 	return nil
+}
+func contains(set []string, str string) bool {
+	for _, s := range set {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }

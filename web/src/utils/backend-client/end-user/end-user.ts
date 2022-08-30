@@ -12,7 +12,7 @@ import type {
 } from 'swr'
 import type {
   ListAccessRulesResponseResponse,
-  AccessRule,
+  AccessRuleWithSelectables,
   ErrorResponseResponse,
   ListAccessRuleApproversResponseResponse,
   ListRequestsResponseResponse,
@@ -90,7 +90,7 @@ End users are only able to view Access Rules if they are a member of the group t
 export const userGetAccessRule = (
     ruleId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<AccessRule>(
+      return customInstance<AccessRuleWithSelectables>(
       {url: `/api/v1/access-rules/${ruleId}`, method: 'get'
     },
       options);

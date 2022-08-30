@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 )
@@ -17,6 +18,7 @@ type Service struct {
 	DB          ddb.Storage
 	Granter     Granter
 	EventPutter EventPutter
+	Cache       CacheService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/granter.go -package=mocks . Granter
@@ -30,4 +32,10 @@ type Granter interface {
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
 type EventPutter interface {
 	Put(ctx context.Context, detail gevent.EventTyper) error
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/cache.go -package=mocks . CacheService
+type CacheService interface {
+	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
+	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
 }

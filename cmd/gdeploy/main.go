@@ -2,26 +2,30 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
 	"os/exec"
 	"regexp"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/smithy-go"
+	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/groups"
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/sso"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/users"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
 	"github.com/common-fate/granted-approvals/internal/build"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/fatih/color"
@@ -53,19 +57,17 @@ func main() {
 		Commands: []*cli.Command{
 			// It's possible that these wrappers would be better defined on the commands themselves rather than in this main function
 			// It would be easier to see exactly what runs when a command runs
-			WithBeforeFuncs(&users.UsersCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&groups.GroupsCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), middleware.RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&sso.SSOCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.InitCommand, middleware.RequireAWSCredentials()),
+			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
+			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
+			WithBeforeFuncs(&identity.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
+			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
 			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
 			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), middleware.RequireAWSCredentials()),
 		},
@@ -100,6 +102,15 @@ func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
 	// e.g check if deployment config exists before checking for aws credentials
 	b := cmd.Before
 	cmd.Before = func(c *cli.Context) error {
+		args := c.Args().Slice()
+
+		// if help argument is provided then skip this check.
+		for _, arg := range args {
+			if arg == "-h" || arg == "--help" || arg == "help" {
+				return nil
+			}
+		}
+
 		for _, f := range funcs {
 			err := f(c)
 			if err != nil {
@@ -148,6 +159,71 @@ Before you can continue, you need to take the following action:
 		}
 
 		c.Context = deploy.SetConfigInContext(c.Context, dc)
+		return nil
+	}
+}
+
+// RequireAWSCredentials attempts to load aws credentials, if they don't exist, iot returns a clio.CLIError
+// This function will set the AWS config in context under the key cfaws.AWSConfigContextKey
+// use cfaws.ConfigFromContextOrDefault(ctx) to retrieve the value
+// If RequireDeploymentConfig has already run, this function will use the region value from the deployment config when setting the AWS config in context
+func RequireAWSCredentials() cli.BeforeFunc {
+	return func(c *cli.Context) error {
+		ctx := c.Context
+		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		si.Suffix = " loading AWS credentials from your current profile"
+		si.Writer = os.Stderr
+		si.Start()
+		defer si.Stop()
+		needCredentialsLog := clio.LogMsg(`Please export valid AWS credentials to run this command.
+For more information see:
+https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
+		`)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
+		if err != nil {
+			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
+		}
+
+		// Use the deployment region if it is available
+		var configExists bool
+		dc, err := deploy.ConfigFromContext(ctx)
+		if err == nil {
+			configExists = true
+			if dc.Deployment.Region != "" {
+				cfg.Region = dc.Deployment.Region
+			}
+			if dc.Deployment.Account != "" {
+				// include the account id in the log message if available
+				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
+			}
+		}
+
+		creds, err := cfg.Credentials.Retrieve(ctx)
+		if err != nil {
+			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
+		}
+
+		if !creds.HasKeys() {
+			return clio.NewCLIError("Failed to load AWS credentials.", needCredentialsLog)
+		}
+
+		stsClient := sts.NewFromConfig(cfg)
+		// Use the sts api to check if these credentials are valid
+		identity, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+		if err != nil {
+			var ae smithy.APIError
+			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
+			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
+				return clio.NewCLIError("AWS credentials are expired.", needCredentialsLog)
+			}
+			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.DebugMsg(err.Error()), needCredentialsLog)
+		}
+
+		//check to see that account number in config is the same account that is assumed
+		if configExists && *identity.Account != dc.Deployment.Account {
+			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), needCredentialsLog)
+		}
+		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil
 	}
 }

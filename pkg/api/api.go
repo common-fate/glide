@@ -11,12 +11,14 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
+	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -55,6 +57,7 @@ type API struct {
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
 	Granter             accesssvc.Granter
+	Cache               CacheService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providersetup_service.go -package=mocks . ProviderSetupService
@@ -82,6 +85,10 @@ type AccessRuleService interface {
 	CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
 	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.AccessRule, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
+}
+type CacheService interface {
+	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
+	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
 }
 
 // API must meet the generated REST API interface.
@@ -130,6 +137,14 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				EventBus: opts.EventSender,
 			},
 			EventPutter: opts.EventSender,
+			Cache: &cachesvc.Service{
+				DB:                  db,
+				AccessHandlerClient: opts.AccessHandlerClient,
+			},
+		},
+		Cache: &cachesvc.Service{
+			DB:                  db,
+			AccessHandlerClient: opts.AccessHandlerClient,
 		},
 		Rules: &rulesvc.Service{
 			Clock:    clk,
