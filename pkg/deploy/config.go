@@ -199,11 +199,11 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 	return nil
 }
 
-// Make identity related parameters nil.
-func (c *Config) MakeIdentityTypeDefault(filepath string) error {
+// Reset Identity Provider to cognito settings
+func (c *Config) ResetIdentityProviderToCognito(filepath string) error {
 
 	c.Deployment.Parameters.IdentityProviderType = ""
-	c.Deployment.Parameters.AdministratorGroupID = ""
+	c.Deployment.Parameters.AdministratorGroupID = "granted_administrators"
 	c.Deployment.Parameters.IdentityConfiguration = nil
 	c.Deployment.Parameters.SamlSSOMetadataURL = ""
 	c.Deployment.Parameters.SamlSSOMetadata = ""

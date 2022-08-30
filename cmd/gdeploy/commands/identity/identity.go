@@ -10,7 +10,7 @@ import (
 
 var Command = cli.Command{
 	Name:        "identity",
-	Description: "identity commands are used to manage how your users login to Granted Approvals, manage your Cognito user pool, or configure your corporate SSO provider",
+	Description: "Identity commands are used to manage how your users login to Granted Approvals.\nYou can manage users and groups in the default Cognito user pool or configure your corporate SSO provider.",
 	Usage:       "Configure how your users login to Granted Approvals",
 	Action:      cli.ShowSubcommandHelp,
 	Subcommands: []*cli.Command{&sso.SSOCommand, &users.UsersCommand, &groups.GroupsCommand, &sync.SyncCommand},
