@@ -28,11 +28,6 @@ type IdentityProviderRegistry struct {
 func Registry() IdentityProviderRegistry {
 	return IdentityProviderRegistry{
 		IdentityProviders: map[string]RegisteredIdentityProvider{
-			IDPTypeCognito: {
-				IdentityProvider: &CognitoSync{},
-				Description:      "Cognito",
-				DocsID:           "cognito",
-			},
 			IDPTypeOkta: {
 				IdentityProvider: &OktaSync{},
 				Description:      "Okta",
