@@ -1,6 +1,5 @@
-import { ArrowBackIcon, QuestionIcon, WarningIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, QuestionIcon } from "@chakra-ui/icons";
 import {
-  Button,
   Center,
   CircularProgress,
   Code,
@@ -13,13 +12,11 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { Link, Navigate, useMatch, useNavigate } from "react-location";
+import { Link, Navigate, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
 import { CodeInstruction } from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
 import { useGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
-import { deleteProvidersetup } from "../../../../../utils/backend-client/default/default";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
 
 const Page = () => {
@@ -27,20 +24,12 @@ const Page = () => {
     params: { id },
   } = useMatch();
 
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const { data, mutate } = useGetProvidersetup(id);
+  const { data } = useGetProvidersetup(id);
 
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(
     (rp) => rp.type === data?.type
   );
-
-  const handleCommandRan = async () => {
-    setLoading(true);
-    await deleteProvidersetup(id);
-    navigate({ to: "/admin/providers/setup/update-deployment" });
-  };
 
   if (data === undefined) {
     return (
@@ -182,17 +171,32 @@ const Page = () => {
                 );
               </Stack>
             </ListItem>
+            <ListItem>
+              <Stack>
+                <Text>Then, update your deployment:</Text>
+                <ReactMarkdown
+                  components={{
+                    a: (props) => (
+                      <Link target="_blank" rel="noreferrer" {...props} />
+                    ),
+                    p: (props) => (
+                      <Text
+                        as="span"
+                        color="neutrals.600"
+                        textStyle={"Body/Small"}
+                      >
+                        {props.children}
+                      </Text>
+                    ),
+                    code: CodeInstruction as any,
+                  }}
+                >
+                  gdeploy update
+                </ReactMarkdown>
+                );
+              </Stack>
+            </ListItem>
           </OrderedList>
-          <Stack>
-            <Button onClick={handleCommandRan} isLoading={loading}>
-              I've run the command and updated my deployment YAML file
-            </Button>
-            <Center>
-              <Text textStyle="Body/ExtraSmall">
-                <WarningIcon /> You won't be able to come back to this page.
-              </Text>
-            </Center>
-          </Stack>
         </Stack>
         <Center mt={5}>
           <Text textStyle={"Body/Small"}>
