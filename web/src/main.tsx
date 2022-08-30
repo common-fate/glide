@@ -1,5 +1,11 @@
-import { render } from "react-dom";
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
 import { Routes } from "./utils/generouted";
 
-const container = document.getElementById("app")!;
-render(<Routes />, container);
+const root = ReactDOM.createRoot(document.getElementById("app") as HTMLElement);
+
+root.render(
+  <StrictMode>
+    <Routes />
+  </StrictMode>
+);
