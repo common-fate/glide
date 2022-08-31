@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 )
@@ -35,7 +35,7 @@ func (g *Generator) Config() gconfig.Config {
 }
 
 func (g *Generator) Init(ctx context.Context) error {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}

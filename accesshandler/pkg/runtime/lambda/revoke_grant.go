@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/common-fate/apikit/logger"
@@ -23,7 +23,7 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 	//using the grantID we need to work out all of the grant data info from the previous invocation when the grant was created
 
 	//we can grab all this from the execution input for the step function we will use this as the source of truth
-	c, err := aws_config.LoadDefaultConfig(ctx)
+	c, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}

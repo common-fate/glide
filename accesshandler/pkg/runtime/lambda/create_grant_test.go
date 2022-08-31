@@ -9,7 +9,7 @@ func TestCreateGrant(t *testing.T) {
 	// ctx := context.Background()
 
 	// // Skip test if credentials are not set
-	// c, err := config.LoadDefaultConfig(ctx)
+	// c, err := cfaws.ConfigFromContextOrDefault(ctx)
 	// if err != nil {
 	// 	t.Skip(err)
 	// }

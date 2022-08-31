@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
@@ -60,14 +59,19 @@ func (p *Provider) Config() gconfig.Config {
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-eks-roles-sso"))))
+	ssoCfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}
-	eksCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.clusterRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.clusterAccessRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-eks-roles-sso"))))
+	ssoCfg.Credentials = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-eks-roles-sso"))
+	ssoCfg.Region = p.ssoRegion.Get()
+
+	eksCfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
 	}
+	eksCfg.Credentials = cfaws.NewAssumeRoleCredentialsCache(ctx, p.clusterAccessRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-eks-roles-sso"))
+	eksCfg.Region = p.clusterRegion.Get()
 	eksClient := eks.NewFromConfig(eksCfg)
 	r, err := eksClient.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: aws.String(p.clusterName.Get())})
 	if err != nil {

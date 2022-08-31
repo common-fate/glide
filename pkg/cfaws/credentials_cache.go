@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/segmentio/ksuid"
 )
@@ -34,7 +33,7 @@ func NewAssumeRoleCredentialsCache(ctx context.Context, roleARN string, opts ...
 		opt(&cfg)
 	}
 	return aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-		defaultCfg, err := config.LoadDefaultConfig(ctx)
+		defaultCfg, err := ConfigFromContextOrDefault(ctx)
 		if err != nil {
 			return aws.Credentials{}, err
 		}

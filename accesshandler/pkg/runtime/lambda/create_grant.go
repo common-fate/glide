@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 
 	"github.com/common-fate/apikit/logger"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 )
 
@@ -34,7 +34,7 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 	if err != nil {
 		return nil, err
 	}
-	c, err := config.LoadDefaultConfig(ctx)
+	c, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}

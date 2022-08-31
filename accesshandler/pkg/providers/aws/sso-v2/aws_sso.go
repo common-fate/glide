@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
@@ -36,14 +35,13 @@ func (p *Provider) Config() gconfig.Config {
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-	opts := []func(*config.LoadOptions) error{config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso")))}
-	if p.region.IsSet() {
-		opts = append(opts, config.WithRegion(p.region.Get()))
-	}
-
-	cfg, err := config.LoadDefaultConfig(ctx, opts...)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
+	}
+	cfg.Credentials = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso"))
+	if p.region.IsSet() {
+		cfg.Region = p.region.Get()
 	}
 	cfg.RetryMaxAttempts = 5
 	creds, err := cfg.Credentials.Retrieve(ctx)

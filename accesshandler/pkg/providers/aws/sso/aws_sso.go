@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"go.uber.org/zap"
@@ -33,14 +33,12 @@ func (p *Provider) Config() gconfig.Config {
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-	var opts []func(*config.LoadOptions) error
-	if p.region.IsSet() {
-		opts = append(opts, config.WithRegion(p.region.Get()))
-	}
-
-	cfg, err := config.LoadDefaultConfig(ctx, opts...)
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
+	}
+	if p.region.IsSet() {
+		cfg.Region = p.region.Get()
 	}
 	cfg.RetryMaxAttempts = 5
 	creds, err := cfg.Credentials.Retrieve(ctx)
