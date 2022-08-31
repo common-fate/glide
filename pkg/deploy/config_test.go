@@ -162,3 +162,86 @@ func TestFeatureMap(t *testing.T) {
 	// assert that the map is as expected
 	assert.Equal(t, FeatureMap{"test": map[string]string{}, "test2": map[string]string{}}, p.IdentityConfiguration)
 }
+
+func TestGetIDForNewProvider(t *testing.T) {
+	type testcase struct {
+		name   string
+		giveID string
+		give   Config
+		want   string
+	}
+
+	testcases := []testcase{
+		{
+			name: "ok",
+			give: Config{
+				Deployment: Deployment{
+					Parameters: Parameters{
+						ProviderConfiguration: ProviderMap{},
+					},
+				},
+			},
+			giveID: "aws-sso",
+			want:   "aws-sso",
+		},
+		{
+			name:   "uninitialised map",
+			give:   Config{},
+			giveID: "aws-sso",
+			want:   "aws-sso",
+		},
+		{
+			name: "duplicate entry",
+			give: Config{
+				Deployment: Deployment{
+					Parameters: Parameters{
+						ProviderConfiguration: ProviderMap{
+							"aws-sso": Provider{},
+						},
+					},
+				},
+			},
+			giveID: "aws-sso",
+			want:   "aws-sso-2",
+		},
+		{
+			name: "multiple duplicate entries",
+			give: Config{
+				Deployment: Deployment{
+					Parameters: Parameters{
+						ProviderConfiguration: ProviderMap{
+							"aws-sso":   Provider{},
+							"aws-sso-2": Provider{},
+							"aws-sso-3": Provider{},
+						},
+					},
+				},
+			},
+			giveID: "aws-sso",
+			want:   "aws-sso-4",
+		},
+		{
+			name: "different ID",
+			give: Config{
+				Deployment: Deployment{
+					Parameters: Parameters{
+						ProviderConfiguration: ProviderMap{
+							"aws-sso":   Provider{},
+							"aws-sso-2": Provider{},
+							"aws-sso-3": Provider{},
+						},
+					},
+				},
+			},
+			giveID: "something-else",
+			want:   "something-else",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := tc.give.Deployment.Parameters.ProviderConfiguration.GetIDForNewProvider(tc.giveID)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}

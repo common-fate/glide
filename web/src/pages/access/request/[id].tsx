@@ -196,7 +196,7 @@ const Home = () => {
               {rule ? (
                 <>
                   <Flex data-testid="rule-name" align="center" mr="auto">
-                    <ProviderIcon provider={rule?.target.provider.type} />
+                    <ProviderIcon shortType={rule?.target.provider.type} />
                     <Text ml={2} textStyle="Body/Medium" color="neutrals.600">
                       {rule?.name}
                     </Text>

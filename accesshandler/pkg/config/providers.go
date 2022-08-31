@@ -36,7 +36,7 @@ func (p *Provider) ToAPI() types.Provider {
 // ReadProviderConfig will fetch the provider config based on the runtime
 //
 // the config will be read from PROVIDER_CONFIG environment variable.
-func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
+func ReadProviderConfig(ctx context.Context) ([]byte, error) {
 	var providerCfg string
 	var ok bool
 	providerCfg, ok = os.LookupEnv("PROVIDER_CONFIG")
@@ -57,7 +57,9 @@ func ReadProviderConfig(ctx context.Context, runtime string) ([]byte, error) {
 
 // ConfigureProviders sets the global Providers variable with the provided config.
 // The JSON config looks as follows:
-// 	{"<ID>": {"uses": "<TYPE>", "with": {"var1": "value1", "var2": "value2", ...}}}
+//
+//	{"<ID>": {"uses": "<TYPE>", "with": {"var1": "value1", "var2": "value2", ...}}}
+//
 // where <ID> is the identifier of the provider, <TYPE> is it's type,
 // and the other key/value pairs are config variables for the provider.
 // config is assumed to be unescaped json
@@ -83,7 +85,7 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 		var p providers.Accessor
 
 		// match the type with our registry of providers.
-		rp, err := reg.Lookup(pType.Uses)
+		rp, err := reg.LookupByUses(pType.Uses)
 		if err != nil {
 			return errors.Wrapf(err, "looking up provider %s", k)
 		}
@@ -99,21 +101,9 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 			return err
 		}
 
-		// if the provider implements Configer, we can provide it with
-		// configuration variables from the JSON data we have.
-		if c, ok := p.(gconfig.Configer); ok {
-			err := c.Config().Load(ctx, gconfig.JSONLoader{Data: pType.With})
-			if err != nil {
-				return err
-			}
-		}
-
-		// if the provider implements Initer, we can initialise it.
-		if i, ok := p.(gconfig.Initer); ok {
-			err := i.Init(ctx)
-			if err != nil {
-				return err
-			}
+		err = SetupProvider(ctx, p, gconfig.JSONLoader{Data: pType.With})
+		if err != nil {
+			return err
 		}
 
 		prov.Provider = p
@@ -125,9 +115,31 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 	return nil
 }
 
+// SetupProvider runs through the initialisation process for a provider.
+func SetupProvider(ctx context.Context, p providers.Accessor, l gconfig.Loader) error {
+	// if the provider implements Configer, we can provide it with
+	// configuration variables from the JSON data we have.
+	if c, ok := p.(gconfig.Configer); ok {
+		err := c.Config().Load(ctx, l)
+		if err != nil {
+			return err
+		}
+	}
+
+	// if the provider implements Initer, we can initialise it.
+	if i, ok := p.(gconfig.Initer); ok {
+		err := i.Init(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // providerFromUses extracts provider type and version from the uses field.
 // for example:
-// 	"commonfate/aws-sso@v1 -> type: aws-sso, version: v1
+//
+//	"commonfate/aws-sso@v1 -> type: aws-sso, version: v1
 func providerFromUses(uses string) (Provider, error) {
 	re, err := regexp.Compile(`[\w-_]+/([\w-_]+)@(.*)`)
 	if err != nil {

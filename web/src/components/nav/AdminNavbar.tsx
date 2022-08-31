@@ -90,6 +90,9 @@ export const AdminNavbar: React.FC = () => {
                     <StyledNextButton href="/admin/groups">
                       Groups
                     </StyledNextButton>
+                    <StyledNextButton href="/admin/providers">
+                      Providers
+                    </StyledNextButton>
                   </ButtonGroup>
                 )}
               </HStack>
