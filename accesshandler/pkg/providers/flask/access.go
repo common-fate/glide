@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
 	"github.com/labstack/gommon/log"
 	"github.com/sethvargo/go-retry"
@@ -175,20 +176,45 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		return err
 	}
 	log.Info("Ending SSO session", aws.String(p.instanceARN.Get()))
-	defaultCfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		log.Info("loading config failed")
-	}
 
-	client := ssm.NewFromConfig(defaultCfg)
+	ecsCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+		defaultCfg, err := config.LoadDefaultConfig(ctx)
+		if err != nil {
+			return aws.Credentials{}, err
+		}
+		stsclient := sts.NewFromConfig(defaultCfg)
+		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
+			RoleArn:         aws.String(p.ecsAccessRoleARN.Get()),
+			RoleSessionName: aws.String("accesshandler-ecs-roles-sso"),
+			DurationSeconds: aws.Int32(15 * 60),
+		})
+		if err != nil {
+			return aws.Credentials{}, err
+		}
+		return aws.Credentials{
+			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
+			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
+			SessionToken:    aws.ToString(res.Credentials.SessionToken),
+			CanExpire:       res.Credentials.Expiration != nil,
+			Expires:         aws.ToTime(res.Credentials.Expiration),
+		}, nil
+	}))
+	ecsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ecsRegion.Get()))
+	if err != nil {
+		return err
+	}
+	ecsCfg.Credentials = ecsCredentialCache
+
+	client := ssm.NewFromConfig(ecsCfg)
 
 	atrs := []ctTypes.LookupAttribute{}
 
-	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: "eventName", AttributeValue: aws.String("StartSession")})
+	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: ctTypes.LookupAttributeKeyEventName, AttributeValue: aws.String("StartSession")})
 
-	ct := cloudtrail.NewFromConfig(defaultCfg)
+	ct := cloudtrail.NewFromConfig(ecsCfg)
 
-	log.Info("Looking up cloudtrail events for sso StartSession")
+	log.Info("Looking up cloudtrail events for sso StartSession", atrs)
+
 	out, err := ct.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
 		LookupAttributes: atrs,
 	})
@@ -204,7 +230,7 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 			if err != nil {
 				return err
 			}
-			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+p.ecsClusterARN.Get()) {
+			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+strings.Split(p.ecsClusterARN.Get(), "/")[1]) {
 				// we have cloud trail log
 				sessionId = eventJson.ResponseElements.SessionID
 			}
@@ -219,6 +245,8 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		if err != nil {
 			log.Info("failed to terminate session")
 		}
+		log.Info("Successfully terminated session ", sessionId)
+
 	} else {
 		log.Info("Not matching SessionId found, could note revoke session")
 	}
