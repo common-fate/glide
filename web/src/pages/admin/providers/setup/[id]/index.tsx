@@ -552,7 +552,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                       ))}
                     </Stack>
                   )}
-                  <Flex justifyContent={"flex-end"} mt={3}>
+                  <Flex justifyContent={"flex-end"} pt={3}>
                     {readOnly !== true && (
                       <Button
                         flexGrow={0}
