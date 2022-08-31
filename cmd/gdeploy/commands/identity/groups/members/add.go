@@ -1,4 +1,4 @@
-package groups
+package members
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -8,13 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var GroupsCommand = cli.Command{
-	Name:        "group",
-	Subcommands: []*cli.Command{&membersCommand},
-	Action:      cli.ShowSubcommandHelp,
-}
-
-var membersCommand = cli.Command{
+var MembersCommand = cli.Command{
 	Name:        "members",
 	Subcommands: []*cli.Command{&addCommand},
 	Action:      cli.ShowSubcommandHelp,
