@@ -10,7 +10,6 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   providerConfig: string;
-  assumeExecutionRoleArn: string;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -28,7 +27,6 @@ export class Granter extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         PROVIDER_CONFIG: props.providerConfig,
-        ASSUME_EXECUTION_ROLE_ARN: props.assumeExecutionRoleArn,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "granter",
@@ -184,5 +182,14 @@ export class Granter extends Construct {
   }
   getGranterLambdaExecutionRoleARN(): string {
     return this._lambda.role?.roleArn ?? "";
+  }
+  withAssumeExecutionRoleArn(roleArn: string) {
+    this._lambda.addEnvironment("ASSUME_EXECUTION_ROLE_ARN", roleArn);
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: [roleArn],
+      })
+    );
   }
 }

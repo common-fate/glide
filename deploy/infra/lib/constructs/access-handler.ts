@@ -25,6 +25,30 @@ export class AccessHandler extends Construct {
     super(scope, id);
     this._restApiName = props.appName + "-access-handler";
 
+    this._granter = new Granter(this, "Granter", {
+      eventBus: props.eventBus,
+      eventBusSourceName: props.eventBusSourceName,
+      providerConfig: props.providerConfig,
+    });
+
+    const code = lambda.Code.fromAsset(
+      path.join(__dirname, "..", "..", "..", "..", "bin", "access-handler.zip")
+    );
+
+    this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
+      code,
+      timeout: Duration.seconds(60),
+      environment: {
+        GRANTED_RUNTIME: "lambda",
+        STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
+        EVENT_BUS_ARN: props.eventBus.eventBusArn,
+        EVENT_BUS_SOURCE: props.eventBusSourceName,
+        PROVIDER_CONFIG: props.providerConfig,
+      },
+      runtime: lambda.Runtime.GO_1_X,
+      handler: "access-handler",
+    });
+
     const accessHandlerRolePolicy = new iam.PolicyDocument({
       statements: [
         new iam.PolicyStatement({
@@ -59,8 +83,12 @@ export class AccessHandler extends Construct {
       ],
     });
 
+    // Create the access handler role with the lambda execution role ARNs as principals
     this._accessHandlerRole = new iam.Role(this, "ExecutionRole", {
-      assumedBy: new iam.CompositePrincipal(),
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ArnPrincipal(this._granter.getGranterLambdaExecutionRoleARN()),
+        new iam.ArnPrincipal(this._lambda.role?.roleArn ?? "")
+      ),
       description:
         "This role is assumed by the Granted Approvals access handler lambdas to grant and revoke access. It has permissions to assume any role depending on the equirements on individual providers.",
       inlinePolicies: {
@@ -68,38 +96,19 @@ export class AccessHandler extends Construct {
       },
     });
 
-    this._granter = new Granter(this, "Granter", {
-      eventBus: props.eventBus,
-      eventBusSourceName: props.eventBusSourceName,
-      providerConfig: props.providerConfig,
-      assumeExecutionRoleArn: this._accessHandlerRole.roleArn,
-    });
-
-    const code = lambda.Code.fromAsset(
-      path.join(__dirname, "..", "..", "..", "..", "bin", "access-handler.zip")
+    this._lambda.addEnvironment(
+      "ASSUME_EXECUTION_ROLE_ARN",
+      this._accessHandlerRole.roleArn
     );
 
-    this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
-      code,
-      timeout: Duration.seconds(60),
-      environment: {
-        GRANTED_RUNTIME: "lambda",
-        STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
-        EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        EVENT_BUS_SOURCE: props.eventBusSourceName,
-        PROVIDER_CONFIG: props.providerConfig,
-        ASSUME_EXECUTION_ROLE_ARN: this._accessHandlerRole.roleArn,
-      },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "access-handler",
-    });
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: [this._accessHandlerRole.roleArn],
+      })
+    );
 
-    this._accessHandlerRole.grantAssumeRole(
-      new iam.ArnPrincipal(this._lambda.role?.roleArn ?? "")
-    );
-    this._accessHandlerRole.grantAssumeRole(
-      new iam.ArnPrincipal(this._granter.getGranterLambdaExecutionRoleARN())
-    );
+    this._granter.withAssumeExecutionRoleArn(this._accessHandlerRole.roleArn);
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._restApiName,
