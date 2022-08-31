@@ -22,6 +22,7 @@ import {
   Container,
   Flex,
   FormControl,
+  FormHelperText,
   FormLabel,
   Grid,
   GridItem,
@@ -486,6 +487,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                   ),
                   p: (props) => (
                     <Text
+                      pb={3}
                       as="span"
                       color="neutrals.600"
                       textStyle={"Body/Small"}
@@ -512,7 +514,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                   spacing={5}
                 >
                   {step.configFields.length > 0 && (
-                    <Stack>
+                    <Stack spacing={5}>
                       {readOnly !== true && <Text>Enter your values</Text>}
                       {step.configFields.map((f) => (
                         <FormControl
@@ -544,15 +546,19 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                             name={f.id}
                             render={({ field }) => {
                               return (
-                                <SecretInput isSecret={f.isSecret} {...field} />
+                                <ConfigValueInput
+                                  isSecret={f.isSecret}
+                                  {...field}
+                                />
                               );
                             }}
                           />
+                          <FormHelperText>{f.description}</FormHelperText>
                         </FormControl>
                       ))}
                     </Stack>
                   )}
-                  <Flex justifyContent={"flex-end"} mt={3}>
+                  <Flex justifyContent={"flex-end"} pt={3}>
                     {readOnly !== true && (
                       <Button
                         flexGrow={0}
@@ -576,7 +582,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   );
 };
 
-interface SecretInputProps {
+interface ConfigValueInputProps {
   onChange: (n: string) => void;
   value?: string;
   defaultValue?: string;
@@ -584,7 +590,7 @@ interface SecretInputProps {
   ref: React.LegacyRef<HTMLInputElement>;
 }
 
-export const SecretInput: React.FC<SecretInputProps> = ({
+export const ConfigValueInput: React.FC<ConfigValueInputProps> = ({
   onChange,
   value,
   defaultValue,

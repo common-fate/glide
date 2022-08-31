@@ -5,8 +5,10 @@ import {
   Container,
   IconButton,
   SimpleGrid,
+  Spinner,
   Text,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-location";
 import { ProviderIcon } from "../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../components/Layout";
@@ -15,8 +17,11 @@ import { registeredProviders } from "../../../../utils/providerRegistry";
 
 const Page = () => {
   const navigate = useNavigate();
+  // used to show a spinner when the provider is being initialised.
+  const [providerLoading, setProviderLoading] = useState<string>();
 
   const createProvider = async (providerType: string) => {
+    setProviderLoading(providerType);
     const res = await createProvidersetup({
       providerType,
     });
@@ -49,6 +54,7 @@ const Page = () => {
         <SimpleGrid columns={2} spacing={4} p={1}>
           {registeredProviders.map((provider) => (
             <Box
+              key={provider.type}
               as="button"
               className="group"
               textAlign="center"
@@ -57,7 +63,15 @@ const Page = () => {
               rounded="md"
               data-testid={"provider_" + provider.type}
               onClick={() => createProvider(provider.type)}
+              position="relative"
+              disabled={providerLoading !== undefined}
+              _disabled={{
+                opacity: "0.5",
+              }}
             >
+              {providerLoading === provider.type && (
+                <Spinner size="xs" position="absolute" right={2} top={2} />
+              )}
               <ProviderIcon shortType={provider.shortType} mb={3} h="8" w="8" />
 
               <Text textStyle="Body/SmallBold" color="neutrals.700">
