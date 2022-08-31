@@ -10,6 +10,7 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   providerConfig: string;
+  executionRole: iam.Role;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -30,6 +31,7 @@ export class Granter extends Construct {
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "granter",
+      role: props.executionRole,
     });
 
     const definition = {
@@ -131,43 +133,6 @@ export class Granter extends Construct {
       cfnStatemachine.roleArn
     );
     this._lambda.grantInvoke(smRole);
-
-    //grant read from ssm
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:GetParameter"],
-        resources: [
-          `arn:aws:ssm:${Stack.of(this).region}:${
-            Stack.of(this).account
-          }:parameter/granted/providers/*`,
-        ],
-      })
-    );
-
-    // add permissions for the AWS SSO provider
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "sso:CreateAccountAssignment",
-          "sso:DeleteAccountAssignment",
-          "sso:ListAccountAssignments",
-          "sso:ListTagsForResource",
-          "identitystore:ListUsers",
-          "organizations:DescribeAccount",
-        ],
-        resources: ["*"],
-      })
-    );
-
-    
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["sts:AssumeRole"],
-        resources: ["*"],
-      })
-    );
-
-    props.eventBus.grantPutEventsTo(this._lambda);
   }
   getStateMachineARN(): string {
     return this._stateMachine.stateMachineArn;
@@ -180,8 +145,5 @@ export class Granter extends Construct {
   }
   getGranterARN(): string {
     return this._lambda.functionArn;
-  }
-  getGranterLambdaExecutionRoleARN(): string {
-    return this._lambda.role?.roleArn ?? "";
   }
 }

@@ -13,10 +13,8 @@ import (
 
 // TemplateData are the particular values to be passed to the instructions template
 type TemplateData struct {
-	// GranterLambdaExecutionRoleARN is the ARN of the role that the Access Handler Granter Lambda runs as.
-	GranterLambdaExecutionRoleARN string
-	// AccessHandlerRestAPILambdaExecutionRoleARN is the ARN of the role that the Access Handler Rest API Lambda runs as.
-	AccessHandlerRestAPILambdaExecutionRoleARN string
+	// AccessHandlerExecutionRoleARN is the ARN of the role that the Access Handler runs as
+	AccessHandlerExecutionRoleARN string
 }
 
 type Step struct {
