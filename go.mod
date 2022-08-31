@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
 	github.com/aws/aws-sdk-go v1.44.71
-	github.com/aws/aws-sdk-go-v2 v1.16.11
+	github.com/aws/aws-sdk-go-v2 v1.16.12
 	github.com/aws/aws-sdk-go-v2/config v1.15.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
@@ -31,6 +31,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/invopop/jsonschema v0.6.0
+	github.com/labstack/gommon v0.3.1
 	github.com/magefile/mage v1.13.0
 	github.com/mattn/go-colorable v0.1.12
 	github.com/okta/okta-sdk-golang/v2 v2.13.0
@@ -92,7 +93,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/labstack/echo/v4 v4.7.2 // indirect
-	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
@@ -141,15 +141,15 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.11 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.10 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.18 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.12 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.19 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.13 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.11
-	github.com/aws/smithy-go v1.12.1
+	github.com/aws/smithy-go v1.13.0
 	github.com/benbjohnson/clock v1.3.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -178,6 +178,7 @@ require (
 	github.com/aws/aws-lambda-go v1.32.0
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.6
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2
+	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.10
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.15.10
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.15.4
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15

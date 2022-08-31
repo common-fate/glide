@@ -10,6 +10,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
+	ctTypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
@@ -26,6 +28,62 @@ import (
 
 type Args struct {
 	TaskDefinitionARN string `json:"taskdefinitionARN" jsonschema:"title=TaskDefinitionARN"`
+}
+
+// Auto-gend since aws sdk wont return the complete type
+type CloudTrailEvent struct {
+	EventVersion string `json:"eventVersion"`
+	UserIdentity struct {
+		Type           string `json:"type"`
+		PrincipalID    string `json:"principalId"`
+		Arn            string `json:"arn"`
+		AccountID      string `json:"accountId"`
+		AccessKeyID    string `json:"accessKeyId"`
+		SessionContext struct {
+			SessionIssuer struct {
+				Type        string `json:"type"`
+				PrincipalID string `json:"principalId"`
+				Arn         string `json:"arn"`
+				AccountID   string `json:"accountId"`
+				UserName    string `json:"userName"`
+			} `json:"sessionIssuer"`
+			WebIDFederationData struct {
+			} `json:"webIdFederationData"`
+			Attributes struct {
+				CreationDate     time.Time `json:"creationDate"`
+				MfaAuthenticated string    `json:"mfaAuthenticated"`
+			} `json:"attributes"`
+		} `json:"sessionContext"`
+		InvokedBy string `json:"invokedBy"`
+	} `json:"userIdentity"`
+	EventTime         time.Time `json:"eventTime"`
+	EventSource       string    `json:"eventSource"`
+	EventName         string    `json:"eventName"`
+	AwsRegion         string    `json:"awsRegion"`
+	SourceIPAddress   string    `json:"sourceIPAddress"`
+	UserAgent         string    `json:"userAgent"`
+	RequestParameters struct {
+		Target       string `json:"target"`
+		DocumentName string `json:"documentName"`
+		Parameters   struct {
+			CloudWatchEncryptionEnabled []string `json:"cloudWatchEncryptionEnabled"`
+			S3EncryptionEnabled         []string `json:"s3EncryptionEnabled"`
+			CloudWatchLogGroupName      []string `json:"cloudWatchLogGroupName"`
+			Command                     []string `json:"command"`
+		} `json:"parameters"`
+	} `json:"requestParameters"`
+	ResponseElements struct {
+		SessionID  string `json:"sessionId"`
+		TokenValue string `json:"tokenValue"`
+		StreamURL  string `json:"streamUrl"`
+	} `json:"responseElements"`
+	RequestID          string `json:"requestID"`
+	EventID            string `json:"eventID"`
+	ReadOnly           bool   `json:"readOnly"`
+	EventType          string `json:"eventType"`
+	ManagementEvent    bool   `json:"managementEvent"`
+	RecipientAccountID string `json:"recipientAccountId"`
+	EventCategory      string `json:"eventCategory"`
 }
 
 // Grant the access
@@ -124,13 +182,45 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 
 	client := ssm.NewFromConfig(defaultCfg)
 
-	input := ssm.TerminateSessionInput{
-		// Correct way to obtain sessionId?
-		SessionId: &permissionSetName,
-	}
-	_, err = client.TerminateSession(ctx, &input)
+	atrs := []ctTypes.LookupAttribute{}
+
+	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: "eventName", AttributeValue: aws.String("StartSession")})
+
+	ct := cloudtrail.NewFromConfig(defaultCfg)
+
+	log.Info("Looking up cloudtrail events for sso StartSession")
+	out, err := ct.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
+		LookupAttributes: atrs,
+	})
 	if err != nil {
-		log.Info("failed to terminate session")
+		return err
+	}
+
+	sessionId := ""
+	for _, e := range out.Events {
+		if e.CloudTrailEvent != nil {
+			var eventJson CloudTrailEvent
+			err := json.Unmarshal([]byte(*e.CloudTrailEvent), &eventJson)
+			if err != nil {
+				return err
+			}
+			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+p.ecsClusterARN.Get()) {
+				// we have cloud trail log
+				sessionId = eventJson.ResponseElements.SessionID
+			}
+		}
+	}
+
+	if sessionId != "" {
+		input := ssm.TerminateSessionInput{
+			SessionId: &sessionId,
+		}
+		_, err = client.TerminateSession(ctx, &input)
+		if err != nil {
+			log.Info("failed to terminate session")
+		}
+	} else {
+		log.Info("Not matching SessionId found, could note revoke session")
 	}
 
 	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
