@@ -18,10 +18,9 @@ type Config struct {
 	DeploymentSuffix  string `env:"DEPLOYMENT_SUFFIX"`
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
-	IdentitySettings                           string `env:"IDENTITY_SETTINGS,default={}"`
-	PaginationKMSKeyARN                        string `env:"PAGINATION_KMS_KEY_ARN,required"`
-	GranterLambdaExecutionRoleARN              string `env:"GRANTER_LAMBDA_EXECUTION_ROLE_ARN,required"`
-	AccessHandlerRestAPILambdaExecutionRoleARN string `env:"ACCESS_HANDLER_REST_API_LAMBDA_EXECUTION_ROLE_ARN,required"`
+	IdentitySettings              string `env:"IDENTITY_SETTINGS,default={}"`
+	PaginationKMSKeyARN           string `env:"PAGINATION_KMS_KEY_ARN,required"`
+	AccessHandlerExecutionRoleARN string `env:"ACCESS_HANDLER_EXECUTION_ROLE_ARN,required"`
 }
 
 type NotificationsConfig struct {

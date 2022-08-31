@@ -26,10 +26,8 @@ const testOutputs: StackOutputs = {
   EventBusSource: "abcdefg",
   IdpSyncFunctionName: "abcdefg",
   Region: "abcdefg",
-  GranterLambdaExecutionRoleARN: "abcdefg",
-  AccessHandlerRestAPILambdaExecutionRoleARN:"abcdefg",
- 
-  PaginationKMSKeyARN: "abcdefg"
+  PaginationKMSKeyARN: "abcdefg",
+  AccessHandlerExecutionRoleARN: "abcdefg",
 };
 
 // Write the json object to ./testOutputs.json so that it can be parsed by a go test in pkg/deploy.output_test.go

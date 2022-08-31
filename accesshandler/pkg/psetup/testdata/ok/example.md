@@ -6,7 +6,6 @@ configFields:
 
 Test body
 
-Data: {{ .GranterLambdaExecutionRoleARN }}
-Data: {{ .AccessHandlerRestAPILambdaExecutionRoleARN }}
+Data: {{ .AccessHandlerExecutionRoleARN }}
 
 Test second line
