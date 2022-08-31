@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -47,6 +49,17 @@ func NewGranter(ctx context.Context, c config.GranterConfig) (*Granter, error) {
 		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
+	cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, c.AssumeExecutionRoleARN, cfaws.WithRoleSessionName("accesshandler-granter"))))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = cfg.Credentials.Retrieve(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Set the aws config with assume role credentials to be used throughout the app
+	ctx = cfaws.SetConfigInContext(ctx, cfg)
 	b, err := config.ReadProviderConfig(ctx)
 	if err != nil {
 		return nil, err

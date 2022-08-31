@@ -148,7 +148,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration: identityConfig.valueAsString,
       notificationsConfiguration: notificationsConfiguration.valueAsString,
       providerConfig: providerConfig.valueAsString,
-      deploymentSuffix: suffix.valueAsString
+      deploymentSuffix: suffix.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -189,11 +189,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
-      AccessHandlerRestAPILambdaExecutionRoleARN: accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
-      GranterLambdaExecutionRoleARN: accessHandler
-        .getGranter()
-        .getGranterLambdaExecutionRoleARN(),
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
+      AccessHandlerRoleARN: accessHandler.getAccessHandlerAssumeRoleArn(),
     });
   }
 }

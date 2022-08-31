@@ -18,16 +18,61 @@ interface Props {
 export class AccessHandler extends Construct {
   private _lambda: lambda.Function;
   private _apigateway: apigateway.RestApi;
+  private _accessHandlerRole: iam.Role;
   private readonly _granter: Granter;
   private readonly _restApiName: string;
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
     this._restApiName = props.appName + "-access-handler";
 
+    const accessHandlerRolePolicy = new iam.PolicyDocument({
+      statements: [
+        new iam.PolicyStatement({
+          actions: ["ssm:GetParameter"],
+          resources: [
+            `arn:aws:ssm:${Stack.of(this).region}:${
+              Stack.of(this).account
+            }:parameter/granted/providers/*`,
+          ],
+        }),
+        new iam.PolicyStatement({
+          actions: [
+            "sso:ListPermissionSets",
+            "sso:ListTagsForResource",
+            "sso:DescribePermissionSet",
+            "organizations:ListAccounts",
+            "sso:DeleteAccountAssignment",
+            "sso:ListAccountAssignments",
+            "identitystore:ListUsers",
+            "organizations:DescribeAccount",
+          ],
+          resources: ["*"],
+        }),
+        new PolicyStatement({
+          actions: ["states:StopExecution"],
+          resources: ["*"],
+        }),
+        new PolicyStatement({
+          actions: ["sts:AssumeRole"],
+          resources: ["*"],
+        }),
+      ],
+    });
+
+    this._accessHandlerRole = new iam.Role(this, "ExecutionRole", {
+      assumedBy: new iam.CompositePrincipal(),
+      description:
+        "This role is assumed by the Granted Approvals access handler lambdas to grant and revoke access. It has permissions to assume any role depending on the equirements on individual providers.",
+      inlinePolicies: {
+        AccessHandlerPolicy: accessHandlerRolePolicy,
+      },
+    });
+
     this._granter = new Granter(this, "Granter", {
       eventBus: props.eventBus,
       eventBusSourceName: props.eventBusSourceName,
       providerConfig: props.providerConfig,
+      assumeExecutionRoleArn: this._accessHandlerRole.roleArn,
     });
 
     const code = lambda.Code.fromAsset(
@@ -43,10 +88,18 @@ export class AccessHandler extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         PROVIDER_CONFIG: props.providerConfig,
+        ASSUME_EXECUTION_ROLE_ARN: this._accessHandlerRole.roleArn,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "access-handler",
     });
+
+    this._accessHandlerRole.grantAssumeRole(
+      new iam.ArnPrincipal(this._lambda.role?.roleArn ?? "")
+    );
+    this._accessHandlerRole.grantAssumeRole(
+      new iam.ArnPrincipal(this._granter.getGranterLambdaExecutionRoleARN())
+    );
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._restApiName,
@@ -61,52 +114,9 @@ export class AccessHandler extends Construct {
       { authorizationType: apigateway.AuthorizationType.IAM }
     );
 
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:GetParameter"],
-        resources: [
-          `arn:aws:ssm:${Stack.of(this).region}:${
-            Stack.of(this).account
-          }:parameter/granted/providers/*`,
-        ],
-      })
-    );
-
-
-    // Permissions for listing AWS SSO options
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: [
-          "sso:ListPermissionSets",
-          "sso:ListTagsForResource",
-          "sso:DescribePermissionSet",
-          "organizations:ListAccounts",
-          "sso:DeleteAccountAssignment",
-          "sso:ListAccountAssignments",
-          "identitystore:ListUsers",
-          "organizations:DescribeAccount",
-        ],
-        resources: ["*"],
-      })
-    );
-   
     this._granter.getStateMachine().grantStartExecution(this._lambda);
 
     this._granter.getStateMachine().grantRead(this._lambda);
-
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: ["states:StopExecution"],
-        resources: ["*"],
-      })
-    );
-
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: ["sts:AssumeRole"],
-        resources: ["*"],
-      })
-    );
 
     props.eventBus.grantPutEventsTo(this._lambda);
   }
@@ -125,7 +135,7 @@ export class AccessHandler extends Construct {
   getAccessHandlerARN(): string {
     return this._lambda.functionArn;
   }
-  getAccessHandlerRestAPILambdaExecutionRoleARN(): string {
-    return this._lambda.role?.roleArn ?? "";
+  getAccessHandlerAssumeRoleArn(): string {
+    return this._accessHandlerRole.roleArn;
   }
 }

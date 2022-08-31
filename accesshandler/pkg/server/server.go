@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/api"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"go.uber.org/zap"
@@ -33,6 +35,20 @@ func New(ctx context.Context, c config.Config) (*Server, error) {
 	}
 	// remove any servers from the spec, as we don't know what host or port the user will run the API as.
 	swagger.Servers = nil
+	// in dev, we set this to an empty string so that we can still run the access handler locally with dev credentials
+	if c.AssumeExecutionRoleARN != "" {
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, c.AssumeExecutionRoleARN, cfaws.WithRoleSessionName("accesshandler-api"))))
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = cfg.Credentials.Retrieve(ctx)
+		if err != nil {
+			return nil, err
+		}
+		// Set the aws config with assume role credentials to be used throughout the app
+		ctx = cfaws.SetConfigInContext(ctx, cfg)
+	}
 
 	pcfg, err := config.ReadProviderConfig(ctx)
 	if err != nil {

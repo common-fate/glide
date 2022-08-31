@@ -74,9 +74,8 @@ export class AppBackend extends Construct {
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        GRANTER_LAMBDA_EXECUTION_ROLE_ARN:props.accessHandler.getGranter().getGranterLambdaExecutionRoleARN(),
-        ACCESS_HANDLER_REST_API_LAMBDA_EXECUTION_ROLE_ARN:props.accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
-        DEPLOYMENT_SUFFIX: props.deploymentSuffix
+        ACCESS_HANDLER_ROLE_ARN: props.accessHandler.getAccessHandlerAssumeRoleArn(),
+        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
