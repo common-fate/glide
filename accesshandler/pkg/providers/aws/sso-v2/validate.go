@@ -89,8 +89,8 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 			FieldsValidated: []string{"instanceArn", "region", "identityStoreId"},
 			Run: func(ctx context.Context) diagnostics.Logs {
 				// try and list users in the AWS SSO instance.
-				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
-					IdentityStoreId: aws.String(p.identityStoreID.Get()),
+				res, err := p.SSO.Clients.IdentityStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+					IdentityStoreId: aws.String(p.SSO.Config.IdentityStoreID.Get()),
 				})
 				if err != nil {
 					return diagnostics.Error(err)
@@ -108,7 +108,7 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 		"describe-organization": {
 			Name: "Verify AWS organization access",
 			Run: func(ctx context.Context) diagnostics.Logs {
-				res, err := p.orgClient.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
+				res, err := p.SSO.Clients.OrganisationsClient.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
 				if err != nil {
 					return diagnostics.Error(err)
 				}

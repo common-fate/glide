@@ -3,13 +3,13 @@ package ssov2
 import (
 	"context"
 
-	providerkitawsssov1 "github.com/common-fate/granted-approvals/accesshandler/pkg/providerkit/aws/sso"
+	pkitawsssov1 "github.com/common-fate/granted-approvals/accesshandler/pkg/pkit/aws/sso"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 )
 
 type Provider struct {
-	SSO providerkitawsssov1.SSO
+	SSO pkitawsssov1.SSO
 }
 
 func (p *Provider) Config() gconfig.Config {

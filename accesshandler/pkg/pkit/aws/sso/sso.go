@@ -1,4 +1,4 @@
-package providerkitawsssov1
+package pkitawsssov1
 
 import (
 	"context"
