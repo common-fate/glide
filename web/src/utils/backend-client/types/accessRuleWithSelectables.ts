@@ -9,7 +9,7 @@ import type { AccessRuleTargetDetail } from './accessRuleTargetDetail';
 import type { TimeConstraints } from './timeConstraints';
 
 /**
- * Access Rule contains information for an end user to make a request for access.
+ * Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
  */
 export interface AccessRuleWithSelectables {
   id: string;

@@ -28,7 +28,7 @@ var DestroyCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		pc, err := config.ReadProviderConfig(ctx, "local")
+		pc, err := config.ReadProviderConfig(ctx)
 		if err != nil {
 			return err
 		}

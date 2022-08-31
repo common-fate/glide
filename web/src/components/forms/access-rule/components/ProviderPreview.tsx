@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   useGetProviderArgs,
   useListProviderArgOptions,
-} from "../../../../utils/backend-client/default/default";
+} from "../../../../utils/backend-client/admin/admin";
 import { AccessRuleTarget } from "../../../../utils/backend-client/types";
 import { ProviderIcon } from "../../../icons/providerIcon";
 
@@ -43,7 +43,7 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
-        <ProviderIcon provider={target.provider.type} />
+        <ProviderIcon shortType={target.provider.type} />
 
         <Text>{target.provider.id}</Text>
       </HStack>

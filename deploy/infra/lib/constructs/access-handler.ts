@@ -72,6 +72,7 @@ export class AccessHandler extends Construct {
       })
     );
 
+
     // Permissions for listing AWS SSO options
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({

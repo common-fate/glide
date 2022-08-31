@@ -39,7 +39,7 @@ var CreateCommand = cli.Command{
 			return fmt.Errorf("fixture already exists (%s). Use 'gdk fixtures delete --name %s' to remove it before generating it again", fixturePath, name)
 		}
 
-		pc, err := config.ReadProviderConfig(ctx, "local")
+		pc, err := config.ReadProviderConfig(ctx)
 		if err != nil {
 			return err
 		}
