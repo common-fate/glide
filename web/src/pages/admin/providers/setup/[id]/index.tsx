@@ -544,7 +544,10 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                             name={f.id}
                             render={({ field }) => {
                               return (
-                                <SecretInput isSecret={f.isSecret} {...field} />
+                                <ConfigValueInput
+                                  isSecret={f.isSecret}
+                                  {...field}
+                                />
                               );
                             }}
                           />
@@ -576,7 +579,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   );
 };
 
-interface SecretInputProps {
+interface ConfigValueInputProps {
   onChange: (n: string) => void;
   value?: string;
   defaultValue?: string;
@@ -584,7 +587,7 @@ interface SecretInputProps {
   ref: React.LegacyRef<HTMLInputElement>;
 }
 
-export const SecretInput: React.FC<SecretInputProps> = ({
+export const ConfigValueInput: React.FC<ConfigValueInputProps> = ({
   onChange,
   value,
   defaultValue,
