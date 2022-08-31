@@ -15,6 +15,7 @@ type Config struct {
 	EventBusArn       string `env:"EVENT_BUS_ARN,required"`
 	EventBusSource    string `env:"EVENT_BUS_SOURCE,required"`
 	IdpProvider       string `env:"IDENTITY_PROVIDER,required"`
+	DeploymentSuffix  string `env:"DEPLOYMENT_SUFFIX"`
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
 	IdentitySettings                           string `env:"IDENTITY_SETTINGS,default={}"`

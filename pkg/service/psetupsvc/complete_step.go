@@ -84,8 +84,7 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 		}
 	}
 
-	// todo: this doesn't handle deployment suffixes
-	newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{SecretPathArgs: []interface{}{setupID}})
+	newConfig, err := cfg.Dump(ctx, gconfig.SSMDumper{Suffix: s.DeploymentSuffix, SecretPathArgs: []interface{}{setupID}})
 	if err != nil {
 		return nil, err
 	}

@@ -106,6 +106,7 @@ func run() error {
 		ProviderMetadata:              pmeta,
 		GranterLambdaExecutionRoleARN: cfg.GranterLambdaExecutionRoleARN,
 		AccessHandlerRestAPILambdaExecutionRoleARN: cfg.AccessHandlerRestAPILambdaExecutionRoleARN,
+		DeploymentSuffix: cfg.DeploymentSuffix,
 	})
 	if err != nil {
 		return err

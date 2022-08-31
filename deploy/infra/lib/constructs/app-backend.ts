@@ -26,6 +26,7 @@ interface Props {
   providerConfig: string;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
+  deploymentSuffix: string;
 }
 
 export class AppBackend extends Construct {
@@ -75,6 +76,7 @@ export class AppBackend extends Construct {
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
         GRANTER_LAMBDA_EXECUTION_ROLE_ARN:props.accessHandler.getGranter().getGranterLambdaExecutionRoleARN(),
         ACCESS_HANDLER_REST_API_LAMBDA_EXECUTION_ROLE_ARN:props.accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
+        DEPLOYMENT_SUFFIX: props.deploymentSuffix
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",

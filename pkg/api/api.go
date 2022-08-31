@@ -104,6 +104,7 @@ type Opts struct {
 	AdminGroup                                 string
 	GranterLambdaExecutionRoleARN              string
 	AccessHandlerRestAPILambdaExecutionRoleARN string
+	DeploymentSuffix                           string
 }
 
 // New creates a new API.
@@ -159,6 +160,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				GranterLambdaExecutionRoleARN:              opts.GranterLambdaExecutionRoleARN,
 				AccessHandlerRestAPILambdaExecutionRoleARN: opts.AccessHandlerRestAPILambdaExecutionRoleARN,
 			},
+			DeploymentSuffix: opts.DeploymentSuffix,
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,

@@ -148,6 +148,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration: identityConfig.valueAsString,
       notificationsConfiguration: notificationsConfiguration.valueAsString,
       providerConfig: providerConfig.valueAsString,
+      deploymentSuffix: suffix.valueAsString
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

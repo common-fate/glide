@@ -16,8 +16,9 @@ import (
 )
 
 type Service struct {
-	DB           ddb.Storage
-	TemplateData psetup.TemplateData
+	DB               ddb.Storage
+	DeploymentSuffix string
+	TemplateData     psetup.TemplateData
 }
 
 var (

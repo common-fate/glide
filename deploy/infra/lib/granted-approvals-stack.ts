@@ -77,6 +77,7 @@ export class DevGrantedStack extends cdk.Stack {
       providerConfig: props.providerConfig,
       identityProviderSyncConfiguration: identityProviderSyncConfiguration,
       notificationsConfiguration: notificationsConfiguration,
+      deploymentSuffix: stage
     });
     /* Outputs */
     generateOutputs(this, {
