@@ -47,7 +47,10 @@ func (s *AzureSync) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	s.token.Set(token.AccessToken)
+	err = s.token.Set(token.AccessToken)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func (s *AzureSync) TestConfig(ctx context.Context) error {
