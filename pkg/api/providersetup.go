@@ -256,8 +256,10 @@ func (a *API) ValidateProvidersetup(w http.ResponseWriter, r *http.Request, prov
 			// the config was invalid, so return the error from the access handler to the client so they know
 			// what to fix in order to make it valid.
 			apio.ErrorString(ctx, w, *res.JSON400.Error, http.StatusBadRequest)
+			return
 		}
 		apio.Error(ctx, w, fmt.Errorf("unhandled access handler code: %d", res.StatusCode()))
+		return
 	}
 	for _, validation := range res.JSON200.Validations {
 		v := providersetup.Validation{

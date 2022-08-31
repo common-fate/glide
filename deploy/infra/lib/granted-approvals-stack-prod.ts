@@ -141,7 +141,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       appName,
       userPool: webUserPool,
       frontendUrl: "https://" + appFrontend.getDomainName(),
-      accessHandlerApi: accessHandler.getApiGateway(),
+      accessHandler: accessHandler,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId: grantedAdminGroupId.valueAsString,

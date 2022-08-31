@@ -13,12 +13,13 @@ import { WebUserPool } from "./app-user-pool";
 import { EventHandler } from "./event-handler";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
+import { AccessHandler } from "./access-handler";
 
 interface Props {
   appName: string;
   userPool: WebUserPool;
   frontendUrl: string;
-  accessHandlerApi: apigateway.RestApi;
+  accessHandler: AccessHandler;
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
@@ -65,13 +66,15 @@ export class AppBackend extends Construct {
         IDENTITY_PROVIDER: props.userPool.getIdpType(),
         APPROVALS_ADMIN_GROUP: props.adminGroupId,
         MOCK_ACCESS_HANDLER: "false",
-        ACCESS_HANDLER_URL: props.accessHandlerApi.url,
+        ACCESS_HANDLER_URL: props.accessHandler.getApiGateway().url,
         PROVIDER_CONFIG: props.providerConfig,
         // SENTRY_DSN: can be added here
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+        GRANTER_LAMBDA_EXECUTION_ROLE_ARN:props.accessHandler.getGranter().getGranterLambdaExecutionRoleARN(),
+        ACCESS_HANDLER_REST_API_LAMBDA_EXECUTION_ROLE_ARN:props.accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
@@ -221,7 +224,7 @@ export class AppBackend extends Construct {
     // Grant the approvals app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
-        resources: [props.accessHandlerApi.arnForExecuteApi()],
+        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
         actions: ["execute-api:Invoke"],
       })
     );

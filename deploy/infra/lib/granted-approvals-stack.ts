@@ -70,7 +70,7 @@ export class DevGrantedStack extends cdk.Stack {
       appName: appName,
       userPool: webUserPool,
       frontendUrl: "https://" + cdn.getDomainName(),
-      accessHandlerApi: accessHandler.getApiGateway(),
+      accessHandler: accessHandler,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId,

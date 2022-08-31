@@ -95,13 +95,15 @@ type CacheService interface {
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                 *zap.SugaredLogger
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	ProviderMetadata    deploy.ProviderMap
-	EventSender         *gevent.Sender
-	DynamoTable         string
-	PaginationKMSKeyARN string
-	AdminGroup          string
+	Log                                        *zap.SugaredLogger
+	AccessHandlerClient                        ahtypes.ClientWithResponsesInterface
+	ProviderMetadata                           deploy.ProviderMap
+	EventSender                                *gevent.Sender
+	DynamoTable                                string
+	PaginationKMSKeyARN                        string
+	AdminGroup                                 string
+	GranterLambdaExecutionRoleARN              string
+	AccessHandlerRestAPILambdaExecutionRoleARN string
 }
 
 // New creates a new API.
@@ -154,7 +156,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		ProviderSetup: &psetupsvc.Service{
 			DB: db,
 			TemplateData: psetup.TemplateData{
-				AccessHandlerRoleARN: "arn:aws:iam:123456789012:role/access-handler-role",
+				GranterLambdaExecutionRoleARN:              opts.GranterLambdaExecutionRoleARN,
+				AccessHandlerRestAPILambdaExecutionRoleARN: opts.AccessHandlerRestAPILambdaExecutionRoleARN,
 			},
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,

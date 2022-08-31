@@ -20,7 +20,6 @@ type Provider struct {
 	instanceARN   gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
 	identityStoreID gconfig.StringValue
-	roleARN         gconfig.OptionalStringValue
 	// The aws region where the identity store runs
 	region gconfig.OptionalStringValue
 }
@@ -29,7 +28,6 @@ func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
-		gconfig.OptionalStringField("roleArn", &p.roleARN, "the role to assume to access the AWS SSO instance"),
 		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
 	}
 }

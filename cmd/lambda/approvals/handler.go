@@ -76,13 +76,15 @@ func buildHandler() (*Lambda, error) {
 	}
 
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		ProviderMetadata:    pmeta,
+		Log:                           log,
+		DynamoTable:                   cfg.DynamoTable,
+		PaginationKMSKeyARN:           cfg.PaginationKMSKeyARN,
+		AccessHandlerClient:           ahc,
+		EventSender:                   eventBus,
+		AdminGroup:                    cfg.AdminGroup,
+		ProviderMetadata:              pmeta,
+		GranterLambdaExecutionRoleARN: cfg.GranterLambdaExecutionRoleARN,
+		AccessHandlerRestAPILambdaExecutionRoleARN: cfg.AccessHandlerRestAPILambdaExecutionRoleARN,
 	})
 	if err != nil {
 		return nil, err

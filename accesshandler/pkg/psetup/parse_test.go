@@ -37,13 +37,15 @@ func TestParseDocsFS(t *testing.T) {
 			fs:   okFS,
 			cfg:  cfg,
 			td: TemplateData{
-				AccessHandlerRoleARN: "<example-role-arn>",
+				GranterLambdaExecutionRoleARN:              "<example-role-arn>",
+				AccessHandlerRestAPILambdaExecutionRoleARN: "<example-role-arn>",
 			},
 			want: []Step{
 				{
 					Title: "Test setup step",
 					Instructions: `Test body
 
+Data: <example-role-arn>
 Data: <example-role-arn>
 
 Test second line`,
