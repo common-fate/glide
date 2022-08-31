@@ -22,6 +22,7 @@ import {
   Container,
   Flex,
   FormControl,
+  FormHelperText,
   FormLabel,
   Grid,
   GridItem,
@@ -486,6 +487,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                   ),
                   p: (props) => (
                     <Text
+                      pb={3}
                       as="span"
                       color="neutrals.600"
                       textStyle={"Body/Small"}
@@ -512,7 +514,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                   spacing={5}
                 >
                   {step.configFields.length > 0 && (
-                    <Stack>
+                    <Stack spacing={5}>
                       {readOnly !== true && <Text>Enter your values</Text>}
                       {step.configFields.map((f) => (
                         <FormControl
@@ -551,6 +553,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                               );
                             }}
                           />
+                          <FormHelperText>{f.description}</FormHelperText>
                         </FormControl>
                       ))}
                     </Stack>
