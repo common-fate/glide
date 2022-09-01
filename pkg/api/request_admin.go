@@ -12,7 +12,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-//"/api/v1/admin/requests"
+// "/api/v1/admin/requests"
 func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
 	ctx := r.Context()
 
@@ -34,6 +34,7 @@ func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params t
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
+			return
 		}
 		if qR.NextPage != "" {
 			next = &qR.NextPage
