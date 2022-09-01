@@ -1,7 +1,6 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
 import { MakeGenerics, useMatch, useSearch, Link } from "react-location";
-import { useUser } from "src/utils/context/userContext";
 import { AuditLog } from "../../components/AuditLog";
 import { UserLayout } from "../../components/Layout";
 import {
@@ -16,6 +15,8 @@ import {
   RequestRevoke,
   RequestTime,
 } from "../../components/Request";
+import { useUser } from "../../utils/context/userContext";
+
 import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
 
 type MyLocationGenerics = MakeGenerics<{
@@ -28,7 +29,6 @@ const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
-  const { user } = useUser();
   const { data, mutate } = useUserGetRequest(requestId);
   const search = useSearch<MyLocationGenerics>();
   const { action } = search;
@@ -48,12 +48,14 @@ const Home = () => {
         </RequestDisplay>
       );
     }
+
+    const user = useUser();
     return (
       <RequestDisplay request={data}>
         <RequestDetails>
           <RequestTime />
-          {user?.id === data?.requestor && <RequestAccessInstructions />}
-          {user?.id === data?.requestor && data?.status === "APPROVED" && (
+          {user.user?.id === data?.requestor && <RequestAccessInstructions />}
+          {user.user?.id === data?.requestor && data?.status === "APPROVED" && (
             <RequestAccessToken />
           )}
           <RequestCancelButton />

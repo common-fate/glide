@@ -44,7 +44,7 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 func Registry() ProviderRegistry {
 	return ProviderRegistry{
 		Providers: map[string]map[string]RegisteredProvider{
-			"commonfate/flask@v1": {
+			"commonfate/flask": {
 				"v1": {Provider: &flask.Provider{},
 					DefaultID:   "flask",
 					Description: "flask Access Provider",
