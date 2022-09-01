@@ -38,6 +38,7 @@ import {
   PopoverContent,
   PopoverHeader,
   PopoverTrigger,
+  useClipboard,
   Spinner,
   Stack,
   Text,
@@ -63,6 +64,7 @@ import {
 import { ProviderSetupStepDetails } from "../../../../../utils/backend-client/types";
 import { ProviderConfigValidation } from "../../../../../utils/backend-client/types/accesshandler-openapi.yml/providerConfigValidation";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
+import { formatValidationErrorToText } from "./copyToClipboard";
 
 const Page = () => {
   const {
@@ -73,8 +75,12 @@ const Page = () => {
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [accordionIndex, setAccordionIndex] = useState([0]);
+  const [validationErrorMsg, setValidationErrorMsg] = useState("");
   const { data, mutate } = useGetProvidersetup(id);
   const { data: instructions } = useGetProvidersetupInstructions(id);
+
+  const { hasCopied, onCopy } = useClipboard(validationErrorMsg);
+
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(
     (rp) => rp.type === data?.type
@@ -113,6 +119,12 @@ const Page = () => {
     if (data != null) {
       await mutate({ ...data, status: "VALIDATING" }, { revalidate: false });
       const res = await validateProvidersetup(id);
+
+      if (res?.configValidation.length > 0) {
+        setValidationErrorMsg(
+          formatValidationErrorToText(res?.configValidation || [])
+        );
+      }
       if (res.status === "VALIDATION_SUCEEDED") {
         setShowConfetti(true);
       }
@@ -305,12 +317,13 @@ const Page = () => {
                   px={3}
                 >
                   <Button
+                    onClick={() => onCopy()}
                     borderLeftWidth="1px"
                     borderLeftColor={"#383a3c"}
                     borderLeftRadius={0}
                     pl={3}
                     variant="unstyled"
-                    color="#d0d7de"
+                    color={hasCopied ? "#22c55e" : "#d0d7de"}
                     textTransform={"uppercase"}
                     fontSize="11px"
                     size="xs"
