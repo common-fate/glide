@@ -68,7 +68,6 @@ func main() {
 			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
 			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
-			WithBeforeFuncs(&commands.MigrateCommand, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
 		},
 	}
 
@@ -145,16 +144,8 @@ To fix this, take one of the following actions:
 			return fmt.Errorf("failed to load config with error: %s", err)
 		}
 
-		if dc.Version == 1 && c.Command.Name != "migrate" {
-			return clio.NewCLIError("Your deployment is using a deprecated config file version.",
-				clio.LogMsg(`
-The configuration file format was updated in the latest release.
-You can use the below instructions to automatically update your configuration file.
-Before you can continue, you need to take the following action:
-  a) run 'gdeploy migrate' to automatically update your config file from version 1 -> 2
-  b) run 'gdeploy update' to update your deployment
-`),
-			)
+		if dc.Version != 2 {
+			return fmt.Errorf("unexpected deployment config file version found, expected version: 2 found version: %d", dc.Version)
 		}
 
 		c.Context = deploy.SetConfigInContext(c.Context, dc)

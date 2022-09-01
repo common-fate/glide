@@ -1,6 +1,8 @@
 package groups
 
 import (
+	"errors"
+
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
@@ -23,6 +25,13 @@ var DeleteCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+
+		// prevent the user deleting the administrators group
+		// it is created by the stack deployment automatically
+		if group == "granted_administrators" || group == dc.Deployment.Parameters.AdministratorGroupID {
+			return errors.New("you cannot delete the administrators group")
+		}
+
 		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err

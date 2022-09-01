@@ -10,6 +10,7 @@ import (
 
 var MembersCommand = cli.Command{
 	Name:        "members",
+	Description: "Manage users for a group in the default cognito user pool.",
 	Subcommands: []*cli.Command{&addCommand},
 	Action:      cli.ShowSubcommandHelp,
 }
