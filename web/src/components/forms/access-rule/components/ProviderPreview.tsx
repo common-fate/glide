@@ -1,6 +1,20 @@
-import { Box, Flex, HStack, Spacer, Text, VStack } from "@chakra-ui/react";
+import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Flex,
+  HStack,
+  IconButton,
+  Spacer,
+  Tag,
+  Text,
+  Tooltip,
+  useClipboard,
+  VStack,
+  Wrap,
+  WrapItem,
+} from "@chakra-ui/react";
 import Form, { FieldProps } from "@rjsf/core";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   useGetProviderArgs,
   useListProviderArgOptions,
@@ -22,19 +36,70 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   }
   const ProviderPreviewWithDisplay: React.FC<FieldProps> = (props) => {
     const { data } = useListProviderArgOptions(target.provider.id, props.name);
-
-    const value = target.with[props.name];
-    const [label, setLabel] = useState<string>();
-    useEffect(() => {
-      const l = data?.options.find((d) => d.value === value);
-      setLabel(l?.label ?? "");
-    }, [data, value]);
+    const CopyableOption: React.FC<{ label: string; value: string }> = ({
+      label,
+      value,
+    }) => {
+      const { hasCopied, onCopy } = useClipboard(value);
+      return (
+        <WrapItem>
+          <Tooltip label={value}>
+            <Flex
+              textStyle={"Body/Small"}
+              rounded="full"
+              bg="neutrals.300"
+              py={1}
+              px={4}
+            >
+              {label}{" "}
+              <IconButton
+                variant="ghost"
+                h="20px"
+                icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
+                onClick={onCopy}
+                aria-label={"Copy"}
+              />
+            </Flex>
+          </Tooltip>
+        </WrapItem>
+      );
+    };
+    if (props.name in target.with) {
+      const value = target.with[props.name];
+      return (
+        <VStack w="100%" align={"flex-start"} spacing={0}>
+          <Text>{props.schema.title}:</Text>
+          <CopyableOption
+            label={data?.options.find((d) => d.value === value)?.label ?? ""}
+            value={value}
+          />
+        </VStack>
+      );
+    }
+    if (props.name in target.withSelectable) {
+      const value = target.withSelectable[props.name];
+      return (
+        <VStack w="100%" align={"flex-start"} spacing={0}>
+          <Text>{props.schema.title}</Text>
+          <Wrap>
+            {value.map((opt) => {
+              return (
+                <CopyableOption
+                  key={"cp-" + opt}
+                  label={
+                    data?.options.find((d) => d.value === opt)?.label ?? ""
+                  }
+                  value={opt}
+                />
+              );
+            })}
+          </Wrap>
+        </VStack>
+      );
+    }
     return (
       <VStack w="100%" align={"flex-start"} spacing={0}>
-        <Text>
-          {props.schema.title}: {label}
-        </Text>
-        <Text textStyle={"Body/SmallBold"}>{value}</Text>
+        <Text>{props.schema.title}:</Text>
       </VStack>
     );
   };
