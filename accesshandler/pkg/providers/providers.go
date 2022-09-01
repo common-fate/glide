@@ -2,7 +2,9 @@ package providers
 
 import (
 	"context"
+	"embed"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/invopop/jsonschema"
 )
@@ -30,6 +32,18 @@ type Validator interface {
 	Validate(ctx context.Context, subject string, args []byte) error
 }
 
+type ConfigValidationStep struct {
+	Name            string
+	FieldsValidated []string
+	Run             func(ctx context.Context) diagnostics.Logs
+}
+
+// ConfigValues can validate the configuration of the Access Provider,
+// such as checking whether API keys are valid and if roles can be assumed.
+type ConfigValidator interface {
+	ValidateConfig() map[string]ConfigValidationStep
+}
+
 // ArgSchemarers provide a JSON Schema for the arguments they accept.
 type ArgSchemarer interface {
 	ArgSchema() *jsonschema.Schema
@@ -46,8 +60,14 @@ type Instructioner interface {
 	Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error)
 }
 
+<<<<<<< HEAD
 // Typers can provide a custom type based on the provider's configuration.
 // This is currently only used for the Demo provider, where the type is set via provider config.
 type Typer interface {
 	Type() string
+=======
+// SetupDocers return an embedded filesystem containing setup documentation.
+type SetupDocer interface {
+	SetupDocs() embed.FS
+>>>>>>> main
 }

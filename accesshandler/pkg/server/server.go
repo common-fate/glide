@@ -34,11 +34,11 @@ func New(ctx context.Context, c config.Config) (*Server, error) {
 	// remove any servers from the spec, as we don't know what host or port the user will run the API as.
 	swagger.Servers = nil
 
-	b, err := config.ReadProviderConfig(ctx, c.Runtime)
+	pcfg, err := config.ReadProviderConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = config.ConfigureProviders(ctx, b)
+	err = config.ConfigureProviders(ctx, pcfg)
 	if err != nil {
 		return nil, err
 	}

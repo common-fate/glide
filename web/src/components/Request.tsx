@@ -1,11 +1,10 @@
-import { CheckIcon, CopyIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Badge,
   Box,
   Button,
   ButtonGroup,
-  Code,
   Flex,
   HStack,
   IconButton,
@@ -20,7 +19,6 @@ import {
   Stack,
   Text,
   Tooltip,
-  useClipboard,
   useDisclosure,
   useToast,
   VStack,
@@ -30,7 +28,6 @@ import { intervalToDuration } from "date-fns";
 import React, { createContext, useContext, useState } from "react";
 import ReactDom from "react-dom";
 import ReactMarkdown from "react-markdown";
-import { durationStringHoursMinutes } from "../utils/durationString";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
   cancelRequest,
@@ -46,16 +43,17 @@ import {
   RequestStatus,
   ReviewDecision,
 } from "../utils/backend-client/types";
-import { RequestTiming } from "../utils/backend-client/types/requestTiming";
 import { Request } from "../utils/backend-client/types/request";
+import { RequestTiming } from "../utils/backend-client/types/requestTiming";
 import { useUser } from "../utils/context/userContext";
+import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
+import { CodeInstruction } from "./CodeInstruction";
 import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
-import { RequestStatusCell, StatusCell } from "./StatusCell";
-import { CodeProps } from "react-markdown/lib/ast-to-react";
+import { StatusCell } from "./StatusCell";
 
 interface RequestProps {
   request?: RequestDetail;
@@ -233,7 +231,9 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon provider={request?.accessRule.target.provider.type} />
+            <ProviderIcon
+              shortType={request?.accessRule.target.provider.type}
+            />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge
@@ -291,7 +291,7 @@ export const RequestAccessInstructions: React.FC = () => {
               {props.children}
             </Text>
           ),
-          code: CodeInstruction,
+          code: CodeInstruction as any,
         }}
         children={data.instructions}
       />
@@ -343,51 +343,6 @@ export const RequestAccessToken = () => {
   );
 };
 
-const CodeInstruction: React.FC<CodeProps> = (props) => {
-  const { children, node } = props;
-  let value = "";
-  if (node.children.length == 1 && node.children[0].type == "text") {
-    value = node.children[0].value;
-  }
-
-  const { hasCopied, onCopy } = useClipboard(value);
-  return (
-    <Stack>
-      <Code
-        padding={0}
-        bg="white"
-        borderRadius="8px"
-        borderColor="neutrals.300"
-        borderWidth="1px"
-      >
-        <Flex
-          borderColor="neutrals.300"
-          borderBottomWidth="1px"
-          py="8px"
-          px="16px"
-          minH="36px"
-        >
-          <Spacer />
-          <IconButton
-            variant="ghost"
-            h="20px"
-            icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
-            onClick={onCopy}
-            aria-label={"Copy"}
-          />
-        </Flex>
-        <Text
-          overflowX="auto"
-          color="neutrals.700"
-          padding={4}
-          whiteSpace="pre-wrap"
-        >
-          {children}
-        </Text>
-      </Code>
-    </Stack>
-  );
-};
 export const RequestTime: React.FC = () => {
   const { request } = useContext(Context);
   const timing = request?.timing;

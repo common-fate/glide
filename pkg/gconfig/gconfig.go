@@ -51,6 +51,17 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 	return nil
 }
 
+// FindFieldByKey looks up a field by its key.
+// If the field doesn't exist in the config, an error is returned.
+func (c Config) FindFieldByKey(key string) (*Field, error) {
+	for _, field := range c {
+		if field.Key() == key {
+			return field, nil
+		}
+	}
+	return nil, fmt.Errorf("field with key %s not found", key)
+}
+
 // Dump renders a map[string]string where the values are mapped in different ways based on the provided dumper
 //
 // use SafeDumper to get all values with secrets redacted
@@ -96,11 +107,11 @@ func WithArgs(path string, expectedCount int) SecretPathFunc {
 // to create a Field, use one of the generator functions
 // StringField(), SecretStringField() or OptionalStringField()
 type Field struct {
-	key      string
-	usage    string
-	value    Valuer
-	secret   bool
-	optional bool
+	key         string
+	description string
+	value       Valuer
+	secret      bool
+	optional    bool
 
 	// hasChanged is true if the Set() method has been called
 	hasChanged bool
@@ -150,9 +161,9 @@ func (s Field) Key() string {
 	return s.key
 }
 
-// Usage returns the usage string for this field
-func (s Field) Usage() string {
-	return s.usage
+// Description returns the usage string for this field
+func (s Field) Description() string {
+	return s.description
 }
 
 // Default returns the default value if available else and empty string
@@ -354,9 +365,9 @@ func StringField(key string, dest *StringValue, usage string, opts ...FieldOptFu
 		panic(ErrFieldValueMustNotBeNil)
 	}
 	f := &Field{
-		key:   key,
-		value: dest,
-		usage: usage,
+		key:         key,
+		value:       dest,
+		description: usage,
 	}
 	for _, opt := range opts {
 		opt(f)
@@ -372,7 +383,7 @@ func SecretStringField(key string, dest *SecretStringValue, usage string, secret
 	f := &Field{
 		key:            key,
 		value:          dest,
-		usage:          usage,
+		description:    usage,
 		secret:         true,
 		secretPathFunc: secretPathFunc,
 	}
@@ -389,10 +400,10 @@ func OptionalStringField(key string, dest *OptionalStringValue, usage string, op
 		panic(ErrFieldValueMustNotBeNil)
 	}
 	f := &Field{
-		key:      key,
-		value:    dest,
-		usage:    usage,
-		optional: true,
+		key:         key,
+		value:       dest,
+		description: usage,
+		optional:    true,
 	}
 	for _, opt := range opts {
 		opt(f)

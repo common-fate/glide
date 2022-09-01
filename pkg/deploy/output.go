@@ -18,30 +18,29 @@ import (
 
 // Output is the output from deploying the CDK stack to AWS.
 type Output struct {
-	CognitoClientID                            string `json:"CognitoClientID"`
-	CloudFrontDomain                           string `json:"CloudFrontDomain"`
-	FrontendDomainOutput                       string `json:"FrontendDomainOutput"`
-	CloudFrontDistributionID                   string `json:"CloudFrontDistributionID"`
-	S3BucketName                               string `json:"S3BucketName"`
-	UserPoolID                                 string `json:"UserPoolID"`
-	UserPoolDomain                             string `json:"UserPoolDomain"`
-	APIURL                                     string `json:"APIURL"`
-	APILogGroupName                            string `json:"APILogGroupName"`
-	IDPSyncLogGroupName                        string `json:"IDPSyncLogGroupName"`
-	AccessHandlerLogGroupName                  string `json:"AccessHandlerLogGroupName"`
-	EventBusLogGroupName                       string `json:"EventBusLogGroupName"`
-	EventsHandlerLogGroupName                  string `json:"EventsHandlerLogGroupName"`
-	GranterLogGroupName                        string `json:"GranterLogGroupName"`
-	SlackNotifierLogGroupName                  string `json:"SlackNotifierLogGroupName"`
-	DynamoDBTable                              string `json:"DynamoDBTable"`
-	GranterStateMachineArn                     string `json:"GranterStateMachineArn"`
-	EventBusArn                                string `json:"EventBusArn"`
-	EventBusSource                             string `json:"EventBusSource"`
-	IdpSyncFunctionName                        string `json:"IdpSyncFunctionName"`
-	Region                                     string `json:"Region"`
-	GranterLambdaExecutionRoleARN              string `json:"GranterLambdaExecutionRoleARN"`
-	AccessHandlerRestAPILambdaExecutionRoleARN string `json:"AccessHandlerRestAPILambdaExecutionRoleARN"`
-	PaginationKMSKeyARN                        string `json:"PaginationKMSKeyARN"`
+	CognitoClientID               string `json:"CognitoClientID"`
+	CloudFrontDomain              string `json:"CloudFrontDomain"`
+	FrontendDomainOutput          string `json:"FrontendDomainOutput"`
+	CloudFrontDistributionID      string `json:"CloudFrontDistributionID"`
+	S3BucketName                  string `json:"S3BucketName"`
+	UserPoolID                    string `json:"UserPoolID"`
+	UserPoolDomain                string `json:"UserPoolDomain"`
+	APIURL                        string `json:"APIURL"`
+	APILogGroupName               string `json:"APILogGroupName"`
+	IDPSyncLogGroupName           string `json:"IDPSyncLogGroupName"`
+	AccessHandlerLogGroupName     string `json:"AccessHandlerLogGroupName"`
+	EventBusLogGroupName          string `json:"EventBusLogGroupName"`
+	EventsHandlerLogGroupName     string `json:"EventsHandlerLogGroupName"`
+	GranterLogGroupName           string `json:"GranterLogGroupName"`
+	SlackNotifierLogGroupName     string `json:"SlackNotifierLogGroupName"`
+	DynamoDBTable                 string `json:"DynamoDBTable"`
+	GranterStateMachineArn        string `json:"GranterStateMachineArn"`
+	EventBusArn                   string `json:"EventBusArn"`
+	EventBusSource                string `json:"EventBusSource"`
+	IdpSyncFunctionName           string `json:"IdpSyncFunctionName"`
+	Region                        string `json:"Region"`
+	PaginationKMSKeyARN           string `json:"PaginationKMSKeyARN"`
+	AccessHandlerExecutionRoleARN string `json:"AccessHandlerExecutionRoleARN"`
 }
 
 func (c Output) FrontendURL() string {

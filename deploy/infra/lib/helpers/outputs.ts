@@ -23,9 +23,8 @@ export type StackOutputs = {
   EventBusSource: string;
   IdpSyncFunctionName: string;
   Region: string;
-  GranterLambdaExecutionRoleARN: string;
-  AccessHandlerRestAPILambdaExecutionRoleARN: string;
-  PaginationKMSKeyARN: string
+  PaginationKMSKeyARN: string;
+  AccessHandlerExecutionRoleARN: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs

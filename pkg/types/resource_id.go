@@ -31,10 +31,16 @@ func NewRequestID() string {
 func NewRequestReviewID() string {
 	return newResourceID("rev")
 }
+
 func NewHistoryID() string {
 	return newResourceID("his")
 }
 
+<<<<<<< HEAD
 func NewRecorderEventID() string {
 	return newResourceID("evt")
+=======
+func NewProviderSetupID() string {
+	return newResourceID("pse")
+>>>>>>> main
 }

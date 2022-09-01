@@ -241,6 +241,22 @@ paths:
           $ref: "#/components/responses/HealthResponse"
       operationId: get-health
       description: Returns information on the health of the runtime and providers. If any healthchecks fail the response code will be 500 (Internal Server Error).
+  /api/v1/setup/validate:
+    parameters: []
+    post:
+      summary: Validate an Access Provider's settings
+      operationId: validate-setup
+      responses:
+        "200":
+          $ref: "#/components/responses/ValidateResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+      description: |-
+        Validates settings for a provider. Does not require the provider to be registered - all configuration is passed via the request body.
+
+        Returns a HTTP400 response if the provider cannot be validated, for example if the config is in an invalid format.
+      requestBody:
+        $ref: "#/components/requestBodies/ValidateRequest"
 components:
   schemas:
     Grant:
@@ -412,6 +428,7 @@ components:
       properties:
         instructions:
           type: string
+<<<<<<< HEAD
           description: Instructions on how to access the role or resource.
         accessToken:
           type: string
@@ -426,6 +443,83 @@ components:
           type: string
       description: "additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider."
   requestBodies: {}
+=======
+    ProviderConfigValidation:
+      title: ProviderConfigValidation
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A validation against the configuration values of the Access Provider.
+      properties:
+        id:
+          type: string
+          description: "The ID of the validation, such as `list-sso-users`."
+        name:
+          type: string
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - SUCCESS
+            - PENDING
+            - ERROR
+          description: The status of the validation.
+        fieldsValidated:
+          type: array
+          description: "The particular config fields validated, if any."
+          items:
+            type: string
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Log"
+      required:
+        - id
+        - name
+        - status
+        - fieldsValidated
+        - logs
+    Log:
+      title: Log
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A log entry.
+      properties:
+        level:
+          type: string
+          description: The log level.
+          enum:
+            - INFO
+            - WARNING
+            - ERROR
+        msg:
+          type: string
+          description: The log message.
+      required:
+        - level
+        - msg
+  requestBodies:
+    ValidateRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              uses:
+                type: string
+                description: The full type definition of the provider
+                example: commonfate/aws-sso
+              with:
+                x-go-type: "map[string]string"
+                type: object
+                additionalProperties:
+                  type: string
+                description: The provider's configuration.
+            required:
+              - uses
+              - with
+>>>>>>> main
   responses:
     HealthResponse:
       description: Healthcheck response body.
@@ -479,6 +573,19 @@ components:
             required:
               - hasOptions
               - options
+    ValidateResponse:
+      description: Validation of a provider's configuration.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              validations:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProviderConfigValidation"
+            required:
+              - validations
 tags:
   - name: grants
   - name: runtime

@@ -42,7 +42,7 @@ func TestRevokeGrant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cfg, err := config.ReadProviderConfig(ctx, "lambda")
+	cfg, err := config.ReadProviderConfig(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

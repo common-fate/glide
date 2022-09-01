@@ -3,6 +3,8 @@ package okta
 import (
 	"context"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 	"github.com/okta/okta-sdk-golang/v2/okta"
@@ -37,6 +39,7 @@ func (o *Provider) Init(ctx context.Context) error {
 	o.client = client
 	return nil
 }
+
 func (p *Provider) TestConfig(ctx context.Context) error {
 	_, _, err := p.client.User.ListUsers(ctx, &query.Params{})
 	if err != nil {
@@ -47,6 +50,31 @@ func (p *Provider) TestConfig(ctx context.Context) error {
 		return errors.Wrap(err, "failed to list groups while testing okta provider configuration")
 	}
 	return nil
+}
+
+func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
+	return map[string]providers.ConfigValidationStep{
+		"list-users": {
+			Name: "List Okta users",
+			Run: func(ctx context.Context) diagnostics.Logs {
+				u, _, err := p.client.User.ListUsers(ctx, &query.Params{})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				return diagnostics.Info("Okta returned %d users (more may exist, pagination has been ignored)", len(u))
+			},
+		},
+		"list-groups": {
+			Name: "List Okta groups",
+			Run: func(ctx context.Context) diagnostics.Logs {
+				g, _, err := p.client.Group.ListGroups(ctx, &query.Params{})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				return diagnostics.Info("Okta returned %d groups (more may exist, pagination has been ignored)", len(g))
+			},
+		},
+	}
 }
 
 // ArgSchema returns the schema for the Okta provider.

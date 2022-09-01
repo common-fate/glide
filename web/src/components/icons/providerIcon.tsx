@@ -16,17 +16,41 @@ import {
   EKSIcon,
 } from "./Icons";
 
-export const ProviderIcon = ({
-  provider,
+interface Props extends IconProps {
+  /**
+   * The short type of the provider,
+   * e.g. "aws-sso".
+   * @deprecated use `type` instead (which uses the namespaced `commonfate/aws-sso` type).
+   */
+  shortType?: string;
+
+  /**
+   * The type of the provider, including the namespace, e.g. `commonfate/aws-sso`.
+   */
+  type?: string;
+}
+
+export const ProviderIcon: React.FC<Props> = ({
+  shortType,
+  type,
   ...rest
-}: {
-  provider: string | undefined;
-} & IconProps): React.ReactElement => {
-  if (provider === undefined) {
+}): React.ReactElement => {
+  if (shortType === undefined && type === undefined) {
     // @ts-ignore
     return null;
   }
-  switch (provider) {
+  switch (type) {
+    case "commonfate/aws-sso":
+      return <AWSIcon {...rest} />;
+    case "commonfate/okta":
+      return <OktaIcon {...rest} />;
+    case "commonfate/azure-ad":
+      return <AzureIcon {...rest} />;
+    case "commonfate/aws-eks-roles-sso":
+      return <EKSIcon {...rest} />;
+  }
+
+  switch (shortType) {
     case "aws-sso":
       return <AWSIcon {...rest} />;
     case "okta":
@@ -49,7 +73,6 @@ export const ProviderIcon = ({
       return <PythonIcon {...rest} />;
     case "aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
-    default:
-      return <GrantedKeysIcon {...rest} />;
   }
+  return <GrantedKeysIcon {...rest} />;
 };

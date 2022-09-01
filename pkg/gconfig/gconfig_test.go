@@ -76,9 +76,9 @@ func TestGeneralUsage(t *testing.T) {
 	fn := WithNoArgs("granted/path")
 	// The following tests ensure that secrets stay secret in logs and prints
 	testcases := []testcase{
-		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", fn), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: fn, hasChanged: true}},
-		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
-		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", usage: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
+		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", fn), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: fn, hasChanged: true}},
+		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
+		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestGeneralUsage(t *testing.T) {
 			tc.wantField.secretPathFunc = nil
 			assert.Equal(t, tc.wantField, tc.giveField)
 			assert.Equal(t, tc.wantField.key, tc.giveField.Key())
-			assert.Equal(t, tc.wantField.usage, tc.giveField.Usage())
+			assert.Equal(t, tc.wantField.description, tc.giveField.Description())
 			assert.Equal(t, tc.wantField.optional, tc.giveField.IsOptional())
 			assert.Equal(t, tc.wantField.secret, tc.giveField.IsSecret())
 			assert.Equal(t, tc.wantField.value.Get(), tc.giveField.Get())

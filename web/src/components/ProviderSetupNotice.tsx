@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Link, Text } from "@chakra-ui/react";
-import { useListProviders } from "../utils/backend-client/default/default";
+import { useListProviders } from "../utils/backend-client/admin/admin";
 import { OnboardingCard } from "./OnboardingCard";
 import { WarningIcon } from "./icons/Icons";
 const ProviderSetupNotice: React.FC = () => {

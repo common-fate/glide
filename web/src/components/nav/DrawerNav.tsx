@@ -64,6 +64,10 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
       label: "Groups",
       href: "/admin/groups",
     },
+    {
+      label: "Providers",
+      href: "/admin/providers",
+    },
   ];
 
   return (

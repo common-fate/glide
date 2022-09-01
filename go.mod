@@ -62,6 +62,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
+	github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -190,6 +191,7 @@ require (
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
+	github.com/hashicorp/go-version v1.6.0
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8

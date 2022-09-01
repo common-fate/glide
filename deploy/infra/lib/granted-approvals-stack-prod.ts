@@ -10,7 +10,10 @@ import { CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
 import { ProductionFrontendDeployer } from "./constructs/production-frontend-deployer";
 import { generateOutputs } from "./helpers/outputs";
-import { IdentityProviderRegistry, IdentityProviderTypes } from "./helpers/registry";
+import {
+  IdentityProviderRegistry,
+  IdentityProviderTypes,
+} from "./helpers/registry";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -85,11 +88,15 @@ export class CustomerGrantedStack extends cdk.Stack {
       description: "The Access Provider configuration in JSON format",
       default: "{}",
     });
-    const notificationsConfiguration = new CfnParameter(this, "NotificationsConfiguration", {
-      type: "String",
-      description: "The Notifications configuration in JSON format",
-      default: "{}",
-    });
+    const notificationsConfiguration = new CfnParameter(
+      this,
+      "NotificationsConfiguration",
+      {
+        type: "String",
+        description: "The Notifications configuration in JSON format",
+        default: "{}",
+      }
+    );
     const identityConfig = new CfnParameter(this, "IdentityConfiguration", {
       type: "String",
       description: "The Identity Provider Sync configuration in JSON format",
@@ -129,16 +136,19 @@ export class CustomerGrantedStack extends cdk.Stack {
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: providerConfig.valueAsString,
     });
+
     const appBackend = new AppBackend(this, "API", {
       appName,
       userPool: webUserPool,
       frontendUrl: "https://" + appFrontend.getDomainName(),
-      accessHandlerApi: accessHandler.getApiGateway(),
+      accessHandler: accessHandler,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId: grantedAdminGroupId.valueAsString,
       identityProviderSyncConfiguration: identityConfig.valueAsString,
       notificationsConfiguration: notificationsConfiguration.valueAsString,
+      providerConfig: providerConfig.valueAsString,
+      deploymentSuffix: suffix.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -179,9 +189,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
-      AccessHandlerRestAPILambdaExecutionRoleARN: accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
-      GranterLambdaExecutionRoleARN: accessHandler.getGranter().getGranterLambdaExecutionRoleARN(),
-      PaginationKMSKeyARN: appBackend.getKmsKeyArn()
+      PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
+      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
     });
   }
 }

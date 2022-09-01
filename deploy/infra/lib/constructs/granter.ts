@@ -10,6 +10,7 @@ interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   providerConfig: string;
+  executionRole: iam.Role;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -30,6 +31,7 @@ export class Granter extends Construct {
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "granter",
+      role: props.executionRole,
     });
 
     const definition = {
@@ -131,6 +133,7 @@ export class Granter extends Construct {
       cfnStatemachine.roleArn
     );
     this._lambda.grantInvoke(smRole);
+<<<<<<< HEAD
 
     //grant read from ssm
     this._lambda.addToRolePolicy(
@@ -169,6 +172,8 @@ export class Granter extends Construct {
     );
 
     props.eventBus.grantPutEventsTo(this._lambda);
+=======
+>>>>>>> main
   }
   getStateMachineARN(): string {
     return this._stateMachine.stateMachineArn;
@@ -181,8 +186,5 @@ export class Granter extends Construct {
   }
   getGranterARN(): string {
     return this._lambda.functionArn;
-  }
-  getGranterLambdaExecutionRoleARN(): string {
-    return this._lambda.role?.roleArn ?? "";
   }
 }

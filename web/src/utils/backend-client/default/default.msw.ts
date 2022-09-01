@@ -18,26 +18,22 @@ import {
 } from '.././types'
 
 export const getUserListRequestsUpcomingMock = () => ({requests: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requestor: faker.random.word(), status: faker.helpers.arrayElement(Object.values(RequestStatus)), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRule: {id: faker.random.word(), version: faker.random.word()}, updatedAt: faker.random.word(), grant: faker.helpers.arrayElement([{status: faker.helpers.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), subject: faker.internet.email(), provider: faker.random.word(), start: faker.random.word(), end: faker.random.word()}, undefined]), approvalMethod: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ApprovalMethod)), undefined]), selectedWith: {
-        'cl7e2tvde0005syon0lehg97s': {value: faker.random.word(), label: faker.random.word()}
+        'cl7gmnfmq000504hg3sfk6pk0': {value: faker.random.word(), label: faker.random.word()}
       }})), next: faker.helpers.arrayElement([faker.random.word(), null])})
 
 export const getUserListRequestsPastMock = () => ({requests: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requestor: faker.random.word(), status: faker.helpers.arrayElement(Object.values(RequestStatus)), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRule: {id: faker.random.word(), version: faker.random.word()}, updatedAt: faker.random.word(), grant: faker.helpers.arrayElement([{status: faker.helpers.arrayElement(['PENDING','ACTIVE','ERROR','REVOKED','EXPIRED']), subject: faker.internet.email(), provider: faker.random.word(), start: faker.random.word(), end: faker.random.word()}, undefined]), approvalMethod: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ApprovalMethod)), undefined]), selectedWith: {
-        'cl7e2tvdh0006syonao2ag5zs': {value: faker.random.word(), label: faker.random.word()}
+        'cl7gmnfmu000604hgh4zp4t8p': {value: faker.random.word(), label: faker.random.word()}
       }})), next: faker.helpers.arrayElement([faker.random.word(), null])})
 
 export const getAdminArchiveAccessRuleMock = () => ({id: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(Object.values(AccessRuleStatus)), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), approval: {users: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, name: faker.random.word(), description: faker.random.word(), metadata: {createdAt: faker.random.word(), createdBy: faker.random.word(), updatedAt: faker.random.word(), updatedBy: faker.random.word(), updateMessage: faker.helpers.arrayElement([faker.random.word(), undefined])}, target: {provider: {id: faker.random.word(), type: faker.random.word()}, with: {
-        'cl7e2tveb000jsyondhy0bsbz': faker.random.word()
+        'cl7gmnfns000j04hg0tvlf9ul': faker.random.word()
       }, withSelectable: {
-        'cl7e2tveb000ksyon1lx3cxdz': Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))
+        'cl7gmnfns000k04hgggh8amss': Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))
       }}, timeConstraints: {maxDurationSeconds: faker.datatype.number({min: 60, max: undefined})}, isCurrent: faker.datatype.boolean()})
 
-export const getListProvidersMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), type: faker.random.word()})))
+export const getCreateProvidersetupMock = () => ({id: faker.random.word(), type: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(['COMPLETE','VALIDATION_FAILED','VALIDATING','INITIAL_CONFIGURATION_IN_PROGRESS','VALIDATION_SUCEEDED']), steps: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({complete: faker.datatype.boolean()})), configValues: {}, configValidation: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), status: faker.helpers.arrayElement(['IN_PROGRESS','SUCCESS','PENDING','ERROR']), fieldsValidated: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), logs: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(['INFO','WARNING','ERROR']), msg: faker.random.word()}))}))})
 
-export const getGetProviderMock = () => ({id: faker.random.word(), type: faker.random.word()})
-
-export const getGetProviderArgsMock = () => ({})
-
-export const getListProviderArgOptionsMock = () => ({hasOptions: faker.datatype.boolean(), options: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({label: faker.random.word(), value: faker.random.word()}))})
+export const getDeleteProvidersetupMock = () => ({id: faker.random.word(), type: faker.random.word(), version: faker.random.word(), status: faker.helpers.arrayElement(['COMPLETE','VALIDATION_FAILED','VALIDATING','INITIAL_CONFIGURATION_IN_PROGRESS','VALIDATION_SUCEEDED']), steps: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({complete: faker.datatype.boolean()})), configValues: {}, configValidation: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), status: faker.helpers.arrayElement(['IN_PROGRESS','SUCCESS','PENDING','ERROR']), fieldsValidated: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), logs: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(['INFO','WARNING','ERROR']), msg: faker.random.word()}))}))})
 
 export const getDefaultMSW = () => [
 rest.get('*/api/v1/requests/upcoming', (_req, res, ctx) => {
@@ -58,28 +54,16 @@ ctx.json(getUserListRequestsPastMock()),
           ctx.status(200, 'Mocked status'),
 ctx.json(getAdminArchiveAccessRuleMock()),
         )
-      }),rest.get('*/api/v1/admin/providers', (_req, res, ctx) => {
+      }),rest.post('*/api/v1/admin/providersetups', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getListProvidersMock()),
+ctx.json(getCreateProvidersetupMock()),
         )
-      }),rest.get('*/api/v1/admin/providers/:providerId', (_req, res, ctx) => {
+      }),rest.delete('*/api/v1/admin/providersetups/:providersetupId', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getGetProviderMock()),
-        )
-      }),rest.get('*/api/v1/admin/providers/:providerId/args', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProviderArgsMock()),
-        )
-      }),rest.get('*/api/v1/admin/providers/:providerId/args/:argId/options', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getListProviderArgOptionsMock()),
+ctx.json(getDeleteProvidersetupMock()),
         )
       }),]

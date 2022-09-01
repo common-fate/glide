@@ -21,7 +21,7 @@ import {
   useGetProviderArgs,
   useListProviderArgOptions,
   listProviderArgOptions,
-} from "../../../../utils/backend-client/default/default";
+} from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
