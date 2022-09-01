@@ -75,7 +75,6 @@ const Page = () => {
   const [accordionIndex, setAccordionIndex] = useState([0]);
   const { data, mutate } = useGetProvidersetup(id);
   const { data: instructions } = useGetProvidersetupInstructions(id);
-  console.log({ data });
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(
     (rp) => rp.type === data?.type
@@ -436,7 +435,6 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   const { control, handleSubmit } = useForm<Record<string, string>>({
     defaultValues: configValues,
   });
-  console.log({ step: step, configValues });
   const onSubmit = async (data: Record<string, string>) => {
     const filteredData: Record<string, string> = {};
     step.configFields.forEach((f) => {
