@@ -80,6 +80,7 @@ const Page = () => {
   const { data: instructions } = useGetProvidersetupInstructions(id);
 
   const { hasCopied, onCopy } = useClipboard(validationErrorMsg);
+
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(
     (rp) => rp.type === data?.type
@@ -447,13 +448,18 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   const { control, handleSubmit } = useForm<Record<string, string>>({
     defaultValues: configValues,
   });
-
   const onSubmit = async (data: Record<string, string>) => {
+    const filteredData: Record<string, string> = {};
+    step.configFields.forEach((f) => {
+      filteredData[f.id] = data[f.id];
+    });
+    
     setLoading(true);
     const res = await submitProvidersetupStep(setupId, index, {
       complete: true,
-      configValues: data,
+      configValues: filteredData,
     });
+
     await mutate(res);
     setLoading(false);
     onComplete?.();

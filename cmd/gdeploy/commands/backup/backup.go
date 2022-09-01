@@ -14,8 +14,8 @@ import (
 
 var Command = cli.Command{
 	Name:        "backup",
-	Description: "Backup Granted Approvals",
-	Usage:       "Backup Granted Approvals",
+	Description: "Backup the DynamoDB table",
+	Usage:       "Backup the DynamoDB table",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically continue without asking for confirmation"},
 	},

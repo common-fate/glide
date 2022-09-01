@@ -61,13 +61,13 @@ export const ProviderStep: React.FC = () => {
     if (!target || !provider || !target?.with) {
       return null;
     }
+
     return (
       <ProviderPreview
         target={{
           provider: provider,
+          withSelectable: target.with,
           with: {},
-          withSelectable: {},
-          // with: target.with,
         }}
       />
     );
