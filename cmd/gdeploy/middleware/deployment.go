@@ -76,8 +76,9 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 
 		if isVersionMismatch {
 			var shouldUpdate bool
+			clio.Error("Incompatible gdeploy version. Expected %s got %s.", dc.Deployment.Release, build.Version)
 			prompt := &survey.Confirm{
-				Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", dc.Deployment.Release, build.Version, build.Version),
+				Message: fmt.Sprintf("Would you like to update your 'granted-deployment.yml' to release %s?", build.Version),
 			}
 
 			err = survey.AskOne(prompt, &shouldUpdate)
