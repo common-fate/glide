@@ -34,7 +34,7 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "httpgmail.com",
 			},
-			want: fmt.Sprintf("Invalid URL. Please update your release version in 'granted-deployment.yml' to %s", build.Version),
+			want: fmt.Sprintf("invalid URL. Please update your release version in 'granted-deployment.yml' to %s", build.Version),
 		},
 
 		{
