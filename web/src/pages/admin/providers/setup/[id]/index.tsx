@@ -442,7 +442,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
     step.configFields.forEach((f) => {
       filteredData[f.id] = data[f.id];
     });
-    console.log({ datas: data, filteredData });
+    
     setLoading(true);
     const res = await submitProvidersetupStep(setupId, index, {
       complete: true,
