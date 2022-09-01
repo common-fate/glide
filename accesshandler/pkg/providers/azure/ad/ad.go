@@ -48,6 +48,7 @@ func (a *Provider) Init(ctx context.Context) error {
 		return err
 	}
 	a.token.Set(token.AccessToken)
+
 	return nil
 }
 func (p *Provider) TestConfig(ctx context.Context) error {

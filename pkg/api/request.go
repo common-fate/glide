@@ -418,3 +418,37 @@ func (a *API) ListRequestEvents(w http.ResponseWriter, r *http.Request, requestI
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
+
+// (GET /api/v1/requests/{requestId}/access-token)
+func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId string) {
+	ctx := r.Context()
+
+	// get user from context
+	uid := auth.UserIDFromContext(ctx)
+	q := storage.GetRequest{ID: requestId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	if q.Result.RequestedBy == uid {
+		q := storage.GetAccessToken{ID: requestId}
+		_, err := a.DB.Query(ctx, &q)
+		if err == ddb.ErrNoItems {
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			return
+		}
+
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+		res := q.Result.ToAPI()
+
+		apio.JSON(ctx, w, res, http.StatusOK)
+	} else {
+		// not authorised
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("not authorised"), http.StatusUnauthorized))
+	}
+}

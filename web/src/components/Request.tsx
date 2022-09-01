@@ -1,19 +1,26 @@
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { CheckIcon, CopyIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Badge,
   Box,
   Button,
   ButtonGroup,
+  Code,
   Flex,
   HStack,
   IconButton,
+  Input,
+  InputGroup,
+  InputRightElement,
   Link,
   Skeleton,
   SkeletonText,
+  Spinner,
+  Spacer,
   Stack,
   Text,
   Tooltip,
+  useClipboard,
   useDisclosure,
   useToast,
   VStack,
@@ -21,13 +28,16 @@ import {
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
 import React, { createContext, useContext, useState } from "react";
+import ReactDom from "react-dom";
 import ReactMarkdown from "react-markdown";
+import { durationStringHoursMinutes } from "../utils/durationString";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
   cancelRequest,
   reviewRequest,
   revokeRequest,
   useGetAccessInstructions,
+  useGetAccessToken,
   useGetUser,
 } from "../utils/backend-client/end-user/end-user";
 import {
@@ -36,17 +46,16 @@ import {
   RequestStatus,
   ReviewDecision,
 } from "../utils/backend-client/types";
-import { Request } from "../utils/backend-client/types/request";
 import { RequestTiming } from "../utils/backend-client/types/requestTiming";
+import { Request } from "../utils/backend-client/types/request";
 import { useUser } from "../utils/context/userContext";
-import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
-import { CodeInstruction } from "./CodeInstruction";
 import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
-import { StatusCell } from "./StatusCell";
+import { RequestStatusCell, StatusCell } from "./StatusCell";
+import { CodeProps } from "react-markdown/lib/ast-to-react";
 
 interface RequestProps {
   request?: RequestDetail;
@@ -210,7 +219,8 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       rounded="md"
       bg="neutrals.100"
       flexDir="column"
-      w={{ base: "100%", md: "500px", lg: "716px" }}
+      w="100%"
+      // w={{ base: "100%", md: "500px", lg: "716px" }}
       p={8}
       spacing={6}
     >
@@ -223,9 +233,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon
-              shortType={request?.accessRule.target.provider.type}
-            />
+            <ProviderIcon provider={request?.accessRule.target.provider.type} />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge
@@ -274,6 +282,8 @@ export const RequestAccessInstructions: React.FC = () => {
       </Box>
       return (
       <ReactMarkdown
+        // remarkPlugins={[remarkGfm]}
+        skipHtml={false}
         components={{
           a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
           p: (props) => (
@@ -281,16 +291,103 @@ export const RequestAccessInstructions: React.FC = () => {
               {props.children}
             </Text>
           ),
-          code: CodeInstruction as any,
+          code: CodeInstruction,
         }}
-      >
-        {data.instructions}
-      </ReactMarkdown>
-      );
+        children={data.instructions}
+      />
     </Stack>
   );
 };
 
+export const RequestAccessToken = () => {
+  const { request } = useContext(Context);
+
+  let reqId = "";
+
+  if (request) {
+    reqId = request.id;
+  }
+  const { data } = useGetAccessToken(reqId);
+
+  // const [token, setToken] = useState<string>();
+
+  const toast = useToast();
+
+  if (!data) return <Spinner />;
+
+  const handleClick = async () => {
+    await navigator.clipboard.writeText(data);
+    toast({
+      title: "Access token copied to clipboard",
+      status: "success",
+      variant: "subtle",
+      duration: 2200,
+      isClosable: true,
+    });
+  };
+
+  return (
+    <Stack>
+      <Box textStyle="Body/Medium" mb={2}>
+        Access Token
+      </Box>
+      <InputGroup size="md" bg="white" maxW="400px">
+        <Input pr="4.5rem" type={"password"} value={data} readOnly />
+        <InputRightElement width="4.5rem" pr={1}>
+          <Button h="1.75rem" size="sm" onClick={handleClick}>
+            {"Copy"}
+          </Button>
+        </InputRightElement>
+      </InputGroup>
+    </Stack>
+  );
+};
+
+const CodeInstruction: React.FC<CodeProps> = (props) => {
+  const { children, node } = props;
+  let value = "";
+  if (node.children.length == 1 && node.children[0].type == "text") {
+    value = node.children[0].value;
+  }
+
+  const { hasCopied, onCopy } = useClipboard(value);
+  return (
+    <Stack>
+      <Code
+        padding={0}
+        bg="white"
+        borderRadius="8px"
+        borderColor="neutrals.300"
+        borderWidth="1px"
+      >
+        <Flex
+          borderColor="neutrals.300"
+          borderBottomWidth="1px"
+          py="8px"
+          px="16px"
+          minH="36px"
+        >
+          <Spacer />
+          <IconButton
+            variant="ghost"
+            h="20px"
+            icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
+            onClick={onCopy}
+            aria-label={"Copy"}
+          />
+        </Flex>
+        <Text
+          overflowX="auto"
+          color="neutrals.700"
+          padding={4}
+          whiteSpace="pre-wrap"
+        >
+          {children}
+        </Text>
+      </Code>
+    </Stack>
+  );
+};
 export const RequestTime: React.FC = () => {
   const { request } = useContext(Context);
   const timing = request?.timing;

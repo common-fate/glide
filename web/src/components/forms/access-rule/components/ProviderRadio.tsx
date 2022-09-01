@@ -8,9 +8,11 @@ import {
   useRadio,
   useRadioGroup,
   UseRadioGroupProps,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import React from "react";
-import { useListProviders } from "../../../../utils/backend-client/admin/admin";
+import { useListProviders } from "../../../../utils/backend-client/default/default";
 import { Provider } from "../../../../utils/backend-client/types";
 import { ProviderIcon } from "../../../icons/providerIcon";
 
@@ -32,7 +34,9 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
         cursor="pointer"
         borderWidth="1px"
         borderRadius="md"
+        m="1px"
         _checked={{
+          m: "0px",
           borderColor: "brandGreen.300",
           borderWidth: "2px",
         }}
@@ -56,7 +60,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
           />
         )}
         <HStack>
-          <ProviderIcon shortType={props.provider.type} />
+          <ProviderIcon provider={props.provider.type} />
 
           <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
             {props.provider.id}
@@ -76,11 +80,15 @@ export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {
   }
 
   return (
-    <HStack {...group}>
+    <Wrap {...group}>
       {data?.map((p) => {
         const radio = getRadioProps({ value: p.id });
-        return <ProviderRadio key={p.id} provider={p} {...radio} />;
+        return (
+          <WrapItem key={p.id}>
+            <ProviderRadio provider={p} {...radio} />
+          </WrapItem>
+        );
       })}
-    </HStack>
+    </Wrap>
   );
 };

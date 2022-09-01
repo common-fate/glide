@@ -129,7 +129,12 @@ export class AppBackend extends Construct {
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
+       environment: {
+        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
+      }
     });
+
+    this._dynamoTable.grantReadWriteData(webhookLambda);
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._appName,

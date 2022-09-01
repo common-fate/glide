@@ -1,10 +1,12 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
 import { MakeGenerics, useMatch, useSearch, Link } from "react-location";
+import { useUser } from "src/utils/context/userContext";
 import { AuditLog } from "../../components/AuditLog";
 import { UserLayout } from "../../components/Layout";
 import {
   RequestAccessInstructions,
+  RequestAccessToken,
   RequestCancelButton,
   RequestDetails,
   RequestDisplay,
@@ -26,7 +28,7 @@ const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
-
+  const { user } = useUser();
   const { data, mutate } = useUserGetRequest(requestId);
   const search = useSearch<MyLocationGenerics>();
   const { action } = search;
@@ -50,7 +52,10 @@ const Home = () => {
       <RequestDisplay request={data}>
         <RequestDetails>
           <RequestTime />
-          <RequestAccessInstructions />
+          {user?.id === data?.requestor && <RequestAccessInstructions />}
+          {user?.id === data?.requestor && data?.status === "APPROVED" && (
+            <RequestAccessToken />
+          )}
           <RequestCancelButton />
           <RequestRevoke onSubmitRevoke={mutate} />
         </RequestDetails>
