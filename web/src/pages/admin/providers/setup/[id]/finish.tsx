@@ -72,7 +72,7 @@ const Page = () => {
 
   const gdeployCommand =
     "```" +
-    `gdeploy provider add --id ${data.id} --uses ${data.type}@${
+    `gdeploy providers add --id ${data.id} --uses ${data.type}@${
       data.version
     } ${Object.entries(data.configValues)
       .filter(([_, v]) => v != null && v !== "")
