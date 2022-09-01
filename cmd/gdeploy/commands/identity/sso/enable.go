@@ -224,10 +224,10 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		return err
 	}
 	clio.Success("Successfully completed SSO configuration")
-	clio.Warn(`Users and will be synced every 5 minutes from your identity provider. To finish enabling SSO, follow these steps:
+	clio.Warn(`Users and groups will be synced every 5 minutes from your identity provider. To finish enabling SSO, follow these steps:
 
 	  1) Run 'gdeploy update' to apply the changes to your CloudFormation deployment.
-	  2) Run 'gdeploy users sync' to trigger an immediate sync of your user directory.
+	  2) Run 'gdeploy identity sync' to trigger an immediate sync of your user directory.
 	`)
 	return nil
 }
