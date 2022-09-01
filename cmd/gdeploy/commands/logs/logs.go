@@ -4,6 +4,7 @@ import "github.com/urfave/cli/v2"
 
 var Command = cli.Command{
 	Name:        "logs",
+	Aliases:     []string{"log"},
 	Description: "View recent application logs from Cloudwatch or stream them in real time",
 	Usage:       "View recent application logs from Cloudwatch or stream them in real time",
 	Action:      cli.ShowSubcommandHelp,
