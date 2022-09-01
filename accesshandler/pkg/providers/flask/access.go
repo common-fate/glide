@@ -117,10 +117,10 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 
 	permissionSetName := permissionSetNameFromGrantID(grantID)
 
-	return p.removePermissionSet(ctx, permissionSetName, subject)
+	return p.removePermissionSet(ctx, permissionSetName, subject, a.TaskDefinitionARN)
 }
 
-func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string, subject string) error {
+func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string, subject string, taskDefinitionARN string) error {
 	hasMore := true
 	var nextToken *string
 	var arnMatch *string
@@ -218,6 +218,7 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 	out, err := ct.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
 		LookupAttributes: atrs,
 	})
+
 	if err != nil {
 		return err
 	}
@@ -230,7 +231,13 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 			if err != nil {
 				return err
 			}
-			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+strings.Split(p.ecsClusterARN.Get(), "/")[1]) {
+			taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskDefinitionARN)
+			if err != nil {
+				return err
+			}
+
+			taskId := strings.Split(taskARN, "/")[2]
+			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+strings.Split(p.ecsClusterARN.Get(), "/")[1]+"_"+taskId) {
 				// we have cloud trail log
 				sessionId = eventJson.ResponseElements.SessionID
 			}

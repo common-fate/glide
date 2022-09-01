@@ -46,14 +46,13 @@ type Provider struct {
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
 
-		gconfig.StringField("ecsClusterARN", &p.ecsClusterARN, "The ARN of the AWS IAM Role with permission to run ECS exec commands"),
+		gconfig.StringField("ecsClusterARN", &p.ecsClusterARN, "The ARN of the ECS Cluster to provision access to"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
+		gconfig.StringField("clusterAccessRoleArn", &p.ecsAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the ecs cluster"),
 		gconfig.StringField("ssoRegion", &p.ssoRegion, "the region the AWS SSO instance is deployed to"),
 		gconfig.StringField("ssoRoleARN", &p.ssoRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),
 		gconfig.StringField("ecsRegion", &p.ecsRegion, "the region the ecs cluster instance is deployed to"),
-
-		gconfig.StringField("clusterAccessRoleArn", &p.ecsAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the ecs cluster"),
 	}
 }
 
