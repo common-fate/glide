@@ -7,6 +7,8 @@ import {
   OktaIcon,
   AzureIcon,
   EKSIcon,
+  PythonIcon,
+  FlaskIcon,
 } from "./Icons";
 
 interface Props extends IconProps {
@@ -41,6 +43,8 @@ export const ProviderIcon: React.FC<Props> = ({
       return <AzureIcon {...rest} />;
     case "commonfate/aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
+    case "commonfate/flask":
+      return <FlaskIcon {...rest} />;
   }
 
   switch (shortType) {
@@ -52,6 +56,8 @@ export const ProviderIcon: React.FC<Props> = ({
       return <AzureIcon {...rest} />;
     case "aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
+    case "flask":
+      return <FlaskIcon {...rest} />;
   }
   return <GrantedKeysIcon {...rest} />;
 };
