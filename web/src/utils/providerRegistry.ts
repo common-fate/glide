@@ -9,7 +9,7 @@ export interface RegisteredProvider {
   name: string;
 }
 
-export const registeredProviders: RegisteredProvider[] = [
+export const registeredProviders = [
   {
     type: "commonfate/aws-sso",
     shortType: "aws-sso",
@@ -30,4 +30,13 @@ export const registeredProviders: RegisteredProvider[] = [
     shortType: "aws-eks-roles-sso",
     name: "EKS (with AWS SSO)",
   },
-];
+  {
+    type: "commonfate/flask",
+    shortType: "flask",
+    name: "Flask (with AWS SSO)",
+  },
+] as const;
+
+export type RegisteredShortTypes = typeof registeredProviders[number]["shortType"];
+
+export type RegisteredTypes = typeof registeredProviders[number]["type"];
