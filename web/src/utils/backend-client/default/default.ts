@@ -15,11 +15,8 @@ import type {
   UserListRequestsUpcomingParams,
   UserListRequestsPastParams,
   AccessRuleDetail,
-  ErrorResponseResponse,
-  Provider,
-  GetProviderArgs200,
-  ArgOptionsResponseResponse,
-  ListProviderArgOptionsParams
+  ProviderSetupResponseResponse,
+  CreateProviderSetupRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -131,165 +128,34 @@ export const adminArchiveAccessRule = (
   
 
 /**
- * List providers
- * @summary List providers
+ * Begins the guided setup process for a new Access Provider.
+ * @summary Begin the setup process for a new Access Provider
  */
-export const listProviders = (
-    
+export const createProvidersetup = (
+    createProviderSetupRequestBody: CreateProviderSetupRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider[]>(
-      {url: `/api/v1/admin/providers`, method: 'get'
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderSetupRequestBody
     },
       options);
     }
   
-
-export const getListProvidersKey = () => [`/api/v1/admin/providers`];
-
-    
-export type ListProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof listProviders>>>
-export type ListProvidersQueryError = ErrorType<ErrorResponseResponse>
-
-export const useListProviders = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listProviders>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProvidersKey() : null);
-  const swrFn = () => listProviders(requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 
 /**
- * Get provider by id
- * @summary List providers
+ * Removes an in-progress provider setup and deletes all data relating to it.
+
+Returns the deleted provider.
+ * @summary Delete an in-progress provider setup
  */
-export const getProvider = (
-    providerId: string,
+export const deleteProvidersetup = (
+    providersetupId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider>(
-      {url: `/api/v1/admin/providers/${providerId}`, method: 'get'
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups/${providersetupId}`, method: 'delete'
     },
       options);
     }
   
-
-export const getGetProviderKey = (providerId: string,) => [`/api/v1/admin/providers/${providerId}`];
-
-    
-export type GetProviderQueryResult = NonNullable<Awaited<ReturnType<typeof getProvider>>>
-export type GetProviderQueryError = ErrorType<ErrorResponseResponse>
-
-export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
- providerId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProvider>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(providerId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderKey(providerId) : null);
-  const swrFn = () => getProvider(providerId, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * gets the jsonschema describing the args for this provider
- * @summary Get provider arg schema
- */
-export const getProviderArgs = (
-    providerId: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<GetProviderArgs200>(
-      {url: `/api/v1/admin/providers/${providerId}/args`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getGetProviderArgsKey = (providerId: string,) => [`/api/v1/admin/providers/${providerId}/args`];
-
-    
-export type GetProviderArgsQueryResult = NonNullable<Awaited<ReturnType<typeof getProviderArgs>>>
-export type GetProviderArgsQueryError = ErrorType<ErrorResponseResponse>
-
-export const useGetProviderArgs = <TError = ErrorType<ErrorResponseResponse>>(
- providerId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProviderArgs>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(providerId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderArgsKey(providerId) : null);
-  const swrFn = () => getProviderArgs(providerId, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Returns the options for a particular Access Provider argument. The options may be cached. To refresh the cache, pass the `refresh` query parameter.
- * @summary List provider arg options
- */
-export const listProviderArgOptions = (
-    providerId: string,
-    argId: string,
-    params?: ListProviderArgOptionsParams,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgOptionsResponseResponse>(
-      {url: `/api/v1/admin/providers/${providerId}/args/${argId}/options`, method: 'get',
-        params
-    },
-      options);
-    }
-  
-
-export const getListProviderArgOptionsKey = (providerId: string,
-    argId: string,
-    params?: ListProviderArgOptionsParams,) => [`/api/v1/admin/providers/${providerId}/args/${argId}/options`, ...(params ? [params]: [])];
-
-    
-export type ListProviderArgOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof listProviderArgOptions>>>
-export type ListProviderArgOptionsQueryError = ErrorType<ErrorResponseResponse>
-
-export const useListProviderArgOptions = <TError = ErrorType<ErrorResponseResponse>>(
- providerId: string,
-    argId: string,
-    params?: ListProviderArgOptionsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listProviderArgOptions>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(providerId && argId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProviderArgOptionsKey(providerId,argId,params) : null);
-  const swrFn = () => listProviderArgOptions(providerId,argId,params, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 

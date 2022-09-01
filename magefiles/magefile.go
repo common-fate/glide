@@ -291,6 +291,7 @@ func Dotenv() error {
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
 	myEnv["GRANTED_RUNTIME"] = "lambda"
 	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
+	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {

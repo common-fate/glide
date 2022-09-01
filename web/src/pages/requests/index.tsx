@@ -147,7 +147,7 @@ const Home = () => {
                             data-testid={"r_" + i}
                           >
                             <ProviderIcon
-                              provider={r.target.provider.type}
+                              shortType={r.target.provider.type}
                               mb={3}
                               h="8"
                               w="8"
@@ -430,7 +430,7 @@ const UserAccessCard: React.FC<
                   {rule ? (
                     <Flex align="center" mr="auto">
                       <ProviderIcon
-                        provider={rule?.target.provider.type}
+                        shortType={rule?.target.provider.type}
                         h={10}
                         w={10}
                       />

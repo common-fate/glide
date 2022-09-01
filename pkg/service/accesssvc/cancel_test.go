@@ -92,8 +92,6 @@ func TestCancelRequest(t *testing.T) {
 			}
 			err := s.CancelRequest(context.Background(), tc.givenCancelRequest)
 			assert.Equal(t, tc.wantErr, err)
-
 		})
 	}
-
 }

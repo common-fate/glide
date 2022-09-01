@@ -47,7 +47,7 @@ func NewGranter(ctx context.Context, c config.GranterConfig) (*Granter, error) {
 		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	b, err := config.ReadProviderConfig(ctx, "lambda")
+	b, err := config.ReadProviderConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +104,10 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		grant.Status = types.ACTIVE
+		grant.Status = types.GrantStatusACTIVE
 		evt = &gevent.GrantActivated{Grant: grant}
 	case DEACTIVATE:
-		grant.Status = types.EXPIRED
+		grant.Status = types.GrantStatusEXPIRED
 		evt = &gevent.GrantExpired{Grant: grant}
 	}
 

@@ -8,14 +8,19 @@ import (
 
 	"github.com/benbjohnson/clock"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
 	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
+	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 
 	"github.com/common-fate/ddb"
@@ -43,14 +48,24 @@ import (
 // signature matches the ServerInterface interface.
 type API struct {
 	// DB is the DynamoDB client which provides direct storage access.
-	DB ddb.Storage
+	DB               ddb.Storage
+	ProviderMetadata deploy.ProviderMap
 	// Requests is the service which provides business logic for Access Requests.
 	Access              AccessService
 	Rules               AccessRuleService
+	ProviderSetup       ProviderSetupService
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
 	Granter             accesssvc.Granter
 	Cache               CacheService
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providersetup_service.go -package=mocks . ProviderSetupService
+
+// ProviderSetupService contains business logic for managing the guided provider setup workflows.
+type ProviderSetupService interface {
+	Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error)
+	CompleteStep(ctx context.Context, setupID string, stepIndex int, body types.ProviderSetupStepCompleteRequest) (*providersetup.Setup, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_access_service.go -package=mocks . AccessService
@@ -80,12 +95,15 @@ type CacheService interface {
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                 *zap.SugaredLogger
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	EventSender         *gevent.Sender
-	DynamoTable         string
-	PaginationKMSKeyARN string
-	AdminGroup          string
+	Log                           *zap.SugaredLogger
+	AccessHandlerClient           ahtypes.ClientWithResponsesInterface
+	ProviderMetadata              deploy.ProviderMap
+	EventSender                   *gevent.Sender
+	DynamoTable                   string
+	PaginationKMSKeyARN           string
+	AdminGroup                    string
+	AccessHandlerExecutionRoleARN string
+	DeploymentSuffix              string
 }
 
 // New creates a new API.
@@ -109,7 +127,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	clk := clock.New()
 
 	a := API{
-		AdminGroup: opts.AdminGroup,
+		ProviderMetadata: opts.ProviderMetadata,
+		AdminGroup:       opts.AdminGroup,
 		Access: &accesssvc.Service{
 			Clock: clk,
 			DB:    db,
@@ -134,10 +153,15 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:       db,
 			AHClient: opts.AccessHandlerClient,
 		},
-
+		ProviderSetup: &psetupsvc.Service{
+			DB: db,
+			TemplateData: psetup.TemplateData{
+				AccessHandlerExecutionRoleARN: opts.AccessHandlerExecutionRoleARN,
+			},
+			DeploymentSuffix: opts.DeploymentSuffix,
+		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,
-
 		Granter: &grantsvc.Granter{
 			AHClient: opts.AccessHandlerClient,
 			DB:       db,
