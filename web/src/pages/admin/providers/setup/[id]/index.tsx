@@ -120,7 +120,9 @@ const Page = () => {
       const res = await validateProvidersetup(id);
 
       if (res?.configValidation.length > 0) {
-        setValidationErrorMsg(formatValidationErrorToText(res?.configValidation || []));
+        setValidationErrorMsg(
+          formatValidationErrorToText(res?.configValidation || [])
+        );
       }
       if (res.status === "VALIDATION_SUCEEDED") {
         setShowConfetti(true);
