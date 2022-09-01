@@ -47,7 +47,7 @@ func Registry() ProviderRegistry {
 			"commonfate/flask": {
 				"v1": {Provider: &flask.Provider{},
 					DefaultID:   "flask",
-					Description: "flask Access Provider",
+					Description: "Flask Access Provider",
 				},
 			},
 			"commonfate/okta": {
