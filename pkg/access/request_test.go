@@ -55,7 +55,7 @@ func TestRequestMarshalDDB(t *testing.T) {
 				CreatedAt: time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC),
 				UpdatedAt: time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC),
 				Grant: &Grant{
-					Status: types.REVOKED,
+					Status: types.GrantStatusREVOKED,
 					End:    time.Date(2022, 1, 1, 10, 1, 0, 0, time.UTC),
 				},
 			},
@@ -78,7 +78,7 @@ func TestRequestMarshalDDB(t *testing.T) {
 				CreatedAt: time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC),
 				UpdatedAt: time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC),
 				Grant: &Grant{
-					Status: types.ACTIVE,
+					Status: types.GrantStatusACTIVE,
 					End:    time.Date(2022, 1, 1, 10, 1, 0, 0, time.UTC),
 				},
 			},

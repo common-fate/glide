@@ -13,17 +13,20 @@ import { WebUserPool } from "./app-user-pool";
 import { EventHandler } from "./event-handler";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
+import { AccessHandler } from "./access-handler";
 
 interface Props {
   appName: string;
   userPool: WebUserPool;
   frontendUrl: string;
-  accessHandlerApi: apigateway.RestApi;
+  accessHandler: AccessHandler;
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
+  providerConfig: string;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
+  deploymentSuffix: string;
 }
 
 export class AppBackend extends Construct {
@@ -64,12 +67,15 @@ export class AppBackend extends Construct {
         IDENTITY_PROVIDER: props.userPool.getIdpType(),
         APPROVALS_ADMIN_GROUP: props.adminGroupId,
         MOCK_ACCESS_HANDLER: "false",
-        ACCESS_HANDLER_URL: props.accessHandlerApi.url,
+        ACCESS_HANDLER_URL: props.accessHandler.getApiGateway().url,
+        PROVIDER_CONFIG: props.providerConfig,
         // SENTRY_DSN: can be added here
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
@@ -99,6 +105,18 @@ export class AppBackend extends Construct {
           `arn:aws:ssm:${Stack.of(this).region}:${
             Stack.of(this).account
           }:parameter/granted/secrets/identity/*`,
+        ],
+      })
+    );
+
+    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:PutParameter"],
+        resources: [
+          `arn:aws:ssm:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:parameter/granted/providers/*`,
         ],
       })
     );
@@ -207,7 +225,7 @@ export class AppBackend extends Construct {
     // Grant the approvals app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
-        resources: [props.accessHandlerApi.arnForExecuteApi()],
+        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
         actions: ["execute-api:Invoke"],
       })
     );

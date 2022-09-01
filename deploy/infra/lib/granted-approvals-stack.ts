@@ -70,12 +70,14 @@ export class DevGrantedStack extends cdk.Stack {
       appName: appName,
       userPool: webUserPool,
       frontendUrl: "https://" + cdn.getDomainName(),
-      accessHandlerApi: accessHandler.getApiGateway(),
+      accessHandler: accessHandler,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId,
+      providerConfig: props.providerConfig,
       identityProviderSyncConfiguration: identityProviderSyncConfiguration,
       notificationsConfiguration: notificationsConfiguration,
+      deploymentSuffix: stage,
     });
     /* Outputs */
     generateOutputs(this, {
@@ -102,9 +104,8 @@ export class DevGrantedStack extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
       Region: this.region,
-      AccessHandlerRestAPILambdaExecutionRoleARN: accessHandler.getAccessHandlerRestAPILambdaExecutionRoleARN(),
-      GranterLambdaExecutionRoleARN: accessHandler.getGranter().getGranterLambdaExecutionRoleARN(),
-      PaginationKMSKeyARN: approvals.getKmsKeyArn()
+      PaginationKMSKeyARN: approvals.getKmsKeyArn(),
+      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
     });
   }
 }

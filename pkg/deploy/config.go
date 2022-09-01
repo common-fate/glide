@@ -77,7 +77,7 @@ type Deployment struct {
 type ProviderMap map[string]Provider
 
 // Adds the Provider if it does not exist
-func (f *ProviderMap) Add(id string, feature Provider) error {
+func (f *ProviderMap) Add(id string, p Provider) error {
 	// check if this is a nil map and initialise first if so
 	// This is a trick to check the underlying maps from the alias' value
 	if map[string]Provider(*f) == nil {
@@ -86,8 +86,32 @@ func (f *ProviderMap) Add(id string, feature Provider) error {
 	if _, ok := (*f)[id]; ok {
 		return fmt.Errorf("provider %s already exists in the config", id)
 	}
-	(*f)[id] = feature
+	(*f)[id] = p
 	return nil
+}
+
+// GetIDForNewProvider returns an ID for a provider based on the following rules:
+//
+// 1. If the provider isn't used in the config, the default ID is returned (e.g. `aws-sso`).
+// 2. If the provider exists in the config, a numbered suffix is added to the default ID
+// (e.g. `aws-sso-2`). The numbers start at 2 and increment until an available ID is found.
+func (p ProviderMap) GetIDForNewProvider(defaultID string) string {
+	if _, ok := p[defaultID]; !ok {
+		// the default ID isn't used, so we can use that as our ID.
+		return defaultID
+	}
+
+	i := 2
+	for {
+		id := fmt.Sprintf("%s-%d", defaultID, i)
+
+		if _, ok := p[id]; !ok {
+			// the default ID isn't used, so we can use that as our ID.
+			return id
+		}
+
+		i++
+	}
 }
 
 type Provider struct {
@@ -221,8 +245,8 @@ func (c *Config) ResetIdentityProviderToCognito(filepath string) error {
 func CLIPrompt(f *gconfig.Field) error {
 	grey := color.New(color.FgHiBlack)
 	msg := f.Key()
-	if f.Usage() != "" {
-		msg = f.Usage() + " " + grey.Sprintf("(%s)", msg)
+	if f.Description() != "" {
+		msg = f.Description() + " " + grey.Sprintf("(%s)", msg)
 	}
 
 	// @TODO work out how to integrate the optional prompt here
