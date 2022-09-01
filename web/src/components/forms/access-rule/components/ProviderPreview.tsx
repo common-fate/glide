@@ -44,12 +44,12 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
       return (
         <WrapItem>
           <Tooltip label={value}>
-            <Box
+            <Flex
               textStyle={"Body/Small"}
               rounded="full"
               bg="neutrals.300"
               py={1}
-              px={2}
+              px={4}
             >
               {label}{" "}
               <IconButton
@@ -59,7 +59,7 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
                 onClick={onCopy}
                 aria-label={"Copy"}
               />
-            </Box>
+            </Flex>
           </Tooltip>
         </WrapItem>
       );
