@@ -64,7 +64,7 @@ import {
 import { ProviderSetupStepDetails } from "../../../../../utils/backend-client/types";
 import { ProviderConfigValidation } from "../../../../../utils/backend-client/types/accesshandler-openapi.yml/providerConfigValidation";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
-import { formatValidationErrorToText } from "./validationErrorToClipboard";
+import { formatValidationErrorToText } from "./copyToClipboard";
 
 const Page = () => {
   const {
@@ -79,8 +79,7 @@ const Page = () => {
   const { data, mutate } = useGetProvidersetup(id);
   const { data: instructions } = useGetProvidersetupInstructions(id);
 
-  const { hasCopied, onCopy } = useClipboard(validationErrorMsg)
- 
+  const { hasCopied, onCopy } = useClipboard(validationErrorMsg);
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(
     (rp) => rp.type === data?.type
@@ -120,8 +119,8 @@ const Page = () => {
       await mutate({ ...data, status: "VALIDATING" }, { revalidate: false });
       const res = await validateProvidersetup(id);
 
-      if (!!res?.configValidation.length) {
-        setValidationErrorMsg(formatValidationErrorToText(res?.configValidation || []))
+      if (res?.configValidation.length > 0) {
+        setValidationErrorMsg(formatValidationErrorToText(res?.configValidation || []));
       }
       if (res.status === "VALIDATION_SUCEEDED") {
         setShowConfetti(true);
