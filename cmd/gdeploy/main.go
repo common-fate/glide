@@ -1,19 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
-	"net/url"
 	"os"
-	"os/exec"
-	"regexp"
-	"time"
 
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/aws/smithy-go"
-	"github.com/briandowns/spinner"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
@@ -23,10 +12,9 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
+	mw "github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
 	"github.com/common-fate/granted-approvals/internal/build"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
@@ -56,18 +44,18 @@ func main() {
 		Commands: []*cli.Command{
 			// It's possible that these wrappers would be better defined on the commands themselves rather than in this main function
 			// It would be easier to see exactly what runs when a command runs
-			WithBeforeFuncs(&logs.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.StatusCommand, RequireDeploymentConfig(), RequireAWSCredentials(), VerifyGDeployCompatibility()),
-			WithBeforeFuncs(&commands.CreateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&commands.UpdateCommand, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials(), RequireCleanGitWorktree()),
-			WithBeforeFuncs(&identity.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&backup.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&restore.Command, RequireDeploymentConfig(), PreventDevUsage(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&provider.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&notifications.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&dashboard.Command, RequireDeploymentConfig(), VerifyGDeployCompatibility(), RequireAWSCredentials()),
-			WithBeforeFuncs(&commands.InitCommand, RequireAWSCredentials()),
-			WithBeforeFuncs(&release.Command, RequireDeploymentConfig()),
+			mw.WithBeforeFuncs(&logs.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&commands.StatusCommand, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials(), mw.VerifyGDeployCompatibility()),
+			mw.WithBeforeFuncs(&commands.CreateCommand, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials(), mw.RequireCleanGitWorktree()),
+			mw.WithBeforeFuncs(&commands.UpdateCommand, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials(), mw.RequireCleanGitWorktree()),
+			mw.WithBeforeFuncs(&identity.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&backup.Command, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&restore.Command, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&provider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&notifications.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&dashboard.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&commands.InitCommand, mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&release.Command, mw.RequireDeploymentConfig()),
 		},
 	}
 
@@ -92,272 +80,4 @@ func main() {
 		}
 		os.Exit(1)
 	}
-}
-func ShouldShowHelp(c *cli.Context) bool {
-	args := c.Args().Slice()
-	// if help argument is provided then skip this check.
-	for _, arg := range args {
-		if arg == "-h" || arg == "--help" || arg == "help" {
-			return true
-		}
-	}
-	return false
-}
-func WithBeforeFuncs(cmd *cli.Command, funcs ...cli.BeforeFunc) *cli.Command {
-	// run the commands own before function last if it exists
-	// this will help to ensure we have meaningful levels of error precedence
-	// e.g check if deployment config exists before checking for aws credentials
-	b := cmd.Before
-	cmd.Before = func(c *cli.Context) error {
-		// skip before funcs and allows the help to be displayed
-		if ShouldShowHelp(c) {
-			return nil
-		}
-		for _, f := range funcs {
-			err := f(c)
-			if err != nil {
-				return err
-			}
-		}
-		if b != nil {
-			err := b(c)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-	return cmd
-}
-
-func RequireDeploymentConfig() cli.BeforeFunc {
-	return func(c *cli.Context) error {
-
-		f := c.Path("file")
-		dc, err := deploy.LoadConfig(f)
-		if err == deploy.ErrConfigNotExist {
-			return clio.NewCLIError(fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
-				clio.LogMsg(`
-To fix this, take one of the following actions:
-  a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
-  b) run 'gdeploy init' to set up a new deployment configuration file
-`),
-			)
-		}
-		if err != nil {
-			return fmt.Errorf("failed to load config with error: %s", err)
-		}
-
-		if dc.Version != 2 {
-			return fmt.Errorf("unexpected deployment config file version found, expected version: 2 found version: %d", dc.Version)
-		}
-
-		c.Context = deploy.SetConfigInContext(c.Context, dc)
-		return nil
-	}
-}
-
-// RequireAWSCredentials attempts to load aws credentials, if they don't exist, iot returns a clio.CLIError
-// This function will set the AWS config in context under the key cfaws.AWSConfigContextKey
-// use cfaws.ConfigFromContextOrDefault(ctx) to retrieve the value
-// If RequireDeploymentConfig has already run, this function will use the region value from the deployment config when setting the AWS config in context
-func RequireAWSCredentials() cli.BeforeFunc {
-	return func(c *cli.Context) error {
-		ctx := c.Context
-		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-		si.Suffix = " loading AWS credentials from your current profile"
-		si.Writer = os.Stderr
-		si.Start()
-		defer si.Stop()
-		needCredentialsLog := clio.LogMsg(`Please export valid AWS credentials to run this command.
-For more information see:
-https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
-		`)
-		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
-		if err != nil {
-			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
-		}
-
-		// Use the deployment region if it is available
-		var configExists bool
-		dc, err := deploy.ConfigFromContext(ctx)
-		if err == nil {
-			configExists = true
-			if dc.Deployment.Region != "" {
-				cfg.Region = dc.Deployment.Region
-			}
-			if dc.Deployment.Account != "" {
-				// include the account id in the log message if available
-				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
-			}
-		}
-
-		creds, err := cfg.Credentials.Retrieve(ctx)
-		if err != nil {
-			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
-		}
-
-		if !creds.HasKeys() {
-			return clio.NewCLIError("Failed to load AWS credentials.", needCredentialsLog)
-		}
-
-		stsClient := sts.NewFromConfig(cfg)
-		// Use the sts api to check if these credentials are valid
-		identity, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
-		if err != nil {
-			var ae smithy.APIError
-			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
-			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
-				return clio.NewCLIError("AWS credentials are expired.", needCredentialsLog)
-			}
-			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.DebugMsg(err.Error()), needCredentialsLog)
-		}
-
-		//check to see that account number in config is the same account that is assumed
-		if configExists && *identity.Account != dc.Deployment.Account {
-			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), needCredentialsLog)
-		}
-		c.Context = cfaws.SetConfigInContext(ctx, cfg)
-		return nil
-	}
-}
-
-// RequireCleanGitWorktree checks if this is a git repo and if so, checks that the worktree is clean.
-// this ensures that users working with a deployment config in a repo always commit their changes prior to deploying.
-//
-// This method calls out to git if it is installed on the users system.
-// Unfortunately, the go library go-git is very slow when checking status.
-// https://github.com/go-git/go-git/issues/181
-// So this command uses the git cli directly.
-// assumption is if a user is using a repository, they will have git installed
-func RequireCleanGitWorktree() cli.BeforeFunc {
-	return func(c *cli.Context) error {
-		if !c.Bool("ignore-git-dirty") {
-			_, err := os.Stat(".git")
-			if os.IsNotExist(err) {
-				// not a git repo, skip check
-				return nil
-			}
-			if err != nil {
-				return clio.NewCLIError(err.Error(), clio.InfoMsg("The above error occurred while checking if this is a git repo.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
-			}
-			_, err = exec.LookPath("git")
-			if err != nil {
-				// ignore check if git is not installed
-				clio.Debug("could not find 'git' when trying to check if repository is clean. err: %s", err)
-				return nil
-			}
-			cmd := exec.Command("git", "status", "--porcelain")
-			var stdout bytes.Buffer
-			cmd.Stdout = &stdout
-			err = cmd.Run()
-			if err != nil {
-				return clio.NewCLIError(err.Error(), clio.InfoMsg("The above error occurred while checking if this git repo worktree is clean.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
-			}
-			if stdout.Len() > 0 {
-				return clio.NewCLIError("Git worktree is not clean", clio.InfoMsg("We recommend that you commit all changes before creating or updating your deployment.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
-			}
-		}
-		return nil
-	}
-}
-
-func PreventDevUsage() cli.BeforeFunc {
-	return func(c *cli.Context) error {
-		ctx := c.Context
-		dc, err := deploy.ConfigFromContext(ctx)
-		if err != nil {
-			return err
-		}
-		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
-			return clio.NewCLIError("Unsupported command used on developement deployment", clio.WarnMsg("It looks like you tried to use an unsupported command on your developement stack: '%s'.", c.Command.Name), clio.InfoMsg("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
-		}
-		return nil
-	}
-}
-
-// BeforeFunc wrapper for IsReleaseVersionDifferent func.
-// Prompt user to save `gdeploy` version as release version to `granted-deployment.yml`
-// if release version  and gdeploy version is different.
-func VerifyGDeployCompatibility() cli.BeforeFunc {
-	return func(c *cli.Context) error {
-		ctx := c.Context
-		dc, err := deploy.ConfigFromContext(ctx)
-		if err != nil {
-			return err
-		}
-
-		isVersionMismatch, err := IsReleaseVersionDifferent(dc.Deployment, build.Version)
-		if err != nil {
-			return err
-		}
-
-		if isVersionMismatch {
-			var shouldUpdate bool
-			prompt := &survey.Confirm{
-				Message: fmt.Sprintf("Incompatible gdeploy version. Expected %s got %s . \n Would you like to update your 'granted-deployment.yml' to make release version equal to  %s", dc.Deployment.Release, build.Version, build.Version),
-			}
-
-			err = survey.AskOne(prompt, &shouldUpdate)
-			if err != nil {
-				return err
-			}
-
-			if shouldUpdate {
-				dc.Deployment.Release = build.Version
-
-				f := c.Path("file")
-
-				err := dc.Save(f)
-				if err != nil {
-					return err
-				}
-
-				clio.Success("Release version updated to %s", build.Version)
-
-				return nil
-
-			}
-
-			return clio.NewCLIError("Please update gdeploy version to match your release version in 'granted-deployment.yml'.")
-		}
-
-		return nil
-
-	}
-}
-
-// Validate if the passed deployment configuration's release value and gdeploy version matches or not.
-// Returns true if version same.
-// Returns false if we can skip this check.
-// Returns error for anything else.
-func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string) (bool, error) {
-	// skip compatibility check for dev deployments.
-	if d.Dev != nil && *d.Dev {
-		return false, nil
-	}
-
-	isValidReleaseNumber, err := regexp.MatchString(`v\d.\d+.\d+`, d.Release)
-	if err != nil {
-		return false, err
-	}
-
-	if isValidReleaseNumber {
-		if buildVersion == d.Release {
-			return false, nil
-		}
-
-		if buildVersion != d.Release {
-			return true, nil
-		}
-	}
-
-	// release value are added as URL for UAT. In such case it should skip this check.
-	// if invalid URL, return with error.
-	_, err = url.ParseRequestURI(d.Release)
-	if err != nil {
-		return false, fmt.Errorf("invalid URL. Please update your release version in 'granted-deployment.yml' to %s", buildVersion)
-	}
-
-	return false, nil
 }
