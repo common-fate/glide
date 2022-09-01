@@ -9,7 +9,7 @@ export interface RegisteredProvider {
   name: string;
 }
 
-export const registeredProviders = [
+export const registeredProviders: RegisteredProvider[] = [
   {
     type: "commonfate/aws-sso",
     shortType: "aws-sso",
@@ -35,8 +35,12 @@ export const registeredProviders = [
     shortType: "flask",
     name: "Flask (with AWS SSO)",
   },
-] as const;
+];
 
+/**
+ * If we type registeredProviders with a const assertion i.e. `registeredProviders = [...] as const;`
+ * it is possible to strongly type the shortType key-values (could be beneficial)
+ */
 export type RegisteredShortTypes = typeof registeredProviders[number]["shortType"];
 
 export type RegisteredTypes = typeof registeredProviders[number]["type"];

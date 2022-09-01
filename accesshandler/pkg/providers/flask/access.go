@@ -248,12 +248,22 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		input := ssm.TerminateSessionInput{
 			SessionId: &sessionId,
 		}
-		_, err = client.TerminateSession(ctx, &input)
-		if err != nil {
-			log.Info("failed to terminate session")
-		}
-		log.Info("Successfully terminated session ", sessionId)
 
+		//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
+		b := retry.NewFibonacci(time.Second)
+		b = retry.WithMaxDuration(time.Minute*2, b)
+		err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+			_, err = client.TerminateSession(ctx, &input)
+			if err != nil {
+				return retry.RetryableError(err)
+			}
+			return nil
+		})
+		if err != nil {
+			log.Info("failed to terminate session after multiply retries")
+		} else {
+			log.Info("Successfully terminated session ", sessionId)
+		}
 	} else {
 		log.Info("Not matching SessionId found, could note revoke session")
 	}
@@ -273,6 +283,10 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		}
 		return nil
 	})
+	if err != nil {
+		log.Info("delete retries have timed out")
+		return err
+	}
 	log.Info("completed revoke")
 	return err
 }
