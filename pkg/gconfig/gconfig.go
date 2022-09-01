@@ -39,7 +39,7 @@ func (c Config) Load(ctx context.Context, l Loader) error {
 		if !ok && !s.IsOptional() {
 			return fmt.Errorf("could not find %s in map", key)
 		} else if ok { // only set value if its found
-			err = s.Set(val)
+			err = s.setInitial(val)
 			if err != nil {
 				return err
 			}
@@ -173,12 +173,33 @@ func (s Field) Default() string {
 }
 
 // Set the value of this string
+// The value is only update if it has changed and Field.HasChanged will only be updated if it has changed
 func (s *Field) Set(v string) error {
 	if s.value == nil {
 		return errors.New("cannot call Set on nil Valuer")
 	}
-	s.hasChanged = true
-	s.value.Set(v)
+	// Only update the value if it has changed
+	// only update hasChanged if the value is updated
+	if s.value.Get() != v {
+		s.hasChanged = true
+		s.value.Set(v)
+	}
+
+	return nil
+}
+
+// setInitial sets the value of this string
+// Does not set hasChanged to true, this method is used when loading a config for the first time
+func (s *Field) setInitial(v string) error {
+	if s.value == nil {
+		return errors.New("cannot call Set on nil Valuer")
+	}
+	// Only update the value if it has changed
+	// only update hasChanged if the value is updated
+	if s.value.Get() != v {
+		s.value.Set(v)
+	}
+
 	return nil
 }
 
