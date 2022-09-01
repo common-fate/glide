@@ -70,7 +70,7 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 		}
 
 		if isVersionMismatch && c.Bool("ignore-version-mismatch") {
-			clio.Warn("Ignoring version mismatch between gdeploy CLI (%s) and deployment release version (%s). Don't use this unless you know what you're doing.", build.Version, dc.Deployment.Release)
+			clio.Warn("Ignoring version mismatch between gdeploy CLI (%s) and deployment release version (%s)", build.Version, dc.Deployment.Release)
 			return nil
 		}
 
