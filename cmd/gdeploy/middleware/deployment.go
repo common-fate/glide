@@ -69,6 +69,11 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return err
 		}
 
+		if isVersionMismatch && c.Bool("ignore-version-mismatch") {
+			clio.Warn("Ignoring version mismatch between gdeploy CLI (%s) and deployment release version (%s). Don't use this unless you know what you're doing.", build.Version, dc.Deployment.Release)
+			return nil
+		}
+
 		if isVersionMismatch {
 			var shouldUpdate bool
 			prompt := &survey.Confirm{
