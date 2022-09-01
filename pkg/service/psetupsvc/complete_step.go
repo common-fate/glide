@@ -65,6 +65,12 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 		cfg = configer.Config()
 	}
 
+	// load the current values into this config
+	err = cfg.Load(ctx, &gconfig.MapLoader{Values: setup.ConfigValues})
+	if err != nil {
+		return nil, err
+	}
+
 	// verify that all fields actually correspond to the provider
 	for key, value := range body.ConfigValues {
 		f, err := cfg.FindFieldByKey(key)

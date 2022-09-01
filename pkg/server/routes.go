@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/openapi"
+	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 
 	"github.com/go-chi/chi/v5"
@@ -15,11 +16,15 @@ import (
 
 func (c *Server) Handler() http.Handler {
 	r := chi.NewRouter()
-
+	timeout := 30 * time.Second
+	// use a long timeout in dev for debugging
+	if build.Version == "dev" {
+		timeout = 10 * time.Minute
+	}
 	r.Use(c.requestIDMiddleware)
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
-	r.Use(chiMiddleware.Timeout(30 * time.Second))
+	r.Use(chiMiddleware.Timeout(timeout))
 	r.Use(logger.Middleware(c.log.Desugar()))
 	r.Use(sentryMiddleware)
 	r.Use(cors.Handler(cors.Options{
