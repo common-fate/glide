@@ -428,8 +428,6 @@ components:
       properties:
         instructions:
           type: string
-<<<<<<< HEAD
-          description: Instructions on how to access the role or resource.
         accessToken:
           type: string
           nullable: true
@@ -442,8 +440,6 @@ components:
         accessToken:
           type: string
       description: "additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider."
-  requestBodies: {}
-=======
     ProviderConfigValidation:
       title: ProviderConfigValidation
       x-stoplight:
@@ -519,7 +515,6 @@ components:
             required:
               - uses
               - with
->>>>>>> main
   responses:
     HealthResponse:
       description: Healthcheck response body.

@@ -43,27 +43,20 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 
 func Registry() ProviderRegistry {
 	return ProviderRegistry{
-<<<<<<< HEAD
-		Providers: map[string]RegisteredProvider{
-			"commonfate/flask@v1": {
-				Provider:    &flask.Provider{},
-				DefaultID:   "flask",
-				Description: "flask Access Provider",
-			},
-			"commonfate/okta@v1": {
-				Provider:    &okta.Provider{},
-				DefaultID:   "okta",
-				Description: "Okta groups",
-=======
 		Providers: map[string]map[string]RegisteredProvider{
+			"commonfate/flask@v1": {
+				"v1": {Provider: &flask.Provider{},
+					DefaultID:   "flask",
+					Description: "flask Access Provider"},
+			},
 			"commonfate/okta": {
 				"v1": {
 					Provider:    &okta.Provider{},
 					DefaultID:   "okta",
 					Description: "Okta groups",
 				},
->>>>>>> main
 			},
+
 			"commonfate/azure-ad": {
 				"v1": {
 					Provider:    &ad.Provider{},
