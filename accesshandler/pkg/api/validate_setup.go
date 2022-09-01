@@ -31,6 +31,7 @@ func (a *API) ValidateSetup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Get(ctx).Error("error looking up provider", zap.Error(err))
 		apio.ErrorString(ctx, w, "error looking up provider", http.StatusBadRequest)
+		return
 	}
 
 	p := rp.Provider
@@ -39,6 +40,7 @@ func (a *API) ValidateSetup(w http.ResponseWriter, r *http.Request) {
 		// this shouldn't happen, so return an opaque response to the client and log the error ourselves.
 		logger.Get(ctx).Error("error setting up provider", zap.Error(err))
 		apio.ErrorString(ctx, w, "error setting up provider", http.StatusBadRequest)
+		return
 	}
 
 	cv, ok := p.(providers.ConfigValidator)
