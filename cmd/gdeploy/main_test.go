@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
 	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/stretchr/testify/assert"
@@ -68,7 +69,7 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			var got string
-			isDifferent, err := IsReleaseVersionDifferent(tc.dConfig, tc.gVersion)
+			isDifferent, err := middleware.IsReleaseVersionDifferent(tc.dConfig, tc.gVersion)
 
 			if err != nil {
 				got = err.Error()
