@@ -1,3 +1,4 @@
+import React from "react";
 import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
 import {
   Flex,
@@ -6,7 +7,6 @@ import {
   useClipboard,
   WrapItem,
 } from "@chakra-ui/react";
-import React from "React";
 
 export const CopyableOption: React.FC<{ label: string; value: string }> = ({
   label,
