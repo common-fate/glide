@@ -102,6 +102,13 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 			Name:            "Assume AWS SSO Access Role",
 			FieldsValidated: []string{"ssoRoleArn"},
 			Run: func(ctx context.Context) diagnostics.Logs {
+				creds, err := p.awsConfig.Credentials.Retrieve(ctx)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				if creds.Expired() {
+					diagnostics.Error(errors.New("credentials are expired"))
+				}
 				return diagnostics.Info("Assumed Access Role successfully")
 			},
 		},
