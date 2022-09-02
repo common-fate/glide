@@ -512,7 +512,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                       {props.children}
                     </Text>
                   ),
-                  code: CodeInstruction as any,
+                  code: CodeInstruction,
                 }}
               >
                 {step.instructions}
