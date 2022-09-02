@@ -22,14 +22,10 @@ const ProviderSetupNotice: React.FC = () => {
         title="It looks like you don't have any providers configured yet"
       >
         <Text>
-          Before you can create an access rule, follow our{" "}
-          <Link
-            isExternal
-            href="https://docs.commonfate.io/granted-approvals/getting-started/acess-provider"
-          >
-            getting started guide
-          </Link>{" "}
-          to setup your first provider now!
+          Before you can create an access rule, you need to setup your first
+          access provider. Use the{" "}
+          <Link href="/admin/providers/setup">interactive setup guides</Link> to
+          get started!
         </Text>
       </OnboardingCard>
     );

@@ -1,6 +1,6 @@
+import React from "react";
 import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
 import {
-  CodeProps,
   useClipboard,
   Stack,
   Code,
@@ -9,9 +9,8 @@ import {
   Spacer,
   IconButton,
 } from "@chakra-ui/react";
-
+import { CodeProps } from "react-markdown/lib/ast-to-react";
 export const CodeInstruction: React.FC<CodeProps> = (props) => {
-  // @ts-ignore
   const { children, node } = props;
   let value = "";
   if (

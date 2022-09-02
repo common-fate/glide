@@ -110,12 +110,17 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                   ...provided,
                   borderRadius: "20px",
                   background: colors.neutrals[100],
+                  // @TODO Hack: I couldn't work out why the layout was overflowing the step container so I added this as a workaround to fix it
+                  // this doesn't work on small screens like mobile
+                  maxWidth: "400px",
                 };
               },
               container: (provided, state) => {
                 return {
                   ...provided,
-                  minWidth: "100%",
+                  // @TODO Hack: I couldn't work out why the layout was overflowing the step container so I added this as a workaround to fix it
+                  // this doesn't work on small screens like mobile
+                  minWidth: "calc(-20px + 100%)",
                 };
               },
             }}

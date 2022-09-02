@@ -7,8 +7,9 @@ import (
 
 var Command = cli.Command{
 	Name:        "notifications",
-	Description: "Configure settings for different medium of getting notify",
-	Usage:       "Configure settings for different medium of getting notify",
+	Aliases:     []string{"notification"},
+	Description: "Manage your notification channels like Slack",
+	Usage:       "Manage your notification channels like Slack",
 	Action:      cli.ShowSubcommandHelp,
 	Subcommands: []*cli.Command{&slack.Command},
 }

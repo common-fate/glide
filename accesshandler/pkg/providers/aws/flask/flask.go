@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
@@ -15,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 )
@@ -71,62 +71,14 @@ func (p *Provider) Init(ctx context.Context) error {
 	p.options = make(map[string][]types.Option)
 	p.options["server"] = optionsJson
 
-	ssoCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-		defaultCfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		stsclient := sts.NewFromConfig(defaultCfg)
-		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
-			RoleArn:         aws.String(p.ssoRoleARN.Get()),
-			RoleSessionName: aws.String("accesshandler-ecs-roles-sso"),
-			DurationSeconds: aws.Int32(15 * 60),
-		})
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		return aws.Credentials{
-			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
-			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
-			SessionToken:    aws.ToString(res.Credentials.SessionToken),
-			CanExpire:       res.Credentials.Expiration != nil,
-			Expires:         aws.ToTime(res.Credentials.Expiration),
-		}, nil
-	}))
-	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()))
+	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-flask"))))
 	if err != nil {
 		return err
 	}
-	ssoCfg.Credentials = ssoCredentialCache
-
-	// using a credential cache to fetch credentials using sts, this means that when the credentials are expired, they will be automatically refetched
-	ecsCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-		defaultCfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		stsclient := sts.NewFromConfig(defaultCfg)
-		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
-			RoleArn:         aws.String(p.ecsAccessRoleARN.Get()),
-			RoleSessionName: aws.String("accesshandler-ecs-roles-sso"),
-			DurationSeconds: aws.Int32(15 * 60),
-		})
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		return aws.Credentials{
-			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
-			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
-			SessionToken:    aws.ToString(res.Credentials.SessionToken),
-			CanExpire:       res.Credentials.Expiration != nil,
-			Expires:         aws.ToTime(res.Credentials.Expiration),
-		}, nil
-	}))
-	ecsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ecsRegion.Get()))
+	ecsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ecsRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ecsAccessRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-flask"))))
 	if err != nil {
 		return err
 	}
-	ecsCfg.Credentials = ecsCredentialCache
 
 	// TODO: verify here if the ecs task has exec is enabled on the ecs task
 

@@ -17,7 +17,7 @@ var testRegistry = ProviderRegistry{
 			"v1": {
 				Provider:    &ad.Provider{},
 				DefaultID:   "azure-ad",
-				Description: "Azure-AD groups",
+				Description: "Azure AD groups",
 			},
 		},
 		"commonfate/okta": {
@@ -48,7 +48,7 @@ func TestFromCLIOption(t *testing.T) {
 		},
 		{
 			name:    "ok azure",
-			give:    "Azure-AD groups (commonfate/azure-ad@v1)",
+			give:    "Azure AD groups (commonfate/azure-ad@v1)",
 			wantKey: "commonfate/azure-ad@v1",
 			want:    testRegistry.Providers["commonfate/azure-ad"]["v1"],
 		},

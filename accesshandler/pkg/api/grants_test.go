@@ -11,6 +11,8 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/iso8601"
 
 	"github.com/stretchr/testify/assert"
@@ -39,7 +41,13 @@ func TestPostGrants(t *testing.T) {
 		{name: "invalid body", body: `{"invalid": true}`, wantCode: http.StatusBadRequest, wantErr: "request body has an error: doesn't match the schema: Error at \"/subject\": property \"subject\" is missing"},
 		{name: "missing subject", body: `{"id":"abcd","provider":"okta","with":{"group":"Admins"},"start":"2022-06-13T14:13:42.905Z","end":"2022-06-13T14:13:42.905Z"}`, wantCode: http.StatusBadRequest, wantErr: `request body has an error: doesn't match the schema: Error at "/subject": property "subject" is missing`},
 	}
-
+	config.ConfigureTestProviders([]config.Provider{
+		{
+			ID:       "okta",
+			Type:     "okta",
+			Provider: &okta.Provider{},
+		},
+	})
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			handler := newTestServer(t, withClock(clk))

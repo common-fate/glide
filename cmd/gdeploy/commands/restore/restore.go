@@ -13,8 +13,8 @@ import (
 
 var Command = cli.Command{
 	Name:        "restore",
-	Description: "Restore active Granted Approvals table from an existing backup",
-	Usage:       "Restore active Granted Approvals table from an existing backup",
+	Description: "Restore a DynamoDB backup to a new table",
+	Usage:       "Restore a DynamoDB backup to a new table",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically continue without asking for confirmation"},
 		&cli.StringFlag{Name: "arn", Usage: "The ARN of the backup to restore"},
@@ -25,7 +25,7 @@ var Command = cli.Command{
 		arn := c.String("arn")
 		// checking this here rather than setting it as a required flag so that the "status" subcommand can run without needing an arn
 		if arn == "" {
-			return fmt.Errorf(`Required flag "arn" not set`)
+			return fmt.Errorf(`required flag "arn" not set`)
 		}
 		ctx := c.Context
 		bs, err := deploy.BackupStatus(ctx, arn)

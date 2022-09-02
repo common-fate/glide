@@ -48,7 +48,7 @@ var disableCommand = cli.Command{
 		clio.Warn(`SSO has been disabled and your deployment will now use the default Cognito user pool for logins. To finish disabling SSO, follow these steps:
 
 		1) Run 'gdeploy update' to apply the changes to your CloudFormation deployment.
-		2) Run 'gdeploy users sync' to trigger an immediate sync of your cognito user pool.
+		2) Run 'gdeploy identity sync' to trigger an immediate sync of your cognito user pool.
 	  `)
 
 		return nil

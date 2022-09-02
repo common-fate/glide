@@ -4,8 +4,9 @@ import "github.com/urfave/cli/v2"
 
 var Command = cli.Command{
 	Name:        "logs",
-	Description: "Monitor Granted deployment logs",
-	Usage:       "Monitor Granted deployment logs",
+	Aliases:     []string{"log"},
+	Description: "View recent application logs from Cloudwatch or stream them in real time",
+	Usage:       "View recent application logs from Cloudwatch or stream them in real time",
 	Action:      cli.ShowSubcommandHelp,
 	Subcommands: []*cli.Command{&getCommand, &watchCommand},
 }
