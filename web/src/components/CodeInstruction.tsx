@@ -36,11 +36,7 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
           borderColor="neutrals.300"
           borderWidth="1px"
         >
-          <Text
-            color="neutrals.700"
-            paddingLeft={3}
-            whiteSpace="pre-wrap"
-          >
+          <Text color="neutrals.700" paddingLeft={3} whiteSpace="pre-wrap">
             {children}
 
             <IconButton
@@ -54,7 +50,7 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
           </Text>
         </Code>
       </div>
-    )
+    );
   }
 
   return (
