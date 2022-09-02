@@ -135,7 +135,7 @@ const Page = () => {
         >
           <Text>
             To finish setting up this provider, you need to update your Granted
-            deployment configuration. <QuestionIcon mb={1} />
+            deployment configuration.
           </Text>
 
           <OrderedList color="#757575" spacing={5}>
