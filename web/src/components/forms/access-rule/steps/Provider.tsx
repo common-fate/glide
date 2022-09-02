@@ -7,30 +7,27 @@ import {
   IconButton,
   Input,
   Skeleton,
-  SkeletonText,
   Spinner,
   Text,
 } from "@chakra-ui/react";
 import Form from "@rjsf/chakra-ui";
 import { FieldProps } from "@rjsf/core";
+import { JSONSchema7 } from "json-schema";
 import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import RSelect from "react-select";
 import {
+  listProviderArgOptions,
   useGetProvider,
   useGetProviderArgs,
   useListProviderArgOptions,
-  listProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
-import { colors } from "../../../../utils/theme/colors";
+import { RefreshIcon } from "../../../icons/Icons";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { MultiSelect, MultiSelectOptions } from "../components/Select";
+import { MultiSelect } from "../components/Select";
 import { CreateAccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
-import { JSONSchema7 } from "json-schema";
-import { RefreshIcon } from "../../../icons/Icons";
 
 export const ProviderStep: React.FC = () => {
   const methods = useFormContext<CreateAccessRuleFormData>();

@@ -1,12 +1,11 @@
 import { IconProps } from "@chakra-ui/react";
 import React from "react";
-import { Provider } from "../../utils/backend-client/types";
 import {
   AWSIcon,
-  GrantedKeysIcon,
-  OktaIcon,
   AzureIcon,
   EKSIcon,
+  GrantedKeysIcon,
+  OktaIcon,
 } from "./Icons";
 
 interface Props extends IconProps {
