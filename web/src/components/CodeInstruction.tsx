@@ -1,6 +1,5 @@
 import React from "react";
 import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
-import { CodeProps } from "react-markdown/lib/ast-to-react";
 import {
   useClipboard,
   Stack,
