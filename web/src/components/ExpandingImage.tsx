@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 
-interface Props extends ImageProps {}
+type Props = ImageProps;
 
 export const ExpandingImage: React.FC<Props> = (props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
