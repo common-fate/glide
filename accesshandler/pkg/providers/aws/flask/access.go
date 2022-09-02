@@ -331,6 +331,9 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	permissionSetName := permissionSetNameFromGrantID(grantID)
 
 	permissionSetARN, err := p.GetPermissionSetARN(ctx, permissionSetName)
+	if err != nil {
+		return false, err
+	}
 	done := false
 	var nextToken *string // used to track pagination for the AWS API.
 
