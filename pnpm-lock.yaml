@@ -46,6 +46,47 @@ importers:
       ts-node: 9.1.1_typescript@4.7.4
       typescript: 4.7.4
 
+  deploy/provider-stacks:
+    specifiers:
+      '@aws-cdk/cloud-assembly-schema': ^2.29.1
+      '@aws-cdk/cx-api': ^2.29.1
+      '@aws-sdk/client-ssm': ^3.76.0
+      '@types/aws-lambda': ^8.10.95
+      '@types/jest': ^26.0.10
+      '@types/node': 10.17.27
+      aws-cdk: ^2.20.0
+      aws-cdk-lib: ^2.20.0
+      aws-lambda: ^1.0.7
+      aws-sdk: ^2.1160.0
+      cdk-assets: ^2.29.0
+      cognito-at-edge: ^1.2.2
+      constructs: ^10.0.121
+      jest: ^26.4.2
+      js-yaml: ^4.1.0
+      ts-jest: ^26.2.0
+      ts-node: ^9.1.1
+      typescript: ~4.7.4
+    dependencies:
+      '@aws-sdk/client-ssm': 3.154.0
+      '@types/aws-lambda': 8.10.102
+      aws-cdk: 2.38.1
+      aws-cdk-lib: 2.38.1_constructs@10.1.84
+      aws-lambda: 1.0.7
+      aws-sdk: 2.1200.0
+      cdk-assets: 2.38.1
+      cognito-at-edge: 1.2.2
+      constructs: 10.1.84
+      js-yaml: 4.1.0
+    devDependencies:
+      '@aws-cdk/cloud-assembly-schema': 2.38.1
+      '@aws-cdk/cx-api': 2.38.1
+      '@types/jest': 26.0.24
+      '@types/node': 10.17.27
+      jest: 26.6.3_ts-node@9.1.1
+      ts-jest: 26.5.6_rnfpnlbz3wqspag7uftsmccrvy
+      ts-node: 9.1.1_typescript@4.7.4
+      typescript: 4.7.4
+
   web:
     specifiers:
       '@aws-amplify/api': ^4.0.42
