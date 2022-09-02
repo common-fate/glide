@@ -52,6 +52,7 @@ import { Sticky, StickyContainer } from "react-sticky";
 import useWindowSize from "react-use/lib/useWindowSize";
 import { CodeInstruction } from "../../../../../components/CodeInstruction";
 import { ConnectorArrow } from "../../../../../components/ConnectorArrow";
+import { ExpandingImage } from "../../../../../components/ExpandingImage";
 import { ApprovalsLogo } from "../../../../../components/icons/Logos";
 import { ProviderIcon } from "../../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../../components/Layout";
@@ -513,6 +514,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                     </Text>
                   ),
                   code: CodeInstruction,
+                  img: (props) => <ExpandingImage {...props} />,
                 }}
               >
                 {step.instructions}
