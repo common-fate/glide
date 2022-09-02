@@ -1,6 +1,6 @@
 import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
+import { CodeProps } from "react-markdown/lib/ast-to-react";
 import {
-  CodeProps,
   useClipboard,
   Stack,
   Code,
@@ -24,6 +24,35 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
   }
 
   const { hasCopied, onCopy } = useClipboard(value);
+
+  // if the code is inline should show in same line.
+  if (props?.inline) {
+    return (
+      <div style={{ display: "inline" }}>
+        <Code
+          padding={0}
+          bg="white"
+          borderRadius="8px"
+          borderColor="neutrals.300"
+          borderWidth="1px"
+        >
+          <Text color="neutrals.700" paddingLeft={3} whiteSpace="pre-wrap">
+            {children}
+
+            <IconButton
+              variant="ghost"
+              h="10px"
+              style={{ backgroundColor: "transparent" }}
+              icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
+              onClick={onCopy}
+              aria-label={"Copy"}
+            />
+          </Text>
+        </Code>
+      </div>
+    );
+  }
+
   return (
     <Stack>
       <Code
