@@ -239,6 +239,7 @@ const Home = () => {
                           <Controller
                             name={`with.${k}`}
                             control={control}
+                            rules={{ required: true }}
                             render={({
                               field: { value, onChange, ...rest },
                             }) => (
@@ -261,13 +262,9 @@ const Home = () => {
                               />
                             )}
                           />
-                          <FormHelperText color="neutrals.600" minH="17px">
-                            {isValidatingApprovers ? (
-                              <SkeletonText w="24ch" noOfLines={1} />
-                            ) : (
-                              getWhenHelperText(when, requiresApproval)
-                            )}
-                          </FormHelperText>
+                          <FormErrorMessage>
+                            This field is required
+                          </FormErrorMessage>
                         </FormControl>
                       );
                     }
