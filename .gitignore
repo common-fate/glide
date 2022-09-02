@@ -30,3 +30,4 @@ adminAuthCookies.json
 *test-results*
 testOutputs.json
 deployments/
+trace*.zip
