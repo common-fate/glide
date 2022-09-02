@@ -6,10 +6,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -18,12 +20,14 @@ import (
 )
 
 type Provider struct {
-	ecsClient     *ecs.Client
-	ssoClient     *ssoadmin.Client
-	iamClient     *iam.Client
-	idStoreClient *identitystore.Client
-	orgClient     *organizations.Client
-	awsAccountID  string
+	ecsClient        *ecs.Client
+	ssoClient        *ssoadmin.Client
+	iamClient        *iam.Client
+	ssmClient        *ssm.Client
+	cloudtrailClient *cloudtrail.Client
+	idStoreClient    *identitystore.Client
+	orgClient        *organizations.Client
+	awsAccountID     string
 
 	// configured by gconfig
 	ecsClusterARN gconfig.StringValue
@@ -125,6 +129,9 @@ func (p *Provider) Init(ctx context.Context) error {
 	ecsCfg.Credentials = ecsCredentialCache
 
 	// TODO: verify here if the ecs task has exec is enabled on the ecs task
+
+	p.cloudtrailClient = cloudtrail.NewFromConfig(ecsCfg)
+	p.ssmClient = ssm.NewFromConfig(ecsCfg)
 	p.ecsClient = ecs.NewFromConfig(ecsCfg)
 	p.ssoClient = ssoadmin.NewFromConfig(ssoCfg)
 	p.orgClient = organizations.NewFromConfig(ssoCfg)

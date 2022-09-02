@@ -9,18 +9,14 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	ctTypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
-	"github.com/aws/aws-sdk-go-v2/service/iam"
-	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
 	"github.com/labstack/gommon/log"
 	"github.com/sethvargo/go-retry"
@@ -97,13 +93,43 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 		return err
 	}
 	permissionSetName := permissionSetNameFromGrantID(grantID)
-
-	log.Info("adding user to permission set ", permissionSetName)
-	// Create and assign user to permission set for this grant
-	_, err = p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskDefinitionARN)
+	// ensure that the account exists in the organization. If it doesn't, calling CreateAccountAssignment
+	// will silently fail without returning an error.
+	err = p.ensureAccountExists(ctx, p.awsAccountID)
 	if err != nil {
 		return err
 	}
+
+	res, err := p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskDefinitionARN)
+	if err != nil {
+		return err
+	}
+
+	// poll the assignment api to check for success
+	b := retry.NewFibonacci(time.Second)
+	b = retry.WithMaxDuration(time.Minute*2, b)
+	var statusRes *ssoadmin.DescribeAccountAssignmentCreationStatusOutput
+	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+		statusRes, err = p.ssoClient.DescribeAccountAssignmentCreationStatus(ctx, &ssoadmin.DescribeAccountAssignmentCreationStatusInput{
+			AccountAssignmentCreationRequestId: res.AccountAssignmentCreationStatus.RequestId,
+			InstanceArn:                        aws.String(p.instanceARN.Get()),
+		})
+		if err != nil {
+			return retry.RetryableError(err)
+		}
+		if statusRes.AccountAssignmentCreationStatus.Status == "IN_PROGRESS" {
+			return retry.RetryableError(errors.New("still in progress"))
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// if the assignment was not successful, return the error and reason
+	if statusRes.AccountAssignmentCreationStatus.FailureReason != nil {
+		return fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
+	}
+
 	return nil
 }
 
@@ -115,107 +141,102 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 		return err
 	}
 
-	permissionSetName := permissionSetNameFromGrantID(grantID)
-
-	return p.removePermissionSet(ctx, permissionSetName, subject, a.TaskDefinitionARN)
-}
-
-func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName string, subject string, taskDefinitionARN string) error {
-	hasMore := true
-	var nextToken *string
-	var arnMatch *string
-	for hasMore {
-		o, err := p.ssoClient.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
-			InstanceArn: aws.String(p.instanceARN.Get()),
-			NextToken:   nextToken,
-		})
-		if err != nil {
-			return err
-		}
-		nextToken = o.NextToken
-		hasMore = nextToken != nil
-
-		for _, arn := range o.PermissionSets {
-			po, err := p.ssoClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-				InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(arn),
-			})
-			if err != nil {
-				return err
-			}
-			if aws.ToString(po.PermissionSet.Name) == permissionSetName {
-				arnMatch = po.PermissionSet.PermissionSetArn
-				break
-			}
-		}
-		if arnMatch != nil {
-			break
-		}
-	}
-	// Permission set does not exist, do nothing
-	if arnMatch == nil {
-		return nil
+	// ensure that the account exists in the organization. If it doesn't, calling DeleteAccountAssignment
+	// will silently fail without returning an error.
+	err = p.ensureAccountExists(ctx, p.awsAccountID)
+	if err != nil {
+		return err
 	}
 
-	//remove user associatioin from the permission set
-	// assign user to permission set
+	// find the user ID from the provided email address.
 	user, err := p.getUser(ctx, subject)
 	if err != nil {
 		return err
 	}
-	log := zap.S()
-	log.Info("Deleting account assignment from permission set", arnMatch)
-	_, err = p.ssoClient.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
-		InstanceArn:      aws.String(p.instanceARN.Get()),
-		PermissionSetArn: arnMatch,
-		PrincipalType:    types.PrincipalTypeUser,
-		PrincipalId:      user.UserId,
-		TargetId:         &p.awsAccountID,
-		TargetType:       types.TargetTypeAwsAccount,
+
+	permissionSetName := permissionSetNameFromGrantID(grantID)
+
+	permissionSetARN, err := p.GetPermissionSetARN(ctx, permissionSetName)
+	if err != nil {
+		return err
+	}
+	// Attempt to initiate deletion of the permission set assignment.
+	// This process can fail if its done too soon after granting, though it shouldn't fail otherwise unless the permission set assignment no longer exists.
+	// in this case, there would be no access, but something has happened outside the control of the access handler
+	b := retry.NewFibonacci(time.Second)
+	b = retry.WithMaxDuration(time.Minute*1, b)
+	var deleteRes *ssoadmin.DeleteAccountAssignmentOutput
+	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+		deleteRes, err = p.ssoClient.DeleteAccountAssignment(ctx, &ssoadmin.DeleteAccountAssignmentInput{
+			InstanceArn:      aws.String(p.instanceARN.Get()),
+			PermissionSetArn: permissionSetARN,
+			PrincipalId:      user.UserId,
+			PrincipalType:    types.PrincipalTypeUser,
+			TargetId:         &p.awsAccountID,
+			TargetType:       types.TargetTypeAwsAccount,
+		})
+		// AWS SSO is eventually consistent, so if we try and revoke a grant quickly after it has
+		// been created we receive an error of type types.ConflictException.
+		// If this happens, we wrap the error in retry.RetryableError() to indicate that this error
+		// is temporary. The caller can try calling Revoke() again in future to revoke the access.
+		var conflictErr *types.ConflictException
+		if errors.As(err, &conflictErr) {
+			// mark the error as retryable
+			return retry.RetryableError(err)
+		}
+		// Any other errors, return the error and fail
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return err
 	}
-	log.Info("Ending SSO session", aws.String(p.instanceARN.Get()))
 
-	ecsCredentialCache := aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-		defaultCfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			return aws.Credentials{}, err
-		}
-		stsclient := sts.NewFromConfig(defaultCfg)
-		res, err := stsclient.AssumeRole(ctx, &sts.AssumeRoleInput{
-			RoleArn:         aws.String(p.ecsAccessRoleARN.Get()),
-			RoleSessionName: aws.String("accesshandler-ecs-roles-sso"),
-			DurationSeconds: aws.Int32(15 * 60),
+	// Wait for the deletion to be successful, if it is not successful, then return the failure reason.
+	// this ensures that we can alert when permissions are not removed.
+	b2 := retry.NewFibonacci(time.Second)
+	b2 = retry.WithMaxDuration(time.Minute*2, b2)
+	var status *ssoadmin.DescribeAccountAssignmentDeletionStatusOutput
+	err = retry.Do(ctx, b2, func(ctx context.Context) (err error) {
+		status, err = p.ssoClient.DescribeAccountAssignmentDeletionStatus(ctx, &ssoadmin.DescribeAccountAssignmentDeletionStatusInput{
+			AccountAssignmentDeletionRequestId: deleteRes.AccountAssignmentDeletionStatus.RequestId,
+			InstanceArn:                        aws.String("arn:aws:sso:::instance/ssoins-825968feece9a0b6"),
 		})
 		if err != nil {
-			return aws.Credentials{}, err
+			return retry.RetryableError(err)
 		}
-		return aws.Credentials{
-			AccessKeyID:     aws.ToString(res.Credentials.AccessKeyId),
-			SecretAccessKey: aws.ToString(res.Credentials.SecretAccessKey),
-			SessionToken:    aws.ToString(res.Credentials.SessionToken),
-			CanExpire:       res.Credentials.Expiration != nil,
-			Expires:         aws.ToTime(res.Credentials.Expiration),
-		}, nil
-	}))
-	ecsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ecsRegion.Get()))
+		if status.AccountAssignmentDeletionStatus.Status == "IN_PROGRESS" {
+			return retry.RetryableError(errors.New("still in progress"))
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	ecsCfg.Credentials = ecsCredentialCache
+	// if the assignment deletion was not successful, return the error and reason
+	if status.AccountAssignmentDeletionStatus.FailureReason != nil {
+		return fmt.Errorf("failed deleting account assignment: %s", *status.AccountAssignmentDeletionStatus.FailureReason)
+	}
 
-	client := ssm.NewFromConfig(ecsCfg)
+	//if successfully deletion policy and account assignment, terminate session
+	err = p.TerminateSession(ctx, a.TaskDefinitionARN)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN string) error {
 
 	atrs := []ctTypes.LookupAttribute{}
 
 	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: ctTypes.LookupAttributeKeyEventName, AttributeValue: aws.String("StartSession")})
 
-	ct := cloudtrail.NewFromConfig(ecsCfg)
-
 	log.Info("Looking up cloudtrail events for sso StartSession", atrs)
 
-	out, err := ct.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
+	out, err := p.cloudtrailClient.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
 		LookupAttributes: atrs,
 	})
 
@@ -248,47 +269,100 @@ func (p *Provider) removePermissionSet(ctx context.Context, permissionSetName st
 		input := ssm.TerminateSessionInput{
 			SessionId: &sessionId,
 		}
+		_, err = p.ssmClient.TerminateSession(ctx, &input)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-		//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
-		b := retry.NewFibonacci(time.Second)
-		b = retry.WithMaxDuration(time.Minute*2, b)
-		err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
-			_, err = client.TerminateSession(ctx, &input)
+func (p *Provider) GetPermissionSetARN(ctx context.Context, permissionSetName string) (*string, error) {
+	hasMore := true
+	var nextToken *string
+	var arnMatch *string
+	for hasMore {
+		o, err := p.ssoClient.ListPermissionSets(ctx, &ssoadmin.ListPermissionSetsInput{
+			InstanceArn: aws.String(p.instanceARN.Get()),
+			NextToken:   nextToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+		nextToken = o.NextToken
+		hasMore = nextToken != nil
+
+		for _, arn := range o.PermissionSets {
+			po, err := p.ssoClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+				InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(arn),
+			})
 			if err != nil {
-				return retry.RetryableError(err)
+				return nil, err
 			}
-			return nil
-		})
-		if err != nil {
-			log.Info("failed to terminate session after multiply retries")
-		} else {
-			log.Info("Successfully terminated session ", sessionId)
+			if aws.ToString(po.PermissionSet.Name) == permissionSetName {
+				arnMatch = po.PermissionSet.PermissionSetArn
+				break
+			}
 		}
-	} else {
-		log.Info("Not matching SessionId found, could note revoke session")
+		if arnMatch != nil {
+			break
+		}
 	}
+	// Permission set does not exist, do nothing
+	if arnMatch == nil {
+		return nil, fmt.Errorf("permissionset not found")
+	}
+	return arnMatch, nil
+}
 
-	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
-
-	//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
-	b := retry.NewFibonacci(time.Second)
-	b = retry.WithMaxDuration(time.Minute*2, b)
-	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
-		_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
-			InstanceArn:      aws.String(p.instanceARN.Get()),
-			PermissionSetArn: arnMatch,
-		})
-		if err != nil {
-			return retry.RetryableError(err)
-		}
-		return nil
-	})
+// IsActive checks whether the access is active by calling the AWS SSO API.
+func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error) {
+	var a Args
+	err := json.Unmarshal(args, &a)
 	if err != nil {
-		log.Info("delete retries have timed out")
-		return err
+		return false, err
 	}
-	log.Info("completed revoke")
-	return err
+
+	user, err := p.getUser(ctx, subject)
+	if err != nil {
+		return false, err
+	}
+
+	permissionSetName := permissionSetNameFromGrantID(grantID)
+
+	permissionSetARN, err := p.GetPermissionSetARN(ctx, permissionSetName)
+	done := false
+	var nextToken *string // used to track pagination for the AWS API.
+
+	// keep calling the API to iterate through the pages.
+	for !done {
+		res, err := p.ssoClient.ListAccountAssignments(ctx, &ssoadmin.ListAccountAssignmentsInput{
+			AccountId:        &p.awsAccountID,
+			InstanceArn:      aws.String(p.instanceARN.Get()),
+			PermissionSetArn: permissionSetARN,
+			NextToken:        nextToken,
+		})
+		if err != nil {
+			return false, err
+		}
+		for _, aa := range res.AccountAssignments {
+			if aa.PrincipalType == types.PrincipalTypeUser && aa.PrincipalId == user.UserId {
+				// the permission set has been assigned to the user, so return true.
+				return true, nil
+			}
+		}
+
+		if res.NextToken == nil {
+			// there's no more pages to load, so finish querying the API.
+			done = true
+		} else {
+			// set the nextToken to include in the request made in the next iteration of the loop.
+			nextToken = res.NextToken
+		}
+	}
+
+	// we didn't find the user, so return false.
+	return false, nil
 }
 
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
@@ -372,19 +446,13 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 }
 
 // createPermissionSetAndAssignment creates a permission set with a name = grantID
-func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskdefARN string) (roleARN string, err error) {
+func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskdefARN string) (res *ssoadmin.CreateAccountAssignmentOutput, err error) {
 	//create  policy allowing for execute commands for the ecs task
 
 	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskdefARN)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
-	//  "Resource": [
-	// 	"arn:aws:ecs:ap-southeast-2:616777145260:cluster/GrantedEcsFlaskFixtureStack-ClusterEB0386A7-53H6BC06IGxR",
-	// 	"arn:aws:ecs:ap-southeast-2:616777145260:task/GrantedEcsFlaskFixtureStack-ClusterEB0386A7-53H6BC06IGxR/*",
-	// 	"arn:aws:ecs:ap-southeast-2:616777145260:task-definition/GrantedEcsFlaskFixtureStackTaskDefD8594F9A:1"
-	// ]
 
 	taskId := strings.Split(taskARN, "/")[2]
 	taskWildcard := strings.Replace(taskARN, taskId, "*", -1)
@@ -411,7 +479,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 	// find the user ID from the provided email address.
 	user, err := p.getUser(ctx, subject)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// create permission set with policy
 	permSet, err := p.ssoClient.CreatePermissionSet(ctx, &ssoadmin.CreatePermissionSetInput{
@@ -420,7 +488,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 		Description: aws.String("This permission set was automatically generated by Granted Approvals"),
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// Assign ecs policy to permission set
 	_, err = p.ssoClient.PutInlinePolicyToPermissionSet(ctx, &ssoadmin.PutInlinePolicyToPermissionSetInput{
@@ -429,11 +497,11 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 		PermissionSetArn: permSet.PermissionSet.PermissionSetArn,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// assign user to permission set
-	res, err := p.ssoClient.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
+	res, err = p.ssoClient.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
 		InstanceArn:      aws.String(p.instanceARN.Get()),
 		PermissionSetArn: permSet.PermissionSet.PermissionSetArn,
 		PrincipalType:    types.PrincipalTypeUser,
@@ -443,69 +511,13 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 	})
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if res.AccountAssignmentCreationStatus.FailureReason != nil {
-		return "", fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
+		return nil, fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
 	}
-	return p.getSanitisedRoleARNForPermissionSetAssignment(ctx, permissionSetName)
-}
-
-// The role ARN for a permission set role includes the following substring which needs to be removed.
-// when a user gets credentails and accesses the kubernetes API, this portion of the ARN is not present!
-// so if it is left in, the role mapping will fail with an unhelpful error
-func (p *Provider) getSanitisedRoleARNForPermissionSetAssignment(ctx context.Context, permissionSetName string) (string, error) {
-	// fetch the new IAM role associated with the permission set assignment
-	role, err := p.getIAMRoleForPermissionSetWithRetry(ctx, permissionSetName)
-	if err != nil {
-		return "", err
-	}
-
-	substringToRemove := fmt.Sprintf("aws-reserved/sso.amazonaws.com/%s/", p.ssoRegion.Get())
-	return strings.Replace(*role.Arn, substringToRemove, "", 1), nil
-}
-
-// getIAMRoleForPermissionSetWithRetry uses a retry function to try to fetch the role that was created after assigning a user to a permission set
-// the process takes around 30 seconds normally and the role ARN is partially autogenerated so we need to do a list and check for a name prefix.
-func (p *Provider) getIAMRoleForPermissionSetWithRetry(ctx context.Context, permissionSetName string) (*iamtypes.Role, error) {
-	var roleOutput *iamtypes.Role
-	b := retry.NewFibonacci(time.Second)
-	b = retry.WithMaxDuration(time.Minute*2, b)
-	err := retry.Do(ctx, b, func(ctx context.Context) (err error) {
-		var marker *string
-		hasMore := true
-
-		// This is the path prefix assigned to all roles generated by SSO
-		ssoPathPrefix := fmt.Sprintf("/aws-reserved/sso.amazonaws.com/%s/", p.ssoRegion.Get())
-		roleNamePrefix := "AWSReservedSSO_" + permissionSetName
-		for hasMore {
-			listRolesResponse, err := p.iamClient.ListRoles(ctx, &iam.ListRolesInput{PathPrefix: aws.String(ssoPathPrefix), Marker: marker})
-			if err != nil {
-				return retry.RetryableError(err)
-			}
-			marker = listRolesResponse.Marker
-			hasMore = listRolesResponse.IsTruncated
-			for _, role := range listRolesResponse.Roles {
-				if strings.HasPrefix(aws.ToString(role.RoleName), roleNamePrefix) {
-					r := role
-					roleOutput = &r
-				}
-			}
-		}
-		if roleOutput == nil {
-			return retry.RetryableError(errors.New("role not yet available or does not exist"))
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if roleOutput == nil {
-		return nil, errors.New("role not found after assiging permission set")
-	}
-
-	return roleOutput, nil
+	return res, nil
 }
 
 // getUser retrieves the AWS SSO user from a provided email address.

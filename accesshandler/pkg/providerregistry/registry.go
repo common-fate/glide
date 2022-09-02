@@ -9,10 +9,10 @@ import (
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/flask"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/flask"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
