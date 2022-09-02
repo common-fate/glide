@@ -27,7 +27,7 @@ func TestCreateGrant(t *testing.T) {
 		withCreateGrantResponseErr     error
 		withUser                       identity.User
 		give                           CreateGrantOpts
-		wantPostGRantsWithResponseBody ah_types.PostGrantsJSONRequestBody
+		wantPostGrantsWithResponseBody ah_types.PostGrantsJSONRequestBody
 
 		wantRequest *access.Request
 		wantErr     error
@@ -42,11 +42,13 @@ func TestCreateGrant(t *testing.T) {
 			name: "created success",
 			give: CreateGrantOpts{
 				Request: access.Request{
+
 					Status: access.APPROVED,
 					RequestedTiming: access.Timing{
 						Duration:  time.Minute,
 						StartTime: &now,
-					}},
+					},
+				},
 			},
 			withCreateGrantResponse: &ah_types.PostGrantsResponse{
 				JSON201: &struct {
@@ -55,15 +57,15 @@ func TestCreateGrant(t *testing.T) {
 				}{AdditionalProperties: ah_types.AdditionalProperties{},
 					Grant: ah_types.Grant{
 						ID:      grantId,
-						Start:   iso8601.New(overrideStart),
-						End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+						Start:   iso8601.New(now),
+						End:     iso8601.New(now.Add(time.Minute)),
 						Subject: "test@test.com",
 					}},
 			},
 			withUser: identity.User{
 				Email: "test@test.com",
 			},
-			wantPostGRantsWithResponseBody: ah_types.PostGrantsJSONRequestBody{
+			wantPostGrantsWithResponseBody: ah_types.PostGrantsJSONRequestBody{
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
@@ -87,64 +89,64 @@ func TestCreateGrant(t *testing.T) {
 					Subject:   "test@test.com"},
 			},
 		},
-		// {
-		// 	name: "created success with override timing",
-		// 	give: CreateGrantOpts{
-		// 		Request: access.Request{
-		// 			Status: access.APPROVED,
-		// 			RequestedTiming: access.Timing{
-		// 				Duration:  time.Minute,
-		// 				StartTime: &now,
-		// 			},
-		// 			OverrideTiming: &access.Timing{
-		// 				Duration:  time.Minute * 2,
-		// 				StartTime: &overrideStart,
-		// 			}},
-		// 	},
-		// 	withCreateGrantResponse: &ah_types.PostGrantsResponse{
-		// 		JSON201: &struct {
-		// 			AdditionalProperties ah_types.AdditionalProperties "json:\"additionalProperties\""
-		// 			Grant                ah_types.Grant                "json:\"grant\""
-		// 		}{AdditionalProperties: ah_types.AdditionalProperties{},
-		// 			Grant: ah_types.Grant{
-		// 				ID:      grantId,
-		// 				Start:   iso8601.New(overrideStart),
-		// 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-		// 				Subject: "test@test.com",
-		// 			}},
-		// 	},
-		// 	withUser: identity.User{
-		// 		Email: "test@test.com",
-		// 	},
-		// 	wantPostGRantsWithResponseBody: ah_types.PostGrantsJSONRequestBody{
-		// 		Start:   iso8601.New(overrideStart),
-		// 		End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-		// 		Subject: "test@test.com",
-		// 		With: ahTypes.CreateGrant_With{
-		// 			AdditionalProperties: make(map[string]string),
-		// 		},
-		// 	},
+		{
+			name: "created success with override timing",
+			give: CreateGrantOpts{
+				Request: access.Request{
+					Status: access.APPROVED,
+					RequestedTiming: access.Timing{
+						Duration:  time.Minute,
+						StartTime: &now,
+					},
+					OverrideTiming: &access.Timing{
+						Duration:  time.Minute * 2,
+						StartTime: &overrideStart,
+					}},
+			},
+			withCreateGrantResponse: &ah_types.PostGrantsResponse{
+				JSON201: &struct {
+					AdditionalProperties ah_types.AdditionalProperties "json:\"additionalProperties\""
+					Grant                ah_types.Grant                "json:\"grant\""
+				}{AdditionalProperties: ah_types.AdditionalProperties{},
+					Grant: ah_types.Grant{
+						ID:      grantId,
+						Start:   iso8601.New(overrideStart),
+						End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+						Subject: "test@test.com",
+					}},
+			},
+			withUser: identity.User{
+				Email: "test@test.com",
+			},
+			wantPostGrantsWithResponseBody: ah_types.PostGrantsJSONRequestBody{
+				Start:   iso8601.New(overrideStart),
+				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+				Subject: "test@test.com",
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: make(map[string]string),
+				},
+			},
 
-		// 	wantRequest: &access.Request{
-		// 		Status: access.APPROVED,
+			wantRequest: &access.Request{
+				Status: access.APPROVED,
 
-		// 		RequestedTiming: access.Timing{
-		// 			Duration:  time.Minute,
-		// 			StartTime: &now,
-		// 		},
-		// 		OverrideTiming: &access.Timing{
-		// 			Duration:  time.Minute * 2,
-		// 			StartTime: &overrideStart,
-		// 		},
-		// 		Grant: &access.Grant{
+				RequestedTiming: access.Timing{
+					Duration:  time.Minute,
+					StartTime: &now,
+				},
+				OverrideTiming: &access.Timing{
+					Duration:  time.Minute * 2,
+					StartTime: &overrideStart,
+				},
+				Grant: &access.Grant{
 
-		// 			CreatedAt: clk.Now(),
-		// 			UpdatedAt: clk.Now(),
-		// 			Start:     overrideStart,
-		// 			End:       overrideStart.Add(time.Minute * 2),
-		// 			Subject:   "test@test.com"},
-		// 	},
-		// },
+					CreatedAt: clk.Now(),
+					UpdatedAt: clk.Now(),
+					Start:     overrideStart,
+					End:       overrideStart.Add(time.Minute * 2),
+					Subject:   "test@test.com"},
+			},
+		},
 	}
 
 	for _, tc := range testcases {
@@ -152,7 +154,7 @@ func TestCreateGrant(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGRantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
+			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
 			c := ddbmock.New(t)
 			c.MockQuery(&storage.GetUser{Result: &tc.withUser})
 
