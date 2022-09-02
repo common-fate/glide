@@ -15,7 +15,6 @@ import (
 
 func (c *Server) Handler() http.Handler {
 	r := chi.NewRouter()
-
 	r.Use(c.requestIDMiddleware)
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)

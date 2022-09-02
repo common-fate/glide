@@ -7,7 +7,6 @@ import (
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -49,17 +48,6 @@ func (a *Provider) Init(ctx context.Context) error {
 	}
 	a.token.Set(token.AccessToken)
 
-	return nil
-}
-func (p *Provider) TestConfig(ctx context.Context) error {
-	_, err := p.ListUsers(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to list users while testing azure provider configuration")
-	}
-	_, err = p.ListGroups(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to list groups while testing azure provider configuration")
-	}
 	return nil
 }
 

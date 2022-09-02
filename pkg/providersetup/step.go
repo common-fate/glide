@@ -54,7 +54,9 @@ func BuildStepFromParsedInstructions(providerID string, index int, s psetup.Step
 		}
 
 		if cf.IsSecret {
-			path := fmt.Sprintf("awsssm://granted/secrets/%s/%s", providerID, cf.Id)
+			// @TODO, if we ever use this for identity or notifications setup flows, this path wont be the same
+			// its a bit of a rabbit hole with gconfig which we can solve when the time comes
+			path := fmt.Sprintf("awsssm://granted/providers/%s/%s", providerID, cf.Id)
 			cf.SecretPath = &path
 		}
 

@@ -51,9 +51,11 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		po := row
 		items = append(items, &po)
 	}
-	err = s.DB.DeleteBatch(ctx, items...)
-	if err != nil {
-		return false, nil, err
+	if len(items) > 0 {
+		err = s.DB.DeleteBatch(ctx, items...)
+		if err != nil {
+			return false, nil, err
+		}
 	}
 
 	// fetch new options
@@ -62,6 +64,9 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		return false, nil, err
 	}
 
+	if !res.HasOptions {
+		return false, nil, nil
+	}
 	var keyers []ddb.Keyer
 	var cachedOpts []cache.ProviderOption
 	for _, o := range res.Options {
@@ -79,6 +84,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		return false, nil, err
 	}
 	return true, cachedOpts, nil
+
 }
 
 func (s *Service) fetchProviderOptions(ctx context.Context, providerID, argID string) (types.ArgOptionsResponse, error) {

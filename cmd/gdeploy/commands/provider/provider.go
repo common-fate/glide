@@ -3,9 +3,10 @@ package provider
 import "github.com/urfave/cli/v2"
 
 var Command = cli.Command{
-	Name:        "provider",
-	Description: "Manage access providers",
-	Usage:       "Manage access providers",
+	Name:        "providers",
+	Aliases:     []string{"provider"},
+	Description: "Manage your Access Providers",
+	Usage:       "Manage your Access Providers",
 	Subcommands: []*cli.Command{
 		&addCommand,
 	},

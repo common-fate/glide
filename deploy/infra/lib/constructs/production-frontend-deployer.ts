@@ -83,6 +83,7 @@ export class ProductionFrontendDeployer extends Construct {
       properties: {
         Release: props.cfReleaseBucketFrontendAssetObjectPrefix,
         CognitoClientID: props.cognitoClientId,
+        FrontendDomain: props.frontendDomain,
       },
     });
   }
