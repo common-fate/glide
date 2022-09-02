@@ -450,7 +450,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   });
   const onSubmit = async (data: Record<string, string>) => {
     const filteredData: Record<string, string> = {};
-    step.configFields.forEach((f) => {
+    step.configFields?.forEach((f) => {
       filteredData[f.id] = data[f.id];
     });
 
