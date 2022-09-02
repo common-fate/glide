@@ -2,8 +2,8 @@ package ssov2
 
 import (
 	"context"
-	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -15,6 +15,7 @@ import (
 )
 
 type Provider struct {
+	awsConfig     aws.Config
 	client        *ssoadmin.Client
 	idStoreClient *identitystore.Client
 	orgClient     *organizations.Client
@@ -40,20 +41,12 @@ func (p *Provider) Init(ctx context.Context) error {
 	if p.region.IsSet() {
 		opts = append(opts, config.WithRegion(p.region.Get()))
 	}
-
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		return err
 	}
 	cfg.RetryMaxAttempts = 5
-	creds, err := cfg.Credentials.Retrieve(ctx)
-	if err != nil {
-		return err
-	}
-	if creds.Expired() {
-		return errors.New("AWS credentials are expired")
-	}
-
+	p.awsConfig = cfg
 	p.client = ssoadmin.NewFromConfig(cfg)
 	p.orgClient = organizations.NewFromConfig(cfg)
 	p.idStoreClient = identitystore.NewFromConfig(cfg)

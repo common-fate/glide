@@ -17,6 +17,8 @@ import {
   useDisclosure,
   useToast,
   VStack,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
@@ -43,6 +45,7 @@ import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
 import { CodeInstruction } from "./CodeInstruction";
+import { CopyableOption } from "./CopyableOption";
 import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
@@ -168,23 +171,22 @@ export const RequestSelectedWithDisplay: React.FC<{
   ) {
     return (
       <VStack align={"left"}>
-        <Box textStyle="Body/Medium" mb={2}>
-          Target Selections
-        </Box>
-        {request?.selectedWith &&
-          Object.entries(request?.selectedWith).map(([k, v]) => {
-            return (
-              <Box key={"selected-" + k} textStyle="Body/Small" mb={2}>
-                {k}
-                <Text color="neutrals.600" textStyle="Body/Small">
-                  {v.label}
-                </Text>
-                <Text color="neutrals.600" textStyle="Body/Small">
-                  {v.value}
-                </Text>
-              </Box>
-            );
-          })}
+        <Text textStyle="Body/Medium" mb={2}>
+          Request Details
+        </Text>
+        <Wrap>
+          {request?.selectedWith &&
+            Object.entries(request?.selectedWith).map(([k, v]) => {
+              return (
+                <WrapItem>
+                  <VStack align={"left"}>
+                    <Text>{k}</Text>
+                    <CopyableOption label={v.label} value={v.value} />
+                  </VStack>
+                </WrapItem>
+              );
+            })}
+        </Wrap>
       </VStack>
     );
   }

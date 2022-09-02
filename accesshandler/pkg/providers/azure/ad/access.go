@@ -29,7 +29,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	return err
 }
 
-// Revoke the access by calling Azure-AD's API.
+// Revoke the access by calling Azure AD's API.
 func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, grantID string) error {
 	var a Args
 	err := json.Unmarshal(args, &a)
@@ -47,7 +47,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	return err
 }
 
-// IsActive checks whether the access is active by calling Azure-AD's API.
+// IsActive checks whether the access is active by calling Azure AD's API.
 func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, grantID string) (bool, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)

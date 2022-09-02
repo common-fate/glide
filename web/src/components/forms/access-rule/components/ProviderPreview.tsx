@@ -1,25 +1,21 @@
-import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
 import {
   Box,
   Flex,
   HStack,
-  IconButton,
   Spacer,
-  Tag,
   Text,
-  Tooltip,
-  useClipboard,
   VStack,
   Wrap,
-  WrapItem,
 } from "@chakra-ui/react";
 import Form, { FieldProps } from "@rjsf/core";
 import React from "react";
+
 import {
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
 import { AccessRuleTarget } from "../../../../utils/backend-client/types";
+import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
 
 export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
@@ -36,34 +32,7 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   }
   const ProviderPreviewWithDisplay: React.FC<FieldProps> = (props) => {
     const { data } = useListProviderArgOptions(target.provider.id, props.name);
-    const CopyableOption: React.FC<{ label: string; value: string }> = ({
-      label,
-      value,
-    }) => {
-      const { hasCopied, onCopy } = useClipboard(value);
-      return (
-        <WrapItem>
-          <Tooltip label={value}>
-            <Flex
-              textStyle={"Body/Small"}
-              rounded="full"
-              bg="neutrals.300"
-              py={1}
-              px={4}
-            >
-              {label}{" "}
-              <IconButton
-                variant="ghost"
-                h="20px"
-                icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
-                onClick={onCopy}
-                aria-label={"Copy"}
-              />
-            </Flex>
-          </Tooltip>
-        </WrapItem>
-      );
-    };
+
     if (props.name in target.with) {
       const value = target.with[props.name];
       return (

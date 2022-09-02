@@ -135,7 +135,7 @@ const Page = () => {
         >
           <Text>
             To finish setting up this provider, you need to update your Granted
-            deployment configuration. <QuestionIcon mb={1} />
+            deployment configuration.
           </Text>
 
           <OrderedList color="#757575" spacing={5}>
@@ -198,13 +198,13 @@ const Page = () => {
             </ListItem>
           </OrderedList>
         </Stack>
-        <Center mt={5}>
+        {/* <Center mt={5}>
           <Text textStyle={"Body/Small"}>
             Alternatively, you can{" "}
             <ChakraLink>view the YAML configuration</ChakraLink> to set up the
             provider.
           </Text>
-        </Center>
+        </Center> */}
       </Container>
     </AdminLayout>
   );

@@ -54,7 +54,7 @@ func Registry() ProviderRegistry {
 				"v1": {
 					Provider:    &ad.Provider{},
 					DefaultID:   "azure-ad",
-					Description: "Azure-AD groups",
+					Description: "Azure AD groups",
 				},
 			},
 			"commonfate/aws-sso": {
