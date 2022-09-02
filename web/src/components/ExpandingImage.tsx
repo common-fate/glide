@@ -17,7 +17,7 @@ export const ExpandingImage: React.FC<Props> = (props) => {
   return (
     <>
       <Image {...props} onClick={onOpen} cursor="zoom-in" />
-      <Modal isOpen={isOpen} onClose={onClose} size="7xl">
+      <Modal isOpen={isOpen} onClose={onClose} size="7xl" isCentered>
         <ModalOverlay />
         <ModalContent>
           <ModalCloseButton />
