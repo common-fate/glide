@@ -79,7 +79,7 @@ const Home = () => {
     d.setSeconds(0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   }, []);
-  const maxDurationSeconds = rule?.timeConstraints.maxDurationSeconds;
+
   const {
     register,
     handleSubmit,
@@ -94,36 +94,26 @@ const Home = () => {
       when: "asap",
       startDateTime: now,
       timing: {
-        durationSeconds: 0,
+        durationSeconds: 60,
       },
     },
   });
 
+  // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
+  // it does then when the rule loads for the first time
   useEffect(() => {
-    if (rule) {
-      reset({
-        when: "asap",
-        startDateTime: now,
-        timing: {
-          durationSeconds:
-            maxDurationSeconds && maxDurationSeconds > 3600
-              ? 3600
-              : maxDurationSeconds,
-        },
-      });
+    if (rule != undefined) {
+      setValue(
+        "timing.durationSeconds",
+        rule.timeConstraints.maxDurationSeconds > 3600
+          ? 3600
+          : rule.timeConstraints.maxDurationSeconds
+      );
     }
   }, [rule]);
 
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
-  const durationSeconds = watch("timing.durationSeconds");
-
-  useEffect(() => {
-    const md = rule?.timeConstraints?.maxDurationSeconds;
-    if (md && md / 60 / 60 < durationSeconds) {
-      setValue("timing.durationSeconds", md / 60 / 60);
-    }
-  }, [rule]);
   // Don't refetch the approvers
   const {
     data: approvers,
@@ -139,12 +129,11 @@ const Home = () => {
 
   const onSubmit: SubmitHandler<NewRequestFormData> = async (data) => {
     setLoading(true);
-    const duration = data.timing.durationSeconds ?? 2;
 
     const r: CreateRequestRequestBody = {
       accessRuleId: ruleId,
       timing: {
-        durationSeconds: duration,
+        durationSeconds: data.timing.durationSeconds,
       },
       reason: data.reason,
       with: data.with,
@@ -324,35 +313,34 @@ const Home = () => {
                     <FormLabel textStyle="Body/Medium" fontWeight="normal">
                       How long do you need access for?
                     </FormLabel>
+
                     <Controller
                       name="timing.durationSeconds"
                       control={control}
                       rules={{
                         required: "Duration is required.",
-                        max: maxDurationSeconds,
+                        max: rule?.timeConstraints.maxDurationSeconds,
                         min: 60,
                       }}
                       render={({ field: { ref, ...rest } }) => {
                         return (
                           <DurationInput
                             {...rest}
-                            max={maxDurationSeconds}
+                            max={rule?.timeConstraints.maxDurationSeconds}
                             min={60}
-                            defaultValue={
-                              maxDurationSeconds && maxDurationSeconds > 3600
-                                ? 3600
-                                : maxDurationSeconds
-                            }
                           >
                             <Hours />
                             <Minutes />
-                            {maxDurationSeconds !== undefined && (
+                            {
                               <Text textStyle={"Body/ExtraSmall"}>
-                                Max {durationString(maxDurationSeconds)}
+                                Max{" "}
+                                {durationString(
+                                  rule?.timeConstraints.maxDurationSeconds
+                                )}
                                 <br />
                                 Min 1 minute
                               </Text>
-                            )}
+                            }
                           </DurationInput>
                         );
                       }}
