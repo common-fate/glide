@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/hashicorp/go-version"
 	"github.com/urfave/cli/v2"
 )
 
@@ -120,19 +121,32 @@ func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string) (bool, 
 		return false, nil
 	}
 
-	isValidReleaseNumber, err := regexp.MatchString(`v\d.\d+.\d+`, d.Release)
+	isValidReleaseNumber, err := regexp.MatchString(`v?\d.\d+.\d+`, d.Release)
 	if err != nil {
 		return false, err
 	}
 
 	if isValidReleaseNumber {
-		if buildVersion == d.Release {
+		if buildVersion == "dev" {
+			clio.Warn("Skipping version compatibility check for dev gdeploy build")
 			return false, nil
 		}
 
-		if buildVersion != d.Release {
-			return true, nil
+		formattedBuildVersion, err := version.NewVersion(buildVersion)
+		if err != nil {
+			return false, err
 		}
+
+		formattedReleaseVersion, err := version.NewVersion(d.Release)
+		if err != nil {
+			return false, err
+		}
+
+		if formattedBuildVersion.Equal(formattedReleaseVersion) {
+			return false, nil
+		}
+
+		return true, nil
 	}
 
 	// release value are added as URL for UAT. In such case it should skip this check.

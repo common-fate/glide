@@ -63,6 +63,15 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			},
 			want: "true",
 		},
+
+		{
+			name:     "gdeploy version missing v prefix",
+			gVersion: "1.02.02",
+			dConfig: deploy.Deployment{
+				Release: "v1.02.02",
+			},
+			want: "false",
+		},
 	}
 
 	for _, tc := range testCases {
