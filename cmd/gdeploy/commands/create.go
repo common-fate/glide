@@ -50,7 +50,7 @@ var CreateCommand = cli.Command{
 			clio.Info(`Here are your next steps to get started:
 
   1) create an admin user so you can log in: 'gdeploy identity users create --admin -u YOUR_EMAIL_ADDRESS'
-  2) add an Access Provider: 'gdeploy providers add'
+  2) add an Access Provider: 'gdeploy provider add'
   3) visit the web dashboard: 'gdeploy dashboard open'
 
 Check out the next steps in our getting started guide for more information: https://docs.comonfate.io/granted-approvals/getting-started/deploying

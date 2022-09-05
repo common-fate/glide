@@ -73,7 +73,7 @@ All additional commands to be run are all the same as if it was a live deploymen
 To create a new provider run:
 
 ```
-gdeploy providers add
+gdeploy provider add
 ```
 
 - Docs for setting this up here: [Provider Docs](https://docs.commonfate.io/granted-approvals/providers/introduction)
