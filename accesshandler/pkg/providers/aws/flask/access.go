@@ -234,8 +234,6 @@ func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN strin
 
 	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: ctTypes.LookupAttributeKeyEventName, AttributeValue: aws.String("StartSession")})
 
-	log.Info("Looking up cloudtrail events for sso StartSession", atrs)
-
 	out, err := p.cloudtrailClient.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
 		LookupAttributes: atrs,
 	})
@@ -262,18 +260,22 @@ func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN strin
 				// we have cloud trail log
 				sessionId = eventJson.ResponseElements.SessionID
 			}
+			if sessionId != "" {
+				log.Info("Found session id", sessionId)
+
+				input := ssm.TerminateSessionInput{
+					SessionId: &sessionId,
+				}
+				_, err = p.ssmClient.TerminateSession(ctx, &input)
+				if err != nil {
+					return err
+				}
+				log.Info("Revoked session", sessionId)
+
+			}
 		}
 	}
 
-	if sessionId != "" {
-		input := ssm.TerminateSessionInput{
-			SessionId: &sessionId,
-		}
-		_, err = p.ssmClient.TerminateSession(ctx, &input)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
