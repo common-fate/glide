@@ -140,6 +140,13 @@ func (s *Server) Routes() http.Handler {
 
 	})
 
+	r.Post("/webhook/v1/test-setup", func(w http.ResponseWriter, r *http.Request) {
+
+		//successfull connection to webhook url return OK
+		w.WriteHeader(http.StatusOK)
+
+	})
+
 	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		token := r.Header.Get("X-Granted-Request")
