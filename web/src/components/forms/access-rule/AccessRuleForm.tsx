@@ -245,7 +245,7 @@ const BottomActionButtons: React.FC<{ rule: AccessRuleDetail }> = ({
       </Button>
       <Button
         variant="brandSecondary"
-        isLoading={formState.isSubmitting}
+        isDisabled={formState.isSubmitting}
         type="button"
         onClick={() => navigate({ to: "/admin/access-rules" })}
       >
