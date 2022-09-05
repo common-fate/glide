@@ -64,16 +64,32 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			return err
 		}
 
-		isMismatch, err := IsReleaseVersionDifferent(dc.Deployment, build.Version, c.Bool("ignore-version-mismatch"))
+		isMismatch, isBuildGreater, err := IsReleaseVersionDifferent(dc.Deployment, build.Version, c.Bool("ignore-version-mismatch"))
 		if err != nil {
 			return err
 		}
 		if isMismatch {
 			var shouldUpdate bool
-			clio.Error("Incompatible release version detected. Expected v%s got %s.", build.Version, dc.Deployment.Release)
-			clio.Info("If you have installed the latest version of gdeploy, follow the prompts to update your deployment.")
-			clio.Info("If you were not intending to update, try installing the version of gdeploy that your stack was deployed with.")
-			clio.Info("If you need to skip this check, you can pass the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'")
+			e := fmt.Sprintf("Incompatible release version detected. Expected v%s got %s.", build.Version, dc.Deployment.Release)
+			if !isBuildGreater {
+				return clio.NewCLIError(
+					e,
+					clio.WarnMsg(`It looks like your gdeploy version is older than your deployment config release version.
+This may have happened if you have updated the deployment config without updating gdeploy CLI first.
+It is important to ensure your version of gdeploy CLI matches your release, otherwise you could experience potentially unexpected behaviour.
+
+You should take one of the following actions:
+	a) Update to the latest version of gdeploy then run this command again.
+	b) If you changed your deployment config release version manually, you can change it back to 'v%s' and continue using your current version of gdeploy.
+	c) If you need to skip this check, you can pass the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'
+`, build.Version),
+				)
+			}
+			clio.Error(e)
+			clio.Info("It looks like your gdeploy version is greater that your deployment config release version.")
+			clio.Info("If you are updating your deployment, simply follow the prompts.")
+			clio.Info("If you were not intending to update your deployment, try installing the version of gdeploy that your stack was deployed with instead.")
+			clio.Warn("It is important to ensure your version of gdeploy matches your release, otherwise you could experience potentially unexpected behaviour.\nIf you need to skip this check, you can pass the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'")
 			prompt := &survey.Confirm{
 				Message: fmt.Sprintf("Would you like to update your 'granted-deployment.yml' to release v%s?", build.Version),
 			}
@@ -102,23 +118,23 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 // Returns true if version same.
 // Returns false if we can skip this check.
 // Returns error for anything else.
-func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string, ignoreMismatch bool) (bool, error) {
+func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string, ignoreMismatch bool) (isDifferent bool, isBuildGreater bool, err error) {
 	// skip compatibility check for dev deployments.
 	if d.Dev != nil && *d.Dev {
-		return false, nil
+		return false, true, nil
 	}
 	if ignoreMismatch {
 		clio.Warn("Ignoring version mismatch between gdeploy CLI (v%s) and deployment release version (%s) because the '--ignore-version-mismatch' flag was provided", buildVersion, d.Release)
-		return false, nil
+		return false, true, nil
 	}
 	// this check allows a local build of Gdeploy to be used for UAT on releases
 	if buildVersion == "dev" {
 		clio.Warn("Skipping version compatibility check for dev gdeploy build")
-		return false, nil
+		return false, true, nil
 	}
 	parsedBuildVersion, err := version.NewVersion(buildVersion)
 	if err != nil {
-		return false, clio.NewCLIError(err.Error(), clio.LogMsg("Unexpected error encountered while checking build version compatibility. If you see this, let us know via an issue on Github. You can skip this warning by passing the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'"))
+		return false, true, clio.NewCLIError(err.Error(), clio.LogMsg("Unexpected error encountered while checking build version compatibility. If you see this, let us know via an issue on Github. You can skip this warning by passing the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'"))
 	}
 	parsedReleaseVersion, err := version.NewVersion(d.Release)
 	if err != nil {
@@ -127,12 +143,12 @@ func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string, ignoreM
 		_, err := url.ParseRequestURI(d.Release)
 		if err == nil {
 			clio.Warn("Skipping version compatibility check for release because you are using a URL")
-			return false, nil
+			return false, true, nil
 		}
 	}
-	isVersionMismatch := true
-	if err == nil {
-		isVersionMismatch = !parsedBuildVersion.Equal(parsedReleaseVersion)
+
+	if err != nil {
+		return true, false, nil
 	}
-	return isVersionMismatch, nil
+	return !parsedBuildVersion.Equal(parsedReleaseVersion), parsedBuildVersion.GreaterThan(parsedReleaseVersion), nil
 }

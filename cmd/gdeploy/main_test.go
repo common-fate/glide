@@ -17,6 +17,7 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 		ignoreMismatch bool
 		want           bool
 		wantError      error
+		wantIsGreater  bool
 	}
 
 	testCases := []testcase{
@@ -34,7 +35,8 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "httpgmail.com",
 			},
-			want: false,
+			wantIsGreater: true,
+			want:          false,
 		},
 		{
 			name:     "Valid URL",
@@ -42,7 +44,8 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "https://gmail.com",
 			},
-			want: false,
+			want:          false,
+			wantIsGreater: true,
 		},
 
 		{
@@ -75,7 +78,8 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			dConfig: deploy.Deployment{
 				Release: "v1.02.02",
 			},
-			want: false,
+			want:          false,
+			wantIsGreater: true,
 		},
 		{
 			name:     "ignore mismatch",
@@ -85,18 +89,20 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			},
 			ignoreMismatch: true,
 			want:           false,
+			wantIsGreater:  true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			isDifferent, err := middleware.IsReleaseVersionDifferent(tc.dConfig, tc.gVersion, tc.ignoreMismatch)
+			isDifferent, isGreater, err := middleware.IsReleaseVersionDifferent(tc.dConfig, tc.gVersion, tc.ignoreMismatch)
 			if tc.wantError != nil {
 				assert.EqualError(t, err, tc.wantError.Error())
 			} else {
 				assert.NoError(t, err)
 			}
 			assert.Equal(t, tc.want, isDifferent)
+			assert.Equal(t, tc.wantIsGreater, isGreater)
 		})
 	}
 }
