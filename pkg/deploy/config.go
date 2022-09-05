@@ -555,23 +555,11 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	// set up stack parameters
 	cognitoPrefix := c.String("cognito-domain-prefix")
 	if cognitoPrefix == "" {
-		var company string
-		p := &survey.Input{Message: "Your company name"}
-		err := survey.AskOne(p, &company)
-		if err != nil {
-			return nil, err
-		}
-		// turn the company name into lowercase and remove spaces, so that it will work
-		// as a Cognito prefix domain
-		company = strings.ReplaceAll(company, " ", "")
-		company = strings.ToLower(company)
-
-		cognitoPrefix = fmt.Sprintf("granted-login-%s", company)
-		p = &survey.Input{Message: "The prefix for the Cognito Sign in URL", Default: cognitoPrefix}
-		err = survey.AskOne(p, &cognitoPrefix)
-		if err != nil {
-			return nil, err
-		}
+		// use a ksuid for the random component
+		// max length 63 chars
+		randomSuffix := ksuid.New().String()
+		// Trim the time component off the ksuid because we only need the random component
+		cognitoPrefix = fmt.Sprintf("granted-login-%s", strings.ToLower((randomSuffix[6:])))
 	}
 
 	cfg := Config{
