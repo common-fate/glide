@@ -36,17 +36,8 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
           borderColor="neutrals.300"
           borderWidth="1px"
         >
-          <Text color="neutrals.700" paddingLeft={3} whiteSpace="pre-wrap">
+          <Text color="neutrals.700" px={1} whiteSpace="pre-wrap">
             {children}
-
-            <IconButton
-              variant="ghost"
-              h="10px"
-              style={{ backgroundColor: "transparent" }}
-              icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
-              onClick={onCopy}
-              aria-label={"Copy"}
-            />
           </Text>
         </Code>
       </div>

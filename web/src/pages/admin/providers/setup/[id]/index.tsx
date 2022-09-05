@@ -42,6 +42,8 @@ import {
   Spinner,
   Stack,
   Text,
+  UnorderedList,
+  OrderedList,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
@@ -512,6 +514,26 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                     >
                       {props.children}
                     </Text>
+                  ),
+                  ul: (props) => (
+                    <UnorderedList
+                      pl={3}
+                      spacing={2}
+                      color="neutrals.600"
+                      textStyle={"Body/Small"}
+                    >
+                      {props.children}
+                    </UnorderedList>
+                  ),
+                  ol: (props) => (
+                    <OrderedList
+                      pl={3}
+                      spacing={2}
+                      color="neutrals.600"
+                      textStyle={"Body/Small"}
+                    >
+                      {props.children}
+                    </OrderedList>
                   ),
                   code: CodeInstruction,
                   img: (props) => <ExpandingImage {...props} />,
