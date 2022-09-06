@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
@@ -19,6 +20,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
 	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
+	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -58,6 +60,16 @@ type API struct {
 	AdminGroup          string
 	Granter             accesssvc.Granter
 	Cache               CacheService
+	// Set this to nil if cognito is not configured as the IDP for the deployment
+	Cognito           CognitoService
+	CognitoUserPoolID string
+	IdentitySyncer    auth.IdentitySyncer
+}
+
+type CognitoService interface {
+	CreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
+	CreateGroup(ctx context.Context, in cognitosvc.CreateGroupOpts) (*identity.Group, error)
+	UpdateUserGroups(ctx context.Context, in cognitosvc.UpdateUserGroupsOpts) (*identity.User, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providersetup_service.go -package=mocks . ProviderSetupService

@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -74,4 +75,56 @@ func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
 		IsAdmin: admin,
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// Create User
+// (POST /api/v1/admin/users)
+func (a *API) PostApiV1AdminUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if a.Cognito == nil {
+		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
+		return
+	}
+	var createUserRequest types.PostApiV1AdminUsersJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &createUserRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	user, err := a.Cognito.CreateUser(ctx, cognitosvc.CreateUserOpts{
+		FirstName: createUserRequest.FirstName,
+		LastName:  createUserRequest.LastName,
+		IsAdmin:   createUserRequest.IsAdmin,
+		Email:     string(createUserRequest.Email),
+	})
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	apio.JSON(ctx, w, user.ToAPI(), http.StatusOK)
+}
+
+// Update User
+// (POST /api/v1/admin/users/{userId})
+func (a *API) PostApiV1AdminUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
+	ctx := r.Context()
+	if a.Cognito == nil {
+		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
+		return
+	}
+	var updateUserRequest types.PostApiV1AdminUsersUserIdJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	user, err := a.Cognito.UpdateUserGroups(ctx, cognitosvc.UpdateUserGroupsOpts{
+		Groups: updateUserRequest.Groups,
+		UserID: userId,
+	})
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	apio.JSON(ctx, w, user.ToAPI(), http.StatusOK)
 }

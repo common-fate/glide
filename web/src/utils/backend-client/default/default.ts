@@ -15,6 +15,11 @@ import type {
   UserListRequestsUpcomingParams,
   UserListRequestsPastParams,
   AccessRuleDetail,
+  User,
+  PostApiV1AdminUsersUserIdBody,
+  CreateUserRequestBody,
+  Group,
+  CreateGroupRequestBody,
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody
 } from '.././types'
@@ -122,6 +127,55 @@ export const adminArchiveAccessRule = (
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<AccessRuleDetail>(
       {url: `/api/v1/admin/access-rules/${ruleId}/archive`, method: 'post'
+    },
+      options);
+    }
+  
+
+/**
+ * Update a user including group membership
+ * @summary Update User
+ */
+export const postApiV1AdminUsersUserId = (
+    userId: string,
+    postApiV1AdminUsersUserIdBody: PostApiV1AdminUsersUserIdBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<User>(
+      {url: `/api/v1/admin/users/${userId}`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: postApiV1AdminUsersUserIdBody
+    },
+      options);
+    }
+  
+
+/**
+ * Create new user in the Cognito user pool if it is enabled.
+ * @summary Create User
+ */
+export const postApiV1AdminUsers = (
+    createUserRequestBody: CreateUserRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<User>(
+      {url: `/api/v1/admin/users`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createUserRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * Create new group in the Cognito user pool if it is enabled.
+ * @summary Create Group
+ */
+export const postApiV1AdminGroups = (
+    createGroupRequestBody: CreateGroupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Group>(
+      {url: `/api/v1/admin/groups`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createGroupRequestBody
     },
       options);
     }

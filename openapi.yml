@@ -543,6 +543,42 @@ paths:
       tags:
         - End User
       parameters: []
+  "/api/v1/admin/users/{userId}":
+    parameters:
+      - schema:
+          type: string
+        name: userId
+        in: path
+        required: true
+    post:
+      summary: Update User
+      operationId: post-api-v1-admin-users-userId
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Update a user including group membership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groups:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - groups
   /api/v1/admin/users:
     get:
       summary: Returns a list of users
@@ -559,6 +595,25 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
+    post:
+      summary: Create User
+      operationId: post-api-v1-admin-users
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Create new user in the Cognito user pool if it is enabled.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateUserRequest"
   /api/v1/admin/groups:
     get:
       summary: List groups
@@ -576,6 +631,25 @@ paths:
           name: nextToken
           description: encrypted token containing pagination info
     parameters: []
+    post:
+      summary: Create Group
+      operationId: post-api-v1-admin-groups
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Create new group in the Cognito user pool if it is enabled.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateGroupRequest"
   "/api/v1/admin/groups/{groupId}":
     parameters:
       - schema:
@@ -1846,13 +1920,22 @@ components:
               email:
                 type: string
                 format: email
-              name:
+                minLength: 1
+                maxLength: 2048
+              firstName:
                 type: string
+                minLength: 1
+                maxLength: 2048
+              lastName:
+                type: string
+                minLength: 1
+                maxLength: 2048
               isAdmin:
                 type: boolean
             required:
               - email
-              - name
+              - firstName
+              - lastName
               - isAdmin
       description: ""
     CreateRequestRequest:
@@ -1920,6 +2003,19 @@ components:
             required:
               - providerType
       description: Begin the guided setup process for a new Access Provider.
+    CreateGroupRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                pattern: "[^a-zA-Z0-9_.-]"
+                maxLength: 2048
+            required:
+              - name
 tags:
   - name: End User
   - name: Admin

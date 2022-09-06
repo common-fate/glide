@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -62,4 +63,28 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 	}
 
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+}
+
+// Create Group
+// (POST /api/v1/admin/groups)
+func (a *API) PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if a.Cognito == nil {
+		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
+		return
+	}
+	var createGroupRequest types.PostApiV1AdminGroupsJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
+		Name: createGroupRequest.Name,
+	})
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	apio.JSON(ctx, w, group.ToAPI(), http.StatusOK)
 }
