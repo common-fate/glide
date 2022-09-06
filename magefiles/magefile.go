@@ -333,52 +333,6 @@ func (Deploy) Dev() error {
 	return nil
 }
 
-// Cloud provisions a deployment using a managed configuration
-func (Deploy) Cloud() error {
-	// ensure the user has a valid aws session
-	ctx := context.Background()
-	_, err := deploy.TryGetCurrentAccountID(ctx)
-	if err != nil {
-		boldYellow := color.New(color.FgYellow, color.Bold)
-		boldYellow.Println("⚠️ Failed to get AWS caller identity, ensure you have a valid AWS session")
-		return nil
-	}
-
-	// deploy the CDK stack
-	mg.Deps(Deploy.CloudCDK)
-
-	// upload the frontend to S3 and invalidate CloudFront
-	mg.Deps(Deploy.Frontend)
-	return nil
-}
-
-// CloudCDK deploys a version of the CDK infrastructure which uses managed deployment config
-func (Deploy) CloudCDK() error {
-	mg.Deps(Deps.NPM)
-
-	// infrastructure/cdk.json defines a build step within CDK which calls `go run mage.go build`,
-	// so we don't need to build or package the code before running cdk deploy.
-	// add a '--require-approval never' arg to avoid being prompted for approval in CI pipelines.
-	args := []string{"--dir", "deploy/infra", "cdk", "deploy", "--require-approval", "never", "--outputs-file", "cdk-outputs.json"}
-
-	f, ok := os.LookupEnv("GRANTED_DEPLOYMENT_FILE")
-	if !ok {
-		return errors.New("GRANTED_DEPLOYMENT_FILE must be set, pointing to the granted-deployment.yml file to use")
-	}
-
-	dep, err := deploy.LoadConfig(f)
-	if err != nil {
-		return err
-	}
-	args = append(args, dep.CDKContextArgs()...)
-	// add the managedDeploymentConfig context arg
-	args = append(args, "-c", "managedDeploymentConfig=managed-ssm")
-
-	zap.S().Infow("deploying CDK stack with managed deployment config")
-
-	return sh.Run("pnpm", args...)
-}
-
 // StagingCDK deploys a staging version of the CDK infrastructure.
 func (Deploy) StagingCDK(env, name string) error {
 	mg.Deps(Deps.NPM)
