@@ -24,6 +24,7 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "react-location";
 import { Column } from "react-table";
+import { CFCode } from "../../../components/CodeInstruction";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
@@ -92,7 +93,7 @@ const Providers = () => {
         <AdminProvidersTable />
         <Center>
           <Text textStyle={"Body/ExtraSmall"}>
-            View the full configuration of each access provider in your
+            View the full configuration of each access provider in your{" "}
             <Code fontSize={"12px"}>granted-deployment.yml</Code> file.
           </Text>
         </Center>

@@ -4,14 +4,29 @@ import {
   useClipboard,
   Stack,
   Code,
+  CodeProps as CProps,
   Flex,
   Text,
   Spacer,
   IconButton,
 } from "@chakra-ui/react";
 
+export const CFCode: React.FC<CProps> = (props) => {
+  return (
+    <Code
+      padding={0}
+      bg="white"
+      borderRadius="8px"
+      borderColor="neutrals.300"
+      borderWidth="1px"
+    >
+      <Text color="neutrals.700" px={1} whiteSpace="pre-wrap">
+        {props.children}
+      </Text>
+    </Code>
+  );
+};
 export const CodeInstruction: React.FC<CodeProps> = (props) => {
-  // @ts-ignore
   const { children, node } = props;
   let value = "";
   if (
@@ -27,21 +42,7 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
 
   // if the code is inline should show in same line.
   if (props?.inline) {
-    return (
-      <div style={{ display: "inline" }}>
-        <Code
-          padding={0}
-          bg="white"
-          borderRadius="8px"
-          borderColor="neutrals.300"
-          borderWidth="1px"
-        >
-          <Text color="neutrals.700" px={1} whiteSpace="pre-wrap">
-            {children}
-          </Text>
-        </Code>
-      </div>
-    );
+    return <CFCode children={value} />;
   }
 
   return (

@@ -14,7 +14,10 @@ import {
 } from "@chakra-ui/react";
 import { Link, Navigate, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
-import { CodeInstruction } from "../../../../../components/CodeInstruction";
+import {
+  CFCode,
+  CodeInstruction,
+} from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
 import { useGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
@@ -71,14 +74,14 @@ const Page = () => {
   }
 
   const gdeployCommand =
-    "```" +
+    "```\n" +
     `gdeploy providers add --id ${data.id} --uses ${data.type}@${
       data.version
     } ${Object.entries(data.configValues)
       .filter(([_, v]) => v != null && v !== "")
       .map(([k, v]) => `--with ${k}=${v}`)
       .join(" ")}` +
-    "```";
+    "\n```";
 
   return (
     <AdminLayout>
@@ -140,11 +143,11 @@ const Page = () => {
 
           <OrderedList color="#757575" spacing={5}>
             <ListItem>
-              Ensure that <Code>gdeploy</Code> is installed on your device.
+              Ensure that <CFCode>gdeploy</CFCode> is installed on your device.
             </ListItem>
             <ListItem>
               Open a terminal window in the folder containing your{" "}
-              <Code>granted-deployment.yml</Code> file.
+              <CFCode>granted-deployment.yml</CFCode> file.
             </ListItem>
             <ListItem>
               <Stack>
@@ -163,7 +166,7 @@ const Page = () => {
                         {props.children}
                       </Text>
                     ),
-                    code: CodeInstruction as any,
+                    code: CodeInstruction,
                   }}
                 >
                   {gdeployCommand}
@@ -188,10 +191,10 @@ const Page = () => {
                         {props.children}
                       </Text>
                     ),
-                    code: CodeInstruction as any,
+                    code: CodeInstruction,
                   }}
                 >
-                  gdeploy update
+                  {"```\ngdeploy update\n```"}
                 </ReactMarkdown>
                 );
               </Stack>

@@ -52,7 +52,10 @@ import { Link, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
 import { Sticky, StickyContainer } from "react-sticky";
 import useWindowSize from "react-use/lib/useWindowSize";
-import { CodeInstruction } from "../../../../../components/CodeInstruction";
+import {
+  CFCode,
+  CodeInstruction,
+} from "../../../../../components/CodeInstruction";
 import { ConnectorArrow } from "../../../../../components/ConnectorArrow";
 import { ExpandingImage } from "../../../../../components/ExpandingImage";
 import { ApprovalsLogo } from "../../../../../components/icons/Logos";
@@ -568,7 +571,15 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                             {f.isSecret && (
                               <Popover>
                                 <PopoverTrigger>
-                                  <Badge as="button">Secret</Badge>
+                                  <Badge
+                                    as="button"
+                                    type="button"
+                                    // onClick={(e) => {
+                                    //   e.stopPropagation();
+                                    // }}
+                                  >
+                                    Secret
+                                  </Badge>
                                 </PopoverTrigger>
                                 <PopoverContent>
                                   <PopoverArrow />
@@ -576,7 +587,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                                   <PopoverHeader>Sensitive value</PopoverHeader>
                                   <PopoverBody>
                                     This value will be written to{" "}
-                                    <Code>{f.secretPath}</Code>
+                                    <CFCode>{f.secretPath}</CFCode>
                                   </PopoverBody>
                                 </PopoverContent>
                               </Popover>
