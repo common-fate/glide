@@ -220,6 +220,24 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 		return fmt.Errorf("failed deleting account assignment: %s", *status.AccountAssignmentDeletionStatus.FailureReason)
 	}
 
+	log.Info("Deleting  permission set", aws.String(p.instanceARN.Get()))
+
+	//deleting account assignment can take some time to take effect, we retry deleting the permission set until it works
+	b3 := retry.NewFibonacci(time.Second)
+	b3 = retry.WithMaxDuration(time.Minute*2, b3)
+	err = retry.Do(ctx, b3, func(ctx context.Context) (err error) {
+		_, err = p.ssoClient.DeletePermissionSet(ctx, &ssoadmin.DeletePermissionSetInput{
+			InstanceArn:      aws.String(p.instanceARN.Get()),
+			PermissionSetArn: permissionSetARN,
+		})
+		if err != nil {
+			return retry.RetryableError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	//if successfully deletion policy and account assignment, terminate session
 	err = p.TerminateSession(ctx, a.TaskDefinitionARN)
 	if err != nil {
@@ -242,6 +260,11 @@ func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN strin
 		return err
 	}
 
+	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskDefinitionARN)
+	if err != nil {
+		return err
+	}
+
 	sessionId := ""
 	for _, e := range out.Events {
 		if e.CloudTrailEvent != nil {
@@ -250,11 +273,6 @@ func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN strin
 			if err != nil {
 				return err
 			}
-			taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskDefinitionARN)
-			if err != nil {
-				return err
-			}
-
 			taskId := strings.Split(taskARN, "/")[2]
 			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+strings.Split(p.ecsClusterARN.Get(), "/")[1]+"_"+taskId) {
 				// we have cloud trail log
