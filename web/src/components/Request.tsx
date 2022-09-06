@@ -171,9 +171,7 @@ export const RequestSelectedWithDisplay: React.FC<{
   ) {
     return (
       <VStack align={"left"}>
-        <Text textStyle="Body/Medium" mb={2}>
-          Request Details
-        </Text>
+        <Text textStyle="Body/Medium">Request Details</Text>
         <Wrap>
           {request?.selectedWith &&
             Object.entries(request?.selectedWith).map(([k, v]) => {
@@ -217,7 +215,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       spacing={6}
     >
       <RequestStatusDisplay request={request} />
-      <Stack spacing={1}>
+      <Stack spacing={2}>
         <Skeleton
           minW="30ch"
           minH="6"
@@ -245,13 +243,18 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
         </Skeleton>
         <RequestSelectedWithDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
-          <Flex
-            color="neutrals.600"
-            textStyle="Body/Medium"
-            data-testid="reason"
-          >
-            {request?.reason}
-          </Flex>
+          {request?.reason && (
+            <VStack align={"left"}>
+              <Text textStyle="Body/Medium">Reason</Text>
+              <Text
+                color="neutrals.600"
+                textStyle="Body/Small"
+                data-testid="reason"
+              >
+                {request?.reason}
+              </Text>
+            </VStack>
+          )}
         </Skeleton>
       </Stack>
       {children}
@@ -271,9 +274,7 @@ export const RequestAccessInstructions: React.FC = () => {
 
   return (
     <Stack>
-      <Box textStyle="Body/Medium" mb={2}>
-        Access Instructions
-      </Box>
+      <Box textStyle="Body/Medium">Access Instructions</Box>
       return (
       <ReactMarkdown
         components={{
@@ -299,9 +300,7 @@ export const RequestTime: React.FC = () => {
 
   return request ? (
     <Flex textStyle="Body/Small" flexDir="column" h="59px">
-      <Box textStyle="Body/Medium" mb={2}>
-        Duration
-      </Box>
+      <Box textStyle="Body/Medium">Duration</Box>
       <Text
         color="neutrals.600"
         textStyle="Body/Small"
@@ -404,9 +403,7 @@ export const RequestRequestor: React.FC = () => {
 
   return (
     <Flex textStyle="Body/Small" flexDir="column">
-      <Box textStyle="Body/Medium" mb={2}>
-        Requestor
-      </Box>
+      <Box textStyle="Body/Medium">Requestor</Box>
       <Skeleton w="30ch" isLoaded={requestor !== undefined}>
         {requestor && (
           <Flex>
