@@ -6,6 +6,7 @@ import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin
 import {
   AccessRuleTarget,
   CreateAccessRuleRequestBody,
+  CreateAccessRuleTarget,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
@@ -16,6 +17,8 @@ import { StepsProvider } from "./StepsContext";
 
 export interface CreateAccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
+  // with text is used for single text fields
+  target: { withText?: { [key: string]: string } } & CreateAccessRuleTarget;
 }
 
 const CreateAccessRuleForm = () => {
@@ -28,12 +31,22 @@ const CreateAccessRuleForm = () => {
   const onSubmit = async (data: CreateAccessRuleFormData) => {
     console.debug("submit form data", { data });
 
-    const { approval, timeConstraints, ...d } = data;
+    const { approval, timeConstraints, target, ...d } = data;
+    const t = {
+      providerId: target.providerId,
+      with: {
+        ...target?.with,
+      },
+    };
+    for (const k in target.withText) {
+      t.with[k] = [target.withText[k]];
+    }
     const ruleData: CreateAccessRuleRequestBody = {
       approval: { users: [], groups: [] },
       timeConstraints: {
         maxDurationSeconds: timeConstraints.maxDurationSeconds,
       },
+      target: t,
       ...d,
     };
     // only apply these fields if approval is enabled

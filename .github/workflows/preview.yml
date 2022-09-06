@@ -172,7 +172,7 @@ jobs:
         run: pnpm run e2e:ci
         working-directory: web
         env:
-          TESTING_DOMAIN: "${{ steps.branch.outputs.name }}.test.granted.run"
+          TESTING_DOMAIN: "https://${{ steps.branch.outputs.name }}.test.granted.run"
           TEST_USERNAME: "${{ secrets.TEST_USERNAME}}"
           TEST_ADMIN_USERNAME: "${{ secrets.TEST_ADMIN_USERNAME}}"
           TEST_PASSWORD: "${{ secrets.TEST_PASSWORD}}"
