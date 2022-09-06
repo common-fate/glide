@@ -18,12 +18,17 @@ const samlMetadata = app.node.tryGetContext("samlMetadata");
 const adminGroupId = app.node.tryGetContext("adminGroupId");
 const providerConfig = app.node.tryGetContext("providerConfiguration");
 const identityConfig = app.node.tryGetContext("identityConfiguration");
-const notificationsConfiguration = app.node.tryGetContext("notificationsConfiguration");
+const notificationsConfiguration = app.node.tryGetContext(
+  "notificationsConfiguration"
+);
 const productionReleasesBucket = app.node.tryGetContext(
   "productionReleasesBucket"
 );
 const productionReleaseBucketPrefix = app.node.tryGetContext(
   "productionReleaseBucketPrefix"
+);
+const managedDeploymentConfig = app.node.tryGetContext(
+  "managedDeploymentConfig"
 );
 
 // https://github.com/aws/aws-cdk/issues/11625
@@ -60,6 +65,7 @@ if (stackTarget === "dev") {
     samlMetadata: samlMetadata || "",
     notificationsConfiguration: notificationsConfiguration || "{}",
     identityProviderSyncConfiguration: identityConfig || "{}",
+    managedDeploymentConfig: managedDeploymentConfig || "",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {

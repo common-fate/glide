@@ -61,6 +61,9 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.SamlSSOMetadataURL != "" {
 		args = append(args, "-c", fmt.Sprintf("samlMetadataUrl=%s", string(c.Deployment.Parameters.SamlSSOMetadataURL)))
 	}
+	if c.Deployment.Parameters.ManagedDeploymentConfig != "" {
+		args = append(args, "-c", fmt.Sprintf("managedDeploymentConfig=%s", string(c.Deployment.Parameters.ManagedDeploymentConfig)))
+	}
 	return args
 }
 

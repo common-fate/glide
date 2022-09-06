@@ -5,12 +5,14 @@ import { Construct } from "constructs";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 
 interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
   providerConfig: string;
   executionRole: iam.Role;
+  dynamoTable: dynamodb.Table;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -28,6 +30,7 @@ export class Granter extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         PROVIDER_CONFIG: props.providerConfig,
+        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "granter",
@@ -145,5 +148,8 @@ export class Granter extends Construct {
   }
   getGranterARN(): string {
     return this._lambda.functionArn;
+  }
+  addEnvironmentVariable(key: string, value: string) {
+    this._lambda.addEnvironment(key, value);
   }
 }

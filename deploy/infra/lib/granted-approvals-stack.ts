@@ -5,6 +5,7 @@ import { AccessHandler } from "./constructs/access-handler";
 import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
+import { Database } from "./constructs/database";
 
 import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
@@ -21,6 +22,7 @@ interface Props extends cdk.StackProps {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   adminGroupId: string;
+  managedDeploymentConfig: string;
 }
 export class DevGrantedStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Props) {
@@ -36,8 +38,13 @@ export class DevGrantedStack extends cdk.Stack {
       adminGroupId,
       notificationsConfiguration,
       identityProviderSyncConfiguration,
+      managedDeploymentConfig,
     } = props;
     const appName = `granted-approvals-${stage}`;
+
+    const db = new Database(this, "Database", {
+      appName,
+    });
 
     const cdn = new AppFrontend(this, "Frontend", {
       appName,
@@ -64,6 +71,8 @@ export class DevGrantedStack extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: props.providerConfig,
+      managedDeploymentConfig: props.managedDeploymentConfig,
+      dynamoTable: db.getTable(),
     });
 
     const approvals = new AppBackend(this, "API", {
@@ -78,6 +87,8 @@ export class DevGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration: identityProviderSyncConfiguration,
       notificationsConfiguration: notificationsConfiguration,
       deploymentSuffix: stage,
+      dynamoTable: db.getTable(),
+      managedDeploymentConfig,
     });
     /* Outputs */
     generateOutputs(this, {

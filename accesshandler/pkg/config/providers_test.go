@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
@@ -96,7 +97,12 @@ func TestConfigureProviders(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ConfigureProviders(ctx, []byte(tc.give))
+			cfg, err := deploy.UnmarshalProviderMap(tc.give)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = ConfigureProviders(ctx, cfg)
 			if err != nil {
 				t.Fatal(err)
 			}

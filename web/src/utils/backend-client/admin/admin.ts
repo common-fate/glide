@@ -31,6 +31,7 @@ import type {
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
   ProviderSetupInstructions,
+  CompleteProviderSetupResponseResponse,
   ProviderSetupStepCompleteRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
@@ -691,6 +692,20 @@ export const validateProvidersetup = (
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ProviderSetupResponseResponse>(
       {url: `/api/v1/admin/providersetups/${providersetupId}/validate`, method: 'post'
+    },
+      options);
+    }
+  
+
+/**
+ * If Runtime Configuration is enabled, this will write the Access Provider to the configuration storage and activate it. If Runtime Configuration is disabled, this endpoint does nothing.
+ * @summary Complete a ProviderSetup
+ */
+export const completeProvidersetup = (
+    providersetupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<CompleteProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups/${providersetupId}/complete`, method: 'post'
     },
       options);
     }

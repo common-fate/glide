@@ -256,6 +256,26 @@ func (mr *MockAHClientMockRecorder) PostGrantsWithResponse(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostGrantsWithResponse", reflect.TypeOf((*MockAHClient)(nil).PostGrantsWithResponse), varargs...)
 }
 
+// RefreshAccessProvidersWithResponse mocks base method.
+func (m *MockAHClient) RefreshAccessProvidersWithResponse(arg0 context.Context, arg1 ...types.RequestEditorFn) (*types.RefreshAccessProvidersResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RefreshAccessProvidersWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.RefreshAccessProvidersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RefreshAccessProvidersWithResponse indicates an expected call of RefreshAccessProvidersWithResponse.
+func (mr *MockAHClientMockRecorder) RefreshAccessProvidersWithResponse(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAccessProvidersWithResponse", reflect.TypeOf((*MockAHClient)(nil).RefreshAccessProvidersWithResponse), varargs...)
+}
+
 // ValidateSetupWithBodyWithResponse mocks base method.
 func (m *MockAHClient) ValidateSetupWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...types.RequestEditorFn) (*types.ValidateSetupResponse, error) {
 	m.ctrl.T.Helper()

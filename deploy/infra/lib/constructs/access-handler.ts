@@ -7,12 +7,16 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { Granter } from "./granter";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+
 interface Props {
   appName: string;
   eventBusSourceName: string;
   eventBus: EventBus;
   /** A JSON payload of the access provider configuration. */
   providerConfig: string;
+  managedDeploymentConfig: string;
+  dynamoTable: dynamodb.Table;
 }
 
 export class AccessHandler extends Construct {
@@ -83,6 +87,20 @@ export class AccessHandler extends Construct {
               ],
               resources: ["*"],
             }),
+            // allow access to the managed deployment config
+            new iam.PolicyStatement({
+              actions: ["dynamodb:Query", "dynamodb:GetItem"],
+              resources: [props.dynamoTable.tableArn],
+              conditions: {
+                "ForAllValues:StringLike": {
+                  "dynamodb:LeadingKeys": [
+                    // restrict access to the managed config PKs only.
+                    "MANAGED_DEPLOYMENT_CONFIG#PROVIDERS",
+                    "MANAGED_DEPLOYMENT_CONFIG#NOTIFICATIONS",
+                  ],
+                },
+              },
+            }),
           ],
         }),
       },
@@ -95,6 +113,7 @@ export class AccessHandler extends Construct {
       eventBusSourceName: props.eventBusSourceName,
       providerConfig: props.providerConfig,
       executionRole: this._executionRole,
+      dynamoTable: props.dynamoTable,
     });
 
     const code = lambda.Code.fromAsset(
@@ -110,6 +129,8 @@ export class AccessHandler extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         PROVIDER_CONFIG: props.providerConfig,
+        GRANTED_USE_MANAGED_DEPLOYMENT_CONFIG: props.managedDeploymentConfig,
+        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "access-handler",
