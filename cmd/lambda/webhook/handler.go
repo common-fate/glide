@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/sethvargo/go-envconfig"
@@ -173,36 +173,26 @@ func (s *Server) Routes() http.Handler {
 			apio.Error(ctx, w, err)
 			return
 		}
-		listReqs := storage.ListRequests{}
+		zap.S().Infow("decoded request body", b.Data)
 
-		// verify that the request exists
-		// gr := storage.GetRequest{
-		// 	ID: req,
-		// }
-		_, err = s.db.Query(ctx, &listReqs)
-		// if err == ddb.ErrNoItems {
-		// 	apio.ErrorString(ctx, w, "Granted request not found", http.StatusNotFound)
-		// 	return
-		// }
+		getReq := storage.GetRequest{ID: q.Result.RequestId}
+
+		_, err = s.db.Query(ctx, &getReq)
+
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-		if len(listReqs.Result) == 0 {
-			apio.Error(ctx, w, errors.New("no requests found"))
+
+		e := access.NewRecordedEvent(getReq.Result.ID, &getReq.Result.RequestedBy, time.Now(), b.Data)
+
+		err = s.db.Put(ctx, &e)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
 		}
 
-		// req := listReqs.Result[0]
-
-		//e := access.NewRecordedEvent(req.ID, &req.RequestedBy, time.Now(), b.Data)
-
-		// err = s.db.Put(ctx, &e)
-		// if err != nil {
-		// 	apio.Error(ctx, w, err)
-		// 	return
-		// }
-
-		// zap.S().Infow("recorded event", "request.id", req.ID, "event.id", e.ID)
+		zap.S().Infow("recorded event", "request.id", getReq.Result.ID, "event.id", e.ID, "data: ", b.Data)
 
 		w.WriteHeader(http.StatusCreated)
 	})

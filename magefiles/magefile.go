@@ -18,7 +18,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	"github.com/magefile/mage/target"
 	"go.uber.org/zap"
 )
 
@@ -146,15 +145,15 @@ func (Build) Frontend() error {
 	}
 
 	// don't rebuild unless any React source files have changed
-	changed, err := target.Glob("web/dist", dirs...)
-	if err != nil {
-		return err
-	}
+	// changed, err := target.Glob("web/dist", dirs...)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if !changed {
-		fmt.Println("skipping frontend build: no frontend files changed")
-		return nil
-	}
+	// if !changed {
+	// 	fmt.Println("skipping frontend build: no frontend files changed")
+	// 	return nil
+	// }
 
 	fmt.Println("building frontend...")
 	return sh.Run("pnpm", "--dir", "web", "build")

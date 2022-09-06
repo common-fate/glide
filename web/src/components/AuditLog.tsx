@@ -1,4 +1,13 @@
-import { Box, VStack } from "@chakra-ui/react";
+import {
+  Box,
+  Stack,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Tr,
+  VStack,
+} from "@chakra-ui/react";
 import {
   Accordion,
   AccordionButton,
@@ -20,6 +29,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
   const { data } = useListRequestEvents(request?.id || "");
+  console.log(data);
   const events = useMemo(() => {
     const items: JSX.Element[] = [];
     // use map here to ensure order is preserved
@@ -158,6 +168,43 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
                 {`Request created by `}
                 <UserText userId={e.actor || ""} />
               </Text>
+            }
+            index={i}
+            body={new Date(e.createdAt).toString()}
+          />
+        );
+      } else if (e.recordedEvent) {
+        items.push(
+          <CFTimelineRow
+            arrLength={l}
+            header={
+              <Stack w="100%">
+                <Text>
+                  {`Action performed by `}
+                  <UserText userId={e.actor || ""} />
+                </Text>
+                <TableContainer>
+                  <Table size="sm" variant={"unstyled"}>
+                    <Tbody>
+                      {Object.entries(e.recordedEvent).map(([k, v]) => (
+                        <Tr key={k} color="GrayText">
+                          <Td
+                            w="20%"
+                            borderColor="gray.200"
+                            borderWidth={"1px"}
+                            fontWeight="thin"
+                          >
+                            {k}
+                          </Td>
+                          <Td borderColor="gray.200" borderWidth={"1px"}>
+                            {v}
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </TableContainer>
+              </Stack>
             }
             index={i}
             body={new Date(e.createdAt).toString()}
