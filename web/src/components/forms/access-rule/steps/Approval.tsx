@@ -107,7 +107,6 @@ const ApprovalPreview: React.FC = () => {
   if (!approval?.required) {
     return <Text w="100%">No approval required</Text>;
   }
-  console.log({ approval });
   return (
     <VStack w="100%" align={"flex-start"}>
       <Flex>
