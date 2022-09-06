@@ -69,9 +69,9 @@ const Page = () => {
       ? (completedSteps / stepsOverview.length) * 100
       : 0;
 
-  // if (data.status !== "VALIDATION_SUCEEDED") {
-  //   return <Navigate to={`/admin/providers/setup/${data.id}`} />;
-  // }
+  if (data.status !== "VALIDATION_SUCEEDED") {
+    return <Navigate to={`/admin/providers/setup/${data.id}`} />;
+  }
 
   const gdeployCommand =
     "```\n" +
