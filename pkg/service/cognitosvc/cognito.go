@@ -104,5 +104,12 @@ type UpdateUserGroupsOpts struct {
 
 func (s *Service) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) (*identity.User, error) {
 	// @TODO
+	// check user exists
+	// get users existing groups
+	// remove them from groups that are not in this request
+	// add them to groups in this request
+	// run sync
+	// get user from DB
+	// return user to caller
 	return nil, nil
 }
