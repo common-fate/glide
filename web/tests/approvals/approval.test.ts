@@ -35,7 +35,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.click(testId("r_0"));
 
     await fillFormElementById("reasonField", uniqueReason, page);
-    await page.waitForSelector(testId("rule-name"))
+    await page.waitForSelector(testId("rule-name"));
     await clickFormElementByText("button", "Submit", page);
 
     await page.waitForNavigation();
@@ -85,14 +85,14 @@ test.describe.serial("Approval/Request Workflows", () => {
     let approvedText = await page.locator(testId("reason")).textContent();
     await expect(approvedText).toBe(uniqueReason);
 
-    // Assign the accessInstructionLink for our next test
-    accessInstructionLink =
-      (await page
-        .locator(testId("accessInstructionLink"))
-        .getAttribute("href")) ?? "error";
+    // // Assign the accessInstructionLink for our next test
+    // accessInstructionLink =
+    //   (await page
+    //     .locator(testId("accessInstructionLink"))
+    //     .getAttribute("href")) ?? "error";
 
-    // a preliminary check to make sure the link is valid, tested in next test
-    await expect(accessInstructionLink).toContain("https");
+    // // a preliminary check to make sure the link is valid, tested in next test
+    // await expect(accessInstructionLink).toContain("https");
   });
 
   // @NOTE: commented out for now, will not pass on the CI (unknown reason)

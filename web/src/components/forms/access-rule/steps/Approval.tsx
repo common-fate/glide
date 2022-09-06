@@ -98,7 +98,7 @@ export const ApprovalStep: React.FC = () => {
 };
 
 export const GroupDisplay: React.FC<{ groupId: string }> = ({ groupId }) => {
-  const { data } = useGetGroup(groupId);
+  const { data } = useGetGroup(encodeURIComponent(groupId));
   return <Text>{data?.name}</Text>;
 };
 const ApprovalPreview: React.FC = () => {

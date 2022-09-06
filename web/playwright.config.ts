@@ -8,7 +8,7 @@ const config: PlaywrightTestConfig = {
   globalSetup: "./globalSetup.ts",
   use: {
     trace: "on",
-    baseURL: "https://" + process.env.TESTING_DOMAIN,
+    baseURL: process.env.TESTING_DOMAIN,
   },
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
   projects: [

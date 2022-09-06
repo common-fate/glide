@@ -13,7 +13,7 @@ importers:
       '@types/aws-lambda': ^8.10.95
       '@types/jest': ^26.0.10
       '@types/node': 10.17.27
-      aws-cdk: ^2.20.0
+      aws-cdk: ^2.40.0
       aws-cdk-lib: ^2.20.0
       aws-lambda: ^1.0.7
       aws-sdk: ^2.1160.0
@@ -28,7 +28,7 @@ importers:
     dependencies:
       '@aws-sdk/client-ssm': 3.154.0
       '@types/aws-lambda': 8.10.102
-      aws-cdk: 2.38.1
+      aws-cdk: 2.40.0
       aws-cdk-lib: 2.38.1_constructs@10.1.84
       aws-lambda: 1.0.7
       aws-sdk: 2.1200.0
@@ -6008,6 +6008,14 @@ packages:
 
   /aws-cdk/2.38.1:
     resolution: {integrity: sha512-bIHRCkmbXBmJWw1Gq5UsAUUYKABuE/ah1iAA14hXLS8+9AJlF/Ptn+NsUCt9K5v17cRqtUoeaOAMAPrZs8l+YA==}
+    engines: {node: '>= 14.15.0'}
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: false
+
+  /aws-cdk/2.40.0:
+    resolution: {integrity: sha512-oHacGkLFDELwhpJsZSAhFHWDxIeZW3DgKkwiXlNO81JxNfjcHgPR2rsbh/Gz+n4ErAEzOV6WfuWVMe68zv+iPg==}
     engines: {node: '>= 14.15.0'}
     hasBin: true
     optionalDependencies:

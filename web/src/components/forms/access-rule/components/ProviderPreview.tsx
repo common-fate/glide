@@ -22,7 +22,6 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   target,
 }) => {
   const { data } = useGetProviderArgs(target.provider?.id || "");
-
   if (
     target.provider?.id === undefined ||
     target.provider?.id === "" ||
@@ -37,11 +36,9 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
       const value = target.with[props.name];
       return (
         <VStack w="100%" align={"flex-start"} spacing={0}>
-          <Text>{props.schema.title}:</Text>
-          <CopyableOption
-            label={data?.options.find((d) => d.value === value)?.label ?? ""}
-            value={value}
-          />
+          <Text>
+            {props.schema.title}: {value}
+          </Text>
         </VStack>
       );
     }
