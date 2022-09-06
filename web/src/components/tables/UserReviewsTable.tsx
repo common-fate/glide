@@ -128,7 +128,7 @@ export const UserReviewsTable = () => {
           "data-testid": row.original.reason,
           "alignItems": "center",
           "onClick": () => {
-            navigate({ to: "/requests/" + row.values.id });
+            navigate({ to: "/requests/" + row.original.id });
           },
         }),
       })}
