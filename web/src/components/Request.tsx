@@ -12,6 +12,7 @@ import {
   InputGroup,
   InputRightElement,
   Link,
+  Progress,
   Skeleton,
   SkeletonText,
   Spinner,
@@ -26,7 +27,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
@@ -36,6 +37,7 @@ import {
   useGetAccessInstructions,
   useGetAccessToken,
   useGetUser,
+  useUserGetRequest,
 } from "../utils/backend-client/end-user/end-user";
 import {
   GrantStatus,
@@ -271,8 +273,38 @@ export const RequestAccessInstructions: React.FC = () => {
     request?.grant != null ? request.id : ""
   );
 
+  const [refreshInterval, setRefreshInterval] = useState(0);
+  const { data: reqData } = useUserGetRequest(
+    request?.grant != null ? request.id : "",
+
+    {
+      swr: {
+        refreshInterval: refreshInterval,
+      },
+    }
+  );
+
+  useEffect(() => {
+    if (reqData?.grant?.status !== "ACTIVE") {
+      setRefreshInterval(1000);
+    } else {
+      setRefreshInterval(0);
+    }
+  }, [reqData]);
+
   if (!data || !data.instructions) {
     return null;
+  }
+
+  if (reqData?.grant?.status === "PENDING") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium" mb={2}>
+          Granted is provisioning your access, it'll be done soon!
+        </Box>
+        <Progress size="xs" isIndeterminate />
+      </Stack>
+    );
   }
 
   return (
@@ -299,15 +331,10 @@ export const RequestAccessInstructions: React.FC = () => {
   );
 };
 
-export const RequestAccessToken = () => {
-  const { request } = useContext(Context);
-
-  let reqId = "";
-
-  if (request) {
-    reqId = request.id;
-  }
+export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
   const { data } = useGetAccessToken(reqId);
+
+  const { data: reqData, mutate } = useUserGetRequest(reqId);
 
   // const [token, setToken] = useState<string>();
 
@@ -326,21 +353,25 @@ export const RequestAccessToken = () => {
     });
   };
 
-  return (
-    <Stack>
-      <Box textStyle="Body/Medium" mb={2}>
-        Access Token
-      </Box>
-      <InputGroup size="md" bg="white" maxW="400px">
-        <Input pr="4.5rem" type={"password"} value={data} readOnly />
-        <InputRightElement width="4.5rem" pr={1}>
-          <Button h="1.75rem" size="sm" onClick={handleClick}>
-            {"Copy"}
-          </Button>
-        </InputRightElement>
-      </InputGroup>
-    </Stack>
-  );
+  if (reqData?.grant?.status === "ACTIVE") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium" mb={2}>
+          Access Token
+        </Box>
+        <InputGroup size="md" bg="white" maxW="400px">
+          <Input pr="4.5rem" type={"password"} value={data} readOnly />
+          <InputRightElement width="4.5rem" pr={1}>
+            <Button h="1.75rem" size="sm" onClick={handleClick}>
+              {"Copy"}
+            </Button>
+          </InputRightElement>
+        </InputGroup>
+      </Stack>
+    );
+  } else {
+    return <></>;
+  }
 };
 
 export const RequestTime: React.FC = () => {

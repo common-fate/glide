@@ -54,9 +54,10 @@ const Home = () => {
       <RequestDisplay request={data}>
         <RequestDetails>
           <RequestTime />
+
           {user.user?.id === data?.requestor && <RequestAccessInstructions />}
-          {user.user?.id === data?.requestor && data?.status === "APPROVED" && (
-            <RequestAccessToken />
+          {user.user?.id === data?.requestor && (
+            <RequestAccessToken reqId={data ? data.id : ""} />
           )}
           <RequestCancelButton />
           <RequestRevoke onSubmitRevoke={mutate} />

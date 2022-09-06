@@ -412,12 +412,13 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
 	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, grantId)
-	i += "```\n"
-
-	i += "Once you have assumed the role, access the Flask shell session using the following command:\n\n"
-	i += "```\n"
 	i += fmt.Sprintf("aws ecs execute-command --cluster %s --task %s --container %s --interactive --command 'flask shell'\n", p.ecsClusterARN.Get(), id, "DefaultContainer")
 	i += "```\n"
+
+	// i += "Once you have assumed the role, access the Flask shell session using the following command:\n\n"
+	// i += "```\n"
+	// i += fmt.Sprintf("aws ecs execute-command --cluster %s --task %s --container %s --interactive --command 'flask shell'\n", p.ecsClusterARN.Get(), id, "DefaultContainer")
+	// i += "```\n"
 	return i, nil
 }
 

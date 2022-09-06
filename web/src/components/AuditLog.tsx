@@ -28,8 +28,11 @@ import { CFTimelineRow } from "./CFTimelineRow";
 export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
-  const { data } = useListRequestEvents(request?.id || "");
-  console.log(data);
+  const { data } = useListRequestEvents(request?.id || "", {
+    swr: {
+      refreshInterval: 5000,
+    },
+  });
   const events = useMemo(() => {
     const items: JSX.Element[] = [];
     // use map here to ensure order is preserved
