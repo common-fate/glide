@@ -2014,6 +2014,8 @@ components:
                 minLength: 1
                 pattern: "[^a-zA-Z0-9_.-]"
                 maxLength: 2048
+              description:
+                type: string
             required:
               - name
 tags:

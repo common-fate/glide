@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/benbjohnson/clock"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
@@ -13,9 +14,11 @@ import (
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
+	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
@@ -61,9 +64,7 @@ type API struct {
 	Granter             accesssvc.Granter
 	Cache               CacheService
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito           CognitoService
-	CognitoUserPoolID string
-	IdentitySyncer    auth.IdentitySyncer
+	Cognito CognitoService
 }
 
 type CognitoService interface {
@@ -111,11 +112,15 @@ type Opts struct {
 	AccessHandlerClient           ahtypes.ClientWithResponsesInterface
 	ProviderMetadata              deploy.ProviderMap
 	EventSender                   *gevent.Sender
+	IdentitySyncer                auth.IdentitySyncer
 	DynamoTable                   string
 	PaginationKMSKeyARN           string
 	AdminGroup                    string
 	AccessHandlerExecutionRoleARN string
 	DeploymentSuffix              string
+	CognitoUserPoolID             string
+	IDPType                       string
+	AdminGroupID                  string
 }
 
 // New creates a new API.
@@ -180,6 +185,21 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Clock:    clk,
 			EventBus: opts.EventSender,
 		},
+	}
+	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// only initialise this if cognito is the IDP
+	if opts.IDPType == identitysync.IDPTypeCognito {
+		a.Cognito = &cognitosvc.Service{
+			Clock:             clk,
+			DB:                db,
+			Syncer:            opts.IdentitySyncer,
+			Cognito:           cognitoidentityprovider.NewFromConfig(cfg),
+			CognitoUserPoolID: opts.CognitoUserPoolID,
+			AdminGroupID:      opts.AdminGroupID,
+		}
 	}
 
 	return &a, nil

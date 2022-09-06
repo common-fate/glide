@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -80,7 +81,8 @@ func (a *API) PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
-		Name: createGroupRequest.Name,
+		Name:        createGroupRequest.Name,
+		Description: aws.ToString(createGroupRequest.Description),
 	})
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
