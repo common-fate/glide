@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )
@@ -41,7 +42,7 @@ var CreateCommand = cli.Command{
 		ac := deploy.EnvAppConfig{}
 		pc, err := ac.ReadProviders(ctx)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "reading providers")
 		}
 
 		// configure the generator if it supports it
@@ -49,7 +50,7 @@ var CreateCommand = cli.Command{
 			p := pc[name]
 			err = configer.Config().Load(ctx, &gconfig.MapLoader{Values: p.With})
 			if err != nil {
-				return err
+				return errors.Wrap(err, "loading config")
 			}
 		}
 
