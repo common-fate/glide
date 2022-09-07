@@ -55,12 +55,12 @@ func TestIntegration(t *testing.T) {
 		},
 	}
 	pc := os.Getenv("PROVIDER_CONFIG")
-	var configMap map[string]json.RawMessage
+	var configMap map[string]map[string]json.RawMessage
 	err = json.Unmarshal([]byte(pc), &configMap)
 	if err != nil {
 		t.Fatal(err)
 	}
-	integration.RunTests(t, ctx, "okta", &Provider{}, testcases, integration.WithProviderConfig(configMap["okta"]))
+	integration.RunTests(t, ctx, "okta", &Provider{}, testcases, integration.WithProviderConfig(configMap["okta"]["with"]))
 }
 
 func TestArgSchema(t *testing.T) {
