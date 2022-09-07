@@ -9,6 +9,7 @@ import {
   HStack,
   IconButton,
   Link,
+  Progress,
   Skeleton,
   SkeletonText,
   Stack,
@@ -22,7 +23,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
@@ -31,6 +32,7 @@ import {
   revokeRequest,
   useGetAccessInstructions,
   useGetUser,
+  useUserGetRequest,
 } from "../utils/backend-client/end-user/end-user";
 import {
   GrantStatus,
@@ -268,30 +270,63 @@ export const RequestAccessInstructions: React.FC = () => {
     request?.grant != null ? request.id : ""
   );
 
+  const [refreshInterval, setRefreshInterval] = useState(0);
+  const { data: reqData } = useUserGetRequest(
+    request?.grant != null ? request.id : "",
+
+    {
+      swr: {
+        refreshInterval: refreshInterval,
+      },
+    }
+  );
+
+  useEffect(() => {
+    if (reqData?.grant?.status == "PENDING") {
+      setRefreshInterval(5000);
+    } else {
+      setRefreshInterval(0);
+    }
+  }, [reqData]);
+
   if (!data || !data.instructions) {
     return null;
   }
 
-  return (
-    <Stack>
-      <Box textStyle="Body/Medium">Access Instructions</Box>
-      return (
-      <ReactMarkdown
-        components={{
-          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
-          p: (props) => (
-            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
-              {props.children}
-            </Text>
-          ),
-          code: CodeInstruction as any,
-        }}
-      >
-        {data.instructions}
-      </ReactMarkdown>
-      );
-    </Stack>
-  );
+  if (reqData?.grant?.status === "PENDING") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Text textStyle="Body/small" color="neutrals.600">
+          Your access is still being provisioned, when its ready, you will find
+          your access instuctions here.
+        </Text>
+        <Progress size="xs" isIndeterminate hasStripe />
+      </Stack>
+    );
+  }
+  if (reqData?.grant?.status === "ACTIVE") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <ReactMarkdown
+          components={{
+            a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
+            p: (props) => (
+              <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
+                {props.children}
+              </Text>
+            ),
+            code: CodeInstruction,
+          }}
+        >
+          {data.instructions}
+        </ReactMarkdown>
+      </Stack>
+    );
+  }
+  // Don't render anything
+  return null;
 };
 
 export const RequestTime: React.FC = () => {
