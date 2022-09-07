@@ -317,7 +317,7 @@ export const RequestAccessInstructions: React.FC = () => {
                 {props.children}
               </Text>
             ),
-            code: CodeInstruction as any,
+            code: CodeInstruction,
           }}
         >
           {data.instructions}
