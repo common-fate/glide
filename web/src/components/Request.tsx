@@ -282,7 +282,7 @@ export const RequestAccessInstructions: React.FC = () => {
   );
 
   useEffect(() => {
-    if (reqData?.grant?.status !== "ACTIVE") {
+    if (reqData?.grant?.status == "PENDING") {
       setRefreshInterval(1000);
     } else {
       setRefreshInterval(0);
@@ -296,34 +296,37 @@ export const RequestAccessInstructions: React.FC = () => {
   if (reqData?.grant?.status === "PENDING") {
     return (
       <Stack>
-        <Box textStyle="Body/Medium" mb={2}>
-          Granted is provisioning your access, it'll be done soon!
-        </Box>
-        <Progress size="xs" isIndeterminate />
+        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Text textStyle="Body/small" color="neutrals.600">
+          Your access is still being provisioned, when its ready, you will find
+          your access instuctions here.
+        </Text>
+        <Progress size="xs" isIndeterminate hasStripe />
       </Stack>
     );
   }
-
-  return (
-    <Stack>
-      <Box textStyle="Body/Medium">Access Instructions</Box>
-      return (
-      <ReactMarkdown
-        components={{
-          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
-          p: (props) => (
-            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
-              {props.children}
-            </Text>
-          ),
-          code: CodeInstruction as any,
-        }}
-      >
-        {data.instructions}
-      </ReactMarkdown>
-      );
-    </Stack>
-  );
+  if (reqData?.grant?.status === "ACTIVE") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <ReactMarkdown
+          components={{
+            a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
+            p: (props) => (
+              <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
+                {props.children}
+              </Text>
+            ),
+            code: CodeInstruction as any,
+          }}
+        >
+          {data.instructions}
+        </ReactMarkdown>
+      </Stack>
+    );
+  }
+  // Don't render anything
+  return null;
 };
 
 export const RequestTime: React.FC = () => {
