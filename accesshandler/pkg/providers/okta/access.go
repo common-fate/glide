@@ -3,8 +3,10 @@ package okta
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/okta/okta-sdk-golang/v2/okta"
+	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +23,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	}
 	log := zap.S().With("args", a)
 	log.Info("getting okta user")
-	user, _, err := p.client.User.GetUser(ctx, subject)
+	user, err := p.getUserByEmail(ctx, subject)
 	if err != nil {
 		return err
 	}
@@ -39,7 +41,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	}
 	log := zap.S().With("args", a)
 	log.Info("getting okta user")
-	user, _, err := p.client.User.GetUser(ctx, subject)
+	user, err := p.getUserByEmail(ctx, subject)
 	if err != nil {
 		return err
 	}
@@ -63,6 +65,19 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 
 	exists := userExists(users, subject)
 	return exists, nil
+}
+
+func (p *Provider) getUserByEmail(ctx context.Context, email string) (*okta.User, error) {
+	users, _, err := p.client.User.ListUsers(ctx, &query.Params{
+		Search: fmt.Sprintf("profile.email = %s", email),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(users) != 1 {
+		return nil, fmt.Errorf("expected to find 1 user for email %s but got %d", email, len(users))
+	}
+	return users[0], nil
 }
 
 func userExists(users []*okta.User, subject string) bool {
