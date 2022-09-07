@@ -107,7 +107,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
-		log.Error("granting error: %s", err.Error())
+		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {

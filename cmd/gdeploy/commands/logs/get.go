@@ -25,6 +25,7 @@ var getCommand = cli.Command{
 		&cli.StringSliceFlag{Name: "service", Aliases: []string{"sr"}, Usage: "The service to watch logs for. Services: " + strings.Join(ServiceNames, ", "), Required: false},
 		&cli.StringFlag{Name: "start", Usage: "Start time", Value: "-5m", Required: false},
 		&cli.StringFlag{Name: "end", Usage: "End time", Value: "now", Required: false},
+		&cli.StringFlag{Name: "filter", Usage: "Filter logs using a keyword, see the AWS documentation for details and syntax https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html"},
 	},
 	Description: "Get logs from CloudWatch",
 	Action: func(c *cli.Context) error {
@@ -96,7 +97,7 @@ var getCommand = cli.Command{
 					}
 				}
 				if hasLogs {
-					getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region)
+					getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region, c.String("filter"))
 				} else {
 					clio.Warn("No logs found for %s, the service may not have run yet. Log group id: %s", s, lg)
 				}
@@ -133,11 +134,12 @@ type GetEventsOpts struct {
 	End   string
 }
 
-func getEvents(opts GetEventsOpts, region string) {
+func getEvents(opts GetEventsOpts, region string, filter string) {
 	sawcfg := sawconfig.Configuration{
-		Group: opts.Group,
-		Start: opts.Start,
-		End:   opts.End,
+		Group:  opts.Group,
+		Start:  opts.Start,
+		End:    opts.End,
+		Filter: filter,
 	}
 
 	outputcfg := sawconfig.OutputConfiguration{
