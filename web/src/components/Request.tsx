@@ -283,7 +283,7 @@ export const RequestAccessInstructions: React.FC = () => {
 
   useEffect(() => {
     if (reqData?.grant?.status == "PENDING") {
-      setRefreshInterval(1000);
+      setRefreshInterval(5000);
     } else {
       setRefreshInterval(0);
     }
