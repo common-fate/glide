@@ -69,7 +69,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 
 func (p *Provider) getUserByEmail(ctx context.Context, email string) (*okta.User, error) {
 	users, _, err := p.client.User.ListUsers(ctx, &query.Params{
-		Search: fmt.Sprintf("profile.email = \"%s\"", email),
+		Search: fmt.Sprintf("profile.email eq \"%s\"", email),
 	})
 	if err != nil {
 		return nil, err
