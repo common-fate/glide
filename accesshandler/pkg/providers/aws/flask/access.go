@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -260,10 +261,8 @@ func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionFamily st
 		return err
 	}
 
-	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskDefinitionFamily)
-	if err != nil {
-		return err
-	}
+	//TODO: Filter cloudtrail on sessions associcated with the role ARN which includes the request id and terminate all of them
+	taskARN := ""
 
 	sessionId := ""
 	for _, e := range out.Events {
@@ -398,6 +397,14 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	}
 
 	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, a.TaskDefinitionFamily)
+	//let the user know that for the family we didnt find any tasks to give access to
+	if err == errTaskNotFound {
+		msg := fmt.Sprintf(`We couldn't find a running task for the task family %s.
+
+Start a new task in your ECS cluster then refresh this page to get access.
+`, a.TaskDefinitionFamily)
+		return msg, nil
+	}
 	if err != nil {
 		return "", err
 	}
@@ -414,11 +421,6 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, grantId)
 	i += fmt.Sprintf("aws ecs execute-command --cluster %s --task %s --container %s --interactive --command 'flask shell'\n", p.ecsClusterARN.Get(), id, "DefaultContainer")
 	i += "```\n"
-
-	// i += "Once you have assumed the role, access the Flask shell session using the following command:\n\n"
-	// i += "```\n"
-	// i += fmt.Sprintf("aws ecs execute-command --cluster %s --task %s --container %s --interactive --command 'flask shell'\n", p.ecsClusterARN.Get(), id, "DefaultContainer")
-	// i += "```\n"
 	return i, nil
 }
 
@@ -437,40 +439,48 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 
 	hasMore := true
 	var nextToken *string
-	log.Info("getting taskARN from task definition", TaskDefinitionFamily)
+	log.Info("getting taskARN from task definition family", TaskDefinitionFamily)
 
+	//TODO: paginate all the list calls
 	for hasMore {
-
-		tasks, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get()), NextToken: nextToken})
+		runningTasks, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get()), Family: &TaskDefinitionFamily, NextToken: nextToken})
 		if err != nil {
 			return "", err
 		}
-
-		describedTasks, err := p.ecsClient.DescribeTasks(ctx, &ecs.DescribeTasksInput{
-			Tasks:   tasks.TaskArns,
-			Cluster: aws.String(p.ecsClusterARN.Get()),
-		})
+		describedTasks, err := p.ecsClient.DescribeTasks(ctx, &ecs.DescribeTasksInput{Cluster: aws.String(p.ecsClusterARN.Get()), Tasks: runningTasks.TaskArns})
 		if err != nil {
 			return "", err
 		}
 
 		//loop through all the tasks and find the latest version of the task definition
-
-		version := ""
+		var revision int
+		var latestRevision string
 		for _, t := range describedTasks.Tasks {
-
-			//if the task defn start with the family rule
-			if strings.HasPrefix(*t.TaskDefinitionArn, TaskDefinitionFamily) {
-				version = strings.Split(*t.TaskDefinitionArn, ":")[1]
-				//return *t.TaskArn, nil
+			if *t.LastStatus != "RUNNING" {
+				continue
 			}
+
+			tempVersion, err := strconv.Atoi(strings.Split(*t.TaskDefinitionArn, ":")[6])
+			if err != nil {
+				return "", err
+			}
+			if tempVersion > revision {
+				revision = tempVersion
+				latestRevision = *t.TaskArn
+			}
+			//return *t.TaskArn, nil
+			//exit the pagination
+			nextToken = runningTasks.NextToken
+			hasMore = nextToken != nil
 		}
-		//exit the pagination
-		nextToken = tasks.NextToken
-		hasMore = nextToken != nil
+
+		return latestRevision, nil
 
 	}
-	return "", nil
+
+	//if nothing is found then we want to return an error
+	//will inform the user in the instructions of the not found error
+	return "", errTaskNotFound
 
 }
 
@@ -478,19 +488,17 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskdefFamily string) (res *ssoadmin.CreateAccountAssignmentOutput, err error) {
 	//create  policy allowing for execute commands for the ecs task
 
-	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskdefFamily)
-	if err != nil {
-		return nil, err
-	}
+	clusterName := strings.Split(p.ecsClusterARN.Get(), "/")[1]
 
-	taskId := strings.Split(taskARN, "/")[2]
-	taskWildcard := strings.Replace(taskARN, taskId, "*", -1)
+	taskWildcard := fmt.Sprintf("arn:aws:ecs:%s:%s:task/%s/*", p.ecsRegion, p.awsAccountID, clusterName)
+	//task family arn building
 
+	tankFamilyARN := fmt.Sprintf("arn:aws:ecs:%s:%s:task-definition/%s:*", p.ecsRegion, p.awsAccountID, taskdefFamily)
 	//policy created:
 	//Resources:
 	// - ecs cluster arn
 	// - ecs task wildcard
-	// - ecs task definition resource
+	// - ecs task definition wildcard for family
 	ecsPolicyDocument := policy.Policy{
 		Version: "2012-10-17",
 		Statements: []policy.Statement{
@@ -500,8 +508,8 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 					"ecs:ExecuteCommand",
 					"ecs:DescribeTasks",
 				},
-				//TODO: update this to be the task def lookup
-				Resource: []string{taskWildcard, p.ecsClusterARN.Get(), taskdefFamily},
+
+				Resource: []string{taskWildcard, p.ecsClusterARN.Get(), tankFamilyARN},
 			},
 		},
 	}

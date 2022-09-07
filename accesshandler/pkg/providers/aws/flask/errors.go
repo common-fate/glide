@@ -1,6 +1,9 @@
 package flask
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type PermissionSetNotFoundErr struct {
 	PermissionSet string
@@ -33,3 +36,5 @@ type AccountNotFoundError struct {
 func (e *AccountNotFoundError) Error() string {
 	return fmt.Sprintf("AWS account %s does not exist in your organization", e.AccountID)
 }
+
+var errTaskNotFound = errors.New("no task found for family")
