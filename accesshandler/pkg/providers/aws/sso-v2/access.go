@@ -79,7 +79,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	}
 	// if the assignment was not successful, return the error and reason
 	if statusRes.AccountAssignmentCreationStatus.FailureReason != nil {
-		return fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
+		return fmt.Errorf("failed creating account assignment: %s", *statusRes.AccountAssignmentCreationStatus.FailureReason)
 	}
 
 	return nil

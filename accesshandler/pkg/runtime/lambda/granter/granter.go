@@ -81,17 +81,33 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	switch in.Action {
 	case ACTIVATE:
 		log.Infow("activating grant")
-		err = prov.Provider.Grant(ctx, string(grant.Subject), args, grant.ID)
+		err = func() (err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Errorw("recovered panic while granting access", "error", r, "provider", prov)
+					err = fmt.Errorf("internal server error with provider: %s  version: %s", prov.Type, prov.Version)
+				}
+			}()
+			return prov.Provider.Grant(ctx, string(grant.Subject), args, grant.ID)
+		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
-		err = prov.Provider.Revoke(ctx, string(grant.Subject), args, grant.ID)
+		err = func() (err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Error("recovered panic while deactivating access", "error", r, "provider", prov)
+					err = fmt.Errorf("internal server error with provider: %s  version: %s", prov.Type, prov.Version)
+				}
+			}()
+			return prov.Provider.Revoke(ctx, string(grant.Subject), args, grant.ID)
+		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
 	}
 
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
-		log.Error("granting error: %s", err.Error())
+		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
