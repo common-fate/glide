@@ -11,7 +11,7 @@ import (
 // Options list the argument options for the provider
 func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
 	switch arg {
-	case "taskdefinitionARN":
+	case "taskdefinitionfamily":
 		opts := []types.Option{}
 		hasMore := true
 		var nextToken *string
@@ -23,15 +23,21 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 				return []types.Option{}, err
 			}
 
-			describedTasks, err := p.ecsClient.DescribeTasks(ctx, &ecs.DescribeTasksInput{
-				Tasks:   tasks.TaskArns,
-				Cluster: aws.String(p.ecsClusterARN.Get()),
-			})
-			if err != nil {
-				return []types.Option{}, err
-			}
-			for _, t := range describedTasks.Tasks {
-				opts = append(opts, types.Option{Label: *t.TaskDefinitionArn, Value: *t.TaskDefinitionArn})
+			for _, t := range tasks.TaskArns {
+				describedTask, err := p.ecsClient.DescribeTasks(ctx, &ecs.DescribeTasksInput{
+					Tasks:   []string{t},
+					Cluster: aws.String(p.ecsClusterARN.Get()),
+				})
+				if err != nil {
+					return []types.Option{}, err
+				}
+				describedTasksDefn, err := p.ecsClient.DescribeTaskDefinition(ctx, &ecs.DescribeTaskDefinitionInput{
+					TaskDefinition: describedTask.Tasks[0].TaskDefinitionArn,
+				})
+				if err != nil {
+					return []types.Option{}, err
+				}
+				opts = append(opts, types.Option{Label: *describedTasksDefn.TaskDefinition.Family, Value: *describedTasksDefn.TaskDefinition.Family})
 			}
 			//exit the pagination
 			nextToken = tasks.NextToken

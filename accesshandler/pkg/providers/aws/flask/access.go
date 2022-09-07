@@ -24,7 +24,7 @@ import (
 )
 
 type Args struct {
-	TaskDefinitionARN string `json:"taskdefinitionARN" jsonschema:"title=TaskDefinitionARN"`
+	TaskDefinitionFamily string `json:"taskdefinitionfamily" jsonschema:"title=TaskDefinitionFamily"`
 }
 
 // Auto-gend since aws sdk wont return the complete type
@@ -100,7 +100,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 		return err
 	}
 
-	res, err := p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskDefinitionARN)
+	res, err := p.createPermissionSetAndAssignment(ctx, subject, permissionSetName, a.TaskDefinitionFamily)
 	if err != nil {
 		return err
 	}
@@ -239,14 +239,14 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 		return err
 	}
 	//if successfully deletion policy and account assignment, terminate session
-	err = p.TerminateSession(ctx, a.TaskDefinitionARN)
+	err = p.TerminateSession(ctx, a.TaskDefinitionFamily)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN string) error {
+func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionFamily string) error {
 
 	atrs := []ctTypes.LookupAttribute{}
 
@@ -260,7 +260,7 @@ func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionARN strin
 		return err
 	}
 
-	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskDefinitionARN)
+	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskDefinitionFamily)
 	if err != nil {
 		return err
 	}
@@ -397,7 +397,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 		return "", err
 	}
 
-	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, a.TaskDefinitionARN)
+	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, a.TaskDefinitionFamily)
 	if err != nil {
 		return "", err
 	}
@@ -433,11 +433,11 @@ func permissionSetNameFromGrantID(grantID string) string {
 }
 
 // Looks through all of the tasks for a ecs cluster and matches the task definition to find the task ARN value
-func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinitionARN string) (string, error) {
+func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinitionFamily string) (string, error) {
 
 	hasMore := true
 	var nextToken *string
-	log.Info("getting taskARN from task definition", TaskDefinitionARN)
+	log.Info("getting taskARN from task definition", TaskDefinitionFamily)
 
 	for hasMore {
 
@@ -454,10 +454,15 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 			return "", err
 		}
 
+		//loop through all the tasks and find the latest version of the task definition
+
+		version := ""
 		for _, t := range describedTasks.Tasks {
 
-			if *t.TaskDefinitionArn == TaskDefinitionARN {
-				return *t.TaskArn, nil
+			//if the task defn start with the family rule
+			if strings.HasPrefix(*t.TaskDefinitionArn, TaskDefinitionFamily) {
+				version = strings.Split(*t.TaskDefinitionArn, ":")[1]
+				//return *t.TaskArn, nil
 			}
 		}
 		//exit the pagination
@@ -470,10 +475,10 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 }
 
 // createPermissionSetAndAssignment creates a permission set with a name = grantID
-func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskdefARN string) (res *ssoadmin.CreateAccountAssignmentOutput, err error) {
+func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject string, permissionSetName string, taskdefFamily string) (res *ssoadmin.CreateAccountAssignmentOutput, err error) {
 	//create  policy allowing for execute commands for the ecs task
 
-	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskdefARN)
+	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, taskdefFamily)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +500,8 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 					"ecs:ExecuteCommand",
 					"ecs:DescribeTasks",
 				},
-				Resource: []string{taskWildcard, p.ecsClusterARN.Get(), taskdefARN},
+				//TODO: update this to be the task def lookup
+				Resource: []string{taskWildcard, p.ecsClusterARN.Get(), taskdefFamily},
 			},
 		},
 	}
