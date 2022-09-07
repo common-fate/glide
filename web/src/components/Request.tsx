@@ -9,6 +9,7 @@ import {
   HStack,
   IconButton,
   Link,
+  Progress,
   Skeleton,
   SkeletonText,
   Stack,
@@ -22,7 +23,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import { intervalToDuration } from "date-fns";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
@@ -31,6 +32,7 @@ import {
   revokeRequest,
   useGetAccessInstructions,
   useGetUser,
+  useUserGetRequest,
 } from "../utils/backend-client/end-user/end-user";
 import {
   GrantStatus,
@@ -268,8 +270,38 @@ export const RequestAccessInstructions: React.FC = () => {
     request?.grant != null ? request.id : ""
   );
 
+  const [refreshInterval, setRefreshInterval] = useState(0);
+  const { data: reqData } = useUserGetRequest(
+    request?.grant != null ? request.id : "",
+
+    {
+      swr: {
+        refreshInterval: refreshInterval,
+      },
+    }
+  );
+
+  useEffect(() => {
+    if (reqData?.grant?.status !== "ACTIVE") {
+      setRefreshInterval(1000);
+    } else {
+      setRefreshInterval(0);
+    }
+  }, [reqData]);
+
   if (!data || !data.instructions) {
     return null;
+  }
+
+  if (reqData?.grant?.status === "PENDING") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium" mb={2}>
+          Granted is provisioning your access, it'll be done soon!
+        </Box>
+        <Progress size="xs" isIndeterminate />
+      </Stack>
+    );
   }
 
   return (
