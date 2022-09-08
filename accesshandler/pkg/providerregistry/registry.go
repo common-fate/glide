@@ -133,7 +133,7 @@ func (r ProviderRegistry) GetLatestByType(providerType string) (latestVersion st
 	return latestVersion, &pv, nil
 }
 
-func parseUses(uses string) (providerType string, version string, err error) {
+func ParseUses(uses string) (providerType string, version string, err error) {
 	// 'uses' is a field like "commonfate/testvault@v1".
 	// we need to split it into a type ("commonfate/testvault")
 	// and a version ("v1")
