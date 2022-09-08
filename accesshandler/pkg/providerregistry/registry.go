@@ -89,7 +89,7 @@ func Registry() ProviderRegistry {
 
 // Lookup a provider by the 'uses' string.
 func (r ProviderRegistry) LookupByUses(uses string) (*RegisteredProvider, error) {
-	ptype, version, err := parseUses(uses)
+	ptype, version, err := ParseUses(uses)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (r ProviderRegistry) GetLatestByType(providerType string) (latestVersion st
 	return latestVersion, &pv, nil
 }
 
-func parseUses(uses string) (providerType string, version string, err error) {
+func ParseUses(uses string) (providerType string, version string, err error) {
 	// 'uses' is a field like "commonfate/testvault@v1".
 	// we need to split it into a type ("commonfate/testvault")
 	// and a version ("v1")
