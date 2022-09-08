@@ -234,12 +234,12 @@ func (c *CognitoSync) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsO
 	remove := make(map[string]bool)
 	add := make(map[string]bool)
 	for k := range inMap {
-		if existingMap[k] {
+		if !existingMap[k] {
 			add[k] = true
 		}
 	}
 	for k := range existingMap {
-		if inMap[k] {
+		if !inMap[k] {
 			remove[k] = true
 		}
 	}

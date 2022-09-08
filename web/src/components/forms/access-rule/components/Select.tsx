@@ -55,6 +55,7 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
 };
 type MultiSelectRules = Partial<{
   required: boolean;
+  minLength: number;
 }>;
 interface MultiSelectProps extends SelectProps {
   options: {
@@ -93,7 +94,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   return (
     <Controller
       control={control}
-      rules={{ required: true, minLength: 1, ...rules }}
+      rules={{ ...rules }}
       defaultValue={[]}
       name={fieldName}
       render={({ field: { onChange, ref, value } }) => {
@@ -155,11 +156,10 @@ export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
   return (
     <Controller
       control={control}
-      rules={{ required: true, minLength: 1, ...rules }}
+      rules={{ ...rules }}
       defaultValue={[]}
       name={fieldName}
       render={({ field: { onChange, ref, value } }) => {
-        console.log({ value });
         return (
           <Select
             id={id}

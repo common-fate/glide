@@ -69,6 +69,8 @@ func (u *User) ToAPI() types.User {
 		Status:    types.IdpStatus(u.Status),
 		Email:     u.Email,
 		UpdatedAt: u.UpdatedAt,
+		// ensures that this is never nil
+		Groups: append([]string{}, u.Groups...),
 	}
 
 	return req

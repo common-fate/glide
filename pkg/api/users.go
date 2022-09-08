@@ -61,7 +61,7 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result, http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Get details for the current user

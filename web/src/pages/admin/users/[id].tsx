@@ -58,7 +58,7 @@ const Index = () => {
   const {
     params: { id: userId },
   } = useMatch();
-  const { data: user, isValidating, error } = useGetUser(userId);
+  const { data: user, isValidating, error, mutate } = useGetUser(userId);
 
   const Content = () => {
     if (user?.id === undefined) {
@@ -78,14 +78,14 @@ const Index = () => {
 
     return (
       <>
-        <VStack align={"left"} spacing={1}>
+        <VStack align={"left"} spacing={1} flex={1} mr={4}>
           <Text textStyle="Body/Medium">Name</Text>
           <Text textStyle="Body/Small">{`${user.firstName} ${user.lastName}`}</Text>
           <Text textStyle="Body/Medium">Email</Text>
           <Text textStyle="Body/Small">{user.email}</Text>
-          <Groups user={user} />
+          <Groups user={user} onSubmit={(u) => mutate(u)} />
         </VStack>
-        <Spacer />
+
         <Avatar
           src={user.picture}
           name={
@@ -136,8 +136,9 @@ export default Index;
 
 interface GroupsProps {
   user: User;
+  onSubmit?: (u: User) => void;
 }
-const Groups: React.FC<GroupsProps> = ({ user }) => {
+const Groups: React.FC<GroupsProps> = ({ user, onSubmit }) => {
   const methods = useForm<PostApiV1AdminUsersUserIdBody>({});
   const toast = useToast();
   const { onOpen, onClose, isOpen } = useDisclosure();
@@ -149,10 +150,9 @@ const Groups: React.FC<GroupsProps> = ({ user }) => {
     }
   }, [isOpen]);
 
-  const onSubmit = async (data: PostApiV1AdminUsersUserIdBody) => {
-    console.log({ data });
+  const handleSubmit = async (data: PostApiV1AdminUsersUserIdBody) => {
     try {
-      await postApiV1AdminUsersUserId(user.id, data);
+      const u = await postApiV1AdminUsersUserId(user.id, data);
       toast({
         title: "Updated Groups",
         status: "success",
@@ -160,6 +160,7 @@ const Groups: React.FC<GroupsProps> = ({ user }) => {
         duration: 2200,
         isClosable: true,
       });
+      onSubmit?.(u);
       onClose();
     } catch (err) {
       let description: string | undefined;
@@ -178,15 +179,13 @@ const Groups: React.FC<GroupsProps> = ({ user }) => {
       });
     }
   };
-  // make it an editable with a form component when editing
-  //
-  //
+
   if (isOpen) {
     return (
       <FormProvider {...methods}>
         <VStack
           as="form"
-          onSubmit={methods.handleSubmit(onSubmit)}
+          onSubmit={methods.handleSubmit(handleSubmit)}
           align={"left"}
           spacing={1}
         >
@@ -195,6 +194,7 @@ const Groups: React.FC<GroupsProps> = ({ user }) => {
               <HStack>
                 <Text textStyle="Body/Medium">Groups</Text>
                 <IconButton
+                  isLoading={methods.formState.isSubmitting}
                   size="sm"
                   variant="ghost"
                   icon={<CheckIcon />}
@@ -202,6 +202,7 @@ const Groups: React.FC<GroupsProps> = ({ user }) => {
                   type="submit"
                 />
                 <IconButton
+                  isDisabled={methods.formState.isSubmitting}
                   size="sm"
                   variant="ghost"
                   icon={<CloseIcon />}
@@ -210,7 +211,12 @@ const Groups: React.FC<GroupsProps> = ({ user }) => {
                 />
               </HStack>
             </FormLabel>
-            <GroupSelect fieldName="groups" />
+            <Flex flex={1}>
+              <GroupSelect
+                fieldName="groups"
+                isDisabled={methods.formState.isSubmitting}
+              />
+            </Flex>
           </FormControl>
         </VStack>
       </FormProvider>
