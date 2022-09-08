@@ -19,13 +19,17 @@ import {
 import axios from "axios";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { postApiV1AdminUsers } from "../../utils/backend-client/default/default";
+import {
+  postApiV1AdminUsers,
+  useGetApiV1AdminIdentity,
+} from "../../utils/backend-client/default/default";
 import { CreateUserRequestBody } from "../../utils/backend-client/types";
 type Props = Omit<ModalProps, "children">;
 
 const CreateUserModal = (props: Props) => {
   const methods = useForm<CreateUserRequestBody>({});
   const toast = useToast();
+
   useEffect(() => {
     if (!props.isOpen) {
       methods.reset();

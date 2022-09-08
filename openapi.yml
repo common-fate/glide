@@ -897,6 +897,19 @@ paths:
         '500':
           $ref: '#/components/responses/ErrorResponse'
       description: Run the identity sync operation on demand
+  /api/v1/admin/identity:
+    get:
+      summary: Get identity configuration
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/IdentityConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      operationId: get-api-v1-admin-identity
+      description: Get information about the identity configuration
 components:
   schemas:
     User:
@@ -1862,6 +1875,20 @@ components:
                   $ref: '#/components/schemas/ProviderSetup'
             required:
               - providerSetups
+    IdentityConfigurationResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              identityProvider:
+                type: string
+              administratorGroupId:
+                type: string
+            required:
+              - identityProvider
+              - administratorGroupId
   examples: {}
   securitySchemes: {}
   requestBodies:

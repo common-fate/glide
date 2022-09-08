@@ -60,6 +60,7 @@ type API struct {
 	ProviderSetup       ProviderSetupService
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
+	IdentityProvider    string
 	Granter             accesssvc.Granter
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
@@ -185,7 +186,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Clock:    clk,
 			EventBus: opts.EventSender,
 		},
-		IdentitySyncer: opts.IdentitySyncer,
+		IdentitySyncer:   opts.IdentitySyncer,
+		IdentityProvider: opts.IDPType,
 	}
 
 	// only initialise this if cognito is the IDP

@@ -9,9 +9,11 @@ import { TableRenderer } from "./TableRenderer";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import CreateUserModal from "../modals/CreateUserModal";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
+import { useGetApiV1AdminIdentity } from "../../utils/backend-client/default/default";
 
 export const UsersTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
+
   const paginator = usePaginatorApi<typeof useGetUsers>({
     swrHook: useGetUsers,
     hookProps: {},
@@ -55,18 +57,28 @@ export const UsersTable = () => {
     ],
     []
   );
+  const { data } = useGetApiV1AdminIdentity();
+  const AddUsersButton = () => {
+    if (data?.identityProvider !== "cognito") {
+      return <div />;
+    }
+    return (
+      <Button
+        isLoading={data?.identityProvider === undefined}
+        size="sm"
+        variant="ghost"
+        leftIcon={<SmallAddIcon />}
+        onClick={onOpen}
+      >
+        Add User
+      </Button>
+    );
+  };
 
   return (
     <>
       <Flex justify="space-between" my={5}>
-        <Button
-          size="sm"
-          variant="ghost"
-          leftIcon={<SmallAddIcon />}
-          onClick={onOpen}
-        >
-          Add User
-        </Button>
+        <AddUsersButton />
         <SyncUsersAndGroupsButton
           onSync={() => {
             mutate();
