@@ -5,6 +5,7 @@ import (
 	"log"
 
 	ahConfig "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 
 	"github.com/common-fate/apikit/logger"
 	ahServer "github.com/common-fate/granted-approvals/accesshandler/pkg/server"
@@ -83,16 +84,22 @@ func run() error {
 	}
 
 	dc := &deploy.EnvDeploymentConfig{}
-	api, err := api.New(ctx, api.Opts{
-		Log:                           log,
-		DynamoTable:                   cfg.DynamoTable,
-		PaginationKMSKeyARN:           cfg.PaginationKMSKeyARN,
-		AccessHandlerClient:           ahc,
-		EventSender:                   eventBus,
-		AdminGroup:                    cfg.AdminGroup,
+
+	td := psetup.TemplateData{
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
-		DeploymentSuffix:              cfg.DeploymentSuffix,
-		DeploymentConfig:              dc,
+		WebhookURL:                    cfg.WebhookURL,
+	}
+
+	api, err := api.New(ctx, api.Opts{
+		Log:                 log,
+		DynamoTable:         cfg.DynamoTable,
+		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
+		AccessHandlerClient: ahc,
+		EventSender:         eventBus,
+		AdminGroup:          cfg.AdminGroup,
+		TemplateData:        td,
+		DeploymentSuffix:    cfg.DeploymentSuffix,
+		DeploymentConfig:    dc,
 	})
 	if err != nil {
 		return err

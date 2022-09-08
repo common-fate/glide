@@ -55,74 +55,6 @@ export class AppBackend extends Construct {
         "used for encrypting and decrypting pagination tokens for granted approvals",
     });
 
-    const code = lambda.Code.fromAsset(
-      path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
-    );
-
-    this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
-      code,
-      timeout: Duration.seconds(60),
-      environment: {
-        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
-        APPROVALS_FRONTEND_URL: props.frontendUrl,
-        APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        IDENTITY_PROVIDER: props.userPool.getIdpType(),
-        APPROVALS_ADMIN_GROUP: props.adminGroupId,
-        MOCK_ACCESS_HANDLER: "false",
-        ACCESS_HANDLER_URL: props.accessHandler.getApiGateway().url,
-        PROVIDER_CONFIG: props.providerConfig,
-        // SENTRY_DSN: can be added here
-        EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        EVENT_BUS_SOURCE: props.eventBusSourceName,
-        IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
-        PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
-        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-      },
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "approvals",
-    });
-
-    this._KMSkey.grantEncryptDecrypt(this._lambda);
-
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        resources: [props.userPool.getUserPool().userPoolArn],
-        actions: [
-          "cognito-idp:AdminListGroupsForUser",
-          "cognito-idp:ListUsers",
-          "cognito-idp:ListGroups",
-          "cognito-idp:ListUsersInGroup",
-          "cognito-idp:AdminGetUser",
-          "cognito-idp:AdminListUserAuthEvents",
-          "cognito-idp:AdminUserGlobalSignOut",
-          "cognito-idp:DescribeUserPool",
-        ],
-      })
-    );
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:GetParameter", "ssm:PutParameter"],
-        resources: [
-          `arn:aws:ssm:${Stack.of(this).region}:${
-            Stack.of(this).account
-          }:parameter/granted/secrets/identity/*`,
-        ],
-      })
-    );
-
-    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
-    this._lambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:PutParameter"],
-        resources: [
-          `arn:aws:ssm:${Stack.of(this).region}:${
-            Stack.of(this).account
-          }:parameter/granted/providers/*`,
-        ],
-      })
-    );
-
     // used to handle webhook events from third party integrations such as Slack
     const webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
       code: lambda.Code.fromAsset(
@@ -175,6 +107,75 @@ export class AppBackend extends Construct {
     );
 
     this._webhook = webhookv1;
+
+    const code = lambda.Code.fromAsset(
+      path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
+    );
+
+    this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
+      code,
+      timeout: Duration.seconds(60),
+      environment: {
+        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
+        APPROVALS_FRONTEND_URL: props.frontendUrl,
+        APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+        IDENTITY_PROVIDER: props.userPool.getIdpType(),
+        APPROVALS_ADMIN_GROUP: props.adminGroupId,
+        MOCK_ACCESS_HANDLER: "false",
+        ACCESS_HANDLER_URL: props.accessHandler.getApiGateway().url,
+        PROVIDER_CONFIG: props.providerConfig,
+        // SENTRY_DSN: can be added here
+        EVENT_BUS_ARN: props.eventBus.eventBusArn,
+        EVENT_BUS_SOURCE: props.eventBusSourceName,
+        IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        GRANTED_WEBHOOK_URL: this.getWebhookApiURL(),
+        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+      },
+      runtime: lambda.Runtime.GO_1_X,
+      handler: "approvals",
+    });
+
+    this._KMSkey.grantEncryptDecrypt(this._lambda);
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        resources: [props.userPool.getUserPool().userPoolArn],
+        actions: [
+          "cognito-idp:AdminListGroupsForUser",
+          "cognito-idp:ListUsers",
+          "cognito-idp:ListGroups",
+          "cognito-idp:ListUsersInGroup",
+          "cognito-idp:AdminGetUser",
+          "cognito-idp:AdminListUserAuthEvents",
+          "cognito-idp:AdminUserGlobalSignOut",
+          "cognito-idp:DescribeUserPool",
+        ],
+      })
+    );
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:GetParameter", "ssm:PutParameter"],
+        resources: [
+          `arn:aws:ssm:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:parameter/granted/secrets/identity/*`,
+        ],
+      })
+    );
+
+    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
+    this._lambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:PutParameter"],
+        resources: [
+          `arn:aws:ssm:${Stack.of(this).region}:${
+            Stack.of(this).account
+          }:parameter/granted/providers/*`,
+        ],
+      })
+    );
 
     const ALLOWED_HEADERS = [
       "Content-Type",

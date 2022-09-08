@@ -21,6 +21,7 @@ type Config struct {
 	IdentitySettings              string `env:"IDENTITY_SETTINGS,default={}"`
 	PaginationKMSKeyARN           string `env:"PAGINATION_KMS_KEY_ARN,required"`
 	AccessHandlerExecutionRoleARN string `env:"ACCESS_HANDLER_EXECUTION_ROLE_ARN,required"`
+	WebhookURL                    string `env:"GRANTED_WEBHOOK_URL,required"`
 }
 
 type NotificationsConfig struct {

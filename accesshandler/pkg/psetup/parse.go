@@ -15,6 +15,8 @@ import (
 type TemplateData struct {
 	// AccessHandlerExecutionRoleARN is the ARN of the role that the Access Handler runs as
 	AccessHandlerExecutionRoleARN string
+	// WebhookURL is the Granted Approval's webhook URL
+	WebhookURL string
 }
 
 type Step struct {

@@ -292,6 +292,7 @@ func Dotenv() error {
 	myEnv["GRANTED_RUNTIME"] = "lambda"
 	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
 	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
+	myEnv["GRANTED_WEBHOOK_URL"] = o.WebhookURL
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
