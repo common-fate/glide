@@ -68,6 +68,7 @@ type API struct {
 	Cognito CognitoService
 }
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
 type CognitoService interface {
 	CreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
 	CreateGroup(ctx context.Context, in cognitosvc.CreateGroupOpts) (*identity.Group, error)

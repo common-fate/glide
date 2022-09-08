@@ -97,11 +97,13 @@ func (a *API) PostApiV1AdminUsers(w http.ResponseWriter, r *http.Request) {
 		IsAdmin:   createUserRequest.IsAdmin,
 		Email:     string(createUserRequest.Email),
 	})
+	// @TODO, some errors in cognito are useful to the user, such as validation errors, like user already exists.
+	// We need to surface those correctly
 	if err != nil {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, user.ToAPI(), http.StatusOK)
+	apio.JSON(ctx, w, user.ToAPI(), http.StatusCreated)
 }
 
 // Update User
@@ -123,7 +125,7 @@ func (a *API) PostApiV1AdminUsersUserId(w http.ResponseWriter, r *http.Request, 
 		UserID: userId,
 	})
 	if err != nil {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		apio.Error(ctx, w, err)
 		return
 	}
 	apio.JSON(ctx, w, user.ToAPI(), http.StatusOK)

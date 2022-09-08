@@ -88,5 +88,5 @@ func (a *API) PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	apio.JSON(ctx, w, group.ToAPI(), http.StatusOK)
+	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
 }
