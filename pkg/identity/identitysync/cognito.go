@@ -2,6 +2,7 @@ package identitysync
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -9,6 +10,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"golang.org/x/sync/errgroup"
 )
 
 type CognitoSync struct {
@@ -44,7 +46,7 @@ func (c *CognitoSync) idpUserFromCognitoUser(ctx context.Context, cognitoUser ty
 			u.Email = aws.ToString(a.Value)
 		}
 	}
-	groups, err := c.listUsersGroups(ctx, u.ID)
+	groups, err := c.listUserGroups(ctx, u.ID)
 	if err != nil {
 		return identity.IdpUser{}, err
 	}
@@ -108,7 +110,7 @@ func (c *CognitoSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, erro
 	return groups, nil
 }
 
-func (c *CognitoSync) listUsersGroups(ctx context.Context, id string) ([]string, error) {
+func (c *CognitoSync) listUserGroups(ctx context.Context, id string) ([]string, error) {
 	groups := []string{}
 	hasMore := true
 	var paginationToken *string
@@ -126,4 +128,138 @@ func (c *CognitoSync) listUsersGroups(ctx context.Context, id string) ([]string,
 		hasMore = paginationToken != nil
 	}
 	return groups, nil
+}
+
+type CreateUserOpts struct {
+	FirstName string
+	LastName  string
+	Email     string
+}
+
+func (c *CognitoSync) CreateUser(ctx context.Context, in CreateUserOpts) (identity.IdpUser, error) {
+	res, err := c.client.AdminCreateUser(ctx, &cognitoidentityprovider.AdminCreateUserInput{
+		UserPoolId: aws.String(c.userPoolID.Get()),
+		Username:   &in.Email,
+		UserAttributes: []types.AttributeType{
+			{
+				Name:  aws.String("given_name"),
+				Value: &in.FirstName,
+			},
+			{
+				Name:  aws.String("family_name"),
+				Value: &in.LastName,
+			},
+		},
+	})
+	if err != nil {
+		return identity.IdpUser{}, err
+	}
+	if res.User == nil {
+		return identity.IdpUser{}, errors.New("user was nil from cognito")
+	}
+	return c.idpUserFromCognitoUser(ctx, *res.User)
+}
+
+type CreateGroupOpts struct {
+	Name        string
+	Description string
+}
+
+func (c *CognitoSync) CreateGroup(ctx context.Context, in CreateGroupOpts) (identity.IdpGroup, error) {
+	res, err := c.client.CreateGroup(ctx, &cognitoidentityprovider.CreateGroupInput{
+		UserPoolId: aws.String(c.userPoolID.Get()),
+		GroupName:  &in.Name,
+	})
+	if err != nil {
+		return identity.IdpGroup{}, err
+	}
+	if res.Group == nil {
+		return identity.IdpGroup{}, errors.New("group was nil from cognito")
+	}
+	return groupFromCognitoGroup(*res.Group), nil
+}
+
+type AddUserToGroupOpts struct {
+	UserID  string
+	GroupID string
+}
+
+func (c *CognitoSync) AddUserToGroup(ctx context.Context, in AddUserToGroupOpts) error {
+	_, err := c.client.AdminAddUserToGroup(ctx, &cognitoidentityprovider.AdminAddUserToGroupInput{
+		UserPoolId: aws.String(c.userPoolID.Get()),
+		GroupName:  aws.String(in.GroupID),
+		Username:   aws.String(in.UserID),
+	})
+	return err
+}
+
+type RemoveUserFromGroupOpts struct {
+	UserID  string
+	GroupID string
+}
+
+func (c *CognitoSync) RemoveUserFromGroup(ctx context.Context, in RemoveUserFromGroupOpts) error {
+	_, err := c.client.AdminRemoveUserFromGroup(ctx, &cognitoidentityprovider.AdminRemoveUserFromGroupInput{
+		UserPoolId: aws.String(c.userPoolID.Get()),
+		GroupName:  aws.String(in.GroupID),
+		Username:   aws.String(in.UserID),
+	})
+	return err
+}
+
+type UpdateUserGroupsOpts struct {
+	UserID string
+	Groups []string
+}
+
+func (c *CognitoSync) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) error {
+	existingGroups, err := c.listUserGroups(ctx, in.UserID)
+	if err != nil {
+		return err
+	}
+	// Using maps to do set intersections to work out which groups to add and remove
+	inMap := make(map[string]bool)
+	existingMap := make(map[string]bool)
+	for _, g := range in.Groups {
+		inMap[g] = true
+	}
+	for _, g := range existingGroups {
+		existingMap[g] = true
+	}
+	remove := make(map[string]bool)
+	add := make(map[string]bool)
+	for k := range inMap {
+		if existingMap[k] {
+			add[k] = true
+		}
+	}
+	for k := range existingMap {
+		if inMap[k] {
+			remove[k] = true
+		}
+	}
+	g, gctx := errgroup.WithContext(ctx)
+	for k := range remove {
+		kCopy := k
+		g.Go(func() error {
+			_, err := c.client.AdminRemoveUserFromGroup(gctx, &cognitoidentityprovider.AdminRemoveUserFromGroupInput{
+				GroupName:  aws.String(kCopy),
+				UserPoolId: aws.String(c.userPoolID.Get()),
+				Username:   aws.String(in.UserID),
+			})
+			return err
+		})
+	}
+	for k := range add {
+		kCopy := k
+		g.Go(func() error {
+			_, err := c.client.AdminAddUserToGroup(gctx, &cognitoidentityprovider.AdminAddUserToGroupInput{
+				GroupName:  aws.String(kCopy),
+				UserPoolId: aws.String(c.userPoolID.Get()),
+				Username:   aws.String(in.UserID),
+			})
+			return err
+		})
+	}
+	return g.Wait()
 }

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/benbjohnson/clock"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
@@ -14,8 +13,8 @@ import (
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
@@ -186,19 +185,24 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			EventBus: opts.EventSender,
 		},
 	}
-	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
-	if err != nil {
-		return nil, err
-	}
+
 	// only initialise this if cognito is the IDP
 	if opts.IDPType == identitysync.IDPTypeCognito {
+		cog := &identitysync.CognitoSync{}
+		err = cog.Config().Load(ctx, &gconfig.MapLoader{Values: map[string]string{"userPoolId": opts.CognitoUserPoolID}})
+		if err != nil {
+			return nil, err
+		}
+		err = cog.Init(ctx)
+		if err != nil {
+			return nil, err
+		}
 		a.Cognito = &cognitosvc.Service{
-			Clock:             clk,
-			DB:                db,
-			Syncer:            opts.IdentitySyncer,
-			Cognito:           cognitoidentityprovider.NewFromConfig(cfg),
-			CognitoUserPoolID: opts.CognitoUserPoolID,
-			AdminGroupID:      opts.AdminGroupID,
+			Clock:        clk,
+			DB:           db,
+			Syncer:       opts.IdentitySyncer,
+			Cognito:      cog,
+			AdminGroupID: opts.AdminGroupID,
 		}
 	}
 
