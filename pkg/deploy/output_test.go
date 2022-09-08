@@ -44,6 +44,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		UserPoolID:                    "abcdefg",
 		UserPoolDomain:                "abcdefg",
 		APIURL:                        "abcdefg",
+		WebhookURL:                    "abcdefg",
 		APILogGroupName:               "abcdefg",
 		IDPSyncLogGroupName:           "abcdefg",
 		AccessHandlerLogGroupName:     "abcdefg",
