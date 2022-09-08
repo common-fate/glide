@@ -67,7 +67,6 @@ func buildHandler() (*Lambda, error) {
 
 	td := psetup.TemplateData{
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
-		WebhookURL:                    cfg.WebhookURL,
 	}
 
 	api, err := api.New(ctx, api.Opts{

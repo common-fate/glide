@@ -74,27 +74,6 @@ export class AppBackend extends Construct {
       restApiName: this._appName,
     });
 
-    const api = this._apigateway.root.addResource("api");
-    const apiv1 = api.addResource("v1");
-
-    const lambdaProxy = apiv1.addResource("{proxy+}");
-    lambdaProxy.addMethod(
-      "ANY",
-      new apigateway.LambdaIntegration(this._lambda, {
-        allowTestInvoke: false,
-      }),
-      {
-        authorizationType: apigateway.AuthorizationType.COGNITO,
-        authorizer: new apigateway.CognitoUserPoolsAuthorizer(
-          this,
-          "Authorizer",
-          {
-            cognitoUserPools: [props.userPool.getUserPool()],
-          }
-        ),
-      }
-    );
-
     const webhook = this._apigateway.root.addResource("webhook");
     const webhookv1 = webhook.addResource("v1");
 
@@ -130,7 +109,6 @@ export class AppBackend extends Construct {
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
         ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
-        GRANTED_WEBHOOK_URL: this.getWebhookApiURL(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
       },
       runtime: lambda.Runtime.GO_1_X,
@@ -175,6 +153,27 @@ export class AppBackend extends Construct {
           }:parameter/granted/providers/*`,
         ],
       })
+    );
+
+    const api = this._apigateway.root.addResource("api");
+    const apiv1 = api.addResource("v1");
+
+    const lambdaProxy = apiv1.addResource("{proxy+}");
+    lambdaProxy.addMethod(
+      "ANY",
+      new apigateway.LambdaIntegration(this._lambda, {
+        allowTestInvoke: false,
+      }),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer: new apigateway.CognitoUserPoolsAuthorizer(
+          this,
+          "Authorizer",
+          {
+            cognitoUserPools: [props.userPool.getUserPool()],
+          }
+        ),
+      }
     );
 
     const ALLOWED_HEADERS = [
