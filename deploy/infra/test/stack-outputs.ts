@@ -13,6 +13,7 @@ const testOutputs: StackOutputs = {
   UserPoolID: "abcdefg",
   UserPoolDomain: "abcdefg",
   APIURL: "abcdefg",
+  WebhookURL: "abcdefg",
   APILogGroupName: "abcdefg",
   IDPSyncLogGroupName: "abcdefg",
   AccessHandlerLogGroupName: "abcdefg",

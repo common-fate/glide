@@ -455,7 +455,6 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 	var nextToken *string
 	log.Infow("getting taskARN from task definition family", TaskDefinitionFamily)
 
-	//TODO: paginate all the list calls
 	for hasMore {
 		runningTasks, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get()), Family: &TaskDefinitionFamily, NextToken: nextToken})
 		if err != nil {
@@ -482,10 +481,11 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 				revision = tempVersion
 				latestRevision = *t.TaskArn
 			}
-			//return *t.TaskArn, nil
-			//exit the pagination
-			nextToken = runningTasks.NextToken
-			hasMore = nextToken != nil
+
+		}
+		nextToken = runningTasks.NextToken
+		if nextToken == nil {
+			hasMore = false
 		}
 
 		return latestRevision, nil
