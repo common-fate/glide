@@ -15,6 +15,7 @@ const testOutputs: StackOutputs = {
   APIURL: "abcdefg",
   WebhookURL: "abcdefg",
   APILogGroupName: "abcdefg",
+  WebhookLogGroupName: "abcdefg",
   IDPSyncLogGroupName: "abcdefg",
   AccessHandlerLogGroupName: "abcdefg",
   EventBusLogGroupName: "abcdefg",

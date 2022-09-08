@@ -268,7 +268,7 @@ export class AppBackend extends Construct {
   }
 
   getWebhookApiURL(): string {
-    //both prepend and append a / so we have to remove one out
+    // both prepend and append a / so we have to remove one out
     return (
       this._apigateway.url +
       this._webhook.path.substring(1, this._webhook.path.length)
