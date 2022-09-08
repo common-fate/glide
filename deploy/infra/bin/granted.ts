@@ -27,9 +27,6 @@ const productionReleasesBucket = app.node.tryGetContext(
 const productionReleaseBucketPrefix = app.node.tryGetContext(
   "productionReleaseBucketPrefix"
 );
-const managedDeploymentConfig = app.node.tryGetContext(
-  "managedDeploymentConfig"
-);
 
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one
@@ -65,7 +62,6 @@ if (stackTarget === "dev") {
     samlMetadata: samlMetadata || "",
     notificationsConfiguration: notificationsConfiguration || "{}",
     identityProviderSyncConfiguration: identityConfig || "{}",
-    managedDeploymentConfig: managedDeploymentConfig || "",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {
