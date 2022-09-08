@@ -3,8 +3,8 @@ import React from "react";
 import {
   AWSIcon,
   AzureIcon,
+  ECSIcon,
   EKSIcon,
-  PythonIcon,
   FlaskIcon,
   GrantedKeysIcon,
   OktaIcon,
@@ -42,6 +42,8 @@ export const ProviderIcon: React.FC<Props> = ({
       return <AzureIcon {...rest} />;
     case "commonfate/aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
+    case "commonfate/ecs-exec-sso":
+      return <ECSIcon {...rest} />;
     case "commonfate/flask":
       return <FlaskIcon {...rest} />;
   }
@@ -55,6 +57,8 @@ export const ProviderIcon: React.FC<Props> = ({
       return <AzureIcon {...rest} />;
     case "aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
+    case "ecs-exec-sso":
+      return <ECSIcon {...rest} />;
     case "flask":
       return <FlaskIcon {...rest} />;
   }
