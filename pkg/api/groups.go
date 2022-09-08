@@ -85,7 +85,7 @@ func (a *API) PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request) {
 		Description: aws.ToString(createGroupRequest.Description),
 	})
 	if err != nil {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		apio.Error(ctx, w, err)
 		return
 	}
 	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
