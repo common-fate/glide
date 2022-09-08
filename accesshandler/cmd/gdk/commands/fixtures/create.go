@@ -1,14 +1,14 @@
 package fixtures
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )
@@ -39,21 +39,18 @@ var CreateCommand = cli.Command{
 			return fmt.Errorf("fixture already exists (%s). Use 'gdk fixtures delete --name %s' to remove it before generating it again", fixturePath, name)
 		}
 
-		pc, err := config.ReadProviderConfig(ctx)
+		ac := deploy.EnvDeploymentConfig{}
+		pc, err := ac.ReadProviders(ctx)
 		if err != nil {
-			return err
-		}
-		var configMap map[string]json.RawMessage
-		err = json.Unmarshal(pc, &configMap)
-		if err != nil {
-			return err
+			return errors.Wrap(err, "reading providers")
 		}
 
 		// configure the generator if it supports it
 		if configer, ok := g.(gconfig.Configer); ok {
-			err = configer.Config().Load(ctx, gconfig.JSONLoader{Data: configMap[name]})
+			p := pc[name]
+			err = configer.Config().Load(ctx, &gconfig.MapLoader{Values: p.With})
 			if err != nil {
-				return err
+				return errors.Wrap(err, "loading config")
 			}
 		}
 

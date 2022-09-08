@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 
 	ahConfig "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
@@ -83,19 +82,6 @@ func run() error {
 		return err
 	}
 
-	pcfg, err := ahConfig.ReadProviderConfig(ctx)
-	if err != nil {
-		return err
-	}
-
-	var pmeta deploy.ProviderMap
-	err = json.Unmarshal(pcfg, &pmeta)
-	if err != nil {
-		return err
-	}
-
-	log.Infow("read provider config", "config", pmeta)
-
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
@@ -111,6 +97,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	dc := &deploy.EnvDeploymentConfig{}
 	api, err := api.New(ctx, api.Opts{
 		Log:                           log,
 		DynamoTable:                   cfg.DynamoTable,
@@ -118,13 +105,13 @@ func run() error {
 		AccessHandlerClient:           ahc,
 		EventSender:                   eventBus,
 		AdminGroup:                    cfg.AdminGroup,
-		ProviderMetadata:              pmeta,
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
 		DeploymentSuffix:              cfg.DeploymentSuffix,
 		IdentitySyncer:                idsync,
 		CognitoUserPoolID:             cfg.CognitoUserPoolID,
 		IDPType:                       cfg.IdpProvider,
 		AdminGroupID:                  cfg.AdminGroup,
+		DeploymentConfig:              dc,
 	})
 	if err != nil {
 		return err

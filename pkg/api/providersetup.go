@@ -10,6 +10,7 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
@@ -33,7 +34,11 @@ func (a *API) ListProvidersetups(w http.ResponseWriter, r *http.Request) {
 	toDelete := []ddb.Keyer{}
 	var deleteIDs []string
 
-	logger.Get(ctx).Infow("prov metadata", "meta", a.ProviderMetadata)
+	pm, err := a.DeploymentConfig.ReadProviders(ctx)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
 	res := types.ListProviderSetupsResponse{
 		ProviderSetups: []types.ProviderSetup{},
@@ -41,7 +46,7 @@ func (a *API) ListProvidersetups(w http.ResponseWriter, r *http.Request) {
 	for _, s := range q.Result {
 		// if any provider setup IDs correspond to IDs we now have in our deployment YAML,
 		// they can be deleted as the user has successfully redeployed Granted and updated their provider config.
-		_, exists := a.ProviderMetadata[s.ID]
+		_, exists := pm[s.ID]
 		if exists {
 			toDelete = append(toDelete, &s)
 			deleteIDs = append(deleteIDs, s.ID)
@@ -74,7 +79,13 @@ func (a *API) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps, err := a.ProviderSetup.Create(ctx, b.ProviderType, a.ProviderMetadata, providerregistry.Registry())
+	pm, err := a.DeploymentConfig.ReadProviders(ctx)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	ps, err := a.ProviderSetup.Create(ctx, b.ProviderType, pm, providerregistry.Registry())
 	if err == providerregistry.ErrProviderTypeNotFound {
 		apio.ErrorString(ctx, w, fmt.Sprintf("invalid provider type %s", b.ProviderType), http.StatusBadRequest)
 		return
@@ -283,4 +294,77 @@ func (a *API) ValidateProvidersetup(w http.ResponseWriter, r *http.Request, prov
 	}
 
 	apio.JSON(ctx, w, setup.ToAPI(), http.StatusOK)
+}
+
+// Complete a ProviderSetup
+// (POST /api/v1/admin/providersetups/{providersetupId}/complete)
+func (a *API) CompleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
+	ctx := r.Context()
+
+	q := storage.GetProviderSetup{
+		ID: providersetupId,
+	}
+
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.ErrorString(ctx, w, "provider setup not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	setup := q.Result
+
+	if setup.Status != types.VALIDATIONSUCEEDED {
+		apio.ErrorString(ctx, w, "provider must have passed validation to complete setup", http.StatusBadRequest)
+		return
+	}
+
+	var res types.CompleteProviderSetupResponse
+	configWriter, ok := a.DeploymentConfig.(deploy.DeployConfigWriter)
+	if !ok {
+		// runtime configuration isn't enabled, so the user needs to manually update their granted-deployment.yml file.
+		res.DeploymentConfigUpdateRequired = true
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
+
+	// managed configuration is enabled, so we can update the Access Provider configuration ourselves.
+	pm, err := a.DeploymentConfig.ReadProviders(ctx)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	err = pm.Add(q.ID, setup.ToProvider())
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	// write the provider config to the managed deployment config storage.
+	err = configWriter.WriteProviders(ctx, pm)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	// remove the setup as we've written the provider config.
+	err = a.DB.Delete(ctx, setup)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	// refresh the Access Handler's providers
+	_, err = a.AccessHandlerClient.RefreshAccessProvidersWithResponse(ctx)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	// we've updated the runtime configuration, so the user doesn't need to make any manual changes to their deployment file.
+	res.DeploymentConfigUpdateRequired = false
+	apio.JSON(ctx, w, res, http.StatusOK)
 }

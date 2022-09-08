@@ -1,11 +1,10 @@
 package fixtures
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
@@ -28,19 +27,16 @@ var DestroyCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		pc, err := config.ReadProviderConfig(ctx)
-		if err != nil {
-			return err
-		}
-		var configMap map[string]json.RawMessage
-		err = json.Unmarshal(pc, &configMap)
+		ac := deploy.EnvDeploymentConfig{}
+		pc, err := ac.ReadProviders(ctx)
 		if err != nil {
 			return err
 		}
 
 		// configure the generator if it supports it
 		if configer, ok := g.(gconfig.Configer); ok {
-			err = configer.Config().Load(ctx, gconfig.JSONLoader{Data: configMap[name]})
+			p := pc[name]
+			err = configer.Config().Load(ctx, &gconfig.MapLoader{Values: p.With})
 			if err != nil {
 				return err
 			}

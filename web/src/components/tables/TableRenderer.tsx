@@ -42,7 +42,7 @@ export function TableRenderer<T extends object>(
       <Table roundedTop="lg">
         <Thead h="45px">
           <Tr bg="neutrals.100" h="45px">
-            {props.columns.map((column) =>
+            {props.columns.map((column, index) =>
               column?.Header ? (
                 <Th
                   h="45px"
@@ -56,7 +56,7 @@ export function TableRenderer<T extends object>(
                   _last={{
                     roundedTopRight: "xl",
                   }}
-                  key={"column-" + column.id}
+                  key={"column-" + column.Header + index}
                 >
                   {column?.Header.toString()}
                 </Th>

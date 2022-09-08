@@ -27,6 +27,7 @@ interface Props {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
+  dynamoTable: dynamodb.Table;
 }
 
 export class AppBackend extends Construct {
@@ -44,7 +45,7 @@ export class AppBackend extends Construct {
 
     this._appName = props.appName;
 
-    this.createDynamoTables();
+    this._dynamoTable = props.dynamoTable;
 
     this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -252,70 +253,6 @@ export class AppBackend extends Construct {
         props.identityProviderSyncConfiguration,
     });
   }
-
-  // Be sure to also grant access in the readwrite function to any aditional tables added
-  private createDynamoTables = () => {
-    const approvals = new dynamodb.Table(this, "DBTable", {
-      tableName: this._appName,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      partitionKey: { name: "PK", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "SK", type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    });
-
-    const gsi1: dynamodb.GlobalSecondaryIndexProps = {
-      indexName: "GSI1",
-      partitionKey: {
-        name: "GSI1PK",
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: "GSI1SK",
-        type: dynamodb.AttributeType.STRING,
-      },
-    };
-    const gsi2: dynamodb.GlobalSecondaryIndexProps = {
-      indexName: "GSI2",
-      partitionKey: {
-        name: "GSI2PK",
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: "GSI2SK",
-        type: dynamodb.AttributeType.STRING,
-      },
-    };
-    const gsi3: dynamodb.GlobalSecondaryIndexProps = {
-      indexName: "GSI3",
-      partitionKey: {
-        name: "GSI3PK",
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: "GSI3SK",
-        type: dynamodb.AttributeType.STRING,
-      },
-    };
-
-    const gsi4: dynamodb.GlobalSecondaryIndexProps = {
-      indexName: "GSI4",
-      partitionKey: {
-        name: "GSI4PK",
-        type: dynamodb.AttributeType.STRING,
-      },
-      sortKey: {
-        name: "GSI4SK",
-        type: dynamodb.AttributeType.STRING,
-      },
-    };
-
-    approvals.addGlobalSecondaryIndex(gsi1);
-    approvals.addGlobalSecondaryIndex(gsi2);
-    approvals.addGlobalSecondaryIndex(gsi3);
-    approvals.addGlobalSecondaryIndex(gsi4);
-
-    this._dynamoTable = approvals;
-  };
 
   getApprovalsApiURL(): string {
     return this._apigateway.url;

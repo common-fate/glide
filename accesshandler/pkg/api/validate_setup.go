@@ -38,7 +38,21 @@ func (a *API) ValidateSetup(w http.ResponseWriter, r *http.Request) {
 	p := rp.Provider
 	cv, ok := p.(providers.ConfigValidator)
 	if !ok {
-		apio.ErrorString(ctx, w, "provider does not implement config validation", http.StatusBadRequest)
+		// show a success message, but note that validation has been skipped because the provider doesn't support it.
+		res := types.ValidateResponse{
+			Validations: []types.ProviderConfigValidation{
+				{
+					Id:     "no-validation",
+					Name:   "Validation has been skipped",
+					Status: types.SUCCESS,
+					Logs: []types.Log{
+						{Level: types.LogLevelWARNING, Msg: "This Access Provider doesn't support config validation."},
+					},
+				},
+			},
+		}
+
+		apio.JSON(ctx, w, res, http.StatusOK)
 		return
 	}
 	validations := cv.ValidateConfig()

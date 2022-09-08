@@ -37,6 +37,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             arrLength={l}
             header={<Text>Grant created</Text>}
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -52,6 +53,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Text>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -93,6 +95,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -107,6 +110,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Text>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -122,6 +126,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Text>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -137,6 +142,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Text>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -151,6 +157,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Text>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );
@@ -165,6 +172,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Text>
             }
             index={i}
+            key={i}
             body={new Date(e.createdAt).toString()}
           />
         );

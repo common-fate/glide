@@ -30,4 +30,9 @@ export const registeredProviders: RegisteredProvider[] = [
     shortType: "aws-eks-roles-sso",
     name: "EKS (with AWS SSO)",
   },
+  {
+    type: "commonfate/testvault",
+    shortType: "testvault",
+    name: "TestVault",
+  },
 ];
