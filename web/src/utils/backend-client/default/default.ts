@@ -213,3 +213,17 @@ export const deleteProvidersetup = (
     }
   
 
+/**
+ * Run the identity sync operation on demand
+ * @summary Sync Identity
+ */
+export const adminPostApiV1IdentitySync = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/identity/sync`, method: 'post'
+    },
+      options);
+    }
+  
+

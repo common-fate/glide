@@ -8,6 +8,7 @@ import { User } from "../../utils/backend-client/types";
 import { TableRenderer } from "./TableRenderer";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import CreateUserModal from "../modals/CreateUserModal";
+import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 
 export const UsersTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
@@ -15,7 +16,7 @@ export const UsersTable = () => {
     swrHook: useGetUsers,
     hookProps: {},
   });
-
+  const { mutate } = useGetUsers();
   const cols: Column<User>[] = useMemo(
     () => [
       {
@@ -66,6 +67,11 @@ export const UsersTable = () => {
         >
           Add User
         </Button>
+        <SyncUsersAndGroupsButton
+          onSync={() => {
+            mutate();
+          }}
+        />
       </Flex>
       {TableRenderer<User>({
         columns: cols,

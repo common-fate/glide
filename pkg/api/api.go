@@ -62,6 +62,7 @@ type API struct {
 	AdminGroup          string
 	Granter             accesssvc.Granter
 	Cache               CacheService
+	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito CognitoService
 }
@@ -184,6 +185,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Clock:    clk,
 			EventBus: opts.EventSender,
 		},
+		IdentitySyncer: opts.IdentitySyncer,
 	}
 
 	// only initialise this if cognito is the IDP

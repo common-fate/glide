@@ -6,6 +6,7 @@ import { useGetGroups } from "../../utils/backend-client/admin/admin";
 import { Group } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
+import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 import { TableRenderer } from "./TableRenderer";
 
 export const GroupsTable = () => {
@@ -14,6 +15,7 @@ export const GroupsTable = () => {
     swrHook: useGetGroups,
     hookProps: {},
   });
+  const { mutate } = useGetGroups();
 
   const cols: Column<Group>[] = useMemo(
     () => [
@@ -50,6 +52,11 @@ export const GroupsTable = () => {
         >
           Add Group
         </Button>
+        <SyncUsersAndGroupsButton
+          onSync={() => {
+            mutate();
+          }}
+        />
       </Flex>
       {TableRenderer<Group>({
         columns: cols,
