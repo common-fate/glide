@@ -32,25 +32,32 @@ func NewRequestCreatedEvent(requestID string, createdAt time.Time, actor *string
 	t := true
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, RequestCreated: &t}
 }
+
 func NewGrantFailedEvent(requestID string, createdAt time.Time, from, to ac_types.GrantStatus, reason string) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, FromGrantStatus: &from, ToGrantStatus: &to, GrantFailureReason: &reason}
 }
+
 func NewGrantStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to ac_types.GrantStatus) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromGrantStatus: &from, ToGrantStatus: &to}
 }
+
 func NewGrantCreatedEvent(requestID string, createdAt time.Time) RequestEvent {
 	t := true
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, GrantCreated: &t}
 }
+
 func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Status) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &from, ToStatus: &to}
 }
+
 func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromTiming: &from, ToTiming: &to}
 }
+
 func NewRecordedEvent(requestID string, actor *string, createdAt time.Time, event map[string]string) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), Actor: actor, CreatedAt: createdAt, RequestID: requestID, RecordedEvent: &event}
 }
+
 func (r *RequestEvent) ToAPI() types.RequestEvent {
 	var toTiming *types.RequestTiming
 	var fromTiming *types.RequestTiming

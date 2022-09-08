@@ -69,7 +69,7 @@ func TestRevokeGrant(t *testing.T) {
 		assert.Equal(t, []*okta.User{}, users)
 	}
 
-	grant, _, err := runtime.CreateGrant(ctx, types.ValidCreateGrant{CreateGrant: types.CreateGrant{
+	grant, err := runtime.CreateGrant(ctx, types.ValidCreateGrant{CreateGrant: types.CreateGrant{
 		Id:       "TESTGRANT",
 		Start:    iso8601.Now(),
 		End:      iso8601.New(time.Now().Add(time.Minute)),

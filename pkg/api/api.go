@@ -126,18 +126,21 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	clk := clock.New()
 
+	granter := &grantsvc.Granter{
+		AHClient:         opts.AccessHandlerClient,
+		DB:               db,
+		Clock:            clk,
+		EventBus:         opts.EventSender,
+		DeploymentConfig: opts.DeploymentConfig,
+	}
+
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
 		Access: &accesssvc.Service{
-			Clock: clk,
-			DB:    db,
-			Granter: &grantsvc.Granter{
-				AHClient: opts.AccessHandlerClient,
-				DB:       db,
-				Clock:    clk,
-				EventBus: opts.EventSender,
-			},
+			Clock:       clk,
+			DB:          db,
+			Granter:     granter,
 			EventPutter: opts.EventSender,
 			Cache: &cachesvc.Service{
 				DB:                  db,
@@ -162,12 +165,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,
-		Granter: &grantsvc.Granter{
-			AHClient: opts.AccessHandlerClient,
-			DB:       db,
-			Clock:    clk,
-			EventBus: opts.EventSender,
-		},
+		Granter:             granter,
 	}
 
 	return &a, nil

@@ -46,15 +46,14 @@ func (a *API) PostGrants(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	grant, additionalProperties, err := a.runtime.CreateGrant(ctx, *g)
+	grant, err := a.runtime.CreateGrant(ctx, *g)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
 	res := types.GrantResponse{
-		Grant:                grant,
-		AdditionalProperties: additionalProperties,
+		Grant: grant,
 	}
 
 	apio.JSON(ctx, w, res, http.StatusCreated)
@@ -79,10 +78,8 @@ func (a *API) PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId s
 		return
 	}
 
-	//TODO: do we want to return anything in this additional properteis for revoke?
 	res := types.GrantResponse{
-		AdditionalProperties: types.AdditionalProperties{},
-		Grant:                *g,
+		Grant: *g,
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

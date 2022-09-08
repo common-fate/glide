@@ -6,12 +6,16 @@ import (
 	"fmt"
 
 	"github.com/benbjohnson/clock"
+	"github.com/segmentio/ksuid"
 
 	"github.com/common-fate/apikit/logger"
 
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
@@ -32,10 +36,11 @@ type AHClient interface {
 
 // Granter has logic to integrate with the Access Handler.
 type Granter struct {
-	AHClient ahTypes.ClientWithResponsesInterface
-	DB       ddb.Storage
-	Clock    clock.Clock
-	EventBus *gevent.Sender
+	AHClient         ahTypes.ClientWithResponsesInterface
+	DB               ddb.Storage
+	Clock            clock.Clock
+	EventBus         *gevent.Sender
+	DeploymentConfig deploy.DeployConfigReader
 }
 
 type CreateGrantOpts struct {
@@ -46,12 +51,6 @@ type CreateGrantOpts struct {
 type RevokeGrantOpts struct {
 	Request   access.Request
 	RevokerID string
-}
-
-// NewGranter creates a new Granter instance
-func NewGranter(client ahTypes.ClientWithResponsesInterface, db ddb.Storage, clock clock.Clock, eventBus *gevent.Sender) (*Granter, error) {
-
-	return &Granter{client, db, clock, eventBus}, nil
 }
 
 func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*access.Request, error) {
@@ -114,7 +113,6 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 	}
 	logger.Get(ctx).Errorw("unhandled Access Handler response", "body", string(res.Body))
 	return nil, errors.New("unhandled response code")
-
 }
 
 // CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.
@@ -125,6 +123,13 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 		ID: opts.Request.RequestedBy,
 	}
 	_, err := g.DB.Query(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
+	// check now before we actually provision the access, so that we can return early if we fail.
+	requiresAccessToken, err := g.providerRequiresAccessToken(ctx, providerregistry.Registry(), opts.AccessRule.Target.ProviderID)
 	if err != nil {
 		return nil, err
 	}
@@ -165,11 +170,15 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 			UpdatedAt: now,
 		}
 
-		//if access token was created save it
-		if res.JSON201.AdditionalProperties.AccessToken != nil {
-			newAccessToken := access.AccessToken{RequestID: opts.Request.ID, Token: *res.JSON201.AdditionalProperties.AccessToken, Start: res.JSON201.Grant.Start.Time,
-				End: res.JSON201.Grant.End.Time, CreatedAt: now}
-			err = g.DB.Put(ctx, &newAccessToken)
+		if requiresAccessToken {
+			at := access.AccessToken{
+				RequestID: opts.Request.ID,
+				Token:     ksuid.New().String(),
+				Start:     res.JSON201.Grant.Start.Time,
+				End:       res.JSON201.Grant.End.Time,
+				CreatedAt: now,
+			}
+			err = g.DB.Put(ctx, &at)
 			if err != nil {
 				return nil, err
 			}
@@ -183,4 +192,27 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 	}
 	logger.Get(ctx).Errorw("unhandled Access Handler response", "body", string(res.Body))
 	return nil, errors.New("unhandled response code")
+}
+
+// providerRequiresAccessToken looks up the provider in our registry.
+// If the provider implements RequiresAccessToken() and it's true, this function returns true.
+// Otherwise, it returns false.
+// Returns an error if we can't look up the provider.
+func (g *Granter) providerRequiresAccessToken(ctx context.Context, r providerregistry.ProviderRegistry, providerID string) (bool, error) {
+	pm, err := g.DeploymentConfig.ReadProviders(ctx)
+	if err != nil {
+		return false, err
+	}
+	provider, ok := pm[providerID]
+	if !ok {
+		return false, fmt.Errorf("could not find provider %s in deployment config", providerID)
+	}
+	p, err := r.LookupByUses(provider.Uses)
+	if err != nil {
+		return false, err
+	}
+	if at, ok := p.Provider.(providers.AccessTokener); ok && at.RequiresAccessToken() {
+		return true, nil
+	}
+	return false, nil
 }

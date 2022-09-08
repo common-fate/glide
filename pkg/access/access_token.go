@@ -1,6 +1,7 @@
 package access
 
 import (
+	"errors"
 	"time"
 
 	"github.com/common-fate/ddb"
@@ -16,6 +17,14 @@ type AccessToken struct {
 	//the time the grant is scheduled to end
 	End       time.Time `json:"end" dynamodbav:"end"`
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
+}
+
+// Validate an Access Token.
+func (a AccessToken) Validate(now time.Time) error {
+	if now.After(a.End) {
+		return errors.New("access token has expired")
+	}
+	return nil
 }
 
 // DDBKeys provides the keys for storing the object in DynamoDB

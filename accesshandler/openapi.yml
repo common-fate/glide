@@ -442,19 +442,8 @@ components:
         The `instructions` field will be null if no instructions are available.
       properties:
         instructions:
+          description: Instructions on how to access the role or resource.
           type: string
-        accessToken:
-          type: string
-          nullable: true
-    AdditionalProperties:
-      title: AdditionalProperties
-      x-stoplight:
-        id: e6b4qq4kye3du
-      type: object
-      properties:
-        accessToken:
-          type: string
-      description: "additional properties are optional properties generated when granting access, they are implemented based on teh requirements of the provider."
     ProviderConfigValidation:
       title: ProviderConfigValidation
       x-stoplight:
@@ -560,11 +549,8 @@ components:
             properties:
               grant:
                 $ref: "#/components/schemas/Grant"
-              additionalProperties:
-                $ref: "#/components/schemas/AdditionalProperties"
             required:
               - grant
-              - additionalProperties
     ArgOptionsResponse:
       description: Options for an Grant argument.
       content:

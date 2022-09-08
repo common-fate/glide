@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,14 +19,12 @@ import (
 )
 
 func main() {
-
 	l, err := buildHandler()
 	if err != nil {
 		panic(err)
 	}
 
 	lambda.Start(l.Handler)
-
 }
 
 func buildHandler() (*Lambda, error) {
@@ -74,37 +71,13 @@ func NewServer(ctx context.Context, cfg Config) (*Server, error) {
 	return &s, nil
 }
 
-func ValidateToken(ctx context.Context, token string, tokenReq storage.GetAccessTokenByToken) error {
-	if token == tokenReq.Token {
-		//validate token
-		if tokenReq.Result.Start.Equal(tokenReq.Result.End) {
-			return fmt.Errorf("grant start and end time cannot be equal")
-		}
-		if tokenReq.Result.Start.After(tokenReq.Result.End) {
-			return fmt.Errorf("grant start time must be earlier than end time")
-		}
-
-		now := time.Now()
-		if tokenReq.Result.End.Before(now) {
-			return fmt.Errorf("grant finish time is in the past")
-
-		}
-
-	} else {
-
-		return fmt.Errorf("invalid token provided")
-
-	}
-	return nil
-}
-
 func (s *Server) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Post("/webhook/v1/slack/interactivity", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	r.Post("/webhook/v1/access-token", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/webhook/v1/access-token/verify", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		t := r.Header.Get("X-CommonFate-Access-Token")
 
@@ -118,20 +91,20 @@ func (s *Server) Routes() http.Handler {
 		}
 
 		//validate token
-		err = ValidateToken(ctx, t, q)
+		now := time.Now()
+		err = q.Result.Validate(now)
 		if err != nil {
-			apio.Error(ctx, w, err)
+			// log the error message and return an opaque response.
+			logger.Get(ctx).Infow("invalid access token", zap.Error(err))
+			apio.ErrorString(ctx, w, "invalid access token", http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-
 	})
 
 	r.Post("/webhook/v1/health", func(w http.ResponseWriter, r *http.Request) {
-
 		//successful connection to webhook url return OK
 		w.WriteHeader(http.StatusOK)
-
 	})
 
 	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
@@ -139,47 +112,42 @@ func (s *Server) Routes() http.Handler {
 		token := r.Header.Get("X-CommonFate-Access-Token")
 
 		q := storage.GetAccessTokenByToken{Token: token}
-
 		_, err := s.db.Query(ctx, &q)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
 
-		//validate token
-		err = ValidateToken(ctx, token, q)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
 		var b RecordingEventBody
-
 		err = apio.DecodeJSONBody(w, r, &b)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-		zap.S().Infow("decoded request body", b.Data)
 
-		getReq := storage.GetRequest{ID: q.Result.RequestID}
-
-		_, err = s.db.Query(ctx, &getReq)
-
+		gr := storage.GetRequest{ID: q.Result.RequestID}
+		_, err = s.db.Query(ctx, &gr)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
 
-		e := access.NewRecordedEvent(getReq.Result.ID, &getReq.Result.RequestedBy, time.Now(), b.Data)
+		//validate token
+		now := time.Now()
+		err = q.Result.Validate(now)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
 
+		e := access.NewRecordedEvent(gr.Result.ID, &gr.Result.RequestedBy, time.Now(), b.Data)
 		err = s.db.Put(ctx, &e)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
 
-		zap.S().Infow("recorded event", "request.id", getReq.Result.ID, "event.id", e.ID, "data: ", b.Data)
+		zap.S().Infow("recorded event", "request.id", gr.Result.ID, "event.id", e.ID)
 
 		w.WriteHeader(http.StatusCreated)
 	})

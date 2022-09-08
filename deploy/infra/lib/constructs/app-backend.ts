@@ -39,7 +39,7 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _KMSkey: cdk.aws_kms.Key;
-  private _webhook: apigateway.Resource
+  private _webhook: apigateway.Resource;
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -131,9 +131,9 @@ export class AppBackend extends Construct {
       timeout: Duration.seconds(20),
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
-       environment: {
+      environment: {
         APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
-      }
+      },
     });
 
     this._dynamoTable.grantReadWriteData(webhookLambda);
@@ -173,8 +173,8 @@ export class AppBackend extends Construct {
         allowTestInvoke: false,
       })
     );
-  
-    this._webhook = webhookv1
+
+    this._webhook = webhookv1;
 
     const ALLOWED_HEADERS = [
       "Content-Type",
@@ -268,7 +268,10 @@ export class AppBackend extends Construct {
 
   getWebhookApiURL(): string {
     //both prepend and append a / so we have to remove one out
-    return this._apigateway.url + this._webhook.path.substring(1, this._webhook.path.length)
+    return (
+      this._apigateway.url +
+      this._webhook.path.substring(1, this._webhook.path.length)
+    );
   }
 
   getDynamoTableName(): string {

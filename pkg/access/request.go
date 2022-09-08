@@ -81,7 +81,7 @@ type Request struct {
 	Data            RequestData       `json:"data" dynamodbav:"data"`
 	RequestedTiming Timing            `json:"requestedTiming" dynamodbav:"requestedTiming"`
 	// When a request is approver, the approver has the option to override the timing, if they do so, this will be populated.
-	// If the timing was not overriden, then the original request timeing should be used.
+	// If the timing was not overriden, then the original request timing should be used.
 	// Override timing should only be set by an approving review
 	OverrideTiming *Timing `json:"overrideTiming,omitempty" dynamodbav:"overrideTiming,omitempty"`
 	// Grant is the ID of the grant when it is created by the access handler

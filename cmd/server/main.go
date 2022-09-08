@@ -34,7 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func run() error {
