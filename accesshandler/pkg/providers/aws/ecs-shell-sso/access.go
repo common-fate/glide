@@ -21,7 +21,7 @@ import (
 )
 
 type Args struct {
-	TaskDefinitionFamily string `json:"taskdefinitionfamily" jsonschema:"title=TaskDefinitionFamily"`
+	TaskDefinitionFamily string `json:"taskDefinitionFamily" jsonschema:"title=Task Definition Family"`
 }
 
 // Grant the access

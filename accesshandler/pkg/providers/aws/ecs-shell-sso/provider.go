@@ -46,6 +46,10 @@ type Provider struct {
 	// a role which can be assumed and has required sso and ecs permissions
 	ssoRoleArn gconfig.StringValue
 	ecsRoleArn gconfig.StringValue
+
+	// this is a boolean, but gconfig doesn't yet support that.
+	// So we consider it enabled if the value is 'true'.
+	accessToken gconfig.OptionalStringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -57,15 +61,14 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("ecsRoleArn", &p.ecsRoleArn, "The ARN of the AWS IAM Role with permission to read ECS"),
 		gconfig.StringField("ssoRegion", &p.ssoRegion, "The region the AWS SSO instance is deployed to"),
 		gconfig.StringField("ecsRegion", &p.ecsRegion, "The region the ecs cluster instance is deployed to"),
+		gconfig.OptionalStringField("accessToken", &p.accessToken, "Generate an access token for interactive Python/Ruby shell access"),
 	}
 }
 
 // Init the provider.
 func (p *Provider) Init(ctx context.Context) error {
-
-	p.ssoCredentialCache = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleArn.Get(), cfaws.WithRoleSessionName("accesshandler-sso-flask"))
-
-	p.ecsCredentialCache = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ecsRoleArn.Get(), cfaws.WithRoleSessionName("accesshandler-ecs-flask"))
+	p.ssoCredentialCache = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleArn.Get(), cfaws.WithRoleSessionName("accesshandler-ecs-shell-sso"))
+	p.ecsCredentialCache = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ecsRoleArn.Get(), cfaws.WithRoleSessionName("accesshandler-ecs-shell-sso"))
 
 	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()), config.WithCredentialsProvider(p.ssoCredentialCache))
 	if err != nil {
@@ -109,8 +112,12 @@ func (p *Provider) Init(ctx context.Context) error {
 
 }
 
-func (p *Provider) RequiresAccessToken() {
-
+func (p *Provider) RequiresAccessToken() bool {
+	at := p.accessToken.Value
+	if at == nil {
+		return false
+	}
+	return *at == "true"
 }
 
 // ArgSchema returns the schema for the provider.
