@@ -47,7 +47,7 @@ func PreventDevUsage() cli.BeforeFunc {
 			return err
 		}
 		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
-			return clio.NewCLIError("Unsupported command used on developement deployment", clio.WarnMsg("It looks like you tried to use an unsupported command on your developement stack: '%s'.", c.Command.Name), clio.InfoMsg("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
+			return clio.NewCLIError("Unsupported command used on development deployment", clio.WarnMsg("It looks like you tried to use an unsupported command on your development stack: '%s'.", c.Command.Name), clio.InfoMsg("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
 		}
 		return nil
 	}

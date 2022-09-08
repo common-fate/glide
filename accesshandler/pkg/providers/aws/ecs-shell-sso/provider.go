@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
@@ -46,10 +47,6 @@ type Provider struct {
 	// a role which can be assumed and has required sso and ecs permissions
 	ssoRoleArn gconfig.StringValue
 	ecsRoleArn gconfig.StringValue
-
-	// this is a boolean, but gconfig doesn't yet support that.
-	// So we consider it enabled if the value is 'true'.
-	accessToken gconfig.OptionalStringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -61,7 +58,6 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("ecsRoleArn", &p.ecsRoleArn, "The ARN of the AWS IAM Role with permission to read ECS"),
 		gconfig.StringField("ssoRegion", &p.ssoRegion, "The region the AWS SSO instance is deployed to"),
 		gconfig.StringField("ecsRegion", &p.ecsRegion, "The region the ecs cluster instance is deployed to"),
-		gconfig.OptionalStringField("accessToken", &p.accessToken, "Generate an access token for interactive Python/Ruby shell access"),
 	}
 }
 
@@ -109,15 +105,12 @@ func (p *Provider) Init(ctx context.Context) error {
 		return errors.New("ECS cluster relating to provider is not currently active")
 	}
 	return nil
-
 }
 
+var _ providers.AccessTokener = &Provider{}
+
 func (p *Provider) RequiresAccessToken() bool {
-	at := p.accessToken.Value
-	if at == nil {
-		return false
-	}
-	return *at == "true"
+	return true
 }
 
 // ArgSchema returns the schema for the provider.

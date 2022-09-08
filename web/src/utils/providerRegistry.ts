@@ -31,9 +31,9 @@ export const registeredProviders: RegisteredProvider[] = [
     name: "EKS (with AWS SSO)",
   },
   {
-    type: "commonfate/flask",
-    shortType: "flask",
-    name: "Flask (with AWS SSO)",
+    type: "commonfate/ecs-exec-sso",
+    shortType: "ecs-exec-sso",
+    name: "ECS Exec (with AWS SSO)",
   },
   {
     type: "commonfate/testvault",

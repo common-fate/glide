@@ -192,6 +192,7 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 		}
 
 		if requiresAccessToken {
+			logger.Get(ctx).Infow("creating access token for request", "request.id", opts.Request.ID)
 			at := access.AccessToken{
 				RequestID: opts.Request.ID,
 				Token:     ksuid.New().String(),

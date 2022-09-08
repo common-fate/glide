@@ -14,6 +14,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/go-chi/chi/v5"
+	"github.com/pkg/errors"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 )
@@ -80,11 +81,20 @@ func (s *Server) Routes() http.Handler {
 	r.Post("/webhook/v1/access-token/verify", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		t := r.Header.Get("X-CommonFate-Access-Token")
+		if t == "" {
+			logger.Get(ctx).Infow("X-CommonFate-Access-Token was empty")
+			apio.ErrorString(ctx, w, "access token must be provided", http.StatusBadRequest)
+			return
+		}
 
 		//lookup token in database
 		q := storage.GetAccessTokenByToken{Token: t}
 
 		_, err := s.db.Query(ctx, &q)
+		if err == ddb.ErrNoItems {
+			apio.ErrorString(ctx, w, "invalid access token", http.StatusUnauthorized)
+			return
+		}
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
@@ -96,7 +106,7 @@ func (s *Server) Routes() http.Handler {
 		if err != nil {
 			// log the error message and return an opaque response.
 			logger.Get(ctx).Infow("invalid access token", zap.Error(err))
-			apio.ErrorString(ctx, w, "invalid access token", http.StatusBadRequest)
+			apio.ErrorString(ctx, w, "invalid access token", http.StatusUnauthorized)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -110,11 +120,16 @@ func (s *Server) Routes() http.Handler {
 	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		token := r.Header.Get("X-CommonFate-Access-Token")
+		if token == "" {
+			logger.Get(ctx).Infow("X-CommonFate-Access-Token was empty")
+			apio.ErrorString(ctx, w, "access token must be provided", http.StatusBadRequest)
+			return
+		}
 
 		q := storage.GetAccessTokenByToken{Token: token}
 		_, err := s.db.Query(ctx, &q)
 		if err != nil {
-			apio.Error(ctx, w, err)
+			apio.Error(ctx, w, errors.Wrap(err, "querying for access token"))
 			return
 		}
 
@@ -128,7 +143,7 @@ func (s *Server) Routes() http.Handler {
 		gr := storage.GetRequest{ID: q.Result.RequestID}
 		_, err = s.db.Query(ctx, &gr)
 		if err != nil {
-			apio.Error(ctx, w, err)
+			apio.Error(ctx, w, errors.Wrap(err, "querying for request"))
 			return
 		}
 
@@ -136,7 +151,9 @@ func (s *Server) Routes() http.Handler {
 		now := time.Now()
 		err = q.Result.Validate(now)
 		if err != nil {
-			apio.Error(ctx, w, err)
+			// log the error message and return an opaque response.
+			logger.Get(ctx).Infow("invalid access token", zap.Error(err))
+			apio.ErrorString(ctx, w, "invalid access token", http.StatusUnauthorized)
 			return
 		}
 

@@ -97,6 +97,7 @@ export class DevGrantedStack extends cdk.Stack {
       APIURL: approvals.getApprovalsApiURL(),
       WebhookURL: approvals.getWebhookApiURL(),
       APILogGroupName: approvals.getLogGroupName(),
+      WebhookLogGroupName: approvals.getWebhookLogGroupName(),
       IDPSyncLogGroupName: approvals.getIdpSync().getLogGroupName(),
       AccessHandlerLogGroupName: accessHandler.getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),

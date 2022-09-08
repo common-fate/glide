@@ -10,7 +10,7 @@ import (
 // Options list the argument options for the provider
 func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
 	switch arg {
-	case "taskdefinitionfamily":
+	case "taskDefinitionFamily":
 		opts := []types.Option{}
 		hasMore := true
 		var nextToken *string

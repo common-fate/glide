@@ -40,6 +40,7 @@ export class AppBackend extends Construct {
   private _idpSync: IdpSync;
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
+  private _webhookLambda: lambda.Function;
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -56,7 +57,7 @@ export class AppBackend extends Construct {
     });
 
     // used to handle webhook events from third party integrations such as Slack
-    const webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
+    this._webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
       code: lambda.Code.fromAsset(
         path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
       ),
@@ -68,7 +69,7 @@ export class AppBackend extends Construct {
       },
     });
 
-    this._dynamoTable.grantReadWriteData(webhookLambda);
+    this._dynamoTable.grantReadWriteData(this._webhookLambda);
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._appName,
@@ -80,7 +81,7 @@ export class AppBackend extends Construct {
     const webhookProxy = webhookv1.addResource("{proxy+}");
     webhookProxy.addMethod(
       "ANY",
-      new apigateway.LambdaIntegration(webhookLambda, {
+      new apigateway.LambdaIntegration(this._webhookLambda, {
         allowTestInvoke: false,
       })
     );
@@ -280,7 +281,9 @@ export class AppBackend extends Construct {
   getDynamoTable(): dynamodb.Table {
     return this._dynamoTable;
   }
-
+  getWebhookLogGroupName(): string {
+    return this._webhookLambda.logGroup.logGroupName;
+  }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }

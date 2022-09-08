@@ -182,6 +182,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       APIURL: appBackend.getApprovalsApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
+      WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
       AccessHandlerLogGroupName: accessHandler.getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
