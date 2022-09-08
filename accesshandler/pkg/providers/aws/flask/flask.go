@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
@@ -13,13 +14,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
 )
 
 type Provider struct {
+	awsConfig aws.Config
+
 	ecsClient        *ecs.Client
 	ssoClient        *ssoadmin.Client
 	iamClient        *iam.Client
@@ -36,13 +38,11 @@ type Provider struct {
 	// The globally unique identifier for the identity store, such as d-1234567890.
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
-	ssoRegion gconfig.StringValue
+	ssoRegion gconfig.OptionalStringValue
 	ecsRegion gconfig.StringValue
 	// a role which can be assumed and has required sso permissions
 	ssoRoleARN       gconfig.StringValue
 	ecsAccessRoleARN gconfig.StringValue
-
-	options map[string][]types.Option
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -51,7 +51,7 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "The AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "The AWS SSO Instance ARN"),
 		gconfig.StringField("clusterAccessRoleArn", &p.ecsAccessRoleARN, "The ARN of the AWS IAM Role with permission to access the ecs cluster"),
-		gconfig.StringField("ssoRegion", &p.ssoRegion, "The region the AWS SSO instance is deployed to"),
+		gconfig.OptionalStringField("ssoRegion", &p.ssoRegion, "The region the AWS SSO instance is deployed to"),
 		gconfig.StringField("ssoRoleARN", &p.ssoRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),
 		gconfig.StringField("ecsRegion", &p.ecsRegion, "The region the ecs cluster instance is deployed to"),
 	}
@@ -59,6 +59,16 @@ func (p *Provider) Config() gconfig.Config {
 
 // // Init the provider.
 func (p *Provider) Init(ctx context.Context) error {
+	opts := []func(*config.LoadOptions) error{config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso")))}
+	if p.ssoRegion.IsSet() {
+		opts = append(opts, config.WithRegion(p.ssoRegion.Get()))
+	}
+	cfg, err := config.LoadDefaultConfig(ctx, opts...)
+	if err != nil {
+		return err
+	}
+	cfg.RetryMaxAttempts = 5
+	p.awsConfig = cfg
 
 	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-flask"))))
 	if err != nil {

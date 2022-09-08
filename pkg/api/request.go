@@ -432,7 +432,7 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 		return
 	}
 	if q.Result.RequestedBy == uid {
-		q := storage.GetAccessToken{ID: requestId}
+		q := storage.GetAccessToken{RequestID: requestId}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
 			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -22,24 +21,12 @@ import (
 
 func main() {
 
-	if os.Getenv("LOCAL_WEBHOOK") == "true" {
-		s, err := buildLocalHandler()
-		if err != nil {
-			panic(err)
-		}
-		err = s.Run(context.Background())
-		if err != nil {
-			panic(err)
-		}
-
-	} else {
-		l, err := buildHandler()
-		if err != nil {
-			panic(err)
-		}
-
-		lambda.Start(l.Handler)
+	l, err := buildHandler()
+	if err != nil {
+		panic(err)
 	}
+
+	lambda.Start(l.Handler)
 
 }
 
@@ -175,7 +162,7 @@ func (s *Server) Routes() http.Handler {
 		}
 		zap.S().Infow("decoded request body", b.Data)
 
-		getReq := storage.GetRequest{ID: q.Result.RequestId}
+		getReq := storage.GetRequest{ID: q.Result.RequestID}
 
 		_, err = s.db.Query(ctx, &getReq)
 
@@ -210,40 +197,4 @@ func (h *Lambda) Handler(ctx context.Context, req events.APIGatewayProxyRequest)
 
 type RecordingEventBody struct {
 	Data map[string]string `json:"data"`
-}
-
-func buildLocalHandler() (*Server, error) {
-	ctx := context.Background()
-	var cfg Config
-	err := envconfig.Process(ctx, &cfg)
-	if err != nil {
-		return nil, err
-	}
-	log, err := logger.Build(cfg.LogLevel)
-	if err != nil {
-		return nil, err
-	}
-	zap.ReplaceGlobals(log.Desugar())
-
-	s, err := NewServer(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return s, nil
-}
-
-func (s *Server) Run(ctx context.Context) error {
-
-	serv := &http.Server{
-		Addr:    "localhost:3030",
-		Handler: s.Routes(),
-	}
-
-	err := serv.ListenAndServe()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	orgtypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
@@ -26,6 +27,7 @@ func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) er
 
 	return err
 }
+
 func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 	return map[string]providers.ConfigValidationStep{
 		"sso-list-users": {
@@ -46,6 +48,13 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 			Name:            "Assume AWS SSO Access Role",
 			FieldsValidated: []string{"ssoRoleArn"},
 			Run: func(ctx context.Context) diagnostics.Logs {
+				creds, err := p.awsConfig.Credentials.Retrieve(ctx)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				if creds.Expired() {
+					diagnostics.Error(errors.New("credentials are expired"))
+				}
 				return diagnostics.Info("Assumed Access Role successfully")
 			},
 		},
@@ -57,6 +66,27 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 					return diagnostics.Error(err)
 				}
 				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
+			},
+		},
+		"assume-cluster-role": {
+			Name: "Assume ECS cluster role",
+			Run: func(ctx context.Context) diagnostics.Logs {
+				res, err := p.orgClient.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
+			},
+		},
+		"list-tasks": {
+			Name: "List tasks in the cluster",
+			Run: func(ctx context.Context) diagnostics.Logs {
+				// try and list users in the AWS SSO instance.
+				res, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get())})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				return diagnostics.Info("AWS SSO returned %d users (more may exist, pagination has been ignored)", len(res.TaskArns))
 			},
 		},
 	}
