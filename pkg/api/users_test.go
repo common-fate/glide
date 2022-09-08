@@ -45,7 +45,7 @@ func TestGetUsers(t *testing.T) {
 					LastName:  "User",
 				},
 			},
-			wantBody: `{"next":null,"users":[{"email":"test@acme.com","firstName":"Test","id":"123","lastName":"User","picture":"","status":"","updatedAt":"0001-01-01T00:00:00Z"},{"email":"test2@acme.com","firstName":"Test","id":"1234","lastName":"User","picture":"","status":"","updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"users":[{"email":"test@acme.com","firstName":"Test","groups":[],"id":"123","lastName":"User","picture":"","status":"","updatedAt":"0001-01-01T00:00:00Z"},{"email":"test2@acme.com","firstName":"Test","groups":[],"id":"1234","lastName":"User","picture":"","status":"","updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 	}
 
@@ -99,7 +99,7 @@ func TestGetUser(t *testing.T) {
 				FirstName: "Test",
 				LastName:  "User",
 			},
-			wantBody: `{"id":"123","firstName":"Test","lastName":"User","email":"test@acme.com","groups":null,"status":"","createdAt":"0001-01-01T00:00:00Z","updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"email":"test@acme.com","firstName":"Test","groups":[],"id":"123","lastName":"User","picture":"","status":"","updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:     "user not found",
