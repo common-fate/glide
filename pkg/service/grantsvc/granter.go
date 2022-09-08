@@ -36,11 +36,33 @@ type AHClient interface {
 
 // Granter has logic to integrate with the Access Handler.
 type Granter struct {
+	AHClient           ahTypes.ClientWithResponsesInterface
+	DB                 ddb.Storage
+	Clock              clock.Clock
+	EventBus           *gevent.Sender
+	accessTokenChecker accessTokenChecker
+}
+
+type GranterOpts struct {
 	AHClient         ahTypes.ClientWithResponsesInterface
 	DB               ddb.Storage
 	Clock            clock.Clock
 	EventBus         *gevent.Sender
 	DeploymentConfig deploy.DeployConfigReader
+}
+
+// New creates a new Granter service.
+func New(opts GranterOpts) *Granter {
+	return &Granter{
+		AHClient: opts.AHClient,
+		DB:       opts.DB,
+		Clock:    opts.Clock,
+		EventBus: opts.EventBus,
+		accessTokenChecker: registryAccessTokenChecker{
+			DeploymentConfig: opts.DeploymentConfig,
+			Registry:         providerregistry.Registry(),
+		},
+	}
 }
 
 type CreateGrantOpts struct {
@@ -118,7 +140,6 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 // CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.
 // the returned Request will contain the newly created grant
 func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*access.Request, error) {
-
 	q := &storage.GetUser{
 		ID: opts.Request.RequestedBy,
 	}
@@ -129,7 +150,7 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 
 	// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
 	// check now before we actually provision the access, so that we can return early if we fail.
-	requiresAccessToken, err := g.providerRequiresAccessToken(ctx, providerregistry.Registry(), opts.AccessRule.Target.ProviderID)
+	requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)
 	if err != nil {
 		return nil, err
 	}
@@ -194,12 +215,22 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 	return nil, errors.New("unhandled response code")
 }
 
+// accessTokenCheckers check whether a provider needs an access token generated.
+type accessTokenChecker interface {
+	NeedsAccessToken(ctx context.Context, providerID string) (bool, error)
+}
+
+type registryAccessTokenChecker struct {
+	DeploymentConfig deploy.DeployConfigReader
+	Registry         providerregistry.ProviderRegistry
+}
+
 // providerRequiresAccessToken looks up the provider in our registry.
 // If the provider implements RequiresAccessToken() and it's true, this function returns true.
 // Otherwise, it returns false.
 // Returns an error if we can't look up the provider.
-func (g *Granter) providerRequiresAccessToken(ctx context.Context, r providerregistry.ProviderRegistry, providerID string) (bool, error) {
-	pm, err := g.DeploymentConfig.ReadProviders(ctx)
+func (r registryAccessTokenChecker) NeedsAccessToken(ctx context.Context, providerID string) (bool, error) {
+	pm, err := r.DeploymentConfig.ReadProviders(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -207,7 +238,7 @@ func (g *Granter) providerRequiresAccessToken(ctx context.Context, r providerreg
 	if !ok {
 		return false, fmt.Errorf("could not find provider %s in deployment config", providerID)
 	}
-	p, err := r.LookupByUses(provider.Uses)
+	p, err := r.Registry.LookupByUses(provider.Uses)
 	if err != nil {
 		return false, err
 	}

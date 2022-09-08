@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 
 	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/deploy/mocks"
 	"github.com/common-fate/iso8601"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -59,13 +58,12 @@ func TestAccessRevoke(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			ah := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			dc := mocks.NewMockDeployConfigReader(ctrl)
 
 			ah.EXPECT().PostGrantsRevokeWithResponse(gomock.Any(), "123", ah_types.PostGrantsRevokeJSONRequestBody{
 				RevokerId: tc.give.RevokerID,
 			}).Return(&tc.withRevokeGrantResponse, tc.wantErr).AnyTimes()
 
-			s := Granter{AHClient: ah, Clock: clk, DeploymentConfig: dc}
+			s := Granter{AHClient: ah, Clock: clk}
 			_, err := s.RevokeGrant(context.Background(), tc.give)
 
 			assert.Equal(t, tc.wantErr, err)

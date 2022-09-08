@@ -12,12 +12,21 @@ import (
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/deploy/mocks"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
+
+// testAccessTokenChecker is a mock implementation of NeedsAccessToken
+type testAccessTokenChecker struct {
+	NeedsToken bool
+	Err        error
+}
+
+func (t testAccessTokenChecker) NeedsAccessToken(ctx context.Context, providerID string) (bool, error) {
+	return t.NeedsToken, t.Err
+}
 
 func TestCreateGrant(t *testing.T) {
 	type testcase struct {
@@ -27,6 +36,8 @@ func TestCreateGrant(t *testing.T) {
 		withUser                       identity.User
 		give                           CreateGrantOpts
 		wantPostGrantsWithResponseBody ahTypes.PostGrantsJSONRequestBody
+		needsAccessToken               bool
+		needsAccessTokenErr            error
 
 		wantRequest *access.Request
 		wantErr     error
@@ -126,7 +137,6 @@ func TestCreateGrant(t *testing.T) {
 
 			wantRequest: &access.Request{
 				Status: access.APPROVED,
-
 				RequestedTiming: access.Timing{
 					Duration:  time.Minute,
 					StartTime: &now,
@@ -136,7 +146,6 @@ func TestCreateGrant(t *testing.T) {
 					StartTime: &overrideStart,
 				},
 				Grant: &access.Grant{
-
 					CreatedAt: clk.Now(),
 					UpdatedAt: clk.Now(),
 					Start:     overrideStart,
@@ -152,16 +161,18 @@ func TestCreateGrant(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
 			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
-			dc := mocks.NewMockDeployConfigReader(ctrl)
 
 			c := ddbmock.New(t)
 			c.MockQuery(&storage.GetUser{Result: &tc.withUser})
 
 			s := Granter{
-				AHClient:         g,
-				DB:               c,
-				Clock:            clk,
-				DeploymentConfig: dc,
+				AHClient: g,
+				DB:       c,
+				Clock:    clk,
+				accessTokenChecker: testAccessTokenChecker{
+					NeedsToken: tc.needsAccessToken,
+					Err:        tc.needsAccessTokenErr,
+				},
 			}
 
 			gotRequest, err := s.CreateGrant(context.Background(), tc.give)

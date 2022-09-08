@@ -126,13 +126,13 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	clk := clock.New()
 
-	granter := &grantsvc.Granter{
+	granter := grantsvc.New(grantsvc.GranterOpts{
 		AHClient:         opts.AccessHandlerClient,
 		DB:               db,
 		Clock:            clk,
 		EventBus:         opts.EventSender,
 		DeploymentConfig: opts.DeploymentConfig,
-	}
+	})
 
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
