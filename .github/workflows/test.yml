@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GRANTED_INTEGRATION_TEST: true
-      PROVIDER_CONFIG: '{"okta":{"orgUrl":"${{ secrets.OKTA_ORG_URL }}","apiToken":"${{ secrets.OKTA_API_TOKEN }}"}}'
+      PROVIDER_CONFIG: '{"okta":{"uses": "commonfate/okta@v1", "with": {"orgUrl":"${{ secrets.OKTA_ORG_URL }}","apiToken":"${{ secrets.OKTA_API_TOKEN }}"}}}'
     steps:
       - name: Checkout
         uses: actions/checkout@v1

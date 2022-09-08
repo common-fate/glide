@@ -147,3 +147,5 @@ export * from './providerSetupDiagnosticLog';
 export * from './providerSetupDiagnosticLogLevel';
 export * from './providerSetupValidationStatus';
 export * from './providerSetupValidation';
+export * from './completeProvidersetup200';
+export * from './completeProviderSetupResponseResponse';

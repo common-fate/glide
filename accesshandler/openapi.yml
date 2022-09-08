@@ -113,6 +113,21 @@ paths:
       operationId: list-providers
       description: List providers
     parameters: []
+  /api/v1/providers/refresh:
+    parameters: []
+    post:
+      summary: Refresh Access Providers
+      operationId: refresh-access-providers
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Provider"
+      description: Reload any cached Access Provider configuration.
   "/api/v1/providers/{providerId}":
     get:
       summary: Get provider

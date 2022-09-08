@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -10,7 +9,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/awslabs/aws-lambda-go-api-proxy/handlerfunc"
 	"github.com/common-fate/apikit/logger"
-	ahConfig "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/internal"
 	"github.com/common-fate/granted-approvals/pkg/api"
 	"github.com/common-fate/granted-approvals/pkg/auth"
@@ -63,17 +61,7 @@ func buildHandler() (*Lambda, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	pcfg, err := ahConfig.ReadProviderConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var pmeta deploy.ProviderMap
-	err = json.Unmarshal(pcfg, &pmeta)
-	if err != nil {
-		return nil, err
-	}
+	dc := &deploy.EnvDeploymentConfig{}
 
 	api, err := api.New(ctx, api.Opts{
 		Log:                           log,
@@ -82,7 +70,7 @@ func buildHandler() (*Lambda, error) {
 		AccessHandlerClient:           ahc,
 		EventSender:                   eventBus,
 		AdminGroup:                    cfg.AdminGroup,
-		ProviderMetadata:              pmeta,
+		DeploymentConfig:              dc,
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
 		DeploymentSuffix:              cfg.DeploymentSuffix,
 	})

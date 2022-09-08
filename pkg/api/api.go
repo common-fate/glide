@@ -49,7 +49,7 @@ import (
 type API struct {
 	// DB is the DynamoDB client which provides direct storage access.
 	DB               ddb.Storage
-	ProviderMetadata deploy.ProviderMap
+	DeploymentConfig deploy.DeployConfigReader
 	// Requests is the service which provides business logic for Access Requests.
 	Access              AccessService
 	Rules               AccessRuleService
@@ -97,8 +97,8 @@ var _ types.ServerInterface = &API{}
 type Opts struct {
 	Log                           *zap.SugaredLogger
 	AccessHandlerClient           ahtypes.ClientWithResponsesInterface
-	ProviderMetadata              deploy.ProviderMap
 	EventSender                   *gevent.Sender
+	DeploymentConfig              deploy.DeployConfigReader
 	DynamoTable                   string
 	PaginationKMSKeyARN           string
 	AdminGroup                    string
@@ -127,7 +127,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	clk := clock.New()
 
 	a := API{
-		ProviderMetadata: opts.ProviderMetadata,
+		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
 		Access: &accesssvc.Service{
 			Clock: clk,
