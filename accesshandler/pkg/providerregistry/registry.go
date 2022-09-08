@@ -45,7 +45,7 @@ func Registry() ProviderRegistry {
 	return ProviderRegistry{
 		Providers: map[string]map[string]RegisteredProvider{
 			"commonfate/flask": {
-				"v1": {Provider: &flask.Provider{},
+				"v1-alpha1": {Provider: &flask.Provider{},
 					DefaultID:   "flask",
 					Description: "Flask Access Provider",
 				},

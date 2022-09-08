@@ -89,6 +89,7 @@ export class DevGrantedStack extends cdk.Stack {
       UserPoolID: webUserPool.getUserPoolId(),
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
       APIURL: approvals.getApprovalsApiURL(),
+      WebhookURL: approvals.getWebhookApiURL(),
       APILogGroupName: approvals.getLogGroupName(),
       IDPSyncLogGroupName: approvals.getIdpSync().getLogGroupName(),
       AccessHandlerLogGroupName: accessHandler.getLogGroupName(),

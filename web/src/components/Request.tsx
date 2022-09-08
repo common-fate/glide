@@ -300,7 +300,7 @@ export const RequestAccessInstructions: React.FC = () => {
     return (
       <Stack>
         <Box textStyle="Body/Medium" mb={2}>
-          Granted is provisioning your access, it'll be done soon!
+          Granted is provisioning access, it'll be done soon!
         </Box>
         <Progress size="xs" isIndeterminate />
       </Stack>
@@ -315,7 +315,7 @@ export const RequestAccessInstructions: React.FC = () => {
       return (
       <ReactMarkdown
         // remarkPlugins={[remarkGfm]}
-        skipHtml={false}
+        //skipHtml={false}
         components={{
           a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
           p: (props) => (

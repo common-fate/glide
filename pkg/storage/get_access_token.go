@@ -11,8 +11,8 @@ import (
 )
 
 type GetAccessToken struct {
-	ID     string
-	Result *access.AccessToken
+	RequestID string
+	Result    *access.AccessToken
 }
 
 func (g *GetAccessToken) BuildQuery() (*dynamodb.QueryInput, error) {
@@ -21,7 +21,7 @@ func (g *GetAccessToken) BuildQuery() (*dynamodb.QueryInput, error) {
 		KeyConditionExpression: aws.String("PK = :pk1 and SK = :sk1"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1": &types.AttributeValueMemberS{Value: keys.AccessToken.PK1},
-			":sk1": &types.AttributeValueMemberS{Value: keys.AccessToken.SK1(g.ID)},
+			":sk1": &types.AttributeValueMemberS{Value: keys.AccessToken.SK1(g.RequestID)},
 		},
 	}
 

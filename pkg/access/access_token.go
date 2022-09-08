@@ -9,8 +9,8 @@ import (
 )
 
 type AccessToken struct {
-	RequestId string `json:"request_id"` // maybe?
-	Token     string `json:"token"`
+	RequestID string `json:"requestId" dynamodbav:"requestId"`
+	Token     string `json:"token" dynamodbav:"token"`
 
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
@@ -22,7 +22,7 @@ type AccessToken struct {
 func (r *AccessToken) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK:     keys.AccessToken.PK1,
-		SK:     keys.AccessToken.SK1(r.RequestId),
+		SK:     keys.AccessToken.SK1(r.RequestID),
 		GSI1PK: keys.AccessToken.GSIPK,
 		GSI1SK: keys.AccessRequest.GSI1SK(r.Token),
 	}

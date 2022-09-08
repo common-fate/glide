@@ -174,6 +174,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       UserPoolID: webUserPool.getUserPoolId(),
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getApprovalsApiURL(),
+      WebhookURL: appBackend.getWebhookApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
       AccessHandlerLogGroupName: accessHandler.getLogGroupName(),

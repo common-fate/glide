@@ -119,7 +119,7 @@ func (s *Server) Routes() http.Handler {
 
 	r.Post("/webhook/v1/access-token", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		t := r.Header.Get("X-Granted-Request")
+		t := r.Header.Get("X-CommonFate-Access-Token")
 
 		//lookup token in database
 		q := storage.GetAccessTokenByToken{Token: t}
@@ -140,16 +140,16 @@ func (s *Server) Routes() http.Handler {
 
 	})
 
-	r.Post("/webhook/v1/test-setup", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/webhook/v1/health", func(w http.ResponseWriter, r *http.Request) {
 
-		//successfull connection to webhook url return OK
+		//successful connection to webhook url return OK
 		w.WriteHeader(http.StatusOK)
 
 	})
 
 	r.Post("/webhook/v1/events-recorder", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		token := r.Header.Get("X-Granted-Request")
+		token := r.Header.Get("X-CommonFate-Access-Token")
 
 		q := storage.GetAccessTokenByToken{Token: token}
 

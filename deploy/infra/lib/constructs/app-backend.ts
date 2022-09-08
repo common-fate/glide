@@ -38,6 +38,7 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _KMSkey: cdk.aws_kms.Key;
+  private _webhook: apigateway.Resource
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -171,6 +172,8 @@ export class AppBackend extends Construct {
         allowTestInvoke: false,
       })
     );
+  
+    this._webhook = webhookv1
 
     const ALLOWED_HEADERS = [
       "Content-Type",
@@ -324,6 +327,11 @@ export class AppBackend extends Construct {
 
   getApprovalsApiURL(): string {
     return this._apigateway.url;
+  }
+
+  getWebhookApiURL(): string {
+    //both prepend and append a / so we have to remove one out
+    return this._apigateway.url + this._webhook.path.substring(1, this._webhook.path.length)
   }
 
   getDynamoTableName(): string {

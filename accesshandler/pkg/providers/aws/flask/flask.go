@@ -29,9 +29,8 @@ type Provider struct {
 	orgClient        *organizations.Client
 	awsAccountID     string
 
-	// configured by gconfig
+	// below fields are configured by gconfig
 	ecsClusterARN gconfig.StringValue
-
 	// sso instance
 	instanceARN gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
@@ -39,7 +38,6 @@ type Provider struct {
 	// The aws region where the identity store runs
 	ssoRegion gconfig.StringValue
 	ecsRegion gconfig.StringValue
-
 	// a role which can be assumed and has required sso permissions
 	ssoRoleARN       gconfig.StringValue
 	ecsAccessRoleARN gconfig.StringValue
@@ -49,7 +47,6 @@ type Provider struct {
 
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
-
 		gconfig.StringField("ecsClusterARN", &p.ecsClusterARN, "The ARN of the ECS Cluster to provision access to"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "The AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "The AWS SSO Instance ARN"),
@@ -63,14 +60,6 @@ func (p *Provider) Config() gconfig.Config {
 // // Init the provider.
 func (p *Provider) Init(ctx context.Context) error {
 
-	//manually set the options for now
-	optionsJson := []types.Option{}
-
-	optionsJson = append(optionsJson, types.Option{Label: "ECS Demo", Value: "ecs-demo"})
-
-	p.options = make(map[string][]types.Option)
-	p.options["server"] = optionsJson
-
 	ssoCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.ssoRegion.Get()), config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-flask"))))
 	if err != nil {
 		return err
@@ -79,8 +68,6 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: verify here if the ecs task has exec is enabled on the ecs task
 
 	p.cloudtrailClient = cloudtrail.NewFromConfig(ecsCfg)
 	p.ssmClient = ssm.NewFromConfig(ecsCfg)
@@ -99,6 +86,18 @@ func (p *Provider) Init(ctx context.Context) error {
 	}
 	p.awsAccountID = *res.Account
 
+	//check to see if cluster is running and has exec enabled
+	clusters, err := p.ecsClient.DescribeClusters(ctx, &ecs.DescribeClustersInput{Clusters: []string{p.ecsClusterARN.Get()}})
+	if err != nil {
+		return err
+	}
+	if len(clusters.Clusters) <= 0 {
+		return errors.New("ECS cluster not found during initialization, was it deleted?")
+	}
+	cluster := clusters.Clusters[0]
+	if *cluster.Status != "ACTIVE" {
+		return errors.New("ECS cluster relating to provider is not currently active")
+	}
 	return nil
 
 }
