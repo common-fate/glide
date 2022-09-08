@@ -82,11 +82,7 @@ func run() error {
 		return err
 	}
 
-	dc, err := deploy.GetDeployConfigReader(ctx, cfg.DynamoTable, log)
-	if err != nil {
-		return err
-	}
-
+	dc := &deploy.EnvDeploymentConfig{}
 	api, err := api.New(ctx, api.Opts{
 		Log:                           log,
 		DynamoTable:                   cfg.DynamoTable,
