@@ -172,8 +172,9 @@ type CreateGroupOpts struct {
 
 func (c *CognitoSync) CreateGroup(ctx context.Context, in CreateGroupOpts) (identity.IdpGroup, error) {
 	res, err := c.client.CreateGroup(ctx, &cognitoidentityprovider.CreateGroupInput{
-		UserPoolId: aws.String(c.userPoolID.Get()),
-		GroupName:  &in.Name,
+		UserPoolId:  aws.String(c.userPoolID.Get()),
+		GroupName:   aws.String(in.Name),
+		Description: aws.String(in.Description),
 	})
 	if err != nil {
 		return identity.IdpGroup{}, err
