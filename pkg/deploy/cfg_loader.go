@@ -33,5 +33,5 @@ func GetDeployConfigReader(ctx context.Context, ddbTable string, log *zap.Sugare
 		log.Infow("using managed deployment config", "ddb.table", ddbTable)
 		return &DDBManagedDeploymentConfig{DB: db}, nil
 	}
-	return &EnvAppConfig{}, nil
+	return &EnvDeploymentConfig{}, nil
 }

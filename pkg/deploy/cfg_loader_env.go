@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-// EnvAppConfig reads config values from environment variables.
-type EnvAppConfig struct{}
+// EnvDeploymentConfig reads config values from environment variables.
+type EnvDeploymentConfig struct{}
 
-func (el *EnvAppConfig) ReadProviders(ctx context.Context) (ProviderMap, error) {
+func (el *EnvDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap, error) {
 	env, ok := os.LookupEnv("PROVIDER_CONFIG")
 	if !ok {
 		return nil, errors.New("PROVIDER_CONFIG env var not set")
@@ -17,7 +17,7 @@ func (el *EnvAppConfig) ReadProviders(ctx context.Context) (ProviderMap, error) 
 	return UnmarshalProviderMap(env)
 }
 
-func (el *EnvAppConfig) ReadNotifications(ctx context.Context) (FeatureMap, error) {
+func (el *EnvDeploymentConfig) ReadNotifications(ctx context.Context) (FeatureMap, error) {
 	env, ok := os.LookupEnv("NOTIFICATIONS_SETTINGS")
 	if !ok {
 		return nil, errors.New("NOTIFICATIONS_SETTINGS env var not set")

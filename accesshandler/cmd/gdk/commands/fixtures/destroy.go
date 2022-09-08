@@ -27,7 +27,7 @@ var DestroyCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		ac := deploy.EnvAppConfig{}
+		ac := deploy.EnvDeploymentConfig{}
 		pc, err := ac.ReadProviders(ctx)
 		if err != nil {
 			return err
