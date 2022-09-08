@@ -32,7 +32,7 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 	return map[string]providers.ConfigValidationStep{
 		"sso-list-users": {
 			Name:            "List users in the AWS SSO instance",
-			FieldsValidated: []string{"instanceArn", "region", "identityStoreId"},
+			FieldsValidated: []string{"instanceArn", "ssoRegion", "identityStoreId"},
 			Run: func(ctx context.Context) diagnostics.Logs {
 				// try and list users in the AWS SSO instance.
 				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
@@ -44,11 +44,25 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 				return diagnostics.Info("AWS SSO returned %d users (more may exist, pagination has been ignored)", len(res.Users))
 			},
 		},
-		"assume-role": {
-			Name:            "Assume AWS SSO Access Role",
+		"assume-ecs-flask-sso-access-role": {
+			Name:            "Assume AWS ECS SSO Flask Access Role",
 			FieldsValidated: []string{"ssoRoleArn"},
 			Run: func(ctx context.Context) diagnostics.Logs {
-				creds, err := p.awsConfig.Credentials.Retrieve(ctx)
+				creds, err := p.ssoCredentialCache.Retrieve(ctx)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				if creds.Expired() {
+					diagnostics.Error(errors.New("credentials are expired"))
+				}
+				return diagnostics.Info("Assumed Access Role successfully")
+			},
+		},
+		"assume-ecs-flask-access-role": {
+			Name:            "Assume AWS ECS Flask Access Role",
+			FieldsValidated: []string{"ecsRoleArn"},
+			Run: func(ctx context.Context) diagnostics.Logs {
+				creds, err := p.ecsCredentialCache.Retrieve(ctx)
 				if err != nil {
 					return diagnostics.Error(err)
 				}
@@ -68,16 +82,7 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
 			},
 		},
-		"assume-cluster-role": {
-			Name: "Assume ECS cluster role",
-			Run: func(ctx context.Context) diagnostics.Logs {
-				res, err := p.orgClient.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
-				if err != nil {
-					return diagnostics.Error(err)
-				}
-				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
-			},
-		},
+
 		"list-tasks": {
 			Name: "List tasks in the cluster",
 			Run: func(ctx context.Context) diagnostics.Logs {
