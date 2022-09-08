@@ -104,16 +104,6 @@ export class CustomerGrantedStack extends cdk.Stack {
       default: "{}",
     });
 
-    const managedDeploymentConfig = new CfnParameter(
-      this,
-      "ManagedDeploymentConfig",
-      {
-        type: "String",
-        description: "A backend to use for managed deployment configuration",
-        default: "",
-      }
-    );
-
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -150,8 +140,6 @@ export class CustomerGrantedStack extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: providerConfig.valueAsString,
-      managedDeploymentConfig: managedDeploymentConfig.valueAsString,
-      dynamoTable: db.getTable(),
     });
 
     const appBackend = new AppBackend(this, "API", {
@@ -166,7 +154,6 @@ export class CustomerGrantedStack extends cdk.Stack {
       notificationsConfiguration: notificationsConfiguration.valueAsString,
       providerConfig: providerConfig.valueAsString,
       deploymentSuffix: suffix.valueAsString,
-      managedDeploymentConfig: managedDeploymentConfig.valueAsString,
       dynamoTable: db.getTable(),
     });
 

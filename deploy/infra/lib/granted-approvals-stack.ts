@@ -22,7 +22,6 @@ interface Props extends cdk.StackProps {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   adminGroupId: string;
-  managedDeploymentConfig: string;
 }
 export class DevGrantedStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Props) {
@@ -38,7 +37,6 @@ export class DevGrantedStack extends cdk.Stack {
       adminGroupId,
       notificationsConfiguration,
       identityProviderSyncConfiguration,
-      managedDeploymentConfig,
     } = props;
     const appName = `granted-approvals-${stage}`;
 
@@ -71,8 +69,6 @@ export class DevGrantedStack extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: props.providerConfig,
-      managedDeploymentConfig: props.managedDeploymentConfig,
-      dynamoTable: db.getTable(),
     });
 
     const approvals = new AppBackend(this, "API", {
@@ -88,7 +84,6 @@ export class DevGrantedStack extends cdk.Stack {
       notificationsConfiguration: notificationsConfiguration,
       deploymentSuffix: stage,
       dynamoTable: db.getTable(),
-      managedDeploymentConfig,
     });
     /* Outputs */
     generateOutputs(this, {

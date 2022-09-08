@@ -287,11 +287,11 @@ func Dotenv() error {
 	myEnv["PROVIDER_CONFIG"] = providerConf
 	myEnv["STATE_MACHINE_ARN"] = o.GranterStateMachineArn
 	myEnv["IDENTITY_PROVIDER"] = idpType
-	myEnv["GRANTED_USE_MANAGED_DEPLOYMENT_CONFIG"] = cfg.Deployment.Parameters.ManagedDeploymentConfig
 	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
 	myEnv["GRANTED_RUNTIME"] = "lambda"
 	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
+	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {

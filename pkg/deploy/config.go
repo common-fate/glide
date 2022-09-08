@@ -143,7 +143,6 @@ func (f FeatureMap) Remove(id string) {
 }
 
 type Parameters struct {
-	ManagedDeploymentConfig    string      `yaml:"ManagedDeploymentConfig,omitempty"`
 	CognitoDomainPrefix        string      `yaml:"CognitoDomainPrefix"`
 	AdministratorGroupID       string      `yaml:"AdministratorGroupID"`
 	DeploymentSuffix           string      `yaml:"DeploymentSuffix,omitempty"`

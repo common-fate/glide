@@ -28,7 +28,6 @@ interface Props {
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
   dynamoTable: dynamodb.Table;
-  managedDeploymentConfig: string;
 }
 
 export class AppBackend extends Construct {
@@ -78,7 +77,6 @@ export class AppBackend extends Construct {
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
         ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-        GRANTED_USE_MANAGED_DEPLOYMENT_CONFIG: props.managedDeploymentConfig,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
