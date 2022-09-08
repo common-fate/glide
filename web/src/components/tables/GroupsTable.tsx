@@ -19,7 +19,16 @@ export const GroupsTable = () => {
     () => [
       {
         accessor: "name",
-        Header: "Name", // blank
+        Header: "Name",
+        Cell: ({ cell }) => (
+          <Box>
+            <Text color="neutrals.900">{cell.value}</Text>
+          </Box>
+        ),
+      },
+      {
+        accessor: "description",
+        Header: "Description",
         Cell: ({ cell }) => (
           <Box>
             <Text color="neutrals.900">{cell.value}</Text>
