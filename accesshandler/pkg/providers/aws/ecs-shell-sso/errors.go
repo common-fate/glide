@@ -1,4 +1,4 @@
-package flask
+package ecsshellsso
 
 import (
 	"errors"

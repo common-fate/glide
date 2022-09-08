@@ -1,4 +1,4 @@
-package flask
+package ecsshellsso
 
 import (
 	"context"
@@ -397,6 +397,10 @@ func (p *Provider) getTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 	var nextToken *string
 	log.Infow("getting taskARN from task definition family", TaskDefinitionFamily)
 
+	//loop through all the tasks and find the latest version of the task definition
+	var latestRevision int
+	var taskARN string
+
 	for hasMore {
 		runningTasks, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get()), Family: &TaskDefinitionFamily, NextToken: nextToken})
 		if err != nil {
@@ -407,9 +411,6 @@ func (p *Provider) getTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 			return "", err
 		}
 
-		//loop through all the tasks and find the latest version of the task definition
-		var revision int
-		var latestRevision string
 		for _, t := range describedTasks.Tasks {
 			if *t.LastStatus != "RUNNING" {
 				continue
@@ -419,24 +420,21 @@ func (p *Provider) getTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 			if err != nil {
 				return "", err
 			}
-			if tempVersion > revision {
-				revision = tempVersion
-				latestRevision = *t.TaskArn
+			if tempVersion > latestRevision {
+				latestRevision = tempVersion
+				taskARN = *t.TaskArn
 			}
-
 		}
+		hasMore = runningTasks.NextToken != nil
 		nextToken = runningTasks.NextToken
-		if nextToken == nil {
-			hasMore = false
-		}
-
-		return latestRevision, nil
 	}
 
-	//if nothing is found then we want to return an error
-	//will inform the user in the instructions of the not found error
-	return "", errTaskNotFound
-
+	if taskARN == "" {
+		//if nothing is found then we want to return an error
+		//will inform the user in the instructions of the not found error
+		return "", errTaskNotFound
+	}
+	return taskARN, nil
 }
 
 // createPermissionSetAndAssignment creates a permission set with a name = grantID

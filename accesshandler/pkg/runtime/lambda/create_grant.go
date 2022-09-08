@@ -71,7 +71,7 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 	}
 
 	var ad types.AdditionalProperties
-	if _, ok := prov.Provider.(providers.RequiresAccessToken); ok {
+	if at, ok := prov.Provider.(providers.AccessTokener); ok && at.RequiresAccessToken() {
 		at := ksuid.New().String()
 		ad.AccessToken = &at
 	}

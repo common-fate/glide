@@ -1,4 +1,4 @@
-package flask
+package ecsshellsso
 
 import (
 	"context"
@@ -12,9 +12,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 )
-
-// Validate the access against AWS SSO without actually granting it.
-// This provider requires that the user name matches the user's email address.
 
 func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) error {
 	_, err := p.orgClient.DescribeAccount(ctx, &organizations.DescribeAccountInput{
@@ -44,8 +41,8 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 				return diagnostics.Info("AWS SSO returned %d users (more may exist, pagination has been ignored)", len(res.Users))
 			},
 		},
-		"assume-ecs-flask-sso-access-role": {
-			Name:            "Assume AWS ECS SSO Flask Access Role",
+		"assume-sso-access-role": {
+			Name:            "Assume AWS SSO Access Role",
 			FieldsValidated: []string{"ssoRoleArn"},
 			Run: func(ctx context.Context) diagnostics.Logs {
 				creds, err := p.ssoCredentialCache.Retrieve(ctx)
@@ -58,8 +55,8 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 				return diagnostics.Info("Assumed Access Role successfully")
 			},
 		},
-		"assume-ecs-flask-access-role": {
-			Name:            "Assume AWS ECS Flask Access Role",
+		"assume-ecs-access-role": {
+			Name:            "Assume ECS Access Role",
 			FieldsValidated: []string{"ecsRoleArn"},
 			Run: func(ctx context.Context) diagnostics.Logs {
 				creds, err := p.ecsCredentialCache.Retrieve(ctx)
@@ -82,16 +79,14 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
 			},
 		},
-
 		"list-tasks": {
 			Name: "List tasks in the cluster",
 			Run: func(ctx context.Context) diagnostics.Logs {
-				// try and list users in the AWS SSO instance.
 				res, err := p.ecsClient.ListTasks(ctx, &ecs.ListTasksInput{Cluster: aws.String(p.ecsClusterARN.Get())})
 				if err != nil {
 					return diagnostics.Error(err)
 				}
-				return diagnostics.Info("AWS SSO returned %d users (more may exist, pagination has been ignored)", len(res.TaskArns))
+				return diagnostics.Info("ECS cluster has %d tasks (more may exist, pagination has been ignored)", len(res.TaskArns))
 			},
 		},
 	}

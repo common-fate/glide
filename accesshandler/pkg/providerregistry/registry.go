@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/flask"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
@@ -44,10 +44,10 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 func Registry() ProviderRegistry {
 	return ProviderRegistry{
 		Providers: map[string]map[string]RegisteredProvider{
-			"commonfate/flask": {
-				"v1-alpha1": {Provider: &flask.Provider{},
-					DefaultID:   "flask",
-					Description: "Flask Access Provider",
+			"commonfate/ecs-shell-sso": {
+				"v1-alpha1": {Provider: &ecsshellsso.Provider{},
+					DefaultID:   "ecs-shell-sso",
+					Description: "ECS Shell SSO",
 				},
 			},
 			"commonfate/okta": {
