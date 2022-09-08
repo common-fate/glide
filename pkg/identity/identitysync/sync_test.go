@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//The processor contains all the mapping logic for create/update/map for users and groups
+// The processor contains all the mapping logic for create/update/map for users and groups
 func TestIdentitySyncProcessor(t *testing.T) {
 
 	type testcase struct {
 		name               string
-		giveIdpUsers       []identity.IdpUser
-		giveIdpGroups      []identity.IdpGroup
+		giveIdpUsers       []identity.IDPUser
+		giveIdpGroups      []identity.IDPGroup
 		giveInternalUsers  []identity.User
 		giveInternalGroups []identity.Group
 		wantUserMap        map[string]identity.User
@@ -25,7 +25,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "create group and user",
-			giveIdpUsers: []identity.IdpUser{
+			giveIdpUsers: []identity.IDPUser{
 				{
 					ID:        "user1",
 					FirstName: "josh",
@@ -36,7 +36,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					},
 				},
 			},
-			giveIdpGroups: []identity.IdpGroup{
+			giveIdpGroups: []identity.IDPGroup{
 				{
 					ID:          "internalEveryoneId",
 					Name:        "everyone",
@@ -67,8 +67,8 @@ func TestIdentitySyncProcessor(t *testing.T) {
 		{
 			// Archiving should set the status to archived and remove goup and user associations
 			name:          "groups and users archived correctly",
-			giveIdpUsers:  []identity.IdpUser{},
-			giveIdpGroups: []identity.IdpGroup{},
+			giveIdpUsers:  []identity.IDPUser{},
+			giveIdpGroups: []identity.IDPGroup{},
 			giveInternalUsers: []identity.User{{
 				ID:        "abcd",
 				FirstName: "josh",
@@ -116,7 +116,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			// it also tests archiving users and groups
 			// it tests that existing users and groups are updated correctly when groups are archived
 			name: "archive group and user when they no longer exist update other users and groups",
-			giveIdpUsers: []identity.IdpUser{{
+			giveIdpUsers: []identity.IDPUser{{
 				ID:        "user2",
 				FirstName: "larry",
 				LastName:  "browner",
@@ -125,7 +125,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					"larrysGroupId",
 				},
 			}},
-			giveIdpGroups: []identity.IdpGroup{{
+			giveIdpGroups: []identity.IDPGroup{{
 				ID:          "larrysGroupId",
 				Name:        "larrysGroupNewName",
 				Description: "a different description",
@@ -217,8 +217,8 @@ func TestIdentitySyncProcessor(t *testing.T) {
 		{
 			// a group should be dearchived if it exists again
 			name:         "dearchive group when it exists again",
-			giveIdpUsers: []identity.IdpUser{},
-			giveIdpGroups: []identity.IdpGroup{{
+			giveIdpUsers: []identity.IDPUser{},
+			giveIdpGroups: []identity.IDPGroup{{
 				ID:          "granted_administrators",
 				Name:        "granted_administrators",
 				Description: "admin group",

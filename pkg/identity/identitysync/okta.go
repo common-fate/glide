@@ -49,8 +49,8 @@ func (s *OktaSync) TestConfig(ctx context.Context) error {
 }
 
 // userFromOktaUser converts a Okta user to the identityprovider interface user type
-func (o *OktaSync) idpUserFromOktaUser(ctx context.Context, oktaUser *okta.User) (identity.IdpUser, error) {
-	u := identity.IdpUser{
+func (o *OktaSync) idpUserFromOktaUser(ctx context.Context, oktaUser *okta.User) (identity.IDPUser, error) {
+	u := identity.IDPUser{
 		ID:        oktaUser.Id,
 		FirstName: (*oktaUser.Profile)["firstName"].(string),
 		LastName:  (*oktaUser.Profile)["lastName"].(string),
@@ -70,17 +70,17 @@ func (o *OktaSync) idpUserFromOktaUser(ctx context.Context, oktaUser *okta.User)
 }
 
 // idpGroupFromOktaGroup converts a okta group to the identityprovider interface group type
-func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IdpGroup {
-	return identity.IdpGroup{
+func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IDPGroup {
+	return identity.IDPGroup{
 		ID:          oktaGroup.Id,
 		Name:        oktaGroup.Profile.Name,
 		Description: oktaGroup.Profile.Description,
 	}
 }
 
-func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
+func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 	//get all users
-	idpUsers := []identity.IdpUser{}
+	idpUsers := []identity.IDPUser{}
 	hasMore := true
 	var paginationToken string
 	for hasMore {
@@ -101,8 +101,8 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 	return idpUsers, nil
 }
 
-func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
-	idpGroups := []identity.IdpGroup{}
+func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
+	idpGroups := []identity.IDPGroup{}
 	hasMore := true
 	var paginationToken string
 	for hasMore {
