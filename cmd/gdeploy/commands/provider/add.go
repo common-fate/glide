@@ -116,11 +116,11 @@ var addCommand = cli.Command{
 			// parse the key=value pairs in the 'with' argument.
 			for _, kv := range withArgs {
 				segments := strings.Split(kv, "=")
-				key, val := segments[0], segments[1]
 				if len(segments) != 2 {
 					return fmt.Errorf("could not parse 'with' argument %s: must be in key=value format", kv)
 				}
 
+				key, val := segments[0], segments[1]
 				with[key] = val
 			}
 		}
