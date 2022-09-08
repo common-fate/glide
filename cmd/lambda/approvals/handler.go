@@ -61,10 +61,7 @@ func buildHandler() (*Lambda, error) {
 	if err != nil {
 		return nil, err
 	}
-	dc, err := deploy.GetDeployConfigReader(ctx, cfg.DynamoTable, log)
-	if err != nil {
-		return nil, err
-	}
+	dc := &deploy.EnvDeploymentConfig{}
 
 	api, err := api.New(ctx, api.Opts{
 		Log:                           log,

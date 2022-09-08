@@ -48,10 +48,7 @@ func NewGranter(ctx context.Context, c config.GranterConfig) (*Granter, error) {
 		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	dc, err := deploy.GetDeployConfigReader(ctx, c.DynamoTable, log)
-	if err != nil {
-		return nil, err
-	}
+	dc := &deploy.EnvDeploymentConfig{}
 	providers, err := dc.ReadProviders(ctx)
 	if err != nil {
 		return nil, err
