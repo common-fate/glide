@@ -32,7 +32,8 @@ type Provider struct {
 	orgClient        *organizations.Client
 	awsAccountID     string
 
-	// below fields are configured by gconfig
+	// the below fields are configured by gconfig
+
 	ecsClusterARN gconfig.StringValue
 	// sso instance
 	instanceARN gconfig.StringValue
@@ -59,7 +60,7 @@ func (p *Provider) Config() gconfig.Config {
 	}
 }
 
-// // Init the provider.
+// Init the provider.
 func (p *Provider) Init(ctx context.Context) error {
 
 	p.ssoCredentialCache = cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleArn.Get(), cfaws.WithRoleSessionName("accesshandler-sso-flask"))

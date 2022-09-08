@@ -10,12 +10,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
-	ctTypes "github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
@@ -25,62 +22,6 @@ import (
 
 type Args struct {
 	TaskDefinitionFamily string `json:"taskdefinitionfamily" jsonschema:"title=TaskDefinitionFamily"`
-}
-
-// Auto-gend since aws sdk wont return the complete type
-type CloudTrailEvent struct {
-	EventVersion string `json:"eventVersion"`
-	UserIdentity struct {
-		Type           string `json:"type"`
-		PrincipalID    string `json:"principalId"`
-		Arn            string `json:"arn"`
-		AccountID      string `json:"accountId"`
-		AccessKeyID    string `json:"accessKeyId"`
-		SessionContext struct {
-			SessionIssuer struct {
-				Type        string `json:"type"`
-				PrincipalID string `json:"principalId"`
-				Arn         string `json:"arn"`
-				AccountID   string `json:"accountId"`
-				UserName    string `json:"userName"`
-			} `json:"sessionIssuer"`
-			WebIDFederationData struct {
-			} `json:"webIdFederationData"`
-			Attributes struct {
-				CreationDate     time.Time `json:"creationDate"`
-				MfaAuthenticated string    `json:"mfaAuthenticated"`
-			} `json:"attributes"`
-		} `json:"sessionContext"`
-		InvokedBy string `json:"invokedBy"`
-	} `json:"userIdentity"`
-	EventTime         time.Time `json:"eventTime"`
-	EventSource       string    `json:"eventSource"`
-	EventName         string    `json:"eventName"`
-	AwsRegion         string    `json:"awsRegion"`
-	SourceIPAddress   string    `json:"sourceIPAddress"`
-	UserAgent         string    `json:"userAgent"`
-	RequestParameters struct {
-		Target       string `json:"target"`
-		DocumentName string `json:"documentName"`
-		Parameters   struct {
-			CloudWatchEncryptionEnabled []string `json:"cloudWatchEncryptionEnabled"`
-			S3EncryptionEnabled         []string `json:"s3EncryptionEnabled"`
-			CloudWatchLogGroupName      []string `json:"cloudWatchLogGroupName"`
-			Command                     []string `json:"command"`
-		} `json:"parameters"`
-	} `json:"requestParameters"`
-	ResponseElements struct {
-		SessionID  string `json:"sessionId"`
-		TokenValue string `json:"tokenValue"`
-		StreamURL  string `json:"streamUrl"`
-	} `json:"responseElements"`
-	RequestID          string `json:"requestID"`
-	EventID            string `json:"eventID"`
-	ReadOnly           bool   `json:"readOnly"`
-	EventType          string `json:"eventType"`
-	ManagementEvent    bool   `json:"managementEvent"`
-	RecipientAccountID string `json:"recipientAccountId"`
-	EventCategory      string `json:"eventCategory"`
 }
 
 // Grant the access
@@ -239,63 +180,64 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	if err != nil {
 		return err
 	}
-	//if successfully deletion policy and account assignment, terminate session
-	err = p.TerminateSession(ctx, a.TaskDefinitionFamily)
-	if err != nil {
-		return err
-	}
+
+	// TODO: look up and terminate any active SSM sessions.
+	// err = p.terminateSession(ctx, a.TaskDefinitionFamily)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
-func (p *Provider) TerminateSession(ctx context.Context, taskDefinitionFamily string) error {
-	log := zap.S()
+// func (p *Provider) terminateSession(ctx context.Context, taskDefinitionFamily string) error {
+// 	log := zap.S()
 
-	atrs := []ctTypes.LookupAttribute{}
+// 	atrs := []ctTypes.LookupAttribute{}
 
-	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: ctTypes.LookupAttributeKeyEventName, AttributeValue: aws.String("StartSession")})
+// 	atrs = append(atrs, ctTypes.LookupAttribute{AttributeKey: ctTypes.LookupAttributeKeyEventName, AttributeValue: aws.String("StartSession")})
 
-	out, err := p.cloudtrailClient.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
-		LookupAttributes: atrs,
-	})
+// 	out, err := p.cloudtrailClient.LookupEvents(ctx, &cloudtrail.LookupEventsInput{
+// 		LookupAttributes: atrs,
+// 	})
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	//TODO: Filter cloudtrail on sessions associcated with the role ARN which includes the request id and terminate all of them
-	taskARN := ""
+// 	//TODO: Filter cloudtrail on sessions associcated with the role ARN which includes the request id and terminate all of them
+// 	taskARN := ""
 
-	sessionId := ""
-	for _, e := range out.Events {
-		if e.CloudTrailEvent != nil {
-			var eventJson CloudTrailEvent
-			err := json.Unmarshal([]byte(*e.CloudTrailEvent), &eventJson)
-			if err != nil {
-				return err
-			}
-			taskId := strings.Split(taskARN, "/")[2]
-			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+strings.Split(p.ecsClusterARN.Get(), "/")[1]+"_"+taskId) {
-				// we have cloud trail log
-				sessionId = eventJson.ResponseElements.SessionID
-			}
-			if sessionId != "" {
-				log.Infow("Found session id", sessionId)
+// 	sessionId := ""
+// 	for _, e := range out.Events {
+// 		if e.CloudTrailEvent != nil {
+// 			var eventJson CloudTrailEvent
+// 			err := json.Unmarshal([]byte(*e.CloudTrailEvent), &eventJson)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			taskId := strings.Split(taskARN, "/")[2]
+// 			if strings.HasPrefix(eventJson.RequestParameters.Target, "ecs:"+strings.Split(p.ecsClusterARN.Get(), "/")[1]+"_"+taskId) {
+// 				// we have cloud trail log
+// 				sessionId = eventJson.ResponseElements.SessionID
+// 			}
+// 			if sessionId != "" {
+// 				log.Infow("Found session id", sessionId)
 
-				input := ssm.TerminateSessionInput{
-					SessionId: &sessionId,
-				}
-				_, err = p.ssmClient.TerminateSession(ctx, &input)
-				if err != nil {
-					return err
-				}
-				log.Infow("Revoked session", sessionId)
+// 				input := ssm.TerminateSessionInput{
+// 					SessionId: &sessionId,
+// 				}
+// 				_, err = p.ssmClient.TerminateSession(ctx, &input)
+// 				if err != nil {
+// 					return err
+// 				}
+// 				log.Infow("Revoked session", sessionId)
 
-			}
-		}
-	}
+// 			}
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (p *Provider) GetPermissionSetARN(ctx context.Context, permissionSetName string) (*string, error) {
 	hasMore := true
@@ -397,7 +339,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 		return "", err
 	}
 
-	taskARN, err := p.GetTaskARNFromTaskDefinition(ctx, a.TaskDefinitionFamily)
+	taskARN, err := p.getTaskARNFromTaskDefinition(ctx, a.TaskDefinitionFamily)
 	//let the user know that for the family we didnt find any tasks to give access to
 	if err == errTaskNotFound {
 		msg := fmt.Sprintf(`We couldn't find a running task for the task family %s.
@@ -448,7 +390,7 @@ func permissionSetNameFromGrantID(grantID string) string {
 }
 
 // Looks through all of the tasks for a ecs cluster and matches the task definition to find the task ARN value
-func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinitionFamily string) (string, error) {
+func (p *Provider) getTaskARNFromTaskDefinition(ctx context.Context, TaskDefinitionFamily string) (string, error) {
 	log := zap.S()
 
 	hasMore := true
@@ -489,7 +431,6 @@ func (p *Provider) GetTaskARNFromTaskDefinition(ctx context.Context, TaskDefinit
 		}
 
 		return latestRevision, nil
-
 	}
 
 	//if nothing is found then we want to return an error
