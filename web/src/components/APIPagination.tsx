@@ -39,7 +39,9 @@ export const APIPagination = ({
           {el + 1}
         </PaginationButton>
       ))}
-      {paginator?.canNextPage && <chakra.span color="neutrals.600">...</chakra.span>}
+      {paginator?.canNextPage && (
+        <chakra.span color="neutrals.600">...</chakra.span>
+      )}
       <PaginationButton
         disabled={!paginator?.canNextPage}
         cursor={paginator?.canNextPage ? "pointer" : "not-allowed"}

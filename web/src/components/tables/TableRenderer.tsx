@@ -56,7 +56,7 @@ export function TableRenderer<T extends object>(
                   _last={{
                     roundedTopRight: "xl",
                   }}
-                  key={"column-" + column.Header + index }
+                  key={"column-" + column.Header + index}
                 >
                   {column?.Header.toString()}
                 </Th>
