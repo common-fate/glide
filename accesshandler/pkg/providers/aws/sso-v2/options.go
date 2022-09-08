@@ -2,11 +2,13 @@ package ssov2
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	ssoadmintypes "github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"go.uber.org/zap"
@@ -50,6 +52,14 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 					po, err := p.client.DescribePermissionSet(gctx, &ssoadmin.DescribePermissionSetInput{
 						InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(ARNCopy),
 					})
+
+					var ade *ssoadmintypes.AccessDeniedException
+					if errors.As(err, &ade) {
+						// we don't have access to this permission set, so don't include it in the options.
+						log.Debug("access denied when attempting to describe permission set, not including in options", "permissionset.arn", ARNCopy, zap.Error(err))
+						return nil
+					}
+
 					if err != nil {
 						return err
 					}

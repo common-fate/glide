@@ -23,7 +23,7 @@
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.76.0",
     "@types/aws-lambda": "^8.10.95",
-    "aws-cdk": "^2.20.0",
+    "aws-cdk": "^2.40.0",
     "aws-cdk-lib": "^2.20.0",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1160.0",

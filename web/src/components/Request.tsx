@@ -178,9 +178,7 @@ export const RequestSelectedWithDisplay: React.FC<{
   ) {
     return (
       <VStack align={"left"}>
-        <Text textStyle="Body/Medium" mb={2}>
-          Request Details
-        </Text>
+        <Text textStyle="Body/Medium">Request Details</Text>
         <Wrap>
           {request?.selectedWith &&
             Object.entries(request?.selectedWith).map(([k, v]) => {
@@ -225,7 +223,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       spacing={6}
     >
       <RequestStatusDisplay request={request} />
-      <Stack spacing={1}>
+      <Stack spacing={2}>
         <Skeleton
           minW="30ch"
           minH="6"
@@ -253,13 +251,18 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
         </Skeleton>
         <RequestSelectedWithDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
-          <Flex
-            color="neutrals.600"
-            textStyle="Body/Medium"
-            data-testid="reason"
-          >
-            {request?.reason}
-          </Flex>
+          {request?.reason && (
+            <VStack align={"left"}>
+              <Text textStyle="Body/Medium">Reason</Text>
+              <Text
+                color="neutrals.600"
+                textStyle="Body/Small"
+                data-testid="reason"
+              >
+                {request?.reason}
+              </Text>
+            </VStack>
+          )}
         </Skeleton>
       </Stack>
       {children}
@@ -285,8 +288,8 @@ export const RequestAccessInstructions: React.FC = () => {
   );
 
   useEffect(() => {
-    if (reqData?.grant?.status !== "ACTIVE") {
-      setRefreshInterval(1000);
+    if (reqData?.grant?.status == "PENDING") {
+      setRefreshInterval(2000);
     } else {
       setRefreshInterval(0);
     }
@@ -299,36 +302,37 @@ export const RequestAccessInstructions: React.FC = () => {
   if (reqData?.grant?.status === "PENDING") {
     return (
       <Stack>
-        <Box textStyle="Body/Medium" mb={2}>
-          Granted is provisioning access, it'll be done soon!
-        </Box>
-        <Progress size="xs" isIndeterminate />
+        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Text textStyle="Body/small" color="neutrals.600">
+          Your access is still being provisioned, when its ready, you will find
+          your access instuctions here.
+        </Text>
+        <Progress size="xs" isIndeterminate hasStripe />
       </Stack>
     );
   }
-
-  return (
-    <Stack>
-      <Box textStyle="Body/Medium" mb={2}>
-        Access Instructions
-      </Box>
-      return (
-      <ReactMarkdown
-        // remarkPlugins={[remarkGfm]}
-        //skipHtml={false}
-        components={{
-          a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
-          p: (props) => (
-            <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
-              {props.children}
-            </Text>
-          ),
-          code: CodeInstruction,
-        }}
-        children={data.instructions}
-      />
-    </Stack>
-  );
+  if (reqData?.grant?.status === "ACTIVE") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <ReactMarkdown
+          components={{
+            a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
+            p: (props) => (
+              <Text as="span" color="neutrals.600" textStyle={"Body/Small"}>
+                {props.children}
+              </Text>
+            ),
+            code: CodeInstruction,
+          }}
+        >
+          {data.instructions}
+        </ReactMarkdown>
+      </Stack>
+    );
+  }
+  // Don't render anything
+  return null;
 };
 
 export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
@@ -380,9 +384,7 @@ export const RequestTime: React.FC = () => {
 
   return request ? (
     <Flex textStyle="Body/Small" flexDir="column" h="59px">
-      <Box textStyle="Body/Medium" mb={2}>
-        Duration
-      </Box>
+      <Box textStyle="Body/Medium">Duration</Box>
       <Text
         color="neutrals.600"
         textStyle="Body/Small"
@@ -485,9 +487,7 @@ export const RequestRequestor: React.FC = () => {
 
   return (
     <Flex textStyle="Body/Small" flexDir="column">
-      <Box textStyle="Body/Medium" mb={2}>
-        Requestor
-      </Box>
+      <Box textStyle="Body/Medium">Requestor</Box>
       <Skeleton w="30ch" isLoaded={requestor !== undefined}>
         {requestor && (
           <Flex>
@@ -529,12 +529,12 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
   const toast = useToast();
   const auth = useUser();
   const [comment, setComment] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<ReviewDecision>();
 
   const submitReview = async (decision: ReviewDecision) => {
     if (request === undefined) return;
     try {
-      setIsSubmitting(true);
+      setIsSubmitting(decision);
       await reviewRequest(request.id, {
         decision,
         comment,
@@ -564,7 +564,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
         isClosable: true,
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(undefined);
     }
   };
 
@@ -647,7 +647,8 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                   )}
                   <Button
                     data-testid="approve"
-                    isLoading={isSubmitting}
+                    isLoading={isSubmitting === "APPROVED"}
+                    isDisabled={isSubmitting === "DECLINED"}
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
                     key={1}
@@ -658,7 +659,8 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                   </Button>
                   <Button
                     data-testid="decline"
-                    isLoading={isSubmitting}
+                    isDisabled={isSubmitting === "APPROVED"}
+                    isLoading={isSubmitting === "DECLINED"}
                     autoFocus={focus === "close"}
                     key={2}
                     rounded="full"

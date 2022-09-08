@@ -89,28 +89,6 @@ export const AdminRequestsTable = () => {
           return <RequestStatusDisplay request={props.row.original} />;
         },
       },
-      {
-        accessor: "id",
-        Header: "",
-        Cell: ({ cell }) => {
-          return (
-            <ButtonGroup size="xs" spacing={1}>
-              <Button
-                variant="outline"
-                rounded="full"
-                onClick={(e: any) => {
-                  // This is a bit redundant since we've added a row click handler
-                  // stopPropogation will prevent double firing
-                  e.stopPropagation();
-                  navigate({ to: "/admin/requests/" + cell.value });
-                }}
-              >
-                View Request
-              </Button>
-            </ButtonGroup>
-          );
-        },
-      },
     ],
     []
   );

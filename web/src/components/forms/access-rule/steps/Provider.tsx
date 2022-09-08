@@ -55,7 +55,7 @@ export const ProviderStep: React.FC = () => {
   }, [providerArgs, target?.providerId]);
 
   const Preview = () => {
-    if (!target || !provider || !target?.with) {
+    if (!target || !provider || !(target?.with || target?.withText)) {
       return null;
     }
 
@@ -63,8 +63,8 @@ export const ProviderStep: React.FC = () => {
       <ProviderPreview
         target={{
           provider: provider,
-          withSelectable: target.with,
-          with: {},
+          withSelectable: target.with ?? {},
+          with: target.withText ?? {},
         }}
       />
     );
@@ -226,7 +226,7 @@ const WithField: React.FC<FieldProps> = (props) => {
           id="provider-vault"
           bg="white"
           placeholder={props.schema.default?.toString() ?? ""}
-          {...register(`target.with.${props.name}`)}
+          {...register(`target.withText.${props.name}`)}
         />
       )}
       <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>

@@ -79,7 +79,7 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	}
 	// if the assignment was not successful, return the error and reason
 	if statusRes.AccountAssignmentCreationStatus.FailureReason != nil {
-		return fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
+		return fmt.Errorf("failed creating account assignment: %s", *statusRes.AccountAssignmentCreationStatus.FailureReason)
 	}
 
 	return nil
@@ -148,7 +148,7 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	err = retry.Do(ctx, b2, func(ctx context.Context) (err error) {
 		status, err = p.client.DescribeAccountAssignmentDeletionStatus(ctx, &ssoadmin.DescribeAccountAssignmentDeletionStatusInput{
 			AccountAssignmentDeletionRequestId: deleteRes.AccountAssignmentDeletionStatus.RequestId,
-			InstanceArn:                        aws.String("arn:aws:sso:::instance/ssoins-825968feece9a0b6"),
+			InstanceArn:                        aws.String(p.instanceARN.Get()),
 		})
 		if err != nil {
 			return retry.RetryableError(err)

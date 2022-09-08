@@ -1,15 +1,32 @@
 import React from "react";
 import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
+import { CodeProps } from "react-markdown/lib/ast-to-react";
 import {
   useClipboard,
   Stack,
   Code,
+  CodeProps as CProps,
   Flex,
   Text,
   Spacer,
   IconButton,
 } from "@chakra-ui/react";
-import { CodeProps } from "react-markdown/lib/ast-to-react";
+
+export const CFCode: React.FC<CProps> = (props) => {
+  return (
+    <Code
+      padding={0}
+      bg="white"
+      borderRadius="8px"
+      borderColor="neutrals.300"
+      borderWidth="1px"
+    >
+      <Text color="neutrals.700" px={1} whiteSpace="pre-wrap">
+        {props.children}
+      </Text>
+    </Code>
+  );
+};
 export const CodeInstruction: React.FC<CodeProps> = (props) => {
   const { children, node } = props;
   let value = "";
@@ -26,30 +43,7 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
 
   // if the code is inline should show in same line.
   if (props?.inline) {
-    return (
-      <div style={{ display: "inline" }}>
-        <Code
-          padding={0}
-          bg="white"
-          borderRadius="8px"
-          borderColor="neutrals.300"
-          borderWidth="1px"
-        >
-          <Text color="neutrals.700" paddingLeft={3} whiteSpace="pre-wrap">
-            {children}
-
-            <IconButton
-              variant="ghost"
-              h="10px"
-              style={{ backgroundColor: "transparent" }}
-              icon={hasCopied ? <CheckIcon /> : <CopyIcon />}
-              onClick={onCopy}
-              aria-label={"Copy"}
-            />
-          </Text>
-        </Code>
-      </div>
-    );
+    return <CFCode children={value} />;
   }
 
   return (

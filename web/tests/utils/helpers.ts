@@ -74,8 +74,8 @@ export const CreateAccessRule = async (page: Page, ruleName: string) => {
   );
   await clickFormElementByID("form-step-next-button", page);
 
-  //selec the test vault provider
-  await clickFormElementByID("provider-selector", page);
+  //select the test vault provider
+  await page.locator(testId("provider-selector-testvault")).click();
   await fillFormElementById("provider-vault", ruleName, page);
   await clickFormElementByID("form-step-next-button", page);
 

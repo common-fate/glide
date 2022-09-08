@@ -20,6 +20,7 @@ var watchCommand = cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "stack", Aliases: []string{"s"}, Usage: "The deployment stack to get logs for", DefaultText: "Your active stage in deployment.toml", Required: false},
 		&cli.StringSliceFlag{Name: "service", Aliases: []string{"sr"}, Usage: "The service to watch logs for. Services: " + strings.Join(ServiceNames, ", "), Required: false},
+		&cli.StringFlag{Name: "filter", Usage: "Filter logs using a keyword, see the AWS documentation for details and syntax https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/FilterAndPatternSyntax.html"},
 	},
 	Description: "Stream logs from CloudWatch",
 	Action: func(c *cli.Context) error {
@@ -67,7 +68,7 @@ var watchCommand = cli.Command{
 			wg.Add(1)
 			go func(lg, s string) {
 				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
-				watchEvents(lg, cfg.Region)
+				watchEvents(lg, cfg.Region, c.String("filter"))
 				wg.Done()
 			}(logGroup, service)
 		}
@@ -78,9 +79,10 @@ var watchCommand = cli.Command{
 	},
 }
 
-func watchEvents(group string, region string) {
+func watchEvents(group string, region string, filter string) {
 	sawcfg := sawconfig.Configuration{
-		Group: group,
+		Group:  group,
+		Filter: filter,
 	}
 
 	outputcfg := sawconfig.OutputConfiguration{

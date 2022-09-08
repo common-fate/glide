@@ -109,7 +109,7 @@ jobs:
 
       - name: Deploy preview environment
         id: "deploy_preview"
-        run: CDK_HOTSWAP=true go run mage.go -v deploy:staging test ${{ steps.branch.outputs.name }}
+        run: go run mage.go -v deploy:staging test ${{ steps.branch.outputs.name }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           USE_SENTRY: true
@@ -172,7 +172,7 @@ jobs:
         run: pnpm run e2e:ci
         working-directory: web
         env:
-          TESTING_DOMAIN: "${{ steps.branch.outputs.name }}.test.granted.run"
+          TESTING_DOMAIN: "https://${{ steps.branch.outputs.name }}.test.granted.run"
           TEST_USERNAME: "${{ secrets.TEST_USERNAME}}"
           TEST_ADMIN_USERNAME: "${{ secrets.TEST_ADMIN_USERNAME}}"
           TEST_PASSWORD: "${{ secrets.TEST_PASSWORD}}"

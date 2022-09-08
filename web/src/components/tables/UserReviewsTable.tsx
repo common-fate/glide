@@ -97,27 +97,6 @@ export const UserReviewsTable = () => {
           return <RequestStatusDisplay request={props.row.original} />;
         },
       },
-      {
-        accessor: "id",
-        Header: "",
-        Cell: ({ cell }) => {
-          return (
-            <ButtonGroup size="xs" spacing={1}>
-              <Button
-                variant="outline"
-                rounded="full"
-                onClick={(e: any) => {
-                  // This is a bit redundant since we've added a row click handler
-                  // stopPropogation will prevent double firing
-                  e.stopPropagation();
-                }}
-              >
-                View Request
-              </Button>
-            </ButtonGroup>
-          );
-        },
-      },
     ],
     []
   );
@@ -149,7 +128,7 @@ export const UserReviewsTable = () => {
           "data-testid": row.original.reason,
           "alignItems": "center",
           "onClick": () => {
-            navigate({ to: "/requests/" + row.values.id });
+            navigate({ to: "/requests/" + row.original.id });
           },
         }),
       })}
