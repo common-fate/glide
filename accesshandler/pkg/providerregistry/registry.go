@@ -89,7 +89,7 @@ func Registry() ProviderRegistry {
 
 // Lookup a provider by the 'uses' string.
 func (r ProviderRegistry) LookupByUses(uses string) (*RegisteredProvider, error) {
-	ptype, version, err := parseUses(uses)
+	ptype, version, err := ParseUses(uses)
 	if err != nil {
 		return nil, err
 	}
