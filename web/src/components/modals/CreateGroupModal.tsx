@@ -20,7 +20,8 @@ import {
 import axios from "axios";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { postApiV1AdminGroups } from "../../utils/backend-client/default/default";
+import { createGroup } from "../../utils/backend-client/admin/admin";
+
 import { CreateGroupRequestBody } from "../../utils/backend-client/types";
 type Props = Omit<ModalProps, "children">;
 
@@ -34,9 +35,8 @@ const CreateGroupModal = (props: Props) => {
   }, [props.isOpen]);
 
   const onSubmit = async (data: CreateGroupRequestBody) => {
-    console.log({ data });
     try {
-      await postApiV1AdminGroups(data);
+      await createGroup(data);
       toast({
         title: "Group Created",
         status: "success",

@@ -2,8 +2,11 @@ import { SmallAddIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { Column } from "react-table";
-import { useGetGroups } from "../../utils/backend-client/admin/admin";
-import { useGetApiV1AdminIdentity } from "../../utils/backend-client/default/default";
+import {
+  useGetGroups,
+  useIdentityConfiguration,
+} from "../../utils/backend-client/admin/admin";
+
 import { Group } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
@@ -41,7 +44,7 @@ export const GroupsTable = () => {
     ],
     []
   );
-  const { data } = useGetApiV1AdminIdentity();
+  const { data } = useIdentityConfiguration();
   const AddGroupButton = () => {
     if (data?.identityProvider !== "cognito") {
       return <div />;

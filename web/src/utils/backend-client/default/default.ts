@@ -15,15 +15,8 @@ import type {
   UserListRequestsUpcomingParams,
   UserListRequestsPastParams,
   AccessRuleDetail,
-  ErrorResponseResponse,
-  User,
-  PostApiV1AdminUsersUserIdBody,
-  CreateUserRequestBody,
-  Group,
-  CreateGroupRequestBody,
   ProviderSetupResponseResponse,
-  CreateProviderSetupRequestBody,
-  IdentityConfigurationResponseResponse
+  CreateProviderSetupRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -135,55 +128,6 @@ export const adminArchiveAccessRule = (
   
 
 /**
- * Update a user including group membership
- * @summary Update User
- */
-export const postApiV1AdminUsersUserId = (
-    userId: string,
-    postApiV1AdminUsersUserIdBody: PostApiV1AdminUsersUserIdBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<User>(
-      {url: `/api/v1/admin/users/${userId}`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: postApiV1AdminUsersUserIdBody
-    },
-      options);
-    }
-  
-
-/**
- * Create new user in the Cognito user pool if it is enabled.
- * @summary Create User
- */
-export const postApiV1AdminUsers = (
-    createUserRequestBody: CreateUserRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<User>(
-      {url: `/api/v1/admin/users`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: createUserRequestBody
-    },
-      options);
-    }
-  
-
-/**
- * Create new group in the Cognito user pool if it is enabled.
- * @summary Create Group
- */
-export const postApiV1AdminGroups = (
-    createGroupRequestBody: CreateGroupRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Group>(
-      {url: `/api/v1/admin/groups`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: createGroupRequestBody
-    },
-      options);
-    }
-  
-
-/**
  * Begins the guided setup process for a new Access Provider.
  * @summary Begin the setup process for a new Access Provider
  */
@@ -214,57 +158,4 @@ export const deleteProvidersetup = (
       options);
     }
   
-
-/**
- * Run the identity sync operation on demand
- * @summary Sync Identity
- */
-export const adminPostApiV1IdentitySync = (
-    
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/admin/identity/sync`, method: 'post'
-    },
-      options);
-    }
-  
-
-/**
- * Get information about the identity configuration
- * @summary Get identity configuration
- */
-export const getApiV1AdminIdentity = (
-    
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<IdentityConfigurationResponseResponse>(
-      {url: `/api/v1/admin/identity`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getGetApiV1AdminIdentityKey = () => [`/api/v1/admin/identity`];
-
-    
-export type GetApiV1AdminIdentityQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1AdminIdentity>>>
-export type GetApiV1AdminIdentityQueryError = ErrorType<ErrorResponseResponse>
-
-export const useGetApiV1AdminIdentity = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getApiV1AdminIdentity>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetApiV1AdminIdentityKey() : null);
-  const swrFn = () => getApiV1AdminIdentity(requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 

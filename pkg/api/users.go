@@ -79,13 +79,13 @@ func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
 
 // Create User
 // (POST /api/v1/admin/users)
-func (a *API) PostApiV1AdminUsers(w http.ResponseWriter, r *http.Request) {
+func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	if a.Cognito == nil {
 		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
 		return
 	}
-	var createUserRequest types.PostApiV1AdminUsersJSONRequestBody
+	var createUserRequest types.CreateUserJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &createUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
@@ -108,13 +108,13 @@ func (a *API) PostApiV1AdminUsers(w http.ResponseWriter, r *http.Request) {
 
 // Update User
 // (POST /api/v1/admin/users/{userId})
-func (a *API) PostApiV1AdminUsersUserId(w http.ResponseWriter, r *http.Request, userId string) {
+func (a *API) UpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
 	ctx := r.Context()
 	if a.Cognito == nil {
 		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
 		return
 	}
-	var updateUserRequest types.PostApiV1AdminUsersUserIdJSONRequestBody
+	var updateUserRequest types.UpdateUserJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))

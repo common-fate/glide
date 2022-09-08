@@ -68,13 +68,13 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 
 // Create Group
 // (POST /api/v1/admin/groups)
-func (a *API) PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request) {
+func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	if a.Cognito == nil {
 		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
 		return
 	}
-	var createGroupRequest types.PostApiV1AdminGroupsJSONRequestBody
+	var createGroupRequest types.CreateGroupJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))

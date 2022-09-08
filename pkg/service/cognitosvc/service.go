@@ -11,7 +11,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 )
 
-// Service holds business logic relating to Access Requests.
+// Service holds business logic relating to Cognito user management.
 type Service struct {
 	Clock        clock.Clock
 	DB           ddb.Storage

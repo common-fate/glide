@@ -3,13 +3,15 @@ import format from "date-fns/format";
 import { useMemo } from "react";
 import { Column } from "react-table";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import { useGetUsers } from "../../utils/backend-client/admin/admin";
+import {
+  useGetUsers,
+  useIdentityConfiguration,
+} from "../../utils/backend-client/admin/admin";
 import { User } from "../../utils/backend-client/types";
 import { TableRenderer } from "./TableRenderer";
 import { SmallAddIcon } from "@chakra-ui/icons";
 import CreateUserModal from "../modals/CreateUserModal";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
-import { useGetApiV1AdminIdentity } from "../../utils/backend-client/default/default";
 
 export const UsersTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
@@ -57,7 +59,7 @@ export const UsersTable = () => {
     ],
     []
   );
-  const { data } = useGetApiV1AdminIdentity();
+  const { data } = useIdentityConfiguration();
   const AddUsersButton = () => {
     if (data?.identityProvider !== "cognito") {
       return <div />;

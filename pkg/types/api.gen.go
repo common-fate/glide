@@ -718,8 +718,8 @@ type GetUsersParams struct {
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
 
-// PostApiV1AdminUsersUserIdJSONBody defines parameters for PostApiV1AdminUsersUserId.
-type PostApiV1AdminUsersUserIdJSONBody struct {
+// UpdateUserJSONBody defines parameters for UpdateUser.
+type UpdateUserJSONBody struct {
 	Groups []string `json:"groups"`
 }
 
@@ -756,8 +756,8 @@ type AdminCreateAccessRuleJSONRequestBody CreateAccessRuleRequest
 // AdminUpdateAccessRuleJSONRequestBody defines body for AdminUpdateAccessRule for application/json ContentType.
 type AdminUpdateAccessRuleJSONRequestBody UpdateAccessRuleRequest
 
-// PostApiV1AdminGroupsJSONRequestBody defines body for PostApiV1AdminGroups for application/json ContentType.
-type PostApiV1AdminGroupsJSONRequestBody CreateGroupRequest
+// CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
+type CreateGroupJSONRequestBody CreateGroupRequest
 
 // CreateProvidersetupJSONRequestBody defines body for CreateProvidersetup for application/json ContentType.
 type CreateProvidersetupJSONRequestBody CreateProviderSetupRequest
@@ -765,11 +765,11 @@ type CreateProvidersetupJSONRequestBody CreateProviderSetupRequest
 // SubmitProvidersetupStepJSONRequestBody defines body for SubmitProvidersetupStep for application/json ContentType.
 type SubmitProvidersetupStepJSONRequestBody ProviderSetupStepCompleteRequest
 
-// PostApiV1AdminUsersJSONRequestBody defines body for PostApiV1AdminUsers for application/json ContentType.
-type PostApiV1AdminUsersJSONRequestBody CreateUserRequest
+// CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
+type CreateUserJSONRequestBody CreateUserRequest
 
-// PostApiV1AdminUsersUserIdJSONRequestBody defines body for PostApiV1AdminUsersUserId for application/json ContentType.
-type PostApiV1AdminUsersUserIdJSONRequestBody PostApiV1AdminUsersUserIdJSONBody
+// UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
+type UpdateUserJSONRequestBody UpdateUserJSONBody
 
 // UserCreateRequestJSONRequestBody defines body for UserCreateRequest for application/json ContentType.
 type UserCreateRequestJSONRequestBody CreateRequestRequest
@@ -1238,16 +1238,16 @@ type ServerInterface interface {
 	GetGroups(w http.ResponseWriter, r *http.Request, params GetGroupsParams)
 	// Create Group
 	// (POST /api/v1/admin/groups)
-	PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request)
+	CreateGroup(w http.ResponseWriter, r *http.Request)
 	// Get Group Details
 	// (GET /api/v1/admin/groups/{groupId})
 	GetGroup(w http.ResponseWriter, r *http.Request, groupId string)
 	// Get identity configuration
 	// (GET /api/v1/admin/identity)
-	GetApiV1AdminIdentity(w http.ResponseWriter, r *http.Request)
+	IdentityConfiguration(w http.ResponseWriter, r *http.Request)
 	// Sync Identity
 	// (POST /api/v1/admin/identity/sync)
-	AdminPostApiV1IdentitySync(w http.ResponseWriter, r *http.Request)
+	IdentitySync(w http.ResponseWriter, r *http.Request)
 	// List providers
 	// (GET /api/v1/admin/providers)
 	ListProviders(w http.ResponseWriter, r *http.Request)
@@ -1292,10 +1292,10 @@ type ServerInterface interface {
 	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
 	// Create User
 	// (POST /api/v1/admin/users)
-	PostApiV1AdminUsers(w http.ResponseWriter, r *http.Request)
+	CreateUser(w http.ResponseWriter, r *http.Request)
 	// Update User
 	// (POST /api/v1/admin/users/{userId})
-	PostApiV1AdminUsersUserId(w http.ResponseWriter, r *http.Request, userId string)
+	UpdateUser(w http.ResponseWriter, r *http.Request, userId string)
 	// List my requests
 	// (GET /api/v1/requests)
 	UserListRequests(w http.ResponseWriter, r *http.Request, params UserListRequestsParams)
@@ -1637,12 +1637,12 @@ func (siw *ServerInterfaceWrapper) GetGroups(w http.ResponseWriter, r *http.Requ
 	handler(w, r.WithContext(ctx))
 }
 
-// PostApiV1AdminGroups operation middleware
-func (siw *ServerInterfaceWrapper) PostApiV1AdminGroups(w http.ResponseWriter, r *http.Request) {
+// CreateGroup operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostApiV1AdminGroups(w, r)
+		siw.Handler.CreateGroup(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1678,12 +1678,12 @@ func (siw *ServerInterfaceWrapper) GetGroup(w http.ResponseWriter, r *http.Reque
 	handler(w, r.WithContext(ctx))
 }
 
-// GetApiV1AdminIdentity operation middleware
-func (siw *ServerInterfaceWrapper) GetApiV1AdminIdentity(w http.ResponseWriter, r *http.Request) {
+// IdentityConfiguration operation middleware
+func (siw *ServerInterfaceWrapper) IdentityConfiguration(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetApiV1AdminIdentity(w, r)
+		siw.Handler.IdentityConfiguration(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1693,12 +1693,12 @@ func (siw *ServerInterfaceWrapper) GetApiV1AdminIdentity(w http.ResponseWriter, 
 	handler(w, r.WithContext(ctx))
 }
 
-// AdminPostApiV1IdentitySync operation middleware
-func (siw *ServerInterfaceWrapper) AdminPostApiV1IdentitySync(w http.ResponseWriter, r *http.Request) {
+// IdentitySync operation middleware
+func (siw *ServerInterfaceWrapper) IdentitySync(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminPostApiV1IdentitySync(w, r)
+		siw.Handler.IdentitySync(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2092,12 +2092,12 @@ func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Reque
 	handler(w, r.WithContext(ctx))
 }
 
-// PostApiV1AdminUsers operation middleware
-func (siw *ServerInterfaceWrapper) PostApiV1AdminUsers(w http.ResponseWriter, r *http.Request) {
+// CreateUser operation middleware
+func (siw *ServerInterfaceWrapper) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostApiV1AdminUsers(w, r)
+		siw.Handler.CreateUser(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2107,8 +2107,8 @@ func (siw *ServerInterfaceWrapper) PostApiV1AdminUsers(w http.ResponseWriter, r 
 	handler(w, r.WithContext(ctx))
 }
 
-// PostApiV1AdminUsersUserId operation middleware
-func (siw *ServerInterfaceWrapper) PostApiV1AdminUsersUserId(w http.ResponseWriter, r *http.Request) {
+// UpdateUser operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -2123,7 +2123,7 @@ func (siw *ServerInterfaceWrapper) PostApiV1AdminUsersUserId(w http.ResponseWrit
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostApiV1AdminUsersUserId(w, r, userId)
+		siw.Handler.UpdateUser(w, r, userId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2607,16 +2607,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/groups", wrapper.GetGroups)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/groups", wrapper.PostApiV1AdminGroups)
+		r.Post(options.BaseURL+"/api/v1/admin/groups", wrapper.CreateGroup)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/groups/{groupId}", wrapper.GetGroup)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/identity", wrapper.GetApiV1AdminIdentity)
+		r.Get(options.BaseURL+"/api/v1/admin/identity", wrapper.IdentityConfiguration)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/identity/sync", wrapper.AdminPostApiV1IdentitySync)
+		r.Post(options.BaseURL+"/api/v1/admin/identity/sync", wrapper.IdentitySync)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/providers", wrapper.ListProviders)
@@ -2661,10 +2661,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/users", wrapper.GetUsers)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/users", wrapper.PostApiV1AdminUsers)
+		r.Post(options.BaseURL+"/api/v1/admin/users", wrapper.CreateUser)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/users/{userId}", wrapper.PostApiV1AdminUsersUserId)
+		r.Post(options.BaseURL+"/api/v1/admin/users/{userId}", wrapper.UpdateUser)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests", wrapper.UserListRequests)
@@ -2796,40 +2796,40 @@ var swaggerSpec = []string{
 	"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",
-	"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",
+	"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",
+	"fa/4m76juP/1/v8DAAD//4SzLqJKsAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

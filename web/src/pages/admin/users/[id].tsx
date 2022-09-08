@@ -30,13 +30,14 @@ import { Link, useMatch } from "react-location";
 import { GroupSelect } from "../../../components/forms/access-rule/components/Select";
 
 import { AdminLayout } from "../../../components/Layout";
-import { useGetGroup } from "../../../utils/backend-client/admin/admin";
-import { postApiV1AdminUsersUserId } from "../../../utils/backend-client/default/default";
-import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
 import {
-  PostApiV1AdminUsersUserIdBody,
-  User,
-} from "../../../utils/backend-client/types";
+  updateUser,
+  useGetGroup,
+} from "../../../utils/backend-client/admin/admin";
+
+import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
+import { UpdateUserBody, User } from "../../../utils/backend-client/types";
+
 const GroupDisplay: React.FC<{ groupId: string }> = ({ groupId }) => {
   const { data } = useGetGroup(encodeURIComponent(groupId));
   return (
@@ -139,7 +140,7 @@ interface GroupsProps {
   onSubmit?: (u: User) => void;
 }
 const Groups: React.FC<GroupsProps> = ({ user, onSubmit }) => {
-  const methods = useForm<PostApiV1AdminUsersUserIdBody>({});
+  const methods = useForm<UpdateUserBody>({});
   const toast = useToast();
   const { onOpen, onClose, isOpen } = useDisclosure();
   useEffect(() => {
@@ -150,9 +151,9 @@ const Groups: React.FC<GroupsProps> = ({ user, onSubmit }) => {
     }
   }, [isOpen]);
 
-  const handleSubmit = async (data: PostApiV1AdminUsersUserIdBody) => {
+  const handleSubmit = async (data: UpdateUserBody) => {
     try {
-      const u = await postApiV1AdminUsersUserId(user.id, data);
+      const u = await updateUser(user.id, data);
       toast({
         title: "Updated Groups",
         status: "success",

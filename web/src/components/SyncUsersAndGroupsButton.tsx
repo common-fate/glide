@@ -1,6 +1,7 @@
+import { RepeatIcon } from "@chakra-ui/icons";
 import { Button } from "@chakra-ui/react";
 import { useState } from "react";
-import { adminPostApiV1IdentitySync } from "../utils/backend-client/default/default";
+import { identitySync } from "../utils/backend-client/admin/admin";
 
 interface Props {
   onSync?: () => void;
@@ -10,14 +11,20 @@ export const SyncUsersAndGroupsButton: React.FC<Props> = ({ onSync }) => {
   const sync = async () => {
     try {
       setIsSyncing(true);
-      await adminPostApiV1IdentitySync();
+      await identitySync();
       onSync?.();
     } finally {
       setIsSyncing(false);
     }
   };
   return (
-    <Button size="sm" variant="ghost" onClick={sync} isLoading={isSyncing}>
+    <Button
+      leftIcon={<RepeatIcon />}
+      size="sm"
+      variant="ghost"
+      onClick={sync}
+      isLoading={isSyncing}
+    >
       Sync Users and Groups
     </Button>
   );

@@ -150,3 +150,4 @@ export * from "./providerSetupValidation";
 export * from "./createGroupRequestBody";
 export * from "./postApiV1AdminUsersUserIdBody";
 export * from "./identityConfigurationResponseResponse";
+export * from "./updateUserBody";
