@@ -1,12 +1,12 @@
+import { SmallAddIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Column } from "react-table";
-import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { useGetGroups } from "../../utils/backend-client/admin/admin";
 import { Group } from "../../utils/backend-client/types";
-import GroupModal from "../modals/GroupModal";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
+import CreateGroupModal from "../modals/CreateGroupModal";
 import { TableRenderer } from "./TableRenderer";
-import { SmallAddIcon } from "@chakra-ui/icons";
 
 export const GroupsTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
@@ -14,8 +14,6 @@ export const GroupsTable = () => {
     swrHook: useGetGroups,
     hookProps: {},
   });
-
-  const [selectedGroup, setSelectedGroup] = useState<Group>();
 
   const cols: Column<Group>[] = useMemo(
     () => [
@@ -51,12 +49,7 @@ export const GroupsTable = () => {
         apiPaginator: paginator,
       })}
 
-      <GroupModal
-        isOpen={selectedGroup !== undefined}
-        onClose={() => setSelectedGroup(undefined)}
-        group={selectedGroup}
-        members={[]}
-      />
+      <CreateGroupModal isOpen={isOpen} onClose={onClose} />
     </>
   );
 };

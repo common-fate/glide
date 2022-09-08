@@ -34,8 +34,8 @@ func (s *Service) CreateUser(ctx context.Context, in CreateUserOpts) (*identity.
 		return nil, err
 	}
 	log.Info("finished syncing users and groups from cognito")
-	q := storage.GetUser{
-		ID: u.ID,
+	q := storage.GetUserByEmail{
+		Email: u.Email,
 	}
 	_, err = s.DB.Query(ctx, &q)
 	if err != nil {
@@ -78,7 +78,14 @@ type UpdateUserGroupsOpts struct {
 
 func (s *Service) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) (*identity.User, error) {
 	log := logger.Get(ctx)
-	err := s.Cognito.UpdateUserGroups(ctx, identitysync.UpdateUserGroupsOpts(in))
+	q := storage.GetUser{
+		ID: in.UserID,
+	}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil {
+		return nil, err
+	}
+	err = s.Cognito.UpdateUserGroups(ctx, identitysync.UpdateUserGroupsOpts{UserID: q.Result.Email, Groups: in.Groups})
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +95,7 @@ func (s *Service) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts)
 		return nil, err
 	}
 	log.Info("finished syncing users and groups from cognito")
-	q := storage.GetUser{
+	q = storage.GetUser{
 		ID: in.UserID,
 	}
 	_, err = s.DB.Query(ctx, &q)

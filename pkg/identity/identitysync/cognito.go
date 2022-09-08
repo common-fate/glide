@@ -44,7 +44,12 @@ func (c *CognitoSync) idpUserFromCognitoUser(ctx context.Context, cognitoUser ty
 
 		case "email":
 			u.Email = aws.ToString(a.Value)
+		case "given_name":
+			u.FirstName = aws.ToString(a.Value)
+		case "family_name":
+			u.LastName = aws.ToString(a.Value)
 		}
+
 	}
 	groups, err := c.listUserGroups(ctx, u.ID)
 	if err != nil {
@@ -69,7 +74,7 @@ func (c *CognitoSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error)
 	hasMore := true
 	var paginationToken *string
 	for hasMore {
-		userRes, err := c.client.ListUsers(ctx, &cognitoidentityprovider.ListUsersInput{UserPoolId: aws.String(c.userPoolID.Get()), AttributesToGet: []string{"sub", "email"}, PaginationToken: paginationToken})
+		userRes, err := c.client.ListUsers(ctx, &cognitoidentityprovider.ListUsersInput{UserPoolId: aws.String(c.userPoolID.Get()), PaginationToken: paginationToken})
 		if err != nil {
 			return nil, err
 		}
