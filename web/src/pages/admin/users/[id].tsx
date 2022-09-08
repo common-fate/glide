@@ -24,6 +24,7 @@ const GroupDisplay: React.FC<{ groupId: string }> = ({ groupId }) => {
   return (
     <Tooltip label={data?.description}>
       <Flex
+        cursor="help"
         textStyle={"Body/Small"}
         rounded="full"
         bg="neutrals.300"
