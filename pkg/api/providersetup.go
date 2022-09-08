@@ -142,8 +142,7 @@ func (a *API) DeleteProvidersetup(w http.ResponseWriter, r *http.Request, provid
 		return
 	}
 
-	res := setup.ToAPI()
-	apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, setup.ToAPI(), http.StatusOK)
 }
 
 // Get an in-progress provider setup
@@ -164,8 +163,7 @@ func (a *API) GetProvidersetup(w http.ResponseWriter, r *http.Request, providers
 		return
 	}
 
-	res := q.Result.ToAPI()
-	apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Get the setup instructions for an Access Provider
