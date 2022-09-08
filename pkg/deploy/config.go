@@ -93,7 +93,7 @@ func (f *ProviderMap) Add(id string, p Provider) error {
 // Update the Provider if it exist
 func (f *ProviderMap) Update(id string, p Provider) error {
 	if _, ok := (*f)[id]; !ok {
-		return fmt.Errorf("provider %s doesnot exists in the config", id)
+		return fmt.Errorf("provider %s not found in config", id)
 	}
 
 	(*f)[id] = p
