@@ -90,6 +90,7 @@ export const UsersTable = () => {
         data: paginator?.data?.users,
         emptyText: "No users",
         apiPaginator: paginator,
+        linkTo: true,
       })}
 
       <CreateUserModal isOpen={isOpen} onClose={onClose} />

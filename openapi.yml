@@ -902,12 +902,12 @@ paths:
       summary: Get identity configuration
       tags: []
       responses:
-        '200':
-          $ref: '#/components/responses/IdentityConfigurationResponse'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
+        "200":
+          $ref: "#/components/responses/IdentityConfigurationResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       operationId: get-api-v1-admin-identity
       description: Get information about the identity configuration
 components:
@@ -943,6 +943,10 @@ components:
           type: string
           x-go-type: time.Time
           format: time
+        groups:
+          type: array
+          items:
+            type: string
       required:
         - id
         - email
@@ -951,6 +955,7 @@ components:
         - status
         - lastName
         - updatedAt
+        - groups
     Request:
       title: Request
       type: object
