@@ -8,7 +8,7 @@ var Command = cli.Command{
 	Description: "Manage your Access Providers",
 	Usage:       "Manage your Access Providers",
 	Subcommands: []*cli.Command{
-		&addCommand,
+		&addCommand, &removeCommand, &updateCommand,
 	},
 	Action: cli.ShowSubcommandHelp,
 }

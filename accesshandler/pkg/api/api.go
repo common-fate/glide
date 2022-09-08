@@ -8,6 +8,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
@@ -30,6 +31,7 @@ import (
 // new endpoint. Implement the function on API, ensuring that the function
 // signature matches the ServerInterface interface.
 type API struct {
+	DeployConfig deploy.DeployConfigReader
 	// runtime is responsible for the execution of creating and revoking Grants.
 	// For more information, see the Runtime interface documentation.
 	runtime Runtime
@@ -44,7 +46,7 @@ var _ types.ServerInterface = &API{}
 
 // New creates a new API, initialising the specified
 // hosting runtime for the Access Handler.
-func New(ctx context.Context, runtime string) (*API, error) {
+func New(ctx context.Context, runtime string, dc deploy.DeployConfigReader) (*API, error) {
 	if runtime == "" {
 		return nil, errors.New("a runtime must be provided")
 	}
@@ -60,8 +62,9 @@ func New(ctx context.Context, runtime string) (*API, error) {
 	}
 
 	a := API{
-		runtime: rt,
-		Clock:   clock.New(),
+		runtime:      rt,
+		Clock:        clock.New(),
+		DeployConfig: dc,
 	}
 
 	return &a, nil

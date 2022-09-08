@@ -90,6 +90,16 @@ func (f *ProviderMap) Add(id string, p Provider) error {
 	return nil
 }
 
+// Update the Provider if it exist
+func (f *ProviderMap) Update(id string, p Provider) error {
+	if _, ok := (*f)[id]; !ok {
+		return fmt.Errorf("provider %s not found in config", id)
+	}
+
+	(*f)[id] = p
+	return nil
+}
+
 // GetIDForNewProvider returns an ID for a provider based on the following rules:
 //
 // 1. If the provider isn't used in the config, the default ID is returned (e.g. `aws-sso`).

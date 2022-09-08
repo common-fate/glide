@@ -14,6 +14,7 @@ import {
   IdentityProviderRegistry,
   IdentityProviderTypes,
 } from "./helpers/registry";
+import { Database } from "./constructs/database";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -105,6 +106,10 @@ export class CustomerGrantedStack extends cdk.Stack {
 
     const appName = this.stackName + suffix.valueAsString;
 
+    const db = new Database(this, "Database", {
+      appName,
+    });
+
     const appFrontend = new AppFrontend(this, "Frontend", {
       appName,
       // this is the same for all prod synthesis, it means that you can only deploy this once per account in production mode event with the suffix.
@@ -149,6 +154,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       notificationsConfiguration: notificationsConfiguration.valueAsString,
       providerConfig: providerConfig.valueAsString,
       deploymentSuffix: suffix.valueAsString,
+      dynamoTable: db.getTable(),
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

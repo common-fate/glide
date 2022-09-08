@@ -35,6 +35,11 @@ export const registeredProviders: RegisteredProvider[] = [
     shortType: "flask",
     name: "Flask (with AWS SSO)",
   },
+  {
+    type: "commonfate/testvault",
+    shortType: "testvault",
+    name: "TestVault",
+  },
 ];
 
 /**

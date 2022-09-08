@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -47,11 +48,12 @@ func NewGranter(ctx context.Context, c config.GranterConfig) (*Granter, error) {
 		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	b, err := config.ReadProviderConfig(ctx)
+	dc := &deploy.EnvDeploymentConfig{}
+	providers, err := dc.ReadProviders(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = config.ConfigureProviders(ctx, b)
+	err = config.ConfigureProviders(ctx, providers)
 	if err != nil {
 		return nil, err
 	}

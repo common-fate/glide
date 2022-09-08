@@ -813,6 +813,22 @@ paths:
         Will return a HTTP200 OK response even if there are validation errors. The errors can be found by inspecting the validation diagnostics in the `configValidation` field.
 
         Will return a HTTP400 response if the provider cannot be validated (for example, the config values for the provider are incomplete).
+  "/api/v1/admin/providersetups/{providersetupId}/complete":
+    parameters:
+      - schema:
+          type: string
+        name: providersetupId
+        in: path
+        required: true
+    post:
+      summary: Complete a ProviderSetup
+      operationId: complete-providersetup
+      tags:
+        - Admin
+      description: "If Runtime Configuration is enabled, this will write the Access Provider to the configuration storage and activate it. If Runtime Configuration is disabled, this endpoint does nothing."
+      responses:
+        "200":
+          $ref: "#/components/responses/CompleteProviderSetupResponse"
   "/api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete":
     parameters:
       - schema:
@@ -1811,6 +1827,18 @@ components:
                   $ref: "#/components/schemas/ProviderSetup"
             required:
               - providerSetups
+    CompleteProviderSetupResponse:
+      description: The response when completing an Access Provider guided setup.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deploymentConfigUpdateRequired:
+                type: boolean
+                description: Whether a manual update is required to the Granted Approvals deployment configuration (`granted-deployment.yml`) to activate the provider.
+            required:
+              - deploymentConfigUpdateRequired
   examples: {}
   securitySchemes: {}
   requestBodies:

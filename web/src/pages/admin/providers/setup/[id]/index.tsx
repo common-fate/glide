@@ -48,7 +48,7 @@ import {
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { Controller, useForm } from "react-hook-form";
-import { Link, useMatch } from "react-location";
+import { Link, useMatch, useNavigate } from "react-location";
 import ReactMarkdown from "react-markdown";
 import { Sticky, StickyContainer } from "react-sticky";
 import useWindowSize from "react-use/lib/useWindowSize";
@@ -62,6 +62,7 @@ import { ApprovalsLogo } from "../../../../../components/icons/Logos";
 import { ProviderIcon } from "../../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../../components/Layout";
 import {
+  completeProvidersetup,
   submitProvidersetupStep,
   useGetProvidersetup,
   useGetProvidersetupInstructions,
@@ -76,6 +77,8 @@ const Page = () => {
   const {
     params: { id },
   } = useMatch();
+
+  const navigate = useNavigate();
 
   const { width, height } = useWindowSize();
 
@@ -105,6 +108,15 @@ const Page = () => {
       }
     }
   }, [data]);
+
+  const handleCompleteSetup = async () => {
+    const res = await completeProvidersetup(id);
+    if (res.deploymentConfigUpdateRequired) {
+      navigate({ to: "./finish" });
+    } else {
+      navigate({ to: "/admin/providers" });
+    }
+  };
 
   const stepsOverview = data?.steps ?? [];
 
@@ -364,7 +376,7 @@ const Page = () => {
                     Looking good! The connection tests are passing.
                   </Text>
                   (
-                  <Button w="100%" as={Link} to="./finish">
+                  <Button w="100%" onClick={handleCompleteSetup}>
                     Next
                   </Button>
                 </Stack>

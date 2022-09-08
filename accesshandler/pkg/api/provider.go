@@ -88,3 +88,26 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
+
+// Refresh Access Providers
+// (POST /api/v1/providers/refresh)
+func (a *API) RefreshAccessProviders(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	providers, err := a.DeployConfig.ReadProviders(ctx)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	err = config.ConfigureProviders(ctx, providers)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	var listProvidersResponse []types.Provider
+	for _, p := range config.Providers {
+		listProvidersResponse = append(listProvidersResponse, p.ToAPI())
+	}
+	// Ensure consistent order of the response alphabetically
+	sort.Slice(listProvidersResponse, func(i, j int) bool { return listProvidersResponse[i].Id < listProvidersResponse[j].Id })
+	apio.JSON(r.Context(), w, listProvidersResponse, http.StatusOK)
+}

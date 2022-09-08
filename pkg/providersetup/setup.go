@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/ddb"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -109,4 +110,11 @@ func (s *Setup) UpdateValidationStatus() {
 	}
 	// if we get here, all validations have suceeded, so change the status to success.
 	s.Status = types.VALIDATIONSUCEEDED
+}
+
+func (s *Setup) ToProvider() deploy.Provider {
+	return deploy.Provider{
+		Uses: s.ProviderType + "@" + s.ProviderVersion,
+		With: s.ConfigValues,
+	}
 }

@@ -2,15 +2,13 @@ package config
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"regexp"
-	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/pkg/errors"
 )
@@ -30,29 +28,6 @@ func (p *Provider) ToAPI() types.Provider {
 		Id:   p.ID,
 		Type: p.Type,
 	}
-
-}
-
-// ReadProviderConfig will fetch the provider config based on the runtime
-//
-// the config will be read from PROVIDER_CONFIG environment variable.
-func ReadProviderConfig(ctx context.Context) ([]byte, error) {
-	var providerCfg string
-	var ok bool
-	providerCfg, ok = os.LookupEnv("PROVIDER_CONFIG")
-	if !ok {
-		return nil, errors.New("PROVIDER_CONFIG environment variable not set")
-	}
-	// ensure that if the env var is set but is an empty string, we replace it defensively with an empty json object to prevent 500 errors
-	if providerCfg == "" {
-		providerCfg = "{}"
-	}
-	// first remove any double backslashes which may have been added while loading from or to environment
-	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
-	// unless removed
-	providerCfg = strings.ReplaceAll(providerCfg, "\\", "")
-
-	return []byte(providerCfg), nil
 }
 
 // ConfigureProviders sets the global Providers variable with the provided config.
@@ -63,29 +38,16 @@ func ReadProviderConfig(ctx context.Context) ([]byte, error) {
 // where <ID> is the identifier of the provider, <TYPE> is it's type,
 // and the other key/value pairs are config variables for the provider.
 // config is assumed to be unescaped json
-func ConfigureProviders(ctx context.Context, config []byte) error {
+func ConfigureProviders(ctx context.Context, config deploy.ProviderMap) error {
 	all := make(map[string]Provider)
-	var configMap map[string]json.RawMessage
-	err := json.Unmarshal(config, &configMap)
-	if err != nil {
-		return err
-	}
-	for k, v := range configMap {
-		var pType struct {
-			Uses string          `json:"uses"`
-			With json.RawMessage `json:"with"`
-		}
-		err = json.Unmarshal(v, &pType)
-		if err != nil {
-			return err
-		}
+	for k, v := range config {
 
 		reg := providerregistry.Registry()
 
 		var p providers.Accessor
 
 		// match the type with our registry of providers.
-		rp, err := reg.LookupByUses(pType.Uses)
+		rp, err := reg.LookupByUses(v.Uses)
 		if err != nil {
 			return errors.Wrapf(err, "looking up provider %s", k)
 		}
@@ -96,12 +58,12 @@ func ConfigureProviders(ctx context.Context, config []byte) error {
 		p = rp.Provider
 
 		// extract the type and version information from the uses field
-		prov, err := providerFromUses(pType.Uses)
+		prov, err := providerFromUses(v.Uses)
 		if err != nil {
 			return err
 		}
 
-		err = SetupProvider(ctx, p, gconfig.JSONLoader{Data: pType.With})
+		err = SetupProvider(ctx, p, &gconfig.MapLoader{Values: v.With})
 		if err != nil {
 			return err
 		}

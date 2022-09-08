@@ -8,6 +8,7 @@ import (
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/joho/godotenv"
@@ -42,12 +43,12 @@ func TestRevokeGrant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cfg, err := config.ReadProviderConfig(ctx)
+	dc := &deploy.EnvDeploymentConfig{}
+	providers, err := dc.ReadProviders(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	err = config.ConfigureProviders(ctx, cfg)
+	err = config.ConfigureProviders(ctx, providers)
 	if err != nil {
 		t.Fatal(err)
 	}

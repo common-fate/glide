@@ -5,6 +5,7 @@ import { AccessHandler } from "./constructs/access-handler";
 import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
+import { Database } from "./constructs/database";
 
 import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
@@ -38,6 +39,10 @@ export class DevGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration,
     } = props;
     const appName = `granted-approvals-${stage}`;
+
+    const db = new Database(this, "Database", {
+      appName,
+    });
 
     const cdn = new AppFrontend(this, "Frontend", {
       appName,
@@ -78,6 +83,7 @@ export class DevGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration: identityProviderSyncConfiguration,
       notificationsConfiguration: notificationsConfiguration,
       deploymentSuffix: stage,
+      dynamoTable: db.getTable(),
     });
     /* Outputs */
     generateOutputs(this, {
