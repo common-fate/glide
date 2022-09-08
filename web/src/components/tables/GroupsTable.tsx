@@ -64,7 +64,7 @@ export const GroupsTable = () => {
         <AddGroupButton />
         <SyncUsersAndGroupsButton
           onSync={() => {
-            mutate();
+            void mutate();
           }}
         />
       </Flex>
