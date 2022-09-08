@@ -304,8 +304,7 @@ export const RequestAccessInstructions: React.FC = () => {
       <Stack>
         <Box textStyle="Body/Medium">Access Instructions</Box>
         <Text textStyle="Body/small" color="neutrals.600">
-          Your access is still being provisioned, when its ready, you will find
-          your access instuctions here.
+          Provisioning access
         </Text>
         <Progress size="xs" isIndeterminate hasStripe />
       </Stack>
@@ -338,9 +337,7 @@ export const RequestAccessInstructions: React.FC = () => {
 export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
   const { data } = useGetAccessToken(reqId);
 
-  const { data: reqData, mutate } = useUserGetRequest(reqId);
-
-  // const [token, setToken] = useState<string>();
+  const { data: reqData } = useUserGetRequest(reqId);
 
   const toast = useToast();
 
