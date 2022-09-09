@@ -39,7 +39,7 @@ export const UserReviewsTable = () => {
     () => [
       {
         accessor: "reason",
-        Header: "", // blank
+        Header: "Request",
         Cell: (props) => (
           <Link to={"/requests/" + props.row.original.id}>
             <RuleNameCell
