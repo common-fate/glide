@@ -8,8 +8,8 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// IdpUser is a generic user type which should be returned by our IDP implementations
-type IdpUser struct {
+// IDPUser is a generic user type which should be returned by our IDP implementations
+type IDPUser struct {
 	// ID is the IDP id for this user
 	ID        string
 	FirstName string
@@ -19,7 +19,7 @@ type IdpUser struct {
 	Groups []string
 }
 
-func (u IdpUser) ToInternalUser() User {
+func (u IDPUser) ToInternalUser() User {
 	now := time.Now()
 	return User{
 		ID:        types.NewUserID(),
@@ -69,6 +69,8 @@ func (u *User) ToAPI() types.User {
 		Status:    types.IdpStatus(u.Status),
 		Email:     u.Email,
 		UpdatedAt: u.UpdatedAt,
+		// ensures that this is never nil
+		Groups: append([]string{}, u.Groups...),
 	}
 
 	return req

@@ -82,22 +82,6 @@ func run() error {
 		return err
 	}
 
-	dc := &deploy.EnvDeploymentConfig{}
-	api, err := api.New(ctx, api.Opts{
-		Log:                           log,
-		DynamoTable:                   cfg.DynamoTable,
-		PaginationKMSKeyARN:           cfg.PaginationKMSKeyARN,
-		AccessHandlerClient:           ahc,
-		EventSender:                   eventBus,
-		AdminGroup:                    cfg.AdminGroup,
-		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
-		DeploymentSuffix:              cfg.DeploymentSuffix,
-		DeploymentConfig:              dc,
-	})
-	if err != nil {
-		return err
-	}
-
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
@@ -113,7 +97,25 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
+	dc := &deploy.EnvDeploymentConfig{}
+	api, err := api.New(ctx, api.Opts{
+		Log:                           log,
+		DynamoTable:                   cfg.DynamoTable,
+		PaginationKMSKeyARN:           cfg.PaginationKMSKeyARN,
+		AccessHandlerClient:           ahc,
+		EventSender:                   eventBus,
+		AdminGroup:                    cfg.AdminGroup,
+		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
+		DeploymentSuffix:              cfg.DeploymentSuffix,
+		IdentitySyncer:                idsync,
+		CognitoUserPoolID:             cfg.CognitoUserPoolID,
+		IDPType:                       cfg.IdpProvider,
+		AdminGroupID:                  cfg.AdminGroup,
+		DeploymentConfig:              dc,
+	})
+	if err != nil {
+		return err
+	}
 	s, err := server.New(ctx, server.Config{
 		Config:         cfg,
 		Log:            log,

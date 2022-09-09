@@ -44,7 +44,11 @@ export const RequestsStep: React.FC = () => {
           <Text textStyle={"Body/Medium"}>Add or remove groups</Text>
         </FormLabel>
 
-        <GroupSelect testId="group-select" fieldName="groups" />
+        <GroupSelect
+          testId="group-select"
+          fieldName="groups"
+          rules={{ required: true, minLength: 1 }}
+        />
         <FormErrorMessage>At least one group is required.</FormErrorMessage>
       </FormControl>
     </FormStep>

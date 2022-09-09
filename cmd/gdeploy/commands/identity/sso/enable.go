@@ -193,7 +193,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 	}
 
 	// convert groups to a string map
-	groupMap := make(map[string]identity.IdpGroup)
+	groupMap := make(map[string]identity.IDPGroup)
 	groupNames := []string{}
 	chosenKey := ""
 	for _, g := range grps {

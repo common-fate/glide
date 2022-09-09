@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { KeyedMutator, SWRResponse } from "swr";
 
 type InputParams<T extends (...args: any[]) => any> = {
   pageSize?: number | undefined;
@@ -28,13 +29,16 @@ export type PaginationProps<T extends (...args: any[]) => any> = {
 
   // Could also extend this to return isValidate etc.
   data: ReturnType<T>["data"] | undefined;
+  mutate: KeyedMutator<any>;
 };
 
 /**
  * The goal for this paginator hook is to pass state between the
  * SWR hook and the TableRender component.
  */
-export const usePaginatorApi = <T extends (...args: any[]) => any>({
+export const usePaginatorApi = <
+  T extends (...args: any[]) => SWRResponse<any, Error>
+>({
   pageSize,
   swrHook,
   hookProps,
@@ -48,7 +52,7 @@ export const usePaginatorApi = <T extends (...args: any[]) => any>({
     undefined,
   ]);
 
-  const { data } = swrHook({
+  const { data, mutate } = swrHook({
     ...hookProps,
     nextToken: nextToken,
   });
@@ -120,5 +124,6 @@ export const usePaginatorApi = <T extends (...args: any[]) => any>({
     selectPage,
     incrementPage,
     decrementPage,
+    mutate,
   };
 };

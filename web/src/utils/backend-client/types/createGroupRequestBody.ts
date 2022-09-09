@@ -6,9 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateUserRequestBody = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  isAdmin: boolean;
+export type CreateGroupRequestBody = {
+  name: string;
+  description?: string;
 };

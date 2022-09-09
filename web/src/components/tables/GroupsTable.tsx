@@ -1,75 +1,75 @@
-import { Box, Flex, Text } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { SmallAddIcon } from "@chakra-ui/icons";
+import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
+import { useMemo } from "react";
 import { Column } from "react-table";
-import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import { useGetGroups } from "../../utils/backend-client/admin/admin";
+import {
+  useGetGroups,
+  useIdentityConfiguration,
+} from "../../utils/backend-client/admin/admin";
+
 import { Group } from "../../utils/backend-client/types";
-import GroupModal from "../modals/GroupModal";
+import { usePaginatorApi } from "../../utils/usePaginatorApi";
+import CreateGroupModal from "../modals/CreateGroupModal";
+import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 import { TableRenderer } from "./TableRenderer";
 
 export const GroupsTable = () => {
+  const { onOpen, isOpen, onClose } = useDisclosure();
   const paginator = usePaginatorApi<typeof useGetGroups>({
     swrHook: useGetGroups,
     hookProps: {},
   });
 
-  const [selectedGroup, setSelectedGroup] = useState<Group>();
-
   const cols: Column<Group>[] = useMemo(
     () => [
       {
         accessor: "name",
-        Header: "Name", // blank
+        Header: "Name",
         Cell: ({ cell }) => (
           <Box>
             <Text color="neutrals.900">{cell.value}</Text>
           </Box>
         ),
       },
-      // {
-      //   accessor: "users",
-      //   Header: "Members",
-      //   Cell: ({ cell }) => (
-      //     <Flex>
-      //       <AvatarGroup
-      //         max={3}
-      //         size="sm"
-      //         spacing="-6px"
-      //         sx={{
-      //           ".chakra-avatar__excess": {
-      //             fontWeight: "normal",
-      //             bg: "white",
-      //             border: "1px solid #E5E5E5",
-      //             fontSize: "12px",
-      //           },
-      //         }}
-      //       >
-      //         {cell.value.map((approver) => (
-      //           <Avatar key={approver.email} name={approver.name} />
-      //         ))}
-      //       </AvatarGroup>
-      //       <Button
-      //         variant="outline"
-      //         size="sm"
-      //         ml={2}
-      //         rounded="full"
-      //         onClick={() => {
-      //           groupModal.onOpen();
-      //           setSelectedGroup(cell.row.values);
-      //         }}
-      //       >
-      //         See all members
-      //       </Button>
-      //     </Flex>
-      //   ),
-      // },
+      {
+        accessor: "description",
+        Header: "Description",
+        Cell: ({ cell }) => (
+          <Box>
+            <Text color="neutrals.900">{cell.value}</Text>
+          </Box>
+        ),
+      },
     ],
     []
   );
-
+  const { data } = useIdentityConfiguration();
+  const AddGroupButton = () => {
+    if (data?.identityProvider !== "cognito") {
+      return <div />;
+    }
+    return (
+      <Button
+        isLoading={data?.identityProvider === undefined}
+        size="sm"
+        variant="ghost"
+        leftIcon={<SmallAddIcon />}
+        onClick={onOpen}
+      >
+        Add Group
+      </Button>
+    );
+  };
   return (
     <>
-      <Flex justify="space-between" my={5}></Flex>
+      <Flex justify="space-between" my={5}>
+        <AddGroupButton />
+        <SyncUsersAndGroupsButton
+          onSync={() => {
+            void paginator.mutate();
+          }}
+        />
+      </Flex>
       {TableRenderer<Group>({
         columns: cols,
         data: paginator?.data?.groups,
@@ -77,11 +77,12 @@ export const GroupsTable = () => {
         apiPaginator: paginator,
       })}
 
-      <GroupModal
-        isOpen={selectedGroup !== undefined}
-        onClose={() => setSelectedGroup(undefined)}
-        group={selectedGroup}
-        members={[]}
+      <CreateGroupModal
+        isOpen={isOpen}
+        onClose={() => {
+          void paginator.mutate();
+          onClose();
+        }}
       />
     </>
   );

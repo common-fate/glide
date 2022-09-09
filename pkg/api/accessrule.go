@@ -169,7 +169,7 @@ func (a *API) AdminGetAccessRuleVersions(w http.ResponseWriter, r *http.Request,
 	for i, v := range versions {
 		res.AccessRules[i] = v.ToAPIDetail()
 	}
-	apio.JSON(ctx, w, versions, http.StatusOK)
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // Returns a rule for a given ruleId

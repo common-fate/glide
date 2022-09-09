@@ -1,8 +1,8 @@
-import { Container } from "@chakra-ui/react";
+import { Container, Stack } from "@chakra-ui/react";
 import { AdminLayout } from "../../../components/Layout";
-import { AdminRequestsTable } from "../../../components/tables/AdminRequestsTable";
+import { GroupsTable } from "../../../components/tables/GroupsTable";
 
-const Requests = () => {
+const Index = () => {
   return (
     <AdminLayout>
       <Container
@@ -11,10 +11,10 @@ const Requests = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
-        <AdminRequestsTable />
+        <GroupsTable />
       </Container>
     </AdminLayout>
   );
 };
 
-export default Requests;
+export default Index;

@@ -15,4 +15,5 @@ export interface User {
   status: IdpStatus;
   lastName: string;
   updatedAt: string;
+  groups: string[];
 }

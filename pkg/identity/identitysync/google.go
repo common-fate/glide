@@ -52,9 +52,9 @@ func (s *GoogleSync) TestConfig(ctx context.Context) error {
 	}
 	return nil
 }
-func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
+func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 
-	idpGroups := []identity.IdpGroup{}
+	idpGroups := []identity.IDPGroup{}
 	hasMore := true
 	var paginationToken string
 
@@ -75,8 +75,8 @@ func (c *GoogleSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error
 	return idpGroups, nil
 }
 
-func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
-	users := []identity.IdpUser{}
+func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
+	users := []identity.IDPUser{}
 	hasMore := true
 	var paginationToken string
 	for hasMore {
@@ -101,8 +101,8 @@ func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) 
 }
 
 // userFromOktaUser converts a Okta user to the identityprovider interface user type
-func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admin.User) (identity.IdpUser, error) {
-	u := identity.IdpUser{
+func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admin.User) (identity.IDPUser, error) {
+	u := identity.IDPUser{
 		ID:        googleUser.Id,
 		FirstName: googleUser.Name.GivenName,
 		LastName:  googleUser.Name.FamilyName,
@@ -123,8 +123,8 @@ func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admi
 }
 
 // idpGroupFromGoogleGroup converts a google group to the identityprovider interface group type
-func idpGroupFromGoogleGroup(googleGroup *admin.Group) identity.IdpGroup {
-	return identity.IdpGroup{
+func idpGroupFromGoogleGroup(googleGroup *admin.Group) identity.IDPGroup {
+	return identity.IDPGroup{
 		ID:          googleGroup.Id,
 		Name:        googleGroup.Name,
 		Description: googleGroup.Description,
