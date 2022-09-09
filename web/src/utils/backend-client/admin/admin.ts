@@ -19,11 +19,15 @@ import type {
   UpdateAccessRuleRequestBody,
   ListRequestsResponseResponse,
   AdminListRequestsParams,
+  User,
+  UpdateUserBody,
   ListUserResponseResponse,
   GetUsersParams,
+  CreateUserRequestBody,
   ListGroupsResponseResponse,
   GetGroupsParams,
   Group,
+  CreateGroupRequestBody,
   Provider,
   GetProviderArgs200,
   ArgOptionsResponseResponse,
@@ -32,7 +36,8 @@ import type {
   ProviderSetupResponseResponse,
   ProviderSetupInstructions,
   CompleteProviderSetupResponseResponse,
-  ProviderSetupStepCompleteRequestBody
+  ProviderSetupStepCompleteRequestBody,
+  IdentityConfigurationResponseResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -281,6 +286,23 @@ export const useAdminListRequests = <TError = ErrorType<unknown>>(
 }
 
 /**
+ * Update a user including group membership
+ * @summary Update User
+ */
+export const updateUser = (
+    userId: string,
+    updateUserBody: UpdateUserBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<User>(
+      {url: `/api/v1/admin/users/${userId}`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUserBody
+    },
+      options);
+    }
+  
+
+/**
  * Fetch a list of users
  * @summary Returns a list of users
  */
@@ -321,6 +343,22 @@ export const useGetUsers = <TError = ErrorType<unknown>>(
 }
 
 /**
+ * Create new user in the Cognito user pool if it is enabled.
+ * @summary Create User
+ */
+export const createUser = (
+    createUserRequestBody: CreateUserRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<User>(
+      {url: `/api/v1/admin/users`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createUserRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * Gets all groups
  * @summary List groups
  */
@@ -359,6 +397,22 @@ export const useGetGroups = <TError = ErrorType<unknown>>(
     ...query
   }
 }
+
+/**
+ * Create new group in the Cognito user pool if it is enabled.
+ * @summary Create Group
+ */
+export const createGroup = (
+    createGroupRequestBody: CreateGroupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Group>(
+      {url: `/api/v1/admin/groups`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createGroupRequestBody
+    },
+      options);
+    }
+  
 
 /**
  * Returns information for a group.
@@ -728,4 +782,57 @@ export const submitProvidersetupStep = (
       options);
     }
   
+
+/**
+ * Run the identity sync operation on demand
+ * @summary Sync Identity
+ */
+export const identitySync = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/identity/sync`, method: 'post'
+    },
+      options);
+    }
+  
+
+/**
+ * Get information about the identity configuration
+ * @summary Get identity configuration
+ */
+export const identityConfiguration = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<IdentityConfigurationResponseResponse>(
+      {url: `/api/v1/admin/identity`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getIdentityConfigurationKey = () => [`/api/v1/admin/identity`];
+
+    
+export type IdentityConfigurationQueryResult = NonNullable<Awaited<ReturnType<typeof identityConfiguration>>>
+export type IdentityConfigurationQueryError = ErrorType<ErrorResponseResponse>
+
+export const useIdentityConfiguration = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof identityConfiguration>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getIdentityConfigurationKey() : null);
+  const swrFn = () => identityConfiguration(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 

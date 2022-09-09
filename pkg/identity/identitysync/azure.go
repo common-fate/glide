@@ -101,8 +101,8 @@ type UserGroups struct {
 }
 
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
-func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IdpUser, error) {
-	u := identity.IdpUser{
+func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IDPUser, error) {
+	u := identity.IDPUser{
 		ID:        azureUser.ID,
 		FirstName: azureUser.GivenName,
 		LastName:  azureUser.Surname,
@@ -112,7 +112,7 @@ func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUse
 
 	g, err := a.GetMemberGroups(u.ID)
 	if err != nil {
-		return identity.IdpUser{}, err
+		return identity.IDPUser{}, err
 	}
 	u.Groups = g
 
@@ -166,10 +166,10 @@ func (a *AzureSync) GetMemberGroups(userID string) ([]string, error) {
 	return userGroups, nil
 }
 
-func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
+func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 
 	//get all users
-	idpUsers := []identity.IdpUser{}
+	idpUsers := []identity.IDPUser{}
 	hasMore := true
 	var nextToken *string
 	url := MSGraphBaseURL + "/users"
@@ -218,15 +218,15 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IdpUser, error) {
 }
 
 // idpGroupFromAzureGroup converts a azure group to the identityprovider interface group type
-func idpGroupFromAzureGroup(azureGroup AzureGroup) identity.IdpGroup {
-	return identity.IdpGroup{
+func idpGroupFromAzureGroup(azureGroup AzureGroup) identity.IDPGroup {
+	return identity.IDPGroup{
 		ID:          azureGroup.ID,
 		Name:        azureGroup.DisplayName,
 		Description: string(azureGroup.Description),
 	}
 }
-func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IdpGroup, error) {
-	idpGroups := []identity.IdpGroup{}
+func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
+	idpGroups := []identity.IDPGroup{}
 	hasMore := true
 	var nextToken *string
 	url := MSGraphBaseURL + "/groups"

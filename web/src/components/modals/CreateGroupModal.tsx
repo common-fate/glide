@@ -14,31 +14,31 @@ import {
   Stack,
   Switch,
   Text,
+  Textarea,
   useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { createUser } from "../../utils/backend-client/admin/admin";
+import { createGroup } from "../../utils/backend-client/admin/admin";
 
-import { CreateUserRequestBody } from "../../utils/backend-client/types";
+import { CreateGroupRequestBody } from "../../utils/backend-client/types";
 type Props = Omit<ModalProps, "children">;
 
-const CreateUserModal = (props: Props) => {
-  const methods = useForm<CreateUserRequestBody>({});
+const CreateGroupModal = (props: Props) => {
+  const methods = useForm<CreateGroupRequestBody>({});
   const toast = useToast();
-
   useEffect(() => {
     if (!props.isOpen) {
       methods.reset();
     }
   }, [props.isOpen]);
 
-  const onSubmit = async (data: CreateUserRequestBody) => {
+  const onSubmit = async (data: CreateGroupRequestBody) => {
     try {
-      await createUser(data);
+      await createGroup(data);
       toast({
-        title: "Created User",
+        title: "Group Created",
         status: "success",
         variant: "subtle",
         duration: 2200,
@@ -53,7 +53,7 @@ const CreateUserModal = (props: Props) => {
       }
 
       toast({
-        title: "Error Creating User",
+        title: "Error Creating Group",
         description,
         status: "error",
         variant: "subtle",
@@ -70,7 +70,7 @@ const CreateUserModal = (props: Props) => {
         <ModalContent as="form" onSubmit={methods.handleSubmit(onSubmit)}>
           <ModalCloseButton />
           <ModalHeader mt={10}>
-            <Text textStyle="Heading/H3">Create User</Text>
+            <Text textStyle="Heading/H3">Create Group</Text>
           </ModalHeader>
 
           <ModalBody>
@@ -78,79 +78,43 @@ const CreateUserModal = (props: Props) => {
               spacing="5"
               //   divider={<StackDivider />}
             >
-              <FormControl id="firstName">
+              <FormControl id="name">
                 <Stack>
                   <FormLabel
                     textStyle="Body/Medium"
                     fontWeight="normal"
                     mb={-1}
                   >
-                    First Name
+                    Name
                   </FormLabel>
                   <Input
                     variant="outline"
                     bg="white"
                     maxW={{ md: "3xl" }}
-                    placeholder="Alice"
-                    {...methods.register("firstName", {
+                    placeholder="Developers"
+                    {...methods.register("name", {
                       required: true,
                       minLength: 1,
                     })}
                   />
                 </Stack>
               </FormControl>
-              <FormControl id="lastName">
+              <FormControl id="description">
                 <Stack>
                   <FormLabel
                     textStyle="Body/Medium"
                     fontWeight="normal"
                     mb={-1}
                   >
-                    Last Name
+                    Description
                   </FormLabel>
-                  <Input
+                  <Textarea
                     variant="outline"
                     bg="white"
                     maxW={{ md: "3xl" }}
-                    placeholder="Alison"
-                    {...methods.register("lastName", {
-                      required: true,
-                      minLength: 1,
-                    })}
+                    placeholder="Developers group"
+                    {...methods.register("description")}
                   />
-                </Stack>
-              </FormControl>
-              <FormControl id="email">
-                <Stack>
-                  <FormLabel
-                    textStyle="Body/Medium"
-                    fontWeight="normal"
-                    mb={-1}
-                  >
-                    Email
-                  </FormLabel>
-                  <Input
-                    variant="outline"
-                    bg="white"
-                    maxW={{ md: "3xl" }}
-                    placeholder="Email"
-                    {...methods.register("email", {
-                      required: true,
-                      minLength: 1,
-                    })}
-                  />
-                </Stack>
-              </FormControl>
-              <FormControl id="isAdmin">
-                <Stack>
-                  <FormLabel
-                    textStyle="Body/Medium"
-                    fontWeight="normal"
-                    mb={-1}
-                  >
-                    Admin
-                  </FormLabel>
-                  <Switch {...methods.register("isAdmin")} />
                 </Stack>
               </FormControl>
             </Stack>
@@ -161,7 +125,7 @@ const CreateUserModal = (props: Props) => {
               isLoading={methods.formState.isSubmitting}
               type="submit"
             >
-              Create user
+              Create group
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -170,4 +134,4 @@ const CreateUserModal = (props: Props) => {
   );
 };
 
-export default CreateUserModal;
+export default CreateGroupModal;

@@ -11,14 +11,18 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/common-fate/granted-approvals/pkg/providersetup"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
 	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
+	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -56,8 +60,19 @@ type API struct {
 	ProviderSetup       ProviderSetupService
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
+	IdentityProvider    string
 	Granter             accesssvc.Granter
 	Cache               CacheService
+	IdentitySyncer      auth.IdentitySyncer
+	// Set this to nil if cognito is not configured as the IDP for the deployment
+	Cognito CognitoService
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
+type CognitoService interface {
+	CreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
+	CreateGroup(ctx context.Context, in cognitosvc.CreateGroupOpts) (*identity.Group, error)
+	UpdateUserGroups(ctx context.Context, in cognitosvc.UpdateUserGroupsOpts) (*identity.User, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providersetup_service.go -package=mocks . ProviderSetupService
@@ -98,12 +113,16 @@ type Opts struct {
 	Log                 *zap.SugaredLogger
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	EventSender         *gevent.Sender
+	IdentitySyncer      auth.IdentitySyncer
 	DeploymentConfig    deploy.DeployConfigReader
 	DynamoTable         string
 	PaginationKMSKeyARN string
 	AdminGroup          string
 	TemplateData        psetup.TemplateData
 	DeploymentSuffix    string
+	CognitoUserPoolID   string
+	IDPType             string
+	AdminGroupID        string
 }
 
 // New creates a new API.
@@ -164,6 +183,29 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,
 		Granter:             granter,
+		IdentitySyncer:      opts.IdentitySyncer,
+		IdentityProvider:    opts.IDPType,
+	}
+
+	// only initialise this if cognito is the IDP
+	if opts.IDPType == identitysync.IDPTypeCognito {
+		cog := &identitysync.CognitoSync{}
+		err = cog.Config().Load(ctx, &gconfig.MapLoader{Values: map[string]string{"userPoolId": opts.CognitoUserPoolID}})
+		if err != nil {
+			return nil, err
+		}
+		err = cog.Init(ctx)
+		if err != nil {
+			return nil, err
+		}
+		a.Cognito = &cognitosvc.Service{
+			Clock:        clk,
+			DB:           db,
+			Syncer:       opts.IdentitySyncer,
+			Cognito:      cog,
+			AdminGroupID: opts.AdminGroupID,
+		}
+
 	}
 
 	return &a, nil

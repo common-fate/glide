@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -60,7 +61,7 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result, http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Get details for the current user
@@ -74,4 +75,58 @@ func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
 		IsAdmin: admin,
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// Create User
+// (POST /api/v1/admin/users)
+func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if a.Cognito == nil {
+		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
+		return
+	}
+	var createUserRequest types.CreateUserJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &createUserRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	user, err := a.Cognito.CreateUser(ctx, cognitosvc.CreateUserOpts{
+		FirstName: createUserRequest.FirstName,
+		LastName:  createUserRequest.LastName,
+		IsAdmin:   createUserRequest.IsAdmin,
+		Email:     string(createUserRequest.Email),
+	})
+	// @TODO, some errors in cognito are useful to the user, such as validation errors, like user already exists.
+	// We need to surface those correctly
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, user.ToAPI(), http.StatusCreated)
+}
+
+// Update User
+// (POST /api/v1/admin/users/{userId})
+func (a *API) UpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
+	ctx := r.Context()
+	if a.Cognito == nil {
+		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
+		return
+	}
+	var updateUserRequest types.UpdateUserJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	user, err := a.Cognito.UpdateUserGroups(ctx, cognitosvc.UpdateUserGroupsOpts{
+		Groups: updateUserRequest.Groups,
+		UserID: userId,
+	})
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, user.ToAPI(), http.StatusOK)
 }

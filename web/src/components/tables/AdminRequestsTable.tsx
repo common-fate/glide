@@ -36,7 +36,7 @@ export const AdminRequestsTable = () => {
     () => [
       {
         accessor: "reason",
-        Header: "", // blank
+        Header: "Request",
         Cell: (props) => (
           <RuleNameCell
             accessRuleId={props.row.original.accessRule.id}

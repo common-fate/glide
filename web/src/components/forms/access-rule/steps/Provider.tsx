@@ -216,6 +216,7 @@ const WithField: React.FC<FieldProps> = (props) => {
       {data.hasOptions ? (
         <HStack>
           <MultiSelect
+            rules={{ required: true, minLength: 1 }}
             fieldName={`target.with.${props.name}`}
             options={data.options}
           />

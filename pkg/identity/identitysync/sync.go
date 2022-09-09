@@ -13,8 +13,8 @@ import (
 )
 
 type IdentityProvider interface {
-	ListUsers(ctx context.Context) ([]identity.IdpUser, error)
-	ListGroups(ctx context.Context) ([]identity.IdpGroup, error)
+	ListUsers(ctx context.Context) ([]identity.IDPUser, error)
+	ListGroups(ctx context.Context) ([]identity.IDPGroup, error)
 	gconfig.Configer
 	gconfig.Initer
 }
@@ -116,12 +116,12 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 // processUsersAndGroups conatins all the logic for create/update/archive for users and groups
 //
 // It returns a map of users and groups ready to be inserted to the database
-func processUsersAndGroups(idpUsers []identity.IdpUser, idpGroups []identity.IdpGroup, internalUsers []identity.User, internalGroups []identity.Group) (map[string]identity.User, map[string]identity.Group) {
-	idpUserMap := make(map[string]identity.IdpUser)
+func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group) (map[string]identity.User, map[string]identity.Group) {
+	idpUserMap := make(map[string]identity.IDPUser)
 	for _, u := range idpUsers {
 		idpUserMap[u.Email] = u
 	}
-	idpGroupMap := make(map[string]identity.IdpGroup)
+	idpGroupMap := make(map[string]identity.IDPGroup)
 	for _, g := range idpGroups {
 		idpGroupMap[g.ID] = g
 	}

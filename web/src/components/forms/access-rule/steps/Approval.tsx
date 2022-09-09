@@ -62,7 +62,10 @@ export const ApprovalStep: React.FC = () => {
             fieldName="approval.groups"
             shouldShowGroupMembers={true}
             isDisabled={!approval?.required}
-            rules={{ required: approverRequired }}
+            rules={{
+              required: approverRequired,
+              minLength: approverRequired ? 1 : 0,
+            }}
             onBlurSecondaryAction={() => void methods.trigger("approval.users")}
           />
 
@@ -82,7 +85,10 @@ export const ApprovalStep: React.FC = () => {
           <UserSelect
             fieldName="approval.users"
             isDisabled={!approval?.required}
-            rules={{ required: approverRequired }}
+            rules={{
+              required: approverRequired,
+              minLength: approverRequired ? 1 : 0,
+            }}
             onBlurSecondaryAction={() =>
               void methods.trigger("approval.groups")
             }

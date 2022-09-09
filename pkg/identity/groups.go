@@ -8,13 +8,13 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-type IdpGroup struct {
+type IDPGroup struct {
 	ID          string
 	Name        string
 	Description string
 }
 
-func (g IdpGroup) ToInternalGroup() Group {
+func (g IDPGroup) ToInternalGroup() Group {
 	now := time.Now()
 	return Group{
 		ID:          g.ID,

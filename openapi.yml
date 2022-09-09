@@ -570,6 +570,44 @@ paths:
       tags:
         - End User
       parameters: []
+  "/api/v1/admin/users/{userId}":
+    parameters:
+      - schema:
+          type: string
+        name: userId
+        in: path
+        required: true
+    post:
+      summary: Update User
+      operationId: update-user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Update a user including group membership
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groups:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - groups
+      tags:
+        - Admin
   /api/v1/admin/users:
     get:
       summary: Returns a list of users
@@ -586,6 +624,27 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
+    post:
+      summary: Create User
+      operationId: create-user
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Create new user in the Cognito user pool if it is enabled.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateUserRequest"
+      tags:
+        - Admin
   /api/v1/admin/groups:
     get:
       summary: List groups
@@ -603,6 +662,27 @@ paths:
           name: nextToken
           description: encrypted token containing pagination info
     parameters: []
+    post:
+      summary: Create Group
+      operationId: create-group
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Create new group in the Cognito user pool if it is enabled.
+      requestBody:
+        $ref: "#/components/requestBodies/CreateGroupRequest"
+      tags:
+        - Admin
   "/api/v1/admin/groups/{groupId}":
     parameters:
       - schema:
@@ -853,6 +933,35 @@ paths:
         $ref: "#/components/requestBodies/ProviderSetupStepCompleteRequest"
       tags:
         - Admin
+  /api/v1/admin/identity/sync:
+    parameters: []
+    post:
+      summary: Sync Identity
+      operationId: identity-sync
+      responses:
+        "200":
+          description: OK
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Run the identity sync operation on demand
+      tags:
+        - Admin
+  /api/v1/admin/identity:
+    get:
+      summary: Get identity configuration
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/IdentityConfigurationResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: identity-configuration
+      description: Get information about the identity configuration
 components:
   schemas:
     User:
@@ -886,6 +995,10 @@ components:
           type: string
           x-go-type: time.Time
           format: time
+        groups:
+          type: array
+          items:
+            type: string
       required:
         - id
         - email
@@ -894,6 +1007,7 @@ components:
         - status
         - lastName
         - updatedAt
+        - groups
     Request:
       title: Request
       type: object
@@ -1839,6 +1953,20 @@ components:
                 description: Whether a manual update is required to the Granted Approvals deployment configuration (`granted-deployment.yml`) to activate the provider.
             required:
               - deploymentConfigUpdateRequired
+    IdentityConfigurationResponse:
+      description: Returns information about the identity configuration of this deployment.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              identityProvider:
+                type: string
+              administratorGroupId:
+                type: string
+            required:
+              - identityProvider
+              - administratorGroupId
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -1910,13 +2038,22 @@ components:
               email:
                 type: string
                 format: email
-              name:
+                minLength: 1
+                maxLength: 2048
+              firstName:
                 type: string
+                minLength: 1
+                maxLength: 2048
+              lastName:
+                type: string
+                minLength: 1
+                maxLength: 2048
               isAdmin:
                 type: boolean
             required:
               - email
-              - name
+              - firstName
+              - lastName
               - isAdmin
       description: ""
     CreateRequestRequest:
@@ -1984,6 +2121,21 @@ components:
             required:
               - providerType
       description: Begin the guided setup process for a new Access Provider.
+    CreateGroupRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                pattern: "^[a-zA-Z0-9_.-]"
+                maxLength: 2048
+              description:
+                type: string
+            required:
+              - name
 tags:
   - name: End User
   - name: Admin

@@ -298,7 +298,7 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 		req = q.Result.Request
 	}
 
-	res, err := a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
+	_, err := a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
 	if err == grantsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
@@ -311,7 +311,7 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
 // Get Access Instructions

@@ -69,21 +69,6 @@ func buildHandler() (*Lambda, error) {
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
 	}
 
-	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		DeploymentConfig:    dc,
-		TemplateData:        td,
-		DeploymentSuffix:    cfg.DeploymentSuffix,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
 	if err != nil {
 		panic(err)
@@ -98,7 +83,24 @@ func buildHandler() (*Lambda, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	api, err := api.New(ctx, api.Opts{
+		Log:                 log,
+		DynamoTable:         cfg.DynamoTable,
+		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
+		AccessHandlerClient: ahc,
+		EventSender:         eventBus,
+		AdminGroup:          cfg.AdminGroup,
+		TemplateData:        td,
+		DeploymentSuffix:    cfg.DeploymentSuffix,
+		IdentitySyncer:      idsync,
+		CognitoUserPoolID:   cfg.CognitoUserPoolID,
+		IDPType:             cfg.IdpProvider,
+		AdminGroupID:        cfg.AdminGroup,
+		DeploymentConfig:    dc,
+	})
+	if err != nil {
+		return nil, err
+	}
 	srvconf := server.Config{
 		Config:         cfg,
 		API:            api,

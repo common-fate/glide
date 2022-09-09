@@ -41,11 +41,13 @@ var addCommand = cli.Command{
 			return err
 		}
 		cog := cognitoidentityprovider.NewFromConfig(cfg)
+
 		_, err = cog.AdminAddUserToGroup(ctx, &cognitoidentityprovider.AdminAddUserToGroupInput{
 			GroupName:  &group,
 			Username:   &username,
 			UserPoolId: &o.UserPoolID,
 		})
+
 		if err != nil {
 			return err
 		}
