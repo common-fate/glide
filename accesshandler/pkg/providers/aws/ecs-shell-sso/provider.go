@@ -51,7 +51,7 @@ type Provider struct {
 
 func (p *Provider) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("ecsClusterARN", &p.ecsClusterARN, "The ARN of the ECS Cluster to provision access to"),
+		gconfig.StringField("ecsClusterArn", &p.ecsClusterARN, "The ARN of the ECS Cluster to provision access to"),
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "The AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "The AWS SSO Instance ARN"),
 		gconfig.StringField("ssoRoleArn", &p.ssoRoleArn, "The ARN of the AWS IAM Role with permission to administer SSO"),
