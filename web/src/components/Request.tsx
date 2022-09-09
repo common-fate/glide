@@ -86,7 +86,9 @@ export const RequestDisplay: React.FC<RequestProps> = ({
 
   return (
     <Context.Provider value={{ overrideTiming, setOverrideTiming, request }}>
-      <Stack spacing={6}>{children}</Stack>
+      <Stack spacing={6} flex={1}>
+        {children}
+      </Stack>
     </Context.Provider>
   );
 };
@@ -335,12 +337,16 @@ export const RequestAccessInstructions: React.FC = () => {
 };
 
 export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
-  const { data } = useGetAccessToken(reqId);
+  const { data, error } = useGetAccessToken(reqId);
 
   const { data: reqData } = useUserGetRequest(reqId);
 
   const toast = useToast();
-
+  // The Access tokne API returns a 404 for anyone other than the requestor or if there is no access token.
+  // We treat the 404 as an indication tha there is no access token to display for this request
+  if (error?.response?.status == 404) {
+    return null;
+  }
   if (!data) return <Spinner />;
 
   const handleClick = async () => {
