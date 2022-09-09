@@ -130,6 +130,9 @@ export class AppBackend extends Construct {
           "cognito-idp:AdminListUserAuthEvents",
           "cognito-idp:AdminUserGlobalSignOut",
           "cognito-idp:DescribeUserPool",
+          "cognito-idp:AdminAddUserToGroup",
+          "cognito-idp:AdminCreateUser",
+          "cognito-idp:CreateGroup",
         ],
       })
     );
