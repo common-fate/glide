@@ -10,7 +10,6 @@ import (
 
 	"github.com/common-fate/ddb/ddbmock"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	ah_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -19,15 +18,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateGrant(t *testing.T) {
+// testAccessTokenChecker is a mock implementation of NeedsAccessToken
+type testAccessTokenChecker struct {
+	NeedsToken bool
+	Err        error
+}
 
+func (t testAccessTokenChecker) NeedsAccessToken(ctx context.Context, providerID string) (bool, error) {
+	return t.NeedsToken, t.Err
+}
+
+func TestCreateGrant(t *testing.T) {
 	type testcase struct {
 		name                           string
-		withCreateGrantResponse        *ah_types.PostGrantsResponse
+		withCreateGrantResponse        *ahTypes.PostGrantsResponse
 		withCreateGrantResponseErr     error
 		withUser                       identity.User
 		give                           CreateGrantOpts
-		wantPostGRantsWithResponseBody ah_types.PostGrantsJSONRequestBody
+		wantPostGrantsWithResponseBody ahTypes.PostGrantsJSONRequestBody
+		needsAccessToken               bool
+		needsAccessTokenErr            error
 
 		wantRequest *access.Request
 		wantErr     error
@@ -35,7 +45,6 @@ func TestCreateGrant(t *testing.T) {
 	clk := clock.NewMock()
 	now := clk.Now()
 	overrideStart := now.Add(time.Hour)
-	// var err = "example 400 error"
 	grantId := "abcd"
 	testcases := []testcase{
 		{
@@ -46,22 +55,25 @@ func TestCreateGrant(t *testing.T) {
 					RequestedTiming: access.Timing{
 						Duration:  time.Minute,
 						StartTime: &now,
-					}},
+					},
+				},
 			},
-			withCreateGrantResponse: &ah_types.PostGrantsResponse{
+			withCreateGrantResponse: &ahTypes.PostGrantsResponse{
 				JSON201: &struct {
-					Grant *ah_types.Grant "json:\"grant,omitempty\""
-				}{Grant: &ah_types.Grant{
-					ID:      grantId,
-					Start:   iso8601.New(now),
-					End:     iso8601.New(now.Add(time.Minute)),
-					Subject: "test@test.com",
-				}},
+					Grant ahTypes.Grant "json:\"grant\""
+				}{
+					Grant: ahTypes.Grant{
+						ID:      grantId,
+						Start:   iso8601.New(now),
+						End:     iso8601.New(now.Add(time.Minute)),
+						Subject: "test@test.com",
+					},
+				},
 			},
 			withUser: identity.User{
 				Email: "test@test.com",
 			},
-			wantPostGRantsWithResponseBody: ah_types.PostGrantsJSONRequestBody{
+			wantPostGrantsWithResponseBody: ahTypes.PostGrantsJSONRequestBody{
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
@@ -69,20 +81,19 @@ func TestCreateGrant(t *testing.T) {
 					AdditionalProperties: make(map[string]string),
 				},
 			},
-
 			wantRequest: &access.Request{
 				Status: access.APPROVED,
 				RequestedTiming: access.Timing{
 					Duration:  time.Minute,
 					StartTime: &now,
 				},
-
 				Grant: &access.Grant{
 					CreatedAt: clk.Now(),
 					UpdatedAt: clk.Now(),
-					Start:     now,
-					End:       now.Add(time.Minute),
-					Subject:   "test@test.com"},
+					Start:     iso8601.New(now).Time,
+					End:       iso8601.New(now.Add(time.Minute)).Time,
+					Subject:   "test@test.com",
+				},
 			},
 		},
 		{
@@ -97,22 +108,25 @@ func TestCreateGrant(t *testing.T) {
 					OverrideTiming: &access.Timing{
 						Duration:  time.Minute * 2,
 						StartTime: &overrideStart,
-					}},
+					},
+				},
 			},
-			withCreateGrantResponse: &ah_types.PostGrantsResponse{
+			withCreateGrantResponse: &ahTypes.PostGrantsResponse{
 				JSON201: &struct {
-					Grant *ah_types.Grant "json:\"grant,omitempty\""
-				}{Grant: &ah_types.Grant{
-					ID:      grantId,
-					Start:   iso8601.New(overrideStart),
-					End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-					Subject: "test@test.com",
-				}},
+					Grant ahTypes.Grant "json:\"grant\""
+				}{
+					Grant: ahTypes.Grant{
+						ID:      grantId,
+						Start:   iso8601.New(overrideStart),
+						End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+						Subject: "test@test.com",
+					},
+				},
 			},
 			withUser: identity.User{
 				Email: "test@test.com",
 			},
-			wantPostGRantsWithResponseBody: ah_types.PostGrantsJSONRequestBody{
+			wantPostGrantsWithResponseBody: ahTypes.PostGrantsJSONRequestBody{
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 				Subject: "test@test.com",
@@ -123,7 +137,6 @@ func TestCreateGrant(t *testing.T) {
 
 			wantRequest: &access.Request{
 				Status: access.APPROVED,
-
 				RequestedTiming: access.Timing{
 					Duration:  time.Minute,
 					StartTime: &now,
@@ -133,26 +146,35 @@ func TestCreateGrant(t *testing.T) {
 					StartTime: &overrideStart,
 				},
 				Grant: &access.Grant{
-
 					CreatedAt: clk.Now(),
 					UpdatedAt: clk.Now(),
 					Start:     overrideStart,
 					End:       overrideStart.Add(time.Minute * 2),
-					Subject:   "test@test.com"},
+					Subject:   "test@test.com",
+				},
 			},
 		},
 	}
 
 	for _, tc := range testcases {
-
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGRantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
+			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
+
 			c := ddbmock.New(t)
 			c.MockQuery(&storage.GetUser{Result: &tc.withUser})
 
-			s := Granter{AHClient: g, DB: c, Clock: clk}
+			s := Granter{
+				AHClient: g,
+				DB:       c,
+				Clock:    clk,
+				accessTokenChecker: testAccessTokenChecker{
+					NeedsToken: tc.needsAccessToken,
+					Err:        tc.needsAccessTokenErr,
+				},
+			}
+
 			gotRequest, err := s.CreateGrant(context.Background(), tc.give)
 			assert.Equal(t, tc.wantErr, err)
 

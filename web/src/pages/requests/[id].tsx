@@ -5,6 +5,7 @@ import { AuditLog } from "../../components/AuditLog";
 import { UserLayout } from "../../components/Layout";
 import {
   RequestAccessInstructions,
+  RequestAccessToken,
   RequestCancelButton,
   RequestDetails,
   RequestDisplay,
@@ -14,6 +15,8 @@ import {
   RequestRevoke,
   RequestTime,
 } from "../../components/Request";
+import { useUser } from "../../utils/context/userContext";
+
 import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
 
 type MyLocationGenerics = MakeGenerics<{
@@ -26,7 +29,6 @@ const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
-
   const { data, mutate } = useUserGetRequest(requestId);
   const search = useSearch<MyLocationGenerics>();
   const { action } = search;
@@ -46,11 +48,17 @@ const Home = () => {
         </RequestDisplay>
       );
     }
+
+    const user = useUser();
     return (
       <RequestDisplay request={data}>
         <RequestDetails>
           <RequestTime />
-          <RequestAccessInstructions />
+
+          {user.user?.id === data?.requestor && <RequestAccessInstructions />}
+          {user.user?.id === data?.requestor && (
+            <RequestAccessToken reqId={data ? data.id : ""} />
+          )}
           <RequestCancelButton />
           <RequestRevoke onSubmitRevoke={mutate} />
         </RequestDetails>

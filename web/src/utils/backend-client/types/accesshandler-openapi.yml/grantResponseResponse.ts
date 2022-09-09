@@ -8,5 +8,5 @@
 import type { Grant } from '../accesshandler-openapi.yml/grant';
 
 export type GrantResponseResponse = {
-  grant?: Grant;
+  grant: Grant;
 };

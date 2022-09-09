@@ -9,7 +9,7 @@ import (
 )
 
 // CreateGrant creates a new grant.
-func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (*types.Grant, error) {
+func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (types.Grant, error) {
 	grant := types.NewGrant(vcg)
 	logger.Get(ctx).Infow("creating grant", "grant", grant)
 
@@ -17,7 +17,7 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 	defer tx.Commit()
 	err := tx.Insert("grants", &grant)
 	if err != nil {
-		return nil, err
+		return types.Grant{}, err
 	}
 
 	go func() {
@@ -33,5 +33,5 @@ func (r *Runtime) CreateGrant(ctx context.Context, vcg types.ValidCreateGrant) (
 		logger.Get(ctx).Infow("deactivating grant", "grant", grant)
 	}()
 
-	return &grant, nil
+	return grant, nil
 }

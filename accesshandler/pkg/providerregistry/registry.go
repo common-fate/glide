@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
@@ -43,6 +44,12 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 func Registry() ProviderRegistry {
 	return ProviderRegistry{
 		Providers: map[string]map[string]RegisteredProvider{
+			"commonfate/ecs-exec-sso": {
+				"v1-alpha1": {Provider: &ecsshellsso.Provider{},
+					DefaultID:   "ecs-exec-sso",
+					Description: "ECS Exec SSO",
+				},
+			},
 			"commonfate/okta": {
 				"v1": {
 					Provider:    &okta.Provider{},

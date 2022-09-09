@@ -26,6 +26,8 @@ type Output struct {
 	UserPoolID                    string `json:"UserPoolID"`
 	UserPoolDomain                string `json:"UserPoolDomain"`
 	APIURL                        string `json:"APIURL"`
+	WebhookURL                    string `json:"WebhookURL"`
+	WebhookLogGroupName           string `json:"WebhookLogGroupName"`
 	APILogGroupName               string `json:"APILogGroupName"`
 	IDPSyncLogGroupName           string `json:"IDPSyncLogGroupName"`
 	AccessHandlerLogGroupName     string `json:"AccessHandlerLogGroupName"`
@@ -73,6 +75,30 @@ func (c Output) PrintTable() {
 		table.Append(v)
 	}
 	table.Render()
+}
+
+// Keys returns the names of the output variables.
+func (o Output) Keys() []string {
+	v := reflect.ValueOf(o)
+	t := v.Type()
+	var keys []string
+
+	for i := 0; i < v.NumField(); i++ {
+		keys = append(keys, t.Field(i).Name)
+	}
+	return keys
+}
+
+// Get a value by it's key in the output struct
+func (o Output) Get(key string) (string, error) {
+	r := reflect.ValueOf(o)
+	f := r.FieldByName(key)
+
+	if !f.IsValid() {
+		return "", fmt.Errorf("key %s not found in output", key)
+	}
+
+	return f.String(), nil
 }
 
 func (c SAMLOutputs) PrintSAMLTable() {

@@ -549,6 +549,8 @@ components:
             properties:
               grant:
                 $ref: "#/components/schemas/Grant"
+            required:
+              - grant
     ArgOptionsResponse:
       description: Options for an Grant argument.
       content:

@@ -110,19 +110,19 @@ type CacheService interface {
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                           *zap.SugaredLogger
-	AccessHandlerClient           ahtypes.ClientWithResponsesInterface
-	EventSender                   *gevent.Sender
-	IdentitySyncer                auth.IdentitySyncer
-	DeploymentConfig              deploy.DeployConfigReader
-	DynamoTable                   string
-	PaginationKMSKeyARN           string
-	AdminGroup                    string
-	AccessHandlerExecutionRoleARN string
-	DeploymentSuffix              string
-	CognitoUserPoolID             string
-	IDPType                       string
-	AdminGroupID                  string
+	Log                 *zap.SugaredLogger
+	AccessHandlerClient ahtypes.ClientWithResponsesInterface
+	EventSender         *gevent.Sender
+	IdentitySyncer      auth.IdentitySyncer
+	DeploymentConfig    deploy.DeployConfigReader
+	DynamoTable         string
+	PaginationKMSKeyARN string
+	AdminGroup          string
+	TemplateData        psetup.TemplateData
+	DeploymentSuffix    string
+	CognitoUserPoolID   string
+	IDPType             string
+	AdminGroupID        string
 }
 
 // New creates a new API.
@@ -145,18 +145,21 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	clk := clock.New()
 
+	granter := grantsvc.New(grantsvc.GranterOpts{
+		AHClient:         opts.AccessHandlerClient,
+		DB:               db,
+		Clock:            clk,
+		EventBus:         opts.EventSender,
+		DeploymentConfig: opts.DeploymentConfig,
+	})
+
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
 		Access: &accesssvc.Service{
-			Clock: clk,
-			DB:    db,
-			Granter: &grantsvc.Granter{
-				AHClient: opts.AccessHandlerClient,
-				DB:       db,
-				Clock:    clk,
-				EventBus: opts.EventSender,
-			},
+			Clock:       clk,
+			DB:          db,
+			Granter:     granter,
 			EventPutter: opts.EventSender,
 			Cache: &cachesvc.Service{
 				DB:                  db,
@@ -173,22 +176,15 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			AHClient: opts.AccessHandlerClient,
 		},
 		ProviderSetup: &psetupsvc.Service{
-			DB: db,
-			TemplateData: psetup.TemplateData{
-				AccessHandlerExecutionRoleARN: opts.AccessHandlerExecutionRoleARN,
-			},
+			DB:               db,
+			TemplateData:     opts.TemplateData,
 			DeploymentSuffix: opts.DeploymentSuffix,
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,
-		Granter: &grantsvc.Granter{
-			AHClient: opts.AccessHandlerClient,
-			DB:       db,
-			Clock:    clk,
-			EventBus: opts.EventSender,
-		},
-		IdentitySyncer:   opts.IdentitySyncer,
-		IdentityProvider: opts.IDPType,
+		Granter:             granter,
+		IdentitySyncer:      opts.IdentitySyncer,
+		IdentityProvider:    opts.IDPType,
 	}
 
 	// only initialise this if cognito is the IDP
@@ -209,6 +205,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Cognito:      cog,
 			AdminGroupID: opts.AdminGroupID,
 		}
+
 	}
 
 	return &a, nil

@@ -290,6 +290,33 @@ paths:
         Get access instructions for a request.
 
         Returns information on how to access the role or resource.
+  "/api/v1/requests/{requestId}/access-token":
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    get:
+      summary: Get Access Token
+      tags:
+        - End User
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: get-access-token
+      description: |-
+        Get access token for a request.
+
+        Returns information on how to access the role or resource.
   "/api/v1/users/{userId}":
     parameters:
       - schema:
@@ -1493,10 +1520,19 @@ components:
           type: boolean
         grantFailureReason:
           type: string
+        recordedEvent:
+          type: object
+          x-go-type: "map[string]string"
+          description: An event which was recorded relating to the grant.
       required:
         - id
         - requestId
         - createdAt
+    AccessToken:
+      title: AccessToken
+      x-stoplight:
+        id: yxma8dkhj406q
+      type: string
     WithOption:
       title: WithOption
       x-stoplight:

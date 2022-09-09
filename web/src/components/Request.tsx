@@ -8,10 +8,14 @@ import {
   Flex,
   HStack,
   IconButton,
+  Input,
+  InputGroup,
+  InputRightElement,
   Link,
   Progress,
   Skeleton,
   SkeletonText,
+  Spinner,
   Stack,
   Text,
   Tooltip,
@@ -31,6 +35,7 @@ import {
   reviewRequest,
   revokeRequest,
   useGetAccessInstructions,
+  useGetAccessToken,
   useGetUser,
   useUserGetRequest,
 } from "../utils/backend-client/end-user/end-user";
@@ -212,7 +217,8 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       rounded="md"
       bg="neutrals.100"
       flexDir="column"
-      w={{ base: "100%", md: "500px", lg: "716px" }}
+      w="100%"
+      // w={{ base: "100%", md: "500px", lg: "716px" }}
       p={8}
       spacing={6}
     >
@@ -298,8 +304,7 @@ export const RequestAccessInstructions: React.FC = () => {
       <Stack>
         <Box textStyle="Body/Medium">Access Instructions</Box>
         <Text textStyle="Body/small" color="neutrals.600">
-          Your access is still being provisioned, when its ready, you will find
-          your access instuctions here.
+          Provisioning access
         </Text>
         <Progress size="xs" isIndeterminate hasStripe />
       </Stack>
@@ -327,6 +332,47 @@ export const RequestAccessInstructions: React.FC = () => {
   }
   // Don't render anything
   return null;
+};
+
+export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
+  const { data } = useGetAccessToken(reqId);
+
+  const { data: reqData } = useUserGetRequest(reqId);
+
+  const toast = useToast();
+
+  if (!data) return <Spinner />;
+
+  const handleClick = async () => {
+    await navigator.clipboard.writeText(data);
+    toast({
+      title: "Access token copied to clipboard",
+      status: "success",
+      variant: "subtle",
+      duration: 2200,
+      isClosable: true,
+    });
+  };
+
+  if (reqData?.grant?.status === "ACTIVE") {
+    return (
+      <Stack>
+        <Box textStyle="Body/Medium" mb={2}>
+          Access Token
+        </Box>
+        <InputGroup size="md" bg="white" maxW="400px">
+          <Input pr="4.5rem" type={"password"} value={data} readOnly />
+          <InputRightElement width="4.5rem" pr={1}>
+            <Button h="1.75rem" size="sm" onClick={handleClick}>
+              {"Copy"}
+            </Button>
+          </InputRightElement>
+        </InputGroup>
+      </Stack>
+    );
+  } else {
+    return <></>;
+  }
 };
 
 export const RequestTime: React.FC = () => {

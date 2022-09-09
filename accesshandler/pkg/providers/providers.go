@@ -20,6 +20,16 @@ type Accessor interface {
 	Revoke(ctx context.Context, subject string, args []byte, grantID string) error
 }
 
+// AccessTokeners can indicate whether they need an access token to be generated
+// as part of the access workflow.
+//
+// Access Tokens are used in Access Providers to tie a particular session in the
+// downstream service back to the access request. In our ECS Shell provider,
+// access tokens are enabled for audited Python shell access.
+type AccessTokener interface {
+	RequiresAccessToken() bool
+}
+
 // Validators know how to validate access without actually granting it.
 type Validator interface {
 	// Validate arguments and a subject for access without actually granting it.

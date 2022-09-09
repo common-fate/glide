@@ -39,6 +39,8 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _KMSkey: cdk.aws_kms.Key;
+  private _webhook: apigateway.Resource;
+  private _webhookLambda: lambda.Function;
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -53,6 +55,38 @@ export class AppBackend extends Construct {
       description:
         "used for encrypting and decrypting pagination tokens for granted approvals",
     });
+
+    // used to handle webhook events from third party integrations such as Slack
+    this._webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
+      ),
+      timeout: Duration.seconds(20),
+      runtime: lambda.Runtime.GO_1_X,
+      handler: "webhook",
+      environment: {
+        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
+      },
+    });
+
+    this._dynamoTable.grantReadWriteData(this._webhookLambda);
+
+    this._apigateway = new apigateway.RestApi(this, "RestAPI", {
+      restApiName: this._appName,
+    });
+
+    const webhook = this._apigateway.root.addResource("webhook");
+    const webhookv1 = webhook.addResource("v1");
+
+    const webhookProxy = webhookv1.addResource("{proxy+}");
+    webhookProxy.addMethod(
+      "ANY",
+      new apigateway.LambdaIntegration(this._webhookLambda, {
+        allowTestInvoke: false,
+      })
+    );
+
+    this._webhook = webhookv1;
 
     const code = lambda.Code.fromAsset(
       path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
@@ -96,6 +130,10 @@ export class AppBackend extends Construct {
           "cognito-idp:AdminListUserAuthEvents",
           "cognito-idp:AdminUserGlobalSignOut",
           "cognito-idp:DescribeUserPool",
+          "cognito-idp:AdminAddUserToGroup",
+          "cognito-idp:AdminCreateUser",
+          "cognito-idp:CreateGroup",
+          "cognito-idp:AdminRemoveUserFromGroup",
         ],
       })
     );
@@ -122,20 +160,6 @@ export class AppBackend extends Construct {
       })
     );
 
-    // used to handle webhook events from third party integrations such as Slack
-    const webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, "..", "..", "..", "..", "bin", "webhook.zip")
-      ),
-      timeout: Duration.seconds(20),
-      runtime: lambda.Runtime.GO_1_X,
-      handler: "webhook",
-    });
-
-    this._apigateway = new apigateway.RestApi(this, "RestAPI", {
-      restApiName: this._appName,
-    });
-
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 
@@ -155,17 +179,6 @@ export class AppBackend extends Construct {
           }
         ),
       }
-    );
-
-    const webhook = this._apigateway.root.addResource("webhook");
-    const webhookv1 = webhook.addResource("v1");
-
-    const webhookProxy = webhookv1.addResource("{proxy+}");
-    webhookProxy.addMethod(
-      "ANY",
-      new apigateway.LambdaIntegration(webhookLambda, {
-        allowTestInvoke: false,
-      })
     );
 
     const ALLOWED_HEADERS = [
@@ -258,13 +271,23 @@ export class AppBackend extends Construct {
     return this._apigateway.url;
   }
 
+  getWebhookApiURL(): string {
+    // both prepend and append a / so we have to remove one out
+    return (
+      this._apigateway.url +
+      this._webhook.path.substring(1, this._webhook.path.length)
+    );
+  }
+
   getDynamoTableName(): string {
     return this._dynamoTable.tableName;
   }
   getDynamoTable(): dynamodb.Table {
     return this._dynamoTable;
   }
-
+  getWebhookLogGroupName(): string {
+    return this._webhookLambda.logGroup.logGroupName;
+  }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }

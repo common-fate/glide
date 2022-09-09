@@ -3,7 +3,9 @@ import React from "react";
 import {
   AWSIcon,
   AzureIcon,
+  ECSIcon,
   EKSIcon,
+  FlaskIcon,
   GrantedKeysIcon,
   OktaIcon,
 } from "./Icons";
@@ -40,6 +42,10 @@ export const ProviderIcon: React.FC<Props> = ({
       return <AzureIcon {...rest} />;
     case "commonfate/aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
+    case "commonfate/ecs-exec-sso":
+      return <ECSIcon {...rest} />;
+    case "commonfate/flask":
+      return <FlaskIcon {...rest} />;
   }
 
   switch (shortType) {
@@ -51,6 +57,10 @@ export const ProviderIcon: React.FC<Props> = ({
       return <AzureIcon {...rest} />;
     case "aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
+    case "ecs-exec-sso":
+      return <ECSIcon {...rest} />;
+    case "flask":
+      return <FlaskIcon {...rest} />;
   }
   return <GrantedKeysIcon {...rest} />;
 };

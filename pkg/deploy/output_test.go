@@ -44,6 +44,8 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		UserPoolID:                    "abcdefg",
 		UserPoolDomain:                "abcdefg",
 		APIURL:                        "abcdefg",
+		WebhookURL:                    "abcdefg",
+		WebhookLogGroupName:           "abcdefg",
 		APILogGroupName:               "abcdefg",
 		IDPSyncLogGroupName:           "abcdefg",
 		AccessHandlerLogGroupName:     "abcdefg",
@@ -82,4 +84,99 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.NotEqual(t, rawObject, goStruct)
+}
+
+func TestOutput_Get(t *testing.T) {
+	type fields struct {
+		CognitoClientID               string
+		CloudFrontDomain              string
+		FrontendDomainOutput          string
+		CloudFrontDistributionID      string
+		S3BucketName                  string
+		UserPoolID                    string
+		UserPoolDomain                string
+		APIURL                        string
+		WebhookURL                    string
+		APILogGroupName               string
+		IDPSyncLogGroupName           string
+		AccessHandlerLogGroupName     string
+		EventBusLogGroupName          string
+		EventsHandlerLogGroupName     string
+		GranterLogGroupName           string
+		SlackNotifierLogGroupName     string
+		DynamoDBTable                 string
+		GranterStateMachineArn        string
+		EventBusArn                   string
+		EventBusSource                string
+		IdpSyncFunctionName           string
+		Region                        string
+		PaginationKMSKeyARN           string
+		AccessHandlerExecutionRoleARN string
+	}
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			fields: fields{
+				CognitoClientID: "test",
+			},
+			args: args{
+				key: "CognitoClientID",
+			},
+			want: "test",
+		},
+		{
+			name: "field not exist",
+			args: args{
+				key: "somethingelse",
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := Output{
+				CognitoClientID:               tt.fields.CognitoClientID,
+				CloudFrontDomain:              tt.fields.CloudFrontDomain,
+				FrontendDomainOutput:          tt.fields.FrontendDomainOutput,
+				CloudFrontDistributionID:      tt.fields.CloudFrontDistributionID,
+				S3BucketName:                  tt.fields.S3BucketName,
+				UserPoolID:                    tt.fields.UserPoolID,
+				UserPoolDomain:                tt.fields.UserPoolDomain,
+				APIURL:                        tt.fields.APIURL,
+				WebhookURL:                    tt.fields.WebhookURL,
+				APILogGroupName:               tt.fields.APILogGroupName,
+				IDPSyncLogGroupName:           tt.fields.IDPSyncLogGroupName,
+				AccessHandlerLogGroupName:     tt.fields.AccessHandlerLogGroupName,
+				EventBusLogGroupName:          tt.fields.EventBusLogGroupName,
+				EventsHandlerLogGroupName:     tt.fields.EventsHandlerLogGroupName,
+				GranterLogGroupName:           tt.fields.GranterLogGroupName,
+				SlackNotifierLogGroupName:     tt.fields.SlackNotifierLogGroupName,
+				DynamoDBTable:                 tt.fields.DynamoDBTable,
+				GranterStateMachineArn:        tt.fields.GranterStateMachineArn,
+				EventBusArn:                   tt.fields.EventBusArn,
+				EventBusSource:                tt.fields.EventBusSource,
+				IdpSyncFunctionName:           tt.fields.IdpSyncFunctionName,
+				Region:                        tt.fields.Region,
+				PaginationKMSKeyARN:           tt.fields.PaginationKMSKeyARN,
+				AccessHandlerExecutionRoleARN: tt.fields.AccessHandlerExecutionRoleARN,
+			}
+			got, err := o.Get(tt.args.key)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Output.Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Output.Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

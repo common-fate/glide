@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/awslabs/aws-lambda-go-api-proxy/handlerfunc"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	"github.com/common-fate/granted-approvals/internal"
 	"github.com/common-fate/granted-approvals/pkg/api"
 	"github.com/common-fate/granted-approvals/pkg/auth"
@@ -61,7 +62,12 @@ func buildHandler() (*Lambda, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	dc := &deploy.EnvDeploymentConfig{}
+
+	td := psetup.TemplateData{
+		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
+	}
 
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
 	if err != nil {
@@ -78,19 +84,19 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                           log,
-		DynamoTable:                   cfg.DynamoTable,
-		PaginationKMSKeyARN:           cfg.PaginationKMSKeyARN,
-		AccessHandlerClient:           ahc,
-		EventSender:                   eventBus,
-		AdminGroup:                    cfg.AdminGroup,
-		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
-		DeploymentSuffix:              cfg.DeploymentSuffix,
-		IdentitySyncer:                idsync,
-		CognitoUserPoolID:             cfg.CognitoUserPoolID,
-		IDPType:                       cfg.IdpProvider,
-		AdminGroupID:                  cfg.AdminGroup,
-		DeploymentConfig:              dc,
+		Log:                 log,
+		DynamoTable:         cfg.DynamoTable,
+		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
+		AccessHandlerClient: ahc,
+		EventSender:         eventBus,
+		AdminGroup:          cfg.AdminGroup,
+		TemplateData:        td,
+		DeploymentSuffix:    cfg.DeploymentSuffix,
+		IdentitySyncer:      idsync,
+		CognitoUserPoolID:   cfg.CognitoUserPoolID,
+		IDPType:             cfg.IdpProvider,
+		AdminGroupID:        cfg.AdminGroup,
+		DeploymentConfig:    dc,
 	})
 	if err != nil {
 		return nil, err

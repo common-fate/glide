@@ -18,3 +18,4 @@ export * from './log';
 export * from './validateRequestBody';
 export * from './validateRequestBodyWith';
 export * from './validateResponseResponse';
+export * from './additionalProperties';

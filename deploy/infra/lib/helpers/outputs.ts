@@ -10,7 +10,9 @@ export type StackOutputs = {
   UserPoolID: string;
   UserPoolDomain: string;
   APIURL: string;
+  WebhookURL: string;
   APILogGroupName: string;
+  WebhookLogGroupName: string;
   IDPSyncLogGroupName: string;
   AccessHandlerLogGroupName: string;
   EventBusLogGroupName: string;

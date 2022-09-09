@@ -47,6 +47,7 @@ func main() {
 			// It would be easier to see exactly what runs when a command runs
 			mw.WithBeforeFuncs(&logs.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&commands.StatusCommand, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials(), mw.VerifyGDeployCompatibility()),
+			mw.WithBeforeFuncs(&commands.Output, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials(), mw.VerifyGDeployCompatibility()),
 			mw.WithBeforeFuncs(&commands.CreateCommand, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials(), mw.RequireCleanGitWorktree()),
 			mw.WithBeforeFuncs(&commands.UpdateCommand, mw.RequireDeploymentConfig(), mw.PreventDevUsage(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials(), mw.RequireCleanGitWorktree()),
 			mw.WithBeforeFuncs(&identity.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),

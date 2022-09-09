@@ -31,8 +31,21 @@ export const registeredProviders: RegisteredProvider[] = [
     name: "EKS (with AWS SSO)",
   },
   {
+    type: "commonfate/ecs-exec-sso",
+    shortType: "ecs-exec-sso",
+    name: "ECS Exec (with AWS SSO)",
+  },
+  {
     type: "commonfate/testvault",
     shortType: "testvault",
     name: "TestVault",
   },
 ];
+
+/**
+ * If we type registeredProviders with a const assertion i.e. `registeredProviders = [...] as const;`
+ * it is possible to strongly type the shortType key-values (could be beneficial)
+ */
+export type RegisteredShortTypes = typeof registeredProviders[number]["shortType"];
+
+export type RegisteredTypes = typeof registeredProviders[number]["type"];

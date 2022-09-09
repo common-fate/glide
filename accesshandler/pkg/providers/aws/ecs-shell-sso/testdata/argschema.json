@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso/args",
+  "$ref": "#/$defs/Args",
+  "$defs": {
+    "Args": {
+      "properties": {
+        "taskDefinitionFamily": {
+          "type": "string",
+          "title": "Task Definition Family"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["taskDefinitionFamily"]
+    }
+  }
+}

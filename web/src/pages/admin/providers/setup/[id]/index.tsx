@@ -468,7 +468,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   });
   const onSubmit = async (data: Record<string, string>) => {
     const filteredData: Record<string, string> = {};
-    step.configFields.forEach((f) => {
+    step.configFields?.forEach((f) => {
       filteredData[f.id] = data[f.id];
     });
 
@@ -569,7 +569,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                   autoComplete="off"
                   spacing={5}
                 >
-                  {step.configFields.length > 0 && (
+                  {step.configFields?.length > 0 && (
                     <Stack spacing={5}>
                       {readOnly !== true && <Text>Enter your values</Text>}
                       {step.configFields.map((f) => (
