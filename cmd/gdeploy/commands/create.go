@@ -25,7 +25,7 @@ var CreateCommand = cli.Command{
 
 		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
 		clio.Info("Using template: %s", dc.CfnTemplateURL())
-		clio.Warn("Your initial deployment will take approximately 5 minutes while CloudFront resources are created.\nSubsequent updates should take less time.")
+		clio.Warn("Your initial deployment will take approximately 5 minutes while CloudFront resources are created. (At worst this can take up to 25 minutes)\nSubsequent updates should take less time.")
 		confirm := c.Bool("confirm")
 
 		if os.Getenv("CI") == "true" {
@@ -50,8 +50,9 @@ var CreateCommand = cli.Command{
 			clio.Info(`Here are your next steps to get started:
 
   1) create an admin user so you can log in: 'gdeploy identity users create --admin -u YOUR_EMAIL_ADDRESS'
-  2) add an Access Provider: 'gdeploy provider add'
-  3) visit the web dashboard: 'gdeploy dashboard open'
+  2) visit the web dashboard: 'gdeploy dashboard open'
+  3) visit the Providers tab in the admin dashboard and setup your first Access Provider using the interactive workflows
+
 
 Check out the next steps in our getting started guide for more information: https://docs.comonfate.io/granted-approvals/getting-started/deploying
 `)
