@@ -20,7 +20,6 @@ export const UsersTable = () => {
     swrHook: useGetUsers,
     hookProps: {},
   });
-  const { mutate } = useGetUsers();
   const cols: Column<User>[] = useMemo(
     () => [
       {
@@ -83,7 +82,7 @@ export const UsersTable = () => {
         <AddUsersButton />
         <SyncUsersAndGroupsButton
           onSync={() => {
-            void mutate();
+            void paginator.mutate();
           }}
         />
       </Flex>
@@ -95,7 +94,13 @@ export const UsersTable = () => {
         linkTo: true,
       })}
 
-      <CreateUserModal isOpen={isOpen} onClose={onClose} />
+      <CreateUserModal
+        isOpen={isOpen}
+        onClose={() => {
+          void paginator.mutate();
+          onClose();
+        }}
+      />
     </>
   );
 };

@@ -19,7 +19,6 @@ export const GroupsTable = () => {
     swrHook: useGetGroups,
     hookProps: {},
   });
-  const { mutate } = useGetGroups();
 
   const cols: Column<Group>[] = useMemo(
     () => [
@@ -67,7 +66,7 @@ export const GroupsTable = () => {
         <AddGroupButton />
         <SyncUsersAndGroupsButton
           onSync={() => {
-            void mutate();
+            void paginator.mutate();
           }}
         />
       </Flex>
@@ -78,7 +77,13 @@ export const GroupsTable = () => {
         apiPaginator: paginator,
       })}
 
-      <CreateGroupModal isOpen={isOpen} onClose={onClose} />
+      <CreateGroupModal
+        isOpen={isOpen}
+        onClose={() => {
+          void paginator.mutate();
+          onClose();
+        }}
+      />
     </>
   );
 };
