@@ -133,6 +133,7 @@ export class AppBackend extends Construct {
           "cognito-idp:AdminAddUserToGroup",
           "cognito-idp:AdminCreateUser",
           "cognito-idp:CreateGroup",
+          "cognito-idp:AdminRemoveUserFromGroup",
         ],
       })
     );
