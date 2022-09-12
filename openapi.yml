@@ -962,6 +962,35 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       operationId: identity-configuration
       description: Get information about the identity configuration
+  /api/v1/access-rules/lookup:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListAccessRulesResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: access-rule-lookup
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - aws-sso
+          in: query
+          name: type
+          description: the role type i.e. aws-sso
+        - schema:
+            type: string
+          in: query
+          name: roleName
+          description: the role name i.e. AdminstratorAccess
+        - schema:
+            type: number
+          in: query
+          name: accountId
+          description: the aws account id
+      description: endpoint returns an array of relevant access rules (used in combination with granted cli)
 components:
   schemas:
     User:
