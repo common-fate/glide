@@ -204,7 +204,10 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 	res := types.ListAccessRulesResponse{
 		AccessRules: []types.AccessRule{},
 	}
-	// filter by params.AccountId and params.RoleName
+	/*
+		filter by params.AccountId
+		NOTE: we may need to extend functionality to lookup ProviderOptions as well?
+	*/
 	for _, r := range q.Result {
 		accountId, found := r.Target.ToAPI().With.Get("accountId")
 		// if not found continue
