@@ -193,6 +193,7 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 // (GET /api/v1/access-rules/lookup)
 func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
 	ctx := r.Context()
+	// fetch all active access rules
 	q := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
 	_, err := a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
@@ -201,10 +202,18 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 	}
 
 	res := types.ListAccessRulesResponse{
-		AccessRules: make([]types.AccessRule, len(q.Result)),
+		AccessRules: []types.AccessRule{},
 	}
-	for i, r := range q.Result {
-		res.AccessRules[i] = r.ToAPI()
+	// filter by params.AccountId and params.RoleName
+	for _, r := range q.Result {
+		accountId, found := r.Target.ToAPI().With.Get("accountId")
+		// if not found continue
+		if !found {
+			continue
+		}
+		if *params.AccountId == accountId {
+			res.AccessRules = append(res.AccessRules, r.ToAPI())
+		}
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

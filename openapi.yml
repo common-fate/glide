@@ -986,7 +986,7 @@ paths:
           name: roleName
           description: the role name i.e. AdminstratorAccess
         - schema:
-            type: number
+            type: string
           in: query
           name: accountId
           description: the aws account id
