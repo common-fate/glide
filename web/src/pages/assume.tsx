@@ -14,6 +14,7 @@ import { UserLayout } from "../components/Layout";
 import { useAccessRuleLookup } from "../utils/backend-client/default/default";
 import { AccessRuleLookupParams } from "../utils/backend-client/types/accessRuleLookupParams";
 import { Link } from "react-location";
+import { SelectRuleTable } from "../components/tables/SelectRuleTable";
 
 const assume = () => {
   type MyLocationGenerics = MakeGenerics<{
@@ -50,64 +51,13 @@ const assume = () => {
   return (
     <UserLayout>
       <Center h="80vh">
-        <Flex flexDir="column" align="center" textAlign="center" minH="400px">
+        <Flex flexDir="column" align="center" textAlign="center" minH="60vh">
           <Spinner my={4} opacity={isValidating ? 1 : 0} />
           {loadText}
           <br />
-          <Stack mt={4} direction="row" spacing={4}>
-            {data &&
-              data.accessRules.length > 1 &&
-              data.accessRules.map((r) => (
-                <Link
-                  style={{ display: "flex" }}
-                  to={"/access/request/" + r.id}
-                  key={r.id}
-                >
-                  <Box
-                    className="group"
-                    textAlign="center"
-                    bg="neutrals.100"
-                    p={6}
-                    h="172px"
-                    w="232px"
-                    rounded="md"
-                  >
-                    <ProviderIcon
-                      shortType={r.target.provider.type}
-                      mb={3}
-                      h="8"
-                      w="8"
-                    />
-
-                    <Text textStyle="Body/SmallBold" color="neutrals.700">
-                      {r.name}
-                    </Text>
-
-                    <Button
-                      mt={4}
-                      variant="brandSecondary"
-                      size="sm"
-                      opacity={0}
-                      sx={{
-                        // This media query ensure always visible for touch screens
-                        "@media (hover: none)": {
-                          opacity: 1,
-                        },
-                      }}
-                      transition="all .2s ease-in-out"
-                      transform="translateY(8px)"
-                      _groupHover={{
-                        bg: "white",
-                        opacity: 1,
-                        transform: "translateY(0px)",
-                      }}
-                    >
-                      Request
-                    </Button>
-                  </Box>
-                </Link>
-              ))}
-          </Stack>
+          {data && data.accessRules.length > 1 && (
+            <SelectRuleTable rules={data.accessRules} />
+          )}
         </Flex>
       </Center>
     </UserLayout>
