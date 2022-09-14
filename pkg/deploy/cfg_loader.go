@@ -13,7 +13,6 @@ type DeployConfigReader interface {
 	ReadNotifications(ctx context.Context) (FeatureMap, error)
 }
 
-type DeployConfigWriter interface {
+type ProviderWriter interface {
 	WriteProviders(ctx context.Context, pm ProviderMap) error
-	WriteNotifications(ctx context.Context, fm FeatureMap) error
 }
