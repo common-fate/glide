@@ -214,24 +214,24 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 		apio.Error(ctx, w, err)
 	}
 
-	/*
-		filter by params.AccountId
-		NOTE: we may need to extend functionality to lookup ProviderOptions as well?
-	*/
+	//	filter by params.AccountId
 	for _, r := range q.Result {
-		// Add a check here around the type, the type of access rule
-		// commonfate/aws-sso@v1
-		if r.Target.ProviderID == p.DefaultID {
 
-			accountId, found := r.Target.ToAPI().With.Get("accountId")
-			// if not found continue
+		switch p.DefaultID {
+		case "aws-sso-v2":
+			ruleAccId, found := r.Target.ToAPI().With.Get("accountId")
 			if !found {
-				continue
+				continue // if not found continue
 			}
-			if *params.AccountId == accountId {
+			reqAccId, found := params.ProviderDetails.Get("accountId")
+			if !found {
+				continue // if not found continue
+			}
+			if ruleAccId == reqAccId {
 				res.AccessRules = append(res.AccessRules, r.ToAPI())
 			}
 		}
+
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
