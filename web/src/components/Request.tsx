@@ -719,7 +719,7 @@ export const RequestCancelButton: React.FC = () => {
   return (
     <ButtonGroup variant="outline" size="sm">
       {!request && <Skeleton rounded="full" w="64px" h="32px" />}
-      {request?.status === "PENDING" && (
+      {request?.status === "PENDING" && request.grant?.status == "PENDING" && (
         <Button rounded="full" onClick={handleCancel}>
           Cancel
         </Button>
