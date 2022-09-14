@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
@@ -204,18 +205,32 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 	res := types.ListAccessRulesResponse{
 		AccessRules: []types.AccessRule{},
 	}
+
+	// Validate that params.Type is a valid provider id
+	// NOTE: we may want to validate provider versions, this should work for now
+	// Assumption: user is using the latest type
+	_, p, err := providerregistry.Registry().GetLatestByType(string(*params.Type))
+	if err != nil {
+		apio.Error(ctx, w, err)
+	}
+
 	/*
 		filter by params.AccountId
 		NOTE: we may need to extend functionality to lookup ProviderOptions as well?
 	*/
 	for _, r := range q.Result {
-		accountId, found := r.Target.ToAPI().With.Get("accountId")
-		// if not found continue
-		if !found {
-			continue
-		}
-		if *params.AccountId == accountId {
-			res.AccessRules = append(res.AccessRules, r.ToAPI())
+		// Add a check here around the type, the type of access rule
+		// commonfate/aws-sso@v1
+		if r.Target.ProviderID == p.DefaultID {
+
+			accountId, found := r.Target.ToAPI().With.Get("accountId")
+			// if not found continue
+			if !found {
+				continue
+			}
+			if *params.AccountId == accountId {
+				res.AccessRules = append(res.AccessRules, r.ToAPI())
+			}
 		}
 	}
 

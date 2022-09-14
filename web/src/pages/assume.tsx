@@ -37,7 +37,7 @@ const assume = () => {
         if (data.accessRules.length == 1) {
           setLoadText("Access rule found 🚀 Redirecting now...");
           setTimeout(() => {
-            navigate({ to: "/access/request/" + data.accessRules[0].id });
+            // navigate({ to: "/access/request/" + data.accessRules[0].id });
           }, 300);
         } else {
           // add handling for multi rule resolution...

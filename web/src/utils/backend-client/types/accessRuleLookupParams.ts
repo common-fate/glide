@@ -5,6 +5,5 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { AccessRuleLookupType } from './accessRuleLookupType';
 
-export type AccessRuleLookupParams = { type?: AccessRuleLookupType; roleName?: string; accountId?: number };
+export type AccessRuleLookupParams = { type?: string; roleName?: string; accountId?: string };

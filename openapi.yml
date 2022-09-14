@@ -975,16 +975,14 @@ paths:
       parameters:
         - schema:
             type: string
-            enum:
-              - aws-sso
           in: query
           name: type
-          description: the role type i.e. aws-sso
+          description: the provider type i.e. commonfate/aws-sso. type should be encoded i.e.  backslash -> %2
         - schema:
             type: string
           in: query
           name: roleName
-          description: the role name i.e. AdminstratorAccess
+          description: the role name i.e. AdminstratorAccess // find a way to make this AdditionalProperties
         - schema:
             type: string
           in: query
