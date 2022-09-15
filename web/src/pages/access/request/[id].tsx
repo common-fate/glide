@@ -21,6 +21,7 @@ import {
   Textarea,
   useRadioGroup,
   UseRadioGroupProps,
+  useToast,
   Wrap,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
@@ -98,6 +99,7 @@ const Home = () => {
       },
     },
   });
+  const toast = useToast();
 
   // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
   // it does then when the rule loads for the first time
@@ -141,8 +143,26 @@ const Home = () => {
     if (data.when === "scheduled") {
       r.timing.startTime = new Date(data.startDateTime).toISOString();
     }
-    await userCreateRequest(r);
-    navigate({ to: "/requests" });
+    await userCreateRequest(r)
+      .then(() => {
+        toast({
+          title: "Request created",
+          status: "success",
+          duration: 2200,
+          isClosable: true,
+        });
+        navigate({ to: "/requests" });
+      })
+      .catch((e) => {
+        console.log(e);
+        toast({
+          title: "Request failed",
+          status: "error",
+          duration: 2200,
+          description: e.message,
+          isClosable: true,
+        });
+      });
   };
 
   return (

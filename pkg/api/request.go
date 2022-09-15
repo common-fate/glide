@@ -221,7 +221,7 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		apio.Error(ctx, w, err)
+		apio.Error(ctx, w, apio.NewRequestError(fmt.Errorf("error validating grant: %s", err), http.StatusInternalServerError))
 		return
 	}
 

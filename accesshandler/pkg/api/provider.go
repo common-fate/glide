@@ -46,7 +46,7 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 	err = prov.Provider.Validate(ctx, string(b.Subject), []byte{})
 
 	if err != nil {
-		apio.JSON(r.Context(), w, r, http.StatusNotFound)
+		apio.Error(r.Context(), w, err)
 
 	}
 	apio.JSON(r.Context(), w, prov.ToAPI(), http.StatusOK)

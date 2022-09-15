@@ -165,9 +165,14 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 		req.With.AdditionalProperties[k] = v.Value
 	}
 
-	_, err = g.AHClient.ValidateRequestToProviderWithResponse(ctx, opts.AccessRule.Target.ProviderID, req)
+	res, err := g.AHClient.ValidateRequestToProviderWithResponse(ctx, opts.AccessRule.Target.ProviderID, req)
 	if err != nil {
 		return err
+	}
+
+	if res.JSON200 == nil {
+		//there was an error
+		return fmt.Errorf("there was an error %s", res.Body)
 	}
 	return nil
 }
