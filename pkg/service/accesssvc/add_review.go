@@ -79,6 +79,13 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		if overlaps {
 			return nil, ErrRequestOverlapsExistingGrant
 		}
+
+		//validate the request against the access handler - make sure that access will be able to be provisioned
+		err = s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: request, AccessRule: opts.AccessRule})
+		if err != nil {
+			return nil, err
+		}
+
 		// if the request is approved, attempt to create the grant.
 		updatedRequest, err := s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: request, AccessRule: opts.AccessRule})
 		if err != nil {

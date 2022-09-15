@@ -67,12 +67,11 @@ func (mr *MockGranterMockRecorder) RevokeGrant(arg0, arg1 interface{}) *gomock.C
 }
 
 // ValidateGrant mocks base method.
-func (m *MockGranter) ValidateGrant(arg0 context.Context, arg1 grantsvc.CreateGrantOpts) (bool, error) {
+func (m *MockGranter) ValidateGrant(arg0 context.Context, arg1 grantsvc.CreateGrantOpts) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ValidateGrant", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // ValidateGrant indicates an expected call of ValidateGrant.
