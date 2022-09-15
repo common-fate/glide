@@ -19,16 +19,18 @@ const ADAuthorityHost = "https://login.microsoftonline.com"
 
 type AzureSync struct {
 	// This is initialised during the Init function call and is not saved in config
-	token        gconfig.SecretStringValue
-	tenantID     gconfig.StringValue
-	clientID     gconfig.StringValue
-	clientSecret gconfig.SecretStringValue
+	token           gconfig.SecretStringValue
+	tenantID        gconfig.StringValue
+	clientID        gconfig.StringValue
+	clientSecret    gconfig.SecretStringValue
+	emailIdentifier gconfig.OptionalStringValue
 }
 
 func (s *AzureSync) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("tenantId", &s.tenantID, "the Azure AD tenant ID"),
 		gconfig.StringField("clientId", &s.clientID, "the Azure AD client ID"),
+		gconfig.OptionalStringField("emailIdentifier", &s.emailIdentifier, "the user attribute to be used as the email address"),
 		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the Azure AD client secret", gconfig.WithNoArgs("/granted/secrets/identity/azure/secret")),
 	}
 }
@@ -63,9 +65,9 @@ func (s *AzureSync) TestConfig(ctx context.Context) error {
 }
 
 type ListUsersResponse struct {
-	OdataContext  string      `json:"@odata.context"`
-	OdataNextLink *string     `json:"@odata.nextLink,omitempty"`
-	Value         []AzureUser `json:"value"`
+	OdataContext  string                   `json:"@odata.context"`
+	OdataNextLink *string                  `json:"@odata.nextLink,omitempty"`
+	Value         []map[string]interface{} `json:"value"`
 }
 
 // properties of a user in the graph API
@@ -73,9 +75,10 @@ type ListUsersResponse struct {
 // https://docs.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0#properties
 type AzureUser struct {
 	GivenName string `json:"givenName"`
+	Mail      string `json:"mail"`
 	// this maps to a users email by convention
 	// see the graph API spec for details
-	// in practive all users have a principal name but some users may not have the "mail" property for different reasons.
+	// in practice all users have a principal name but some users may not have the "mail" property for different reasons.
 	// we use this for the email
 	UserPrincipalName string `json:"userPrincipalName"`
 	Surname           string `json:"surname"`
@@ -100,21 +103,59 @@ type UserGroups struct {
 	Value         []string `json:"value"`
 }
 
+// safeMapGet returns an empty string if the field doesn't exist
+// it uses fmt.Sprintf to convert the field to a string.
+func safeMapGet(dict map[string]interface{}, key string) string {
+	if val, ok := dict[key]; ok {
+		return fmt.Sprintf("%s", val)
+	}
+	return ""
+}
+
 // idpUserFromAzureUser converts a azure user to the identityprovider interface user type
-func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser AzureUser) (identity.IDPUser, error) {
-	u := identity.IDPUser{
-		ID:        azureUser.ID,
-		FirstName: azureUser.GivenName,
-		LastName:  azureUser.Surname,
-		Email:     azureUser.UserPrincipalName,
-		Groups:    []string{},
+//
+// The user as retrieved from Azure AD looks like the following:
+//
+//	{
+//		"businessPhones": [
+//			"425-555-0100"
+//		],
+//		"displayName": "MOD Administrator",
+//		"givenName": "MOD",
+//		"jobTitle": null,
+//		"mail": null,
+//		"mobilePhone": "425-555-0101",
+//		"officeLocation": null,
+//		"preferredLanguage": "en-US",
+//		"surname": "Administrator",
+//		"userPrincipalName": "admin@contoso.com",
+//		"id": "4562bcc8-c436-4f95-b7c0-4f8ce89dca5e"
+//	}
+//
+// see: https://docs.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0&tabs=http
+func (a *AzureSync) idpUserFromAzureUser(ctx context.Context, azureUser map[string]interface{}, userGroups []string) (identity.IDPUser, error) {
+	emailAttribute := a.emailIdentifier.Get()
+	if emailAttribute == "" {
+		emailAttribute = "userPrincipalName"
 	}
 
-	g, err := a.GetMemberGroups(u.ID)
-	if err != nil {
-		return identity.IDPUser{}, err
+	u := identity.IDPUser{
+		ID:        safeMapGet(azureUser, "id"),
+		FirstName: safeMapGet(azureUser, "givenName"),
+		LastName:  safeMapGet(azureUser, "surname"),
+		Email:     safeMapGet(azureUser, emailAttribute),
+		Groups:    userGroups,
 	}
-	u.Groups = g
+
+	if u.Email == "" {
+		return identity.IDPUser{}, fmt.Errorf("could not find email for user %s (using attribute %s)", u.ID, emailAttribute)
+	}
+
+	// g, err := a.GetMemberGroups(u.ID)
+	// if err != nil {
+	// 	return identity.IDPUser{}, err
+	// }
+	// u.Groups = g
 
 	return u, nil
 }
@@ -198,8 +239,11 @@ func (a *AzureSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 		}
 
 		for _, u := range lu.Value {
-
-			user, err := a.idpUserFromAzureUser(ctx, u)
+			groups, err := a.GetMemberGroups(safeMapGet(u, "id"))
+			if err != nil {
+				return nil, err
+			}
+			user, err := a.idpUserFromAzureUser(ctx, u, groups)
 			if err != nil {
 				return nil, err
 			}
