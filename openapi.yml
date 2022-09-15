@@ -974,14 +974,15 @@ paths:
       operationId: access-rule-lookup
       parameters:
         - schema:
-            type: object
+            type: array
+            items:
+              type: string
             additionalProperties:
               type: string
           in: query
-          style: form
-          explode: true
-          x-go-type: "map[string]string"
           name: providerDetails
+          style: spaceDelimited
+          explode: true
         - schema:
             type: string
           in: query

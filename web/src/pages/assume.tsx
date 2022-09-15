@@ -41,8 +41,8 @@ const assume = () => {
   const { data, isValidating } = useAccessRuleLookup({
     type,
     // @ts-ignore
-    providerDetails: additionalProperties,
-    hello: "string",
+    providerDetails: ["1", "2"],
+    // hello: "string",
   });
 
   useEffect(() => {
