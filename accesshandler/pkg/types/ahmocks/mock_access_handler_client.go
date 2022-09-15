@@ -276,6 +276,46 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) RefreshAccessProvidersWi
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAccessProvidersWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).RefreshAccessProvidersWithResponse), varargs...)
 }
 
+// ValidateRequestToProviderWithBodyWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithBodyWithResponse(arg0 context.Context, arg1, arg2 string, arg3 io.Reader, arg4 ...types.RequestEditorFn) (*types.ValidateRequestToProviderResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2, arg3}
+	for _, a := range arg4 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ValidateRequestToProviderWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.ValidateRequestToProviderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ValidateRequestToProviderWithBodyWithResponse indicates an expected call of ValidateRequestToProviderWithBodyWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ValidateRequestToProviderWithBodyWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateRequestToProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ValidateRequestToProviderWithBodyWithResponse), varargs...)
+}
+
+// ValidateRequestToProviderWithResponse mocks base method.
+func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithResponse(arg0 context.Context, arg1 string, arg2 types.CreateGrant, arg3 ...types.RequestEditorFn) (*types.ValidateRequestToProviderResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ValidateRequestToProviderWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.ValidateRequestToProviderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ValidateRequestToProviderWithResponse indicates an expected call of ValidateRequestToProviderWithResponse.
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ValidateRequestToProviderWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateRequestToProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ValidateRequestToProviderWithResponse), varargs...)
+}
+
 // ValidateSetupWithBodyWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) ValidateSetupWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...types.RequestEditorFn) (*types.ValidateSetupResponse, error) {
 	m.ctrl.T.Helper()

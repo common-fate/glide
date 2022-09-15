@@ -137,6 +137,41 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 	return nil, errors.New("unhandled response code")
 }
 
+// validate grant runs all the checks that will need to occur when creating a real grant to validate its success
+func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error {
+	q := &storage.GetUser{
+		ID: opts.Request.RequestedBy,
+	}
+	_, err := g.DB.Query(ctx, q)
+	if err != nil {
+		return err
+	}
+	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
+
+	req := ahTypes.ValidateRequestToProviderJSONRequestBody{
+		Id:       opts.Request.ID,
+		Provider: opts.AccessRule.Target.ProviderID,
+		With: ahTypes.CreateGrant_With{
+			AdditionalProperties: make(map[string]string),
+		},
+		Subject: openapi_types.Email(q.Result.Email),
+		Start:   iso8601.New(start),
+		End:     iso8601.New(end),
+	}
+	for k, v := range opts.AccessRule.Target.With {
+		req.With.AdditionalProperties[k] = v
+	}
+	for k, v := range opts.Request.SelectedWith {
+		req.With.AdditionalProperties[k] = v.Value
+	}
+
+	_, err = g.AHClient.ValidateRequestToProviderWithResponse(ctx, opts.AccessRule.Target.ProviderID, req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.
 // the returned Request will contain the newly created grant
 func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*access.Request, error) {

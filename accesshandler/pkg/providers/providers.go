@@ -18,6 +18,9 @@ type Accessor interface {
 
 	// Revoke the access.
 	Revoke(ctx context.Context, subject string, args []byte, grantID string) error
+
+	// validate the access.
+	Validate(ctx context.Context, subject string, args []byte) error
 }
 
 // AccessTokeners can indicate whether they need an access token to be generated
