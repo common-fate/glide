@@ -154,7 +154,6 @@ const Home = () => {
         navigate({ to: "/requests" });
       })
       .catch((e) => {
-        console.log(e);
         toast({
           title: "Request failed",
           status: "error",
