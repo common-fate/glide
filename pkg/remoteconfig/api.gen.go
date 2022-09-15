@@ -6,9 +6,11 @@ package remoteconfig
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -26,8 +28,8 @@ type DeploymentConfiguration struct {
 
 // Configuration settings for an individual Access Provider.
 type ProviderConfiguration struct {
-	Uses string                 `json:"uses"`
-	With map[string]interface{} `json:"with"`
+	Uses string            `json:"uses"`
+	With map[string]string `json:"with"`
 }
 
 // Configuration of all Access Providers.
@@ -40,9 +42,6 @@ type DeploymentConfigResponse struct {
 	// The configuration for a Granted Approvals deployment.
 	DeploymentConfiguration DeploymentConfiguration `json:"deploymentConfiguration"`
 }
-
-// GetConfigJSONRequestBody defines body for GetConfig for application/json ContentType.
-type GetConfigJSONRequestBody DeploymentConfigResponse
 
 // Getter for additional properties for ProviderMap. Returns the specified
 // element and whether it was found
@@ -95,6 +94,323 @@ func (a ProviderMap) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// RequestEditorFn  is the function signature for the RequestEditor callback function
+type RequestEditorFn func(ctx context.Context, req *http.Request) error
+
+// Doer performs HTTP requests.
+//
+// The standard http.Client implements this interface.
+type HttpRequestDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// Client which conforms to the OpenAPI3 specification for this service.
+type Client struct {
+	// The endpoint of the server conforming to this interface, with scheme,
+	// https://api.deepmap.com for example. This can contain a path relative
+	// to the server, such as https://api.deepmap.com/dev-test, and all the
+	// paths in the swagger spec will be appended to the server.
+	Server string
+
+	// Doer for performing requests, typically a *http.Client with any
+	// customized settings, such as certificate chains.
+	Client HttpRequestDoer
+
+	// A list of callbacks for modifying requests which are generated before sending over
+	// the network.
+	RequestEditors []RequestEditorFn
+}
+
+// ClientOption allows setting custom parameters during construction
+type ClientOption func(*Client) error
+
+// Creates a new Client, with reasonable defaults
+func NewClient(server string, opts ...ClientOption) (*Client, error) {
+	// create a client with sane default values
+	client := Client{
+		Server: server,
+	}
+	// mutate client and add all optional params
+	for _, o := range opts {
+		if err := o(&client); err != nil {
+			return nil, err
+		}
+	}
+	// ensure the server URL always has a trailing slash
+	if !strings.HasSuffix(client.Server, "/") {
+		client.Server += "/"
+	}
+	// create httpClient, if not already present
+	if client.Client == nil {
+		client.Client = &http.Client{}
+	}
+	return &client, nil
+}
+
+// WithHTTPClient allows overriding the default Doer, which is
+// automatically created using http.Client. This is useful for tests.
+func WithHTTPClient(doer HttpRequestDoer) ClientOption {
+	return func(c *Client) error {
+		c.Client = doer
+		return nil
+	}
+}
+
+// WithRequestEditorFn allows setting up a callback function, which will be
+// called right before sending the request. This can be used to mutate the request.
+func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
+	return func(c *Client) error {
+		c.RequestEditors = append(c.RequestEditors, fn)
+		return nil
+	}
+}
+
+// The interface specification for the client above.
+type ClientInterface interface {
+	// GetConfig request
+	GetConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateProviderConfiguration request
+	UpdateProviderConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetConfigRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateProviderConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProviderConfigurationRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewGetConfigRequest generates requests for GetConfig
+func NewGetConfigRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/config")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateProviderConfigurationRequest generates requests for UpdateProviderConfiguration
+func NewUpdateProviderConfigurationRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/config/providers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
+	for _, r := range c.RequestEditors {
+		if err := r(ctx, req); err != nil {
+			return err
+		}
+	}
+	for _, r := range additionalEditors {
+		if err := r(ctx, req); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ClientWithResponses builds on ClientInterface to offer response payloads
+type ClientWithResponses struct {
+	ClientInterface
+}
+
+// NewClientWithResponses creates a new ClientWithResponses, which wraps
+// Client with return type handling
+func NewClientWithResponses(server string, opts ...ClientOption) (*ClientWithResponses, error) {
+	client, err := NewClient(server, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &ClientWithResponses{client}, nil
+}
+
+// WithBaseURL overrides the baseURL.
+func WithBaseURL(baseURL string) ClientOption {
+	return func(c *Client) error {
+		newBaseURL, err := url.Parse(baseURL)
+		if err != nil {
+			return err
+		}
+		c.Server = newBaseURL.String()
+		return nil
+	}
+}
+
+// ClientWithResponsesInterface is the interface specification for the client with responses above.
+type ClientWithResponsesInterface interface {
+	// GetConfig request
+	GetConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
+
+	// UpdateProviderConfiguration request
+	UpdateProviderConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error)
+}
+
+type GetConfigResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// The configuration for a Granted Approvals deployment.
+		DeploymentConfiguration DeploymentConfiguration `json:"deploymentConfiguration"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r GetConfigResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetConfigResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateProviderConfigurationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateProviderConfigurationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateProviderConfigurationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// GetConfigWithResponse request returning *GetConfigResponse
+func (c *ClientWithResponses) GetConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetConfigResponse, error) {
+	rsp, err := c.GetConfig(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetConfigResponse(rsp)
+}
+
+// UpdateProviderConfigurationWithResponse request returning *UpdateProviderConfigurationResponse
+func (c *ClientWithResponses) UpdateProviderConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error) {
+	rsp, err := c.UpdateProviderConfiguration(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateProviderConfigurationResponse(rsp)
+}
+
+// ParseGetConfigResponse parses an HTTP response from a GetConfigWithResponse call
+func ParseGetConfigResponse(rsp *http.Response) (*GetConfigResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetConfigResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// The configuration for a Granted Approvals deployment.
+			DeploymentConfiguration DeploymentConfiguration `json:"deploymentConfiguration"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateProviderConfigurationResponse parses an HTTP response from a UpdateProviderConfigurationWithResponse call
+func ParseUpdateProviderConfigurationResponse(rsp *http.Response) (*UpdateProviderConfigurationResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateProviderConfigurationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
 }
 
 // ServerInterface represents all server handlers.
@@ -272,20 +588,20 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -13,11 +13,11 @@ paths:
     get:
       summary: Get Deployment Configuration
       tags: []
-      responses: {}
+      responses:
+        '200':
+          $ref: '#/components/responses/DeploymentConfigResponse'
       operationId: get-config
       description: Get deployment configuration.
-      requestBody:
-        $ref: '#/components/requestBodies/DeploymentConfigResponse'
   /api/v1/config/providers:
     put:
       summary: Update Access Provider configuration
@@ -50,6 +50,7 @@ components:
           type: string
         with:
           type: object
+          x-go-type: "map[string]string"
       required:
         - uses
         - with
@@ -62,15 +63,14 @@ components:
       additionalProperties:
         $ref: '#/components/schemas/ProviderConfiguration'
       description: Configuration of all Access Providers.
-  requestBodies:
+  responses:
     DeploymentConfigResponse:
+      description: The configuration of this Granted Approvals deployment.
       content:
         application/json:
           schema:
-            type: object
             properties:
               deploymentConfiguration:
                 $ref: '#/components/schemas/DeploymentConfiguration'
             required:
               - deploymentConfiguration
-      description: The configuration of this Granted Approvals deployment.
