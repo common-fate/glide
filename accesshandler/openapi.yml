@@ -158,8 +158,8 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/HealthResponse"
-        "404":
-          description: Not Found
+        "500":
+          description: Internal Server Error
       description: Valdates grant will succeed without granting access
       requestBody:
         content:
