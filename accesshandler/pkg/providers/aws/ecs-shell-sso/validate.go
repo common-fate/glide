@@ -63,6 +63,12 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 		return p.ensureAccountExists(ctx, p.awsAccountID)
 	})
 
+	//ensure that the ecs cluster exists
+	_, err := p.ecsClient.DescribeClusters(ctx, &ecs.DescribeClustersInput{Clusters: []string{p.ecsClusterARN.Get()}})
+	if err != nil {
+		return err
+	}
+
 	return g.Wait()
 }
 
