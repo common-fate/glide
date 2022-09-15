@@ -161,6 +161,7 @@ type Parameters struct {
 	SamlSSOMetadataURL         string      `yaml:"SamlSSOMetadataURL,omitempty"`
 	FrontendDomain             string      `yaml:"FrontendDomain,omitempty"`
 	FrontendCertificateARN     string      `yaml:"FrontendCertificateARN,omitempty"`
+	RemoteConfigURL            string      `yaml:"RemoteConfigURL,omitempty"`
 	ProviderConfiguration      ProviderMap `yaml:"ProviderConfiguration,omitempty"`
 	IdentityConfiguration      FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
 	NotificationsConfiguration FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
@@ -393,6 +394,13 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("FrontendDomain"),
 			ParameterValue: &p.FrontendDomain,
+		})
+	}
+
+	if c.Deployment.Parameters.RemoteConfigURL != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("RemoteConfigURL"),
+			ParameterValue: &p.RemoteConfigURL,
 		})
 	}
 

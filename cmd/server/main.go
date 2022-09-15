@@ -83,7 +83,10 @@ func run() error {
 		return err
 	}
 
-	dc := &deploy.EnvDeploymentConfig{}
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return err
+	}
 
 	td := psetup.TemplateData{
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,

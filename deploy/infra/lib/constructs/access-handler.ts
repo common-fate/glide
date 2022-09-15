@@ -11,6 +11,7 @@ interface Props {
   appName: string;
   eventBusSourceName: string;
   eventBus: EventBus;
+  remoteConfigUrl: string;
   /** A JSON payload of the access provider configuration. */
   providerConfig: string;
 }
@@ -110,6 +111,7 @@ export class AccessHandler extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         PROVIDER_CONFIG: props.providerConfig,
+        REMOTE_CONFIG_URL: props.remoteConfigUrl,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "access-handler",

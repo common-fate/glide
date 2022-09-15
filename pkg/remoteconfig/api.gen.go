@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -23,7 +24,7 @@ import (
 // The configuration for a Granted Approvals deployment.
 type DeploymentConfiguration struct {
 	// Configuration of all Access Providers.
-	ProviderConfiguration *ProviderMap `json:"providerConfiguration,omitempty"`
+	ProviderConfiguration ProviderMap `json:"providerConfiguration"`
 }
 
 // Configuration settings for an individual Access Provider.
@@ -42,6 +43,15 @@ type DeploymentConfigResponse struct {
 	// The configuration for a Granted Approvals deployment.
 	DeploymentConfiguration DeploymentConfiguration `json:"deploymentConfiguration"`
 }
+
+// UpdateProvidersRequest defines model for UpdateProvidersRequest.
+type UpdateProvidersRequest struct {
+	// Configuration of all Access Providers.
+	ProviderConfiguration ProviderMap `json:"providerConfiguration"`
+}
+
+// UpdateProviderConfigurationJSONRequestBody defines body for UpdateProviderConfiguration for application/json ContentType.
+type UpdateProviderConfigurationJSONRequestBody UpdateProvidersRequest
 
 // Getter for additional properties for ProviderMap. Returns the specified
 // element and whether it was found
@@ -172,8 +182,10 @@ type ClientInterface interface {
 	// GetConfig request
 	GetConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UpdateProviderConfiguration request
-	UpdateProviderConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateProviderConfiguration request with any body
+	UpdateProviderConfigurationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateProviderConfiguration(ctx context.Context, body UpdateProviderConfigurationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetConfig(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -188,8 +200,20 @@ func (c *Client) GetConfig(ctx context.Context, reqEditors ...RequestEditorFn) (
 	return c.Client.Do(req)
 }
 
-func (c *Client) UpdateProviderConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdateProviderConfigurationRequest(c.Server)
+func (c *Client) UpdateProviderConfigurationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProviderConfigurationRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateProviderConfiguration(ctx context.Context, body UpdateProviderConfigurationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProviderConfigurationRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -227,8 +251,19 @@ func NewGetConfigRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewUpdateProviderConfigurationRequest generates requests for UpdateProviderConfiguration
-func NewUpdateProviderConfigurationRequest(server string) (*http.Request, error) {
+// NewUpdateProviderConfigurationRequest calls the generic UpdateProviderConfiguration builder with application/json body
+func NewUpdateProviderConfigurationRequest(server string, body UpdateProviderConfigurationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateProviderConfigurationRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdateProviderConfigurationRequestWithBody generates requests for UpdateProviderConfiguration with any type of body
+func NewUpdateProviderConfigurationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -246,10 +281,12 @@ func NewUpdateProviderConfigurationRequest(server string) (*http.Request, error)
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -300,8 +337,10 @@ type ClientWithResponsesInterface interface {
 	// GetConfig request
 	GetConfigWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetConfigResponse, error)
 
-	// UpdateProviderConfiguration request
-	UpdateProviderConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error)
+	// UpdateProviderConfiguration request with any body
+	UpdateProviderConfigurationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error)
+
+	UpdateProviderConfigurationWithResponse(ctx context.Context, body UpdateProviderConfigurationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error)
 }
 
 type GetConfigResponse struct {
@@ -359,9 +398,17 @@ func (c *ClientWithResponses) GetConfigWithResponse(ctx context.Context, reqEdit
 	return ParseGetConfigResponse(rsp)
 }
 
-// UpdateProviderConfigurationWithResponse request returning *UpdateProviderConfigurationResponse
-func (c *ClientWithResponses) UpdateProviderConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error) {
-	rsp, err := c.UpdateProviderConfiguration(ctx, reqEditors...)
+// UpdateProviderConfigurationWithBodyWithResponse request with arbitrary body returning *UpdateProviderConfigurationResponse
+func (c *ClientWithResponses) UpdateProviderConfigurationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error) {
+	rsp, err := c.UpdateProviderConfigurationWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateProviderConfigurationResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateProviderConfigurationWithResponse(ctx context.Context, body UpdateProviderConfigurationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProviderConfigurationResponse, error) {
+	rsp, err := c.UpdateProviderConfiguration(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -588,20 +635,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -27,6 +27,7 @@ interface Props {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
+  remoteConfigUrl: string;
   dynamoTable: dynamodb.Table;
 }
 
@@ -111,6 +112,7 @@ export class AppBackend extends Construct {
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
         ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        REMOTE_CONFIG_URL: props.remoteConfigUrl,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",

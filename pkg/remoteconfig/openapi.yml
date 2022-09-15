@@ -29,6 +29,8 @@ paths:
         Writes Access Provider configuration to the remote backend.
 
         Note: we're considering removing this API endpoint in a future version - this is currently in use because the Approvals dashboard provides a guided setup flow to setup Access Providers. If this setup flow is shifted to a different service, the Approvals API will no longer write Access Provider configuration back to the remote configuration backend.
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateProvidersRequest'
 components:
   schemas:
     DeploymentConfiguration:
@@ -40,6 +42,8 @@ components:
       properties:
         providerConfiguration:
           $ref: '#/components/schemas/ProviderMap'
+      required:
+        - providerConfiguration
     ProviderConfiguration:
       title: ProviderConfiguration
       x-stoplight:
@@ -50,7 +54,7 @@ components:
           type: string
         with:
           type: object
-          x-go-type: "map[string]string"
+          x-go-type: 'map[string]string'
       required:
         - uses
         - with
@@ -74,3 +78,14 @@ components:
                 $ref: '#/components/schemas/DeploymentConfiguration'
             required:
               - deploymentConfiguration
+  requestBodies:
+    UpdateProvidersRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              providerConfiguration:
+                $ref: '#/components/schemas/ProviderMap'
+            required:
+              - providerConfiguration

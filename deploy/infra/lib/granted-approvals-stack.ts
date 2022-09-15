@@ -18,6 +18,7 @@ interface Props extends cdk.StackProps {
   providerConfig: string;
   samlMetadataUrl: string;
   samlMetadata: string;
+  remoteConfigUrl: string;
   devConfig: DevEnvironmentConfig | null;
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
@@ -37,6 +38,7 @@ export class DevGrantedStack extends cdk.Stack {
       adminGroupId,
       notificationsConfiguration,
       identityProviderSyncConfiguration,
+      remoteConfigUrl,
     } = props;
     const appName = `granted-approvals-${stage}`;
 
@@ -69,6 +71,7 @@ export class DevGrantedStack extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: props.providerConfig,
+      remoteConfigUrl,
     });
 
     const approvals = new AppBackend(this, "API", {
@@ -84,6 +87,7 @@ export class DevGrantedStack extends cdk.Stack {
       notificationsConfiguration: notificationsConfiguration,
       deploymentSuffix: stage,
       dynamoTable: db.getTable(),
+      remoteConfigUrl,
     });
     /* Outputs */
     generateOutputs(this, {
