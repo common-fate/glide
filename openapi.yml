@@ -975,8 +975,12 @@ paths:
       parameters:
         - schema:
             type: object
-            additionalProperties: true
+            additionalProperties:
+              type: string
           in: query
+          style: form
+          explode: true
+          x-go-type: "map[string]string"
           name: providerDetails
         - schema:
             type: string

@@ -216,22 +216,33 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 
 	//	filter by params.AccountId
 	for _, r := range q.Result {
-
 		switch p.DefaultID {
 		case "aws-sso-v2":
 			ruleAccId, found := r.Target.ToAPI().With.Get("accountId")
 			if !found {
 				continue // if not found continue
 			}
+
 			reqAccId, found := params.ProviderDetails.Get("accountId")
+			if !found || ruleAccId != reqAccId {
+				continue // if not found continue
+			}
+			// lookup ProviderOptions for given rule and get the
+			q := storage.GetProviderOptions{ProviderID: reqAccId}
+			_, err := a.DB.Query(ctx, &q)
+			if err != nil {
+				continue // todo: log error
+			}
+			reqRoleName, found := params.ProviderDetails.Get("roleName")
 			if !found {
 				continue // if not found continue
 			}
-			if ruleAccId == reqAccId {
-				res.AccessRules = append(res.AccessRules, r.ToAPI())
+			for _, po := range q.Result {
+				if po.Label == reqRoleName {
+					res.AccessRules = append(res.AccessRules, r.ToAPI())
+				}
 			}
 		}
-
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

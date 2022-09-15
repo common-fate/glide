@@ -16,12 +16,21 @@ import { AccessRuleLookupParams } from "../utils/backend-client/types/accessRule
 import { Link } from "react-location";
 import { SelectRuleTable } from "../components/tables/SelectRuleTable";
 
+type AWSDetails = {
+  accountId: string;
+  roleName: string;
+};
+
 const assume = () => {
   type MyLocationGenerics = MakeGenerics<{
     Search: AccessRuleLookupParams;
   }>;
 
-  const search = useSearch<MyLocationGenerics>();
+  const { type, ...additionalProperties } = useSearch<MyLocationGenerics>();
+
+  console.log({ type, ...additionalProperties });
+
+  // const providerDetails: AWSDetails | undefined = search.providerDetails;
 
   const [loadText, setLoadText] = React.useState(
     "Finding your access request now..."
@@ -29,24 +38,27 @@ const assume = () => {
 
   const navigate = useNavigate();
 
-  const { data, isValidating } = useAccessRuleLookup(search);
+  const { data, isValidating } = useAccessRuleLookup({
+    type,
+    // @ts-ignore
+    providerDetails: additionalProperties,
+    hello: "string",
+  });
 
   useEffect(() => {
     // Run account lookup
-    if (search.accountId && search.roleName && search.type) {
-      if (data && data.accessRules.length > 0) {
-        if (data.accessRules.length == 1) {
-          setLoadText("Access rule found 🚀 Redirecting now...");
-          setTimeout(() => {
-            // navigate({ to: "/access/request/" + data.accessRules[0].id });
-          }, 300);
-        } else {
-          // add handling for multi rule resolution...
-          setLoadText("Multiple access rules found, choose one to continue");
-        }
+    if (data && data.accessRules.length > 0) {
+      if (data.accessRules.length == 1) {
+        setLoadText("Access rule found 🚀 Redirecting now...");
+        setTimeout(() => {
+          // navigate({ to: "/access/request/" + data.accessRules[0].id });
+        }, 300);
+      } else {
+        // add handling for multi rule resolution...
+        setLoadText("Multiple access rules found, choose one to continue");
       }
     }
-  }, [search, data?.accessRules]);
+  }, [type, additionalProperties, data?.accessRules]);
 
   return (
     <UserLayout>
