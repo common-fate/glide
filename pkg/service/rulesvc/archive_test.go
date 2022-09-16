@@ -9,17 +9,14 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestArchiveAccessRule(t *testing.T) {
-
 	type testcase struct {
 		name      string
-		givenUser identity.User
 		givenRule rule.AccessRule
 		wantErr   error
 		want      *rule.AccessRule
@@ -39,9 +36,6 @@ func TestArchiveAccessRule(t *testing.T) {
 		},
 		Current: true,
 	}
-	mockUser := identity.User{
-		ID: "hello",
-	}
 	want := mockRule
 	want.Status = rule.ARCHIVED
 	want.Metadata.UpdatedAt = now
@@ -50,13 +44,11 @@ func TestArchiveAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name:      "ok",
-			givenUser: mockUser,
 			givenRule: mockRule,
 			want:      &want,
 		},
 		{
-			name:      "already archived",
-			givenUser: mockUser,
+			name: "already archived",
 			givenRule: rule.AccessRule{
 				Status: rule.ACTIVE,
 			},
@@ -77,7 +69,7 @@ func TestArchiveAccessRule(t *testing.T) {
 				DB:    db,
 			}
 
-			got, err := s.ArchiveAccessRule(context.Background(), &tc.givenUser, tc.givenRule)
+			got, err := s.ArchiveAccessRule(context.Background(), tc.givenRule)
 
 			// This is the only thing from service layer that we can't mock yet, hence the override
 			if err == nil {
@@ -89,8 +81,6 @@ func TestArchiveAccessRule(t *testing.T) {
 
 			assert.Equal(t, tc.wantErr, err)
 			assert.Equal(t, tc.want, got)
-
 		})
 	}
-
 }

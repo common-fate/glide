@@ -5,14 +5,13 @@ import (
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-func (s *Service) ArchiveAccessRule(ctx context.Context, user *identity.User, in rule.AccessRule) (*rule.AccessRule, error) {
+func (s *Service) ArchiveAccessRule(ctx context.Context, in rule.AccessRule) (*rule.AccessRule, error) {
 	if in.Status == rule.ARCHIVED {
 		return nil, ErrAccessRuleAlreadyArchived
 	}

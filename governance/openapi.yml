@@ -1,0 +1,242 @@
+openapi: 3.0.0
+info:
+  title: Approvals Governance API
+  version: "1.0"
+  contact:
+    name: Common Fate
+    url: "https://commonfate.io"
+  description: An API for programmatically managing access rules in Granted Approvals.
+servers:
+  - url: "http://localhost:8889"
+paths:
+  /api/v1/gov/access-rules:
+    get:
+      summary: List Access Rules
+      tags:
+        - Governance
+      responses:
+        "200":
+          $ref: "#/components/responses/ListAccessRulesDetailResponse"
+      operationId: gov-list-access-rules
+      description: List all access rules
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - ACTIVE
+              - ARCHIVED
+          in: query
+          name: status
+          description: Filter Access Rules by a particular status.
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
+    post:
+      summary: Create Access Rule
+      operationId: gov-create-access-rule
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+        "400":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+        "401":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+      description: Create an access rule
+      requestBody:
+        $ref: "../openapi.yml#/components/requestBodies/CreateAccessRuleRequest"
+      tags:
+        - Governance
+    parameters: []
+  "/api/v1/gov/access-rules/{ruleId}":
+    get:
+      summary: Get Access Rule
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+        "401":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+        "404":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+      operationId: gov-get-access-rule
+      description: Get an Access Rule.
+      tags:
+        - Governance
+    parameters:
+      - schema:
+          type: string
+        name: ruleId
+        in: path
+        required: true
+    put:
+      summary: Update Access Rule
+      operationId: gov-update-access-rule
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      requestBody:
+        $ref: "../openapi.yml#/components/requestBodies/UpdateAccessRuleRequest"
+      description: Updates an Access Rule. Updating a rule creates a new version.
+      tags:
+        - Governance
+  "/api/v1/gov/access-rules/{ruleId}/archive":
+    parameters:
+      - schema:
+          type: string
+        name: ruleId
+        in: path
+        required: true
+    post:
+      summary: Archive Access Rule
+      operationId: gov-archive-access-rule
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+        "401":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+        "404":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+        "500":
+          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+      description: |-
+        Marks an access rule as archived.
+        Any pending requests for this access rule will be cancelled.
+      tags:
+        - Governance
+components:
+  responses:
+    ErrorResponse:
+      description: An error returned from the service.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+            required:
+              - error
+          examples: {}
+    ListAccessRulesResponse:
+      description: A list of Access Rules.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              accessRules:
+                type: array
+                items:
+                  $ref: "../openapi.yml#/components/schemas/AccessRule"
+              next:
+                type: string
+                nullable: true
+            required:
+              - accessRules
+              - next
+    ListAccessRulesDetailResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              accessRules:
+                type: array
+                items:
+                  $ref: ../openapi.yml#/components/schemas/AccessRuleDetail
+              next:
+                type: string
+                nullable: true
+            required:
+              - accessRules
+              - next
+  examples: {}
+  securitySchemes: {}
+  requestBodies:
+    UpdateAccessRuleRequest:
+      content:
+        application/json:
+          schema:
+            description: ""
+            type: object
+            properties:
+              timeConstraints:
+                $ref: "../openapi.yml#/components/schemas/TimeConstraints"
+              groups:
+                type: array
+                items:
+                  type: string
+              approval:
+                $ref: "../openapi.yml#/components/schemas/ApproverConfig"
+              name:
+                type: string
+              description:
+                type: string
+              updateMessage:
+                type: string
+            required:
+              - timeConstraints
+              - groups
+              - approval
+              - name
+              - description
+          examples: {}
+    CreateAccessRuleRequest:
+      content:
+        application/json:
+          schema:
+            description: ""
+            type: object
+            properties:
+              groups:
+                description: The group IDs that the access rule applies to.
+                type: array
+                items:
+                  type: string
+              approval:
+                $ref: "../openapi.yml#/components/schemas/ApproverConfig"
+              name:
+                type: string
+                example: Okta admin
+              description:
+                type: string
+                example: Admin access to Okta
+              target:
+                $ref: "../openapi.yml#/components/schemas/CreateAccessRuleTarget"
+              timeConstraints:
+                $ref: "../openapi.yml#/components/schemas/TimeConstraints"
+            required:
+              - groups
+              - approval
+              - name
+              - description
+              - target
+              - timeConstraints
+tags:
+  - name: Governance

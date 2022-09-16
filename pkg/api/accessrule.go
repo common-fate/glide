@@ -18,7 +18,6 @@ import (
 
 func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	u := auth.UserFromContext(ctx)
 	q := storage.GetAccessRuleCurrent{ID: ruleId}
 	_, err := a.DB.Query(ctx, &q)
 
@@ -31,7 +30,7 @@ func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, rul
 		return
 	}
 
-	c, err := a.Rules.ArchiveAccessRule(ctx, u, *q.Result)
+	c, err := a.Rules.ArchiveAccessRule(ctx, *q.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -87,7 +86,7 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u := auth.UserFromContext(ctx)
-	c, err := a.Rules.CreateAccessRule(ctx, u, createRequest)
+	c, err := a.Rules.CreateAccessRule(ctx, u.ID, createRequest)
 	if err == rulesvc.ErrRuleIdAlreadyExists {
 		// the user supplied id already exists
 		err = apio.NewRequestError(err, http.StatusBadRequest)

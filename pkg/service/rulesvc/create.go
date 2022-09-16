@@ -7,16 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/pkg/errors"
 )
 
-func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
+func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
 	id := types.NewAccessRuleID()
 
-	log := logger.Get(ctx).With("user.id", user.ID, "access_rule.id", id)
+	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
 
 	// After verifying the provider, we can save the provider type to the rule for convenience
@@ -51,9 +50,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 		Groups:      in.Groups,
 		Metadata: rule.AccessRuleMetadata{
 			CreatedAt: now,
-			CreatedBy: user.ID,
+			CreatedBy: userID,
 			UpdatedAt: now,
-			UpdatedBy: user.ID,
+			UpdatedBy: userID,
 		},
 		Target:          target,
 		TimeConstraints: in.TimeConstraints,

@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/ddb/ddbmock"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
-	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
@@ -19,7 +18,7 @@ import (
 func TestCreateAccessRule(t *testing.T) {
 	type testcase struct {
 		name                 string
-		givenUserID          identity.User
+		givenUserID          string
 		give                 types.CreateAccessRuleRequest
 		wantErr              error
 		withProviderResponse ahTypes.Provider
@@ -65,7 +64,7 @@ func TestCreateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name:        "ok",
-			givenUserID: identity.User{ID: userID},
+			givenUserID: userID,
 			give:        in,
 			want:        &mockRule,
 			withProviderResponse: ahTypes.Provider{
@@ -100,7 +99,7 @@ func TestCreateAccessRule(t *testing.T) {
 				AHClient: m,
 			}
 
-			got, err := s.CreateAccessRule(context.Background(), &tc.givenUserID, tc.give)
+			got, err := s.CreateAccessRule(context.Background(), tc.givenUserID, tc.give)
 
 			// This is the only thing from service layer that we can't mock yet, hence the override
 			if err == nil {

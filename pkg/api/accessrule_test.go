@@ -194,8 +194,8 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 			}
 		})
 	}
-
 }
+
 func TestAdminListAccessRules(t *testing.T) {
 	type testcase struct {
 		name string
@@ -291,6 +291,7 @@ func TestAdminListAccessRules(t *testing.T) {
 		})
 	}
 }
+
 func TestUserListAccessRules(t *testing.T) {
 	type testcase struct {
 		name string
