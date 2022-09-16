@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AccessRuleLookupParams = { providerDetails?: string[]; type?: string };
+export type AccessRuleLookupParams = { type?: string; roleName?: string; accountId?: string };

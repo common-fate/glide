@@ -974,20 +974,20 @@ paths:
       operationId: access-rule-lookup
       parameters:
         - schema:
-            type: array
-            items:
-              type: string
-            additionalProperties:
-              type: string
-          in: query
-          name: providerDetails
-          style: spaceDelimited
-          explode: true
-        - schema:
             type: string
           in: query
           name: type
           description: the provider type i.e. commonfate/aws-sso. type should be encoded i.e.  backslash -> %2
+        - schema:
+            type: string
+          in: query
+          name: roleName
+          description: the role name i.e. AdminstratorAccess // find a way to make this AdditionalProperties
+        - schema:
+            type: string
+          in: query
+          name: accountId
+          description: the aws account id
       description: endpoint returns an array of relevant access rules (used in combination with granted cli)
 components:
   schemas:

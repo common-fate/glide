@@ -223,29 +223,19 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 				continue // if not found continue
 			}
 
-			// Provider Details Convert *[]interface{} to []string
-			// if params.ProviderDetails != nil {
-
-			reqAccId := (*params.ProviderDetails)[0]
-			if ruleAccId != reqAccId {
-				continue // if not found continue
-			}
-			reqRoleName := (*params.ProviderDetails)[1]
-			if ruleAccId != reqRoleName {
+			reqAccId := (*params.AccountId)
+			if reqAccId != ruleAccId {
 				continue // if not found continue
 			}
 			// lookup ProviderOptions for given rule and get the
-			q := storage.GetProviderOptions{ProviderID: reqAccId}
+			q := storage.GetProviderOptions{ProviderID: p.DefaultID}
 			_, err := a.DB.Query(ctx, &q)
 			if err != nil {
 				continue // todo: log error
 			}
-			// reqRoleName, found := params.ProviderDetails.Get("roleName")
-			// if !found {
-			// 	continue // if not found continue
-			// }
+
 			for _, po := range q.Result {
-				if po.Label == reqRoleName {
+				if po.Label == (*params.RoleName) {
 					res.AccessRules = append(res.AccessRules, r.ToAPI())
 				}
 			}

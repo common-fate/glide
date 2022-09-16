@@ -26,11 +26,7 @@ const assume = () => {
     Search: AccessRuleLookupParams;
   }>;
 
-  const { type, ...additionalProperties } = useSearch<MyLocationGenerics>();
-
-  console.log({ type, ...additionalProperties });
-
-  // const providerDetails: AWSDetails | undefined = search.providerDetails;
+  const search = useSearch<MyLocationGenerics>();
 
   const [loadText, setLoadText] = React.useState(
     "Finding your access request now..."
@@ -38,27 +34,21 @@ const assume = () => {
 
   const navigate = useNavigate();
 
-  const { data, isValidating } = useAccessRuleLookup({
-    type,
-    // @ts-ignore
-    providerDetails: ["1", "2"],
-    // hello: "string",
-  });
+  const { data, isValidating } = useAccessRuleLookup(search);
 
   useEffect(() => {
     // Run account lookup
-    if (data && data.accessRules.length > 0) {
-      if (data.accessRules.length == 1) {
-        setLoadText("Access rule found 🚀 Redirecting now...");
-        setTimeout(() => {
-          // navigate({ to: "/access/request/" + data.accessRules[0].id });
-        }, 300);
-      } else {
-        // add handling for multi rule resolution...
-        setLoadText("Multiple access rules found, choose one to continue");
-      }
+    if (data?.accessRules.length === 0) {
+      setLoadText(`We couldn't find any access rules for you`);
+    } else if (data?.accessRules.length == 1) {
+      setLoadText("Access rule found 🚀 Redirecting now...");
+      // setTimeout(() => {
+      // navigate({ to: "/access/request/" + data.accessRules[0].id });
+      // }, 300);
+    } else if (data && data?.accessRules.length > 1) {
+      setLoadText("Multiple access rules found, choose one to continue");
     }
-  }, [type, additionalProperties, data?.accessRules]);
+  }, [search, data]);
 
   return (
     <UserLayout>
@@ -69,6 +59,11 @@ const assume = () => {
           <br />
           {data && data.accessRules.length > 1 && (
             <SelectRuleTable rules={data.accessRules} />
+          )}
+          {data && data.accessRules.length == 0 && (
+            <Flex _hover={{ textDecor: "underline" }} mt={2}>
+              <Link to="/">Click here to go Home </Link>
+            </Flex>
           )}
         </Flex>
       </Center>
