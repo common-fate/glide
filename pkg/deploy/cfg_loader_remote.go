@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -37,19 +38,31 @@ func (r *RemoteDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap
 		return nil, fmt.Errorf("unexpected status from remote config API: %d, body: %s", p.StatusCode(), string(p.Body))
 	}
 
-	res := p.JSON200.DeploymentConfiguration.ProviderConfiguration
-	pm := make(ProviderMap)
+	logger.Get(ctx).Infow("fetched remote config", "config", p.JSON200, "body", string(p.Body))
 
-	for id, provider := range res.AdditionalProperties {
+	// p.JSON200.DeploymentConfiguration isn't being correctly filled with the actual response,
+	// so manually call json.Unmarshal. This may be due to the fact we're using AdditionalProperties here
+	// to send a dict of providers.
+	var dc remoteconfig.DeploymentConfigResponse
+
+	err = json.Unmarshal(p.Body, &dc)
+	if err != nil {
+		return nil, err
+	}
+
+	pm := ProviderMap{}
+
+	for id, provider := range dc.DeploymentConfiguration.ProviderConfiguration.AdditionalProperties {
+		ptmp := provider
 		err = pm.Add(id, Provider{
-			Uses: provider.Uses,
-			With: provider.With,
+			Uses: ptmp.Uses,
+			With: ptmp.With,
 		})
 		if err != nil {
 			return nil, err
 		}
 	}
-	logger.Get(ctx).Infow("got provider config", "config", res)
+	logger.Get(ctx).Infow("got provider config", "config", pm)
 
 	return pm, nil
 }

@@ -27,7 +27,7 @@ const productionReleasesBucket = app.node.tryGetContext(
 const productionReleaseBucketPrefix = app.node.tryGetContext(
   "productionReleaseBucketPrefix"
 );
-const remoteConfigUrl = app.node.tryGetContext("remoteConfigUrl");
+const remoteConfigUrl = app.node.tryGetContext("experimentalRemoteConfigUrl");
 
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one

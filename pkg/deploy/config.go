@@ -153,18 +153,18 @@ func (f FeatureMap) Remove(id string) {
 }
 
 type Parameters struct {
-	CognitoDomainPrefix        string      `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID       string      `yaml:"AdministratorGroupID"`
-	DeploymentSuffix           string      `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType       string      `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata            string      `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL         string      `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain             string      `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN     string      `yaml:"FrontendCertificateARN,omitempty"`
-	RemoteConfigURL            string      `yaml:"RemoteConfigURL,omitempty"`
-	ProviderConfiguration      ProviderMap `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration      FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
+	CognitoDomainPrefix         string      `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID        string      `yaml:"AdministratorGroupID"`
+	DeploymentSuffix            string      `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType        string      `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata             string      `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL          string      `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain              string      `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN      string      `yaml:"FrontendCertificateARN,omitempty"`
+	ExperimentalRemoteConfigURL string      `yaml:"ExperimentalRemoteConfigURL,omitempty"`
+	ProviderConfiguration       ProviderMap `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration       FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration  FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -397,10 +397,10 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		})
 	}
 
-	if c.Deployment.Parameters.RemoteConfigURL != "" {
+	if c.Deployment.Parameters.ExperimentalRemoteConfigURL != "" {
 		res = append(res, types.Parameter{
-			ParameterKey:   aws.String("RemoteConfigURL"),
-			ParameterValue: &p.RemoteConfigURL,
+			ParameterKey:   aws.String("ExperimentalRemoteConfigURL"),
+			ParameterValue: &p.ExperimentalRemoteConfigURL,
 		})
 	}
 

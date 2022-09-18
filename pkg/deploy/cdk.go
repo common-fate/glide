@@ -61,8 +61,8 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.SamlSSOMetadataURL != "" {
 		args = append(args, "-c", fmt.Sprintf("samlMetadataUrl=%s", string(c.Deployment.Parameters.SamlSSOMetadataURL)))
 	}
-	if c.Deployment.Parameters.RemoteConfigURL != "" {
-		args = append(args, "-c", fmt.Sprintf("remoteConfigUrl=%s", string(c.Deployment.Parameters.RemoteConfigURL)))
+	if c.Deployment.Parameters.ExperimentalRemoteConfigURL != "" {
+		args = append(args, "-c", fmt.Sprintf("experimentalRemoteConfigUrl=%s", string(c.Deployment.Parameters.ExperimentalRemoteConfigURL)))
 	}
 	return args
 }

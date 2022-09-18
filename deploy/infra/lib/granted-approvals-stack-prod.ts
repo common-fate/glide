@@ -104,12 +104,16 @@ export class CustomerGrantedStack extends cdk.Stack {
       default: "{}",
     });
 
-    const remoteConfigUrl = new CfnParameter(this, "RemoteConfigURL", {
-      type: "String",
-      description:
-        "If provided, sources configuration from an API, rather than deployment parameters.",
-      default: "",
-    });
+    const remoteConfigUrl = new CfnParameter(
+      this,
+      "ExperimentalRemoteConfigURL",
+      {
+        type: "String",
+        description:
+          "If provided, sources configuration from an API, rather than deployment parameters.",
+        default: "",
+      }
+    );
 
     const appName = this.stackName + suffix.valueAsString;
 
