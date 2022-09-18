@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -14,6 +16,8 @@ var CreateCommand = cli.Command{
 	Name: "create",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "The username of the user to create (should be an email address)", Required: true},
+		&cli.StringFlag{Name: "given-name", Usage: "The user's given name"},
+		&cli.StringFlag{Name: "family-name", Usage: "The user's family name"},
 		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "Whether to make the user a Granted Approvals administrator"},
 	},
 	Description: "Create a Cognito user",
@@ -38,10 +42,29 @@ var CreateCommand = cli.Command{
 			return err
 		}
 		cog := cognitoidentityprovider.NewFromConfig(cfg)
-		_, err = cog.AdminCreateUser(ctx, &cognitoidentityprovider.AdminCreateUserInput{
+
+		in := cognitoidentityprovider.AdminCreateUserInput{
 			UserPoolId: &o.UserPoolID,
 			Username:   &username,
-		})
+		}
+
+		givenName := c.String("given-name")
+		if givenName != "" {
+			in.UserAttributes = append(in.UserAttributes, types.AttributeType{
+				Name:  aws.String("given_name"),
+				Value: &givenName,
+			})
+		}
+
+		familyName := c.String("family-name")
+		if familyName != "" {
+			in.UserAttributes = append(in.UserAttributes, types.AttributeType{
+				Name:  aws.String("family_name"),
+				Value: &familyName,
+			})
+		}
+
+		_, err = cog.AdminCreateUser(ctx, &in)
 		if err != nil {
 			return err
 		}
