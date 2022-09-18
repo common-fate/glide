@@ -55,6 +55,7 @@ export class DevGrantedStack extends cdk.Stack {
     const webUserPool = new WebUserPool(this, "WebUserPool", {
       appName: appName,
       domainPrefix: cognitoDomainPrefix,
+      frontendUrl: "https://" + cdn.getDomainName(),
       callbackUrls: cdn.getDevCallbackUrls(),
       idpType: idpType,
       samlMetadataUrl: samlMetadataUrl,

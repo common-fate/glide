@@ -8,6 +8,7 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { DevEnvironmentConfig } from "../helpers/dev-accounts";
+import { inviteEmailTemplate } from "../helpers/emails";
 import {
   IdentityProviderRegistry,
   IdentityProviderTypes,
@@ -16,6 +17,7 @@ import {
 interface Props {
   appName: string;
   domainPrefix: string;
+  frontendUrl: string;
   callbackUrls: string[];
   idpType: IdentityProviderTypes;
   // default should be an empty string is not in use
@@ -74,6 +76,10 @@ export class WebUserPool extends Construct {
     } else {
       this._userPool = new cognito.UserPool(this, "UserPool", {
         userPoolName: this._appName,
+        userInvitation: {
+          emailSubject: "You've been invited to Common Fate Granted",
+          emailBody: inviteEmailTemplate(props.frontendUrl),
+        },
         standardAttributes: {
           email: {
             required: true,

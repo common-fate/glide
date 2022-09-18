@@ -140,6 +140,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       samlMetadataUrl: samlMetadataUrl.valueAsString,
       samlMetadata: samlMetadata.valueAsString,
       devConfig: null,
+      frontendUrl: "https://" + appFrontend.getDomainName(),
     });
 
     const events = new EventBus(this, "EventBus", {
