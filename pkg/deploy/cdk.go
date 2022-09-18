@@ -64,6 +64,9 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.ExperimentalRemoteConfigURL != "" {
 		args = append(args, "-c", fmt.Sprintf("experimentalRemoteConfigUrl=%s", string(c.Deployment.Parameters.ExperimentalRemoteConfigURL)))
 	}
+	if c.Deployment.Parameters.ExperimentalRemoteConfigHeaders != "" {
+		args = append(args, "-c", fmt.Sprintf("experimentalRemoteConfigHeaders=%s", string(c.Deployment.Parameters.ExperimentalRemoteConfigHeaders)))
+	}
 	return args
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/pkg/remoteconfig"
@@ -16,8 +17,55 @@ type RemoteDeploymentConfig struct {
 	client *remoteconfig.ClientWithResponses
 }
 
-func NewRemoteDeploymentConfig(url string) (*RemoteDeploymentConfig, error) {
-	client, err := remoteconfig.NewClientWithResponses(url)
+type header struct {
+	Key   string
+	Value string
+}
+
+// parseHeadersFromKVPairs parses key value pairs in the following format:
+//
+//	KEY=VALUE,KEY=VALUE
+func parseHeadersFromKVPairs(headersString string) ([]header, error) {
+	if headersString == "" {
+		return nil, nil
+	}
+
+	var headers []header
+
+	headerKVPairs := strings.Split(headersString, ",")
+	for _, h := range headerKVPairs {
+		h = strings.TrimSpace(h)
+		strs := strings.Split(h, "=")
+		if len(strs) != 2 {
+			return nil, fmt.Errorf("could not parse header %s", h)
+		}
+		headers = append(headers, header{
+			Key:   strs[0],
+			Value: strs[1],
+		})
+	}
+
+	return headers, nil
+}
+
+// NewRemoteDeploymentConfig sets up a deployment config loader which fetches
+// deployment configuration from a remote API.
+//
+// headers should be passed as a comma-separated string in the following format:
+//
+//	KEY=VALUE,KEY=VALUE
+func NewRemoteDeploymentConfig(url string, headersString string) (*RemoteDeploymentConfig, error) {
+	headers, err := parseHeadersFromKVPairs(headersString)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := remoteconfig.NewClientWithResponses(url, remoteconfig.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+		for _, h := range headers {
+			req.Header.Set(h.Key, h.Value)
+		}
+		return nil
+	}))
 	if err != nil {
 		return nil, err
 	}

@@ -28,6 +28,7 @@ interface Props {
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
   remoteConfigUrl: string;
+  remoteConfigHeaders: string;
   dynamoTable: dynamodb.Table;
 }
 
@@ -113,6 +114,7 @@ export class AppBackend extends Construct {
         ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",

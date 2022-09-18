@@ -293,6 +293,7 @@ func Dotenv() error {
 	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
 	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 	myEnv["REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
+	myEnv["REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
