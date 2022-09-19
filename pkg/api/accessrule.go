@@ -195,7 +195,8 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
 	ctx := r.Context()
 	// fetch all active access rules
-	q := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
+	u := auth.UserFromContext(ctx)
+	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
 	_, err := a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
@@ -218,25 +219,34 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 	for _, r := range q.Result {
 		switch p.DefaultID {
 		case "aws-sso-v2":
-			ruleAccId, found := r.Target.ToAPI().With.Get("accountId")
+			// we must support string and []string for With/WithSelectable
+			ruleAccIds := []string{}
+			singleRuleAccId, found := r.Target.ToAPI().With.Get("accountId")
 			if !found {
-				continue // if not found continue
+				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
+				if !found {
+					continue // if not found continue
+				}
+			} else {
+				ruleAccIds = append(ruleAccIds, singleRuleAccId)
 			}
 
-			reqAccId := (*params.AccountId)
-			if reqAccId != ruleAccId {
-				continue // if not found continue
-			}
-			// lookup ProviderOptions for given rule and get the
-			q := storage.GetProviderOptions{ProviderID: p.DefaultID}
-			_, err := a.DB.Query(ctx, &q)
-			if err != nil {
-				continue // todo: log error
-			}
+			for _, ruleAccId := range ruleAccIds {
+				reqAccId := (*params.AccountId)
+				if reqAccId != ruleAccId {
+					continue // if not found continue
+				}
+				// lookup ProviderOptions for given rule and get the
+				q := storage.GetProviderOptions{ProviderID: p.DefaultID}
+				_, err := a.DB.Query(ctx, &q)
+				if err != nil {
+					continue // todo: log error
+				}
 
-			for _, po := range q.Result {
-				if po.Label == (*params.RoleName) {
-					res.AccessRules = append(res.AccessRules, r.ToAPI())
+				for _, po := range q.Result {
+					if po.Label == (*params.RoleName) {
+						res.AccessRules = append(res.AccessRules, r.ToAPI())
+					}
 				}
 			}
 		}
