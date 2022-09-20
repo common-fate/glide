@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/pkg/errors"
@@ -102,7 +103,7 @@ func (g SSMGetter) GetSecret(ctx context.Context, path string) (string, error) {
 	client := ssm.NewFromConfig(cfg)
 	output, err := client.GetParameter(ctx, &ssm.GetParameterInput{
 		Name:           &path,
-		WithDecryption: true,
+		WithDecryption: aws.Bool(true),
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "looking up %s in ssm", path)

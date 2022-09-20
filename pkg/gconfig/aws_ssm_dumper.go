@@ -59,7 +59,7 @@ func putSecretVersion(ctx context.Context, path string, suffix, value string) (o
 		Name:      aws.String(name),
 		Value:     aws.String(value),
 		Type:      types.ParameterTypeSecureString,
-		Overwrite: true,
+		Overwrite: aws.Bool(true),
 	})
 	if err != nil {
 		return "", "", err
