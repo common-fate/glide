@@ -53,7 +53,7 @@ const assume = () => {
           <br />
           {data && data.accessRules.length > 1 && (
             <Flex flexDir="column" alignItems="center" w="100%">
-              <Box w="60ch">
+              <Box w={{ base: "100%", md: "60ch" }}>
                 <OnboardingCard
                   // my={4}
                   title="Multiple access rules found"

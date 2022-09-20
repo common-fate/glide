@@ -10,6 +10,7 @@ import {
   MenuItemOption,
   MenuList,
   MenuOptionGroup,
+  SkeletonText,
   Text,
   Tooltip,
 } from "@chakra-ui/react";
@@ -30,6 +31,7 @@ import RuleConfigModal from "../modals/RuleConfigModal";
 import { StatusCell } from "../StatusCell";
 import { UserAvatarDetails } from "../UserAvatar";
 import { TableRenderer } from "./TableRenderer";
+import { useUserGetAccessRuleApprovers } from "../../utils/backend-client/end-user/end-user";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -119,51 +121,35 @@ export const SelectRuleTable = ({ rules }: { rules: AccessRule[] }) => {
           );
         },
       },
-      // {
-      //   accessor: "metadata",
-      //   Header: "Created By",
-      //   Cell: ({ cell }) => {
-      //     return (
-      //       <HStack>
-      //         <UserAvatarDetails
-      //           tooltip
-      //           user={cell.value?.createdBy}
-      //           size="xs"
-      //           variant="withBorder"
-      //           textProps={{
-      //             textStyle: "Body/Small",
-      //             maxW: "20ch",
-      //             noOfLines: 1,
-      //             color: "neutrals.700",
-      //           }}
-      //         />
-      //       </HStack>
-      //     );
-      //   },
-      // },
-      // {
-      //   // @ts-ignore this is required because ts cannot infer the nexted object types correctly
-      //   accessor: "metadata.createdAt",
-      //   Header: "Date created",
-      //   // @ts-ignore
-      //   Cell: ({ cell }) => (
-      //     <Text textStyle="Body/Small" color="neutrals.700">
-      //       {" "}
-      //       {format(new Date(Date.parse(cell.value)), "p dd/MM/yy")}
-      //     </Text>
-      //   ),
-      // },
-      // {
-      //   // @ts-ignore this is required because ts cannot infer the nexted object types correctly
-      //   accessor: "metadata.updatedAt",
-      //   Header: "Last updated",
-      //   // @ts-ignore
-      //   Cell: ({ cell }) => (
-      //     <Text textStyle="Body/Small" color="neutrals.700">
-      //       {format(new Date(Date.parse(cell.value)), "p dd/MM/yy")}
-      //     </Text>
-      //   ),
-      // },
+      {
+        accessor: "id",
+        id: "approvers",
+        Header: "Approval Required?",
+        Cell: ({ cell }) => {
+          const { data, isValidating } = useUserGetAccessRuleApprovers(
+            cell.row.original.id
+          );
+
+          return (
+            <HStack>
+              <Text
+                color="neutrals.700"
+                textStyle="Body/Small"
+                whiteSpace={"nowrap"}
+              >
+                {isValidating || !data ? (
+                  <SkeletonText w="12ch" noOfLines={1} h="12px" />
+                ) : data?.users?.length > 0 ? (
+                  "Yes"
+                ) : (
+                  "No"
+                )}
+              </Text>
+            </HStack>
+          );
+        },
+      },
+
       {
         accessor: "id",
         Header: "",
