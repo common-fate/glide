@@ -261,6 +261,8 @@ export class AppBackend extends Construct {
       frontendUrl: props.frontendUrl,
       userPool: props.userPool,
       notificationsConfig: props.notificationsConfiguration,
+      remoteConfigUrl: props.remoteConfigUrl,
+      remoteConfigHeaders: props.remoteConfigHeaders,
     });
 
     this._idpSync = new IdpSync(this, "IdpSync", {
