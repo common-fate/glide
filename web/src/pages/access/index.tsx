@@ -11,15 +11,15 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect } from "react";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
-import { ProviderIcon } from "../components/icons/providerIcon";
-import { UserLayout } from "../components/Layout";
-import { useAccessRuleLookup } from "../utils/backend-client/default/default";
-import { AccessRuleLookupParams } from "../utils/backend-client/types/accessRuleLookupParams";
+import { ProviderIcon } from "../../components/icons/providerIcon";
+import { UserLayout } from "../../components/Layout";
+import { useAccessRuleLookup } from "../../utils/backend-client/default/default";
+import { AccessRuleLookupParams } from "../../utils/backend-client/types/accessRuleLookupParams";
 import { Link } from "react-location";
-import { SelectRuleTable } from "../components/tables/SelectRuleTable";
-import { CodeInstruction } from "../components/CodeInstruction";
-import { useGetMe } from "../utils/backend-client/end-user/end-user";
-import { OnboardingCard } from "../components/OnboardingCard";
+import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
+import { CodeInstruction } from "../../components/CodeInstruction";
+import { useGetMe } from "../../utils/backend-client/end-user/end-user";
+import { OnboardingCard } from "../../components/OnboardingCard";
 import { InfoIcon } from "@chakra-ui/icons";
 
 type AWSDetails = {
@@ -27,7 +27,7 @@ type AWSDetails = {
   roleName: string;
 };
 
-const assume = () => {
+const Access = () => {
   type MyLocationGenerics = MakeGenerics<{
     Search: AccessRuleLookupParams;
   }>;
@@ -109,4 +109,4 @@ ${JSON.stringify(search, null, 2)}`}
   );
 };
 
-export default assume;
+export default Access;
