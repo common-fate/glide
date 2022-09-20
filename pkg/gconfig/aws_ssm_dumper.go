@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 

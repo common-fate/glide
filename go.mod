@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
-	github.com/aws/aws-sdk-go v1.44.71
 	github.com/aws/aws-sdk-go-v2 v1.16.12
 	github.com/aws/aws-sdk-go-v2/config v1.15.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
@@ -52,6 +51,7 @@ require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
+	github.com/aws/aws-sdk-go v1.44.71 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 // indirect
