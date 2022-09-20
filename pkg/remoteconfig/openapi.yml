@@ -42,8 +42,11 @@ components:
       properties:
         providerConfiguration:
           $ref: '#/components/schemas/ProviderMap'
+        notificationsConfiguration:
+          $ref: '#/components/schemas/NotificationsConfiguration'
       required:
         - providerConfiguration
+        - notificationsConfiguration
     ProviderConfiguration:
       title: ProviderConfiguration
       x-stoplight:
@@ -67,6 +70,27 @@ components:
       additionalProperties:
         $ref: '#/components/schemas/ProviderConfiguration'
       description: Configuration of all Access Providers.
+    NotificationsConfiguration:
+      title: NotificationsConfiguration
+      x-stoplight:
+        id: rnaw9z0bzz24m
+      type: object
+      description: Notifications configuration for the deployment.
+      properties:
+        slack:
+          $ref: '#/components/schemas/SlackConfiguration'
+    SlackConfiguration:
+      title: SlackConfiguration
+      x-stoplight:
+        id: eqg2pz843590a
+      type: object
+      properties:
+        apiToken:
+          type: string
+          description: 'The Slack API token. Should be a reference to secret in `awsssm://` format.'
+      required:
+        - apiToken
+      description: The Slack notification configuration.
   responses:
     DeploymentConfigResponse:
       description: The configuration of this Granted Approvals deployment.

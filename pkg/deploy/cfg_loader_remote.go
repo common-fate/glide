@@ -133,6 +133,27 @@ func (r *RemoteDeploymentConfig) WriteProviders(ctx context.Context, pm Provider
 }
 
 func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (FeatureMap, error) {
-	// TODO: implement this
-	return nil, nil
+	p, err := r.client.GetConfigWithResponse(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if p.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status from remote config API: %d, body: %s", p.StatusCode(), string(p.Body))
+	}
+
+	logger.Get(ctx).Infow("fetched remote config", "config", p.JSON200, "body", string(p.Body))
+
+	// return a FeatureMap to remain compatible with the rest of the application, rather than
+	// our strongly-typed API response.
+	var fm FeatureMap
+
+	nc := p.JSON200.DeploymentConfiguration.NotificationsConfiguration
+
+	if nc.Slack != nil {
+		fm.Upsert("slack", map[string]string{
+			"apiToken": nc.Slack.ApiToken,
+		})
+	}
+
+	return fm, nil
 }

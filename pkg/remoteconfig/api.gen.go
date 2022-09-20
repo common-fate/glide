@@ -23,8 +23,17 @@ import (
 
 // The configuration for a Granted Approvals deployment.
 type DeploymentConfiguration struct {
+	// Notifications configuration for the deployment.
+	NotificationsConfiguration NotificationsConfiguration `json:"notificationsConfiguration"`
+
 	// Configuration of all Access Providers.
 	ProviderConfiguration ProviderMap `json:"providerConfiguration"`
+}
+
+// Notifications configuration for the deployment.
+type NotificationsConfiguration struct {
+	// The Slack notification configuration.
+	Slack *SlackConfiguration `json:"slack,omitempty"`
 }
 
 // Configuration settings for an individual Access Provider.
@@ -36,6 +45,12 @@ type ProviderConfiguration struct {
 // Configuration of all Access Providers.
 type ProviderMap struct {
 	AdditionalProperties map[string]ProviderConfiguration `json:"-"`
+}
+
+// The Slack notification configuration.
+type SlackConfiguration struct {
+	// The Slack API token. Should be a reference to secret in `awsssm://` format.
+	ApiToken string `json:"apiToken"`
 }
 
 // DeploymentConfigResponse defines model for DeploymentConfigResponse.
@@ -635,21 +650,24 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"5m7zdwAAAP//OYGaQ+IMAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
