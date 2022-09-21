@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import Select, { components, OptionProps } from "react-select";
+import { Text } from "@chakra-ui/react";
 import {
   useGetGroups,
   useGetUsers,
@@ -77,7 +78,15 @@ export const CustomOption = ({
 >) => (
   // @ts-ignore
   <div data-testid={innerProps.value}>
-    <components.Option {...innerProps}>{children}</components.Option>
+    <components.Option {...innerProps}>
+      <>
+        {children}
+        {
+          // @ts-ignore
+          <Text>{innerProps.value}</Text>
+        }
+      </>
+    </components.Option>
   </div>
 );
 
@@ -102,6 +111,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
           <Select
             id={id}
             isDisabled={isDisabled}
+            //getOptionLabel={(option) => `${option.label}  (${option.value})`}
             options={options}
             components={{ Option: CustomOption }}
             isMulti
