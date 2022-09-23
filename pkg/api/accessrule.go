@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/auth"
@@ -14,6 +15,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -245,7 +247,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 				}
 
 				for _, po := range q.Result {
-					if po.Label == (*params.RoleName) {
+					if po.Label == (*params.PermissionSetArnLabel) {
 						res.AccessRules = append(res.AccessRules, r.ToAPI())
 					}
 				}

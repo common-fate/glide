@@ -164,7 +164,7 @@ export const deleteProvidersetup = (
 
 /**
  * endpoint returns an array of relevant access rules (used in combination with granted cli)
- * @summary Your GET endpoint
+ * @summary Lookup an access rule based on the target
  */
 export const accessRuleLookup = (
     params?: AccessRuleLookupParams,

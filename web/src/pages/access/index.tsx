@@ -22,11 +22,6 @@ import { useGetMe } from "../../utils/backend-client/end-user/end-user";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { InfoIcon } from "@chakra-ui/icons";
 
-type AWSDetails = {
-  accountId: string;
-  roleName: string;
-};
-
 const Access = () => {
   type MyLocationGenerics = MakeGenerics<{
     Search: AccessRuleLookupParams;
@@ -64,16 +59,6 @@ const Access = () => {
                     name that matches what you’re trying to do
                   </Text>
                 </OnboardingCard>
-                {/* Multiple access rules found for <br />
-                <chakra.code bg="gray.100" rounded="sm">
-                  {JSON.stringify(search)}
-                </chakra.code> */}
-                {/* <CodeInstruction
-                my={2}
-                // @ts-ignore
-                children={JSON.stringify(search)}
-                inline={false}
-              /> */}
                 <br />
               </Box>
               <SelectRuleTable rules={data.accessRules} />

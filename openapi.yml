@@ -981,8 +981,8 @@ paths:
         - schema:
             type: string
           in: query
-          name: roleName
-          description: the role name i.e. AdminstratorAccess // find a way to make this AdditionalProperties
+          name: permissionSetArn.label
+          description: "the permissionSetArn label, typically resembles a role name i.e. AdminstratorAccess"
         - schema:
             type: string
           in: query
