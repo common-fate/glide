@@ -964,7 +964,7 @@ paths:
       description: Get information about the identity configuration
   /api/v1/access-rules/lookup:
     get:
-      summary: Your GET endpoint
+      summary: Lookup an access rule based on the target
       tags: []
       responses:
         "200":
