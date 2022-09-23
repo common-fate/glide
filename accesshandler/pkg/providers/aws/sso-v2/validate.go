@@ -17,6 +17,74 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
+
+	return map[string]providers.GrantValidationStep{
+		"user-exists-in-aws-sso": {
+			Name: "The user must exist in the AWS SSO instance",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+					IdentityStoreId: aws.String(p.identityStoreID.Get()),
+					Filters: []types.Filter{{
+						AttributePath:  aws.String("UserName"),
+						AttributeValue: aws.String(subject),
+					}},
+				})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				if len(res.Users) == 0 {
+					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
+				}
+				if len(res.Users) > 1 {
+					// this should never happen, but check it anyway.
+					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", len(res.Users)))
+				}
+				return diagnostics.Info("User exists in SSO")
+			},
+		},
+		"permission-set-should-exist": {
+			Name: "The permissionset should exist",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				_, err = p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+					InstanceArn:      aws.String(p.instanceARN.Get()),
+					PermissionSetArn: &a.PermissionSetARN,
+				})
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}))
+				}
+				return nil
+			},
+		},
+		"account-exists": {
+			Name: "The account should exist",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				err = p.ensureAccountExists(ctx, a.AccountID)
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("account does not exist %v", err))
+
+				}
+				return diagnostics.Info("account exists")
+			},
+		},
+	}
+}
+
 // Validate the access against AWS SSO without actually granting it.
 // This provider requires that the user name matches the user's email address.
 func (p *Provider) Validate(ctx context.Context, subject string, args []byte) error {

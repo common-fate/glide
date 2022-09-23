@@ -27,7 +27,6 @@ type Service struct {
 type Granter interface {
 	CreateGrant(ctx context.Context, opts grantsvc.CreateGrantOpts) (*access.Request, error)
 	RevokeGrant(ctx context.Context, opts grantsvc.RevokeGrantOpts) (*access.Request, error)
-	ValidateGrant(ctx context.Context, opts grantsvc.CreateGrantOpts) error
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter

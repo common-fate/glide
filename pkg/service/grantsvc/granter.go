@@ -194,6 +194,13 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 		return nil, err
 	}
 
+	//validate the request against the access handler - make sure that access will be able to be provisioned
+	err = g.ValidateGrant(ctx, CreateGrantOpts{Request: opts.Request, AccessRule: opts.AccessRule})
+
+	if err != nil {
+		return nil, err
+	}
+
 	// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
 	// check now before we actually provision the access, so that we can return early if we fail.
 	requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)

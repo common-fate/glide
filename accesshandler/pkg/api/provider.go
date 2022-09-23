@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"sort"
 
@@ -43,13 +44,23 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	err = prov.Provider.Validate(ctx, string(b.Subject), []byte{})
+	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
 		apio.Error(r.Context(), w, err)
 
 	}
-	apio.JSON(r.Context(), w, prov.ToAPI(), http.StatusOK)
+
+	validator, ok := prov.Provider.(providers.Validator)
+	if !ok {
+		// provider doesn't implement validation, so just return a HTTP OK response
+		apio.JSON(r.Context(), w, nil, http.StatusOK)
+	}
+
+	// the provider implements validation, so try and validate the request
+	res := validator.ValidateGrant(body)
+
+	apio.JSON(r.Context(), w, res, http.StatusOK)
 }
 
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {

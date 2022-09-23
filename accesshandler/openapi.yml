@@ -520,6 +520,39 @@ components:
       required:
         - level
         - msg
+    GrantValidation:
+      title: GrantValidation
+      x-stoplight:
+        id: 6cuhvkirc8x13
+      type: object
+      description: "A validation of a Grant, without actually creating it"
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        fieldsValidated:
+          type: string
+        logs:
+          $ref: "#/components/schemas/DiagnosticLog"
+      required:
+        - id
+        - status
+        - fieldsValidated
+    DiagnosticLog:
+      title: DiagnosticLog
+      x-stoplight:
+        id: b5rgtmy6txp52
+      type: object
+      properties:
+        level:
+          type: string
+        message:
+          type: string
+      required:
+        - level
+        - message
+      description: A log entry related to validation
   requestBodies:
     ValidateRequest:
       content:
@@ -603,6 +636,17 @@ components:
                   $ref: "#/components/schemas/ProviderConfigValidation"
             required:
               - validations
+    GrantValidationResponse:
+      description: A validation of a Grant to verify whether it can be created.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              validation:
+                $ref: "#/components/schemas/GrantValidation"
+            required:
+              - validation
 tags:
   - name: grants
   - name: runtime

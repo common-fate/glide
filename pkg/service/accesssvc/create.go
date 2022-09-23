@@ -70,13 +70,6 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		SelectedWith:    make(map[string]access.Option),
 	}
 
-	//validate the request against the access handler - make sure that access will be able to be provisioned
-	err = s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
-
-	if err != nil {
-		return nil, err
-	}
-
 	if in.With != nil {
 		argOptionsLabels := make(map[string]map[string]string)
 		var mu sync.Mutex

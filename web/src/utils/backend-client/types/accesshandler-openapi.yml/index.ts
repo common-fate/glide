@@ -19,3 +19,6 @@ export * from './validateRequestBody';
 export * from './validateRequestBodyWith';
 export * from './validateResponseResponse';
 export * from './additionalProperties';
+export * from './diagnosticLog';
+export * from './grantValidation';
+export * from './grantValidationResponseResponse';

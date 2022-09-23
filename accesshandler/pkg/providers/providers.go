@@ -18,9 +18,6 @@ type Accessor interface {
 
 	// Revoke the access.
 	Revoke(ctx context.Context, subject string, args []byte, grantID string) error
-
-	// validate the access.
-	Validate(ctx context.Context, subject string, args []byte) error
 }
 
 // AccessTokeners can indicate whether they need an access token to be generated
@@ -33,10 +30,18 @@ type AccessTokener interface {
 	RequiresAccessToken() bool
 }
 
+type GrantValidationStep struct {
+	Name            string
+	FieldsValidated []string
+	Run             func(ctx context.Context, subject string, args []byte) diagnostics.Logs
+}
+
 // Validators know how to validate access without actually granting it.
 type Validator interface {
-	// Validate arguments and a subject for access without actually granting it.
 	Validate(ctx context.Context, subject string, args []byte) error
+	// Validate arguments and a subject for access without actually granting it.
+
+	ValidateGrant(args []byte) map[string]GrantValidationStep
 }
 
 type ConfigValidationStep struct {
