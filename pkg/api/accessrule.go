@@ -240,7 +240,8 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 				q := storage.GetProviderOptions{ProviderID: p.DefaultID}
 				_, err := a.DB.Query(ctx, &q)
 				if err != nil {
-					continue // todo: log error
+					logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+					continue
 				}
 
 				for _, po := range q.Result {
