@@ -15,8 +15,11 @@ import type {
   UserListRequestsUpcomingParams,
   UserListRequestsPastParams,
   AccessRuleDetail,
+  ErrorResponseResponse,
   ProviderSetupResponseResponse,
-  CreateProviderSetupRequestBody
+  CreateProviderSetupRequestBody,
+  ListAccessRulesResponseResponse,
+  AccessRuleLookupParams
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -158,4 +161,44 @@ export const deleteProvidersetup = (
       options);
     }
   
+
+/**
+ * endpoint returns an array of relevant access rules (used in combination with granted cli)
+ * @summary Lookup an access rule based on the target
+ */
+export const accessRuleLookup = (
+    params?: AccessRuleLookupParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListAccessRulesResponseResponse>(
+      {url: `/api/v1/access-rules/lookup`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getAccessRuleLookupKey = (params?: AccessRuleLookupParams,) => [`/api/v1/access-rules/lookup`, ...(params ? [params]: [])];
+
+    
+export type AccessRuleLookupQueryResult = NonNullable<Awaited<ReturnType<typeof accessRuleLookup>>>
+export type AccessRuleLookupQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse>>(
+ params?: AccessRuleLookupParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof accessRuleLookup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAccessRuleLookupKey(params) : null);
+  const swrFn = () => accessRuleLookup(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 

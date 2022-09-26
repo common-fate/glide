@@ -154,3 +154,5 @@ export * from "./accessToken";
 export * from './identityConfigurationResponseResponse';
 export * from './createGroupRequestBody';
 export * from './updateUserBody';
+export * from './accessRuleLookupParams';
+export * from './accessRuleLookupType';

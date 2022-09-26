@@ -6,13 +6,16 @@ import (
 	"sync"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -187,6 +190,72 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	apio.JSON(ctx, w, q.Result.ToAPIDetail(), http.StatusOK)
+}
+
+// Your GET endpoint
+// (GET /api/v1/access-rules/lookup)
+func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
+	ctx := r.Context()
+	// fetch all active access rules
+	u := auth.UserFromContext(ctx)
+	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListAccessRulesResponse{
+		AccessRules: []types.AccessRule{},
+	}
+
+	// Validate that params.Type is a valid provider id
+	// NOTE: we may want to validate provider versions, this should work for now
+	// Assumption: user is using the latest type
+	_, p, err := providerregistry.Registry().GetLatestByType(string(*params.Type))
+	if err != nil {
+		apio.Error(ctx, w, err)
+	}
+
+	//	filter by params.AccountId
+	for _, r := range q.Result {
+		switch p.DefaultID {
+		case "aws-sso-v2":
+			// we must support string and []string for With/WithSelectable
+			ruleAccIds := []string{}
+			singleRuleAccId, found := r.Target.ToAPI().With.Get("accountId")
+			if !found {
+				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
+				if !found {
+					continue // if not found continue
+				}
+			} else {
+				ruleAccIds = append(ruleAccIds, singleRuleAccId)
+			}
+
+			for _, ruleAccId := range ruleAccIds {
+				reqAccId := (*params.AccountId)
+				if reqAccId != ruleAccId {
+					continue // if not found continue
+				}
+				// lookup ProviderOptions for given rule and get the
+				q := storage.GetProviderOptions{ProviderID: p.DefaultID}
+				_, err := a.DB.Query(ctx, &q)
+				if err != nil {
+					logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+					continue
+				}
+
+				for _, po := range q.Result {
+					if po.Label == (*params.PermissionSetArnLabel) {
+						res.AccessRules = append(res.AccessRules, r.ToAPI())
+					}
+				}
+			}
+		}
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // List Access Rules

@@ -962,6 +962,33 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       operationId: identity-configuration
       description: Get information about the identity configuration
+  /api/v1/access-rules/lookup:
+    get:
+      summary: Lookup an access rule based on the target
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListAccessRulesResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: access-rule-lookup
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: type
+          description: the provider type i.e. commonfate/aws-sso. type should be encoded i.e.  backslash -> %2
+        - schema:
+            type: string
+          in: query
+          name: permissionSetArn.label
+          description: "the permissionSetArn label, typically resembles a role name i.e. AdminstratorAccess"
+        - schema:
+            type: string
+          in: query
+          name: accountId
+          description: the aws account id
+      description: endpoint returns an array of relevant access rules (used in combination with granted cli)
 components:
   schemas:
     User:
