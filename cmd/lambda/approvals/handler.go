@@ -63,7 +63,10 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 
-	dc := &deploy.EnvDeploymentConfig{}
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return nil, err
+	}
 
 	td := psetup.TemplateData{
 		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,

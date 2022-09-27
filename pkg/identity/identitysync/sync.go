@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -77,6 +78,8 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 }
 
 func (s *IdentitySyncer) Sync(ctx context.Context) error {
+	log := logger.Get(ctx)
+
 	//Fetch all users from IDP
 	// The IDP should return the group mappings for users, these group IDs will be internal to the IDP
 	idpUsers, err := s.idp.ListUsers(ctx)
@@ -88,6 +91,8 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	log.Infow("fetched users and groups from IDP", "users.count", len(idpUsers), "groups.count", len(idpGroups))
 
 	uq := &storage.ListUsers{}
 	_, err = s.db.Query(ctx, uq)

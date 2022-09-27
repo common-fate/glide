@@ -5,14 +5,15 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { DiagnosticLog } from '../accesshandler-openapi.yml/diagnosticLog';
+import type { GrantValidationStatus } from './grantValidationStatus';
+import type { Log } from '../accesshandler-openapi.yml/log';
 
 /**
  * A validation of a Grant, without actually creating it
  */
 export interface GrantValidation {
   id: string;
-  status: string;
+  status: GrantValidationStatus;
   fieldsValidated: string;
-  logs?: DiagnosticLog;
+  logs: Log[];
 }

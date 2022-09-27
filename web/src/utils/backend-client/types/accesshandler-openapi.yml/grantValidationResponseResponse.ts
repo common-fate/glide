@@ -8,5 +8,5 @@
 import type { GrantValidation } from '../accesshandler-openapi.yml/grantValidation';
 
 export type GrantValidationResponseResponse = {
-  validation: GrantValidation;
+  validation: GrantValidation[];
 };

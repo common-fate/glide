@@ -32,6 +32,7 @@ func (s *SlackNotifier) Init(ctx context.Context) error {
 	s.client = slack.New(s.apiToken.Get())
 	return nil
 }
+
 func (s *SlackNotifier) TestConfig(ctx context.Context) error {
 	_, err := s.client.GetUsersContext(ctx)
 	if err != nil {
@@ -39,6 +40,7 @@ func (s *SlackNotifier) TestConfig(ctx context.Context) error {
 	}
 	return nil
 }
+
 func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S()
 

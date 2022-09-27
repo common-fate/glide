@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"context"
+	"os"
 )
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_deploy_config_reader.go -package=mocks . DeployConfigReader
@@ -13,7 +14,15 @@ type DeployConfigReader interface {
 	ReadNotifications(ctx context.Context) (FeatureMap, error)
 }
 
-type DeployConfigWriter interface {
+type ProviderWriter interface {
 	WriteProviders(ctx context.Context, pm ProviderMap) error
-	WriteNotifications(ctx context.Context, fm FeatureMap) error
+}
+
+func GetDeploymentConfig() (DeployConfigReader, error) {
+	url := os.Getenv("REMOTE_CONFIG_URL")
+	if url != "" {
+		headers := os.Getenv("REMOTE_CONFIG_HEADERS")
+		return NewRemoteDeploymentConfig(url, headers)
+	}
+	return &EnvDeploymentConfig{}, nil
 }

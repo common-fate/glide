@@ -1,6 +1,6 @@
 import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import CFSpinner from "../../pages/CFSpinner";
+import CFSpinner from "../../components/CFSpinner";
 import NoUser from "../../pages/noUserPage";
 import { getMe } from "../backend-client/end-user/end-user";
 import { User } from "../backend-client/types";

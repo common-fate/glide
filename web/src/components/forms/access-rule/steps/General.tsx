@@ -52,12 +52,10 @@ export const GeneralStep: React.FC = () => {
           <FormLabel htmlFor="Description">
             <Text textStyle={"Body/Medium"}>Description</Text>
           </FormLabel>
-          {/* arbitrary max length - not yet enforced at the API level */}
           <Textarea
             bg="neutrals.0"
             {...methods.register("description", {
               required: true,
-              maxLength: 128,
             })}
             onBlur={() => void methods.trigger("description")}
           />

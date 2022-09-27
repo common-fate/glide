@@ -22,3 +22,4 @@ export * from './additionalProperties';
 export * from './diagnosticLog';
 export * from './grantValidation';
 export * from './grantValidationResponseResponse';
+export * from './grantValidationStatus';

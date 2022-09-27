@@ -1,0 +1,9 @@
+package: remoteconfig
+generate:
+  chi-server: true
+  models: true
+  client: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+output: api.gen.go

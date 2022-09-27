@@ -43,6 +43,6 @@ func main() {
 		panic(err)
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	zap.S().Infow("starting sync with configuration")
+	zap.S().Infow("starting sync", "config", ic, "idp.type", cfg.IdpProvider)
 	lambda.Start(syncer.Sync)
 }
