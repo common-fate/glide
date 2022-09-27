@@ -44,7 +44,7 @@ func (a *API) ValidateSetup(w http.ResponseWriter, r *http.Request) {
 				{
 					Id:     "no-validation",
 					Name:   "Validation has been skipped",
-					Status: types.SUCCESS,
+					Status: types.ProviderConfigValidationStatusSUCCESS,
 					Logs: []types.Log{
 						{Level: types.LogLevelWARNING, Msg: "This Access Provider doesn't support config validation."},
 					},
@@ -69,9 +69,9 @@ func (a *API) ValidateSetup(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if logs.HasSucceeded() {
-			result.Status = types.SUCCESS
+			result.Status = types.ProviderConfigValidationStatusSUCCESS
 		} else {
-			result.Status = types.ERROR
+			result.Status = types.ProviderConfigValidationStatusERROR
 		}
 
 		for _, l := range logs {

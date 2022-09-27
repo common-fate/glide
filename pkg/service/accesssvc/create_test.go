@@ -242,7 +242,7 @@ func TestNewRequest(t *testing.T) {
 			ep.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 			g := accessMocks.NewMockGranter(ctrl)
-			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.err).AnyTimes()
+			// g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.err).AnyTimes()
 			g.EXPECT().CreateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
 			ca := accessMocks.NewMockCacheService(ctrl)
 			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil).AnyTimes()

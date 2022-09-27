@@ -1,16 +1,20 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"sort"
+	"sync"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
@@ -29,6 +33,7 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 	prov, ok := config.Providers[providerId]
+
 	if !ok {
 
 		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
@@ -39,6 +44,7 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 	var b types.CreateGrant
 
 	err := apio.DecodeJSONBody(w, r, &b)
+
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -48,7 +54,7 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 
 	if err != nil {
 		apio.Error(r.Context(), w, err)
-
+		return
 	}
 
 	validator, ok := prov.Provider.(providers.Validator)
@@ -60,7 +66,56 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 	// the provider implements validation, so try and validate the request
 	res := validator.ValidateGrant(body)
 
-	apio.JSON(r.Context(), w, res, http.StatusOK)
+	validationRes := types.GrantValidationResponse{}
+	var mu sync.Mutex
+	handleResults := func(key string, value providers.GrantValidationStep, logs diagnostics.Logs) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		result := types.GrantValidation{
+			Id: key,
+		}
+
+		if logs.HasSucceeded() {
+			result.Status = types.GrantValidationStatusSUCCESS
+		} else {
+			result.Status = types.GrantValidationStatusERROR
+		}
+
+		for _, l := range logs {
+			result.Logs = append(result.Logs, types.Log{
+				Level: types.LogLevel(l.Level),
+				Msg:   l.Msg,
+			})
+		}
+
+		validationRes.Validation = append(validationRes.Validation, result)
+	}
+	args, err := json.Marshal(b.With)
+	if err != nil {
+		apio.Error(r.Context(), w, err)
+		return
+	}
+
+	g, gctx := errgroup.WithContext(ctx)
+
+	for key, val := range res {
+		k := key
+		v := val
+		g.Go(func() error {
+			logs := v.Run(gctx, string(b.Subject), args)
+			handleResults(k, v, logs)
+			return nil
+		})
+	}
+
+	err = g.Wait()
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, validationRes, http.StatusOK)
 }
 
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {

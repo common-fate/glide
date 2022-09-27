@@ -99,11 +99,11 @@ func (s *Setup) ToAPI() types.ProviderSetup {
 // If any of the validations have failed, the status is changed to VALIDATION_FAILURE
 func (s *Setup) UpdateValidationStatus() {
 	for _, v := range s.ConfigValidation {
-		if v.Status == ahtypes.ERROR {
+		if v.Status == ahtypes.ProviderConfigValidationStatusERROR {
 			s.Status = types.VALIDATIONFAILED
 			return
 		}
-		if v.Status != ahtypes.SUCCESS {
+		if v.Status != ahtypes.ProviderConfigValidationStatusSUCCESS {
 			// if the validation is anything other than success, don't change the status of the setup
 			return
 		}

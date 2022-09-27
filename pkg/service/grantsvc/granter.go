@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/benbjohnson/clock"
 	"github.com/segmentio/ksuid"
@@ -171,14 +170,9 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 		return err
 	}
 
-	b, err := io.ReadAll(res.HTTPResponse.Body)
-	if err != nil {
-		return err
-	}
-
 	if res.JSON200 == nil {
 		//there was an error
-		return fmt.Errorf("error validating grant: %s", b)
+		return fmt.Errorf("error validating grant: %s", res.Body)
 	}
 	return nil
 }
