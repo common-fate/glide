@@ -66,6 +66,7 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 	// the provider implements validation, so try and validate the request
 	res := validator.ValidateGrant(body)
 
+	//Run the internal validations made on the provider
 	validationRes := types.GrantValidationResponse{}
 	var mu sync.Mutex
 	handleResults := func(key string, value providers.GrantValidationStep, logs diagnostics.Logs) {
