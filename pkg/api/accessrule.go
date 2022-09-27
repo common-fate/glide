@@ -196,6 +196,9 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 // (GET /api/v1/access-rules/lookup)
 func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
 	ctx := r.Context()
+
+	logger.Get(ctx).Infow("looking up access rule", "params", params)
+
 	// fetch all active access rules
 	u := auth.UserFromContext(ctx)
 	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
