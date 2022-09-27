@@ -104,6 +104,27 @@ export class CustomerGrantedStack extends cdk.Stack {
       default: "{}",
     });
 
+    const remoteConfigUrl = new CfnParameter(
+      this,
+      "ExperimentalRemoteConfigURL",
+      {
+        type: "String",
+        description:
+          "If provided, sources configuration from an API, rather than deployment parameters.",
+        default: "",
+      }
+    );
+
+    const remoteConfigHeaders = new CfnParameter(
+      this,
+      "ExperimentalRemoteConfigHeaders",
+      {
+        type: "String",
+        description: "Headers to include in the remote config API calls",
+        default: "",
+      }
+    );
+
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -129,6 +150,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       samlMetadataUrl: samlMetadataUrl.valueAsString,
       samlMetadata: samlMetadata.valueAsString,
       devConfig: null,
+      frontendUrl: "https://" + appFrontend.getDomainName(),
     });
 
     const events = new EventBus(this, "EventBus", {
@@ -140,6 +162,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       providerConfig: providerConfig.valueAsString,
+      remoteConfigUrl: remoteConfigUrl.valueAsString,
+      remoteConfigHeaders: remoteConfigHeaders.valueAsString,
     });
 
     const appBackend = new AppBackend(this, "API", {
@@ -155,6 +179,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       providerConfig: providerConfig.valueAsString,
       deploymentSuffix: suffix.valueAsString,
       dynamoTable: db.getTable(),
+      remoteConfigUrl: remoteConfigUrl.valueAsString,
+      remoteConfigHeaders: remoteConfigHeaders.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

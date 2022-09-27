@@ -27,6 +27,8 @@ interface Props {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
+  remoteConfigUrl: string;
+  remoteConfigHeaders: string;
   dynamoTable: dynamodb.Table;
 }
 
@@ -111,6 +113,8 @@ export class AppBackend extends Construct {
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
         ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
@@ -257,6 +261,8 @@ export class AppBackend extends Construct {
       frontendUrl: props.frontendUrl,
       userPool: props.userPool,
       notificationsConfig: props.notificationsConfiguration,
+      remoteConfigUrl: props.remoteConfigUrl,
+      remoteConfigHeaders: props.remoteConfigHeaders,
     });
 
     this._idpSync = new IdpSync(this, "IdpSync", {

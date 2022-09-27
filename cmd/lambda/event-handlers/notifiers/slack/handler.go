@@ -36,36 +36,56 @@ func main() {
 		panic(err)
 	}
 
-	notifier := &slacknotifier.SlackNotifier{
+	h := handler{
+		Log:         log,
 		DB:          db,
 		FrontendURL: cfg.FrontendURL,
 	}
 
-	// @TODO
-	// temporarily while making the switch to using gconfig for settings, I have implemented the slack lambda in this way.
-	// In future, This should instead be implemented with some sort of registry and possibly an interface to send notifications
-	// because slack currently integrates directly with the db it was hard to fit everything into the right interfaces during the initial rework
-	// We will switch to a single notifications lambda which handles all configured notifications channels
+	lambda.Start(h.handleEvent)
+}
+
+type handler struct {
+	Log         *zap.SugaredLogger
+	DB          ddb.Storage
+	FrontendURL string
+}
+
+func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent) error {
+	notifier := &slacknotifier.SlackNotifier{
+		DB:          h.DB,
+		FrontendURL: h.FrontendURL,
+	}
+
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return err
+	}
+
+	// don't cache notification config - re-read it every time the Lambda executes.
+	// This avoids us using stale config if we're reading config from a remote API,
+	// rather than from env vars. This adds latency but this is an async operation
+	// anyway so it doesn't really matter.
+	notificationsConfig, err := dc.ReadNotifications(ctx)
+	if err != nil {
+		return err
+	}
+
 	ncfg := notifier.Config()
-	notificationsConfig, err := deploy.UnmarshalFeatureMap(cfg.NotificationsConfig)
+
+	slackCfg, ok := notificationsConfig[slacknotifier.NotificationsTypeSlack]
+	if !ok {
+		h.Log.Infow("notifications not configured, skipping handling event")
+		return nil
+	}
+
+	err = ncfg.Load(ctx, &gconfig.MapLoader{Values: slackCfg})
 	if err != nil {
 		panic(err)
 	}
-
-	if slackCfg, ok := notificationsConfig[slacknotifier.NotificationsTypeSlack]; ok {
-		err = ncfg.Load(ctx, &gconfig.MapLoader{Values: slackCfg})
-		if err != nil {
-			panic(err)
-		}
-		err = notifier.Init(ctx)
-		if err != nil {
-			panic(err)
-		}
-		lambda.Start(notifier.HandleEvent)
-	} else {
-		lambda.Start(func(ctx context.Context, event events.CloudWatchEvent) (err error) {
-			log.Infow("notifications not configured, skipping handling event")
-			return nil
-		})
+	err = notifier.Init(ctx)
+	if err != nil {
+		panic(err)
 	}
+	return notifier.HandleEvent(ctx, event)
 }

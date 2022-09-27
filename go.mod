@@ -4,8 +4,7 @@ go 1.19
 
 require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
-	github.com/aws/aws-sdk-go v1.44.71
-	github.com/aws/aws-sdk-go-v2 v1.16.12
+	github.com/aws/aws-sdk-go-v2 v1.16.15
 	github.com/aws/aws-sdk-go-v2/config v1.15.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
@@ -16,7 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.6
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10
-	github.com/aws/aws-sdk-go-v2/service/ssm v1.27.7
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0
 	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.15.2
 	github.com/awslabs/aws-lambda-go-api-proxy v0.13.3
 	github.com/bitfield/script v0.20.2
@@ -52,6 +51,7 @@ require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
+	github.com/aws/aws-sdk-go v1.44.71 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 // indirect
@@ -142,15 +142,15 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.11 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.10 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.19 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.13 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.22 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.16 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.11
-	github.com/aws/smithy-go v1.13.0
+	github.com/aws/smithy-go v1.13.3
 	github.com/benbjohnson/clock v1.3.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect

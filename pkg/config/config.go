@@ -21,6 +21,8 @@ type Config struct {
 	IdentitySettings              string `env:"IDENTITY_SETTINGS,default={}"`
 	PaginationKMSKeyARN           string `env:"PAGINATION_KMS_KEY_ARN,required"`
 	AccessHandlerExecutionRoleARN string `env:"ACCESS_HANDLER_EXECUTION_ROLE_ARN,required"`
+	RemoteConfigURL               string `env:"REMOTE_CONFIG_URL"`
+	RemoteConfigHeaders           string `env:"REMOTE_CONFIG_HEADERS"`
 }
 
 type NotificationsConfig struct {
@@ -30,6 +32,8 @@ type NotificationsConfig struct {
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
 	NotificationsConfig string `env:"NOTIFICATIONS_SETTINGS,default={}"`
+	RemoteConfigURL     string `env:"REMOTE_CONFIG_URL"`
+	RemoteConfigHeaders string `env:"REMOTE_CONFIG_HEADERS"`
 }
 
 type EventHandlerConfig struct {

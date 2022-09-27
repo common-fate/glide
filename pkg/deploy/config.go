@@ -153,17 +153,19 @@ func (f FeatureMap) Remove(id string) {
 }
 
 type Parameters struct {
-	CognitoDomainPrefix        string      `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID       string      `yaml:"AdministratorGroupID"`
-	DeploymentSuffix           string      `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType       string      `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata            string      `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL         string      `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain             string      `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN     string      `yaml:"FrontendCertificateARN,omitempty"`
-	ProviderConfiguration      ProviderMap `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration      FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
+	CognitoDomainPrefix             string      `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID            string      `yaml:"AdministratorGroupID"`
+	DeploymentSuffix                string      `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType            string      `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata                 string      `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL              string      `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain                  string      `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN          string      `yaml:"FrontendCertificateARN,omitempty"`
+	ExperimentalRemoteConfigURL     string      `yaml:"ExperimentalRemoteConfigURL,omitempty"`
+	ExperimentalRemoteConfigHeaders string      `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
+	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration           FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration      FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -393,6 +395,19 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("FrontendDomain"),
 			ParameterValue: &p.FrontendDomain,
+		})
+	}
+
+	if c.Deployment.Parameters.ExperimentalRemoteConfigURL != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("ExperimentalRemoteConfigURL"),
+			ParameterValue: &p.ExperimentalRemoteConfigURL,
+		})
+	}
+	if c.Deployment.Parameters.ExperimentalRemoteConfigHeaders != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("ExperimentalRemoteConfigHeaders"),
+			ParameterValue: &p.ExperimentalRemoteConfigHeaders,
 		})
 	}
 

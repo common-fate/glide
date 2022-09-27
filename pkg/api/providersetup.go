@@ -323,7 +323,7 @@ func (a *API) CompleteProvidersetup(w http.ResponseWriter, r *http.Request, prov
 	}
 
 	var res types.CompleteProviderSetupResponse
-	configWriter, ok := a.DeploymentConfig.(deploy.DeployConfigWriter)
+	configWriter, ok := a.DeploymentConfig.(deploy.ProviderWriter)
 	if !ok {
 		// runtime configuration isn't enabled, so the user needs to manually update their granted-deployment.yml file.
 		res.DeploymentConfigUpdateRequired = true

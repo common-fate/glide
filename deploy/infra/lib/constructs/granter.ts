@@ -11,6 +11,8 @@ interface Props {
   eventBus: EventBus;
   providerConfig: string;
   executionRole: iam.Role;
+  remoteConfigUrl: string;
+  remoteConfigHeaders: string;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -28,6 +30,8 @@ export class Granter extends Construct {
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         PROVIDER_CONFIG: props.providerConfig,
+        REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "granter",
