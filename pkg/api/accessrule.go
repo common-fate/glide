@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/common-fate/apikit/apio"
@@ -197,6 +198,11 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
 	ctx := r.Context()
 
+	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
+		// prevent us from panicking with a nil pointer error if one of the required parameters isn't provided.
+		apio.ErrorString(ctx, w, "invalid query params", http.StatusBadRequest)
+	}
+
 	logger.Get(ctx).Infow("looking up access rule", "params", params)
 
 	// fetch all active access rules
@@ -273,7 +279,14 @@ Filterloop:
 				log.Infow("evaluating permission set ARN label", "want", params.PermissionSetArnLabel, "have", q)
 
 				for _, po := range permissionSets {
-					if po.Label == (*params.PermissionSetArnLabel) {
+					// The label is not good to match on, but for our current data structures it's the best we've got.
+					// If the Permission Set has a description, the label looks like:
+					// <RoleName>: <Role Description>
+					//
+					// So we can match it with strings.HasPrefix.
+					// Note: in some cases this could lead to users being presented multiple Access Rules, if
+					// a role name is a superset of another.
+					if strings.HasPrefix(po.Label, *params.PermissionSetArnLabel) {
 						res.AccessRules = append(res.AccessRules, r.ToAPI())
 					}
 				}
