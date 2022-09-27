@@ -651,7 +651,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                   <Button
                     data-testid="approve"
                     isLoading={isSubmitting === "APPROVED"}
-                    isDisabled={isSubmitting === "DECLINED"}
+                    isDisabled={isSubmitting === "DECLINED" || !canReview}
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
                     key={1}
