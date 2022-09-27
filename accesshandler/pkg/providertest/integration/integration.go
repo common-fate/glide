@@ -2,14 +2,18 @@ package integration
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 	"github.com/sethvargo/go-retry"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/sync/errgroup"
 )
 
 // TestCase is a test case for running integration tests.
@@ -85,7 +89,50 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 				if !ok {
 					t.Skip("Provider does not implement providers.Validator")
 				} else {
-					err := v.Validate(ctx, tc.Subject, []byte(tc.Args))
+					// the provider implements validation, so try and validate the request
+					res := v.ValidateGrant([]byte(tc.Args))
+
+					validationRes := types.GrantValidationResponse{}
+					var mu sync.Mutex
+					handleResults := func(key string, value providers.GrantValidationStep, logs diagnostics.Logs) {
+						mu.Lock()
+						defer mu.Unlock()
+
+						result := types.GrantValidation{
+							Id: key,
+						}
+
+						if logs.HasSucceeded() {
+							result.Status = types.GrantValidationStatusSUCCESS
+						} else {
+							result.Status = types.GrantValidationStatusERROR
+						}
+
+						for _, l := range logs {
+							result.Logs = append(result.Logs, types.Log{
+								Level: types.LogLevel(l.Level),
+								Msg:   l.Msg,
+							})
+						}
+
+						validationRes.Validation = append(validationRes.Validation, result)
+					}
+
+					g, gctx := errgroup.WithContext(ctx)
+
+					for key, val := range res {
+						k := key
+						v := val
+						g.Go(func() error {
+							logs := v.Run(gctx, string(tc.Subject), []byte(tc.Args))
+							handleResults(k, v, logs)
+							return nil
+						})
+					}
+
+					err := g.Wait()
+
+					// err := v.Validate(ctx, tc.Subject, []byte(tc.Args))
 					if tc.WantValidationErr == nil {
 						// we shouldn't get any validation errors.
 						assert.NoError(t, err)

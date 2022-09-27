@@ -40,7 +40,7 @@ type GrantValidationStep struct {
 type Validator interface {
 	//todo: use only one of these for implementation and testing
 
-	Validate(ctx context.Context, subject string, args []byte) error
+	//Validate(ctx context.Context, subject string, args []byte) error
 	// Validate arguments and a subject for access without actually granting it.
 
 	ValidateGrant(args []byte) map[string]GrantValidationStep
