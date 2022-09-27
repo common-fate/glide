@@ -2,6 +2,7 @@ package ecsshellsso
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -13,7 +14,6 @@ import (
 	orgtypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"golang.org/x/sync/errgroup"
 )
 
 func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) error {
@@ -30,45 +30,71 @@ func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) er
 
 // Validate the access against AWS SSO without actually granting it.
 // This provider requires that the user name matches the user's email address.
-func (p *Provider) Validate(ctx context.Context, subject string, args []byte) error {
+func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
 
-	// run the validations concurrently, as we need to wait for the API to respond.
-	g := new(errgroup.Group)
+	return map[string]providers.GrantValidationStep{
+		"user-exists-in-aws-sso": {
+			Name: "The user must exist in the AWS SSO instance",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+					IdentityStoreId: aws.String(p.identityStoreID.Get()),
+					Filters: []types.Filter{{
+						AttributePath:  aws.String("UserName"),
+						AttributeValue: aws.String(subject),
+					}},
+				})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				if len(res.Users) == 0 {
+					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
+				}
+				if len(res.Users) > 1 {
+					// this should never happen, but check it anyway.
+					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", len(res.Users)))
+				}
+				return diagnostics.Info("User exists in SSO")
+			},
+		},
+		"account-exists": {
+			Name: "The account should exist",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				err = p.ensureAccountExists(ctx, p.awsAccountID)
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("account does not exist %v", err))
 
-	// the user should exist in AWS SSO.
-	g.Go(func() error {
-		res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
-			IdentityStoreId: aws.String(p.identityStoreID.Get()),
-			Filters: []types.Filter{{
-				AttributePath:  aws.String("UserName"),
-				AttributeValue: aws.String(subject),
-			}},
-		})
-		if err != nil {
-			return err
-		}
-		if len(res.Users) == 0 {
-			return fmt.Errorf("could not find user %s in AWS SSO", subject)
-		}
-		if len(res.Users) > 1 {
-			// this should never happen, but check it anyway.
-			return fmt.Errorf("expected 1 user but found %v", len(res.Users))
-		}
-		return nil
-	})
+				}
+				return diagnostics.Info("account exists")
+			},
+		},
+		"cluster-exists": {
+			Name: "The targeted cluster should exist",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				_, err = p.ecsClient.DescribeClusters(ctx, &ecs.DescribeClustersInput{Clusters: []string{p.ecsClusterARN.Get()}})
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("cluster does not exist %v", err))
 
-	// the account should exist.
-	g.Go(func() error {
-		return p.ensureAccountExists(ctx, p.awsAccountID)
-	})
-
-	//ensure that the ecs cluster exists
-	_, err := p.ecsClient.DescribeClusters(ctx, &ecs.DescribeClustersInput{Clusters: []string{p.ecsClusterARN.Get()}})
-	if err != nil {
-		return err
+				}
+				return diagnostics.Info("cluster exists")
+			},
+		},
 	}
 
-	return g.Wait()
 }
 
 func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {

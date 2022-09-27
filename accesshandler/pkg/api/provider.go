@@ -29,7 +29,7 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 	apio.JSON(r.Context(), w, prov.ToAPI(), http.StatusOK)
 }
 
-// calls a providers internal validate function to check if a grant will work without actually granting access
+// calls a providers internal validate function to check if a grant will succeed without actually granting access
 func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 	prov, ok := config.Providers[providerId]
