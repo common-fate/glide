@@ -223,6 +223,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 	logger.Get(ctx).Infow("found provider", "provider", p, "rules.query", q, "params", params)
 
 	//	filter by params.AccountId
+Filterloop:
 	for _, r := range q.Result {
 		log := logger.Get(ctx).With("rule.id", r.ID)
 		log.Infow("evaluating rule", "rule", r)
@@ -235,7 +236,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
 				if !found {
 					log.Infow("skipped", "reason", "no accountId found")
-					continue // if not found continue
+					continue Filterloop // if not found continue
 				}
 			} else {
 				ruleAccIds = append(ruleAccIds, singleRuleAccId)
@@ -245,19 +246,33 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 				reqAccId := (*params.AccountId)
 				if reqAccId != ruleAccId {
 					log.Infow("skipped", "reason", "reqAccId != ruleAccId", "reqAccId", reqAccId, "ruleAccId", ruleAccId)
-					continue // if not found continue
+					continue Filterloop // if not found continue
 				}
-				// lookup ProviderOptions for given rule and get the
-				q := storage.GetProviderOptions{ProviderID: p.DefaultID}
-				_, err := a.DB.Query(ctx, &q)
-				if err != nil {
-					logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
-					continue
+
+				// lookup ProviderOptions for given rule and get the permission set options
+				q := storage.GetProviderOptions{ProviderID: p.DefaultID, ArgID: "permissionSetArn"}
+
+				var permissionSets []cache.ProviderOption
+				done := false
+				var nextPage string
+				for !done {
+					queryResult, err := a.DB.Query(ctx, &q, ddb.Page(nextPage), ddb.Limit(500))
+					if err != nil {
+						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+						continue Filterloop
+					}
+
+					permissionSets = append(permissionSets, q.Result...)
+
+					nextPage = queryResult.NextPage
+					if nextPage == "" {
+						done = true
+					}
 				}
 
 				log.Infow("evaluating permission set ARN label", "want", params.PermissionSetArnLabel, "have", q)
 
-				for _, po := range q.Result {
+				for _, po := range permissionSets {
 					if po.Label == (*params.PermissionSetArnLabel) {
 						res.AccessRules = append(res.AccessRules, r.ToAPI())
 					}
