@@ -174,6 +174,7 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 		//there was an error
 		return fmt.Errorf("error validating grant: %s", res.Body)
 	}
+
 	return nil
 }
 
