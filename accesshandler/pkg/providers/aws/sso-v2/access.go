@@ -253,7 +253,9 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 
 	i := "# Browser\n"
-	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
+	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s).\n\n", url)
+	i += fmt.Sprintf("* Account ID: _%s_\n", a.AccountID)
+	i += fmt.Sprintf("* Role: _%s_\n\n", *po.PermissionSet.Name)
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
