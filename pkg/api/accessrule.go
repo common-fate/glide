@@ -226,13 +226,11 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 		apio.Error(ctx, w, err)
 	}
 
-	logger.Get(ctx).Infow("found provider", "provider", p, "rules.query", q, "params", params)
+	logger.Get(ctx).Infow("found provider", "provider")
 
 	//	filter by params.AccountId
 Filterloop:
 	for _, r := range q.Result {
-		log := logger.Get(ctx).With("rule.id", r.ID)
-		log.Infow("evaluating rule", "rule", r)
 		switch p.DefaultID {
 		case "aws-sso-v2":
 			// we must support string and []string for With/WithSelectable
@@ -241,7 +239,6 @@ Filterloop:
 			if !found {
 				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
 				if !found {
-					log.Infow("skipped", "reason", "no accountId found")
 					continue Filterloop // if not found continue
 				}
 			} else {
@@ -251,7 +248,6 @@ Filterloop:
 			for _, ruleAccId := range ruleAccIds {
 				reqAccId := (*params.AccountId)
 				if reqAccId != ruleAccId {
-					log.Infow("skipped", "reason", "reqAccId != ruleAccId", "reqAccId", reqAccId, "ruleAccId", ruleAccId)
 					continue Filterloop // if not found continue
 				}
 
@@ -275,8 +271,6 @@ Filterloop:
 						done = true
 					}
 				}
-
-				log.Infow("evaluating permission set ARN label", "want", params.PermissionSetArnLabel, "have", q)
 
 				for _, po := range permissionSets {
 					// The label is not good to match on, but for our current data structures it's the best we've got.
