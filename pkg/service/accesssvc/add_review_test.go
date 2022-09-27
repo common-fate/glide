@@ -258,7 +258,6 @@ func TestAddReview(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := mocks.NewMockGranter(ctrl)
 			g.EXPECT().CreateGrant(gomock.Any(), gomock.Eq(tc.wantCreateGrantOpts)).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
-			// g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.err).AnyTimes()
 
 			ctrl2 := gomock.NewController(t)
 			ep := mocks.NewMockEventPutter(ctrl2)
