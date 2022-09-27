@@ -54,7 +54,7 @@ var CreateCommand = cli.Command{
   3) visit the Providers tab in the admin dashboard and setup your first Access Provider using the interactive workflows
 
 
-Check out the next steps in our getting started guide for more information: https://docs.comonfate.io/granted-approvals/getting-started/deploying
+Check out the next steps in our getting started guide for more information: https://docs.commonfate.io/granted-approvals/getting-started/deploying
 `)
 		} else {
 			clio.Warn("Creating your Granted deployment failed with a final status: %s", status)
