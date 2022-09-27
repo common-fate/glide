@@ -224,8 +224,8 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 
 	//	filter by params.AccountId
 	for _, r := range q.Result {
-		log := logger.Get(ctx).With("rule", r)
-		log.Info("evaluating rule")
+		log := logger.Get(ctx).With("rule.id", r.ID)
+		log.Infow("evaluating rule", "rule", r)
 		switch p.DefaultID {
 		case "aws-sso-v2":
 			// we must support string and []string for With/WithSelectable
@@ -234,7 +234,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 			if !found {
 				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
 				if !found {
-					log.Info("skipped", "reason", "no accountId found")
+					log.Infow("skipped", "reason", "no accountId found")
 					continue // if not found continue
 				}
 			} else {
@@ -244,7 +244,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 			for _, ruleAccId := range ruleAccIds {
 				reqAccId := (*params.AccountId)
 				if reqAccId != ruleAccId {
-					log.Info("skipped", "reason", "reqAccId != ruleAccId", "reqAccId", reqAccId, "ruleAccId", ruleAccId)
+					log.Infow("skipped", "reason", "reqAccId != ruleAccId", "reqAccId", reqAccId, "ruleAccId", ruleAccId)
 					continue // if not found continue
 				}
 				// lookup ProviderOptions for given rule and get the
@@ -255,7 +255,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 					continue
 				}
 
-				log.Info("evaluating permission set ARN label", "want", params.PermissionSetArnLabel, "have", q)
+				log.Infow("evaluating permission set ARN label", "want", params.PermissionSetArnLabel, "have", q)
 
 				for _, po := range q.Result {
 					if po.Label == (*params.PermissionSetArnLabel) {
