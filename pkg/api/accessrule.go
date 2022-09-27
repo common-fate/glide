@@ -226,7 +226,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 		apio.Error(ctx, w, err)
 	}
 
-	logger.Get(ctx).Infow("found provider", "provider")
+	logger.Get(ctx).Infow("found provider", "provider", p)
 
 	//	filter by params.AccountId
 Filterloop:
