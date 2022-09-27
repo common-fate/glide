@@ -259,11 +259,11 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
         <Center my={6}>
           <APIPagination paginator={paginator} {...instance} />
         </Center>
-      ) : (
+      ) : instance.data.length > 10 ? (
         <Center my={6}>
           <Pagination {...instance} />
         </Center>
-      )}
+      ) : null}
     </Box>
   );
 };

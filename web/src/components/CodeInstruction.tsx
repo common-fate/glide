@@ -28,7 +28,7 @@ export const CFCode: React.FC<CProps> = (props) => {
   );
 };
 export const CodeInstruction: React.FC<CodeProps> = (props) => {
-  const { children, node } = props;
+  const { children, node, ...rest } = props;
   let value = "";
   if (
     node &&
@@ -54,6 +54,7 @@ export const CodeInstruction: React.FC<CodeProps> = (props) => {
         borderRadius="8px"
         borderColor="neutrals.300"
         borderWidth="1px"
+        {...rest}
       >
         <Flex
           borderColor="neutrals.300"
