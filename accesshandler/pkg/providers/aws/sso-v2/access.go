@@ -22,67 +22,68 @@ type Args struct {
 
 // Grant the access by calling the AWS SSO API.
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {
-	var a Args
-	err := json.Unmarshal(args, &a)
-	if err != nil {
-		return err
-	}
+	return fmt.Errorf("testing")
+	// var a Args
+	// err := json.Unmarshal(args, &a)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// ensure that the account exists in the organization. If it doesn't, calling CreateAccountAssignment
-	// will silently fail without returning an error.
-	err = p.ensureAccountExists(ctx, a.AccountID)
-	if err != nil {
-		return err
-	}
+	// // ensure that the account exists in the organization. If it doesn't, calling CreateAccountAssignment
+	// // will silently fail without returning an error.
+	// err = p.ensureAccountExists(ctx, a.AccountID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// find the user ID from the provided email address.
-	user, err := p.getUser(ctx, subject)
-	if err != nil {
-		return err
-	}
+	// // find the user ID from the provided email address.
+	// user, err := p.getUser(ctx, subject)
+	// if err != nil {
+	// 	return err
+	// }
 
-	res, err := p.client.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
-		InstanceArn:      aws.String(p.instanceARN.Get()),
-		PermissionSetArn: &a.PermissionSetARN,
-		PrincipalType:    types.PrincipalTypeUser,
-		PrincipalId:      user.UserId,
-		TargetId:         &a.AccountID,
-		TargetType:       types.TargetTypeAwsAccount,
-	})
-	if err != nil {
-		return err
-	}
+	// res, err := p.client.CreateAccountAssignment(ctx, &ssoadmin.CreateAccountAssignmentInput{
+	// 	InstanceArn:      aws.String(p.instanceARN.Get()),
+	// 	PermissionSetArn: &a.PermissionSetARN,
+	// 	PrincipalType:    types.PrincipalTypeUser,
+	// 	PrincipalId:      user.UserId,
+	// 	TargetId:         &a.AccountID,
+	// 	TargetType:       types.TargetTypeAwsAccount,
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
-	if res.AccountAssignmentCreationStatus.FailureReason != nil {
-		return fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
-	}
+	// if res.AccountAssignmentCreationStatus.FailureReason != nil {
+	// 	return fmt.Errorf("failed creating account assignment: %s", *res.AccountAssignmentCreationStatus.FailureReason)
+	// }
 
-	// poll the assignment api to check for success
-	b := retry.NewFibonacci(time.Second)
-	b = retry.WithMaxDuration(time.Minute*2, b)
-	var statusRes *ssoadmin.DescribeAccountAssignmentCreationStatusOutput
-	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
-		statusRes, err = p.client.DescribeAccountAssignmentCreationStatus(ctx, &ssoadmin.DescribeAccountAssignmentCreationStatusInput{
-			AccountAssignmentCreationRequestId: res.AccountAssignmentCreationStatus.RequestId,
-			InstanceArn:                        aws.String(p.instanceARN.Get()),
-		})
-		if err != nil {
-			return retry.RetryableError(err)
-		}
-		if statusRes.AccountAssignmentCreationStatus.Status == "IN_PROGRESS" {
-			return retry.RetryableError(errors.New("still in progress"))
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	// if the assignment was not successful, return the error and reason
-	if statusRes.AccountAssignmentCreationStatus.FailureReason != nil {
-		return fmt.Errorf("failed creating account assignment: %s", *statusRes.AccountAssignmentCreationStatus.FailureReason)
-	}
+	// // poll the assignment api to check for success
+	// b := retry.NewFibonacci(time.Second)
+	// b = retry.WithMaxDuration(time.Minute*2, b)
+	// var statusRes *ssoadmin.DescribeAccountAssignmentCreationStatusOutput
+	// err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+	// 	statusRes, err = p.client.DescribeAccountAssignmentCreationStatus(ctx, &ssoadmin.DescribeAccountAssignmentCreationStatusInput{
+	// 		AccountAssignmentCreationRequestId: res.AccountAssignmentCreationStatus.RequestId,
+	// 		InstanceArn:                        aws.String(p.instanceARN.Get()),
+	// 	})
+	// 	if err != nil {
+	// 		return retry.RetryableError(err)
+	// 	}
+	// 	if statusRes.AccountAssignmentCreationStatus.Status == "IN_PROGRESS" {
+	// 		return retry.RetryableError(errors.New("still in progress"))
+	// 	}
+	// 	return nil
+	// })
+	// if err != nil {
+	// 	return err
+	// }
+	// // if the assignment was not successful, return the error and reason
+	// if statusRes.AccountAssignmentCreationStatus.FailureReason != nil {
+	// 	return fmt.Errorf("failed creating account assignment: %s", *statusRes.AccountAssignmentCreationStatus.FailureReason)
+	// }
 
-	return nil
+	// return nil
 }
 
 // Revoke the access by calling the AWS SSO API.
