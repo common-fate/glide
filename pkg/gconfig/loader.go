@@ -29,7 +29,9 @@ var secretGetterRegistry = map[string]SecretGetter{
 //
 // It's useful for writing tests which use genv to configure things.
 type MapLoader struct {
-	Values map[string]string
+	// Set this to true to skip loading secrets
+	SkipLoadingSecrets bool
+	Values             map[string]string
 }
 
 // Under the hood, this just uses the json loader so we get all the SSM loading capability
@@ -38,7 +40,7 @@ func (l *MapLoader) Load(ctx context.Context) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return JSONLoader{Data: b}.Load(ctx)
+	return JSONLoader{Data: b, SkipLoadingSecrets: l.SkipLoadingSecrets}.Load(ctx)
 }
 
 // JSONLoader loads configuration from a serialized JSON payload
@@ -46,7 +48,9 @@ func (l *MapLoader) Load(ctx context.Context) (map[string]string, error) {
 // if any values are prefixed with one of teh known prefixes, there are further processed
 // e.g values prefixed with "awsssm://" will be treated as an ssm parameter and will be fetched via the aws SDK
 type JSONLoader struct {
-	Data []byte
+	// Set this to true to skip loading secrets
+	SkipLoadingSecrets bool
+	Data               []byte
 }
 
 func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
@@ -62,27 +66,29 @@ func (l JSONLoader) Load(ctx context.Context) (map[string]string, error) {
 	g, gctx := errgroup.WithContext(ctx)
 	// After unmarshalling the json, check for any value which match a secret getter
 	// if it does, get the secret value
-	for k, v := range res {
-		for getterKey, getter := range secretGetterRegistry {
-			if strings.HasPrefix(v, getterKey) {
-				// important: we need to copy the key and value in this closure,
-				// otherwise 'k' and 'v' will change to the next loop iteration
-				// while we're loading the value
-				name := strings.TrimPrefix(v, getterKey)
-				key := k
-				g.Go(func() error {
-					value, err := getter.GetSecret(gctx, name)
-					if err != nil {
-						return err
-					}
-					// lock the mutex to ensure we're safe to write to the map
-					// without other Goroutines writing over us.
-					mu.Lock()
-					defer mu.Unlock()
-					res[key] = value
-					return nil
-				})
-				continue
+	if !l.SkipLoadingSecrets {
+		for k, v := range res {
+			for getterKey, getter := range secretGetterRegistry {
+				if strings.HasPrefix(v, getterKey) {
+					// important: we need to copy the key and value in this closure,
+					// otherwise 'k' and 'v' will change to the next loop iteration
+					// while we're loading the value
+					name := strings.TrimPrefix(v, getterKey)
+					key := k
+					g.Go(func() error {
+						value, err := getter.GetSecret(gctx, name)
+						if err != nil {
+							return err
+						}
+						// lock the mutex to ensure we're safe to write to the map
+						// without other Goroutines writing over us.
+						mu.Lock()
+						defer mu.Unlock()
+						res[key] = value
+						return nil
+					})
+					continue
+				}
 			}
 		}
 	}

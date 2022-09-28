@@ -3,6 +3,8 @@ package okta
 import (
 	"context"
 	"encoding/json"
+	"net/url"
+	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
@@ -67,12 +69,28 @@ func (p *Provider) TestConfig(ctx context.Context) error {
 	}
 	return nil
 }
-
+func validateOktaURL(orgURL string) error {
+	u, err := url.Parse(orgURL)
+	if err != nil {
+		return err
+	}
+	if u.Scheme != "https" {
+		return errors.New("okta Organization URL must use https scheme")
+	}
+	if !strings.HasSuffix(u.Host, "okta.com") {
+		return errors.New("okta Organization URL must use the okta.com host. For security, if you use a custom domain for your Okta instance you need to configure the okta provider directly via the gdeploy CLI.")
+	}
+	return nil
+}
 func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 	return map[string]providers.ConfigValidationStep{
 		"list-users": {
 			Name: "List Okta users",
 			Run: func(ctx context.Context) diagnostics.Logs {
+				err := validateOktaURL(p.orgURL.Value)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
 				u, _, err := p.client.User.ListUsers(ctx, &query.Params{})
 				if err != nil {
 					return diagnostics.Error(err)
@@ -83,6 +101,10 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 		"list-groups": {
 			Name: "List Okta groups",
 			Run: func(ctx context.Context) diagnostics.Logs {
+				err := validateOktaURL(p.orgURL.Value)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
 				g, _, err := p.client.Group.ListGroups(ctx, &query.Params{})
 				if err != nil {
 					return diagnostics.Error(err)

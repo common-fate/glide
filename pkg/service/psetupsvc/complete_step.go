@@ -66,7 +66,9 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 	}
 
 	// load the current values into this config
-	err = cfg.Load(ctx, &gconfig.MapLoader{Values: setup.ConfigValues})
+	// Skip secrets is set to true because we never need to read the value of a secret in this context.
+	// If a value is provided for a secret it will be updated
+	err = cfg.Load(ctx, &gconfig.MapLoader{Values: setup.ConfigValues, SkipLoadingSecrets: true})
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +82,7 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 
 		// any secret starting with 'awsssm://' is assumed to be an existing reference
 		// to a secret and is not set.
-		if strings.HasPrefix(value, "awsssm://") {
+		if f.IsSecret() && strings.HasPrefix(value, "awsssm://") {
 			continue
 		}
 
