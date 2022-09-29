@@ -15,10 +15,14 @@ import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 
+export type AccessRuleFormDataTarget = {
+  // with test is used for string fields that are user inputs rather than a select from options
+  withText?: { [key: string]: string };
+} & CreateAccessRuleTarget;
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
   // with text is used for single text fields
-  target: { withText?: { [key: string]: string } } & CreateAccessRuleTarget;
+  target: AccessRuleFormDataTarget;
 }
 
 const CreateAccessRuleForm = () => {

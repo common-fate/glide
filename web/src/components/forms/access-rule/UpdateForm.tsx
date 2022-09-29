@@ -18,7 +18,7 @@ import {
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
-import { useMatch, useNavigate, useRouter } from "react-location";
+import { useMatch, useNavigate } from "react-location";
 import {
   adminUpdateAccessRule,
   useAdminGetAccessRule,
@@ -26,23 +26,22 @@ import {
 import { adminArchiveAccessRule } from "../../../utils/backend-client/default/default";
 import {
   AccessRuleDetail,
-  UpdateAccessRuleRequestBody,
+  CreateAccessRuleRequestBody,
 } from "../../../utils/backend-client/types";
-import { ProviderPreviewOnlyStep } from "./components/ProviderPreview";
-import { AccessRuleFormData } from "./CreateForm";
+import { AccessRuleFormData, AccessRuleFormDataTarget } from "./CreateForm";
 
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
+import { ProviderStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
-
 interface Props {
   data: AccessRuleDetail;
   readOnly?: boolean;
 }
 
-const EditAccessRuleForm = ({ data, readOnly }: Props) => {
+const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const {
     params: { id: ruleId },
   } = useMatch();
@@ -64,6 +63,21 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
     if (data && (!cachedRule || cachedRule != data)) {
+      const t: AccessRuleFormDataTarget = {
+        providerId: data.target.provider.id,
+        with: {},
+        withText: {},
+      };
+
+      for (const k in data.target.with) {
+        t.with[k] = [data.target.with[k]];
+        // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
+        t.withText![k] = data.target.with[k];
+      }
+      for (const k in data.target.withSelectable) {
+        t.with[k] = data.target.withSelectable[k];
+      }
+
       const f: AccessRuleFormData = {
         description: data.description,
         groups: data.groups,
@@ -77,6 +91,7 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
           users: data.approval.users,
           groups: data.approval.groups,
         },
+        target: t,
       };
       methods.reset(f);
       setCachedRule(data);
@@ -89,9 +104,19 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
 
-    const { approval, ...d } = data;
-    const ruleData: UpdateAccessRuleRequestBody = {
+    const { approval, target, ...d } = data;
+    const t = {
+      providerId: target.providerId,
+      with: {
+        ...target?.with,
+      },
+    };
+    for (const k in target.withText) {
+      t.with[k] = [target.withText[k]];
+    }
+    const ruleData: CreateAccessRuleRequestBody = {
       approval: { users: [], groups: [] },
+      target: t,
       ...d,
     };
     // only apply these fields if approval is enabled
@@ -179,9 +204,9 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <VStack w="100%" spacing={6}>
-            <ProviderPreviewOnlyStep target={data.target} />
             <StepsProvider isEditMode={!readOnly} isReadOnly={readOnly}>
               <GeneralStep />
+              <ProviderStep />
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />
@@ -251,4 +276,4 @@ const BottomActionButtons: React.FC<{ rule: AccessRuleDetail }> = ({
     </ButtonGroup>
   );
 };
-export default EditAccessRuleForm;
+export default UpdateAccessRuleForm;
