@@ -85,7 +85,7 @@ func TestRequestMarshalDDB(t *testing.T) {
 			want: `{"PK":"ACCESS_REQUEST#","SK":"req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI1PK":"ACCESS_REQUEST#user","GSI1SK":"req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI2PK":"ACCESS_REQUEST#APPROVED","GSI2SK":"user#req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI3PK":"ACCESS_REQUEST#user","GSI3SK":"2022-01-01T10:01:00Z","GSI4PK":"ACCESS_REQUEST#user#rul_123","GSI4SK":"2022-01-01T10:01:00Z"}`,
 		},
 		{
-			name: "error grant in the past",
+			name: "error'd grant end time in the past",
 			give: Request{
 				ID:          "req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J",
 				RequestedBy: "user",
