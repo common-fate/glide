@@ -196,10 +196,13 @@ func (r *Request) DDBKeys() (ddb.Keys, error) {
 	// - PENDING asap requests should have MAXIMUM endtime
 	// - Declined and Cancelled requests should have an end time = createdAt so they get a somewhat natural order in the results
 	// - REVOKED grants should have end time = created at
+	// - ERROR grants should have end times = created at
 	end := r.CreatedAt
 	if r.Status == APPROVED || r.Status == PENDING {
 		if r.Grant != nil {
-			if r.Grant.Status != ac_types.GrantStatusREVOKED {
+			//any grant status other than revoked or error should be equal to grant.end.
+			//this is to make sure the error and revoke grants are pushed to the past column in the frontend
+			if !(r.Grant.Status == ac_types.GrantStatusREVOKED || r.Grant.Status == ac_types.GrantStatusERROR) {
 				end = r.Grant.End
 			}
 		} else if r.IsScheduled() {
