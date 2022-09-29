@@ -720,8 +720,8 @@ export const RequestCancelButton: React.FC = () => {
     <ButtonGroup variant="outline" size="sm">
       {!request && <Skeleton rounded="full" w="64px" h="32px" />}
       {/* allow to cancel requests if the grant has not been created yet */}
-      {(request?.status === "PENDING" && request.grant?.status == "PENDING") ||
-        (request?.grant == undefined && (
+      {((request?.status === "PENDING" && request.grant?.status == "PENDING") ||
+        (request?.grant == undefined) && (
           <Button rounded="full" onClick={handleCancel}>
             Cancel
           </Button>
