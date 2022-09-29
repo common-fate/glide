@@ -30,6 +30,7 @@ interface Props {
 }
 
 interface ProdCdnConfig {
+  wafAclArn?: string;
   frontendDomain: string;
   frontendCertificateArn: string;
 }
@@ -66,9 +67,11 @@ export class AppFrontend extends Construct {
   //distributionConfig requires that withFrontendBucket has run which should be called by withProdCDN or withDevCDN
   private distributionConfig(opts: {
     logBucket?: Bucket;
+    wafAclArn?: string;
   }): cdk.aws_cloudfront.DistributionProps {
     const defaultErrorResponseTTLSeconds = 10;
     return {
+      webAclId: opts.wafAclArn,
       domainNames: this._domain ? [this._domain.domainName] : undefined,
       certificate: this._domain ? this._domain.certificate : undefined,
       defaultBehavior: {
@@ -131,7 +134,10 @@ export class AppFrontend extends Construct {
     this._distribution = new cloudfront.Distribution(
       this,
       "CloudfrontDistribution",
-      this.distributionConfig({ logBucket: accessLogBucket })
+      this.distributionConfig({
+        logBucket: accessLogBucket,
+        wafAclArn: config.wafAclArn,
+      })
     );
 
     const cfnDist = this._distribution.node.defaultChild as CfnDistribution;
@@ -169,7 +175,8 @@ export class AppFrontend extends Construct {
   //withDevCDN does not use any existing domains
   withDevCDN(
     stage: string,
-    devConfig: DevEnvironmentConfig | null
+    devConfig: DevEnvironmentConfig | null,
+    wafAclArn?: string
   ): AppFrontend {
     if (devConfig !== null) {
       const domainName = `${stage}.${devConfig.domainName}`;
@@ -192,7 +199,7 @@ export class AppFrontend extends Construct {
     this._distribution = new cloudfront.Distribution(
       this,
       "CloudfrontDistribution",
-      this.distributionConfig({})
+      this.distributionConfig({ wafAclArn: wafAclArn })
     );
 
     return this;

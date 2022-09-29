@@ -14,6 +14,7 @@ import { EventHandler } from "./event-handler";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
+import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 
 interface Props {
   appName: string;
@@ -30,6 +31,7 @@ interface Props {
   remoteConfigUrl: string;
   remoteConfigHeaders: string;
   dynamoTable: dynamodb.Table;
+  wafAclArn: string;
 }
 
 export class AppBackend extends Construct {
@@ -111,7 +113,8 @@ export class AppBackend extends Construct {
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        ACCESS_HANDLER_EXECUTION_ROLE_ARN:
+          props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         REMOTE_CONFIG_URL: props.remoteConfigUrl,
         REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
