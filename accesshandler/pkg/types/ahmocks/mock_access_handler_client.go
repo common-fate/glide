@@ -277,10 +277,10 @@ func (mr *MockClientWithResponsesInterfaceMockRecorder) RefreshAccessProvidersWi
 }
 
 // ValidateRequestToProviderWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithBodyWithResponse(arg0 context.Context, arg1, arg2 string, arg3 io.Reader, arg4 ...types.RequestEditorFn) (*types.ValidateRequestToProviderResponse, error) {
+func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...types.RequestEditorFn) (*types.ValidateRequestToProviderResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ValidateRequestToProviderWithBodyWithResponse", varargs...)
@@ -290,17 +290,17 @@ func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithBodyWith
 }
 
 // ValidateRequestToProviderWithBodyWithResponse indicates an expected call of ValidateRequestToProviderWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ValidateRequestToProviderWithBodyWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ValidateRequestToProviderWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateRequestToProviderWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ValidateRequestToProviderWithBodyWithResponse), varargs...)
 }
 
 // ValidateRequestToProviderWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithResponse(arg0 context.Context, arg1 string, arg2 types.CreateGrant, arg3 ...types.RequestEditorFn) (*types.ValidateRequestToProviderResponse, error) {
+func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithResponse(arg0 context.Context, arg1 types.CreateGrant, arg2 ...types.RequestEditorFn) (*types.ValidateRequestToProviderResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "ValidateRequestToProviderWithResponse", varargs...)
@@ -310,9 +310,9 @@ func (m *MockClientWithResponsesInterface) ValidateRequestToProviderWithResponse
 }
 
 // ValidateRequestToProviderWithResponse indicates an expected call of ValidateRequestToProviderWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) ValidateRequestToProviderWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+func (mr *MockClientWithResponsesInterfaceMockRecorder) ValidateRequestToProviderWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateRequestToProviderWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).ValidateRequestToProviderWithResponse), varargs...)
 }
 

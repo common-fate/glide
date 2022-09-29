@@ -160,7 +160,7 @@ func (g *Granter) validateGrant(ctx context.Context, opts CreateGrantOpts, user 
 		req.With.AdditionalProperties[k] = v.Value
 	}
 
-	res, err := g.AHClient.ValidateRequestToProviderWithResponse(ctx, opts.AccessRule.Target.ProviderID, req)
+	res, err := g.AHClient.ValidateRequestToProviderWithResponse(ctx, req)
 	if err != nil {
 		return err
 	}

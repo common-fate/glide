@@ -30,16 +30,8 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 }
 
 // calls a providers internal validate function to check if a grant will succeed without actually granting access
-func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, providerId string) {
+func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	prov, ok := config.Providers[providerId]
-
-	if !ok {
-
-		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
-
-		return
-	}
 
 	var b types.CreateGrant
 
@@ -54,6 +46,15 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request, 
 
 	if err != nil {
 		apio.Error(r.Context(), w, err)
+		return
+	}
+
+	prov, ok := config.Providers[b.Provider]
+
+	if !ok {
+
+		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: b.Provider}, http.StatusNotFound))
+
 		return
 	}
 
