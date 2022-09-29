@@ -15,7 +15,7 @@ import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 
-export interface CreateAccessRuleFormData extends CreateAccessRuleRequestBody {
+export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
   // with text is used for single text fields
   target: { withText?: { [key: string]: string } } & CreateAccessRuleTarget;
@@ -27,8 +27,8 @@ const CreateAccessRuleForm = () => {
   const toast = useToast();
   //  Should unregister controls how the form will persist data if a component is unmounted
   // we use this to ensure that data for selected and then deselected providers is not included.
-  const methods = useForm<CreateAccessRuleFormData>({ shouldUnregister: true });
-  const onSubmit = async (data: CreateAccessRuleFormData) => {
+  const methods = useForm<AccessRuleFormData>({ shouldUnregister: true });
+  const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data", { data });
 
     const { approval, timeConstraints, target, ...d } = data;

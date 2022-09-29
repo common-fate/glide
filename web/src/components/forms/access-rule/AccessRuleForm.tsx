@@ -29,16 +29,13 @@ import {
   UpdateAccessRuleRequestBody,
 } from "../../../utils/backend-client/types";
 import { ProviderPreviewOnlyStep } from "./components/ProviderPreview";
+import { AccessRuleFormData } from "./CreateForm";
 
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
-
-interface FormData extends UpdateAccessRuleRequestBody {
-  approval: { required: boolean; users: string[]; groups: string[] };
-}
 
 interface Props {
   data: AccessRuleDetail;
@@ -55,7 +52,7 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
   const toast = useToast();
   // const ruleId = typeof query?.id == "string" ? query.id : "";
   // we use this to ensure that data for selected and then deselected providers is not included.
-  const methods = useForm<FormData>({
+  const methods = useForm<AccessRuleFormData>({
     shouldUnregister: true,
   });
 
@@ -67,7 +64,7 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
     if (data && (!cachedRule || cachedRule != data)) {
-      const f: FormData = {
+      const f: AccessRuleFormData = {
         description: data.description,
         groups: data.groups,
         name: data.name,
@@ -89,7 +86,7 @@ const EditAccessRuleForm = ({ data, readOnly }: Props) => {
     };
   }, [data, methods]);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
 
     const { approval, ...d } = data;
