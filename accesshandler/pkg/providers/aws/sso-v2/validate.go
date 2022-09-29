@@ -38,7 +38,8 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 				if err != nil {
 					return diagnostics.Error(err)
 				}
-				if len(res.Users) == 0 {
+				//todo: change this back for testing
+				if len(res.Users) != 0 {
 					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
 				}
 				if len(res.Users) > 1 {

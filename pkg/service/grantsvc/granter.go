@@ -2,6 +2,7 @@ package grantsvc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -138,14 +139,8 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 }
 
 // validate grant runs all the checks that will need to occur when creating a real grant to validate its success
-func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error {
-	q := &storage.GetUser{
-		ID: opts.Request.RequestedBy,
-	}
-	_, err := g.DB.Query(ctx, q)
-	if err != nil {
-		return err
-	}
+func (g *Granter) validateGrant(ctx context.Context, opts CreateGrantOpts, user *storage.GetUser) error {
+
 	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
 
 	req := ahTypes.ValidateRequestToProviderJSONRequestBody{
@@ -154,7 +149,7 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 		With: ahTypes.CreateGrant_With{
 			AdditionalProperties: make(map[string]string),
 		},
-		Subject: openapi_types.Email(q.Result.Email),
+		Subject: openapi_types.Email(user.Result.Email),
 		Start:   iso8601.New(start),
 		End:     iso8601.New(end),
 	}
@@ -171,8 +166,20 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 	}
 
 	if res.JSON200 == nil {
-		//there was an error
+		//there was an error, handle it
 		return fmt.Errorf("error validating grant: %s", res.Body)
+	} else {
+		var respBody ahTypes.GrantValidationResponse
+		err := json.Unmarshal(res.Body, &respBody)
+		if err != nil {
+			return err
+		}
+		for _, r := range respBody.Validation {
+
+			if r.Status == ahTypes.GrantValidationStatusERROR {
+				return GrantValidationError{Validation: r}
+			}
+		}
 	}
 
 	return nil
@@ -190,7 +197,7 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 	}
 
 	//validate the request against the access handler - make sure that access will be able to be provisioned
-	err = g.ValidateGrant(ctx, CreateGrantOpts{Request: opts.Request, AccessRule: opts.AccessRule})
+	err = g.validateGrant(ctx, opts, q)
 
 	if err != nil {
 		return nil, err

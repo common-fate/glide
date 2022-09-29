@@ -213,6 +213,10 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	// create the request. The RequestCreator handles the validation
 	// and saving the request to the database.
 	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
+	if _, ok := err.(grantsvc.GrantValidationError); ok {
+		apio.JSON(ctx, w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if err == accesssvc.ErrNoMatchingGroup {
 		// the user isn't authorized to make requests on this rule.
 		err = apio.NewRequestError(err, http.StatusUnauthorized)

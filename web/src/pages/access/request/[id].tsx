@@ -145,6 +145,7 @@ const Home = () => {
     }
     await userCreateRequest(r)
       .then(() => {
+        
         toast({
           title: "Request created",
           status: "success",
@@ -154,6 +155,7 @@ const Home = () => {
         navigate({ to: "/requests" });
       })
       .catch((e) => {
+        console.log(e)
         toast({
           title: "Request failed",
           status: "error",
