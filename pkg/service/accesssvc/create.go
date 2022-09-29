@@ -54,6 +54,13 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		return nil, err
 	}
 
+	//validate the request against the access handler - make sure that access will be able to be provisioned
+	err = s.Granter.ValidateGrant(ctx, opts, q)
+
+	if err != nil {
+		return nil, err
+	}
+
 	// the request is valid, so create it.
 	req := access.Request{
 		ID:          types.NewRequestID(),

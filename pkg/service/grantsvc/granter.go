@@ -139,7 +139,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 }
 
 // validate grant runs all the checks that will need to occur when creating a real grant to validate its success
-func (g *Granter) validateGrant(ctx context.Context, opts CreateGrantOpts, user *storage.GetUser) error {
+func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts, user *storage.GetUser) error {
 
 	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
 
@@ -192,13 +192,6 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 		ID: opts.Request.RequestedBy,
 	}
 	_, err := g.DB.Query(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-
-	//validate the request against the access handler - make sure that access will be able to be provisioned
-	err = g.validateGrant(ctx, opts, q)
-
 	if err != nil {
 		return nil, err
 	}

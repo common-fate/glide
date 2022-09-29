@@ -214,7 +214,7 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	// and saving the request to the database.
 	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
 	if _, ok := err.(grantsvc.GrantValidationError); ok {
-		apio.JSON(ctx, w, err.Error(), http.StatusInternalServerError)
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("grant validation failed"), Status: http.StatusNotFound})
 		return
 	}
 	if err == accesssvc.ErrNoMatchingGroup {
