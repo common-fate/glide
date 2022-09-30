@@ -235,25 +235,18 @@ Filterloop:
 		case "aws-sso-v2":
 			// we must support string and []string for With/WithSelectable
 			ruleAccIds := []string{}
-			singleRuleAccId, found := r.Target.ToAPI().With.Get("accountId")
-			if !found {
-				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
-				if !found {
+			singleRuleAccId, ok := r.Target.With["accountId"]
+			if !ok {
+				ruleAccIds, ok = r.Target.WithSelectable["accountId"]
+				if !ok {
 					continue Filterloop // if not found continue
 				}
 			} else {
 				ruleAccIds = append(ruleAccIds, singleRuleAccId)
 			}
-
-			for _, ruleAccId := range ruleAccIds {
-				reqAccId := (*params.AccountId)
-				if reqAccId != ruleAccId {
-					continue Filterloop // if not found continue
-				}
-
+			if contains(ruleAccIds, *params.AccountId) {
 				// lookup ProviderOptions for given rule and get the permission set options
 				q := storage.GetProviderOptions{ProviderID: p.DefaultID, ArgID: "permissionSetArn"}
-
 				var permissionSets []cache.ProviderOption
 				done := false
 				var nextPage string
@@ -263,15 +256,12 @@ Filterloop:
 						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
 						continue Filterloop
 					}
-
 					permissionSets = append(permissionSets, q.Result...)
-
 					nextPage = queryResult.NextPage
 					if nextPage == "" {
 						done = true
 					}
 				}
-
 				for _, po := range permissionSets {
 					// The label is not good to match on, but for our current data structures it's the best we've got.
 					// If the Permission Set has a description, the label looks like:
@@ -287,8 +277,18 @@ Filterloop:
 			}
 		}
 	}
-
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// contains is a helper function to check if a string slice
+// contains a particular string.
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 // List Access Rules
