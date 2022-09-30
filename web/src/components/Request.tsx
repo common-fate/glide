@@ -312,7 +312,7 @@ export const RequestAccessInstructions: React.FC = () => {
     return null;
   }
 
-  // Don't attempt to load a shceduled request until start time
+  // Don't attempt to load a scheduled request until start time
   if (
     reqData?.timing.startTime &&
     Date.parse(reqData.timing.startTime) > new Date().valueOf()
