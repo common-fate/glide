@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -527,6 +528,167 @@ func TestUserGetAccessRuleApprovers(t *testing.T) {
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("GET", "/api/v1/access-rules/"+tc.giveRuleID+"/approvers", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
+
+func TestLookupAccessRules(t *testing.T) {
+	type testcase struct {
+		name                       string
+		giveURL                    string
+		rules                      []rule.AccessRule
+		want                       string
+		mockListErr                error
+		cachedPermissionSetQueries []storage.GetProviderOptions
+		mockCacheError             error
+		wantCode                   int
+	}
+
+	testcases := []testcase{
+		// {
+		// 	name:     "no rules returns an empty list not an error",
+		// 	giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+		// 	wantCode: http.StatusOK,
+		// 	rules:    nil,
+		// 	want:     `[]`,
+		// },
+		{
+			name:     "single match",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			wantCode: http.StatusOK,
+			rules: []rule.AccessRule{
+				{
+					ID: "test",
+					Target: rule.Target{
+						ProviderID:   "test-provider",
+						ProviderType: "aws-sso",
+						With: map[string]string{
+							"accountId":        "12345678912",
+							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+						},
+					},
+				},
+			},
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"12345678912","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			cachedPermissionSetQueries: []storage.GetProviderOptions{
+				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
+					{
+						Label: "GrantedAdministratorAccess",
+						Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+					},
+				}},
+			},
+		},
+		{
+			name:     "no match",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=NoMatch&type=commonfate%2Faws-sso`,
+			wantCode: http.StatusOK,
+			rules: []rule.AccessRule{
+				{
+					ID: "test",
+					Target: rule.Target{
+						ProviderID:   "test-provider",
+						ProviderType: "aws-sso",
+						With: map[string]string{
+							"accountId":        "12345678912",
+							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+						},
+					},
+				},
+			},
+			want: `[]`,
+			cachedPermissionSetQueries: []storage.GetProviderOptions{
+				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
+					{
+						Label: "GrantedAdministratorAccess",
+						Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+					},
+				}},
+			},
+		},
+		{
+			name:     "Match where permission set label has a description",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			wantCode: http.StatusOK,
+			rules: []rule.AccessRule{
+				{
+					ID: "test",
+					Target: rule.Target{
+						ProviderID:   "test-provider",
+						ProviderType: "aws-sso",
+						With: map[string]string{
+							"accountId":        "12345678912",
+							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+						},
+					},
+				},
+			},
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"12345678912","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			cachedPermissionSetQueries: []storage.GetProviderOptions{
+				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
+					{
+						Label: "GrantedAdministratorAccess: this is a test permission set",
+						Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+					},
+				}},
+			},
+		},
+		{
+			name:     "provider matches the permissions set arn by label but the rule does not contain the option should return no results",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			wantCode: http.StatusOK,
+			rules: []rule.AccessRule{
+				{
+					ID: "test",
+					Target: rule.Target{
+						ProviderID:   "test-provider",
+						ProviderType: "aws-sso",
+						With: map[string]string{
+							"accountId":        "12345678912",
+							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+						},
+					},
+				},
+			},
+			want: `[]`,
+			cachedPermissionSetQueries: []storage.GetProviderOptions{
+				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
+					{
+						Label: "GrantedAdministratorAccess: this is a test permission set",
+						Value: "different to what the rule has",
+					},
+				}},
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.ListAccessRulesForGroupsAndStatus{Result: tc.rules}, tc.mockListErr)
+			for _, psq := range tc.cachedPermissionSetQueries {
+				db.MockQueryWithErrWithResult(&psq, &ddb.QueryResult{}, tc.mockCacheError)
+			}
+			a := API{DB: db}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("GET", tc.giveURL, nil)
 			if err != nil {
 				t.Fatal(err)
 			}

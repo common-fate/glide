@@ -249,6 +249,17 @@ Filterloop:
 					ruleAccIds = append(ruleAccIds, singleRuleAccId)
 				}
 				if contains(ruleAccIds, *params.AccountId) {
+					// we must support string and []string for With/WithSelectable
+					rulePermissionSetARNs := []string{}
+					singleRulePermissionSetARN, ok := r.Target.With["permissionSetArn"]
+					if !ok {
+						rulePermissionSetARNs, ok = r.Target.WithSelectable["permissionSetArn"]
+						if !ok {
+							continue Filterloop // if not found continue
+						}
+					} else {
+						rulePermissionSetARNs = append(rulePermissionSetARNs, singleRulePermissionSetARN)
+					}
 					// lookup the permission set options from the cache, the cache allows us to only looks these up once
 					permissionSets, err := providerOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "permissionSetArn")
 					if err != nil {
@@ -264,27 +275,31 @@ Filterloop:
 						// Note: in some cases this could lead to users being presented multiple Access Rules, if
 						// a role name is a superset of another.
 						if strings.HasPrefix(po.Label, *params.PermissionSetArnLabel) {
-							lookupAccessRule := types.LookupAccessRule{AccessRule: r.ToAPI()}
-							if len(r.Target.WithSelectable) > 0 {
-								var selectableOptionValues []types.KeyValue
-								for k := range r.Target.WithSelectable {
-									switch k {
-									case "accountId":
-										selectableOptionValues = append(selectableOptionValues, types.KeyValue{
-											Key:   k,
-											Value: *params.AccountId,
-										})
-									case "permissionSetArn":
-										selectableOptionValues = append(selectableOptionValues, types.KeyValue{
-											Key:   k,
-											Value: po.Value,
-										})
+							// Does this rule contain the matched permission set as an option?
+							// if so then we included it in the results
+							if contains(rulePermissionSetARNs, po.Value) {
+								lookupAccessRule := types.LookupAccessRule{AccessRule: r.ToAPI()}
+								if len(r.Target.WithSelectable) > 0 {
+									var selectableOptionValues []types.KeyValue
+									for k := range r.Target.WithSelectable {
+										switch k {
+										case "accountId":
+											selectableOptionValues = append(selectableOptionValues, types.KeyValue{
+												Key:   k,
+												Value: *params.AccountId,
+											})
+										case "permissionSetArn":
+											selectableOptionValues = append(selectableOptionValues, types.KeyValue{
+												Key:   k,
+												Value: po.Value,
+											})
+										}
 									}
+									// SelectableWithOptionValues are key value pairs used in the frontend to prefill the request form when a rule is matched
+									lookupAccessRule.SelectableWithOptionValues = &selectableOptionValues
 								}
-								// SelectableWithOptionValues are key value pairs used in the frontend to prefill the request form when a rule is matched
-								lookupAccessRule.SelectableWithOptionValues = &selectableOptionValues
+								res = append(res, lookupAccessRule)
 							}
-							res = append(res, lookupAccessRule)
 						}
 					}
 				}
