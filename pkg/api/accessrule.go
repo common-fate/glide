@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
@@ -214,70 +214,127 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 		return
 	}
 
-	res := types.ListAccessRulesResponse{
-		AccessRules: []types.AccessRule{},
-	}
+	res := []types.LookupAccessRule{}
+	// 1. The provider type parameter validation happens in the APISchema, it is restricted to only commonfate/aws-sso at the moment via an enum
+	// Update the API schema to add more options
 
-	// Validate that params.Type is a valid provider id
-	// NOTE: we may want to validate provider versions, this should work for now
-	// Assumption: user is using the latest type
-	_, p, err := providerregistry.Registry().GetLatestByType(string(*params.Type))
-	if err != nil {
-		apio.Error(ctx, w, err)
-	}
+	// 2. query access rules for the requesting user which are active
 
-	logger.Get(ctx).Infow("found provider", "provider", p)
+	// 3. Only process access rules which match the requested type
 
-	//	filter by params.AccountId
+	// 4. for SSO , fetch permission set options for the provider ID on the access rule being checked and cache the results
+
+	// 5. for sso, attempt to match the permission set name to the label of the permission sets
+
+	// store the matching rules and return results
+
+	providerOptionsCache := newProviderOptionsCache(a.DB)
 Filterloop:
 	for _, r := range q.Result {
-		switch p.DefaultID {
-		case "aws-sso-v2":
-			// we must support string and []string for With/WithSelectable
-			ruleAccIds := []string{}
-			singleRuleAccId, ok := r.Target.With["accountId"]
-			if !ok {
-				ruleAccIds, ok = r.Target.WithSelectable["accountId"]
+		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
+		// select access rules which match the lookup type
+		if "commonfate/"+r.Target.ProviderType == string(*params.Type) {
+			switch r.Target.ProviderType {
+			// aws-sso is the short type for the provider, this switch case just runs the appropriate lookup code for the provider type
+			case "aws-sso":
+				// we must support string and []string for With/WithSelectable
+				ruleAccIds := []string{}
+				singleRuleAccId, ok := r.Target.With["accountId"]
 				if !ok {
-					continue Filterloop // if not found continue
+					ruleAccIds, ok = r.Target.WithSelectable["accountId"]
+					if !ok {
+						continue Filterloop // if not found continue
+					}
+				} else {
+					ruleAccIds = append(ruleAccIds, singleRuleAccId)
 				}
-			} else {
-				ruleAccIds = append(ruleAccIds, singleRuleAccId)
-			}
-			if contains(ruleAccIds, *params.AccountId) {
-				// lookup ProviderOptions for given rule and get the permission set options
-				q := storage.GetProviderOptions{ProviderID: p.DefaultID, ArgID: "permissionSetArn"}
-				var permissionSets []cache.ProviderOption
-				done := false
-				var nextPage string
-				for !done {
-					queryResult, err := a.DB.Query(ctx, &q, ddb.Page(nextPage), ddb.Limit(500))
+				if contains(ruleAccIds, *params.AccountId) {
+					// lookup the permission set options from the cache, the cache allows us to only looks these up once
+					permissionSets, err := providerOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "permissionSetArn")
 					if err != nil {
 						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
 						continue Filterloop
 					}
-					permissionSets = append(permissionSets, q.Result...)
-					nextPage = queryResult.NextPage
-					if nextPage == "" {
-						done = true
-					}
-				}
-				for _, po := range permissionSets {
-					// The label is not good to match on, but for our current data structures it's the best we've got.
-					// If the Permission Set has a description, the label looks like:
-					// <RoleName>: <Role Description>
-					//
-					// So we can match it with strings.HasPrefix.
-					// Note: in some cases this could lead to users being presented multiple Access Rules, if
-					// a role name is a superset of another.
-					if strings.HasPrefix(po.Label, *params.PermissionSetArnLabel) {
-						res.AccessRules = append(res.AccessRules, r.ToAPI())
+					for _, po := range permissionSets {
+						// The label is not good to match on, but for our current data structures it's the best we've got.
+						// If the Permission Set has a description, the label looks like:
+						// <RoleName>: <Role Description>
+						//
+						// So we can match it with strings.HasPrefix.
+						// Note: in some cases this could lead to users being presented multiple Access Rules, if
+						// a role name is a superset of another.
+						if strings.HasPrefix(po.Label, *params.PermissionSetArnLabel) {
+							lookupAccessRule := types.LookupAccessRule{AccessRule: r.ToAPI()}
+							if len(r.Target.WithSelectable) > 0 {
+								var selectableOptionValues []types.KeyValue
+								for k := range r.Target.WithSelectable {
+									switch k {
+									case "accountId":
+										selectableOptionValues = append(selectableOptionValues, types.KeyValue{
+											Key:   k,
+											Value: *params.AccountId,
+										})
+									case "permissionSetArn":
+										selectableOptionValues = append(selectableOptionValues, types.KeyValue{
+											Key:   k,
+											Value: po.Value,
+										})
+									}
+								}
+								// SelectableWithOptionValues are key value pairs used in the frontend to prefill the request form when a rule is matched
+								lookupAccessRule.SelectableWithOptionValues = &selectableOptionValues
+							}
+							res = append(res, lookupAccessRule)
+						}
 					}
 				}
 			}
 		}
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// A helper used with LookupAccessRule to cache provider options
+type providerOptionsCache struct {
+	providers map[string]map[string][]cache.ProviderOption
+	db        ddb.Storage
+}
+
+func newProviderOptionsCache(db ddb.Storage) *providerOptionsCache {
+	return &providerOptionsCache{
+		providers: make(map[string]map[string][]cache.ProviderOption),
+		db:        db,
+	}
+}
+
+// FetchOptions first checks whether the value has allready been looked up and returns it else it looks it up
+func (p *providerOptionsCache) FetchOptions(ctx context.Context, id, arg string) ([]cache.ProviderOption, error) {
+	if p.providers != nil {
+		if provider, ok := p.providers[id]; ok {
+			if options, ok := provider[arg]; ok {
+				return options, nil
+			}
+		} else {
+			p.providers[id] = make(map[string][]cache.ProviderOption)
+		}
+	} else {
+		p.providers = make(map[string]map[string][]cache.ProviderOption)
+	}
+	q := storage.GetProviderOptions{ProviderID: id, ArgID: arg}
+	done := false
+	var nextPage string
+	for !done {
+		queryResult, err := p.db.Query(ctx, &q, ddb.Page(nextPage), ddb.Limit(500))
+		if err != nil {
+			return nil, err
+		}
+		p.providers[id][arg] = append(p.providers[id][arg], q.Result...)
+		nextPage = queryResult.NextPage
+		if nextPage == "" {
+			done = true
+		}
+	}
+	return p.providers[id][arg], nil
 }
 
 // contains is a helper function to check if a string slice

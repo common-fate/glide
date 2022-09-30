@@ -11,5 +11,5 @@ export type AccessRuleLookupType = typeof AccessRuleLookupType[keyof typeof Acce
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AccessRuleLookupType = {
-  'aws-sso': 'aws-sso',
+  'commonfateaws-sso': 'commonfate/aws-sso',
 } as const;
