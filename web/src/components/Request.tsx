@@ -734,17 +734,23 @@ export const RequestCancelButton: React.FC = () => {
       });
     }
   };
-
-  return (
-    <ButtonGroup variant="outline" size="sm">
-      {!request && <Skeleton rounded="full" w="64px" h="32px" />}
-      {request?.status === "PENDING" && request.grant?.status == "PENDING" && (
+  // only display cancel if request is pending or is grant is still undefined
+  if (
+    (request?.status === "PENDING" && request.grant?.status == "PENDING") ||
+    request?.grant == undefined
+  ) {
+    return (
+      <ButtonGroup variant="outline" size="sm">
+        {!request && <Skeleton rounded="full" w="64px" h="32px" />}
         <Button rounded="full" onClick={handleCancel}>
           Cancel
         </Button>
-      )}
-    </ButtonGroup>
-  );
+        ))
+      </ButtonGroup>
+    );
+  } else {
+    return <></>;
+  }
 };
 
 interface RevokeButtonsProps {

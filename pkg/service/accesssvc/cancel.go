@@ -60,6 +60,7 @@ func canCancel(opts CancelRequestOpts, request access.Request) bool {
 	return opts.CancellerID == request.RequestedBy
 }
 
+// A request can be cancelled if
 func isCancellable(request access.Request) bool {
-	return request.Status == access.PENDING
+	return request.Status == access.PENDING || request.Grant == nil && request.Status != access.CANCELLED
 }
