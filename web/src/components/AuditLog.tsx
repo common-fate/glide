@@ -47,7 +47,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             header={<Text>Grant created</Text>}
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromGrantStatus && e.actor) {
@@ -63,7 +63,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromGrantStatus && e.grantFailureReason) {
@@ -105,7 +105,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromGrantStatus) {
@@ -120,7 +120,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromTiming && e.actor) {
@@ -136,7 +136,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromStatus && e.actor) {
@@ -152,7 +152,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromStatus?.toLowerCase()) {
@@ -167,7 +167,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.requestCreated) {
@@ -182,7 +182,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.recordedEvent) {
@@ -219,7 +219,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Stack>
             }
             index={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       }

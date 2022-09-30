@@ -1,18 +1,25 @@
-import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Flex, Text, Tooltip, useColorModeValue } from "@chakra-ui/react";
+import { formatDistanceToNowStrict } from "date-fns";
 import React from "react";
 
 interface Props {
   header: React.ReactNode;
-  body?: React.ReactNode;
+  timestamp: Date;
   /** this should be a 20px react node (use boxSize with chakra elements) */
   marker?: React.ReactNode;
   index: number;
   arrLength: number;
 }
 
+const TimestampLine = React.forwardRef<React.ReactNode, { timestamp: Date }>(({ timestamp }, ref) => (
+  <Text fontSize="sm" color="gray.400" fontWeight="normal">
+    {formatDistanceToNowStrict(timestamp, {addSuffix: true})}
+  </Text>
+))
+
 export const CFTimelineRow = ({
   header,
-  body,
+  timestamp,
   marker,
   index,
   arrLength,
@@ -55,9 +62,11 @@ export const CFTimelineRow = ({
         <Text fontSize="sm" color={textColor} fontWeight="bold">
           {header}
         </Text>
-        <Text fontSize="sm" color="gray.400" fontWeight="normal">
-          {body}
-        </Text>
+        <Tooltip label={timestamp.toString()}>
+          <Text fontSize="sm" color="gray.400" fontWeight="normal">
+            {formatDistanceToNowStrict(timestamp, {addSuffix: true})}
+          </Text>
+        </Tooltip>
       </Flex>
     </Flex>
   );
