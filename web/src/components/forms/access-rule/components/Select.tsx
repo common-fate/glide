@@ -64,7 +64,7 @@ interface MultiSelectProps extends SelectProps {
     label: string;
   }[];
   id?: string;
-  shouldAddSelectAllOption?: boolean
+  shouldAddSelectAllOption?: boolean;
 }
 
 export const CustomOption = ({
@@ -91,8 +91,8 @@ export const CustomOption = ({
   </div>
 );
 
-const SELECT_ALL_LABEL = "Select all"
-const SELECT_ALL_OPTION = { label: SELECT_ALL_LABEL, value: "" }
+const SELECT_ALL_LABEL = "Select all";
+const SELECT_ALL_OPTION = { label: SELECT_ALL_LABEL, value: "" };
 
 export const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
@@ -117,7 +117,11 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             id={id}
             isDisabled={isDisabled}
             //getOptionLabel={(option) => `${option.label}  (${option.value})`}
-            options={[...(shouldAddSelectAllOption ?  [SELECT_ALL_OPTION, ...options ] : options)]}
+            options={[
+              ...(shouldAddSelectAllOption
+                ? [SELECT_ALL_OPTION, ...options]
+                : options),
+            ]}
             components={{ Option: CustomOption }}
             isMulti
             styles={{
@@ -143,16 +147,18 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             // ref={ref}
             value={options.filter((c) => value.includes(c.value))}
             onChange={(val) => {
-              // for MultiSelect with 'Select All' option 
+              // for MultiSelect with 'Select All' option
               // we check if the selected value is 'select all'
               // if true then add add options as value.
               if (shouldAddSelectAllOption) {
-                const isAllOptionSelected = val.find(c => c.label === SELECT_ALL_LABEL)
-                
-                if (!!isAllOptionSelected) {
-                  onChange(options.map(o => o.value))
+                const isAllOptionSelected = val.find(
+                  (c) => c.label === SELECT_ALL_LABEL
+                );
 
-                  return
+                if (isAllOptionSelected) {
+                  onChange(options.map((o) => o.value));
+
+                  return;
                 }
               }
               onChange(val.map((c) => c.value));
