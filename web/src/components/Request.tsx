@@ -745,11 +745,10 @@ export const RequestCancelButton: React.FC = () => {
         <Button rounded="full" onClick={handleCancel}>
           Cancel
         </Button>
-        ))
       </ButtonGroup>
     );
   } else {
-    return <></>;
+    return null;
   }
 };
 

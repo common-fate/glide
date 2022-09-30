@@ -1,4 +1,15 @@
-import { Box, Flex, Text, Tooltip, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverTrigger,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { formatDistanceToNowStrict } from "date-fns";
 import React from "react";
 
@@ -64,11 +75,29 @@ export const CFTimelineRow = ({
         <Text fontSize="sm" color={textColor} fontWeight="bold">
           {header}
         </Text>
-        <Tooltip label={timestamp.toString()}>
-          <Text fontSize="sm" color="gray.400" fontWeight="normal">
-            {formatDistanceToNowStrict(timestamp, { addSuffix: true })}
-          </Text>
-        </Tooltip>
+        <Box>
+          <Popover>
+            <PopoverTrigger>
+              <Text
+                flexGrow={0}
+                tabIndex={0}
+                as="button"
+                display={"inline-block"}
+                textAlign="left"
+                fontSize="sm"
+                color="gray.400"
+                fontWeight="normal"
+              >
+                {formatDistanceToNowStrict(timestamp, { addSuffix: true })}
+              </Text>
+            </PopoverTrigger>
+            <PopoverContent>
+              <PopoverArrow />
+              <PopoverCloseButton />
+              <PopoverBody>{timestamp.toString()}</PopoverBody>
+            </PopoverContent>
+          </Popover>
+        </Box>
       </Flex>
     </Flex>
   );
