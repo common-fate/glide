@@ -748,7 +748,7 @@ export const RequestCancelButton: React.FC = () => {
       </ButtonGroup>
     );
   } else {
-    return <></>;
+    return null;
   }
 };
 
