@@ -88,6 +88,7 @@ const Home = () => {
     control,
     watch,
     reset,
+    getValues,
   } = useForm<NewRequestFormData>({
     shouldUnregister: true,
     defaultValues: {
@@ -109,22 +110,37 @@ const Home = () => {
           ? 3600
           : rule.timeConstraints.maxDurationSeconds
       );
+      // The following will attempt to match any query params to withSelectable fields for this rule.
+      // If the field matches and the value is a valid option, it will be set in the form values.
+      // if it is not a valid value it is ignored.
+      // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
+      Object.entries(rule.target.withSelectable).map(([k, v]) => {
+        const queryParamValue = new URLSearchParams(
+          location.search.substring(1)
+        ).get(k);
+        if (
+          queryParamValue !== null &&
+          v.find((s) => {
+            return s.option.value === queryParamValue;
+          }) !== undefined
+        ) {
+          setValue(`with.${k}`, queryParamValue);
+        }
+      });
     }
-  }, [rule]);
+  }, [rule, location.search]);
 
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const {
-    data: approvers,
-    isValidating: isValidatingApprovers,
-  } = useUserGetAccessRuleApprovers(ruleId, {
-    swr: {
-      swrKey: getUserGetAccessRuleApproversKey(ruleId),
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: approvers, isValidating: isValidatingApprovers } =
+    useUserGetAccessRuleApprovers(ruleId, {
+      swr: {
+        swrKey: getUserGetAccessRuleApproversKey(ruleId),
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+      },
+    });
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
   const onSubmit: SubmitHandler<NewRequestFormData> = async (data) => {
@@ -209,6 +225,7 @@ const Home = () => {
                   Object.entries(rule.target.withSelectable).map(
                     ([k, v], i) => {
                       const name = "with." + k;
+
                       return (
                         <FormControl
                           key={"selectable-" + k}
