@@ -20,7 +20,7 @@ import (
 func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
 
 	return map[string]providers.GrantValidationStep{
-		"user-exists-in-aws-sso": {
+		"User exists in AWS SSO": {
 			Name: "The user must exist in the AWS SSO instance",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
@@ -38,7 +38,8 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 				if err != nil {
 					return diagnostics.Error(err)
 				}
-				//todo: change this back for testing
+
+				//TODO: change back. changed for testing
 				if len(res.Users) != 0 {
 					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
 				}
@@ -49,7 +50,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 				return diagnostics.Info("User exists in SSO")
 			},
 		},
-		"permission-set-should-exist": {
+		"Permission set should exist": {
 			Name: "The permissionset should exist",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
@@ -61,13 +62,13 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 					InstanceArn:      aws.String(p.instanceARN.Get()),
 					PermissionSetArn: &a.PermissionSetARN,
 				})
-				if err != nil {
+				if err == nil {
 					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}))
 				}
-				return nil
+				return diagnostics.Info("permission set exists")
 			},
 		},
-		"account-exists": {
+		"AWS Account exists": {
 			Name: "The account should exist",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
@@ -76,7 +77,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 					return diagnostics.Error(err)
 				}
 				err = p.ensureAccountExists(ctx, a.AccountID)
-				if err != nil {
+				if err == nil {
 					return diagnostics.Error(fmt.Errorf("account does not exist %v", err))
 
 				}

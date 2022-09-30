@@ -214,7 +214,22 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	// and saving the request to the database.
 	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
 	if _, ok := err.(grantsvc.GrantValidationError); ok {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("grant validation failed"), Status: http.StatusNotFound})
+		//create field errors from errors
+
+		fields := []apio.FieldError{}
+		if result.DiagnosticLogs != nil {
+			for _, e := range *result.DiagnosticLogs {
+
+				//only display the errors in the frontend for now
+				//TODO: Display all validations that are run in the frontend, fail or success
+				if e.Status == "ERROR" {
+					fields = append(fields, apio.FieldError{Field: e.Id, Error: e.Logs[0].Msg})
+
+				}
+			}
+		}
+
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("validation failed"), Fields: fields, Status: http.StatusNotFound})
 		return
 	}
 	if err == accesssvc.ErrNoMatchingGroup {

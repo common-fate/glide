@@ -139,8 +139,14 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 }
 
 // validate grant runs all the checks that will need to occur when creating a real grant to validate its success
-func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts, user *storage.GetUser) error {
-
+func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) ([]ahTypes.GrantValidation, error) {
+	q := &storage.GetUser{
+		ID: opts.Request.RequestedBy,
+	}
+	_, err := g.DB.Query(ctx, q)
+	if err != nil {
+		return []ahTypes.GrantValidation{}, err
+	}
 	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
 
 	req := ahTypes.ValidateRequestToProviderJSONRequestBody{
@@ -149,7 +155,7 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts, user 
 		With: ahTypes.CreateGrant_With{
 			AdditionalProperties: make(map[string]string),
 		},
-		Subject: openapi_types.Email(user.Result.Email),
+		Subject: openapi_types.Email(q.Result.Email),
 		Start:   iso8601.New(start),
 		End:     iso8601.New(end),
 	}
@@ -162,27 +168,35 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts, user 
 
 	res, err := g.AHClient.ValidateRequestToProviderWithResponse(ctx, req)
 	if err != nil {
-		return err
+		return []ahTypes.GrantValidation{}, err
 	}
 
 	if res.JSON200 == nil {
 		//there was an error, handle it
-		return fmt.Errorf("error validating grant: %s", res.Body)
+		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", res.Body)
 	} else {
 		var respBody ahTypes.GrantValidationResponse
 		err := json.Unmarshal(res.Body, &respBody)
 		if err != nil {
-			return err
+			return []ahTypes.GrantValidation{}, err
 		}
-		for _, r := range respBody.Validation {
 
-			if r.Status == ahTypes.GrantValidationStatusERROR {
-				return GrantValidationError{Validation: r}
+		//check if any failed states
+		validationFailed := false
+		for _, v := range respBody.Validation {
+			if v.Status == "ERROR" {
+				validationFailed = true
 			}
 		}
+
+		if validationFailed {
+			return respBody.Validation, GrantValidationError{}
+
+		}
+		return respBody.Validation, nil
+
 	}
 
-	return nil
 }
 
 // CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.

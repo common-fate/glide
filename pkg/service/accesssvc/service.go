@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/benbjohnson/clock"
+	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
@@ -27,6 +28,7 @@ type Service struct {
 type Granter interface {
 	CreateGrant(ctx context.Context, opts grantsvc.CreateGrantOpts) (*access.Request, error)
 	RevokeGrant(ctx context.Context, opts grantsvc.RevokeGrantOpts) (*access.Request, error)
+	ValidateGrant(ctx context.Context, opts grantsvc.CreateGrantOpts) ([]ahTypes.GrantValidation, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
