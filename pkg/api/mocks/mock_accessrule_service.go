@@ -83,6 +83,21 @@ func (mr *MockAccessRuleServiceMockRecorder) GetRule(arg0, arg1, arg2, arg3 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRule", reflect.TypeOf((*MockAccessRuleService)(nil).GetRule), arg0, arg1, arg2, arg3)
 }
 
+// LookupRule mocks base method.
+func (m *MockAccessRuleService) LookupRule(arg0 context.Context, arg1 rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LookupRule", arg0, arg1)
+	ret0, _ := ret[0].([]rulesvc.LookedUpRule)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LookupRule indicates an expected call of LookupRule.
+func (mr *MockAccessRuleServiceMockRecorder) LookupRule(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupRule", reflect.TypeOf((*MockAccessRuleService)(nil).LookupRule), arg0, arg1)
+}
+
 // UpdateRule mocks base method.
 func (m *MockAccessRuleService) UpdateRule(arg0 context.Context, arg1 *rulesvc.UpdateOpts) (*rule.AccessRule, error) {
 	m.ctrl.T.Helper()

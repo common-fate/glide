@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -550,142 +549,120 @@ func TestUserGetAccessRuleApprovers(t *testing.T) {
 
 func TestLookupAccessRules(t *testing.T) {
 	type testcase struct {
-		name                       string
-		giveURL                    string
-		rules                      []rule.AccessRule
-		want                       string
-		mockListErr                error
-		cachedPermissionSetQueries []storage.GetProviderOptions
-		mockCacheError             error
-		wantCode                   int
+		name                   string
+		giveURL                string
+		rules                  []rule.AccessRule
+		want                   string
+		mockLookupRuleResponse []rulesvc.LookedUpRule
+		mockLookupRuleErr      error
+		wantCode               int
 	}
 
 	testcases := []testcase{
 		{
-			name:     "no rules returns an empty list not an error",
-			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			name:     "no matches",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=123456789012&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
 			wantCode: http.StatusOK,
 			rules:    nil,
 			want:     `[]`,
 		},
 		{
 			name:     "single match",
-			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			giveURL:  `/api/v1/access-rules/lookup?accountId=123456789012&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
 			wantCode: http.StatusOK,
-			rules: []rule.AccessRule{
+			mockLookupRuleResponse: []rulesvc.LookedUpRule{
 				{
-					ID: "test",
-					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
-						With: map[string]string{
-							"accountId":        "12345678912",
-							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+					Rule: rule.AccessRule{
+						ID: "test",
+						Target: rule.Target{
+							ProviderID:   "test-provider",
+							ProviderType: "aws-sso",
+							With: map[string]string{
+								"accountId":        "123456789012",
+								"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+							},
 						},
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"12345678912","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
-			cachedPermissionSetQueries: []storage.GetProviderOptions{
-				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
-					{
-						Label: "GrantedAdministratorAccess",
-						Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
-					},
-				}},
-			},
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
 		},
 		{
-			name:     "no match",
-			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=NoMatch&type=commonfate%2Faws-sso`,
+			name:     "multiple matches",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=123456789012&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
 			wantCode: http.StatusOK,
-			rules: []rule.AccessRule{
+			mockLookupRuleResponse: []rulesvc.LookedUpRule{
 				{
-					ID: "test",
-					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
-						With: map[string]string{
-							"accountId":        "12345678912",
-							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+					Rule: rule.AccessRule{
+						ID: "test",
+						Target: rule.Target{
+							ProviderID:   "test-provider",
+							ProviderType: "aws-sso",
+							With: map[string]string{
+								"accountId":        "123456789012",
+								"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+							},
+						},
+					},
+				},
+				{
+					Rule: rule.AccessRule{
+						ID: "second",
+						Target: rule.Target{
+							ProviderID:   "test-provider",
+							ProviderType: "aws-sso",
+							With: map[string]string{
+								"accountId":        "123456789012",
+								"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+							},
 						},
 					},
 				},
 			},
-			want: `[]`,
-			cachedPermissionSetQueries: []storage.GetProviderOptions{
-				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
-					{
-						Label: "GrantedAdministratorAccess",
-						Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
-					},
-				}},
-			},
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}},{"accessRule":{"description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
 		},
 		{
-			name:     "Match where permission set label has a description",
-			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			name:     "match with selectable",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=123456789012&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
 			wantCode: http.StatusOK,
-			rules: []rule.AccessRule{
+			mockLookupRuleResponse: []rulesvc.LookedUpRule{
 				{
-					ID: "test",
-					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
-						With: map[string]string{
-							"accountId":        "12345678912",
-							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
+					Rule: rule.AccessRule{
+						ID: "test",
+						Target: rule.Target{
+							ProviderID:   "test-provider",
+							ProviderType: "aws-sso",
+							WithSelectable: map[string][]string{
+								"accountId":        {"123456789012", "other"},
+								"permissionSetArn": {"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341", "other"},
+							},
+						},
+					},
+					SelectableWithOptionValues: []types.KeyValue{
+						{
+							Key:   "accountId",
+							Value: "123456789012",
+						},
+						{
+							Key:   "permissionSetArn",
+							Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
 						},
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"12345678912","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
-			cachedPermissionSetQueries: []storage.GetProviderOptions{
-				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
-					{
-						Label: "GrantedAdministratorAccess: this is a test permission set",
-						Value: "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
-					},
-				}},
-			},
-		},
-		{
-			name:     "provider matches the permissions set arn by label but the rule does not contain the option should return no results",
-			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
-			wantCode: http.StatusOK,
-			rules: []rule.AccessRule{
-				{
-					ID: "test",
-					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
-						With: map[string]string{
-							"accountId":        "12345678912",
-							"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
-						},
-					},
-				},
-			},
-			want: `[]`,
-			cachedPermissionSetQueries: []storage.GetProviderOptions{
-				{ProviderID: "test-provider", ArgID: "permissionSetArn", Result: []cache.ProviderOption{
-					{
-						Label: "GrantedAdministratorAccess: this is a test permission set",
-						Value: "different to what the rule has",
-					},
-				}},
-			},
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{},"withSelectable":{"accountId":["123456789012","other"],"permissionSetArn":["arn:aws:sso:::permissionSet/ssoins-1234/ps-12341","other"]}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListAccessRulesForGroupsAndStatus{Result: tc.rules}, tc.mockListErr)
-			for _, psq := range tc.cachedPermissionSetQueries {
-				db.MockQueryWithErrWithResult(&psq, &ddb.QueryResult{}, tc.mockCacheError)
-			}
-			a := API{DB: db}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			m := mocks.NewMockAccessRuleService(ctrl)
+			m.EXPECT().LookupRule(gomock.Any(), gomock.Any()).Return(tc.mockLookupRuleResponse, tc.mockLookupRuleErr)
+
+			a := API{Rules: m}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("GET", tc.giveURL, nil)
