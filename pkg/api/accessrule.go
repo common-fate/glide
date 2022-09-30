@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/common-fate/apikit/apio"
@@ -126,7 +127,7 @@ func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId 
 // (POST /api/v1/access-rules/{ruleId})
 func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	var updateRequest types.UpdateAccessRuleRequest
+	var updateRequest types.CreateAccessRuleRequest
 	err := apio.DecodeJSONBody(w, r, &updateRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
@@ -196,6 +197,14 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 // (GET /api/v1/access-rules/lookup)
 func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
 	ctx := r.Context()
+
+	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
+		// prevent us from panicking with a nil pointer error if one of the required parameters isn't provided.
+		apio.ErrorString(ctx, w, "invalid query params", http.StatusBadRequest)
+	}
+
+	logger.Get(ctx).Infow("looking up access rule", "params", params)
+
 	// fetch all active access rules
 	u := auth.UserFromContext(ctx)
 	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
@@ -217,7 +226,10 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 		apio.Error(ctx, w, err)
 	}
 
+	logger.Get(ctx).Infow("found provider", "provider", p)
+
 	//	filter by params.AccountId
+Filterloop:
 	for _, r := range q.Result {
 		switch p.DefaultID {
 		case "aws-sso-v2":
@@ -227,7 +239,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 			if !found {
 				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
 				if !found {
-					continue // if not found continue
+					continue Filterloop // if not found continue
 				}
 			} else {
 				ruleAccIds = append(ruleAccIds, singleRuleAccId)
@@ -236,18 +248,39 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 			for _, ruleAccId := range ruleAccIds {
 				reqAccId := (*params.AccountId)
 				if reqAccId != ruleAccId {
-					continue // if not found continue
-				}
-				// lookup ProviderOptions for given rule and get the
-				q := storage.GetProviderOptions{ProviderID: p.DefaultID}
-				_, err := a.DB.Query(ctx, &q)
-				if err != nil {
-					logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
-					continue
+					continue Filterloop // if not found continue
 				}
 
-				for _, po := range q.Result {
-					if po.Label == (*params.PermissionSetArnLabel) {
+				// lookup ProviderOptions for given rule and get the permission set options
+				q := storage.GetProviderOptions{ProviderID: p.DefaultID, ArgID: "permissionSetArn"}
+
+				var permissionSets []cache.ProviderOption
+				done := false
+				var nextPage string
+				for !done {
+					queryResult, err := a.DB.Query(ctx, &q, ddb.Page(nextPage), ddb.Limit(500))
+					if err != nil {
+						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+						continue Filterloop
+					}
+
+					permissionSets = append(permissionSets, q.Result...)
+
+					nextPage = queryResult.NextPage
+					if nextPage == "" {
+						done = true
+					}
+				}
+
+				for _, po := range permissionSets {
+					// The label is not good to match on, but for our current data structures it's the best we've got.
+					// If the Permission Set has a description, the label looks like:
+					// <RoleName>: <Role Description>
+					//
+					// So we can match it with strings.HasPrefix.
+					// Note: in some cases this could lead to users being presented multiple Access Rules, if
+					// a role name is a superset of another.
+					if strings.HasPrefix(po.Label, *params.PermissionSetArnLabel) {
 						res.AccessRules = append(res.AccessRules, r.ToAPI())
 					}
 				}

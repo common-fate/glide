@@ -17,7 +17,7 @@ func (l *ListCurrentAccessRules) BuildQuery() (*dynamodb.QueryInput, error) {
 		IndexName:              &keys.IndexNames.GSI2,
 		KeyConditionExpression: aws.String("GSI2PK = :pk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.PK1},
+			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI2PK},
 		},
 	}
 	return &qi, nil
