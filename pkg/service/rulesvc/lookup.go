@@ -60,15 +60,15 @@ func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]Looked
 
 	// 1. The provider type parameter validation happens in the APISchema, it is restricted to only commonfate/aws-sso at the moment via an enum
 	// Update the API schema to add more options
-
+	//
 	// 2. query access rules for the requesting user which are active
-
+	//
 	// 3. Only process access rules which match the requested type
-
-	// 4. for SSO , fetch permission set options for the provider ID on the access rule being checked and cache the results
-
-	// 5. for sso, attempt to match the permission set name to the label of the permission sets
-
+	//
+	// 4. for SSO, fetch permission set options for the provider ID on the access rule being checked and cache the results
+	//
+	// 5. for SSO, attempt to match the permission set name to the label of the permission sets
+	//
 	// store the matching rules and return results
 
 	providerOptionsCache := newProviderOptionsCache(s.DB)
