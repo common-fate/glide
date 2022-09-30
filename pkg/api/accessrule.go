@@ -3,20 +3,17 @@ package api
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"sync"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
-	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -205,87 +202,25 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 
 	logger.Get(ctx).Infow("looking up access rule", "params", params)
 
-	// fetch all active access rules
 	u := auth.UserFromContext(ctx)
-	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
-	_, err := a.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
+
+	rules, err := a.Rules.LookupRule(ctx, rulesvc.LookupRuleOpts{
+		User:         *u,
+		ProviderType: string(*params.Type),
+		Fields: rulesvc.LookupFields{
+			AccountID: *params.AccountId,
+			RoleName:  *params.PermissionSetArnLabel,
+		},
+	})
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	res := types.ListAccessRulesResponse{
-		AccessRules: []types.AccessRule{},
-	}
+	res := []types.LookupAccessRule{}
 
-	// Validate that params.Type is a valid provider id
-	// NOTE: we may want to validate provider versions, this should work for now
-	// Assumption: user is using the latest type
-	_, p, err := providerregistry.Registry().GetLatestByType(string(*params.Type))
-	if err != nil {
-		apio.Error(ctx, w, err)
-	}
-
-	logger.Get(ctx).Infow("found provider", "provider", p)
-
-	//	filter by params.AccountId
-Filterloop:
-	for _, r := range q.Result {
-		switch p.DefaultID {
-		case "aws-sso-v2":
-			// we must support string and []string for With/WithSelectable
-			ruleAccIds := []string{}
-			singleRuleAccId, found := r.Target.ToAPI().With.Get("accountId")
-			if !found {
-				ruleAccIds, found = r.Target.ToAPI().WithSelectable.Get("accountId")
-				if !found {
-					continue Filterloop // if not found continue
-				}
-			} else {
-				ruleAccIds = append(ruleAccIds, singleRuleAccId)
-			}
-
-			for _, ruleAccId := range ruleAccIds {
-				reqAccId := (*params.AccountId)
-				if reqAccId != ruleAccId {
-					continue Filterloop // if not found continue
-				}
-
-				// lookup ProviderOptions for given rule and get the permission set options
-				q := storage.GetProviderOptions{ProviderID: p.DefaultID, ArgID: "permissionSetArn"}
-
-				var permissionSets []cache.ProviderOption
-				done := false
-				var nextPage string
-				for !done {
-					queryResult, err := a.DB.Query(ctx, &q, ddb.Page(nextPage), ddb.Limit(500))
-					if err != nil {
-						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
-						continue Filterloop
-					}
-
-					permissionSets = append(permissionSets, q.Result...)
-
-					nextPage = queryResult.NextPage
-					if nextPage == "" {
-						done = true
-					}
-				}
-
-				for _, po := range permissionSets {
-					// The label is not good to match on, but for our current data structures it's the best we've got.
-					// If the Permission Set has a description, the label looks like:
-					// <RoleName>: <Role Description>
-					//
-					// So we can match it with strings.HasPrefix.
-					// Note: in some cases this could lead to users being presented multiple Access Rules, if
-					// a role name is a superset of another.
-					if strings.HasPrefix(po.Label, *params.PermissionSetArnLabel) {
-						res.AccessRules = append(res.AccessRules, r.ToAPI())
-					}
-				}
-			}
-		}
+	for _, r := range rules {
+		res = append(res, r.ToAPI())
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

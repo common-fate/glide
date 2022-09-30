@@ -1,27 +1,31 @@
-import {
-  Box,
-  Button,
-  Center,
-  chakra,
-  Code,
-  Flex,
-  Spinner,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
-import React, { useEffect } from "react";
-import { MakeGenerics, useNavigate, useSearch } from "react-location";
-import { ProviderIcon } from "../../components/icons/providerIcon";
-import { UserLayout } from "../../components/Layout";
-import { useAccessRuleLookup } from "../../utils/backend-client/default/default";
-import { AccessRuleLookupParams } from "../../utils/backend-client/types/accessRuleLookupParams";
-import { Link } from "react-location";
-import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
-import { CodeInstruction } from "../../components/CodeInstruction";
-import { useGetMe } from "../../utils/backend-client/end-user/end-user";
-import { OnboardingCard } from "../../components/OnboardingCard";
 import { InfoIcon } from "@chakra-ui/icons";
+import { Box, Center, Flex, Spinner, Text } from "@chakra-ui/react";
+import { useEffect } from "react";
+import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
+import { CodeInstruction } from "../../components/CodeInstruction";
+import { UserLayout } from "../../components/Layout";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
+import { useAccessRuleLookup } from "../../utils/backend-client/default/default";
+import { useGetMe } from "../../utils/backend-client/end-user/end-user";
+import { LookupAccessRule } from "../../utils/backend-client/types";
+import { AccessRuleLookupParams } from "../../utils/backend-client/types/accessRuleLookupParams";
 
+/**
+ * makeLookupAccessRuleRequestLink adds request parameters to the URLso that forms can be prepopulated when there are multiple options for a user
+ * @param lookupResult
+ * @returns
+ */
+export const makeLookupAccessRuleRequestLink = (
+  lookupResult: LookupAccessRule
+) => {
+  const query = lookupResult.selectableWithOptionValues
+    ?.map((o) => `${o.key}=${o.value}`)
+    .join("&");
+  return `/access/request/${lookupResult.accessRule.id}${
+    query ? `?${query}` : ""
+  }`;
+};
 const Access = () => {
   type MyLocationGenerics = MakeGenerics<{
     Search: AccessRuleLookupParams;
@@ -36,8 +40,10 @@ const Access = () => {
   const me = useGetMe();
 
   useEffect(() => {
-    if (data?.accessRules.length == 1) {
-      navigate({ to: "/access/request/" + data.accessRules[0].id });
+    if (data?.length == 1) {
+      navigate({
+        to: makeLookupAccessRuleRequestLink(data[0]),
+      });
     }
   }, [search, data]);
 
@@ -46,7 +52,7 @@ const Access = () => {
       <Center h="80vh">
         <Flex flexDir="column" align="center" minH="60vh" w="100%">
           <br />
-          {data && data.accessRules.length > 1 && (
+          {data && data.length > 1 && (
             <Flex flexDir="column" alignItems="center" w="100%">
               <Box w={{ base: "100%", md: "60ch" }}>
                 <OnboardingCard
@@ -61,10 +67,10 @@ const Access = () => {
                 </OnboardingCard>
                 <br />
               </Box>
-              <SelectRuleTable rules={data.accessRules} />
+              <SelectRuleTable rules={data} />
             </Flex>
           )}
-          {data && data.accessRules.length == 0 && (
+          {data && data.length == 0 && (
             <>
               We couldn't find any access rules for you
               <CodeInstruction

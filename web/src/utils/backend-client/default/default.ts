@@ -18,7 +18,7 @@ import type {
   ErrorResponseResponse,
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody,
-  ListAccessRulesResponseResponse,
+  LookupAccessRule,
   AccessRuleLookupParams
 } from '.././types'
 import { customInstance } from '../../custom-instance'
@@ -169,7 +169,7 @@ export const deleteProvidersetup = (
 export const accessRuleLookup = (
     params?: AccessRuleLookupParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListAccessRulesResponseResponse>(
+      return customInstance<LookupAccessRule[]>(
       {url: `/api/v1/access-rules/lookup`, method: 'get',
         params
     },

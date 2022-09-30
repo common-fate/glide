@@ -968,13 +968,21 @@ paths:
       tags: []
       responses:
         "200":
-          $ref: "#/components/responses/ListAccessRulesResponse"
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LookupAccessRule"
         "404":
           $ref: "#/components/responses/ErrorResponse"
       operationId: access-rule-lookup
       parameters:
         - schema:
             type: string
+            enum:
+              - commonfate/aws-sso
           in: query
           name: type
           description: the provider type i.e. commonfate/aws-sso. type should be encoded i.e.  backslash -> %2
@@ -1774,6 +1782,35 @@ components:
       required:
         - level
         - msg
+    LookupAccessRule:
+      title: LookupAccessRule
+      x-stoplight:
+        id: phxrq09t2fv2z
+      type: object
+      description: A matched access rule with option values if they are required for the access rule request
+      properties:
+        accessRule:
+          $ref: "#/components/schemas/AccessRule"
+        selectableWithOptionValues:
+          type: array
+          description: "If the matched access rule has selectable fields, this array will contain the matched values to be used to prefill the form when requesting"
+          items:
+            $ref: "#/components/schemas/KeyValue"
+      required:
+        - accessRule
+    KeyValue:
+      title: KeyValue
+      x-stoplight:
+        id: 35jvelu9x12l2
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      required:
+        - key
+        - value
   responses:
     ErrorResponse:
       description: An error returned from the service.
