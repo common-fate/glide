@@ -72,7 +72,7 @@ const Access = () => {
           )}
           {data && data.length == 0 && (
             <>
-              We couldn't find any access rules for you
+              <Text mb={2}>We couldn't find any access rules for you</Text>
               <CFCodeMultiline
                 text={`Access rule not found, details below:
 ${JSON.stringify(search, null, 2)}`}
