@@ -37,7 +37,9 @@ const Access = () => {
 
   useEffect(() => {
     if (data?.accessRules.length == 1) {
-      navigate({ to: "/access/request/" + data.accessRules[0].id });
+      navigate({
+        to: `/access/request/${data.accessRules[0].id}?accountId=${search.accountId}`,
+      });
     }
   }, [search, data]);
 
