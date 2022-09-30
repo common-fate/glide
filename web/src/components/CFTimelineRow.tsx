@@ -11,11 +11,13 @@ interface Props {
   arrLength: number;
 }
 
-const TimestampLine = React.forwardRef<React.ReactNode, { timestamp: Date }>(({ timestamp }, ref) => (
-  <Text fontSize="sm" color="gray.400" fontWeight="normal">
-    {formatDistanceToNowStrict(timestamp, {addSuffix: true})}
-  </Text>
-))
+const TimestampLine = React.forwardRef<React.ReactNode, { timestamp: Date }>(
+  ({ timestamp }, ref) => (
+    <Text fontSize="sm" color="gray.400" fontWeight="normal">
+      {formatDistanceToNowStrict(timestamp, { addSuffix: true })}
+    </Text>
+  )
+);
 
 export const CFTimelineRow = ({
   header,
@@ -64,7 +66,7 @@ export const CFTimelineRow = ({
         </Text>
         <Tooltip label={timestamp.toString()}>
           <Text fontSize="sm" color="gray.400" fontWeight="normal">
-            {formatDistanceToNowStrict(timestamp, {addSuffix: true})}
+            {formatDistanceToNowStrict(timestamp, { addSuffix: true })}
           </Text>
         </Tooltip>
       </Flex>
