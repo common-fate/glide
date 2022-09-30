@@ -13,26 +13,20 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
-	id := types.NewAccessRuleID()
-
-	log := logger.Get(ctx).With("user.id", user.ID, "access_rule.id", id)
-	now := s.Clock.Now()
-
+func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
 	// After verifying the provider, we can save the provider type to the rule for convenience
-	p, err := s.verifyRuleTarget(ctx, in.Target)
+	p, err := s.verifyRuleTarget(ctx, in)
 	if err != nil {
-		return nil, err
+		return rule.Target{}, err
 	}
-
 	target := rule.Target{
-		ProviderID:     in.Target.ProviderId,
+		ProviderID:     in.ProviderId,
 		ProviderType:   p.Type,
 		With:           make(map[string]string),
 		WithSelectable: make(map[string][]string),
 	}
 
-	for k, values := range in.Target.With.AdditionalProperties {
+	for k, values := range in.With.AdditionalProperties {
 		// min length 1 is configured in the api spec so len(0) is handled by builtin validation
 		if len(values) == 1 {
 			target.With[k] = values[0]
@@ -41,7 +35,18 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 			target.WithSelectable[k] = values
 		}
 	}
+	return target, nil
+}
+func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
+	id := types.NewAccessRuleID()
 
+	log := logger.Get(ctx).With("user.id", user.ID, "access_rule.id", id)
+	now := s.Clock.Now()
+
+	target, err := s.ProcessTarget(ctx, in.Target)
+	if err != nil {
+		return nil, err
+	}
 	rul := rule.AccessRule{
 		ID:          id,
 		Approval:    rule.Approval(in.Approval),

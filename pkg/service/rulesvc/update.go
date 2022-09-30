@@ -10,12 +10,16 @@ import (
 type UpdateOpts struct {
 	UpdaterID      string
 	Rule           rule.AccessRule
-	UpdateRequest  types.UpdateAccessRuleRequest
+	UpdateRequest  types.CreateAccessRuleRequest
 	ApprovalGroups []rule.Approval
 }
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
 	clk := s.Clock
+	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target)
+	if err != nil {
+		return nil, err
+	}
 	// makes a copy of the existing version which will be mutated
 	newVersion := in.Rule
 
@@ -29,12 +33,13 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	newVersion.Metadata.UpdatedAt = clk.Now()
 	newVersion.TimeConstraints = in.UpdateRequest.TimeConstraints
 	newVersion.Version = types.NewVersionID()
+	newVersion.Target = target
 
 	// Set the existing version to not current
 	in.Rule.Current = false
 
 	// updated the previous version to be a version and inserts the new one as current
-	err := s.DB.PutBatch(ctx, &newVersion, &in.Rule)
+	err = s.DB.PutBatch(ctx, &newVersion, &in.Rule)
 	if err != nil {
 		return nil, err
 	}

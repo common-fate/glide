@@ -10,7 +10,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Link } from "react-location";
-import EditAccessRuleForm from "../../../components/forms/access-rule/AccessRuleForm";
+import UpdateAccessRuleForm from "../../../components/forms/access-rule/UpdateForm";
 import { AdminLayout } from "../../../components/Layout";
 import { useMatch } from "react-location";
 import { useAdminGetAccessRule } from "../../../utils/backend-client/admin/admin";
@@ -54,10 +54,10 @@ const Index = () => {
 
         {!data?.isCurrent ||
           (data.status === "ARCHIVED" && (
-            <EditAccessRuleForm data={data} readOnly={true} />
+            <UpdateAccessRuleForm data={data} readOnly={true} />
           ))}
         {data?.isCurrent && data?.status === "ACTIVE" && (
-          <EditAccessRuleForm data={data} />
+          <UpdateAccessRuleForm data={data} />
         )}
       </Box>
     </AdminLayout>

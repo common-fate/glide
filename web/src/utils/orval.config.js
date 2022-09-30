@@ -1,6 +1,7 @@
 module.exports = {
   approvals: {
     output: {
+      clean: true,
       mode: "tags-split",
       target: "./backend-client/orval.ts",
       schemas: "./backend-client/types",

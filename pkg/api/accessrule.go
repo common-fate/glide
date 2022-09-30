@@ -127,7 +127,7 @@ func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId 
 // (POST /api/v1/access-rules/{ruleId})
 func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	var updateRequest types.UpdateAccessRuleRequest
+	var updateRequest types.CreateAccessRuleRequest
 	err := apio.DecodeJSONBody(w, r, &updateRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
