@@ -292,13 +292,31 @@ export const RequestAccessInstructions: React.FC = () => {
 
   useEffect(() => {
     if (reqData?.grant?.status == "PENDING") {
-      setRefreshInterval(2000);
+      if (
+        reqData?.timing.startTime &&
+        Date.parse(reqData.timing.startTime) > new Date().valueOf()
+      ) {
+        // This should make it refresh at least once just after its scheduled start time
+        setRefreshInterval(
+          Date.parse(reqData.timing.startTime) - new Date().valueOf() + 100
+        );
+      } else {
+        setRefreshInterval(2000);
+      }
     } else {
       setRefreshInterval(0);
     }
   }, [reqData]);
 
   if (!data || !data.instructions) {
+    return null;
+  }
+
+  // Don't attempt to load a scheduled request until start time
+  if (
+    reqData?.timing.startTime &&
+    Date.parse(reqData.timing.startTime) > new Date().valueOf()
+  ) {
     return null;
   }
 
