@@ -561,13 +561,13 @@ func TestLookupAccessRules(t *testing.T) {
 	}
 
 	testcases := []testcase{
-		// {
-		// 	name:     "no rules returns an empty list not an error",
-		// 	giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
-		// 	wantCode: http.StatusOK,
-		// 	rules:    nil,
-		// 	want:     `[]`,
-		// },
+		{
+			name:     "no rules returns an empty list not an error",
+			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
+			wantCode: http.StatusOK,
+			rules:    nil,
+			want:     `[]`,
+		},
 		{
 			name:     "single match",
 			giveURL:  `/api/v1/access-rules/lookup?accountId=12345678912&permissionSetArn.label=GrantedAdministratorAccess&type=commonfate%2Faws-sso`,
