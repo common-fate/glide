@@ -26,11 +26,11 @@ import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { MultiSelect } from "../components/Select";
-import { CreateAccessRuleFormData } from "../CreateForm";
+import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 
 export const ProviderStep: React.FC = () => {
-  const methods = useFormContext<CreateAccessRuleFormData>();
+  const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
   const { data: provider } = useGetProvider(target?.providerId);
   const { data: providerArgs } = useGetProviderArgs(target?.providerId ?? "");
@@ -182,13 +182,7 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
 
 // WithField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
 const WithField: React.FC<FieldProps> = (props) => {
-  const {
-    control,
-    watch,
-    formState,
-    trigger,
-    register,
-  } = useFormContext<CreateAccessRuleFormData>();
+  const { watch, formState, register } = useFormContext<AccessRuleFormData>();
   const providerId = watch("target.providerId");
   const { data } = useListProviderArgOptions(providerId, props.name);
   const withError = formState.errors.target?.with;

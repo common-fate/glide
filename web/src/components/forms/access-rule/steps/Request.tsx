@@ -11,12 +11,12 @@ import {
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { GroupSelect } from "../components/Select";
-import { CreateAccessRuleFormData } from "../CreateForm";
+import { AccessRuleFormData } from "../CreateForm";
 import { GroupDisplay } from "./Approval";
 import { FormStep } from "./FormStep";
 
 export const RequestsStep: React.FC = () => {
-  const methods = useFormContext<CreateAccessRuleFormData>();
+  const methods = useFormContext<AccessRuleFormData>();
   const groups = methods.watch("groups");
 
   return (

@@ -210,8 +210,9 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       }
     : {
         badge: "Old Version",
-        label:
-          "The access rule has been updated since this request was made. You can still approve this request.",
+        label: `The access rule has been updated since this request was made. ${
+          request?.canReview ? "You can still approve this request." : ""
+        }`,
       };
 
   return (

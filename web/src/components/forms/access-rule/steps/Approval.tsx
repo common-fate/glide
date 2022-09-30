@@ -16,12 +16,12 @@ import { useFormContext } from "react-hook-form";
 import { useGetGroup } from "../../../../utils/backend-client/admin/admin";
 import { UserAvatarDetails } from "../../../UserAvatar";
 import { GroupSelect, UserSelect } from "../components/Select";
-import { CreateAccessRuleFormData } from "../CreateForm";
+import { AccessRuleFormData } from "../CreateForm";
 
 import { FormStep } from "./FormStep";
 
 export const ApprovalStep: React.FC = () => {
-  const methods = useFormContext<CreateAccessRuleFormData>();
+  const methods = useFormContext<AccessRuleFormData>();
   const approval = methods.watch("approval");
   // If approval is required, then at least one user or one group needs to be set
   const approverRequired =

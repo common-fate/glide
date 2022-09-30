@@ -440,7 +440,7 @@ paths:
         "500":
           description: Internal Server Error
       requestBody:
-        $ref: "#/components/requestBodies/UpdateAccessRuleRequest"
+        $ref: "#/components/requestBodies/CreateAccessRuleRequest"
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Admin
@@ -2034,34 +2034,6 @@ components:
   examples: {}
   securitySchemes: {}
   requestBodies:
-    UpdateAccessRuleRequest:
-      content:
-        application/json:
-          schema:
-            description: ""
-            type: object
-            properties:
-              timeConstraints:
-                $ref: "#/components/schemas/TimeConstraints"
-              groups:
-                type: array
-                items:
-                  type: string
-              approval:
-                $ref: "#/components/schemas/ApproverConfig"
-              name:
-                type: string
-              description:
-                type: string
-              updateMessage:
-                type: string
-            required:
-              - timeConstraints
-              - groups
-              - approval
-              - name
-              - description
-          examples: {}
     CreateAccessRuleRequest:
       content:
         application/json:

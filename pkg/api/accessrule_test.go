@@ -123,7 +123,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"approval":{"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"],"groups":[]},"name":"Productions","description":"Production access ","timeConstraints":{"maxDurationSeconds":3600},"groups":["granted_administrators"]}`,
+			give: `{"target":{"providerId":"string","with":{}},"approval":{"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"],"groups":[]},"name":"Productions","description":"Production access ","timeConstraints":{"maxDurationSeconds":3600},"groups":["granted_administrators"]}`,
 			mockCreate: &rule.AccessRule{
 				ID:          "rule1",
 				Status:      rule.ACTIVE,
