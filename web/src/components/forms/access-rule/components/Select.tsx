@@ -149,7 +149,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             onChange={(val) => {
               // for MultiSelect with 'Select All' option
               // we check if the selected value is 'select all'
-              // if true then add add options as value.
+              // if true then add all options as value.
               if (shouldAddSelectAllOption) {
                 const isAllOptionSelected = val.find(
                   (c) => c.label === SELECT_ALL_LABEL
