@@ -198,6 +198,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
 		// prevent us from panicking with a nil pointer error if one of the required parameters isn't provided.
 		apio.ErrorString(ctx, w, "invalid query params", http.StatusBadRequest)
+		return
 	}
 
 	logger.Get(ctx).Infow("looking up access rule", "params", params)
