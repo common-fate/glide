@@ -54,7 +54,7 @@ import { Sticky, StickyContainer } from "react-sticky";
 import useWindowSize from "react-use/lib/useWindowSize";
 import {
   CFCode,
-  CodeInstruction,
+  CFReactMarkownCode,
 } from "../../../../../components/CodeInstruction";
 import { ConnectorArrow } from "../../../../../components/ConnectorArrow";
 import { ExpandingImage } from "../../../../../components/ExpandingImage";
@@ -550,7 +550,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                       {props.children}
                     </OrderedList>
                   ),
-                  code: CodeInstruction,
+                  code: CFReactMarkownCode,
                   img: (props) => <ExpandingImage {...props} />,
                 }}
               >

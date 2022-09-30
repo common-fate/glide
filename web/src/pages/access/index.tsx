@@ -2,7 +2,7 @@ import { InfoIcon } from "@chakra-ui/icons";
 import { Box, Center, Flex, Spinner, Text } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
-import { CodeInstruction } from "../../components/CodeInstruction";
+import { CFCodeMultiline } from "../../components/CodeInstruction";
 import { UserLayout } from "../../components/Layout";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
@@ -73,12 +73,8 @@ const Access = () => {
           {data && data.length == 0 && (
             <>
               We couldn't find any access rules for you
-              <CodeInstruction
-                mt={2}
-                textAlign="left"
-                inline={false}
-                // @ts-ignore
-                children={`Access rule not found, details below:
+              <CFCodeMultiline
+                text={`Access rule not found, details below:
 ${JSON.stringify(search, null, 2)}`}
               />
               <Flex _hover={{ textDecor: "underline" }} mt={12}>

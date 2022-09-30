@@ -51,7 +51,7 @@ import { useUser } from "../utils/context/userContext";
 import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
-import { CodeInstruction } from "./CodeInstruction";
+import { CFReactMarkownCode } from "./CodeInstruction";
 import { CopyableOption } from "./CopyableOption";
 import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
@@ -343,7 +343,7 @@ export const RequestAccessInstructions: React.FC = () => {
                 {props.children}
               </Text>
             ),
-            code: CodeInstruction,
+            code: CFReactMarkownCode,
           }}
         >
           {data.instructions}
