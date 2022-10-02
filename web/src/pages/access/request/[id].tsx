@@ -173,15 +173,26 @@ const Home = () => {
       })
       .catch((e) => {
         setLoading(false);
-
-        setValidationErrors(e.response.data.fields);
         toast({
           title: "Request failed",
           status: "error",
-          duration: 2200,
+          duration: 4200,
           description: e.message,
           isClosable: true,
         });
+        if (e.response.data.fields) {
+          setValidationErrors(e.response.data.fields);
+
+          validationErrors?.forEach((fieldErr) => {
+            toast({
+              title: "Request failed",
+              status: "error",
+              duration: 4200,
+              description: `error code: ${fieldErr.field}`,
+              isClosable: true,
+            });
+          });
+        }
       });
   };
 
@@ -406,97 +417,6 @@ const Home = () => {
                   />
                 </FormControl>
 
-                {validationErrors && (
-                  <Stack
-                    borderWidth={"1px"}
-                    justifyContent="center"
-                    alignItems={"center"}
-                    borderRadius="8px"
-                  >
-                    <Stack
-                      justifyContent={"center"}
-                      alignItems={"center"}
-                      spacing={{ base: 5, md: 0 }}
-                      position="relative"
-                      w="100%"
-                      p={4}
-                      flexDirection={{ base: "column", md: "row" }}
-                    >
-                      <Text textStyle="Body/Medium">Grant Validation Test</Text>
-
-                      <Flex
-                        position={{ md: "absolute", base: "relative" }}
-                        right={{ md: 3, base: 0 }}
-                        w={{ base: "100%", md: "unset" }}
-                        h="100%"
-                        justifyContent={"center"}
-                        alignItems={"center"}
-                      >
-                        <HStack
-                          spacing={5}
-                          justifyContent={"center"}
-                          alignItems={"center"}
-                        ></HStack>
-                      </Flex>
-                    </Stack>
-                    <Stack
-                      spacing={4}
-                      bg="neutrals.700"
-                      pt={3}
-                      w="100%"
-                      borderBottomLeftRadius={"8px"}
-                      borderBottomRightRadius={"8px"}
-                      shadow="inset 0 0 10px #0f0f0f"
-                    >
-                      {validationErrors.map((validation) => (
-                        <ValidationResults
-                          key={validation.field}
-                          loading={!validationErrors}
-                          validation={validation}
-                        />
-                      ))}
-                      <Flex
-                        borderTopWidth="1px"
-                        borderTopColor={"#383a3c"}
-                        w="100%"
-                        justifyContent="flex-end"
-                        px={3}
-                      >
-                        {/* <Button
-                          onClick={() => onCopy()}
-                          borderLeftWidth="1px"
-                          borderLeftColor={"#383a3c"}
-                          borderLeftRadius={0}
-                          pl={3}
-                          variant="unstyled"
-                          color={hasCopied ? "#22c55e" : "#d0d7de"}
-                          textTransform={"uppercase"}
-                          fontSize="11px"
-                          size="xs"
-                        >
-                          Copy Diagnostics
-                        </Button> */}
-                      </Flex>
-                    </Stack>
-                  </Stack>
-                  // <Flex direction="column">
-                  //   <Text textStyle="Body/Medium" fontWeight="normal">
-                  //     Request failed due to the following errors:
-                  //   </Text>
-                  //   {validationErrors.map((item) => {
-                  //     return (
-                  //       <>
-                  //         <Text textStyle="Body/Medium">
-                  //           Validation: {item.field}
-                  //         </Text>
-                  //         <Text textStyle={"Body/ExtraSmall"}>
-                  //           Error: {item.error}
-                  //         </Text>
-                  //       </>
-                  //     );
-                  //   })}
-                  // </Flex>
-                )}
                 {/* Don't show approval section if approvers are still loading */}
                 <Approvers approvers={approvers?.users} />
                 <Box>
@@ -510,55 +430,6 @@ const Home = () => {
         </Container>
       </UserLayout>
     </>
-  );
-};
-
-interface ValidationResultsProps {
-  loading?: boolean;
-  validation: FieldError;
-}
-
-const ValidationResults: React.FC<ValidationResultsProps> = ({
-  loading,
-  validation,
-}) => {
-  const [expanded, setExpanded] = useState(true);
-
-  return (
-    <Stack spacing={0}>
-      <Flex color="#d0d7de" alignItems={"center"} py={1} px={3}>
-        <Flex w={6} alignItems="center">
-          <IconButton
-            color="neutrals.500"
-            size="s"
-            variant={"unstyled"}
-            aria-label="expand"
-            onClick={() => setExpanded(!expanded)}
-            icon={expanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-          />
-        </Flex>
-        <Flex w={6} alignItems="center">
-          {loading ? (
-            <Spinner size="xs" color="neutrals.500" />
-          ) : (
-            <WarningIcon boxSize={"12px"} color="neutrals.500" />
-          )}
-        </Flex>
-        <Text color="#d0d7de">{validation.field}</Text>
-      </Flex>
-      {expanded && (
-        <Stack pl={"60px"} spacing={1}>
-          <Text
-            key={validation.field}
-            color="#d0d7de"
-            fontSize={"12px"}
-            fontFamily="mono"
-          >
-            {validation.error}
-          </Text>
-        </Stack>
-      )}
-    </Stack>
   );
 };
 

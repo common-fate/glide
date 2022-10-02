@@ -16,6 +16,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"go.uber.org/zap"
 )
 
 // List my requests
@@ -210,6 +211,9 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log := zap.S()
+	log.Infow("validating and creating grant")
+
 	// create the request. The RequestCreator handles the validation
 	// and saving the request to the database.
 	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
@@ -221,9 +225,12 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 			for _, e := range *result.DiagnosticLogs {
 
 				//only display the errors in the frontend for now
-				//TODO: Display all validations that are run in the frontend, fail or success
+
 				if e.Status == "ERROR" {
-					fields = append(fields, apio.FieldError{Field: e.Id, Error: e.Logs[0].Msg})
+					//log meaningful message in the backend and return a field error to the frontend to let user know of the validation err
+					log.Errorw("error validating grant ", e.Id, e.Logs[0].Msg)
+
+					fields = append(fields, apio.FieldError{Field: e.Id, Error: ""})
 
 				}
 			}

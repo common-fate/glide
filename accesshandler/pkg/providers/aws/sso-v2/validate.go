@@ -21,7 +21,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 
 	return map[string]providers.GrantValidationStep{
 		"User exists in AWS SSO": {
-			Name: "The user must exist in the AWS SSO instance",
+			Name: "the-user-must-exist-in-the-AWS-SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -51,7 +51,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 			},
 		},
 		"Permission set should exist": {
-			Name: "The permissionset should exist",
+			Name: "permissionset-should-exist",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -69,7 +69,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 			},
 		},
 		"AWS Account exists": {
-			Name: "The account should exist",
+			Name: "account-should-exist",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
