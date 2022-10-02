@@ -2,12 +2,16 @@ package rulesvc
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/ddb/ddbmock"
+	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +21,7 @@ func TestUpdateAccessRule(t *testing.T) {
 		name            string
 		givenUserID     string
 		givenRule       rule.AccessRule
-		givenUpdateBody types.UpdateAccessRuleRequest
+		givenUpdateBody types.CreateAccessRuleRequest
 		wantErr         error
 		want            *rule.AccessRule
 	}
@@ -45,9 +49,15 @@ func TestUpdateAccessRule(t *testing.T) {
 			UpdatedAt: now,
 			UpdatedBy: userID,
 		},
+		Target: rule.Target{
+			ProviderID:     "hello",
+			ProviderType:   "awssso",
+			With:           map[string]string{},
+			WithSelectable: map[string][]string{},
+		},
 	}
 
-	mockRuleUpdateBody := types.UpdateAccessRuleRequest{
+	mockRuleUpdateBody := types.CreateAccessRuleRequest{
 		Approval: types.ApproverConfig{
 			Users: []string{"user1", "user2"},
 		},
@@ -56,6 +66,12 @@ func TestUpdateAccessRule(t *testing.T) {
 		Groups:      []string{"group1", "group2"},
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: 600,
+		},
+		Target: types.CreateAccessRuleTarget{
+			ProviderId: "newTarget",
+			With: types.CreateAccessRuleTarget_With{
+				AdditionalProperties: map[string][]string{},
+			},
 		},
 	}
 
@@ -78,6 +94,12 @@ func TestUpdateAccessRule(t *testing.T) {
 			MaxDurationSeconds: 600,
 		},
 		Version: versionID,
+		Target: rule.Target{
+			ProviderID:     "newTarget",
+			ProviderType:   "awssso",
+			With:           map[string]string{},
+			WithSelectable: map[string][]string{},
+		},
 	}
 
 	/**
@@ -101,10 +123,16 @@ func TestUpdateAccessRule(t *testing.T) {
 			dbc := ddbmock.Client{
 				PutBatchErr: tc.wantErr,
 			}
+			ctrl := gomock.NewController(t)
 
+			defer ctrl.Finish()
+
+			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
+			m.EXPECT().GetProviderWithResponse(gomock.Any(), tc.givenUpdateBody.Target.ProviderId).Return(&ahTypes.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: http.StatusOK}, JSON200: &ahTypes.Provider{Type: "awssso"}}, nil)
 			s := Service{
-				Clock: clk,
-				DB:    &dbc,
+				Clock:    clk,
+				DB:       &dbc,
+				AHClient: m,
 			}
 
 			got, err := s.UpdateRule(context.Background(), &UpdateOpts{

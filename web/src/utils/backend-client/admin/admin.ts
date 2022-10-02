@@ -16,7 +16,6 @@ import type {
   AccessRuleDetail,
   ErrorResponseResponse,
   CreateAccessRuleRequestBody,
-  UpdateAccessRuleRequestBody,
   ListRequestsResponseResponse,
   AdminListRequestsParams,
   User,
@@ -153,12 +152,12 @@ export const useAdminGetAccessRule = <TError = ErrorType<ErrorResponseResponse>>
  */
 export const adminUpdateAccessRule = (
     ruleId: string,
-    updateAccessRuleRequestBody: UpdateAccessRuleRequestBody,
+    createAccessRuleRequestBody: CreateAccessRuleRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<AccessRuleDetail>(
       {url: `/api/v1/admin/access-rules/${ruleId}`, method: 'put',
       headers: {'Content-Type': 'application/json', },
-      data: updateAccessRuleRequestBody
+      data: createAccessRuleRequestBody
     },
       options);
     }
