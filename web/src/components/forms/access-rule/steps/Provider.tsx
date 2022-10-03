@@ -213,6 +213,7 @@ const WithField: React.FC<FieldProps> = (props) => {
             rules={{ required: true, minLength: 1 }}
             fieldName={`target.with.${props.name}`}
             options={data.options}
+            shouldAddSelectAllOption={true}
           />
 
           <RefreshButton providerId={providerId} argId={props.name} />
