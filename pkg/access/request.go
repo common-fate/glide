@@ -140,6 +140,7 @@ func (r *Request) ToAPI() types.Request {
 		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
 			Label: v.Label,
 			Value: v.Value,
+			Valid: true,
 		}
 	}
 	if r.Grant != nil {
@@ -176,6 +177,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.
 		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
 			Label: v.Label,
 			Value: v.Value,
+			Valid: true,
 		}
 	}
 	if r.Grant != nil {

@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -167,35 +169,46 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 			AdditionalProperties: t.With,
 		},
 		WithSelectable: types.AccessRuleTargetDetail_WithSelectable{
-			AdditionalProperties: make(map[string][]types.Selectable),
+			AdditionalProperties: make(map[string]types.Selectable),
 		},
 	}
+	// Lookup the provider, ignore errors
+	// if provider is not found, fallback to using the argument key as the title
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
 	for k, v := range t.WithSelectable {
-		opts := make([]types.Selectable, len(v))
+		selectable := types.Selectable{
+			Options: make([]types.WithOption, len(v)),
+		}
+		// attempt to get the title for the argument from the provider arg schema
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				selectable.Title = providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
+			}
+		}
+		// If title was not found, fallback to using the arg key as the title
+		if selectable.Title == "" {
+			selectable.Title = k
+		}
 		for i, opt := range v {
 			// initially set it to false
-			opts[i] = types.Selectable{
-				Option: types.WithOption{
-					Label: opt,
-					Value: opt,
-				},
+			selectable.Options[i] = types.WithOption{
+				Label: opt,
+				Value: opt,
 				Valid: false,
 			}
 			for _, ao := range argOptions {
 				// if a value is found, set it to true with a label
 				if ao.Arg == k && ao.Value == opt {
-					opts[i] = types.Selectable{
-						Option: types.WithOption{
-							Label: ao.Label,
-							Value: opt,
-						},
+					selectable.Options[i] = types.WithOption{
+						Label: ao.Label,
+						Value: opt,
 						Valid: true,
 					}
 					break
 				}
 			}
 		}
-		at.WithSelectable.AdditionalProperties[k] = opts
+		at.WithSelectable.AdditionalProperties[k] = selectable
 	}
 	return at
 }

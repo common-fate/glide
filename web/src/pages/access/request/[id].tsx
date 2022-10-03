@@ -27,7 +27,12 @@ import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
-import Select from "react-select";
+import Select, {
+  components,
+  GroupBase,
+  mergeStyles,
+  OptionProps,
+} from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
@@ -43,8 +48,12 @@ import {
   useUserGetAccessRule,
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
-import { CreateRequestRequestBody } from "../../../utils/backend-client/types";
+import {
+  CreateRequestRequestBody,
+  WithOption,
+} from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
+import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -120,8 +129,8 @@ const Home = () => {
         ).get(k);
         if (
           queryParamValue !== null &&
-          v.find((s) => {
-            return s.option.value === queryParamValue;
+          v.options.find((s) => {
+            return s.value === queryParamValue;
           }) !== undefined
         ) {
           setValue(`with.${k}`, queryParamValue);
@@ -133,16 +142,14 @@ const Home = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const {
-    data: approvers,
-    isValidating: isValidatingApprovers,
-  } = useUserGetAccessRuleApprovers(ruleId, {
-    swr: {
-      swrKey: getUserGetAccessRuleApproversKey(ruleId),
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: approvers, isValidating: isValidatingApprovers } =
+    useUserGetAccessRuleApprovers(ruleId, {
+      swr: {
+        swrKey: getUserGetAccessRuleApproversKey(ruleId),
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+      },
+    });
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
   const onSubmit: SubmitHandler<NewRequestFormData> = async (data) => {
@@ -241,7 +248,7 @@ const Home = () => {
                             textStyle="Body/Medium"
                             fontWeight="normal"
                           >
-                            {k}
+                            {v.title}
                           </FormLabel>
 
                           <Controller
@@ -252,17 +259,32 @@ const Home = () => {
                               field: { value, onChange, ...rest },
                             }) => (
                               <Select
+                                components={{
+                                  Option: CustomOption,
+                                }}
+                                styles={{
+                                  option: (provided, state) => {
+                                    return {
+                                      ...provided,
+                                      background: state.isSelected
+                                        ? colors.blue[200]
+                                        : provided.background,
+                                      color: state.isSelected
+                                        ? colors.neutrals[800]
+                                        : provided.color,
+                                    };
+                                  },
+                                }}
                                 isMulti={false}
-                                options={v
+                                options={v.options
                                   // exclude invalid options
                                   .filter((op) => op.valid)
                                   .map((op) => {
-                                    return op.option;
+                                    return op;
                                   })}
-                                value={
-                                  v.find((op) => value === op.option.value)
-                                    ?.option
-                                }
+                                value={v.options.find(
+                                  (op) => value === op.value
+                                )}
                                 onChange={(val) => {
                                   onChange(val?.value);
                                 }}
@@ -452,3 +474,16 @@ const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
     </Text>
   );
 };
+const CustomOption = ({
+  children,
+  ...innerProps
+}: OptionProps<WithOption, false, GroupBase<WithOption>>) => (
+  <div data-testid={innerProps.data.value}>
+    <components.Option {...innerProps}>
+      <>
+        {children}
+        {<Text>{innerProps.data.value}</Text>}
+      </>
+    </components.Option>
+  </div>
+);

@@ -118,6 +118,11 @@ func (r ProviderRegistry) Lookup(providerType, version string) (*RegisteredProvi
 	return &p, nil
 }
 
+// GetLatestByShortType prepends 'commonfate/' to the providerType then calls GetLatestByType
+func (r ProviderRegistry) GetLatestByShortType(providerType string) (latestVersion string, p *RegisteredProvider, err error) {
+	return r.GetLatestByType("commonfate/" + providerType)
+}
+
 // GetLatestByType gets the latest version of a particular provider by it's type.
 func (r ProviderRegistry) GetLatestByType(providerType string) (latestVersion string, p *RegisteredProvider, err error) {
 	providerVersions, ok := r.Providers[providerType]
