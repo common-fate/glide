@@ -125,6 +125,19 @@ export class CustomerGrantedStack extends cdk.Stack {
       }
     );
 
+    const cloudfrontWafAclArn = new CfnParameter(this, "CloudfrontWAFACLARN", {
+      type: "String",
+      description:
+        "The ARN of a WAF ACL instance which is configured for the Cloudfront distribution.",
+      default: "",
+    });
+    const apiGatewayWafAclArn = new CfnParameter(this, "APIGatewayWAFACLARN", {
+      type: "String",
+      description:
+        "The ARN of a WAF ACL instance which is configured for the API Gateway.",
+      default: "",
+    });
+
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -140,6 +153,7 @@ export class CustomerGrantedStack extends cdk.Stack {
     }).withProdCDN({
       frontendDomain: frontendDomain.valueAsString,
       frontendCertificateArn: frontendCertificate.valueAsString,
+      cloudfrontWafAclArn: cloudfrontWafAclArn.valueAsString,
     });
 
     const webUserPool = new WebUserPool(this, "WebUserPool", {
@@ -181,6 +195,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       dynamoTable: db.getTable(),
       remoteConfigUrl: remoteConfigUrl.valueAsString,
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
+      apiGatewayWafAclArn: apiGatewayWafAclArn.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -224,7 +239,8 @@ export class CustomerGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
     });
   }
 }

@@ -31,6 +31,8 @@ const remoteConfigUrl = app.node.tryGetContext("experimentalRemoteConfigUrl");
 const remoteConfigHeaders = app.node.tryGetContext(
   "experimentalRemoteConfigHeaders"
 );
+const apiGatewayWafAclArn = app.node.tryGetContext("apiGatewayWafAclArn");
+const cloudfrontWafAclArn = app.node.tryGetContext("cloudfrontWafAclArn");
 
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one
@@ -68,6 +70,8 @@ if (stackTarget === "dev") {
     identityProviderSyncConfiguration: identityConfig || "{}",
     remoteConfigUrl: remoteConfigUrl || "",
     remoteConfigHeaders: remoteConfigHeaders || "",
+    apiGatewayWafAclArn: apiGatewayWafAclArn,
+    cloudfrontWafAclArn: cloudfrontWafAclArn,
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {
@@ -79,7 +83,7 @@ if (stackTarget === "dev") {
       fileAssetsBucketName: productionReleasesBucket,
       bucketPrefix: productionReleaseBucketPrefix + "/",
       // This role ARN is critical, make sure that it is in the account that you are using to publish!
-      // cdk-assets will return obscure error messages if you are using teh wrong account to publish.
+      // cdk-assets will return obscure error messages if you are using the wrong account to publish.
       // If you want to push to a new bucket in a different account, remember to setup a publishing role in that account that can be assumed with the credentials that you are using.
       fileAssetPublishingRoleArn:
         "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/granted-cdk-asset-publishing-role",

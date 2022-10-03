@@ -24,6 +24,8 @@ interface Props extends cdk.StackProps {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   adminGroupId: string;
+  cloudfrontWafAclArn: string;
+  apiGatewayWafAclArn: string;
 }
 export class DevGrantedStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Props) {
@@ -41,6 +43,8 @@ export class DevGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration,
       remoteConfigUrl,
       remoteConfigHeaders,
+      cloudfrontWafAclArn,
+      apiGatewayWafAclArn,
     } = props;
     const appName = `granted-approvals-${stage}`;
 
@@ -52,7 +56,7 @@ export class DevGrantedStack extends cdk.Stack {
       appName,
       // this will be unique for dev deployments
       stableName: appName,
-    }).withDevCDN(stage, devConfig);
+    }).withDevCDN(stage, devConfig, cloudfrontWafAclArn);
 
     const webUserPool = new WebUserPool(this, "WebUserPool", {
       appName: appName,
@@ -93,6 +97,7 @@ export class DevGrantedStack extends cdk.Stack {
       dynamoTable: db.getTable(),
       remoteConfigUrl,
       remoteConfigHeaders,
+      apiGatewayWafAclArn,
     });
     /* Outputs */
     generateOutputs(this, {
@@ -122,7 +127,8 @@ export class DevGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
       Region: this.region,
       PaginationKMSKeyARN: approvals.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
     });
   }
 }
