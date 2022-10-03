@@ -161,6 +161,8 @@ type Parameters struct {
 	SamlSSOMetadataURL              string      `yaml:"SamlSSOMetadataURL,omitempty"`
 	FrontendDomain                  string      `yaml:"FrontendDomain,omitempty"`
 	FrontendCertificateARN          string      `yaml:"FrontendCertificateARN,omitempty"`
+	CloudfrontWAFACLARN             string      `yaml:"CloudfrontWAFACLARN,omitempty"`
+	APIGatewayWAFACLARN             string      `yaml:"APIGatewayWAFACLARN,omitempty"`
 	ExperimentalRemoteConfigURL     string      `yaml:"ExperimentalRemoteConfigURL,omitempty"`
 	ExperimentalRemoteConfigHeaders string      `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
 	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
@@ -395,6 +397,18 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("FrontendDomain"),
 			ParameterValue: &p.FrontendDomain,
+		})
+	}
+	if c.Deployment.Parameters.APIGatewayWAFACLARN != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("APIGatewayWAFACLARN"),
+			ParameterValue: &p.APIGatewayWAFACLARN,
+		})
+	}
+	if c.Deployment.Parameters.CloudfrontWAFACLARN != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("CloudfrontWAFACLARN"),
+			ParameterValue: &p.CloudfrontWAFACLARN,
 		})
 	}
 
