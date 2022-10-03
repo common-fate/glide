@@ -30,7 +30,7 @@ interface Props {
 }
 
 interface ProdCdnConfig {
-  wafAclArn?: string;
+  cloudfrontWafAclArn: string;
   frontendDomain: string;
   frontendCertificateArn: string;
 }
@@ -136,7 +136,7 @@ export class AppFrontend extends Construct {
       "CloudfrontDistribution",
       this.distributionConfig({
         logBucket: accessLogBucket,
-        wafAclArn: config.wafAclArn,
+        wafAclArn: config.cloudfrontWafAclArn,
       })
     );
 
@@ -199,7 +199,7 @@ export class AppFrontend extends Construct {
     this._distribution = new cloudfront.Distribution(
       this,
       "CloudfrontDistribution",
-      this.distributionConfig({ wafAclArn: wafAclArn })
+      this.distributionConfig({ wafAclArn: wafAclArn || undefined })
     );
 
     return this;

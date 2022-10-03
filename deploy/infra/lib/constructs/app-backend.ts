@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { Duration, Stack } from "aws-cdk-lib";
+import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as kms from "aws-cdk-lib/aws-kms";
@@ -31,7 +31,7 @@ interface Props {
   remoteConfigUrl: string;
   remoteConfigHeaders: string;
   dynamoTable: dynamodb.Table;
-  wafAclArn: string;
+  apiGatewayWafAclArn: string;
 }
 
 export class AppBackend extends Construct {
@@ -251,7 +251,7 @@ export class AppBackend extends Construct {
       })
     );
     props.eventBus.grantPutEventsTo(this._lambda);
-
+    this.wafAssociation(props.apiGatewayWafAclArn);
     this._eventHandler = new EventHandler(this, "EventHandler", {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
@@ -274,6 +274,35 @@ export class AppBackend extends Construct {
       identityProviderSyncConfiguration:
         props.identityProviderSyncConfiguration,
     });
+  }
+
+  /**
+   * if an arn is provided, a waf association will be created as part of the stack deployment for the root api
+   * @param apiGatewayWafAclArn
+   */
+  private wafAssociation(apiGatewayWafAclArn: string) {
+    const createApiGatewayWafAssociation = new CfnCondition(
+      this,
+      "CreateApiGatewayWafAssociationCondition",
+      {
+        expression: cdk.Fn.conditionNot(
+          cdk.Fn.conditionEquals(apiGatewayWafAclArn, "")
+        ),
+      }
+    );
+
+    const apiGatewayWafAclAssociation = new CfnWebACLAssociation(
+      this,
+      "APIGatewayWebACLAssociation",
+      {
+        resourceArn: `arn:aws:apigateway:${Stack.of(this).region}::/restapis/${
+          this._apigateway.restApiId
+        }/stages/prod`,
+        webAclArn: apiGatewayWafAclArn,
+      }
+    );
+    apiGatewayWafAclAssociation.cfnOptions.condition =
+      createApiGatewayWafAssociation;
   }
 
   getApprovalsApiURL(): string {

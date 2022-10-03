@@ -24,7 +24,8 @@ interface Props extends cdk.StackProps {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   adminGroupId: string;
-  cdnWafAclArn?: string;
+  cloudfrontWafAclArn: string;
+  apiGatewayWafAclArn: string;
 }
 export class DevGrantedStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Props) {
@@ -42,7 +43,8 @@ export class DevGrantedStack extends cdk.Stack {
       identityProviderSyncConfiguration,
       remoteConfigUrl,
       remoteConfigHeaders,
-      cdnWafAclArn,
+      cloudfrontWafAclArn,
+      apiGatewayWafAclArn,
     } = props;
     const appName = `granted-approvals-${stage}`;
 
@@ -54,7 +56,7 @@ export class DevGrantedStack extends cdk.Stack {
       appName,
       // this will be unique for dev deployments
       stableName: appName,
-    }).withDevCDN(stage, devConfig, cdnWafAclArn);
+    }).withDevCDN(stage, devConfig, cloudfrontWafAclArn);
 
     const webUserPool = new WebUserPool(this, "WebUserPool", {
       appName: appName,
@@ -95,6 +97,7 @@ export class DevGrantedStack extends cdk.Stack {
       dynamoTable: db.getTable(),
       remoteConfigUrl,
       remoteConfigHeaders,
+      apiGatewayWafAclArn,
     });
     /* Outputs */
     generateOutputs(this, {
