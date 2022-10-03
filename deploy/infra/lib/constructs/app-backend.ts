@@ -251,7 +251,7 @@ export class AppBackend extends Construct {
       })
     );
     props.eventBus.grantPutEventsTo(this._lambda);
-    this.wafAssociation(props.apiGatewayWafAclArn);
+    props.apiGatewayWafAclArn && this.wafAssociation(props.apiGatewayWafAclArn);
     this._eventHandler = new EventHandler(this, "EventHandler", {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
@@ -281,28 +281,30 @@ export class AppBackend extends Construct {
    * @param apiGatewayWafAclArn
    */
   private wafAssociation(apiGatewayWafAclArn: string) {
-    const createApiGatewayWafAssociation = new CfnCondition(
-      this,
-      "CreateApiGatewayWafAssociationCondition",
-      {
-        expression: cdk.Fn.conditionNot(
-          cdk.Fn.conditionEquals(apiGatewayWafAclArn, "")
-        ),
-      }
-    );
+    if (apiGatewayWafAclArn != "") {
+      const createApiGatewayWafAssociation = new CfnCondition(
+        this,
+        "CreateApiGatewayWafAssociationCondition",
+        {
+          expression: cdk.Fn.conditionNot(
+            cdk.Fn.conditionEquals(apiGatewayWafAclArn, "")
+          ),
+        }
+      );
 
-    const apiGatewayWafAclAssociation = new CfnWebACLAssociation(
-      this,
-      "APIGatewayWebACLAssociation",
-      {
-        resourceArn: `arn:aws:apigateway:${Stack.of(this).region}::/restapis/${
-          this._apigateway.restApiId
-        }/stages/prod`,
-        webAclArn: apiGatewayWafAclArn,
-      }
-    );
-    apiGatewayWafAclAssociation.cfnOptions.condition =
-      createApiGatewayWafAssociation;
+      const apiGatewayWafAclAssociation = new CfnWebACLAssociation(
+        this,
+        "APIGatewayWebACLAssociation",
+        {
+          resourceArn: `arn:aws:apigateway:${
+            Stack.of(this).region
+          }::/restapis/${this._apigateway.restApiId}/stages/prod`,
+          webAclArn: apiGatewayWafAclArn,
+        }
+      );
+      apiGatewayWafAclAssociation.cfnOptions.condition =
+        createApiGatewayWafAssociation;
+    }
   }
 
   getApprovalsApiURL(): string {

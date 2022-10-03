@@ -70,8 +70,8 @@ if (stackTarget === "dev") {
     identityProviderSyncConfiguration: identityConfig || "{}",
     remoteConfigUrl: remoteConfigUrl || "",
     remoteConfigHeaders: remoteConfigHeaders || "",
-    apiGatewayWafAclArn: "",
-    cloudfrontWafAclArn: "",
+    apiGatewayWafAclArn: apiGatewayWafAclArn,
+    cloudfrontWafAclArn: cloudfrontWafAclArn,
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {
