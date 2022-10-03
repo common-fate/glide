@@ -95,6 +95,48 @@ func (a AccessRule) ToAPI() types.AccessRule {
 	}
 }
 
+func (a AccessRule) ToRequestAccessRuleDetailAPI(argOptions []cache.ProviderOption) types.RequestAccessRuleDetail {
+	ad := types.RequestAccessRuleDetail{
+		Version:     a.Version,
+		Description: a.Description,
+		Name:        a.Name,
+		IsCurrent:   a.Current,
+		Id:          a.ID,
+		With: types.RequestAccessRuleDetail_With{
+			AdditionalProperties: make(map[string]types.With),
+		},
+		Provider:        a.Target.ToAPI().Provider,
+		TimeConstraints: a.TimeConstraints,
+	}
+	// Lookup the provider, ignore errors
+	// if provider is not found, fallback to using the argument key as the title
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(a.Target.ProviderType)
+	for k, v := range a.Target.With {
+		with := types.With{
+			Value: v,
+			Title: k,
+		}
+		// attempt to get the title for the argument from the provider arg schema
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				t := providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
+				if t != "" {
+					with.Title = t
+				}
+			}
+		}
+		for _, ao := range argOptions {
+			// if a value is found, set it to true with a label
+			if ao.Arg == k && ao.Value == v {
+				with.Label = ao.Label
+				break
+			}
+		}
+		ad.With.AdditionalProperties[k] = with
+	}
+	return ad
+}
+
 func (a AccessRule) ToAPIWithSelectables(argOptions []cache.ProviderOption) types.AccessRuleWithSelectables {
 	return types.AccessRuleWithSelectables{
 		ID:          a.ID,
