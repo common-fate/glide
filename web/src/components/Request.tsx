@@ -51,7 +51,7 @@ import { useUser } from "../utils/context/userContext";
 import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
-import { CodeInstruction } from "./CodeInstruction";
+import { CFReactMarkownCode } from "./CodeInstruction";
 import { CopyableOption } from "./CopyableOption";
 import { ProviderIcon } from "./icons/providerIcon";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
@@ -292,13 +292,31 @@ export const RequestAccessInstructions: React.FC = () => {
 
   useEffect(() => {
     if (reqData?.grant?.status == "PENDING") {
-      setRefreshInterval(2000);
+      if (
+        reqData?.timing.startTime &&
+        Date.parse(reqData.timing.startTime) > new Date().valueOf()
+      ) {
+        // This should make it refresh at least once just after its scheduled start time
+        setRefreshInterval(
+          Date.parse(reqData.timing.startTime) - new Date().valueOf() + 100
+        );
+      } else {
+        setRefreshInterval(2000);
+      }
     } else {
       setRefreshInterval(0);
     }
   }, [reqData]);
 
   if (!data || !data.instructions) {
+    return null;
+  }
+
+  // Don't attempt to load a scheduled request until start time
+  if (
+    reqData?.timing.startTime &&
+    Date.parse(reqData.timing.startTime) > new Date().valueOf()
+  ) {
     return null;
   }
 
@@ -325,7 +343,7 @@ export const RequestAccessInstructions: React.FC = () => {
                 {props.children}
               </Text>
             ),
-            code: CodeInstruction,
+            code: CFReactMarkownCode,
           }}
         >
           {data.instructions}
@@ -716,17 +734,22 @@ export const RequestCancelButton: React.FC = () => {
       });
     }
   };
-
-  return (
-    <ButtonGroup variant="outline" size="sm">
-      {!request && <Skeleton rounded="full" w="64px" h="32px" />}
-      {request?.status === "PENDING" && request.grant?.status == "PENDING" && (
+  // only display cancel if request is pending or is grant is still undefined
+  if (
+    (request?.status === "PENDING" && request.grant?.status == "PENDING") ||
+    request?.grant == undefined
+  ) {
+    return (
+      <ButtonGroup variant="outline" size="sm">
+        {!request && <Skeleton rounded="full" w="64px" h="32px" />}
         <Button rounded="full" onClick={handleCancel}>
           Cancel
         </Button>
-      )}
-    </ButtonGroup>
-  );
+      </ButtonGroup>
+    );
+  } else {
+    return null;
+  }
 };
 
 interface RevokeButtonsProps {

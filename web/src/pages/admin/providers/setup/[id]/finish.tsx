@@ -16,7 +16,7 @@ import { Link, Navigate, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
 import {
   CFCode,
-  CodeInstruction,
+  CFReactMarkownCode,
 } from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
 import { useGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
@@ -166,7 +166,7 @@ const Page = () => {
                         {props.children}
                       </Text>
                     ),
-                    code: CodeInstruction,
+                    code: CFReactMarkownCode,
                   }}
                 >
                   {gdeployCommand}
@@ -191,7 +191,7 @@ const Page = () => {
                         {props.children}
                       </Text>
                     ),
-                    code: CodeInstruction,
+                    code: CFReactMarkownCode,
                   }}
                 >
                   {"```\ngdeploy update\n```"}

@@ -114,6 +114,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 		grant.Status = types.GrantStatusERROR
+
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
 			return Output{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())

@@ -84,6 +84,29 @@ func TestRequestMarshalDDB(t *testing.T) {
 			},
 			want: `{"PK":"ACCESS_REQUEST#","SK":"req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI1PK":"ACCESS_REQUEST#user","GSI1SK":"req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI2PK":"ACCESS_REQUEST#APPROVED","GSI2SK":"user#req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI3PK":"ACCESS_REQUEST#user","GSI3SK":"2022-01-01T10:01:00Z","GSI4PK":"ACCESS_REQUEST#user#rul_123","GSI4SK":"2022-01-01T10:01:00Z"}`,
 		},
+		{
+			name: "error'd grant end time in the past",
+			give: Request{
+				ID:          "req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J",
+				RequestedBy: "user",
+				Rule:        "rul_123",
+				RuleVersion: "2022-01-01T10:00:00Z",
+				Status:      APPROVED,
+				Data: RequestData{
+					Reason: &reason,
+				},
+				RequestedTiming: Timing{
+					Duration: time.Minute * 5,
+				},
+				CreatedAt: time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC),
+				UpdatedAt: time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC),
+				Grant: &Grant{
+					Status: types.GrantStatusERROR,
+					End:    time.Date(2022, 1, 1, 10, 1, 0, 0, time.UTC),
+				},
+			},
+			want: `{"PK":"ACCESS_REQUEST#","SK":"req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI1PK":"ACCESS_REQUEST#user","GSI1SK":"req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI2PK":"ACCESS_REQUEST#APPROVED","GSI2SK":"user#req_28w2Eebt2Q8nFQJ2dKa1FTE9X0J","GSI3PK":"ACCESS_REQUEST#user","GSI3SK":"2022-01-01T10:00:00Z","GSI4PK":"ACCESS_REQUEST#user#rul_123","GSI4SK":"2022-01-01T10:00:00Z"}`,
+		},
 	}
 
 	for _, tc := range testcases {

@@ -1,37 +1,29 @@
-import { ChevronDownIcon, EditIcon, SmallAddIcon } from "@chakra-ui/icons";
+import { EditIcon } from "@chakra-ui/icons";
 import {
-  Button,
   Flex,
   HStack,
   Menu,
-  MenuButton,
   MenuIcon,
   MenuItem,
-  MenuItemOption,
   MenuList,
-  MenuOptionGroup,
   SkeletonText,
   Text,
   Tooltip,
 } from "@chakra-ui/react";
-import { format } from "date-fns";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
-import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import { useAdminListAccessRules } from "../../utils/backend-client/admin/admin";
+import { makeLookupAccessRuleRequestLink } from "../../pages/access";
+import { useUserGetAccessRuleApprovers } from "../../utils/backend-client/end-user/end-user";
 import {
   AccessRule,
-  AccessRuleDetail,
   AccessRuleStatus,
+  KeyValue,
+  LookupAccessRule,
 } from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
 import { ProviderIcon } from "../icons/providerIcon";
-import RuleConfigModal from "../modals/RuleConfigModal";
-import { StatusCell } from "../StatusCell";
-import { UserAvatarDetails } from "../UserAvatar";
 import { TableRenderer } from "./TableRenderer";
-import { useUserGetAccessRuleApprovers } from "../../utils/backend-client/end-user/end-user";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -39,7 +31,12 @@ type MyLocationGenerics = MakeGenerics<{
   };
 }>;
 
-export const SelectRuleTable = ({ rules }: { rules: AccessRule[] }) => {
+// Note: I made this type because the table column types don't seem to work with complex data
+// We need access to the selectabeloptions when redirecting to the request page
+interface ExtendedAR extends AccessRule {
+  selectableWithOptionValues?: KeyValue[];
+}
+export const SelectRuleTable = ({ rules }: { rules: LookupAccessRule[] }) => {
   const search = useSearch<MyLocationGenerics>();
   const navigate = useNavigate<MyLocationGenerics>();
 
@@ -51,9 +48,7 @@ export const SelectRuleTable = ({ rules }: { rules: AccessRule[] }) => {
     [search]
   );
 
-  const [selectedAccessRule, setSelectedAccessRule] = useState<AccessRule>();
-
-  const cols = useMemo<Column<AccessRule>[]>(
+  const cols = useMemo<Column<ExtendedAR>[]>(
     () => [
       {
         accessor: "name",
@@ -177,15 +172,26 @@ export const SelectRuleTable = ({ rules }: { rules: AccessRule[] }) => {
 
   return (
     <Flex mt={8}>
-      {TableRenderer<AccessRule>({
+      {TableRenderer<ExtendedAR>({
         columns: cols,
-        data: rules,
+        data: rules.map((d) => {
+          return {
+            ...d.accessRule,
+            selectableWithOptionValues: d.selectableWithOptionValues,
+          };
+        }),
         emptyText: "No access rules",
         rowProps: (rule) => ({
           cursor: "pointer",
           onClick: (e) => {
+            const { selectableWithOptionValues, ...accessRule } = rule.original;
             e.preventDefault();
-            navigate({ to: "/access/request/" + rule.original.id });
+            navigate({
+              to: makeLookupAccessRuleRequestLink({
+                accessRule,
+                selectableWithOptionValues,
+              }),
+            });
           },
         }),
       })}
