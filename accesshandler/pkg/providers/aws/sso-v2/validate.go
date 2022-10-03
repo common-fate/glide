@@ -20,7 +20,7 @@ import (
 func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
 
 	return map[string]providers.GrantValidationStep{
-		"User exists in AWS SSO": {
+		"user-exists-in-AWS-SSO": {
 			Name: "the-user-must-exist-in-the-AWS-SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
@@ -39,8 +39,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 					return diagnostics.Error(err)
 				}
 
-				//TODO: change back. changed for testing
-				if len(res.Users) != 0 {
+				if len(res.Users) == 0 {
 					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
 				}
 				if len(res.Users) > 1 {
@@ -50,7 +49,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 				return diagnostics.Info("User exists in SSO")
 			},
 		},
-		"Permission set should exist": {
+		"Permission-set-should-exist": {
 			Name: "permissionset-should-exist",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
@@ -62,13 +61,13 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 					InstanceArn:      aws.String(p.instanceARN.Get()),
 					PermissionSetArn: &a.PermissionSetARN,
 				})
-				if err == nil {
+				if err != nil {
 					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}))
 				}
 				return diagnostics.Info("permission set exists")
 			},
 		},
-		"AWS Account exists": {
+		"AWS-Account-exists": {
 			Name: "account-should-exist",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
@@ -77,7 +76,7 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 					return diagnostics.Error(err)
 				}
 				err = p.ensureAccountExists(ctx, a.AccountID)
-				if err == nil {
+				if err != nil {
 					return diagnostics.Error(fmt.Errorf("account does not exist %v", err))
 
 				}

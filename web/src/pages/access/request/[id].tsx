@@ -198,10 +198,9 @@ const Home = () => {
           description: e.message,
           isClosable: true,
         });
-        if (e.response.data.fields) {
-          setValidationErrors(e.response.data.fields);
 
-          validationErrors?.forEach((fieldErr) => {
+        if (e.response.data.fields) {
+          e.response.data.fields?.forEach((fieldErr: FieldError) => {
             toast({
               title: "Request failed",
               status: "error",
