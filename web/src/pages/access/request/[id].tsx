@@ -21,19 +21,17 @@ import {
   Textarea,
   useRadioGroup,
   UseRadioGroupProps,
+  VStack,
   Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
-import Select, {
-  components,
-  GroupBase,
-  mergeStyles,
-  OptionProps,
-} from "react-select";
+import Select, { components, GroupBase, OptionProps } from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
+import { CopyableOption } from "../../../components/CopyableOption";
 import {
   DurationInput,
   Hours,
@@ -49,6 +47,7 @@ import {
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
 import {
+  AccessRuleTargetDetail,
   CreateRequestRequestBody,
   WithOption,
 } from "../../../utils/backend-client/types";
@@ -216,6 +215,93 @@ const Home = () => {
                     </Text>
                   </Flex>
                   <Text textStyle="Body/Medium">{rule?.description}</Text>
+                  <AccessRuleWithDisplay rule={rule.target} />
+                  {rule &&
+                    Object.entries(rule.target.withSelectable).map(
+                      ([k, v], i) => {
+                        const name = "with." + k;
+
+                        return (
+                          <FormControl
+                            key={"selectable-" + k}
+                            pos="relative"
+                            id={name}
+                            isInvalid={
+                              errors.with && errors.with[k] !== undefined
+                            }
+                          >
+                            <FormLabel
+                              textStyle="Body/Medium"
+                              color="neutrals.600"
+                              fontWeight="normal"
+                            >
+                              {v.title}
+                            </FormLabel>
+
+                            <Controller
+                              name={`with.${k}`}
+                              control={control}
+                              rules={{ required: true }}
+                              render={({
+                                field: { value, onChange, ...rest },
+                              }) => (
+                                <>
+                                  <Select
+                                    components={{
+                                      Option: CustomOption,
+                                    }}
+                                    styles={{
+                                      option: (provided, state) => {
+                                        return {
+                                          ...provided,
+                                          background: state.isSelected
+                                            ? colors.blue[200]
+                                            : provided.background,
+                                          color: state.isSelected
+                                            ? colors.neutrals[800]
+                                            : provided.color,
+                                        };
+                                      },
+                                    }}
+                                    isMulti={false}
+                                    options={v.options
+                                      // exclude invalid options
+                                      .filter((op) => op.valid)
+                                      .map((op) => {
+                                        return op;
+                                      })
+                                      .sort((a, b) => {
+                                        return a.label < b.label
+                                          ? -1
+                                          : a.label === b.label
+                                          ? 0
+                                          : 1;
+                                      })}
+                                    value={v.options.find(
+                                      (op) => value === op.value
+                                    )}
+                                    onChange={(val) => {
+                                      onChange(val?.value);
+                                    }}
+                                    {...rest}
+                                  />
+                                  <Text
+                                    textStyle={"Body/Small"}
+                                    color="neutrals.600"
+                                  >
+                                    {value}
+                                  </Text>
+                                </>
+                              )}
+                            />
+
+                            <FormErrorMessage>
+                              This field is required
+                            </FormErrorMessage>
+                          </FormControl>
+                        );
+                      }
+                    )}
                 </>
               ) : (
                 <>
@@ -230,76 +316,6 @@ const Home = () => {
 
             <Box mt={12}>
               <Stack spacing={10}>
-                {rule &&
-                  Object.entries(rule.target.withSelectable).map(
-                    ([k, v], i) => {
-                      const name = "with." + k;
-
-                      return (
-                        <FormControl
-                          key={"selectable-" + k}
-                          pos="relative"
-                          id={name}
-                          isInvalid={
-                            errors.with && errors.with[k] !== undefined
-                          }
-                        >
-                          <FormLabel
-                            textStyle="Body/Medium"
-                            fontWeight="normal"
-                          >
-                            {v.title}
-                          </FormLabel>
-
-                          <Controller
-                            name={`with.${k}`}
-                            control={control}
-                            rules={{ required: true }}
-                            render={({
-                              field: { value, onChange, ...rest },
-                            }) => (
-                              <Select
-                                components={{
-                                  Option: CustomOption,
-                                }}
-                                styles={{
-                                  option: (provided, state) => {
-                                    return {
-                                      ...provided,
-                                      background: state.isSelected
-                                        ? colors.blue[200]
-                                        : provided.background,
-                                      color: state.isSelected
-                                        ? colors.neutrals[800]
-                                        : provided.color,
-                                    };
-                                  },
-                                }}
-                                isMulti={false}
-                                options={v.options
-                                  // exclude invalid options
-                                  .filter((op) => op.valid)
-                                  .map((op) => {
-                                    return op;
-                                  })}
-                                value={v.options.find(
-                                  (op) => value === op.value
-                                )}
-                                onChange={(val) => {
-                                  onChange(val?.value);
-                                }}
-                                {...rest}
-                              />
-                            )}
-                          />
-                          <FormErrorMessage>
-                            This field is required
-                          </FormErrorMessage>
-                        </FormControl>
-                      );
-                    }
-                  )}
-
                 <FormControl
                   pos="relative"
                   id="when"
@@ -439,8 +455,31 @@ export const WhenRadioGroup: React.FC<UseRadioGroupProps> = (props) => {
   );
 };
 
-export default Home;
-
+export const AccessRuleWithDisplay: React.FC<{
+  rule?: AccessRuleTargetDetail;
+}> = ({ rule }) => {
+  if (rule === undefined) {
+    return <Skeleton minW="30ch" minH="6" mr="auto" />;
+  }
+  if (Object.entries(rule.with).length > 0) {
+    return (
+      <Wrap>
+        {rule.with &&
+          Object.entries(rule.with).map(([k, v]) => {
+            return (
+              <WrapItem>
+                <VStack align={"left"}>
+                  <Text>{v.title}</Text>
+                  <CopyableOption label={v.label} value={v.value} />
+                </VStack>
+              </WrapItem>
+            );
+          })}
+      </Wrap>
+    );
+  }
+  return null;
+};
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
   if (approvers === undefined) {
     return <Skeleton w="50%" h={10} />;
@@ -487,3 +526,4 @@ const CustomOption = ({
     </components.Option>
   </div>
 );
+export default Home;

@@ -286,6 +286,20 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 			return nil
 		})
 	}
+	for k := range rule.Target.With {
+		kCopy := k
+		g.Go(func() error {
+			// load from the cache, if the user has requested it, the cache is very likely to be valid
+			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			options = append(options, opts...)
+			return nil
+		})
+	}
 	err = g.Wait()
 	if err != nil {
 		apio.Error(ctx, w, err)

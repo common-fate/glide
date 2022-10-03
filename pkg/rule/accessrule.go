@@ -208,7 +208,7 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 			Type: t.ProviderType,
 		},
 		With: types.AccessRuleTargetDetail_With{
-			AdditionalProperties: t.With,
+			AdditionalProperties: make(map[string]types.With),
 		},
 		WithSelectable: types.AccessRuleTargetDetail_WithSelectable{
 			AdditionalProperties: make(map[string]types.Selectable),
@@ -251,6 +251,30 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 			}
 		}
 		at.WithSelectable.AdditionalProperties[k] = selectable
+	}
+
+	for k, v := range t.With {
+		with := types.With{
+			Value: v,
+			Title: k,
+		}
+		// attempt to get the title for the argument from the provider arg schema
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				t := providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
+				if t != "" {
+					with.Title = t
+				}
+			}
+		}
+		for _, ao := range argOptions {
+			// if a value is found, set it to true with a label
+			if ao.Arg == k && ao.Value == v {
+				with.Label = ao.Label
+				break
+			}
+		}
+		at.With.AdditionalProperties[k] = with
 	}
 	return at
 }
