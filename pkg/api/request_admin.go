@@ -3,16 +3,13 @@ package api
 import (
 	"errors"
 	"net/http"
-	"sync"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
-	"golang.org/x/sync/errgroup"
 )
 
 // "/api/v1/admin/requests"
@@ -102,41 +99,13 @@ func (a *API) AdminGetRequest(w http.ResponseWriter, r *http.Request, requestId 
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
-	var options []cache.ProviderOption
-	var mu sync.Mutex
-	g, gctx := errgroup.WithContext(ctx)
-	for k := range qr.Result.Target.WithSelectable {
-		kCopy := k
-		g.Go(func() error {
-			// load from the cache, if the user has requested it, the cache is very likely to be valid
-			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, qr.Result.Target.ProviderID, kCopy)
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			options = append(options, opts...)
-			return nil
-		})
+	pq := storage.ListProviderOptions{
+		ProviderID: qr.Result.Target.ProviderID,
 	}
-	for k := range qr.Result.Target.With {
-		kCopy := k
-		g.Go(func() error {
-			// load from the cache, if the user has requested it, the cache is very likely to be valid
-			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, qr.Result.Target.ProviderID, kCopy)
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			options = append(options, opts...)
-			return nil
-		})
-	}
-	err = g.Wait()
+	_, err = a.DB.Query(ctx, &pq)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, q.Result.RequestedBy != u.ID, options), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, q.Result.RequestedBy != u.ID, pq.Result), http.StatusOK)
 }

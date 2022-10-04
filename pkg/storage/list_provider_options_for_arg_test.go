@@ -22,12 +22,12 @@ func TestGetProviderOptions(t *testing.T) {
 	tc := []ddbtest.QueryTestCase{
 		{
 			Name:  "ok",
-			Query: &GetProviderOptions{ProviderID: "test", ArgID: "test"},
-			Want:  &GetProviderOptions{ProviderID: "test", ArgID: "test", Result: []cache.ProviderOption{po}},
+			Query: &ListProviderOptionsForArg{ProviderID: "test", ArgID: "test"},
+			Want:  &ListProviderOptionsForArg{ProviderID: "test", ArgID: "test", Result: []cache.ProviderOption{po}},
 		},
 		{
 			Name:    "not found",
-			Query:   &GetProviderOptions{ProviderID: "somethingelse", ArgID: "test"},
+			Query:   &ListProviderOptionsForArg{ProviderID: "somethingelse", ArgID: "test"},
 			WantErr: ddb.ErrNoItems,
 		},
 	}

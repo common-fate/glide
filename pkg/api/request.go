@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/common-fate/apikit/apio"
@@ -13,12 +12,10 @@ import (
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
-	"golang.org/x/sync/errgroup"
 )
 
 // List my requests
@@ -183,44 +180,16 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
-	var options []cache.ProviderOption
-	var mu sync.Mutex
-	g, gctx := errgroup.WithContext(ctx)
-	for k := range qr.Result.Target.WithSelectable {
-		kCopy := k
-		g.Go(func() error {
-			// load from the cache, if the user has requested it, the cache is very likely to be valid
-			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, qr.Result.Target.ProviderID, kCopy)
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			options = append(options, opts...)
-			return nil
-		})
+	pq := storage.ListProviderOptions{
+		ProviderID: qr.Result.Target.ProviderID,
 	}
-	for k := range qr.Result.Target.With {
-		kCopy := k
-		g.Go(func() error {
-			// load from the cache, if the user has requested it, the cache is very likely to be valid
-			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, qr.Result.Target.ProviderID, kCopy)
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			options = append(options, opts...)
-			return nil
-		})
-	}
-	err = g.Wait()
+	_, err = a.DB.Query(ctx, &pq)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 	if q.Result.RequestedBy == u.ID {
-		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false, options), http.StatusOK)
+		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false, pq.Result), http.StatusOK)
 		return
 	}
 	qrv := storage.GetRequestReviewer{RequestID: requestId, ReviewerID: u.ID}
@@ -233,7 +202,7 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, options), http.StatusOK)
+	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, pq.Result), http.StatusOK)
 }
 
 // Creates a request

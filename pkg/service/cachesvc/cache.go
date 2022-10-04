@@ -18,7 +18,7 @@ import (
 // If cached options aren't present it falls back to refetching options from the Access Handler.
 // If options are refetched, the cache is updated.
 func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error) {
-	q := storage.GetProviderOptions{
+	q := storage.ListProviderOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
@@ -37,7 +37,7 @@ func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId s
 func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error) {
 
 	// delete any existing options
-	q := storage.GetProviderOptions{
+	q := storage.ListProviderOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
