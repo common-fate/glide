@@ -91,6 +91,7 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
         break;
       case "customOAuthState":
         navigate({ to: data });
+        break;
       default:
         console.log("getting user in listener", { data });
         tryGetAuthenticatedUser();
