@@ -11,7 +11,7 @@ import (
 var MembersCommand = cli.Command{
 	Name:        "members",
 	Description: "Manage users for a group in the default cognito user pool.",
-	Subcommands: []*cli.Command{&addCommand},
+	Subcommands: []*cli.Command{&addCommand, &removeCommand},
 	Action:      cli.ShowSubcommandHelp,
 }
 
@@ -53,7 +53,7 @@ var addCommand = cli.Command{
 		}
 
 		clio.Success("Added user %s to group '%s'", username, group)
-
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	},
 }
