@@ -115,6 +115,7 @@ func (a AccessRule) ToRequestAccessRuleDetailAPI(argOptions []cache.ProviderOpti
 		with := types.With{
 			Value: v,
 			Title: k,
+			Label: v,
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
@@ -257,6 +258,7 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 		with := types.With{
 			Value: v,
 			Title: k,
+			Label: v,
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {

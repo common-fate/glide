@@ -270,7 +270,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		ProviderID: rule.Target.ProviderID,
 	}
 	_, err = a.DB.Query(ctx, &pq)
-	if err != nil {
+	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}

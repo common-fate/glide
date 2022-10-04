@@ -184,7 +184,7 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		ProviderID: qr.Result.Target.ProviderID,
 	}
 	_, err = a.DB.Query(ctx, &pq)
-	if err != nil {
+	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}

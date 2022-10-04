@@ -171,6 +171,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 		with := types.With{
 			Label: v.Label,
 			Value: v.Value,
+			Title: k,
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
