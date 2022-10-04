@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -440,6 +441,7 @@ func TestUserGetAccessRule(t *testing.T) {
 			m.EXPECT().GetRule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockGetRuleResponse, tc.mockGetRuleErr)
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.GetAccessRuleVersion{Result: tc.mockGetAccessRuleVersion})
+			db.MockQuery(&storage.ListCachedProviderOptions{Result: []cache.ProviderOption{}})
 			a := API{Rules: m, DB: db}
 			handler := newTestServer(t, &a)
 
