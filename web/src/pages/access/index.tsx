@@ -52,12 +52,10 @@ const Access = () => {
       // if there were search params, then show an error, else just redirect to the requests page
       if (Object.entries(search).length > 0) {
         if (axios.isAxiosError(error)) {
-          let description: string | undefined;
           const e = error as AxiosError<{ error: string }>;
-          description = e?.response?.data.error;
           toast({
             title: "Something went wrong loading access rules for your query",
-            description,
+            description: e?.response?.data.error,
             status: "error",
             variant: "subtle",
             duration: 5000,
