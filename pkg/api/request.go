@@ -180,7 +180,7 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
-	pq := storage.ListProviderOptions{
+	pq := storage.ListCachedProviderOptions{
 		ProviderID: qr.Result.Target.ProviderID,
 	}
 	_, err = a.DB.Query(ctx, &pq)

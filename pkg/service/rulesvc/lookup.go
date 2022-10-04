@@ -203,7 +203,7 @@ func (p *providerOptionsCache) FetchOptions(ctx context.Context, id, arg string)
 	} else {
 		p.providers = make(map[string]map[string][]cache.ProviderOption)
 	}
-	q := storage.ListProviderOptionsForArg{ProviderID: id, ArgID: arg}
+	q := storage.ListCachedProviderOptionsForArg{ProviderID: id, ArgID: arg}
 	done := false
 	var nextPage string
 	for !done {

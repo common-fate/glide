@@ -266,7 +266,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	pq := storage.ListProviderOptions{
+	pq := storage.ListCachedProviderOptions{
 		ProviderID: rule.Target.ProviderID,
 	}
 	_, err = a.DB.Query(ctx, &pq)

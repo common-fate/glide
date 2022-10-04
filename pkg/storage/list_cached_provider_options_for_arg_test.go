@@ -8,7 +8,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cache"
 )
 
-func TestGetProviderOptions(t *testing.T) {
+func TestListCachedProviderOptionsForArg(t *testing.T) {
 	db := newTestingStorage(t)
 
 	po := cache.ProviderOption{
@@ -22,12 +22,12 @@ func TestGetProviderOptions(t *testing.T) {
 	tc := []ddbtest.QueryTestCase{
 		{
 			Name:  "ok",
-			Query: &ListProviderOptionsForArg{ProviderID: "test", ArgID: "test"},
-			Want:  &ListProviderOptionsForArg{ProviderID: "test", ArgID: "test", Result: []cache.ProviderOption{po}},
+			Query: &ListCachedProviderOptionsForArg{ProviderID: "test", ArgID: "test"},
+			Want:  &ListCachedProviderOptionsForArg{ProviderID: "test", ArgID: "test", Result: []cache.ProviderOption{po}},
 		},
 		{
 			Name:    "not found",
-			Query:   &ListProviderOptionsForArg{ProviderID: "somethingelse", ArgID: "test"},
+			Query:   &ListCachedProviderOptionsForArg{ProviderID: "somethingelse", ArgID: "test"},
 			WantErr: ddb.ErrNoItems,
 		},
 	}

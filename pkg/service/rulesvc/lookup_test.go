@@ -371,7 +371,7 @@ func TestService_LookupRule(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.ListAccessRulesForGroupsAndStatus{Result: tt.rules})
-			db.MockQuery(&storage.ListProviderOptionsForArg{Result: tt.providerOptions})
+			db.MockQuery(&storage.ListCachedProviderOptionsForArg{Result: tt.providerOptions})
 
 			s := &Service{
 				DB: db,

@@ -10,12 +10,12 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 )
 
-type ListProviderOptions struct {
+type ListCachedProviderOptions struct {
 	ProviderID string
 	Result     []cache.ProviderOption
 }
 
-func (q *ListProviderOptions) BuildQuery() (*dynamodb.QueryInput, error) {
+func (q *ListCachedProviderOptions) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk1 and begins_with(SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -26,7 +26,7 @@ func (q *ListProviderOptions) BuildQuery() (*dynamodb.QueryInput, error) {
 	return &qi, nil
 }
 
-func (q *ListProviderOptions) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (q *ListCachedProviderOptions) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
 	if len(out.Items) == 0 {
 		return ddb.ErrNoItems
 	}
