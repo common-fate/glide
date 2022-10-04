@@ -54,6 +54,7 @@ import { userName } from "../utils/userName";
 import { CFReactMarkownCode } from "./CodeInstruction";
 import { CopyableOption } from "./CopyableOption";
 import { ProviderIcon } from "./icons/providerIcon";
+import { InfoOption } from "./InfoOption";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { StatusCell } from "./StatusCell";
@@ -182,7 +183,7 @@ export const RequestWithDisplay: React.FC<{
                 <WrapItem>
                   <VStack align={"left"}>
                     <Text>{v.title}</Text>
-                    <CopyableOption label={v.label} value={v.value} />
+                    <InfoOption label={v.label} value={v.value} />
                   </VStack>
                 </WrapItem>
               );
@@ -193,7 +194,7 @@ export const RequestWithDisplay: React.FC<{
                 <WrapItem>
                   <VStack align={"left"}>
                     <Text>{v.title}</Text>
-                    <CopyableOption label={v.label} value={v.value} />
+                    <InfoOption label={v.label} value={v.value} />
                   </VStack>
                 </WrapItem>
               );

@@ -31,13 +31,13 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import Select, { components, GroupBase, OptionProps } from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
-import { CopyableOption } from "../../../components/CopyableOption";
 import {
   DurationInput,
   Hours,
   Minutes,
 } from "../../../components/DurationInput";
 import { ProviderIcon } from "../../../components/icons/providerIcon";
+import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
@@ -470,7 +470,7 @@ export const AccessRuleWithDisplay: React.FC<{
               <WrapItem>
                 <VStack align={"left"}>
                   <Text>{v.title}</Text>
-                  <CopyableOption label={v.label} value={v.value} />
+                  <InfoOption label={v.label} value={v.value} />
                 </VStack>
               </WrapItem>
             );
