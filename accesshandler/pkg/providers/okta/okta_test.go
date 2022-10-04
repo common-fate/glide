@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
@@ -34,24 +35,40 @@ func TestIntegration(t *testing.T) {
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"groupId": "%s"}`, f.GroupID),
 			WantValidationErr: nil,
+			WantValidationDiagnostics: map[string]types.GrantValidation{
+				"user-exists-in-okta":  {Status: types.GrantValidationStatusSUCCESS},
+				"group-exists-in-okta": {Status: types.GrantValidationStatusSUCCESS},
+			},
 		},
 		{
 			Name:              "group not exist",
 			Subject:           f.User,
 			Args:              `{"groupId": "non-existent"}`,
 			WantValidationErr: &multierror.Error{Errors: []error{&GroupNotFoundError{Group: "non-existent"}}},
+			WantValidationDiagnostics: map[string]types.GrantValidation{
+				"user-exists-in-okta":  {Status: types.GrantValidationStatusSUCCESS},
+				"group-exists-in-okta": {Status: types.GrantValidationStatusERROR},
+			},
 		},
 		{
 			Name:              "subject not exist",
 			Subject:           "other",
 			Args:              fmt.Sprintf(`{"groupId": "%s"}`, f.GroupID),
 			WantValidationErr: &multierror.Error{Errors: []error{&UserNotFoundError{User: "other"}}},
+			WantValidationDiagnostics: map[string]types.GrantValidation{
+				"user-exists-in-okta":  {Status: types.GrantValidationStatusERROR},
+				"group-exists-in-okta": {Status: types.GrantValidationStatusSUCCESS},
+			},
 		},
 		{
 			Name:              "group and subject not exist",
 			Subject:           "other",
 			Args:              `{"groupId": "non-existent"}`,
 			WantValidationErr: &multierror.Error{Errors: []error{&UserNotFoundError{User: "other"}, &GroupNotFoundError{Group: "non-existent"}}},
+			WantValidationDiagnostics: map[string]types.GrantValidation{
+				"user-exists-in-okta":  {Status: types.GrantValidationStatusERROR},
+				"group-exists-in-okta": {Status: types.GrantValidationStatusERROR},
+			},
 		},
 	}
 	pc := os.Getenv("PROVIDER_CONFIG")

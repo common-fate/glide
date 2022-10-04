@@ -18,10 +18,11 @@ import (
 
 // TestCase is a test case for running integration tests.
 type TestCase struct {
-	Name              string
-	Subject           string
-	Args              string
-	WantValidationErr error
+	Name                      string
+	Subject                   string
+	Args                      string
+	WantValidationDiagnostics map[string]types.GrantValidation
+	WantValidationErr         error
 }
 
 func WithProviderConfig(config []byte) func(*IntegrationTests) {
@@ -130,15 +131,14 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 						})
 					}
 
-					err := g.Wait()
+					_ = g.Wait()
 
-					// err := v.Validate(ctx, tc.Subject, []byte(tc.Args))
-					if tc.WantValidationErr == nil {
-						// we shouldn't get any validation errors.
-						assert.NoError(t, err)
-					} else {
-						assert.EqualError(t, err, tc.WantValidationErr.Error())
+					for _, res := range validationRes.Validation {
+						it := tc.WantValidationDiagnostics[res.Id]
+						assert.Equal(t, res.Status, it.Status)
+
 					}
+
 				}
 			})
 
