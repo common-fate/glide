@@ -38,7 +38,7 @@ type GrantValidationStep struct {
 
 // Validators know how to validate access without actually granting it.
 type Validator interface {
-	// Validate arguments and a subject for access without actually granting it.
+	// ValidateGrant arguments and a subject for access without actually granting it.
 
 	ValidateGrant(args []byte) map[string]GrantValidationStep
 }
