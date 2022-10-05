@@ -19,5 +19,5 @@ type GrantValidationError struct {
 }
 
 func (e GrantValidationError) Error() string {
-	return fmt.Sprintf("grant validation failed: %s", e.ValidationFailureMsg)
+	return fmt.Sprintf("validation failed:\n%s", e.ValidationFailureMsg)
 }

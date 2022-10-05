@@ -112,7 +112,7 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 		// provider doesn't implement validation, so just return a HTTP OK response with an empty validation
 		apio.JSON(ctx, w, nil, http.StatusOK)
 	}
-	args, err := json.Marshal(b.With)
+	args, err := json.Marshal(b.With.AdditionalProperties)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -122,6 +122,7 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 	validationResult := validationSteps.Run(ctx, string(b.Subject), args)
 	if m := validationResult.FailureMessage(); m != "" {
 		apio.Error(ctx, w, apio.NewRequestError(errors.New(m), http.StatusBadRequest))
+		return
 	}
 
 	apio.JSON(ctx, w, nil, http.StatusOK)

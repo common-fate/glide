@@ -143,6 +143,7 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 	if err != nil {
 		return err
 	}
+
 	res, err := g.AHClient.ValidateGrantWithResponse(ctx, req)
 	if err != nil {
 		return err

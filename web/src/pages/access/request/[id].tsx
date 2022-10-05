@@ -57,6 +57,7 @@ import {
 import { CreateRequestRequestBody } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
 import { data } from "msw/lib/types/context";
+import axios, { AxiosError } from "axios";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -153,16 +154,14 @@ const Home = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const {
-    data: approvers,
-    isValidating: isValidatingApprovers,
-  } = useUserGetAccessRuleApprovers(ruleId, {
-    swr: {
-      swrKey: getUserGetAccessRuleApproversKey(ruleId),
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: approvers, isValidating: isValidatingApprovers } =
+    useUserGetAccessRuleApprovers(ruleId, {
+      swr: {
+        swrKey: getUserGetAccessRuleApproversKey(ruleId),
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+      },
+    });
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
   const onSubmit: SubmitHandler<NewRequestFormData> = async (data) => {
@@ -191,25 +190,22 @@ const Home = () => {
       })
       .catch((e) => {
         setLoading(false);
+        let description: string | undefined;
+        if (axios.isAxiosError(e)) {
+          description = (e as AxiosError<{ error: string }>)?.response?.data
+            .error;
+        }
         toast({
           title: "Request failed",
           status: "error",
-          duration: 4200,
-          description: e.message,
+          duration: 60000,
+          description: (
+            <Text color={"white"} whiteSpace={"pre"}>
+              {description}
+            </Text>
+          ),
           isClosable: true,
         });
-
-        if (e.response.data.fields) {
-          e.response.data.fields?.forEach((fieldErr: FieldError) => {
-            toast({
-              title: "Request failed",
-              status: "error",
-              duration: 4200,
-              description: `error code: ${fieldErr.field}`,
-              isClosable: true,
-            });
-          });
-        }
       });
   };
 

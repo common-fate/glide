@@ -3,7 +3,6 @@ package providers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
@@ -57,11 +56,10 @@ func (r GrantValidationResults) FailureMessage() string {
 	if !r.Failed() {
 		return ""
 	}
-	message := errors.New("grant validation failed")
-
+	var message error
 	for _, v := range r {
 		if !v.Logs.HasSucceeded() {
-			message = multierror.Append(message, fmt.Errorf("failed validation: %s", v.Name))
+			message = multierror.Append(message, errors.New(v.Name))
 		}
 	}
 	return message.Error()
