@@ -2,7 +2,6 @@ package grantsvc
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -19,5 +18,5 @@ type GrantValidationError struct {
 }
 
 func (e GrantValidationError) Error() string {
-	return fmt.Sprintf("validation failed:\n%s", e.ValidationFailureMsg)
+	return e.ValidationFailureMsg
 }
