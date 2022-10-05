@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -89,22 +90,27 @@ func (a *API) PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId s
 
 // run validation on a grant without provisioning any access
 func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
+
 	ctx := r.Context()
+
 	var b types.CreateGrant
 	err := apio.DecodeJSONBody(w, r, &b)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
+	log := logger.Get(ctx).With("createGrantRequest", b)
 	// validates the basic details of the grant
 	_, err = b.Validate(ctx, a.Clock.Now())
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		log.Errorw("validate grant failed while testing basic parameters", "error", err)
 		return
 	}
 	prov, ok := config.Providers[b.Provider]
 	if !ok {
 		apio.ErrorString(ctx, w, "provider not found", http.StatusBadRequest)
+		log.Errorw("validate grant failed because the provider was not found")
 		return
 	}
 
@@ -124,6 +130,7 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 	validationResult := validationSteps.Run(ctx, string(b.Subject), args)
 	if m := validationResult.FailureMessage(); m != "" {
 		apio.Error(ctx, w, apio.NewRequestError(errors.New(m), http.StatusBadRequest))
+		log.Errorw("validate grant failed", "validation", validationResult)
 		return
 	}
 
