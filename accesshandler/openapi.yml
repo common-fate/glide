@@ -63,6 +63,24 @@ paths:
       tags:
         - grants
     parameters: []
+  /api/v1/grants/validate:
+    post:
+      summary: ValidateGrant
+      operationId: validate-grant
+      responses:
+        "200":
+          $ref: "#/components/responses/GrantValidationResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Valdates that a grant will succeed without granting the access
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGrant"
+    parameters: []
   "/api/v1/grants/{grantId}/revoke":
     post:
       summary: Revoke grant
@@ -151,22 +169,6 @@ paths:
         name: providerId
         in: path
         required: true
-  /api/v1/grants/validate:
-    post:
-      summary: ""
-      operationId: validate-request-to-provider
-      responses:
-        "200":
-          $ref: "#/components/responses/GrantValidationResponse"
-        "500":
-          description: Internal Server Error
-      description: Valdates grant will succeed without granting access
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateGrant"
-    parameters: []
   "/api/v1/providers/{providerId}/access-instructions":
     get:
       summary: Get Access Instructions
@@ -527,12 +529,8 @@ components:
         status:
           type: string
           enum:
-            - IN_PROGRESS
             - SUCCESS
-            - PENDING
             - ERROR
-        fieldsValidated:
-          type: string
         logs:
           type: array
           items:
@@ -540,7 +538,6 @@ components:
       required:
         - id
         - status
-        - fieldsValidated
         - logs
   requestBodies:
     ValidateRequest:

@@ -140,99 +140,50 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 
 // validate grant runs all the checks that will need to occur when creating a real grant to validate its success
 func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) ([]ahTypes.GrantValidation, error) {
-	q := &storage.GetUser{
-		ID: opts.Request.RequestedBy,
+	req, err := g.prepareCreateGrantRequest(ctx, opts)
+	if err != nil {
+		return nil, err
 	}
-	_, err := g.DB.Query(ctx, q)
+	res, err := g.AHClient.ValidateGrantWithResponse(ctx, req)
 	if err != nil {
 		return []ahTypes.GrantValidation{}, err
 	}
-	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
-
-	req := ahTypes.ValidateRequestToProviderJSONRequestBody{
-		Id:       opts.Request.ID,
-		Provider: opts.AccessRule.Target.ProviderID,
-		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
-		Subject: openapi_types.Email(q.Result.Email),
-		Start:   iso8601.New(start),
-		End:     iso8601.New(end),
-	}
-	for k, v := range opts.AccessRule.Target.With {
-		req.With.AdditionalProperties[k] = v
-	}
-	for k, v := range opts.Request.SelectedWith {
-		req.With.AdditionalProperties[k] = v.Value
-	}
-
-	res, err := g.AHClient.ValidateRequestToProviderWithResponse(ctx, req)
-	if err != nil {
-		return []ahTypes.GrantValidation{}, err
-	}
-
-	if res.JSON200 == nil {
-		//there was an error, handle it
-		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", res.Body)
-	} else {
+	code := res.StatusCode()
+	switch code {
+	case 200:
 		var respBody ahTypes.GrantValidationResponse
 		err := json.Unmarshal(res.Body, &respBody)
 		if err != nil {
 			return []ahTypes.GrantValidation{}, err
 		}
-
 		//check if any failed states
 		validationFailed := false
 		for _, v := range respBody.Validation {
-			if v.Status == "ERROR" {
+			if v.Status == ahTypes.GrantValidationStatusERROR {
 				validationFailed = true
 			}
 		}
-
 		if validationFailed {
 			return respBody.Validation, GrantValidationError{}
-
 		}
 		return respBody.Validation, nil
-
+	case 400:
+		// there was an error, handle it
+		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", *res.JSON400.Error)
+	case 500:
+		// there was an internal error, handle it
+		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", *res.JSON500.Error)
+	default:
+		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", res.Body)
 	}
-
 }
 
 // CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.
 // the returned Request will contain the newly created grant
 func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*access.Request, error) {
-	q := &storage.GetUser{
-		ID: opts.Request.RequestedBy,
-	}
-	_, err := g.DB.Query(ctx, q)
+	req, err := g.prepareCreateGrantRequest(ctx, opts)
 	if err != nil {
 		return nil, err
-	}
-
-	// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
-	// check now before we actually provision the access, so that we can return early if we fail.
-	requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)
-	if err != nil {
-		return nil, err
-	}
-
-	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
-	req := ahTypes.PostGrantsJSONRequestBody{
-		Id:       opts.Request.ID,
-		Provider: opts.AccessRule.Target.ProviderID,
-		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
-		Subject: openapi_types.Email(q.Result.Email),
-		Start:   iso8601.New(start),
-		End:     iso8601.New(end),
-	}
-	for k, v := range opts.AccessRule.Target.With {
-		req.With.AdditionalProperties[k] = v
-	}
-	for k, v := range opts.Request.SelectedWith {
-		req.With.AdditionalProperties[k] = v.Value
 	}
 	res, err := g.AHClient.PostGrantsWithResponse(ctx, req)
 	if err != nil {
@@ -253,6 +204,12 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 			UpdatedAt: now,
 		}
 
+		// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
+		// check now before we actually provision the access, so that we can return early if we fail.
+		requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)
+		if err != nil {
+			return nil, err
+		}
 		if requiresAccessToken {
 			logger.Get(ctx).Infow("creating access token for request", "request.id", opts.Request.ID)
 			at := access.AccessToken{
@@ -309,4 +266,34 @@ func (r registryAccessTokenChecker) NeedsAccessToken(ctx context.Context, provid
 		return true, nil
 	}
 	return false, nil
+}
+
+// prepareCreateGrantRequest converts opts into a CreateGrant struct for access handler requests
+func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGrantOpts) (ahTypes.CreateGrant, error) {
+	q := &storage.GetUser{
+		ID: opts.Request.RequestedBy,
+	}
+	_, err := g.DB.Query(ctx, q)
+	if err != nil {
+		return ahTypes.CreateGrant{}, err
+	}
+
+	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
+	req := ahTypes.CreateGrant{
+		Id:       opts.Request.ID,
+		Provider: opts.AccessRule.Target.ProviderID,
+		With: ahTypes.CreateGrant_With{
+			AdditionalProperties: make(map[string]string),
+		},
+		Subject: openapi_types.Email(q.Result.Email),
+		Start:   iso8601.New(start),
+		End:     iso8601.New(end),
+	}
+	for k, v := range opts.AccessRule.Target.With {
+		req.With.AdditionalProperties[k] = v
+	}
+	for k, v := range opts.Request.SelectedWith {
+		req.With.AdditionalProperties[k] = v.Value
+	}
+	return req, nil
 }

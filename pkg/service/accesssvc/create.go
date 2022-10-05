@@ -77,7 +77,6 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	//validate the request against the access handler - make sure that access will be able to be provisioned
 	//validating the grant before the request was made so that the request object does not get created.
 	logs, err := s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
-
 	if err != nil {
 		return &CreateRequestResult{DiagnosticLogs: &logs}, err
 	}

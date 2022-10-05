@@ -11,8 +11,6 @@ export type GrantValidationStatus = typeof GrantValidationStatus[keyof typeof Gr
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GrantValidationStatus = {
-  IN_PROGRESS: 'IN_PROGRESS',
   SUCCESS: 'SUCCESS',
-  PENDING: 'PENDING',
   ERROR: 'ERROR',
 } as const;

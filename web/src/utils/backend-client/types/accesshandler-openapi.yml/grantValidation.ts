@@ -14,6 +14,5 @@ import type { Log } from '../accesshandler-openapi.yml/log';
 export interface GrantValidation {
   id: string;
   status: GrantValidationStatus;
-  fieldsValidated: string;
   logs: Log[];
 }

@@ -37,8 +37,8 @@ func TestCreateGrant(t *testing.T) {
 		give                           CreateGrantOpts
 		subject                        string
 		wantPostGrantsWithResponseBody ahTypes.PostGrantsJSONRequestBody
-		wantValidateRequestToProvider  ahTypes.ValidateRequestToProviderJSONRequestBody
-		wantValidateRequestResponse    *ahTypes.ValidateRequestToProviderResponse
+		wantValidateRequestToProvider  ahTypes.ValidateGrantJSONRequestBody
+		wantValidateRequestResponse    *ahTypes.ValidateGrantResponse
 		needsAccessToken               bool
 		needsAccessTokenErr            error
 
@@ -84,7 +84,7 @@ func TestCreateGrant(t *testing.T) {
 					AdditionalProperties: make(map[string]string),
 				},
 			},
-			wantValidateRequestToProvider: ahTypes.ValidateRequestToProviderJSONRequestBody{
+			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
 				Id:       "123",
 				Provider: "OKTA",
 				With: ahTypes.CreateGrant_With{
@@ -94,7 +94,7 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 			},
-			wantValidateRequestResponse: &ahTypes.ValidateRequestToProviderResponse{JSON200: &struct {
+			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{JSON200: &struct {
 				Validation []ahTypes.GrantValidation "json:\"validation\""
 			}{Validation: []ahTypes.GrantValidation{}}},
 			wantRequest: &access.Request{
@@ -153,7 +153,7 @@ func TestCreateGrant(t *testing.T) {
 					AdditionalProperties: make(map[string]string),
 				},
 			},
-			wantValidateRequestToProvider: ahTypes.ValidateRequestToProviderJSONRequestBody{
+			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
 				Id:       "123",
 				Provider: "OKTA",
 				With: ahTypes.CreateGrant_With{
@@ -163,7 +163,7 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 			},
-			wantValidateRequestResponse: &ahTypes.ValidateRequestToProviderResponse{JSON200: &struct {
+			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{JSON200: &struct {
 				Validation []ahTypes.GrantValidation "json:\"validation\""
 			}{Validation: []ahTypes.GrantValidation{}}},
 
@@ -192,7 +192,7 @@ func TestCreateGrant(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			g.EXPECT().ValidateRequestToProviderWithResponse(gomock.Any(), gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.wantValidateRequestResponse, tc.withCreateGrantResponseErr).AnyTimes()
+			g.EXPECT().ValidateGrantWithResponse(gomock.Any(), gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.wantValidateRequestResponse, tc.withCreateGrantResponseErr).AnyTimes()
 
 			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
 			c := ddbmock.New(t)

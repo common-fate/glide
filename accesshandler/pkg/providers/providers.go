@@ -31,9 +31,8 @@ type AccessTokener interface {
 }
 
 type GrantValidationStep struct {
-	Name            string
-	FieldsValidated []string
-	Run             func(ctx context.Context, subject string, args []byte) diagnostics.Logs
+	Name string
+	Run  func(ctx context.Context, subject string, args []byte) diagnostics.Logs
 }
 
 // GrantValidator know how to validate access without actually granting it.
