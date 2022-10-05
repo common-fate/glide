@@ -222,8 +222,9 @@ export const Hours: React.FC = () => {
   );
 };
 export const Minutes: React.FC = () => {
-  const { maxMinutes, minMinutes, minutes, setValue, register } =
-    useContext(Context);
+  const { maxMinutes, minMinutes, minutes, setValue, register } = useContext(
+    Context
+  );
   const [defaultValue] = useState(minutes);
   useEffect(() => {
     register("MINUTE");
