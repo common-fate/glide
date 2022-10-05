@@ -30,13 +30,15 @@ import {
   useRadioGroup,
   UseRadioGroupProps,
   useToast,
+  VStack,
   Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
-import Select from "react-select";
+import Select, { components, GroupBase, OptionProps } from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
@@ -46,6 +48,7 @@ import {
 import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { ConnectorArrow } from "../../../components/ConnectorArrow";
 import { ApprovalsLogo } from "../../../components/icons/Logos";
+import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
@@ -54,10 +57,15 @@ import {
   useUserGetAccessRule,
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
-import { CreateRequestRequestBody } from "../../../utils/backend-client/types";
+import {
+  AccessRuleTargetDetail,
+  CreateRequestRequestBody,
+  WithOption,
+} from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
 import { data } from "msw/lib/types/context";
 import axios, { AxiosError } from "axios";
+import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -141,8 +149,8 @@ const Home = () => {
         ).get(k);
         if (
           queryParamValue !== null &&
-          v.find((s) => {
-            return s.option.value === queryParamValue;
+          v.options.find((s) => {
+            return s.value === queryParamValue;
           }) !== undefined
         ) {
           setValue(`with.${k}`, queryParamValue);
@@ -257,6 +265,93 @@ const Home = () => {
                     </Text>
                   </Flex>
                   <Text textStyle="Body/Medium">{rule?.description}</Text>
+                  <AccessRuleWithDisplay rule={rule.target} />
+                  {rule &&
+                    Object.entries(rule.target.withSelectable).map(
+                      ([k, v], i) => {
+                        const name = "with." + k;
+
+                        return (
+                          <FormControl
+                            key={"selectable-" + k}
+                            pos="relative"
+                            id={name}
+                            isInvalid={
+                              errors.with && errors.with[k] !== undefined
+                            }
+                          >
+                            <FormLabel
+                              textStyle="Body/Medium"
+                              color="neutrals.600"
+                              fontWeight="normal"
+                            >
+                              {v.title}
+                            </FormLabel>
+
+                            <Controller
+                              name={`with.${k}`}
+                              control={control}
+                              rules={{ required: true }}
+                              render={({
+                                field: { value, onChange, ...rest },
+                              }) => (
+                                <>
+                                  <Select
+                                    components={{
+                                      Option: CustomOption,
+                                    }}
+                                    styles={{
+                                      option: (provided, state) => {
+                                        return {
+                                          ...provided,
+                                          background: state.isSelected
+                                            ? colors.blue[200]
+                                            : provided.background,
+                                          color: state.isSelected
+                                            ? colors.neutrals[800]
+                                            : provided.color,
+                                        };
+                                      },
+                                    }}
+                                    isMulti={false}
+                                    options={v.options
+                                      // exclude invalid options
+                                      .filter((op) => op.valid)
+                                      .map((op) => {
+                                        return op;
+                                      })
+                                      .sort((a, b) => {
+                                        return a.label < b.label
+                                          ? -1
+                                          : a.label === b.label
+                                          ? 0
+                                          : 1;
+                                      })}
+                                    value={v.options.find(
+                                      (op) => value === op.value
+                                    )}
+                                    onChange={(val) => {
+                                      onChange(val?.value);
+                                    }}
+                                    {...rest}
+                                  />
+                                  <Text
+                                    textStyle={"Body/Small"}
+                                    color="neutrals.600"
+                                  >
+                                    {value}
+                                  </Text>
+                                </>
+                              )}
+                            />
+
+                            <FormErrorMessage>
+                              This field is required
+                            </FormErrorMessage>
+                          </FormControl>
+                        );
+                      }
+                    )}
                 </>
               ) : (
                 <>
@@ -271,61 +366,6 @@ const Home = () => {
 
             <Box mt={12}>
               <Stack spacing={10}>
-                {rule &&
-                  Object.entries(rule.target.withSelectable).map(
-                    ([k, v], i) => {
-                      const name = "with." + k;
-
-                      return (
-                        <FormControl
-                          key={"selectable-" + k}
-                          pos="relative"
-                          id={name}
-                          isInvalid={
-                            errors.with && errors.with[k] !== undefined
-                          }
-                        >
-                          <FormLabel
-                            textStyle="Body/Medium"
-                            fontWeight="normal"
-                          >
-                            {k}
-                          </FormLabel>
-
-                          <Controller
-                            name={`with.${k}`}
-                            control={control}
-                            rules={{ required: true }}
-                            render={({
-                              field: { value, onChange, ...rest },
-                            }) => (
-                              <Select
-                                isMulti={false}
-                                options={v
-                                  // exclude invalid options
-                                  .filter((op) => op.valid)
-                                  .map((op) => {
-                                    return op.option;
-                                  })}
-                                value={
-                                  v.find((op) => value === op.option.value)
-                                    ?.option
-                                }
-                                onChange={(val) => {
-                                  onChange(val?.value);
-                                }}
-                                {...rest}
-                              />
-                            )}
-                          />
-                          <FormErrorMessage>
-                            This field is required
-                          </FormErrorMessage>
-                        </FormControl>
-                      );
-                    }
-                  )}
-
                 <FormControl
                   pos="relative"
                   id="when"
@@ -465,8 +505,31 @@ export const WhenRadioGroup: React.FC<UseRadioGroupProps> = (props) => {
   );
 };
 
-export default Home;
-
+export const AccessRuleWithDisplay: React.FC<{
+  rule?: AccessRuleTargetDetail;
+}> = ({ rule }) => {
+  if (rule === undefined) {
+    return <Skeleton minW="30ch" minH="6" mr="auto" />;
+  }
+  if (Object.entries(rule.with).length > 0) {
+    return (
+      <Wrap>
+        {rule.with &&
+          Object.entries(rule.with).map(([k, v]) => {
+            return (
+              <WrapItem>
+                <VStack align={"left"}>
+                  <Text>{v.title}</Text>
+                  <InfoOption label={v.label} value={v.value} />
+                </VStack>
+              </WrapItem>
+            );
+          })}
+      </Wrap>
+    );
+  }
+  return null;
+};
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
   if (approvers === undefined) {
     return <Skeleton w="50%" h={10} />;
@@ -500,3 +563,17 @@ const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
     </Text>
   );
 };
+const CustomOption = ({
+  children,
+  ...innerProps
+}: OptionProps<WithOption, false, GroupBase<WithOption>>) => (
+  <div data-testid={innerProps.data.value}>
+    <components.Option {...innerProps}>
+      <>
+        {children}
+        {<Text>{innerProps.data.value}</Text>}
+      </>
+    </components.Option>
+  </div>
+);
+export default Home;

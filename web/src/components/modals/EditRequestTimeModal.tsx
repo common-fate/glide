@@ -13,11 +13,6 @@ import {
   ModalHeader,
   ModalOverlay,
   ModalProps,
-  NumberDecrementStepper,
-  NumberIncrementStepper,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
   Stack,
   Text,
 } from "@chakra-ui/react";
@@ -25,7 +20,7 @@ import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { When, WhenRadioGroup } from "../../pages/access/request/[id]";
-import { Request, RequestDetail } from "../../utils/backend-client/types";
+import { RequestDetail } from "../../utils/backend-client/types";
 import { RequestTiming } from "../../utils/backend-client/types/requestTiming";
 import { durationString } from "../../utils/durationString";
 import { DurationInput, Hours, Minutes } from "../DurationInput";

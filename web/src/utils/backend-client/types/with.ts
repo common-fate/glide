@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface WithOption {
-  value: string;
+export interface With {
+  title: string;
   label: string;
-  valid: boolean;
+  value: string;
 }

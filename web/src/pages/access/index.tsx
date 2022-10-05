@@ -1,5 +1,6 @@
 import { InfoIcon } from "@chakra-ui/icons";
-import { Box, Center, Flex, Spinner, Text } from "@chakra-ui/react";
+import { Box, Center, Flex, Spinner, Text, useToast } from "@chakra-ui/react";
+import axios, { Axios, AxiosError } from "axios";
 import { useEffect } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { CFCodeMultiline } from "../../components/CodeInstruction";
@@ -7,7 +8,6 @@ import { UserLayout } from "../../components/Layout";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
 import { useAccessRuleLookup } from "../../utils/backend-client/default/default";
-import { useGetMe } from "../../utils/backend-client/end-user/end-user";
 import { LookupAccessRule } from "../../utils/backend-client/types";
 import { AccessRuleLookupParams } from "../../utils/backend-client/types/accessRuleLookupParams";
 
@@ -35,10 +35,9 @@ const Access = () => {
 
   const navigate = useNavigate();
 
-  const { data, isValidating } = useAccessRuleLookup(search);
+  const { data, isValidating, error } = useAccessRuleLookup(search);
 
-  const me = useGetMe();
-
+  const toast = useToast();
   useEffect(() => {
     if (data?.length == 1) {
       navigate({
@@ -47,12 +46,49 @@ const Access = () => {
     }
   }, [search, data]);
 
-  return data && !isValidating ? (
+  // navigate away if there was an error
+  useEffect(() => {
+    if (error) {
+      // if there were search params, then show an error, else just redirect to the requests page
+      if (Object.entries(search).length > 0) {
+        if (axios.isAxiosError(error)) {
+          const e = error as AxiosError<{ error: string }>;
+          toast({
+            title: "Something went wrong loading access rules for your query",
+            description: e?.response?.data.error,
+            status: "error",
+            variant: "subtle",
+            duration: 5000,
+            isClosable: true,
+          });
+        } else {
+          toast({
+            title: "Unknown error while loading access rules for your query",
+            status: "error",
+            variant: "subtle",
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      }
+      navigate({ to: "/requests" });
+    }
+  }, [error, search]);
+  if (!data && isValidating) {
+    return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
+  }
+  if (error) {
+    return null;
+  }
+  if (!data || data.length == 1) {
+    return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
+  }
+  return (
     <UserLayout>
       <Center h="80vh">
         <Flex flexDir="column" align="center" minH="60vh" w="100%">
           <br />
-          {data && data.length > 1 && (
+          {data.length > 1 && (
             <Flex flexDir="column" alignItems="center" w="100%">
               <Box w={{ base: "100%", md: "60ch" }}>
                 <OnboardingCard
@@ -70,7 +106,7 @@ const Access = () => {
               <SelectRuleTable rules={data} />
             </Flex>
           )}
-          {data && data.length == 0 && (
+          {data.length == 0 && (
             <>
               <Text mb={2}>We couldn't find any access rules for you</Text>
               <CFCodeMultiline
@@ -85,14 +121,6 @@ ${JSON.stringify(search, null, 2)}`}
         </Flex>
       </Center>
     </UserLayout>
-  ) : (
-    <Spinner
-      my={4}
-      opacity={isValidating ? 1 : 0}
-      pos="absolute"
-      left="50%"
-      top="50vh"
-    />
   );
 };
 

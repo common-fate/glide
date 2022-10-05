@@ -50,7 +50,7 @@ var CreateCommand = cli.Command{
 		}
 
 		clio.Success("Successfully created group '%s'", group)
-
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	},
 }

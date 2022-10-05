@@ -1,7 +1,12 @@
 import { Auth } from "@aws-amplify/auth";
+import {
+  CognitoHostedUIIdentityProvider,
+  FederatedSignInOptions,
+} from "@aws-amplify/auth/lib-esm/types";
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
 import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-location";
 import CFSpinner from "../../components/CFSpinner";
 import awsExports from "../aws-exports";
 import { setAPIURL } from "../custom-instance";
@@ -22,12 +27,10 @@ interface Props {
 const CognitoProvider: React.FC<Props> = ({ children }) => {
   const [amplifyInitialising, setAmplifyInitializing] = useState(true);
   const [loadingCurrentUser, setLoadingCurrentUser] = useState(true);
-  const [
-    cognitoAuthenticatedUserEmail,
-    setCognitoAuthenticatedUserEmail,
-  ] = useState<string>();
+  const [cognitoAuthenticatedUserEmail, setCognitoAuthenticatedUserEmail] =
+    useState<string>();
   const loading = amplifyInitialising || loadingCurrentUser;
-
+  const navigate = useNavigate();
   // this can be improved in future with a more graceful error page if the AWS config doesn't load.
   // The following effect will run on first load of the app, in production, this will fetch a config file from the server to hydrate the amplify configuration
   // in local dev, this is imported from a local file
@@ -86,6 +89,9 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
       case "signOut":
         setCognitoAuthenticatedUserEmail(undefined);
         break;
+      case "customOAuthState":
+        navigate({ to: data });
+        break;
       default:
         console.log("getting user in listener", { data });
         tryGetAuthenticatedUser();
@@ -133,7 +139,10 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
 };
 
 function initiateAuth() {
-  return Auth.federatedSignIn();
+  return Auth.federatedSignIn({
+    customState: location.pathname + location.search,
+    provider: CognitoHostedUIIdentityProvider.Cognito,
+  });
 }
 
 function initiateSignOut() {

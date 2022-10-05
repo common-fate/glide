@@ -110,6 +110,10 @@ paths:
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Request"
       description: |-
         Make a request to access something.
 
@@ -1073,10 +1077,6 @@ components:
           $ref: "#/components/schemas/Grant"
         approvalMethod:
           $ref: "#/components/schemas/ApprovalMethod"
-        selectedWith:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/WithOption"
       required:
         - id
         - requestor
@@ -1085,7 +1085,6 @@ components:
         - requestedAt
         - accessRule
         - updatedAt
-        - selectedWith
     RequestDetail:
       title: Request
       type: object
@@ -1107,7 +1106,7 @@ components:
           x-go-type: time.Time
           format: time
         accessRule:
-          $ref: "#/components/schemas/AccessRule"
+          $ref: "#/components/schemas/RequestAccessRuleDetail"
         updatedAt:
           type: string
           x-go-type: time.Time
@@ -1122,7 +1121,7 @@ components:
         selectedWith:
           type: object
           additionalProperties:
-            $ref: "#/components/schemas/WithOption"
+            $ref: "#/components/schemas/With"
       required:
         - id
         - requestor
@@ -1132,6 +1131,7 @@ components:
         - accessRule
         - updatedAt
         - canReview
+        - selectedWith
     RequestStatus:
       type: string
       description: |
@@ -1153,6 +1153,37 @@ components:
       required:
         - id
         - version
+    RequestAccessRuleDetail:
+      title: RequestAccessRuleDetail
+      type: object
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        with:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/With"
+        isCurrent:
+          type: boolean
+        provider:
+          $ref: "#/components/schemas/Provider"
+        timeConstraints:
+          $ref: "#/components/schemas/TimeConstraints"
+      required:
+        - id
+        - version
+        - name
+        - description
+        - with
+        - isCurrent
+        - provider
+        - timeConstraints
     AccessRule:
       title: AccessRule
       type: object
@@ -1347,13 +1378,11 @@ components:
         with:
           type: object
           additionalProperties:
-            type: string
+            $ref: "#/components/schemas/With"
         withSelectable:
           type: object
           additionalProperties:
-            type: array
-            items:
-              $ref: "#/components/schemas/Selectable"
+            $ref: "#/components/schemas/Selectable"
       required:
         - provider
         - with
@@ -1578,22 +1607,27 @@ components:
           type: string
         label:
           type: string
+        valid:
+          type: boolean
       required:
         - value
         - label
+        - valid
     Selectable:
       title: Selectable
       x-stoplight:
         id: ab18xdxwinqhb
       type: object
       properties:
-        option:
-          $ref: "#/components/schemas/WithOption"
-        valid:
-          type: boolean
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/WithOption"
+        title:
+          type: string
       required:
-        - option
-        - valid
+        - options
+        - title
     CreateRequestWith:
       title: CreateRequestWith
       x-stoplight:
@@ -1810,6 +1844,22 @@ components:
           type: string
       required:
         - key
+        - value
+    With:
+      title: With
+      x-stoplight:
+        id: 1sgrgc47iwg61
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+      required:
+        - label
+        - title
         - value
   responses:
     ErrorResponse:

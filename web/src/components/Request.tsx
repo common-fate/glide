@@ -54,6 +54,7 @@ import { userName } from "../utils/userName";
 import { CFReactMarkownCode } from "./CodeInstruction";
 import { CopyableOption } from "./CopyableOption";
 import { ProviderIcon } from "./icons/providerIcon";
+import { InfoOption } from "./InfoOption";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { StatusCell } from "./StatusCell";
@@ -162,21 +163,15 @@ export const RequestStatusDisplay: React.FC<{
   );
 };
 
-export const RequestSelectedWithDisplay: React.FC<{
-  request: Request | RequestDetail | undefined;
+export const RequestWithDisplay: React.FC<{
+  request: RequestDetail | undefined;
 }> = ({ request }) => {
-  if (request?.selectedWith === undefined) {
-    <Skeleton
-      minW="30ch"
-      minH="6"
-      isLoaded={request?.selectedWith !== undefined}
-      mr="auto"
-    />;
+  if (request === undefined) {
+    return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
-
   if (
-    request?.selectedWith &&
-    Object.entries(request.selectedWith).length > 0
+    Object.entries(request.selectedWith).length > 0 ||
+    Object.entries(request.accessRule.with).length > 0
   ) {
     return (
       <VStack align={"left"}>
@@ -187,8 +182,19 @@ export const RequestSelectedWithDisplay: React.FC<{
               return (
                 <WrapItem>
                   <VStack align={"left"}>
-                    <Text>{k}</Text>
-                    <CopyableOption label={v.label} value={v.value} />
+                    <Text>{v.title}</Text>
+                    <InfoOption label={v.label} value={v.value} />
+                  </VStack>
+                </WrapItem>
+              );
+            })}
+          {request?.selectedWith &&
+            Object.entries(request?.accessRule.with).map(([k, v]) => {
+              return (
+                <WrapItem>
+                  <VStack align={"left"}>
+                    <Text>{v.title}</Text>
+                    <InfoOption label={v.label} value={v.value} />
                   </VStack>
                 </WrapItem>
               );
@@ -234,9 +240,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon
-              shortType={request?.accessRule.target.provider.type}
-            />
+            <ProviderIcon shortType={request?.accessRule.provider.type} />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge
@@ -252,7 +256,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
             </Tooltip>
           </HStack>
         </Skeleton>
-        <RequestSelectedWithDisplay request={request} />
+        <RequestWithDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
           {request?.reason && (
             <VStack align={"left"}>

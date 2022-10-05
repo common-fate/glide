@@ -7,7 +7,7 @@
  */
 import type { RequestStatus } from './requestStatus';
 import type { RequestTiming } from './requestTiming';
-import type { AccessRule } from './accessRule';
+import type { RequestAccessRuleDetail } from './requestAccessRuleDetail';
 import type { Grant } from './grant';
 import type { ApprovalMethod } from './approvalMethod';
 import type { RequestDetailSelectedWith } from './requestDetailSelectedWith';
@@ -22,11 +22,11 @@ export interface RequestDetail {
   reason?: string;
   timing: RequestTiming;
   requestedAt: string;
-  accessRule: AccessRule;
+  accessRule: RequestAccessRuleDetail;
   updatedAt: string;
   grant?: Grant;
   /** true if the requesting user is a reviewer of this request. */
   canReview: boolean;
   approvalMethod?: ApprovalMethod;
-  selectedWith?: RequestDetailSelectedWith;
+  selectedWith: RequestDetailSelectedWith;
 }
