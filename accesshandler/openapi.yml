@@ -1,13 +1,13 @@
 openapi: 3.0.0
 info:
   title: Access Handler
-  version: "1.0"
+  version: '1.0'
   contact:
     name: Common Fate
-    url: "https://commonfate.io"
+    url: 'https://commonfate.io'
   description: Granted Access Handler API
 servers:
-  - url: "http://localhost:9092"
+  - url: 'http://localhost:9092'
 paths:
   /api/v1/grants:
     get:
@@ -15,7 +15,7 @@ paths:
       tags:
         - grants
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
@@ -25,21 +25,21 @@ paths:
                   grants:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Grant"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+                      $ref: '#/components/schemas/Grant'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: get-grants
       description: List grants.
     post:
       summary: Create Grant
       operationId: post-grants
       responses:
-        "201":
-          $ref: "#/components/responses/GrantResponse"
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '201':
+          $ref: '#/components/responses/GrantResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       description: |-
         Create a grant.
 
@@ -48,7 +48,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateGrant"
+              $ref: '#/components/schemas/CreateGrant'
             examples:
               Okta Provider:
                 value:
@@ -57,8 +57,8 @@ paths:
                   provider: okta
                   with:
                     group: Admins
-                  start: "2022-06-13T03:39:30.921Z"
-                  end: "2022-06-13T11:39:30.921Z"
+                  start: '2022-06-13T03:39:30.921Z'
+                  end: '2022-06-13T11:39:30.921Z'
         description: The grant to be created.
       tags:
         - grants
@@ -68,30 +68,30 @@ paths:
       summary: ValidateGrant
       operationId: validate-grant
       responses:
-        "200":
+        '200':
           description: OK
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       description: Valdates that a grant will succeed without granting the access
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateGrant"
+              $ref: '#/components/schemas/CreateGrant'
     parameters: []
-  "/api/v1/grants/{grantId}/revoke":
+  '/api/v1/grants/{grantId}/revoke':
     post:
       summary: Revoke grant
       operationId: post-grants-revoke
       responses:
-        "200":
-          $ref: "#/components/responses/GrantResponse"
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '200':
+          $ref: '#/components/responses/GrantResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       description: Revoke an active grant.
       tags:
         - grants
@@ -118,16 +118,16 @@ paths:
       summary: List providers
       tags: []
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Provider"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+                  $ref: '#/components/schemas/Provider'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: list-providers
       description: List providers
     parameters: []
@@ -137,30 +137,30 @@ paths:
       summary: Refresh Access Providers
       operationId: refresh-access-providers
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Provider"
+                  $ref: '#/components/schemas/Provider'
       description: Reload any cached Access Provider configuration.
-  "/api/v1/providers/{providerId}":
+  '/api/v1/providers/{providerId}':
     get:
       summary: Get provider
       tags: []
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Provider"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+                $ref: '#/components/schemas/Provider'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: get-provider
       description: Get a provider by id.
     parameters:
@@ -169,21 +169,21 @@ paths:
         name: providerId
         in: path
         required: true
-  "/api/v1/providers/{providerId}/access-instructions":
+  '/api/v1/providers/{providerId}/access-instructions':
     get:
       summary: Get Access Instructions
       tags: []
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessInstructions"
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
+                $ref: '#/components/schemas/AccessInstructions'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: get-access-instructions
       description: |-
         Get access instructions for a provider.
@@ -214,7 +214,7 @@ paths:
         name: providerId
         in: path
         required: true
-  "/api/v1/providers/{providerId}/args":
+  '/api/v1/providers/{providerId}/args':
     parameters:
       - schema:
           type: string
@@ -225,20 +225,20 @@ paths:
       summary: Get provider arg schema
       tags: []
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties: {}
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: get-provider-args
       description: Returns the JSON Schema object describing the arguments for this provider.
-  "/api/v1/providers/{providerId}/args/{argId}/options":
+  '/api/v1/providers/{providerId}/args/{argId}/options':
     parameters:
       - schema:
           type: string
@@ -254,12 +254,12 @@ paths:
       summary: List provider arg options
       tags: []
       responses:
-        "200":
-          $ref: "#/components/responses/ArgOptionsResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
+        '200':
+          $ref: '#/components/responses/ArgOptionsResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
       operationId: list-provider-arg-options
       description: List the options for a provider argument.
   /api/v1/health:
@@ -268,10 +268,10 @@ paths:
       tags:
         - runtime
       responses:
-        "200":
-          $ref: "#/components/responses/HealthResponse"
-        "500":
-          $ref: "#/components/responses/HealthResponse"
+        '200':
+          $ref: '#/components/responses/HealthResponse'
+        '500':
+          $ref: '#/components/responses/HealthResponse'
       operationId: get-health
       description: Returns information on the health of the runtime and providers. If any healthchecks fail the response code will be 500 (Internal Server Error).
   /api/v1/setup/validate:
@@ -280,16 +280,16 @@ paths:
       summary: Validate an Access Provider's settings
       operationId: validate-setup
       responses:
-        "200":
-          $ref: "#/components/responses/ValidateResponse"
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
+        '200':
+          $ref: '#/components/responses/ValidateResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
       description: |-
         Validates settings for a provider. Does not require the provider to be registered - all configuration is passed via the request body.
 
         Returns a HTTP400 response if the provider cannot be validated, for example if the config is in an invalid format.
       requestBody:
-        $ref: "#/components/requestBodies/ValidateRequest"
+        $ref: '#/components/requestBodies/ValidateRequest'
 components:
   schemas:
     Grant:
@@ -304,8 +304,8 @@ components:
           provider: okta
           with:
             group: Admins
-          start: "2022-06-13T03:39:30.921Z"
-          end: "2022-06-13T11:39:30.921Z"
+          start: '2022-06-13T03:39:30.921Z'
+          end: '2022-06-13T11:39:30.921Z'
       properties:
         id:
           type: string
@@ -339,13 +339,13 @@ components:
           type: string
           format: date-time
           description: The start time of the grant in ISO8601 format.
-          example: "2022-06-13T03:39:30.921Z"
+          example: '2022-06-13T03:39:30.921Z'
           x-go-type: iso8601.Time
         end:
           type: string
           format: date-time
           description: The end time of the grant in ISO8601 format.
-          example: "2022-06-13T11:39:30.921Z"
+          example: '2022-06-13T11:39:30.921Z'
           x-go-type: iso8601.Time
       required:
         - id
@@ -365,8 +365,8 @@ components:
           provider: okta
           with:
             group: Admins
-          start: "2022-06-13T03:39:30.921Z"
-          end: "2022-06-13T11:39:30.921Z"
+          start: '2022-06-13T03:39:30.921Z'
+          end: '2022-06-13T11:39:30.921Z'
       properties:
         subject:
           type: string
@@ -387,13 +387,13 @@ components:
           type: string
           format: date-time
           description: The start time of the grant in ISO8601 format.
-          example: "2022-06-13T03:39:30.921Z"
+          example: '2022-06-13T03:39:30.921Z'
           x-go-type: iso8601.Time
         end:
           type: string
           format: date-time
           description: The end time of the grant in ISO8601 format.
-          example: "2022-06-13T11:39:30.921Z"
+          example: '2022-06-13T11:39:30.921Z'
           x-go-type: iso8601.Time
         id:
           type: string
@@ -421,7 +421,7 @@ components:
         error:
           type: string
           example: API_TOKEN secret has not been provided
-          description: "A descriptive error message, if the provider isn't healthy."
+          description: 'A descriptive error message, if the provider isn''t healthy.'
           nullable: true
       required:
         - id
@@ -471,7 +471,7 @@ components:
       properties:
         id:
           type: string
-          description: "The ID of the validation, such as `list-sso-users`."
+          description: 'The ID of the validation, such as `list-sso-users`.'
         name:
           type: string
         status:
@@ -484,13 +484,13 @@ components:
           description: The status of the validation.
         fieldsValidated:
           type: array
-          description: "The particular config fields validated, if any."
+          description: 'The particular config fields validated, if any.'
           items:
             type: string
         logs:
           type: array
           items:
-            $ref: "#/components/schemas/Log"
+            $ref: '#/components/schemas/Log'
       required:
         - id
         - name
@@ -529,7 +529,7 @@ components:
                 description: The full type definition of the provider
                 example: commonfate/aws-sso
               with:
-                x-go-type: "map[string]string"
+                x-go-type: 'map[string]string'
                 type: object
                 additionalProperties:
                   type: string
@@ -546,7 +546,7 @@ components:
             type: object
             properties:
               health:
-                $ref: "#/components/schemas/ProviderHealth"
+                $ref: '#/components/schemas/ProviderHealth'
           examples: {}
     ErrorResponse:
       description: An error returned from the Access Handler.
@@ -566,7 +566,7 @@ components:
             type: object
             properties:
               grant:
-                $ref: "#/components/schemas/Grant"
+                $ref: '#/components/schemas/Grant'
             required:
               - grant
     ArgOptionsResponse:
@@ -583,7 +583,7 @@ components:
                 type: array
                 description: The suggested options.
                 items:
-                  $ref: "#/components/schemas/Option"
+                  $ref: '#/components/schemas/Option'
             required:
               - hasOptions
               - options
@@ -597,7 +597,7 @@ components:
               validations:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ProviderConfigValidation"
+                  $ref: '#/components/schemas/ProviderConfigValidation'
             required:
               - validations
 tags:
