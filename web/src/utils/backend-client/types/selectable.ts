@@ -8,6 +8,6 @@
 import type { WithOption } from './withOption';
 
 export interface Selectable {
-  option: WithOption;
-  valid: boolean;
+  options: WithOption[];
+  title: string;
 }

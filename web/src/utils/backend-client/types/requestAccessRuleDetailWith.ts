@@ -5,6 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { WithOption } from './withOption';
+import type { With } from './with';
 
-export type RequestSelectedWith = {[key: string]: WithOption};
+export type RequestAccessRuleDetailWith = {[key: string]: With};

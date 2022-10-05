@@ -4,7 +4,10 @@ import (
 	"time"
 
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -131,16 +134,6 @@ func (r *Request) ToAPI() types.Request {
 		Status:         types.RequestStatus(r.Status),
 		UpdatedAt:      r.UpdatedAt,
 		ApprovalMethod: r.ApprovalMethod,
-		SelectedWith: types.Request_SelectedWith{
-			AdditionalProperties: make(map[string]types.WithOption),
-		},
-	}
-
-	for k, v := range r.SelectedWith {
-		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
-			Label: v.Label,
-			Value: v.Value,
-		}
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -155,9 +148,9 @@ func (r *Request) ToAPI() types.Request {
 	return req
 }
 
-func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.RequestDetail {
+func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOptions []cache.ProviderOption) types.RequestDetail {
 	req := types.RequestDetail{
-		AccessRule:     accessRule.ToAPI(),
+		AccessRule:     accessRule.ToRequestAccessRuleDetailAPI(argOptions),
 		Timing:         r.RequestedTiming.ToAPI(),
 		Reason:         r.Data.Reason,
 		ID:             r.ID,
@@ -167,16 +160,29 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
-		SelectedWith: &types.RequestDetail_SelectedWith{
-			AdditionalProperties: make(map[string]types.WithOption),
+		SelectedWith: types.RequestDetail_SelectedWith{
+			AdditionalProperties: make(map[string]types.With),
 		},
 	}
-
+	// Lookup the provider, ignore errors
+	// if provider is not found, fallback to using the argument key as the title
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(accessRule.Target.ProviderType)
 	for k, v := range r.SelectedWith {
-		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
+		with := types.With{
 			Label: v.Label,
 			Value: v.Value,
+			Title: k,
 		}
+		// attempt to get the title for the argument from the provider arg schema
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				t := providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
+				if t != "" {
+					with.Title = t
+				}
+			}
+		}
+		req.SelectedWith.AdditionalProperties[k] = with
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()

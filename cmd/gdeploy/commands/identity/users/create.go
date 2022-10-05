@@ -87,6 +87,7 @@ var CreateCommand = cli.Command{
 
 			clio.Success("added user %s to administrator group '%s'", username, adminGroup)
 		}
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 
 		return nil
 	},

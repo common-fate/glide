@@ -7,4 +7,4 @@
  */
 import type { Selectable } from './selectable';
 
-export type AccessRuleTargetDetailWithSelectable = {[key: string]: Selectable[]};
+export type AccessRuleTargetDetailWithSelectable = {[key: string]: Selectable};

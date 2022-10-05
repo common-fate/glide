@@ -56,7 +56,7 @@ var DeleteCommand = cli.Command{
 		}
 
 		clio.Success("Successfully deleted group '%s'", group)
-
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	},
 }

@@ -99,5 +99,13 @@ func (a *API) AdminGetRequest(w http.ResponseWriter, r *http.Request, requestId 
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
-	apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, q.Result.RequestedBy != u.ID), http.StatusOK)
+	pq := storage.ListCachedProviderOptions{
+		ProviderID: qr.Result.Target.ProviderID,
+	}
+	_, err = a.DB.Query(ctx, &pq)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, q.Result.RequestedBy != u.ID, pq.Result), http.StatusOK)
 }
