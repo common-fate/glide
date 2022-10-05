@@ -517,28 +517,6 @@ components:
       required:
         - level
         - msg
-    GrantValidation:
-      title: GrantValidation
-      x-stoplight:
-        id: 6cuhvkirc8x13
-      type: object
-      description: "A validation of a Grant, without actually creating it"
-      properties:
-        id:
-          type: string
-        status:
-          type: string
-          enum:
-            - SUCCESS
-            - ERROR
-        logs:
-          type: array
-          items:
-            $ref: "#/components/schemas/Log"
-      required:
-        - id
-        - status
-        - logs
   requestBodies:
     ValidateRequest:
       content:

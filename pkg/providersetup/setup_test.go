@@ -23,7 +23,7 @@ func TestUpdateValidationStatus(t *testing.T) {
 				Status: types.INITIALCONFIGURATIONINPROGRESS,
 				ConfigValidation: map[string]Validation{
 					"test": {
-						Status: ahtypes.ProviderConfigValidationStatusERROR,
+						Status: ahtypes.ERROR,
 					},
 				},
 			},
@@ -35,7 +35,7 @@ func TestUpdateValidationStatus(t *testing.T) {
 				Status: types.INITIALCONFIGURATIONINPROGRESS,
 				ConfigValidation: map[string]Validation{
 					"test": {
-						Status: ahtypes.ProviderConfigValidationStatusSUCCESS,
+						Status: ahtypes.SUCCESS,
 					},
 				},
 			},
@@ -47,7 +47,7 @@ func TestUpdateValidationStatus(t *testing.T) {
 				Status: types.INITIALCONFIGURATIONINPROGRESS,
 				ConfigValidation: map[string]Validation{
 					"test": {
-						Status: ahtypes.ProviderConfigValidationStatusINPROGRESS,
+						Status: ahtypes.INPROGRESS,
 					},
 				},
 			},

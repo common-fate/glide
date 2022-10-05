@@ -100,6 +100,7 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 	_, err = b.Validate(ctx, a.Clock.Now())
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
 	}
 	prov, ok := config.Providers[b.Provider]
 	if !ok {
@@ -111,6 +112,7 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		// provider doesn't implement validation, so just return a HTTP OK response with an empty validation
 		apio.JSON(ctx, w, nil, http.StatusOK)
+		return
 	}
 	args, err := json.Marshal(b.With.AdditionalProperties)
 	if err != nil {
