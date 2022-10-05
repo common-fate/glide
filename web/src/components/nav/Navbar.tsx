@@ -20,7 +20,7 @@ import {
 } from "@chakra-ui/react";
 import * as React from "react";
 import { useMemo } from "react";
-import { Link } from "react-location";
+import { Link, useNavigate } from "react-location";
 import { useCognito } from "../../utils/context/cognitoContext";
 import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
 import { useUser } from "../../utils/context/userContext";
@@ -28,6 +28,7 @@ import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
+import reactSelect from "react-select";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
@@ -82,10 +83,10 @@ export const Navbar: React.FC = () => {
                 >
                   {/* I've hardcoded widths here to prevent the bold/unbold text from 
                   altering the containing divs width. Reduces *jittering* */}
-                  <TabsStyledNextButton
+                  <TabsStyledButton
                     href="/requests"
                     w={showReqCount ? "190px" : "142px"}
-                    pr={showReqCount && 10}
+                    pr={showReqCount ? 10 : undefined}
                   >
                     Access Requests
                     {showReqCount && (
@@ -95,11 +96,11 @@ export const Navbar: React.FC = () => {
                         count={requests?.requests?.length ?? 0}
                       />
                     )}
-                  </TabsStyledNextButton>
-                  <TabsStyledNextButton
+                  </TabsStyledButton>
+                  <TabsStyledButton
                     href="/reviews?status=pending"
                     w="125px"
-                    pr={showRewCount && 10}
+                    pr={showReqCount ? 10 : undefined}
                   >
                     Reviews
                     {showRewCount && (
@@ -113,7 +114,7 @@ export const Navbar: React.FC = () => {
                         }
                       />
                     )}
-                  </TabsStyledNextButton>
+                  </TabsStyledButton>
                 </ButtonGroup>
               )}
             </HStack>
@@ -188,60 +189,50 @@ export const Navbar: React.FC = () => {
     </Box>
   );
 };
-
-export const TabsStyledNextButton = (props: any) => (
-  <NextButton
-    opacity={0.8}
-    roundedTop="md"
-    _activeLink={{
-      fontWeight: "bold",
-      opacity: 1,
-      borderColor: "#34B53A",
-      borderBottomWidth: "2px",
-    }}
-    sx={{
-      rounded: "none",
-      // paddingBottom: "10px",
-      borderBottom: "2px solid",
-      borderColor: "neutrals.300",
-      color: "neutrals.700",
-      px: 4,
-      // hover state
-      _hover: {
-        borderColor: "neutrals.500",
-      },
-      // 'Current' state
-      _selected: {
-        fontWeight: 500,
-        borderColor: "#34B53A",
-      },
-      // Disabled state
-      _disabled: {
-        opacity: 0.3,
-      },
-    }}
-    {...props}
-  />
-);
-
-export const NextButton: React.FC<
-  {
-    href: string;
-  } & ButtonProps
-> = ({ href, ...buttonProps }) => {
+interface TabsStyledButtonProps extends ButtonProps {
+  href: string;
+}
+export const TabsStyledButton: React.FC<TabsStyledButtonProps> = ({
+  href,
+  ...rest
+}) => {
+  const navigate = useNavigate();
   return (
     <Button
-      to={href}
-      as={Link}
-      getActiveProps={() => ({
-        style: {
-          fontWeight: "bold",
-          opacity: 1,
-          borderColor: "#34B53A",
-          borderBottomWidth: "2px",
+      opacity={0.8}
+      roundedTop="md"
+      onClick={() => {
+        navigate({ to: href });
+      }}
+      isActive={location.pathname === href.split("?")[0]}
+      _active={{
+        fontWeight: "bold",
+        opacity: 1,
+        borderColor: "#34B53A",
+        borderBottomWidth: "2px",
+      }}
+      sx={{
+        rounded: "none",
+        // paddingBottom: "10px",
+        borderBottom: "2px solid",
+        borderColor: "neutrals.300",
+        color: "neutrals.700",
+        px: 4,
+        // hover state
+        _hover: {
+          borderColor: "neutrals.500",
         },
-      })}
-      {...buttonProps}
+        // 'Current' state
+        _selected: {
+          fontWeight: 500,
+          borderColor: "#34B53A",
+        },
+        // Disabled state
+        _disabled: {
+          opacity: 0.3,
+        },
+      }}
+      {...rest}
     />
   );
 };
