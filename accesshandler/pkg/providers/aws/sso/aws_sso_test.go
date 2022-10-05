@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso/fixtures"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,9 +34,9 @@ func TestIntegration(t *testing.T) {
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"permissionSetArn": "%s", "accountId": "%s"}`, f.PermissionSetARN, f.AccountID),
 			WantValidationErr: nil,
-			WantValidationDiagnostics: map[string]types.GrantValidation{
-				"user-exists-in-okta":  {Status: types.GrantValidationStatusSUCCESS},
-				"group-exists-in-okta": {Status: types.GrantValidationStatusERROR},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
 			},
 		},
 		{
@@ -45,9 +44,9 @@ func TestIntegration(t *testing.T) {
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234561234512345/ps-1234512345123451", "accountId": "%s"}`, f.AccountID),
 			WantValidationErr: &PermissionSetNotFoundErr{PermissionSet: "arn:aws:sso:::permissionSet/ssoins-1234561234512345/ps-1234512345123451"},
-			WantValidationDiagnostics: map[string]types.GrantValidation{
-				"user-exists-in-okta":  {Status: types.GrantValidationStatusSUCCESS},
-				"group-exists-in-okta": {Status: types.GrantValidationStatusERROR},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
 			},
 		},
 		{
@@ -55,9 +54,9 @@ func TestIntegration(t *testing.T) {
 			Subject:           "other",
 			Args:              fmt.Sprintf(`{"permissionSetArn": "%s", "accountId": "%s"}`, f.PermissionSetARN, f.AccountID),
 			WantValidationErr: &UserNotFoundError{Email: "other"},
-			WantValidationDiagnostics: map[string]types.GrantValidation{
-				"user-exists-in-okta":  {Status: types.GrantValidationStatusSUCCESS},
-				"group-exists-in-okta": {Status: types.GrantValidationStatusERROR},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
 			},
 		},
 		{
@@ -65,9 +64,9 @@ func TestIntegration(t *testing.T) {
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"permissionSetArn": "%s", "accountId": "123456789012"}`, f.PermissionSetARN),
 			WantValidationErr: &AccountNotFoundError{AccountID: "123456789012"},
-			WantValidationDiagnostics: map[string]types.GrantValidation{
-				"user-exists-in-okta":  {Status: types.GrantValidationStatusSUCCESS},
-				"group-exists-in-okta": {Status: types.GrantValidationStatusERROR},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
 			},
 		},
 	}

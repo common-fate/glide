@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -26,9 +25,6 @@ import (
 type CreateRequestResult struct {
 	Request   access.Request
 	Reviewers []access.Reviewer
-
-	//Optional logs which correspond to the validations that take place in the access handler
-	DiagnosticLogs *[]ahTypes.GrantValidation
 }
 
 // CreateRequest creates a new request and saves it in the database.
@@ -76,9 +72,9 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	//validate the request against the access handler - make sure that access will be able to be provisioned
 	//validating the grant before the request was made so that the request object does not get created.
-	logs, err := s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
+	err = s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
 	if err != nil {
-		return &CreateRequestResult{DiagnosticLogs: &logs}, err
+		return nil, err
 	}
 
 	if in.With != nil {

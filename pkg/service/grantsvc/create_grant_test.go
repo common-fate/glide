@@ -94,9 +94,7 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 			},
-			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{JSON200: &struct {
-				Validation []ahTypes.GrantValidation "json:\"validation\""
-			}{Validation: []ahTypes.GrantValidation{}}},
+			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{},
 			wantRequest: &access.Request{
 				Status: access.APPROVED,
 				RequestedTiming: access.Timing{
@@ -163,9 +161,7 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 			},
-			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{JSON200: &struct {
-				Validation []ahTypes.GrantValidation "json:\"validation\""
-			}{Validation: []ahTypes.GrantValidation{}}},
+			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{},
 
 			wantRequest: &access.Request{
 				Status: access.APPROVED,

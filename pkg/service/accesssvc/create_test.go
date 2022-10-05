@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
@@ -37,7 +36,6 @@ func TestNewRequest(t *testing.T) {
 		want                    *CreateRequestResult
 		withCreateGrantResponse createGrantResponse
 		withGetGroupResponse    *storage.GetGroup
-		validationResponse      []ahTypes.GrantValidation
 	}
 
 	clk := clock.NewMock()
@@ -73,7 +71,6 @@ func TestNewRequest(t *testing.T) {
 					SelectedWith:   make(map[string]access.Option),
 				},
 			},
-			validationResponse: []ahTypes.GrantValidation{},
 		},
 		{
 			name:     "fails because requested duration is greater than max duration",
@@ -99,7 +96,6 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
-			validationResponse: []ahTypes.GrantValidation{},
 		},
 		{
 			name:     "user not in correct group",
@@ -110,11 +106,10 @@ func TestNewRequest(t *testing.T) {
 			wantErr: ErrNoMatchingGroup,
 		},
 		{
-			name:               "rule not found",
-			giveUser:           identity.User{Groups: []string{"a"}},
-			ruleErr:            ddb.ErrNoItems,
-			wantErr:            ErrRuleNotFound,
-			validationResponse: []ahTypes.GrantValidation{},
+			name:     "rule not found",
+			giveUser: identity.User{Groups: []string{"a"}},
+			ruleErr:  ddb.ErrNoItems,
+			wantErr:  ErrRuleNotFound,
 		},
 		{
 			name:     "with reviewers",
@@ -185,7 +180,6 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
-			validationResponse: []ahTypes.GrantValidation{},
 		},
 		{
 			name:     "requestor is in approver group on access rule",
@@ -229,7 +223,6 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
-			validationResponse: []ahTypes.GrantValidation{},
 		},
 	}
 
@@ -250,7 +243,7 @@ func TestNewRequest(t *testing.T) {
 
 			g := accessMocks.NewMockGranter(ctrl)
 			g.EXPECT().CreateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
-			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.validationResponse, nil).AnyTimes()
+			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 			ca := accessMocks.NewMockCacheService(ctrl)
 			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil).AnyTimes()

@@ -2,27 +2,23 @@ package integration
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 	"github.com/sethvargo/go-retry"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/sync/errgroup"
 )
 
 // TestCase is a test case for running integration tests.
 type TestCase struct {
-	Name                      string
-	Subject                   string
-	Args                      string
-	WantValidationDiagnostics map[string]types.GrantValidation
-	WantValidationErr         error
+	Name                    string
+	Subject                 string
+	Args                    string
+	WantValidationSucceeded map[string]bool
+	WantValidationErr       error
 }
 
 func WithProviderConfig(config []byte) func(*IntegrationTests) {
@@ -91,52 +87,14 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 					t.Skip("Provider does not implement providers.Validator")
 				} else {
 					// the provider implements validation, so try and validate the request
-					res := v.ValidateGrant([]byte(tc.Args))
+					validationSteps := v.ValidateGrant()
 
-					validationRes := types.GrantValidationResponse{}
-					var mu sync.Mutex
-					handleResults := func(key string, value providers.GrantValidationStep, logs diagnostics.Logs) {
-						mu.Lock()
-						defer mu.Unlock()
+					validationResult := validationSteps.Run(ctx, tc.Subject, []byte(tc.Args))
 
-						result := types.GrantValidation{
-							Id: key,
-						}
-
-						if logs.HasSucceeded() {
-							result.Status = types.GrantValidationStatusSUCCESS
-						} else {
-							result.Status = types.GrantValidationStatusERROR
-						}
-
-						for _, l := range logs {
-							result.Logs = append(result.Logs, types.Log{
-								Level: types.LogLevel(l.Level),
-								Msg:   l.Msg,
-							})
-						}
-
-						validationRes.Validation = append(validationRes.Validation, result)
-					}
-
-					g, gctx := errgroup.WithContext(ctx)
-
-					for key, val := range res {
-						k := key
-						v := val
-						g.Go(func() error {
-							logs := v.Run(gctx, string(tc.Subject), []byte(tc.Args))
-							handleResults(k, v, logs)
-							return nil
-						})
-					}
-
-					_ = g.Wait()
-
-					for _, res := range validationRes.Validation {
-						it := tc.WantValidationDiagnostics[res.Id]
-						assert.Equal(t, res.Status, it.Status)
-
+					for k, v := range tc.WantValidationSucceeded {
+						l := validationResult[k].Logs
+						assert.NotNil(t, l)
+						assert.Equal(t, v, l.HasSucceeded())
 					}
 
 				}

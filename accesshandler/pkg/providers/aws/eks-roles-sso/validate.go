@@ -13,7 +13,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 )
 
-func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-aws-sso": {
 			Name: "The user must exist in the AWS SSO instance",

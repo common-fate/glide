@@ -3,8 +3,6 @@ package grantsvc
 import (
 	"errors"
 	"fmt"
-
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 )
 
 var (
@@ -15,10 +13,11 @@ var (
 	// ErrNoGrant is returned when attempting to revoke a request which has no grant yet
 )
 
+// GrantValidationError is returned if grantValidation fails
 type GrantValidationError struct {
-	Validation types.GrantValidation
+	ValidationFailureMsg string
 }
 
 func (e GrantValidationError) Error() string {
-	return fmt.Sprintf("validation on grant failed: %v", e.Validation)
+	return fmt.Sprintf("grant validation failed: %s", e.ValidationFailureMsg)
 }

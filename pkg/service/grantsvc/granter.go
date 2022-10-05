@@ -2,7 +2,6 @@ package grantsvc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -139,42 +138,37 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 }
 
 // validate grant runs all the checks that will need to occur when creating a real grant to validate its success
-func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) ([]ahTypes.GrantValidation, error) {
+func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error {
 	req, err := g.prepareCreateGrantRequest(ctx, opts)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	res, err := g.AHClient.ValidateGrantWithResponse(ctx, req)
 	if err != nil {
-		return []ahTypes.GrantValidation{}, err
+		return err
 	}
 	code := res.StatusCode()
 	switch code {
 	case 200:
-		var respBody ahTypes.GrantValidationResponse
-		err := json.Unmarshal(res.Body, &respBody)
-		if err != nil {
-			return []ahTypes.GrantValidation{}, err
-		}
-		//check if any failed states
-		validationFailed := false
-		for _, v := range respBody.Validation {
-			if v.Status == ahTypes.GrantValidationStatusERROR {
-				validationFailed = true
-			}
-		}
-		if validationFailed {
-			return respBody.Validation, GrantValidationError{}
-		}
-		return respBody.Validation, nil
+		return nil
 	case 400:
 		// there was an error, handle it
-		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", *res.JSON400.Error)
+		if res.JSON400.Error != nil {
+			return &GrantValidationError{ValidationFailureMsg: *res.JSON400.Error}
+		} else {
+			return &GrantValidationError{ValidationFailureMsg: "unknown error occurred"}
+		}
 	case 500:
 		// there was an internal error, handle it
-		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", *res.JSON500.Error)
+		// there was an error, handle it
+		if res.JSON500.Error != nil {
+			return fmt.Errorf("access handler returned internal server error while validating grant. error: %s", *res.JSON500.Error)
+		} else {
+			return fmt.Errorf("unexpected response while validating grant")
+		}
 	default:
-		return []ahTypes.GrantValidation{}, fmt.Errorf("error validating grant: %s", res.Body)
+		logger.Get(ctx).Errorw("unhandled response from access handler while validating grant", "statusCode", code, "body", string(res.Body))
+		return fmt.Errorf("unhandled response from access handler while validating grant")
 	}
 }
 

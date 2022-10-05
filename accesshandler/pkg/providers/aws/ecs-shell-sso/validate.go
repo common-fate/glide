@@ -30,7 +30,7 @@ func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) er
 
 // Validate the access against AWS SSO without actually granting it.
 // This provider requires that the user name matches the user's email address.
-func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-aws-sso": {

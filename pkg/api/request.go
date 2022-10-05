@@ -217,26 +217,9 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	// create the request. The RequestCreator handles the validation
 	// and saving the request to the database.
 	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
-	if _, ok := err.(grantsvc.GrantValidationError); ok {
-		//create field errors from errors
-
-		fields := []apio.FieldError{}
-		if result.DiagnosticLogs != nil {
-			for _, e := range *result.DiagnosticLogs {
-
-				//only display the errors in the frontend for now
-
-				if e.Status == "ERROR" {
-					//log meaningful message in the backend and return a field error to the frontend to let user know of the validation err
-					log.Errorw("error validating grant ", e.Id, e.Logs[0].Msg)
-
-					fields = append(fields, apio.FieldError{Field: e.Id, Error: ""})
-
-				}
-			}
-		}
-
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("validation failed"), Fields: fields, Status: http.StatusNotFound})
+	var grantValidationError *grantsvc.GrantValidationError
+	if errors.As(err, &grantValidationError) {
+		apio.Error(ctx, w, apio.NewRequestError(grantValidationError, http.StatusBadRequest))
 		return
 	}
 	if err == accesssvc.ErrNoMatchingGroup {
@@ -245,7 +228,6 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	} else if err == accesssvc.ErrRuleNotFound {
 		err = apio.NewRequestError(fmt.Errorf("access rule %s not found", incomingRequest.AccessRuleId), http.StatusNotFound)
 	}
-
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

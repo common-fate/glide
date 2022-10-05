@@ -17,11 +17,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-AWS-SSO": {
-			Name: "the-user-must-exist-in-the-AWS-SSO",
+			Name: "User must exist in AWS SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -49,8 +49,8 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 				return diagnostics.Info("User exists in SSO")
 			},
 		},
-		"Permission-set-should-exist": {
-			Name: "permissionset-should-exist",
+		"permission-set-should-exist": {
+			Name: "Permission set must exist in AWS SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -67,8 +67,8 @@ func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidati
 				return diagnostics.Info("permission set exists")
 			},
 		},
-		"AWS-Account-exists": {
-			Name: "account-should-exist",
+		"aws-account-exists": {
+			Name: "AWS account must exist in the AWS organization",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)

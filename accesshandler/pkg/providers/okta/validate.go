@@ -16,7 +16,7 @@ import (
 // https://developer.okta.com/docs/reference/error-codes/#E0000007
 // var oktaErrorCodeNotFound = "E0000007"
 
-func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 
 		"user-exists-in-okta": {

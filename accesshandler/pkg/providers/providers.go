@@ -30,16 +30,11 @@ type AccessTokener interface {
 	RequiresAccessToken() bool
 }
 
-type GrantValidationStep struct {
-	Name string
-	Run  func(ctx context.Context, subject string, args []byte) diagnostics.Logs
-}
-
 // GrantValidator know how to validate access without actually granting it.
 type GrantValidator interface {
 	// ValidateGrant arguments and a subject for access without actually granting it.
 
-	ValidateGrant(args []byte) map[string]GrantValidationStep
+	ValidateGrant() GrantValidationSteps
 }
 
 type ConfigValidationStep struct {

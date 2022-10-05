@@ -22,7 +22,7 @@ type ADErr struct {
 	} `json:"error"`
 }
 
-func (p *Provider) ValidateGrant(args []byte) map[string]providers.GrantValidationStep {
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-azure-ad": {
 			Name: "The user must exist in the Azure AD tenancy",
