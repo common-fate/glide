@@ -47,9 +47,8 @@ interface RadioCardProps extends BoxProps {
 
 export const CheckboxCard = (props: RadioCardProps) => {
   const { checkboxProps, children, ...rest } = props;
-  const { getInputProps, getCheckboxProps, getLabelProps, state } = useCheckbox(
-    checkboxProps
-  );
+  const { getInputProps, getCheckboxProps, getLabelProps, state } =
+    useCheckbox(checkboxProps);
   const id = useId(undefined, "checkbox-card");
   const styles = useStyleConfig("RadioCard", props);
 
