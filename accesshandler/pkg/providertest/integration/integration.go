@@ -86,7 +86,7 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 		t.Run(tc.Name, func(t *testing.T) {
 
 			t.Run("validate", func(t *testing.T) {
-				v, ok := it.p.(providers.Validator)
+				v, ok := it.p.(providers.GrantValidator)
 				if !ok {
 					t.Skip("Provider does not implement providers.Validator")
 				} else {

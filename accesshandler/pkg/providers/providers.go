@@ -36,8 +36,8 @@ type GrantValidationStep struct {
 	Run             func(ctx context.Context, subject string, args []byte) diagnostics.Logs
 }
 
-// Validators know how to validate access without actually granting it.
-type Validator interface {
+// GrantValidator know how to validate access without actually granting it.
+type GrantValidator interface {
 	// ValidateGrant arguments and a subject for access without actually granting it.
 
 	ValidateGrant(args []byte) map[string]GrantValidationStep

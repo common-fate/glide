@@ -58,7 +58,7 @@ func (a *API) ValidateRequestToProvider(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	validator, ok := prov.Provider.(providers.Validator)
+	validator, ok := prov.Provider.(providers.GrantValidator)
 	if !ok {
 		// provider doesn't implement validation, so just return a HTTP OK response
 		apio.JSON(r.Context(), w, nil, http.StatusOK)
