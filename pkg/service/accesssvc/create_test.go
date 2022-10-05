@@ -36,6 +36,7 @@ func TestNewRequest(t *testing.T) {
 		want                    *CreateRequestResult
 		withCreateGrantResponse createGrantResponse
 		withGetGroupResponse    *storage.GetGroup
+		wantValidationError     error
 	}
 
 	clk := clock.NewMock()
@@ -224,6 +225,28 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "failed validation should not create request",
+			//just passing the group here, technically a user isnt an approver
+			giveUser: identity.User{Groups: []string{"a"}},
+			rule: &rule.AccessRule{
+				Groups: []string{"a"},
+			},
+			want: nil,
+			withCreateGrantResponse: createGrantResponse{
+				request: &access.Request{
+					ID:             "-",
+					Status:         access.APPROVED,
+					CreatedAt:      clk.Now(),
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{},
+					ApprovalMethod: &autoApproval,
+					SelectedWith:   make(map[string]access.Option),
+				},
+			},
+			wantValidationError: fmt.Errorf("unexpected response while validating grant"),
+			wantErr:             fmt.Errorf("unexpected response while validating grant"),
+		},
 	}
 
 	for _, tc := range testcases {
@@ -243,7 +266,7 @@ func TestNewRequest(t *testing.T) {
 
 			g := accessMocks.NewMockGranter(ctrl)
 			g.EXPECT().CreateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
-			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.wantValidationError).AnyTimes()
 
 			ca := accessMocks.NewMockCacheService(ctrl)
 			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil).AnyTimes()
