@@ -14,12 +14,14 @@ type GrantValidationResult struct {
 	Logs diagnostics.Logs
 }
 type GrantValidationSteps map[string]GrantValidationStep
+
 type GrantValidationResults map[string]GrantValidationResult
 type GrantValidationStep struct {
 	Name string
 	Run  func(ctx context.Context, subject string, args []byte) diagnostics.Logs
 }
 
+// Run runs each of the validation steps in parallel then returns the results
 func (s GrantValidationSteps) Run(ctx context.Context, subject string, args []byte) GrantValidationResults {
 	validationResults := make(GrantValidationResults)
 	var mu sync.Mutex
