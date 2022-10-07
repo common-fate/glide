@@ -7,6 +7,7 @@ export interface RegisteredProvider {
    */
   shortType: string;
   name: string;
+  alpha?: boolean;
 }
 
 export const registeredProviders: RegisteredProvider[] = [
@@ -29,11 +30,13 @@ export const registeredProviders: RegisteredProvider[] = [
     type: "commonfate/aws-eks-roles-sso",
     shortType: "aws-eks-roles-sso",
     name: "EKS (with AWS SSO)",
+    alpha: true,
   },
   {
     type: "commonfate/ecs-exec-sso",
     shortType: "ecs-exec-sso",
     name: "ECS Exec (with AWS SSO)",
+    alpha: true,
   },
   {
     type: "commonfate/testvault",
