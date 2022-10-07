@@ -1,4 +1,11 @@
-import { ArrowBackIcon, InfoIcon } from "@chakra-ui/icons";
+import {
+  ArrowBackIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  InfoIcon,
+  WarningIcon,
+} from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -16,11 +23,13 @@ import {
   Skeleton,
   SkeletonCircle,
   SkeletonText,
+  Spinner,
   Stack,
   Text,
   Textarea,
   useRadioGroup,
   UseRadioGroupProps,
+  useToast,
   VStack,
   Wrap,
   WrapItem,
@@ -37,6 +46,8 @@ import {
   Minutes,
 } from "../../../components/DurationInput";
 import { ProviderIcon } from "../../../components/icons/providerIcon";
+import { ConnectorArrow } from "../../../components/ConnectorArrow";
+import { ApprovalsLogo } from "../../../components/icons/Logos";
 import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
@@ -52,12 +63,19 @@ import {
   WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
+import { data } from "msw/lib/types/context";
+import axios, { AxiosError } from "axios";
 import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
   startDateTime: string;
   when: When;
+}
+
+interface FieldError {
+  error: string;
+  field: string;
 }
 
 /**
@@ -107,6 +125,9 @@ const Home = () => {
       },
     },
   });
+  const toast = useToast();
+
+  const [validationErrors, setValidationErrors] = useState<FieldError[]>();
 
   // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
   // it does then when the rule loads for the first time
@@ -141,14 +162,16 @@ const Home = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const { data: approvers, isValidating: isValidatingApprovers } =
-    useUserGetAccessRuleApprovers(ruleId, {
-      swr: {
-        swrKey: getUserGetAccessRuleApproversKey(ruleId),
-        refreshInterval: 0,
-        revalidateOnFocus: false,
-      },
-    });
+  const {
+    data: approvers,
+    isValidating: isValidatingApprovers,
+  } = useUserGetAccessRuleApprovers(ruleId, {
+    swr: {
+      swrKey: getUserGetAccessRuleApproversKey(ruleId),
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+    },
+  });
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
   const onSubmit: SubmitHandler<NewRequestFormData> = async (data) => {
@@ -165,8 +188,35 @@ const Home = () => {
     if (data.when === "scheduled") {
       r.timing.startTime = new Date(data.startDateTime).toISOString();
     }
-    await userCreateRequest(r);
-    navigate({ to: "/requests" });
+    await userCreateRequest(r)
+      .then(() => {
+        toast({
+          title: "Request created",
+          status: "success",
+          duration: 2200,
+          isClosable: true,
+        });
+        navigate({ to: "/requests" });
+      })
+      .catch((e) => {
+        setLoading(false);
+        let description: string | undefined;
+        if (axios.isAxiosError(e)) {
+          description = (e as AxiosError<{ error: string }>)?.response?.data
+            .error;
+        }
+        toast({
+          title: "Request failed",
+          status: "error",
+          duration: 60000,
+          description: (
+            <Text color={"white"} whiteSpace={"pre"}>
+              {description}
+            </Text>
+          ),
+          isClosable: true,
+        });
+      });
   };
 
   return (

@@ -276,6 +276,46 @@ func (mr *MockAHClientMockRecorder) RefreshAccessProvidersWithResponse(arg0 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAccessProvidersWithResponse", reflect.TypeOf((*MockAHClient)(nil).RefreshAccessProvidersWithResponse), varargs...)
 }
 
+// ValidateGrantWithBodyWithResponse mocks base method.
+func (m *MockAHClient) ValidateGrantWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...types.RequestEditorFn) (*types.ValidateGrantResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ValidateGrantWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.ValidateGrantResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ValidateGrantWithBodyWithResponse indicates an expected call of ValidateGrantWithBodyWithResponse.
+func (mr *MockAHClientMockRecorder) ValidateGrantWithBodyWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateGrantWithBodyWithResponse", reflect.TypeOf((*MockAHClient)(nil).ValidateGrantWithBodyWithResponse), varargs...)
+}
+
+// ValidateGrantWithResponse mocks base method.
+func (m *MockAHClient) ValidateGrantWithResponse(arg0 context.Context, arg1 types.CreateGrant, arg2 ...types.RequestEditorFn) (*types.ValidateGrantResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ValidateGrantWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.ValidateGrantResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ValidateGrantWithResponse indicates an expected call of ValidateGrantWithResponse.
+func (mr *MockAHClientMockRecorder) ValidateGrantWithResponse(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateGrantWithResponse", reflect.TypeOf((*MockAHClient)(nil).ValidateGrantWithResponse), varargs...)
+}
+
 // ValidateSetupWithBodyWithResponse mocks base method.
 func (m *MockAHClient) ValidateSetupWithBodyWithResponse(arg0 context.Context, arg1 string, arg2 io.Reader, arg3 ...types.RequestEditorFn) (*types.ValidateSetupResponse, error) {
 	m.ctrl.T.Helper()

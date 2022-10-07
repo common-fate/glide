@@ -46,7 +46,6 @@ export const registeredProviders: RegisteredProvider[] = [
  * If we type registeredProviders with a const assertion i.e. `registeredProviders = [...] as const;`
  * it is possible to strongly type the shortType key-values (could be beneficial)
  */
-export type RegisteredShortTypes =
-  typeof registeredProviders[number]["shortType"];
+export type RegisteredShortTypes = typeof registeredProviders[number]["shortType"];
 
 export type RegisteredTypes = typeof registeredProviders[number]["type"];

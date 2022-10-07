@@ -30,10 +30,11 @@ type AccessTokener interface {
 	RequiresAccessToken() bool
 }
 
-// Validators know how to validate access without actually granting it.
-type Validator interface {
-	// Validate arguments and a subject for access without actually granting it.
-	Validate(ctx context.Context, subject string, args []byte) error
+// GrantValidator know how to validate access without actually granting it.
+type GrantValidator interface {
+	// ValidateGrant arguments and a subject for access without actually granting it.
+
+	ValidateGrant() GrantValidationSteps
 }
 
 type ConfigValidationStep struct {

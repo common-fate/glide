@@ -106,10 +106,9 @@ export const usePaginatorApi = <
   };
 
   //  canNextPage support
-  const canNextPage = useMemo(
-    () => !(pageOptions?.length > 0 && !data?.next),
-    [data]
-  );
+  const canNextPage = useMemo(() => !(pageOptions?.length > 0 && !data?.next), [
+    data,
+  ]);
 
   //  canPrevPage support
   const canPrevPage = useMemo(() => pageIndex != 0, [pageIndex]);

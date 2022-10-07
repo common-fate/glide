@@ -16,6 +16,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"go.uber.org/zap"
 )
 
 // List my requests
@@ -218,16 +219,23 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log := zap.S()
+	log.Infow("validating and creating grant")
+
 	// create the request. The RequestCreator handles the validation
 	// and saving the request to the database.
 	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
+	var grantValidationError *grantsvc.GrantValidationError
+	if errors.As(err, &grantValidationError) {
+		apio.Error(ctx, w, apio.NewRequestError(grantValidationError, http.StatusBadRequest))
+		return
+	}
 	if err == accesssvc.ErrNoMatchingGroup {
 		// the user isn't authorized to make requests on this rule.
 		err = apio.NewRequestError(err, http.StatusUnauthorized)
 	} else if err == accesssvc.ErrRuleNotFound {
 		err = apio.NewRequestError(fmt.Errorf("access rule %s not found", incomingRequest.AccessRuleId), http.StatusNotFound)
 	}
-
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

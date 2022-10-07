@@ -14,10 +14,11 @@ import (
 
 // TestCase is a test case for running integration tests.
 type TestCase struct {
-	Name              string
-	Subject           string
-	Args              string
-	WantValidationErr error
+	Name                    string
+	Subject                 string
+	Args                    string
+	WantValidationSucceeded map[string]bool
+	WantValidationErr       error
 }
 
 func WithProviderConfig(config []byte) func(*IntegrationTests) {
@@ -81,17 +82,21 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 		t.Run(tc.Name, func(t *testing.T) {
 
 			t.Run("validate", func(t *testing.T) {
-				v, ok := it.p.(providers.Validator)
+				v, ok := it.p.(providers.GrantValidator)
 				if !ok {
 					t.Skip("Provider does not implement providers.Validator")
 				} else {
-					err := v.Validate(ctx, tc.Subject, []byte(tc.Args))
-					if tc.WantValidationErr == nil {
-						// we shouldn't get any validation errors.
-						assert.NoError(t, err)
-					} else {
-						assert.EqualError(t, err, tc.WantValidationErr.Error())
+					// the provider implements validation, so try and validate the request
+					validationSteps := v.ValidateGrant()
+
+					validationResult := validationSteps.Run(ctx, tc.Subject, []byte(tc.Args))
+
+					for k, v := range tc.WantValidationSucceeded {
+						l := validationResult[k].Logs
+						assert.NotNil(t, l)
+						assert.Equal(t, v, l.HasSucceeded())
 					}
+
 				}
 			})
 

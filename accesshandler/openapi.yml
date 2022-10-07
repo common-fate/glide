@@ -63,6 +63,24 @@ paths:
       tags:
         - grants
     parameters: []
+  /api/v1/grants/validate:
+    post:
+      summary: ValidateGrant
+      operationId: validate-grant
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Valdates that a grant will succeed without granting the access
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGrant"
+    parameters: []
   "/api/v1/grants/{grantId}/revoke":
     post:
       summary: Revoke grant

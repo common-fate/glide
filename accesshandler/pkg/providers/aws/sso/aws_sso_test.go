@@ -34,24 +34,40 @@ func TestIntegration(t *testing.T) {
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"permissionSetArn": "%s", "accountId": "%s"}`, f.PermissionSetARN, f.AccountID),
 			WantValidationErr: nil,
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
+			},
 		},
 		{
 			Name:              "permissionSet not exist",
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234561234512345/ps-1234512345123451", "accountId": "%s"}`, f.AccountID),
 			WantValidationErr: &PermissionSetNotFoundErr{PermissionSet: "arn:aws:sso:::permissionSet/ssoins-1234561234512345/ps-1234512345123451"},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
+			},
 		},
 		{
 			Name:              "subject not exist",
 			Subject:           "other",
 			Args:              fmt.Sprintf(`{"permissionSetArn": "%s", "accountId": "%s"}`, f.PermissionSetARN, f.AccountID),
 			WantValidationErr: &UserNotFoundError{Email: "other"},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
+			},
 		},
 		{
 			Name:              "account not exist",
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"permissionSetArn": "%s", "accountId": "123456789012"}`, f.PermissionSetARN),
 			WantValidationErr: &AccountNotFoundError{AccountID: "123456789012"},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
+			},
 		},
 	}
 	pc := os.Getenv("PROVIDER_CONFIG")

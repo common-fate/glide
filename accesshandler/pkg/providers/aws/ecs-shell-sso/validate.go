@@ -2,11 +2,14 @@ package ecsshellsso
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
+	"github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	orgtypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
@@ -23,6 +26,75 @@ func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) er
 	}
 
 	return err
+}
+
+// Validate the access against AWS SSO without actually granting it.
+// This provider requires that the user name matches the user's email address.
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
+
+	return map[string]providers.GrantValidationStep{
+		"user-exists-in-aws-sso": {
+			Name: "The user must exist in the AWS SSO instance",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+					IdentityStoreId: aws.String(p.identityStoreID.Get()),
+					Filters: []types.Filter{{
+						AttributePath:  aws.String("UserName"),
+						AttributeValue: aws.String(subject),
+					}},
+				})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				if len(res.Users) == 0 {
+					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
+				}
+				if len(res.Users) > 1 {
+					// this should never happen, but check it anyway.
+					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", len(res.Users)))
+				}
+				return diagnostics.Info("User exists in SSO")
+			},
+		},
+		"account-exists": {
+			Name: "The account should exist",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				err = p.ensureAccountExists(ctx, p.awsAccountID)
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("account does not exist %v", err))
+
+				}
+				return diagnostics.Info("account exists")
+			},
+		},
+		"cluster-exists": {
+			Name: "The targeted cluster should exist",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				_, err = p.ecsClient.DescribeClusters(ctx, &ecs.DescribeClustersInput{Clusters: []string{p.ecsClusterARN.Get()}})
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("cluster does not exist %v", err))
+
+				}
+				return diagnostics.Info("cluster exists")
+			},
+		},
+	}
+
 }
 
 func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {

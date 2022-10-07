@@ -3,61 +3,56 @@ package okta
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/hashicorp/go-multierror"
-	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"github.com/pkg/errors"
 )
 
 // https://developer.okta.com/docs/reference/error-codes/#E0000007
-var oktaErrorCodeNotFound = "E0000007"
+// var oktaErrorCodeNotFound = "E0000007"
 
-// Validate the access against Okta without actually granting it.
-func (p *Provider) Validate(ctx context.Context, subject string, args []byte) error {
-	var a Args
-	err := json.Unmarshal(args, &a)
-	if err != nil {
-		return err
+func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
+	return map[string]providers.GrantValidationStep{
+
+		"user-exists-in-okta": {
+			Name: "The user must exist in the OKTA tenancy",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+
+				_, _, err := p.client.User.GetUser(ctx, subject)
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("could not find user %s in OKTA", subject))
+
+				}
+
+				return diagnostics.Info("User exists in SSO")
+			},
+		},
+
+		"group-exists-in-okta": {
+			Name: "The group must exist in the the OKTA tenancy",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				_, _, err = p.client.Group.GetGroup(ctx, a.GroupID)
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("could not find group %s in OKTA", a.GroupID))
+
+				}
+
+				return diagnostics.Info("Group exists in SSO")
+			},
+		},
 	}
-
-	// keep a running track of validation errors.
-	var result error
-
-	// The user should exist in Okta.
-	_, _, err = p.client.User.GetUser(ctx, subject)
-	if err != nil {
-		var oe *okta.Error
-		isOktaErr := errors.As(err, &oe)
-		if isOktaErr && oe.ErrorCode == oktaErrorCodeNotFound {
-			result = multierror.Append(result, &UserNotFoundError{User: subject})
-		} else {
-			// we got an error we didn't expect so bail out of any further
-			// validation, as we may not be authenticated properly to Okta.
-			return err
-		}
-	}
-
-	// The group we are trying to grant access to should exist in Okta.
-	_, _, err = p.client.Group.GetGroup(ctx, a.GroupID)
-	if err != nil {
-		var oe *okta.Error
-		isOktaErr := errors.As(err, &oe)
-		if isOktaErr && oe.ErrorCode == oktaErrorCodeNotFound {
-			// If we get this error code, the group wasn't found.
-			// We use a specific error type for this.
-			err = &GroupNotFoundError{Group: a.GroupID}
-		}
-		// add the error to our list.
-		result = multierror.Append(result, err)
-	}
-
-	return result
 }
+
 func (p *Provider) TestConfig(ctx context.Context) error {
 	_, _, err := p.client.User.ListUsers(ctx, &query.Params{})
 	if err != nil {

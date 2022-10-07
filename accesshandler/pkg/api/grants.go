@@ -1,10 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/pkg/errors"
 )
@@ -83,4 +86,53 @@ func (a *API) PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId s
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// run validation on a grant without provisioning any access
+func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	var b types.CreateGrant
+	err := apio.DecodeJSONBody(w, r, &b)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	log := logger.Get(ctx).With("createGrantRequest", b)
+	// validates the basic details of the grant
+	_, err = b.Validate(ctx, a.Clock.Now())
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		log.Errorw("validate grant failed while testing basic parameters", "error", err)
+		return
+	}
+	prov, ok := config.Providers[b.Provider]
+	if !ok {
+		apio.ErrorString(ctx, w, "provider not found", http.StatusBadRequest)
+		log.Errorw("validate grant failed because the provider was not found")
+		return
+	}
+
+	validator, ok := prov.Provider.(providers.GrantValidator)
+	if !ok {
+		// provider doesn't implement validation, so just return a HTTP OK response with an empty validation
+		apio.JSON(ctx, w, nil, http.StatusOK)
+		return
+	}
+	args, err := json.Marshal(b.With.AdditionalProperties)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	// the provider implements validation, so try and validate the request
+	validationSteps := validator.ValidateGrant()
+	validationResult := validationSteps.Run(ctx, string(b.Subject), args)
+	if m := validationResult.FailureMessage(); m != "" {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New(m), http.StatusBadRequest))
+		log.Errorw("validate grant failed", "validation", validationResult)
+		return
+	}
+
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }

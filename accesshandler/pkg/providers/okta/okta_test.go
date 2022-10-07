@@ -34,24 +34,40 @@ func TestIntegration(t *testing.T) {
 			Subject:           f.User,
 			Args:              fmt.Sprintf(`{"groupId": "%s"}`, f.GroupID),
 			WantValidationErr: nil,
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": true,
+			},
 		},
 		{
 			Name:              "group not exist",
 			Subject:           f.User,
 			Args:              `{"groupId": "non-existent"}`,
 			WantValidationErr: &multierror.Error{Errors: []error{&GroupNotFoundError{Group: "non-existent"}}},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  true,
+				"group-exists-in-okta": false,
+			},
 		},
 		{
 			Name:              "subject not exist",
 			Subject:           "other",
 			Args:              fmt.Sprintf(`{"groupId": "%s"}`, f.GroupID),
 			WantValidationErr: &multierror.Error{Errors: []error{&UserNotFoundError{User: "other"}}},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  false,
+				"group-exists-in-okta": true,
+			},
 		},
 		{
 			Name:              "group and subject not exist",
 			Subject:           "other",
 			Args:              `{"groupId": "non-existent"}`,
 			WantValidationErr: &multierror.Error{Errors: []error{&UserNotFoundError{User: "other"}, &GroupNotFoundError{Group: "non-existent"}}},
+			WantValidationSucceeded: map[string]bool{
+				"user-exists-in-okta":  false,
+				"group-exists-in-okta": false,
+			},
 		},
 	}
 	pc := os.Getenv("PROVIDER_CONFIG")
