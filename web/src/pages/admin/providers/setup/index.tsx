@@ -1,5 +1,6 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import {
+  Badge,
   Box,
   Center,
   Container,
@@ -72,11 +73,22 @@ const Page = () => {
               {providerLoading === provider.type && (
                 <Spinner size="xs" position="absolute" right={2} top={2} />
               )}
-              <ProviderIcon shortType={provider.shortType} mb={3} h="8" w="8" />
+              <ProviderIcon type={provider.type} mb={3} h="8" w="8" />
 
               <Text textStyle="Body/SmallBold" color="neutrals.700">
                 {provider.name}
               </Text>
+              {provider?.alpha && (
+                <Badge
+                  variant="outline"
+                  position="absolute"
+                  top={4}
+                  right={4}
+                  colorScheme="gray"
+                >
+                  ALPHA
+                </Badge>
+              )}
             </Box>
           ))}
         </SimpleGrid>
