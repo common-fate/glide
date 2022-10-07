@@ -49,6 +49,7 @@ export const UserReviewsTable = () => {
               _hover={{
                 textDecor: "underline",
               }}
+              adminRoute={false}
             />
           </Link>
         ),

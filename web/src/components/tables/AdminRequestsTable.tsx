@@ -41,6 +41,7 @@ export const AdminRequestsTable = () => {
           <RuleNameCell
             accessRuleId={props.row.original.accessRule.id}
             reason={props.value ?? ""}
+            adminRoute={true}
           />
         ),
       },
