@@ -21,22 +21,22 @@ export const InfoOption: React.FC<{ label: string; value: string }> = ({
   return (
     <WrapItem>
       <Popover>
-        <PopoverTrigger>
-          <HStack
-            textStyle={"Body/Small"}
-            rounded="full"
-            bg="neutrals.300"
-            py={1}
-            px={4}
-          >
-            <Text>{label}</Text>{" "}
+        <HStack
+          textStyle={"Body/Small"}
+          rounded="full"
+          bg="neutrals.300"
+          py={1}
+          px={4}
+        >
+          <Text>{label}</Text>{" "}
+          <PopoverTrigger>
             <InfoIcon
               cursor={"pointer"}
               h="10px"
               color={colors.neutrals[600]}
             />
-          </HStack>
-        </PopoverTrigger>
+          </PopoverTrigger>
+        </HStack>
         <PopoverContent>
           <PopoverArrow />
           <PopoverCloseButton />
