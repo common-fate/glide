@@ -47,6 +47,7 @@ const DefaultFilename = "granted-deployment.yml"
 var AvailableRegions = []string{
 	"ap-southeast-2",
 	"us-west-2",
+	"us-east-1",
 }
 
 type Config struct {
