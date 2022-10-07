@@ -20,21 +20,21 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 
 		"user-exists-in-okta": {
-			Name: "The user must exist in the OKTA tenancy",
+			Name: "The user must exist in the Okta tenancy",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 
 				_, _, err := p.client.User.GetUser(ctx, subject)
 				if err != nil {
-					return diagnostics.Error(fmt.Errorf("could not find user %s in OKTA", subject))
+					return diagnostics.Error(fmt.Errorf("could not find user %s in Okta", subject))
 
 				}
 
-				return diagnostics.Info("User exists in SSO")
+				return diagnostics.Info("User exists in Okta")
 			},
 		},
 
 		"group-exists-in-okta": {
-			Name: "The group must exist in the the OKTA tenancy",
+			Name: "The group must exist in the the Okta tenancy",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -43,11 +43,11 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 				}
 				_, _, err = p.client.Group.GetGroup(ctx, a.GroupID)
 				if err != nil {
-					return diagnostics.Error(fmt.Errorf("could not find group %s in OKTA", a.GroupID))
+					return diagnostics.Error(fmt.Errorf("could not find group %s in Okta", a.GroupID))
 
 				}
 
-				return diagnostics.Info("Group exists in SSO")
+				return diagnostics.Info("Group exists in Okta")
 			},
 		},
 	}
