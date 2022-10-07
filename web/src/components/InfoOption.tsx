@@ -23,7 +23,6 @@ export const InfoOption: React.FC<{ label: string; value: string }> = ({
       <Popover>
         <PopoverTrigger>
           <HStack
-            cursor={"help"}
             textStyle={"Body/Small"}
             rounded="full"
             bg="neutrals.300"
@@ -31,7 +30,11 @@ export const InfoOption: React.FC<{ label: string; value: string }> = ({
             px={4}
           >
             <Text>{label}</Text>{" "}
-            <InfoIcon h="10px" color={colors.neutrals[600]} />
+            <InfoIcon
+              cursor={"pointer"}
+              h="10px"
+              color={colors.neutrals[600]}
+            />
           </HStack>
         </PopoverTrigger>
         <PopoverContent>
