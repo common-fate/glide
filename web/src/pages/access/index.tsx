@@ -1,7 +1,7 @@
 import { InfoIcon } from "@chakra-ui/icons";
 import { Box, Center, Flex, Spinner, Text, useToast } from "@chakra-ui/react";
 import axios, { Axios, AxiosError } from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { CFCodeMultiline } from "../../components/CodeInstruction";
 import { UserLayout } from "../../components/Layout";
@@ -48,7 +48,8 @@ const Access = () => {
 
   // navigate away if there was an error
   useEffect(() => {
-    if (error) {
+    // prevent a race condition where the access rule is looked up again after navigating away from the page
+    if (error && location.pathname === "access") {
       // if there were search params, then show an error, else just redirect to the requests page
       if (Object.entries(search).length > 0) {
         if (axios.isAxiosError(error)) {
