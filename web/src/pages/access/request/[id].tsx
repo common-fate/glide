@@ -208,7 +208,7 @@ const Home = () => {
         toast({
           title: "Request failed",
           status: "error",
-          duration: 60000,
+          duration: 5000,
           description: (
             <Text color={"white"} whiteSpace={"pre"}>
               {description}
