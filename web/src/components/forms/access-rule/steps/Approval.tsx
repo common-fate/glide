@@ -30,7 +30,7 @@ export const ApprovalStep: React.FC = () => {
   return (
     <FormStep
       heading="Approvers"
-      subHeading="Who can approve access to the principal?"
+      subHeading="Who can approve access to the permissions?"
       fields={[]}
       hideNext={true}
       preview={<ApprovalPreview />}

@@ -13,7 +13,7 @@ export const TimeStep: React.FC = () => {
   return (
     <FormStep
       heading="Time"
-      subHeading="How long and when can access be requested?"
+      subHeading="How long can access be requested for?"
       fields={["timeConstraints.maxDurationSeconds"]}
       preview={
         <VStack width={"100%"} align="flex-start">

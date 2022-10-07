@@ -22,7 +22,7 @@ export const RequestsStep: React.FC = () => {
   return (
     <FormStep
       heading="Request"
-      subHeading="Who can request access to the principal?"
+      subHeading="Who can request access to the permissions?"
       fields={["groups"]}
       preview={
         <VStack width={"100%"} align="flex-start">
