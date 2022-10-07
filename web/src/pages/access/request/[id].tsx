@@ -162,16 +162,14 @@ const Home = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const {
-    data: approvers,
-    isValidating: isValidatingApprovers,
-  } = useUserGetAccessRuleApprovers(ruleId, {
-    swr: {
-      swrKey: getUserGetAccessRuleApproversKey(ruleId),
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: approvers, isValidating: isValidatingApprovers } =
+    useUserGetAccessRuleApprovers(ruleId, {
+      swr: {
+        swrKey: getUserGetAccessRuleApproversKey(ruleId),
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+      },
+    });
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
   const onSubmit: SubmitHandler<NewRequestFormData> = async (data) => {
@@ -208,7 +206,7 @@ const Home = () => {
         toast({
           title: "Request failed",
           status: "error",
-          duration: 60000,
+          duration: 5000,
           description: (
             <Text color={"white"} whiteSpace={"pre"}>
               {description}
