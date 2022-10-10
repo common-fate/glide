@@ -34,7 +34,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-aws-sso": {
-			Name: "The user must exist in the AWS SSO instance",
+			UserErrorMessage: "The user does not exist in the AWS SSO instance",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -62,7 +62,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 			},
 		},
 		"account-exists": {
-			Name: "The account should exist",
+			UserErrorMessage: "We could not find your AWS Account",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -78,7 +78,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 			},
 		},
 		"cluster-exists": {
-			Name: "The targeted cluster should exist",
+			UserErrorMessage: "We could not find the target cluster specified",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)

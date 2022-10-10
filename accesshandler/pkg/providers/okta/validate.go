@@ -20,7 +20,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 
 		"user-exists-in-okta": {
-			Name: "The user must exist in the Okta tenancy",
+			UserErrorMessage: "We couldn't find a matching user account for you in Okta",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 
 				_, _, err := p.client.User.GetUser(ctx, subject)
@@ -34,7 +34,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 		},
 
 		"group-exists-in-okta": {
-			Name: "The group must exist in the the Okta tenancy",
+			UserErrorMessage: "We couldn't find a matching group in Okta",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
