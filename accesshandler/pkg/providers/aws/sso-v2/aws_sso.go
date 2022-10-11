@@ -58,3 +58,52 @@ func (p *Provider) Init(ctx context.Context) error {
 func (p *Provider) ArgSchema() *jsonschema.Schema {
 	return jsonschema.Reflect(&Args{})
 }
+
+type ArgSchemaMap map[string]Arg
+
+type Arg struct {
+	ID          string            `json:"id"`
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	Type        string            `json:"type"`
+	Filters     map[string]Filter `json:"filters"`
+}
+
+type Filter struct {
+	Title string `json:"title"`
+	Id    string `json:"id"`
+}
+
+func (p *Provider) ArgSchemaV2() interface{} {
+	arg := ArgSchemaMap{
+		"permissionSetArn": {
+			ID:          "permissionSetArn",
+			Title:       "Permission Set",
+			Description: "The AWS Permission Set",
+			Type:        "input",
+			Filters: map[string]Filter{
+				"organizationalUnit": {
+					Title: "Organizational Unit",
+				},
+			},
+		},
+		"accountId": {
+			ID:          "accountId",
+			Title:       "Account",
+			Description: "The AWS Account ID",
+			Type:        "multi-select",
+			Filters: map[string]Filter{
+				"organizationalUnit": {
+					Title: "Organizational Unit",
+					Id:    "orgUnit",
+				},
+				"tag": {
+					Title: "Tag Name",
+					Id:    "tag",
+				},
+			},
+		},
+	}
+
+	return arg
+}

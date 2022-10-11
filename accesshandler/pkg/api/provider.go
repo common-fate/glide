@@ -41,16 +41,65 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
 		return
 	}
-	as, ok := prov.Provider.(providers.ArgSchemarer)
-	if !ok {
-		apio.ErrorString(ctx, w, "provider does not accept arguments", http.StatusBadRequest)
-		return
-	}
 
-	apio.JSON(ctx, w, as.ArgSchema(), http.StatusOK)
+	// FIXME: Currently, we are supporting both json schema
+	// and custom arg schema. After removing support for json schema
+	// this check should be removed.
+	as, ok := prov.Provider.(providers.ArgSchemarerMapper)
+	if !ok {
+
+		as, ok := prov.Provider.(providers.ArgSchemarer)
+		if !ok {
+			apio.ErrorString(ctx, w, "provider does not accept arguments", http.StatusBadRequest)
+
+			return
+		}
+
+		apio.JSON(ctx, w, as.ArgSchema(), http.StatusOK)
+	}
+	apio.JSON(ctx, w, as.ArgSchemaV2(), http.StatusOK)
 }
 
 func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
+	ctx := r.Context()
+	prov, ok := config.Providers[providerId]
+	if !ok {
+		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
+		return
+	}
+
+	res := types.ArgOptionsResponse{
+		Options: []types.Option{},
+	}
+
+	ao, ok := prov.Provider.(providers.ArgOptioner)
+	if !ok {
+		logger.Get(ctx).Infow("provider does not provide argument options", "provider.id", providerId)
+		// we don't have any options to provide for this argument.
+		res.HasOptions = false
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
+
+	options, err := ao.Options(ctx, argId)
+	badArg := &providers.InvalidArgumentError{}
+
+	if errors.As(err, &badArg) {
+		apio.Error(ctx, w, apio.NewRequestError(badArg, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res.HasOptions = true
+	res.Options = append(res.Options, options...)
+
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+func (a *API) ListProviderArgFilters(w http.ResponseWriter, r *http.Request, providerId string, argId string, filterId string) {
 	ctx := r.Context()
 	prov, ok := config.Providers[providerId]
 	if !ok {

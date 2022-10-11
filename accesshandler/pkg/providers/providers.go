@@ -54,6 +54,12 @@ type ArgSchemarer interface {
 	ArgSchema() *jsonschema.Schema
 }
 
+// TODO: Unable to make this work without interface{}
+// Add correct type here.
+type ArgSchemarerMapper interface {
+	ArgSchemaV2() interface{}
+}
+
 // ArgOptioner provides a list of options for an argument.
 type ArgOptioner interface {
 	Options(ctx context.Context, arg string) ([]types.Option, error)
