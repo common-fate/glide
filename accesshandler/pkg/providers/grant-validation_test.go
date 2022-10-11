@@ -22,7 +22,7 @@ func TestGrantValidationsResults(t *testing.T) {
 	}}}
 
 	assert.True(t, a.Failed())
-	assert.Equal(t, "1 error occurred:\n\t* a\n\n", a.FailureMessage())
+	assert.Equal(t, "a\n", a.FailureMessage())
 
 	assert.False(t, b.Failed())
 	assert.Equal(t, "", b.FailureMessage())
