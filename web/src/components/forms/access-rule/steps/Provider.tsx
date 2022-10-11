@@ -23,6 +23,7 @@ import {
 } from "../../../../utils/backend-client/admin/admin";
 import { RefreshIcon } from "../../../icons/Icons";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
+import ArgField from "../components/ArgField";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { MultiSelect } from "../components/Select";
@@ -113,9 +114,27 @@ const ProviderWithQuestions: React.FC = () => {
   const providerId = watch("target.providerId");
   const { data } = useGetProviderArgs(providerId ?? "");
 
+  // TODO: Temp check.
+  if (!data) {
+    return null;
+  }
+
   if (providerId === undefined || providerId === "") {
     return null;
   }
+
+  // TODO: Backend doesn't add `isJsonSchema`
+  // Temp check. Needs fixing.
+  if (!data?.isJsonSchema) {
+    return (
+      <>
+        {Object.keys(data).map((arg: any) => (
+          <ArgField argId={arg} data={data[arg]} providerId={providerId} />
+        ))}
+      </>
+    );
+  }
+
   if (data === undefined) {
     return <Spinner />;
   }
