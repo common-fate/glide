@@ -123,3 +123,27 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
+
+type ListProvidersArgFilterResponse struct {
+	Options []ahTypes.Option `json:"options"`
+}
+
+// This is the function to fetch the dynamic values.
+// TODO: Update logic here to fetch.
+func (a *API) ListProviderArgFilters(w http.ResponseWriter, r *http.Request, providerId string, argId string, filterId string) {
+	ctx := r.Context()
+	res := ListProvidersArgFilterResponse{
+		Options: []ahTypes.Option{},
+	}
+	var options []ahTypes.Option
+
+	if filterId == "tag" {
+		options = []ahTypes.Option{{Label: "tag 1", Value: "1234"}}
+	} else {
+		options = []ahTypes.Option{{Label: "org unit 1 ", Value: "1234"}}
+	}
+
+	res.Options = options
+
+	apio.JSON(ctx, w, res, http.StatusOK)
+}

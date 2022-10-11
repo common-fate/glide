@@ -616,6 +616,51 @@ export const useListProviderArgOptions = <TError = ErrorType<ErrorResponseRespon
 }
 
 /**
+ * Returns the filters for a particular Access Provider argument. 
+ * @summary List provider arg filters
+ */
+export const listProviderArgFilters = (
+    providerId: string,
+    argId: string,
+    filterId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ArgOptionsResponseResponse>(
+      {url: `/api/v1/admin/providers/${providerId}/args/${argId}/filters/${filterId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getListProviderArgFiltersKey = (providerId: string,
+    argId: string,
+    filterId: string,) => [`/api/v1/admin/providers/${providerId}/args/${argId}/filters/${filterId}`];
+
+    
+export type ListProviderArgFiltersQueryResult = NonNullable<Awaited<ReturnType<typeof listProviderArgFilters>>>
+export type ListProviderArgFiltersQueryError = ErrorType<ErrorResponseResponse>
+
+export const useListProviderArgFilters = <TError = ErrorType<ErrorResponseResponse>>(
+ providerId: string,
+    argId: string,
+    filterId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listProviderArgFilters>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(providerId && argId && filterId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProviderArgFiltersKey(providerId,argId,filterId) : null);
+  const swrFn = () => listProviderArgFilters(providerId,argId,filterId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
  * List providers which are still in the process of being set up.
  * @summary List the provider setups in progress
  */
