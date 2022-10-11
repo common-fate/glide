@@ -10,6 +10,14 @@ func (e *InvalidArgumentError) Error() string {
 	return fmt.Sprintf("argument %s is not valid", e.Arg)
 }
 
+type InvalidFilterIdError struct {
+	FilterId string
+}
+
+func (e *InvalidFilterIdError) Error() string {
+	return fmt.Sprintf("argument doesn't support %s filterId", e.FilterId)
+}
+
 type ProviderNotFoundError struct {
 	Provider string
 }

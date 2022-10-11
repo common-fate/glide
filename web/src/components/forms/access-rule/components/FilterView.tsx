@@ -25,7 +25,7 @@ const FilterView = (props: FilterViewProps) => {
         <Text textStyle={"Body/Medium"}>{filter.title}</Text>
       </FormLabel>
       <MultiSelect
-        fieldName={`target.withFilter.${filter.title}`}
+        fieldName={`target.withFilter.${argId}.${filter.id}`}
         options={argFilterValues?.options || []}
       />
     </>

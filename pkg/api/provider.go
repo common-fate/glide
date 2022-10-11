@@ -7,6 +7,8 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -135,15 +137,34 @@ func (a *API) ListProviderArgFilters(w http.ResponseWriter, r *http.Request, pro
 	res := ListProvidersArgFilterResponse{
 		Options: []ahTypes.Option{},
 	}
-	var options []ahTypes.Option
+	var filters []ahTypes.Option
 
-	if filterId == "tag" {
-		options = []ahTypes.Option{{Label: "tag 1", Value: "1234"}}
-	} else {
-		options = []ahTypes.Option{{Label: "org unit 1 ", Value: "1234"}}
+	prov, ok := config.Providers[providerId]
+	if !ok {
+		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
+		return
 	}
 
-	res.Options = options
+	af, ok := prov.Provider.(providers.ArgFilterer)
+	if !ok {
+		logger.Get(ctx).Infow("provider does not provide argument options", "provider.id", providerId)
+		// we don't have any options to provide for this argument.
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
+
+	filters, err := af.Filters(ctx, filterId)
+	if err != nil {
+		if _, ok := err.(*providers.InvalidFilterIdError); ok {
+			apio.JSON(ctx, w, res, http.StatusBadRequest)
+			return
+		}
+
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res.Options = filters
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 }

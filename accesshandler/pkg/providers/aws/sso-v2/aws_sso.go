@@ -95,7 +95,7 @@ func (p *Provider) ArgSchemaV2() interface{} {
 			Filters: map[string]Filter{
 				"organizationalUnit": {
 					Title: "Organizational Unit",
-					Id:    "orgUnit",
+					Id:    "organizationalUnit",
 				},
 				"tag": {
 					Title: "Tag Name",

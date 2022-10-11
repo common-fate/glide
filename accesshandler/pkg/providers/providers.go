@@ -65,6 +65,11 @@ type ArgOptioner interface {
 	Options(ctx context.Context, arg string) ([]types.Option, error)
 }
 
+// ArgFilterer providers
+type ArgFilterer interface {
+	Filters(ctx context.Context, filterId string) ([]types.Option, error)
+}
+
 // Instructioners provide instructions on how a user can access a role or
 // resource that we've granted access to
 type Instructioner interface {

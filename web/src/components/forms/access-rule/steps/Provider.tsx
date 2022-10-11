@@ -33,6 +33,7 @@ import { FormStep } from "./FormStep";
 export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
+
   const { data: provider } = useGetProvider(target?.providerId);
   const { data: providerArgs } = useGetProviderArgs(target?.providerId ?? "");
 
@@ -123,9 +124,13 @@ const ProviderWithQuestions: React.FC = () => {
     return null;
   }
 
+  if (data === undefined) {
+    return <Spinner />;
+  }
+
   // TODO: Backend doesn't add `isJsonSchema`
   // Temp check. Needs fixing.
-  if (!data?.isJsonSchema) {
+  if (!data?.isCustomSchema) {
     return (
       <>
         {Object.keys(data).map((arg: any) => (
@@ -135,9 +140,6 @@ const ProviderWithQuestions: React.FC = () => {
     );
   }
 
-  if (data === undefined) {
-    return <Spinner />;
-  }
   return (
     <StyledForm
       // using chakra styling props to set the width to 100%
@@ -203,6 +205,7 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
 const WithField: React.FC<FieldProps> = (props) => {
   const { watch, formState, register } = useFormContext<AccessRuleFormData>();
   const providerId = watch("target.providerId");
+  console.log("the props.name is", props);
   const { data } = useListProviderArgOptions(providerId, props.name);
   const withError = formState.errors.target?.with;
   if (data === undefined) {

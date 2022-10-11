@@ -58,7 +58,7 @@ const ArgField = (props: ArgFieldProps) => {
               id="provider-vault"
               bg="white"
               placeholder={""}
-              {...register(`target.withText.${value.name}`)}
+              {...register(`target.withText.${value.argId}`)}
             />
           )}
         </div>
