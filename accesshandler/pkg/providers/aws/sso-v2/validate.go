@@ -21,7 +21,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-AWS-SSO": {
-			Name: "User must exist in AWS SSO",
+			UserErrorMessage: "We could not find your user in AWS SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -50,7 +50,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 			},
 		},
 		"permission-set-should-exist": {
-			Name: "Permission set must exist in AWS SSO",
+			UserErrorMessage: "We could not find the permission set in AWS SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -68,7 +68,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 			},
 		},
 		"aws-account-exists": {
-			Name: "AWS account must exist in the AWS organization",
+			UserErrorMessage: "We could not find the AWS account in your organization",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
