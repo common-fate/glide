@@ -477,10 +477,12 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 		InstanceArn: aws.String(p.instanceARN.Get()),
 		Name:        aws.String(permissionSetName),
 		Description: aws.String("Granted Approvals ECS Flask Access"),
+		Tags:        []types.Tag{{Key: aws.String("managed-by-common-fate-granted"), Value: aws.String("true")}},
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	// Assign ecs policy to permission set
 	_, err = p.ssoClient.PutInlinePolicyToPermissionSet(ctx, &ssoadmin.PutInlinePolicyToPermissionSetInput{
 		InlinePolicy:     aws.String(ecsPolicyDocument.String()),
