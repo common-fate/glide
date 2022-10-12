@@ -195,4 +195,5 @@ type RegisteredProvider struct {
 	Provider    providers.Accessor
 	DefaultID   string
 	Description string
+	Deprecated  *bool
 }
