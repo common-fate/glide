@@ -21,7 +21,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-AWS-SSO": {
-			UserErrorMessage: "We could not find your user in AWS SSO",
+			UserErrorMessage: "We could not find your user in AWS IAM Identity Center",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
