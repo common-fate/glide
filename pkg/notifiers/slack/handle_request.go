@@ -308,6 +308,35 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		},
 	}
 
+	type AdditionalFields struct {
+		Title string
+		Label string
+	}
+	// itterate over each o.Request.SelectedWith
+	labelArr := []AdditionalFields{}
+	for key, v := range o.Request.SelectedWith {
+		labelArr = append(labelArr, AdditionalFields{
+			Title: strings.ToUpper(string(key[0])) + key[1:],
+			// @TODO: we may want to add string concatenation to the labels
+			Label: v.Label,
+		})
+	}
+	// for key, v := range o.Request.Grant.With.AdditionalProperties {
+	// 	labelArr = append(labelArr, titleValue{
+	// 		title: key,
+	// 		label: v,
+	// 	})
+	// }
+	if len(labelArr) > 0 {
+		// now itterate over labelArr and add to requestDetails
+		for _, v := range labelArr {
+			requestDetails = append(requestDetails, &slack.TextBlockObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+			})
+		}
+	}
+
 	// Only show the Request reason if it is not empty
 	if o.Request.Data.Reason != nil && len(*o.Request.Data.Reason) > 0 {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
