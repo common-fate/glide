@@ -39,7 +39,7 @@ export const UnhandledError = (props: Props) => {
               navigate({ to: "./admin" });
             }}
           >
-            Back to home page
+            Go back
           </Button>
           <Flex alignItems="center" justifyContent="center">
             <ChakraLink
