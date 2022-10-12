@@ -1,6 +1,6 @@
 import { ChakraProvider } from "@chakra-ui/react";
 import React from "react";
-import ErrorBoundary from "../utils/errorBoundry";
+import ErrorBoundary from "../utils/errorBoundary";
 import { CognitoProvider } from "../utils/context/cognitoContext";
 import { UserProvider } from "../utils/context/userContext";
 import { theme } from "../utils/theme";

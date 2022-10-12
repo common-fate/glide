@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-location";
 
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import React, { Component, ReactNode } from "react";
 import { ApprovalsLogo } from "../components/icons/Logos";
 
 interface Props {
@@ -41,8 +41,8 @@ class ErrorBoundary extends Component<Props, State> {
           >
             <Stack textAlign="center" w="70%">
               <Heading pb="10px">An unexpected error occurred.</Heading>
-              <Text>{this.state.error.message}</Text>
-              <Link to={"./requests"}>
+              {this.state.error && <Text>{this.state.error.message}</Text>}
+              <Link to={"/requests"}>
                 <Button top="40px" alignSelf="center" size="md" w="40%">
                   Back to home page
                 </Button>
