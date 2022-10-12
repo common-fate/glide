@@ -126,7 +126,7 @@ func (a *AWSSSO) listUserGroups(ctx context.Context, userID string) ([]string, e
 	hasMore := true
 	var paginationToken *string
 	for hasMore {
-		userGroupsRes, err := a.idStoreClient.ListGroupMembershipsForMember(ctx, &identitystore.ListGroupMembershipsForMemberInput{IdentityStoreId: aws.String(a.identityStoreID.Get()), NextToken: paginationToken})
+		userGroupsRes, err := a.idStoreClient.ListGroupMembershipsForMember(ctx, &identitystore.ListGroupMembershipsForMemberInput{IdentityStoreId: aws.String(a.identityStoreID.Get()), MemberId: &types.MemberIdMemberUserId{Value: userID}, NextToken: paginationToken})
 		if err != nil {
 			return nil, err
 		}
