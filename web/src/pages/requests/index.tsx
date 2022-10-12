@@ -52,7 +52,9 @@ const Home = () => {
   const search = useSearch<MyLocationGenerics>();
   const navigate = useNavigate<MyLocationGenerics>();
 
-  const { data: rules } = useListUserAccessRules();
+  const { data: rules } = useListUserAccessRules({
+    swr: { refreshInterval: 10000 },
+  });
 
   const {
     data: reqsUpcoming,
