@@ -1373,9 +1373,7 @@ components:
         with:
           type: object
           additionalProperties:
-            type: array
-            items:
-              type: string
+            $ref: '#/components/schemas/CreateAccessRuleWithItem'
           description: 'The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.'
       required:
         - providerId
@@ -1894,6 +1892,26 @@ components:
         - label
         - title
         - value
+    CreateAccessRuleWithItem:
+      title: CreateAccessRuleWithItem
+      x-stoplight:
+        id: e4h3bs3hxeqyx
+      type: object
+      description: ''
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+        groupings:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+        - values
+        - groupings
   responses:
     ErrorResponse:
       description: An error returned from the service.
