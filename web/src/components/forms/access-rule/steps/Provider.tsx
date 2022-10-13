@@ -65,7 +65,7 @@ export const ProviderStep: React.FC = () => {
       <ProviderPreview
         target={{
           provider: provider,
-          withSelectable: target.with ?? {},
+          withSelectable: {},
           with: target.withText ?? {},
         }}
       />
@@ -107,18 +107,13 @@ export const ProviderStep: React.FC = () => {
   );
 };
 
-// Enable chakra styling of the react json schema form component!!!!
-// https://chakra-ui.com/docs/styled-system/chakra-factory
-const StyledForm = chakra(Form);
+// // Enable chakra styling of the react json schema form component!!!!
+// // https://chakra-ui.com/docs/styled-system/chakra-factory
+// const StyledForm = chakra(Form);
 const ProviderWithQuestions: React.FC = () => {
   const { watch } = useFormContext();
   const providerId = watch("target.providerId");
   const { data } = useGetProviderArgs(providerId ?? "");
-
-  // TODO: Temp check.
-  if (!data) {
-    return null;
-  }
 
   if (providerId === undefined || providerId === "") {
     return null;
@@ -128,48 +123,13 @@ const ProviderWithQuestions: React.FC = () => {
     return <Spinner />;
   }
 
-  // TODO: Backend doesn't add `isJsonSchema`
-  // Temp check. Needs fixing.
-  if (!data?.isCustomSchema) {
-    return (
+  return (
       <>
-        {Object.keys(data).map((arg: any) => (
-          <ArgField argId={arg} data={data[arg]} providerId={providerId} />
+        {Object.keys(data).map((arg) => (
+          <ArgField argId={arg} value={data[arg]} providerId={providerId} />
         ))}
       </>
     );
-  }
-
-  return (
-    <StyledForm
-      // using chakra styling props to set the width to 100%
-      w="100%"
-      // tagname is a prop that allows us to prevent this using a <form> element to wrap this, this avoids a nested form error
-      tagName={"div"}
-      uiSchema={{
-        "ui:options": {
-          chakra: {
-            w: "100%",
-          },
-        },
-        "ui:submitButtonOptions": {
-          props: {
-            disabled: true,
-            className: "btn btn-info",
-          },
-          norender: true,
-          submitText: "",
-        },
-      }}
-      showErrorList={false}
-      schema={data}
-      fields={{
-        StringField: WithField,
-        // I would have overridden the DescriptionField to make it formatted nicer but its broken in RJSF :(
-        // using a FieldTemplate does allow you to overide the whole thing sort of, but then we may as well write our own library
-      }}
-    ></StyledForm>
-  );
 };
 
 interface RefreshButtonProps {
@@ -201,54 +161,58 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
   );
 };
 
+// TODO:
+// Instead of deleting this commenting out for now. 
+// 
+//
+// 
 // WithField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
-const WithField: React.FC<FieldProps> = (props) => {
-  const { watch, formState, register } = useFormContext<AccessRuleFormData>();
-  const providerId = watch("target.providerId");
-  console.log("the props.name is", props);
-  const { data } = useListProviderArgOptions(providerId, props.name);
-  const withError = formState.errors.target?.with;
-  if (data === undefined) {
-    return (
-      <FormControl
-        isInvalid={withError && withError[props.name] !== undefined}
-        w="100%"
-      >
-        <FormLabel htmlFor="target.providerId">
-          <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
-        </FormLabel>
-        <Skeleton h={8} />
-      </FormControl>
-    );
-  }
-  return (
-    <FormControl
-      isInvalid={withError && withError[props.name] !== undefined}
-      w="100%"
-    >
-      <FormLabel htmlFor="target.providerId">
-        <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
-      </FormLabel>
-      {data.hasOptions ? (
-        <HStack>
-          <MultiSelect
-            rules={{ required: true, minLength: 1 }}
-            fieldName={`target.with.${props.name}`}
-            options={data.options}
-            shouldAddSelectAllOption={true}
-          />
+// const WithField: React.FC<FieldProps> = (props) => {
+//   const { watch, formState, register } = useFormContext<AccessRuleFormData>();
+//   const providerId = watch("target.providerId");
+//   const { data } = useListProviderArgOptions(providerId, props.name);
+//   const withError = formState.errors.target?.with;
+//   if (data === undefined) {
+//     return (
+//       <FormControl
+//         isInvalid={withError && withError[props.name] !== undefined}
+//         w="100%"
+//       >
+//         <FormLabel htmlFor="target.providerId">
+//           <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
+//         </FormLabel>
+//         <Skeleton h={8} />
+//       </FormControl>
+//     );
+//   }
+//   return (
+//     <FormControl
+//       isInvalid={withError && withError[props.name] !== undefined}
+//       w="100%"
+//     >
+//       <FormLabel htmlFor="target.providerId">
+//         <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
+//       </FormLabel>
+//       {data.hasOptions ? (
+//         <HStack>
+//           <MultiSelect
+//             rules={{ required: true, minLength: 1 }}
+//             fieldName={`target.with.${props.name}`}
+//             options={data.options}
+//             shouldAddSelectAllOption={true}
+//           />
 
-          <RefreshButton providerId={providerId} argId={props.name} />
-        </HStack>
-      ) : (
-        <Input
-          id="provider-vault"
-          bg="white"
-          placeholder={props.schema.default?.toString() ?? ""}
-          {...register(`target.withText.${props.name}`)}
-        />
-      )}
-      <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>
-    </FormControl>
-  );
-};
+//           <RefreshButton providerId={providerId} argId={props.name} />
+//         </HStack>
+//       ) : (
+//         <Input
+//           id="provider-vault"
+//           bg="white"
+//           placeholder={props.schema.default?.toString() ?? ""}
+//           {...register(`target.withText.${props.name}`)}
+//         />
+//       )}
+//       <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>
+//     </FormControl>
+//   );
+// };

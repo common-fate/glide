@@ -4,9 +4,9 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-location";
 import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin";
 import {
-  AccessRuleTarget,
   CreateAccessRuleRequestBody,
   CreateAccessRuleTarget,
+  CreateAccessRuleTargetWith,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
@@ -18,6 +18,7 @@ import { StepsProvider } from "./StepsContext";
 export type AccessRuleFormDataTarget = {
   // with test is used for string fields that are user inputs rather than a select from options
   withText?: { [key: string]: string };
+  withFilter?: { [key: string]: { [key: string]: string[] } };
 } & CreateAccessRuleTarget;
 export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
   approval: { required: boolean; users: string[]; groups: string[] };
@@ -36,15 +37,44 @@ const CreateAccessRuleForm = () => {
     console.debug("submit form data", { data });
 
     const { approval, timeConstraints, target, ...d } = data;
-    const t = {
+    const t : {
+      providerId: string,
+      with: CreateAccessRuleTargetWith
+    } = {
       providerId: target.providerId,
-      with: {
-        ...target?.with,
-      },
+      with: {}
     };
-    for (const k in target.withText) {
-      t.with[k] = [target.withText[k]];
+
+    // First add everything in `target.with` to values.
+    for (const arg in target.with) {
+      t.with[arg] = {
+        ...t.with[arg],
+        values: target.with[arg] as any,
+        groupings: {}
+      }
     }
+
+    // TODO: Grouping can be made an optional value.
+    for (const arg in target.withFilter) {
+      // Loop over any withFilter key for that arg
+      for (const key of Object.keys(target.withFilter[arg])) {
+        t.with[arg] = {
+          ...t.with[arg],
+          groupings : {
+            ...t.with[arg].groupings,
+            [key]: target.withFilter[arg][key]
+            }
+          }
+        }
+    }
+    
+    for (const k in target.withText) {
+      t.with[k] = {
+        ...t.with[k],
+        values:  [target.withText[k]],
+      }
+    }
+
     const ruleData: CreateAccessRuleRequestBody = {
       approval: { users: [], groups: [] },
       timeConstraints: {

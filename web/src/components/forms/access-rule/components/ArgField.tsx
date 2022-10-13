@@ -4,23 +4,35 @@ import {
   HStack,
   Input,
   Text,
-  Select,
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 
+import ArgGroupView from "./ArgGroupView";
 import { MultiSelect } from "../components/Select";
 import { useListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
-import FilterView from "./FilterView";
+
+interface ArgDetails {
+  description: string;
+  title: string;
+  id: string;
+  type: string;
+  filters?: {
+    [key: string]: {
+      id: string;
+      title: string;
+    };
+  };
+}
 
 interface ArgFieldProps {
   argId: string;
-  data: any;
+  value: ArgDetails;
   providerId: string;
 }
 
 const ArgField = (props: ArgFieldProps) => {
-  const { argId, data: value, providerId } = props;
+  const { argId, value, providerId } = props;
   const { register } = useFormContext();
   const { data: argOptions } = useListProviderArgOptions(providerId, argId);
 
@@ -30,11 +42,11 @@ const ArgField = (props: ArgFieldProps) => {
         <>
           {!!value?.filters ? (
             <>
-              {Object.values(value.filters).map((filter: any) => (
-                <FilterView
-                  filter={filter}
-                  providerId={providerId}
+              {Object.values(value.filters).map((group) => (
+                <ArgGroupView
                   argId={argId}
+                  groupDetail={group}
+                  providerId={providerId}
                 />
               ))}
             </>
@@ -48,7 +60,7 @@ const ArgField = (props: ArgFieldProps) => {
             <HStack>
               <MultiSelect
                 rules={{ required: true, minLength: 1 }}
-                fieldName={`target.with.${value.title}`}
+                fieldName={`target.with.${value.id}`}
                 options={argOptions?.options || []}
                 shouldAddSelectAllOption={true}
               />
@@ -58,7 +70,7 @@ const ArgField = (props: ArgFieldProps) => {
               id="provider-vault"
               bg="white"
               placeholder={""}
-              {...register(`target.withText.${value.argId}`)}
+              {...register(`target.withText.${value.id}`)}
             />
           )}
         </div>

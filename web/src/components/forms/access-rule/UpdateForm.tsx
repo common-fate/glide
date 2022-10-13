@@ -70,12 +70,16 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
       };
 
       for (const k in data.target.with) {
-        t.with[k] = [data.target.with[k]];
+        // TODO: FIXME: 
+        // Update based on changes with `with` respoonse object.
+        // t.with[k] = [data.target.with[k]];
         // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
         t.withText![k] = data.target.with[k];
       }
       for (const k in data.target.withSelectable) {
-        t.with[k] = data.target.withSelectable[k];
+        // TODO: FIXME: 
+        // Update based on changes with `with` respoonse object.
+        // t.with[k] = data.target.withSelectable[k];
       }
 
       const f: AccessRuleFormData = {
@@ -112,7 +116,9 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
       },
     };
     for (const k in target.withText) {
-      t.with[k] = [target.withText[k]];
+      // TODO: FIXME: 
+      // Update based on changes with `with` respoonse object.
+      // t.with[k] = [target.withText[k]];
     }
     const ruleData: CreateAccessRuleRequestBody = {
       approval: { users: [], groups: [] },

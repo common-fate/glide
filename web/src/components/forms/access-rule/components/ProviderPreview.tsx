@@ -18,6 +18,7 @@ import { AccessRuleTarget } from "../../../../utils/backend-client/types";
 import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
 
+// TODO: Update ProviderPreview component based on new arg schema response object.
 export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
   target,
 }) => {
@@ -48,7 +49,7 @@ export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
         <VStack w="100%" align={"flex-start"} spacing={0}>
           <Text>{props.schema.title}</Text>
           <Wrap>
-            {value.map((opt) => {
+            {value.map((opt: any) => {
               return (
                 <CopyableOption
                   key={"cp-" + opt}
