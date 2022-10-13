@@ -23,8 +23,9 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 			UserErrorMessage: "We couldn't find a matching user account for you in Okta",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 
-				_, _, err := p.client.User.GetUser(ctx, subject)
+				_, err := p.getUserByEmail(ctx, subject)
 				if err != nil {
+					//try internal getuserbyemail method for other users
 					return diagnostics.Error(fmt.Errorf("could not find user %s in Okta", subject))
 
 				}
