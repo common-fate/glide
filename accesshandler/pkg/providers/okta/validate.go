@@ -25,7 +25,6 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 				_, err := p.getUserByEmail(ctx, subject)
 				if err != nil {
-					//try internal getuserbyemail method for other users
 					return diagnostics.Error(fmt.Errorf("could not find user %s in Okta", subject))
 
 				}
