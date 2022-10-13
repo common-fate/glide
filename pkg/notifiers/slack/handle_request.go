@@ -118,7 +118,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 					ts, err := SendMessageBlocks(ctx, n.client, approver.Result.Email, msg, summary)
 					if err != nil {
-						log.Errorw("failed to send request approval message", "user", usr, zap.Error(err))
+						log.Errorw("failed to send request approval message", "user", usr, "msg", msg, zap.Error(err))
 					}
 
 					updatedUsr := usr
@@ -260,9 +260,19 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 	if err != nil {
 		return errors.Wrap(err, "building review URL")
 	}
+
+	pq := storage.ListCachedProviderOptions{
+		ProviderID: opts.Rule.Target.ProviderID,
+	}
+	_, err = n.DB.Query(ctx, &pq)
+	if err != nil && err != ddb.ErrNoItems {
+		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", opts.Rule.Target.ProviderID, zap.Error(err))
+	}
+
 	// Here we want to update the original approvers slack messages
 	_, msg := BuildRequestMessage(RequestMessageOpts{
 		Request:          opts.Request,
+		RequestDetail:    opts.Request.ToAPIDetail(opts.Rule, false, pq.Result),
 		Rule:             opts.Rule,
 		RequestorSlackID: slackUserID,
 		RequestorEmail:   opts.DbRequestor.Email,
