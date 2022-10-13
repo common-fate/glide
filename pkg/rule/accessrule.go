@@ -1,7 +1,6 @@
 package rule
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/common-fate/ddb"
@@ -221,30 +220,9 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 		},
 	}
 
-	fmt.Println("the t is", t)
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
-
-	// // target can have dynamic ids which we need to fetch here.
-	// for arg, groupings := range t.WithDynamicId {
-
-	// 	for group, values := range groupings {
-	// 		// if provider arg has values in groupings
-	// 		if len(values) > 0 {
-	// 			if p, ok := provider.Provider.(providers.DynamicGroupingValuesFetcherer); ok {
-	// 				moreValues, err := p.FetchArgValuesFromDynamicIds(context.TODO(), arg, group, values)
-	// 				if err != nil {
-	// 					return at
-	// 				}
-	// 				// TODO: remove duplication
-	// 				t.WithSelectable[arg] = append(t.WithSelectable[arg], moreValues...)
-	// 			}
-
-	// 		}
-	// 	}
-	// }
-
 	for k, v := range t.WithSelectable {
 		selectable := types.Selectable{
 			Options: make([]types.WithOption, len(v)),
