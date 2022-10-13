@@ -1,6 +1,7 @@
 package rule
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/common-fate/ddb"
@@ -181,10 +182,14 @@ func (a *Approval) IsRequired() bool {
 // I expect this will be different to what gets returned in the api response
 type Target struct {
 	// References the provider's unique ID
-	ProviderID     string              `json:"providerId"  dynamodbav:"providerId"`
-	ProviderType   string              `json:"providerType"  dynamodbav:"providerType"`
-	With           map[string]string   `json:"with"  dynamodbav:"with"`
+	ProviderID   string            `json:"providerId"  dynamodbav:"providerId"`
+	ProviderType string            `json:"providerType"  dynamodbav:"providerType"`
+	With         map[string]string `json:"with"  dynamodbav:"with"`
+	// when target can have multiple values
 	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
+	// when target doesn't have values but instead belongs to a group
+	// which can be dynamically fetched at access request time.
+	WithDynamicId map[string]map[string][]string `json:"withDynamicId"  dynamodbav:"withDynamicId"`
 }
 
 func (t Target) ToAPI() types.AccessRuleTarget {
@@ -215,9 +220,31 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 			AdditionalProperties: make(map[string]types.Selectable),
 		},
 	}
+
+	fmt.Println("the t is", t)
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
+
+	// // target can have dynamic ids which we need to fetch here.
+	// for arg, groupings := range t.WithDynamicId {
+
+	// 	for group, values := range groupings {
+	// 		// if provider arg has values in groupings
+	// 		if len(values) > 0 {
+	// 			if p, ok := provider.Provider.(providers.DynamicGroupingValuesFetcherer); ok {
+	// 				moreValues, err := p.FetchArgValuesFromDynamicIds(context.TODO(), arg, group, values)
+	// 				if err != nil {
+	// 					return at
+	// 				}
+	// 				// TODO: remove duplication
+	// 				t.WithSelectable[arg] = append(t.WithSelectable[arg], moreValues...)
+	// 			}
+
+	// 		}
+	// 	}
+	// }
+
 	for k, v := range t.WithSelectable {
 		selectable := types.Selectable{
 			Options: make([]types.WithOption, len(v)),

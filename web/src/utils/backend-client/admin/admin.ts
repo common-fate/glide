@@ -624,7 +624,7 @@ export const listProviderArgFilters = (
     argId: string,
     filterId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgOptionsResponseResponse>(
+      return customInstance<ArgOptionsResponseResponse | void>(
       {url: `/api/v1/admin/providers/${providerId}/args/${argId}/filters/${filterId}`, method: 'get'
     },
       options);

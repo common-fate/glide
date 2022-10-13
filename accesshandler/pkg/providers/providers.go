@@ -60,6 +60,10 @@ type ArgSchemarerMapper interface {
 	ArgSchemaV2() interface{}
 }
 
+type DynamicGroupingValuesFetcherer interface {
+	FetchArgValuesFromDynamicIds(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)
+}
+
 // ArgOptioner provides a list of options for an argument.
 type ArgOptioner interface {
 	Options(ctx context.Context, arg string) ([]types.Option, error)

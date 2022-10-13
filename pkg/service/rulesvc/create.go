@@ -24,19 +24,26 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		ProviderType:   p.Type,
 		With:           make(map[string]string),
 		WithSelectable: make(map[string][]string),
+		WithDynamicId:  make(map[string]map[string][]string),
 	}
 
-	for k, values := range in.With.AdditionalProperties {
+	for k, obj := range in.With.AdditionalProperties {
+		nestedMap := make(map[string][]string)
+		for groupId, groupValues := range obj.Groupings.AdditionalProperties {
+			nestedMap[groupId] = groupValues
+		}
+		target.WithDynamicId[k] = nestedMap
+
 		// min length 1 is configured in the api spec so len(0) is handled by builtin validation
-		if len(values) == 1 {
-			target.With[k] = values[0]
+		if len(obj.Values) == 1 {
+			target.With[k] = obj.Values[0]
 		} else {
-			// store the selectables with value and label
-			target.WithSelectable[k] = values
+			target.WithSelectable[k] = obj.Values
 		}
 	}
 	return target, nil
 }
+
 func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
 	id := types.NewAccessRuleID()
 
@@ -47,6 +54,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 	if err != nil {
 		return nil, err
 	}
+
 	rul := rule.AccessRule{
 		ID:          id,
 		Approval:    rule.Approval(in.Approval),

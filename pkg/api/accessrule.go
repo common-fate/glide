@@ -7,6 +7,8 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -266,6 +268,37 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		apio.Error(ctx, w, err)
 		return
 	}
+
+	provider, ok := config.Providers[rule.Target.ProviderID]
+	if !ok {
+		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: rule.Target.ProviderID}, http.StatusNotFound))
+		return
+	}
+
+	// check if target has dynamicIds.
+	// Mutating rule.WithSelectable if we have dynamicIds.
+	for arg, groupings := range rule.Target.WithDynamicId {
+		for group, values := range groupings {
+
+			// if provider arg has values in groupings
+			if len(values) > 0 {
+				if p, ok := provider.Provider.(providers.DynamicGroupingValuesFetcherer); ok {
+					argValueBelongingToGroup, err := p.FetchArgValuesFromDynamicIds(ctx, arg, group, values)
+					if err != nil {
+						apio.Error(ctx, w, err)
+						return
+					}
+
+					for _, value := range argValueBelongingToGroup {
+						if _, exists := rule.Target.WithSelectable[value]; !exists {
+							rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], value)
+						}
+					}
+				}
+			}
+		}
+	}
+
 	pq := storage.ListCachedProviderOptions{
 		ProviderID: rule.Target.ProviderID,
 	}
