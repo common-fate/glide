@@ -435,12 +435,12 @@ components:
           type: string
         type:
           type: string
-        deprecated:
+        isDeprecated:
           type: boolean
       required:
         - id
         - type
-        - deprecated
+        - isDeprecated
     Option:
       title: Option
       type: object

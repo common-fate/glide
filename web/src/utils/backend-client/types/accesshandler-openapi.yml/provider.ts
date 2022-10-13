@@ -12,5 +12,5 @@
 export interface Provider {
   id: string;
   type: string;
-  deprecated?: boolean;
+  isDeprecated: boolean;
 }

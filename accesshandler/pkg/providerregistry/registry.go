@@ -34,7 +34,7 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 
 	for ptype, pversions := range pr.Providers {
 		for pversion, rp := range pversions {
-			if !rp.Deprecated {
+			if !rp.isDeprecated {
 				key := ptype + "@" + pversion
 				all[key] = rp
 			}
@@ -69,10 +69,10 @@ func Registry() ProviderRegistry {
 			},
 			"commonfate/aws-sso": {
 				"v1": {
-					Provider:    &sso.Provider{},
-					DefaultID:   "aws-sso",
-					Description: "AWS SSO PermissionSets",
-					Deprecated:  true,
+					Provider:     &sso.Provider{},
+					DefaultID:    "aws-sso",
+					Description:  "AWS SSO PermissionSets",
+					isDeprecated: true,
 				},
 				"v2": {
 					Provider:    &ssov2.Provider{},
@@ -200,5 +200,5 @@ type RegisteredProvider struct {
 	DefaultID   string
 	Description string
 	//optional parameter to flag deprecated providers / versions
-	Deprecated bool
+	isDeprecated bool
 }

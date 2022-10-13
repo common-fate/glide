@@ -26,7 +26,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
   const input = getInputProps();
   const checkbox = getCheckboxProps();
 
-  if (props.provider.deprecated) {
+  if (props.provider.isDeprecated) {
     return (
       <Box as="label">
         <Tooltip hasArrow label="This provider has been deprecated">
