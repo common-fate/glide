@@ -17,16 +17,18 @@ import (
 var Providers map[string]Provider
 
 type Provider struct {
-	ID       string
-	Type     string
-	Version  string
-	Provider providers.Accessor `json:"-"`
+	ID         string
+	Type       string
+	Version    string
+	Deprecated bool
+	Provider   providers.Accessor `json:"-"`
 }
 
 func (p *Provider) ToAPI() types.Provider {
 	return types.Provider{
-		Id:   p.ID,
-		Type: p.Type,
+		Id:         p.ID,
+		Type:       p.Type,
+		Deprecated: p.Deprecated,
 	}
 }
 
@@ -69,6 +71,7 @@ func ConfigureProviders(ctx context.Context, config deploy.ProviderMap) error {
 		}
 
 		prov.Provider = p
+		prov.Deprecated = rp.Deprecated
 		prov.ID = k
 
 		all[k] = prov
