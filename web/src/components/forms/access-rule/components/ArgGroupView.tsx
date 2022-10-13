@@ -9,7 +9,7 @@ interface FilterViewProps {
   argId: string;
   groupDetail: {
     id: string;
-    title:string;
+    title: string;
   };
 }
 
@@ -22,21 +22,21 @@ const ArgGroupView = (props: FilterViewProps) => {
     groupDetail.id
   );
 
-  if (!argGroupingValues?.options){
-    return null
+  if (!argGroupingValues?.options) {
+    return null;
   }
 
-    return (
-      <>
-        <FormLabel>
-          <Text textStyle={"Body/Medium"}>{groupDetail.title}</Text>
-        </FormLabel>
-        <MultiSelect
-          fieldName={`target.withFilter.${argId}.${groupDetail.id}`}
-          options={argGroupingValues?.options || []}
-        />
-      </>
-    );
+  return (
+    <>
+      <FormLabel>
+        <Text textStyle={"Body/Medium"}>{groupDetail.title}</Text>
+      </FormLabel>
+      <MultiSelect
+        fieldName={`target.withFilter.${argId}.${groupDetail.id}`}
+        options={argGroupingValues?.options || []}
+      />
+    </>
+  );
 };
 
 export default ArgGroupView;

@@ -37,12 +37,12 @@ const CreateAccessRuleForm = () => {
     console.debug("submit form data", { data });
 
     const { approval, timeConstraints, target, ...d } = data;
-    const t : {
-      providerId: string,
-      with: CreateAccessRuleTargetWith
+    const t: {
+      providerId: string;
+      with: CreateAccessRuleTargetWith;
     } = {
       providerId: target.providerId,
-      with: {}
+      with: {},
     };
 
     // First add everything in `target.with` to values.
@@ -50,8 +50,8 @@ const CreateAccessRuleForm = () => {
       t.with[arg] = {
         ...t.with[arg],
         values: target.with[arg] as any,
-        groupings: {}
-      }
+        groupings: {},
+      };
     }
 
     // TODO: Grouping can be made an optional value.
@@ -60,19 +60,19 @@ const CreateAccessRuleForm = () => {
       for (const key of Object.keys(target.withFilter[arg])) {
         t.with[arg] = {
           ...t.with[arg],
-          groupings : {
+          groupings: {
             ...t.with[arg].groupings,
-            [key]: target.withFilter[arg][key]
-            }
-          }
-        }
+            [key]: target.withFilter[arg][key],
+          },
+        };
+      }
     }
-    
+
     for (const k in target.withText) {
       t.with[k] = {
         ...t.with[k],
-        values:  [target.withText[k]],
-      }
+        values: [target.withText[k]],
+      };
     }
 
     const ruleData: CreateAccessRuleRequestBody = {

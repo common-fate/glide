@@ -124,12 +124,12 @@ const ProviderWithQuestions: React.FC = () => {
   }
 
   return (
-      <>
-        {Object.keys(data).map((arg) => (
-          <ArgField argId={arg} value={data[arg]} providerId={providerId} />
-        ))}
-      </>
-    );
+    <>
+      {Object.keys(data).map((arg) => (
+        <ArgField argId={arg} value={data[arg]} providerId={providerId} />
+      ))}
+    </>
+  );
 };
 
 interface RefreshButtonProps {
@@ -162,10 +162,10 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
 };
 
 // TODO:
-// Instead of deleting this commenting out for now. 
-// 
+// Instead of deleting this commenting out for now.
 //
-// 
+//
+//
 // WithField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
 // const WithField: React.FC<FieldProps> = (props) => {
 //   const { watch, formState, register } = useFormContext<AccessRuleFormData>();
