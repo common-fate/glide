@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	organizationTypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	ssoadmintypes "github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
@@ -110,45 +111,32 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 		}
 		log.Info("getting aws organization unit id set options")
 
-		hasMore = true
-		nextToken = nil
 		roots, err := p.orgClient.ListRoots(ctx, &organizations.ListRootsInput{})
 		if err != nil {
 			return nil, err
 		}
+
 		orgUnitGroup := types.Group{
 			Title: "Organizational Unit",
 			Id:    "organizationalUnit",
 		}
-		for hasMore {
-			ou, err := p.orgClient.ListOrganizationalUnitsForParent(ctx, &organizations.ListOrganizationalUnitsForParentInput{
-				ParentId: roots.Roots[0].Id,
-			})
+
+		// @TODO this is only 1 level of OUs, it will not return any nested OUs
+		childOus, err := p.listChildOusForParent(ctx, aws.ToString(roots.Roots[0].Id))
+		if err != nil {
+			return nil, err
+		}
+		for _, orgUnit := range childOus {
+			option := types.GroupOption{Label: aws.ToString(orgUnit.Name), Value: aws.ToString(orgUnit.Id)}
+			// @TODO this is only 1 level of accounts, it will not return accounts for nested OUs
+			childAccounts, err := p.listChildAccountsForParent(ctx, aws.ToString(orgUnit.Id))
 			if err != nil {
 				return nil, err
 			}
-			nextToken = ou.NextToken
-			hasMore = nextToken != nil
-			for _, orgUnit := range ou.OrganizationalUnits {
-				option := types.GroupOption{Label: aws.ToString(orgUnit.Name), Value: aws.ToString(orgUnit.Id)}
-				ouHasMore := true
-				var ouNextToken *string
-				for ouHasMore {
-					children, err := p.orgClient.ListAccountsForParent(ctx, &organizations.ListAccountsForParentInput{
-						ParentId:  orgUnit.Id,
-						NextToken: ou.NextToken,
-					})
-					if err != nil {
-						return nil, err
-					}
-					for _, a := range children.Accounts {
-						option.Children = append(option.Children, aws.ToString(a.Id))
-					}
-					ouNextToken = children.NextToken
-					ouHasMore = ouNextToken != nil
-				}
-				orgUnitGroup.Options = append(orgUnitGroup.Options, option)
+			for _, a := range childAccounts {
+				option.Children = append(option.Children, aws.ToString(a.Id))
 			}
+			orgUnitGroup.Options = append(orgUnitGroup.Options, option)
 		}
 		opts.Groups = &types.Groups{
 			AdditionalProperties: map[string]types.Group{
@@ -166,4 +154,39 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 
 	return nil, &providers.InvalidArgumentError{Arg: arg}
 
+}
+
+func (p *Provider) listChildOusForParent(ctx context.Context, parentID string) (ous []organizationTypes.OrganizationalUnit, err error) {
+	hasMore := true
+	var nextToken *string
+	for hasMore {
+		ou, err := p.orgClient.ListOrganizationalUnitsForParent(ctx, &organizations.ListOrganizationalUnitsForParentInput{
+			ParentId: aws.String(parentID),
+		})
+		if err != nil {
+			return nil, err
+		}
+		nextToken = ou.NextToken
+		hasMore = nextToken != nil
+		ous = append(ous, ou.OrganizationalUnits...)
+	}
+	return
+}
+
+func (p *Provider) listChildAccountsForParent(ctx context.Context, parentID string) (accounts []organizationTypes.Account, err error) {
+	hasMore := true
+	var nextToken *string
+	for hasMore {
+		ou, err := p.orgClient.ListAccountsForParent(ctx, &organizations.ListAccountsForParentInput{
+			ParentId:  aws.String(parentID),
+			NextToken: nextToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+		nextToken = ou.NextToken
+		hasMore = nextToken != nil
+		accounts = append(accounts, ou.Accounts...)
+	}
+	return
 }
