@@ -64,13 +64,13 @@ func (p *Provider) ArgSchema() *jsonschema.Schema {
 func (p *Provider) ArgSchemaV2() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"permissionSetArn": {
-			// ID:          "permissionSetArn",
+			Id:          "permissionSetArn",
 			Title:       "Permission Set",
 			Description: aws.String("The AWS Permission Set"),
 			FormElement: types.MULTISELECT,
 		},
 		"accountId": {
-			// ID:          "accountId",
+			Id:          "accountId",
 			Title:       "Account",
 			Description: aws.String("The AWS Account ID"),
 			FormElement: types.MULTISELECT,

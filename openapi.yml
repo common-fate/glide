@@ -765,7 +765,11 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: "./accesshandler/openapi.yml#/components/responses/ArgSchemaResponse"
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./accesshandler/openapi.yml#/components/schemas/ArgSchema"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":

@@ -120,6 +120,27 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		})
 	}
 
+	ao, err := a.AccessHandlerClient.ListProviderArgOptionsWithResponse(ctx, providerId, argId)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	code := ao.StatusCode()
+	switch code {
+	case 200:
+		res.Groups = ao.JSON200.Groups
+	case 404:
+		err := errors.New("provider not found")
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	case 500:
+		apio.Error(ctx, w, errors.New(*ao.JSON500.Error))
+		return
+	default:
+		apio.Error(ctx, w, errors.New("unhandled"))
+		return
+	}
+
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 

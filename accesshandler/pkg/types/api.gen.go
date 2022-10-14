@@ -62,6 +62,11 @@ type AccessInstructions struct {
 	Instructions *string `json:"instructions,omitempty"`
 }
 
+// ArgSchema defines model for ArgSchema.
+type ArgSchema struct {
+	AdditionalProperties map[string]Argument `json:"-"`
+}
+
 // Argument defines model for Argument.
 type Argument struct {
 	Description *string             `json:"description,omitempty"`
@@ -211,11 +216,6 @@ type ArgOptionsResponse struct {
 	Options []Option `json:"options"`
 }
 
-// ArgSchemaResponse defines model for ArgSchemaResponse.
-type ArgSchemaResponse struct {
-	AdditionalProperties map[string]Argument `json:"-"`
-}
-
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error *string `json:"error,omitempty"`
@@ -281,6 +281,59 @@ type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
 
 // ValidateSetupJSONRequestBody defines body for ValidateSetup for application/json ContentType.
 type ValidateSetupJSONRequestBody ValidateRequest
+
+// Getter for additional properties for ArgSchema. Returns the specified
+// element and whether it was found
+func (a ArgSchema) Get(fieldName string) (value Argument, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ArgSchema
+func (a *ArgSchema) Set(fieldName string, value Argument) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Argument)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a *ArgSchema) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Argument)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Argument
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a ArgSchema) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for CreateGrant_With. Returns the specified
 // element and whether it was found
@@ -429,59 +482,6 @@ func (a *Groups) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for Groups to handle AdditionalProperties
 func (a Groups) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for ArgSchemaResponse. Returns the specified
-// element and whether it was found
-func (a ArgSchemaResponse) Get(fieldName string) (value Argument, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for ArgSchemaResponse
-func (a *ArgSchemaResponse) Set(fieldName string, value Argument) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]Argument)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for ArgSchemaResponse to handle AdditionalProperties
-func (a *ArgSchemaResponse) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]Argument)
-		for fieldName, fieldBuf := range object {
-			var fieldVal Argument
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for ArgSchemaResponse to handle AdditionalProperties
-func (a ArgSchemaResponse) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1599,10 +1599,8 @@ func (r GetAccessInstructionsResponse) StatusCode() int {
 type GetProviderArgsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		AdditionalProperties map[string]Argument `json:"-"`
-	}
-	JSON404 *struct {
+	JSON200      *ArgSchema
+	JSON404      *struct {
 		Error *string `json:"error,omitempty"`
 	}
 	JSON500 *struct {
@@ -2195,9 +2193,7 @@ func ParseGetProviderArgsResponse(rsp *http.Response) (*GetProviderArgsResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			AdditionalProperties map[string]Argument `json:"-"`
-		}
+		var dest ArgSchema
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2806,56 +2802,56 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+xbe28bNxL/KgTvgNwBevkRX6y/6rNdV5fUNmQ3OVwbNNTuaMVkl1yTXDmKoe9+4GPf",
+	"XEuRHaQFmn8ir5bkcOY3M78ZUg844EnKGTAl8fgBC7jLQKp/85CCefCWxDQkCqb2C/0o4EwBMx9JmsY0",
+	"IIpyNvwoOdPPZLCAhOhPqeApCOVmyqT9PwQZCJrqMXiMbxeA5lkcI7VKAYUwp4zqrxCfI7UAlAq+pCEI",
+	"3MPwmSRpDHisZU44mxMFQ3Iv+1Jy3MN6AjzGUgnKIrzu4XuqFkbIMDRTkvi6JlBrQFuyfPUXEgWczWmU",
+	"CbPZQbken32EQOEe/tyPeN89TEj6q533fT79umeUSwWEePyr1YaT8X1zsrX+p9+XKWdObSciujKiyal7",
+	"/ARbRIJnqfn0dwFzPMZ/G5Y4GNpRcnhh31r3MLcr+80nsygCqSBE7jWtHaog2biA3ZBewO2fCEFWLV3l",
+	"q/v01LSa0xGac4EIQxeCMIWIiLIEmBropc6F4OIZdAh6Hg+O1ltIecKQGY4EqEwwCNFc8MQA/iQIQEr0",
+	"E2FhDMJIbDbxLFYndtDjRtcvNU1gh25jgBMkKYtisKo38v8EJFaLZ9jAwky0aQfXzmntstsZxL4bLCD4",
+	"hHK3QzMerswGyiD45C0s7VS5N23lJvmGTk0IelvMsNFxqottY7tyah1+ySPhT4914pngZEA7YVKJLOgI",
+	"FdVvEWdowe+R4ohYvGvou+QDoTYBz0QAg9/Yb0zHmA+0MvoDmlOIQ3RP4xjNADGdP+gcMY6qryEiAJEl",
+	"oTGZxaCDUt0U9Kni8hiQ8WEnbDsJaQNRZXKWR0W+HCIVT2MaLQywaIjH+OVRdHR3fz8K09nys5nyREQ3",
+	"Bby6sttjgDpx8RBX5Ssm3U6sg0/32T49OhYjkUa5WHbWFuhrmvUk3jkXyXkM+WBgWaLhO7m8/uUW9/DP",
+	"v7y5ndycvzk/va3AuByu5fHM6nbmC9BVJ6Ehzt+tS/K+phy7te108+rLEf0yf3n4r1UW2AB0KoAouMgD",
+	"cDNkmvCq4TUDFJhXwzZegYX+BAwsRIomkHMmOxtlaHJz9epotKeTYULUoMah9kf7+/3RUX/v4HZvb3xw",
+	"PD4YDY739/7nlEAUHmMd8/p65hay63SHSq7XGdzqVwuDtFIeDY0HSUkjpj+pBZWIwb0V2EfhCvbn3ffk",
+	"rMkS9ax297mf8vqu+SelAZ5Q9gZYpHPJnmdZqYhQHWRHf/UkbY8OnlnbMrNY9GMjITRGJAyFVocTOZOd",
+	"qiqkMQM3q+qJJDtPbX2ZQkDnNHAyhUSRAfo5kwolRAWLmpVfSGQjWZuGN507100FSk7m3Mo941cGsxWH",
+	"r/qrz+edZc0WrzSmcv98zK9KNOc4dEB7DB6FdXXJIH5wCw8CnuBS+4bPaycLE8oktuVDZ7RRkKRcELFy",
+	"vqgjm034OTB06qcsoCmJ//xxqFyLzMgoDGakPyKvgv7hwfFBn4TH+/2j45d7o4P9o9n+MelagpFEP5yc",
+	"/RWXto1Liqiso2YMMiE06vQ7dYmNfI4AXJ9fnk0uL3APn5zeTt6e4x6enr+9en1+hnv4/L/Xk6n9NJ1e",
+	"Tb3M4K/Q2B0aDe9xNuptHSgrMfKZo6NhTlt66G6R1OGxAqunBFfz8GuZbgdVrfRXtqoIzepd3ZPdmG+1",
+	"yVIYWO9xO8p792l+9/E4ffXlfnUU40JDV4Uq6noKFjQOBbDajtsMvrGvTdqNyQxi7zdLEmdbaMROkL/e",
+	"K8VsasXtazvdhIef77P04GD0UUSHpW7kruWbtcu6IdK29SSNghWM4nSe3oW2OHnDIx9NiHmEgCmxalOA",
+	"GJZW0e2oqkeZr6uBfHL54xXu4Xcn00vreN0hO5FR98QJSEmijkq7ZkgjoJ2tYju90+20tMeSAwHL4zv4",
+	"cjwz03dB+ZlBV5G2A2TrXpEb2pq6LqN3o9sRPuJi20UK/UpFvMpSnQK2WlYenJVdKkQiQplUJqXVOk7I",
+	"KKfI0q5Jmq/SBqhpEMm8b9fBV1MiFA2ymAi3mO0ryVwiCHuIzhFhq1pHe2OYouEmXlhuuYdkFiwQkehD",
+	"TKXqS8n7OhfJDwNfQRzzaPssodHuEc8y2QcvvewkbPa7tvx1L//9enp1MT2/ucE9fPPL6an9VObbLrf3",
+	"wc2IWWEoTZM6ZXgA2QLdri7f6CR3HwE0IV38vQTX6HeRywCqVhlQyV4oZDvbqzo5P7me/H579fr8EkkI",
+	"BCi0IBIxrtAMgOUzGFVlselx4rESGXhg46Zvi/puAWqhGW9dpKo8brIZ5zEQ9hi+iwkmZ97qZlNd5UNB",
+	"LrnHzM4qGwiopWuUzXnetSe2IHALn5qzRPQjURptmYjxGC+USuV4OCzPGQeUtxm6IcAQNo5s0Mn1BDf7",
+	"vvmXOsyDkHb83mBkyR8wklI8xgeD0WCkYxlRCwOwIUnpcLk3NMzfnuGAp5p5Q6Wy1YE5e9MQNcCfaFhf",
+	"gLqwwxsnivuj0VMPk76GsRLXb24eWGw+0nutx7200vrWKHY1rJ/tmUOKLEmIWOVKKjShiA6kv+bbeK+L",
+	"ei49urWdIERcdZofSBQHd7Yom5zZ04gQUmAh4sxzlvdCIpExXUgP0LsFMP0XoyzSb5+8u0FvSDILCdJl",
+	"B7pRkKIfM2ZPCnq2VTo5066pJ6Zsya2dKkmlPgbdc/FpHvN7vUwbFddcVmGRn/qvtkBEs7pDVTZScJ7t",
+	"6j0Bd7/v7R8cvjx6en8sWAgqf6j77IYqrgT3Y9itNgM9+Lwtmi2NBv665XB7myFcP+xd9/DhDsB/Bndx",
+	"uC+K/Ka/rHuN6DTMWZOJFV5fekti/YLGMFG5S1nHkVkQAIQG/Txz0Uw7h0a2bcO0MJxzgVzGr4PxTrZf",
+	"+2OoL2B9J7vVleIx04P5fxKuhwKW/JM1FxEkAQVC2/ihE9+TM+23+pnOUDlHG2M3I67mb8tESiU3Gd/7",
+	"roA7NVIhwhAJDIEq2oJdEcyOeAIA6pnNqkVMOg+xBKQCJDBFc4CarmFA4tg+oFKTgOJ8mrIgzkIIEbVp",
+	"wbm4XiVEsATf2VeDC5UyeS8L+VH55wg0zt7RFoGmvP/hpUFTk5Ml0mRPJO4eg1W5HZlnSpeGEWFhQVrl",
+	"AE1MrefeNXdBJJoTGrvLCe5WSMBDKEz7cjRC/5gwBYKRGN2AWIJAZrf/9DKxgrN+vb0at2i2VX1zWE33",
+	"lWsvFdU79dR1X+jpcRZavtbcvf76uvLtk7joV92b8dDOb0oySx14FTgUMBcgF915cgoxJ6EBY0CCRVli",
+	"5Dtq30as63pqV7Cj/thKb8QCI3dzu12KfMg/TsJ1JywvQFWuMqHZCtHQ65uVftaT1LSddrogeDg6/B5R",
+	"WGsprZiuwQg8Sb/U/dfl/Y2WHFq612/ez+q2rkVL7e6Xuf9Z7MiUbXl6+On29hrtj0bo6rUttgj6wLI4",
+	"zq+V6aGN+2bNpk3IwbRt3AOfBF6IeS+BPUq+cnbxQtbPK3MidpeBWJVGKY/xtrdIz7dmfmUWpWRlghFl",
+	"6D83V5fuFLljeSIi+bS1y3I2P7+u6cq36I7s85v5uMfIj3j7LpxrlxjR8nYXY+tyfmfHF5HcyO40NgwS",
+	"7XVFZGmwa7nOipLR4ddGAkPJ08ppQWfwP8kR/K3AUVyz/CNnAK0+d5Hgj4CJ4QMRkf6jck7eTUG1+Xnq",
+	"SwOVHwI8xk7Ln1rsRNQ9v9T4flatEVJj1lyH39KuPe9kxog740OCytLtmkzUdpkkKEVZ1CID6IyDPUhx",
+	"krTuas10vRdRqUBAiPqIxHHjPFLHEyIlhGhJSfX2uv3VQJVvEMM4DkejsoZs8omAMHuuUz161FK7Xms+",
+	"wB1TUk01EGGIMvN+5WqXv0N2o3XXbpD4YVX5Bdiw+fOvnToNrZ9P7Jj4vH0urYZGufCiNL2NstLU5Rbk",
+	"5QnPeDiMeUDiBZdqfDw63seaFrgi+KHGLrS3FE/y8nj9fv3/AAAA//9fN70cPzcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

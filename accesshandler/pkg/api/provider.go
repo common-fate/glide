@@ -46,7 +46,7 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 		apio.ErrorString(ctx, w, "provider does not accept arguments", http.StatusBadRequest)
 		return
 	}
-	apio.JSON(ctx, w, as.ArgSchemaV2(), http.StatusOK)
+	apio.JSON(ctx, w, as.ArgSchemaV2().ToAPI(), http.StatusOK)
 }
 
 func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {

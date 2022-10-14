@@ -167,7 +167,8 @@ func PackageBackend() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier, PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
+	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.

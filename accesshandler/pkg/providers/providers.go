@@ -50,8 +50,8 @@ type ConfigValidator interface {
 
 type ArgSchema map[string]types.Argument
 
-func (a ArgSchema) ToAPI() types.ArgSchemaResponse {
-	argSchema := types.ArgSchemaResponse{
+func (a ArgSchema) ToAPI() types.ArgSchema {
+	argSchema := types.ArgSchema{
 		AdditionalProperties: make(map[string]types.Argument),
 	}
 	for k, v := range a {
