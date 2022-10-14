@@ -43,10 +43,32 @@ export const GeneralStep: React.FC = () => {
           </FormLabel>
           <Input
             bg="neutrals.0"
-            {...methods.register("name", { required: true })}
+            {...methods.register("name", {
+              // required: true,
+              validate: (value) => {
+                const res: string[] = [];
+                if (!value || value.length == 0) {
+                  res.push("Field is required");
+                }
+                [/[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/].every((pattern) =>
+                  pattern.test(value as string)
+                ) &&
+                  res.push(
+                    "Invalid characters (only letters, numbers, and punctuation allowed)"
+                  );
+                if (value && value.length > 400) {
+                  res.push("Maximum length is 400 characters");
+                }
+                return res.length > 0 ? res.join(", ") : undefined;
+              },
+            })}
             onBlur={() => void methods.trigger("name")}
           />
-          <FormErrorMessage>Name is required.</FormErrorMessage>
+          {methods.formState.errors?.name?.message && (
+            <FormErrorMessage>
+              {methods.formState.errors.name?.message?.toString()}
+            </FormErrorMessage>
+          )}
         </FormControl>
         <FormControl isInvalid={!!methods.formState.errors.description}>
           <FormLabel htmlFor="Description">
@@ -55,11 +77,31 @@ export const GeneralStep: React.FC = () => {
           <Textarea
             bg="neutrals.0"
             {...methods.register("description", {
-              required: true,
+              // required: true,
+              validate: (value) => {
+                const res: string[] = [];
+                if (!value || value.length == 0) {
+                  res.push("Field is required");
+                }
+                [/[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/].every((pattern) =>
+                  pattern.test(value as string)
+                ) &&
+                  res.push(
+                    "Invalid characters (only letters, numbers, and punctuation allowed)"
+                  );
+                if (value && value.length > 2048) {
+                  res.push("Maximum length is 2048 characters");
+                }
+                return res.length > 0 ? res.join(", ") : undefined;
+              },
             })}
             onBlur={() => void methods.trigger("description")}
           />
-          <FormErrorMessage>Description is required.</FormErrorMessage>
+          {methods.formState.errors?.description && (
+            <FormErrorMessage>
+              {methods.formState.errors.description?.message?.toString()}
+            </FormErrorMessage>
+          )}
         </FormControl>
       </>
     </FormStep>

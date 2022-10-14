@@ -2101,9 +2101,15 @@ components:
               name:
                 type: string
                 example: Okta admin
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 400
               description:
                 type: string
                 example: Admin access to Okta
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 2048
               target:
                 $ref: "#/components/schemas/CreateAccessRuleTarget"
               timeConstraints:
@@ -2130,10 +2136,12 @@ components:
                 type: string
                 minLength: 1
                 maxLength: 2048
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
               lastName:
                 type: string
                 minLength: 1
                 maxLength: 2048
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
               isAdmin:
                 type: boolean
             required:
@@ -2150,8 +2158,14 @@ components:
             properties:
               accessRuleId:
                 type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 1
+                maxLength: 400
               reason:
                 type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 2048
               timing:
                 $ref: "#/components/schemas/RequestTiming"
               with:
@@ -2169,6 +2183,9 @@ components:
                 $ref: "#/components/schemas/ReviewDecision"
               comment:
                 type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 2048
               overrideTiming:
                 $ref: "#/components/schemas/RequestTiming"
             required:
@@ -2204,6 +2221,9 @@ components:
               providerType:
                 type: string
                 description: The type of the provider to set up.
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 2048
             required:
               - providerType
       description: Begin the guided setup process for a new Access Provider.
@@ -2220,6 +2240,9 @@ components:
                 maxLength: 2048
               description:
                 type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 2048
             required:
               - name
 tags:
