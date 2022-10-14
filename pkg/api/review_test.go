@@ -96,6 +96,15 @@ func TestReviewRequest(t *testing.T) {
 			wantCode:          http.StatusUnauthorized,
 			wantBody:          `{"error":"you are not a reviewer of this request"}`,
 		},
+		{
+			name:              "multiple decision race condition",
+			wantAddReviewOpts: accesssvc.AddReviewOpts{Decision: access.DecisionApproved, ReviewerIsAdmin: true},
+			withTestUser:      &identity.User{Groups: []string{"testAdmin"}},
+			give:              `{"decision": "APPROVED"}`,
+			addReviewErr:      accesssvc.ErrUserNotAuthorized,
+			wantCode:          http.StatusUnauthorized,
+			wantBody:          `{"error":"you are not a reviewer of this request"}`,
+		},
 	}
 
 	for _, tc := range testcases {

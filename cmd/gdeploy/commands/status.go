@@ -18,20 +18,17 @@ var StatusCommand = cli.Command{
 			return err
 		}
 
+		o, err := dc.LoadOutput(ctx)
+		if err != nil {
+			return err
+		}
+		o.PrintTable()
+
 		ss, err := dc.GetStackStatus(ctx)
 
 		if err != nil {
 			return err
 		}
-
-		//wait until we know there are no errors then print the status
-
-		o, err := dc.LoadOutput(ctx)
-
-		if err != nil {
-			return err
-		}
-		o.PrintTable()
 
 		clio.Info("Cloudformation stack status: %s", ss)
 
