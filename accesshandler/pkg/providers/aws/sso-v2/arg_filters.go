@@ -2,54 +2,46 @@ package ssov2
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	resourcegroupstaggingapitypes "github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 )
 
-func (p *Provider) FetchArgValuesFromDynamicIds(ctx context.Context, argId string, groupName string, groupValues []string) ([]string, error) {
+func (p *Provider) ArgOptionGroupValues(ctx context.Context, argId string, groupID string, groupValues []string) ([]string, error) {
 	switch argId {
 	case "accountId":
-		switch groupName {
+		switch groupID {
 		case "organizationalUnit":
-
-			var values []string
-
-			for _, orgUnit := range groupValues {
-				hasMore := true
-				var nextToken *string
-
-				if hasMore {
-					accounts, err := p.orgClient.ListAccountsForParent(ctx, &organizations.ListAccountsForParentInput{
-						ParentId: aws.String(orgUnit),
-					})
-					fmt.Println("accounts", accounts)
-					if err != nil {
-						log.Fatal("the err is", err)
-						return []string{}, err
-					}
-
-					nextToken = accounts.NextToken
-					// FIXME: Not sure why gostatic check says this is unused.
-					hasMore = nextToken != nil
-
-					for _, account := range accounts.Accounts {
-						values = append(values, aws.ToString(account.Id))
-					}
+			var accountIDs []string
+			for _, groupValue := range groupValues {
+				accounts, err := p.listChildAccountsForParent(ctx, groupValue)
+				if err != nil {
+					return nil, err
 				}
-
+				for _, account := range accounts {
+					accountIDs = append(accountIDs, aws.ToString(account.Id))
+				}
 			}
-
-			return values, nil
-
+			return accountIDs, nil
 		case "tag":
-			return []string{}, nil
+			var tags []resourcegroupstaggingapitypes.TagFilter
+			for _, gv := range groupValues {
+				kv := strings.SplitN(gv, ":", 1)
+				if len(kv) != 2 {
+					return nil, &providers.InvalidGroupValueError{GroupID: groupID, GroupValue: gv}
+				}
+				tags = append(tags, resourcegroupstaggingapitypes.TagFilter{
+					Key:    aws.String(kv[0]),
+					Values: []string{kv[1]},
+				})
+			}
+			return p.listAccountsWithTag(ctx, tags)
+		default:
+			return nil, &providers.InvalidGroupIDError{GroupID: groupID}
 		}
-
-		return nil, &providers.InvalidFilterIdError{FilterId: groupName}
+	default:
+		return nil, &providers.InvalidArgumentError{Arg: argId}
 	}
-	return nil, &providers.InvalidArgumentError{Arg: argId}
 }
