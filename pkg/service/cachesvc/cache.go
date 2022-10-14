@@ -9,9 +9,9 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // loadCachedProviderArgOptions handles the case where we fetch arg options from the DynamoDB cache.
@@ -64,9 +64,6 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		return false, nil, err
 	}
 
-	if !res.HasOptions {
-		return false, nil, nil
-	}
 	var keyers []ddb.Keyer
 	var cachedOpts []cache.ProviderOption
 	for _, o := range res.Options {
@@ -87,26 +84,22 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 
 }
 
-func (s *Service) fetchProviderOptions(ctx context.Context, providerID, argID string) (types.ArgOptionsResponse, error) {
+func (s *Service) fetchProviderOptions(ctx context.Context, providerID, argID string) (ahtypes.ArgOptionsResponse, error) {
 	res, err := s.AccessHandlerClient.ListProviderArgOptionsWithResponse(ctx, providerID, argID)
 	if err != nil {
-		return types.ArgOptionsResponse{}, err
+		return ahtypes.ArgOptionsResponse{}, err
 	}
 	code := res.StatusCode()
 	switch code {
 	case 200:
-		opts := types.ArgOptionsResponse{
-			HasOptions: res.JSON200.HasOptions,
-			Options:    res.JSON200.Options,
-		}
-		return opts, nil
+		return *res.JSON200, nil
 	case 404:
 		err := errors.New("provider not found")
-		return types.ArgOptionsResponse{}, apio.NewRequestError(err, http.StatusNotFound)
+		return ahtypes.ArgOptionsResponse{}, apio.NewRequestError(err, http.StatusNotFound)
 	case 500:
-		return types.ArgOptionsResponse{}, errors.New(*res.JSON500.Error)
+		return ahtypes.ArgOptionsResponse{}, errors.New(*res.JSON500.Error)
 	default:
 		logger.Get(ctx).Errorw("unhandled access handler response", "response", string(res.Body))
-		return types.ArgOptionsResponse{}, fmt.Errorf("unhandled response code: %d", code)
+		return ahtypes.ArgOptionsResponse{}, fmt.Errorf("unhandled response code: %d", code)
 	}
 }

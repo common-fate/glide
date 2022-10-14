@@ -765,12 +765,7 @@ paths:
         - Admin
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
+          $ref: "./accesshandler/openapi.yml#/components/responses/ArgSchemaResponse"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -795,7 +790,7 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: "#/components/responses/ArgOptionsResponse"
+          $ref: "./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -808,39 +803,6 @@ paths:
           in: query
           name: refresh
           description: invalidate the cache and refresh the provider's options.
-  "/api/v1/admin/providers/{providerId}/args/{argId}/filters/{filterId}":
-    parameters:
-      - schema:
-          type: string
-        name: providerId
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: argId
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: filterId
-        in: path
-        required: true
-    get:
-      summary: List provider arg filters
-      tags:
-        - Admin
-      responses:
-        "200":
-          $ref: "#/components/responses/ArgOptionsResponse"
-        "201":
-          description: Created
-        "401":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      operationId: list-provider-arg-filters
-      description: "Returns the filters for a particular Access Provider argument. "
-      parameters: []
   /api/v1/admin/providersetups:
     get:
       summary: List the provider setups in progress
@@ -2052,24 +2014,6 @@ components:
             required:
               - user
               - isAdmin
-    ArgOptionsResponse:
-      description: Options for an Grant argument.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              hasOptions:
-                type: boolean
-                description: Whether any options have been suggested for the argument.
-              options:
-                type: array
-                description: The suggested options.
-                items:
-                  $ref: ./accesshandler/openapi.yml#/components/schemas/Option
-            required:
-              - hasOptions
-              - options
     ListRequestEventsResponse:
       description: Example response
       content:

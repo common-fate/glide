@@ -28,8 +28,6 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
-  GetProviderArgs200,
-  ArgOptionsResponseResponse,
   ListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -38,6 +36,10 @@ import type {
   ProviderSetupStepCompleteRequestBody,
   IdentityConfigurationResponseResponse
 } from '.././types'
+import type {
+  ArgSchemaResponseResponse,
+  ArgOptionsResponseResponse
+} from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
 
@@ -537,7 +539,7 @@ export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
 export const getProviderArgs = (
     providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<GetProviderArgs200>(
+      return customInstance<ArgSchemaResponseResponse>(
       {url: `/api/v1/admin/providers/${providerId}/args`, method: 'get'
     },
       options);
@@ -606,51 +608,6 @@ export const useListProviderArgOptions = <TError = ErrorType<ErrorResponseRespon
   const isEnabled = swrOptions?.enabled !== false && !!(providerId && argId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProviderArgOptionsKey(providerId,argId,params) : null);
   const swrFn = () => listProviderArgOptions(providerId,argId,params, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Returns the filters for a particular Access Provider argument. 
- * @summary List provider arg filters
- */
-export const listProviderArgFilters = (
-    providerId: string,
-    argId: string,
-    filterId: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgOptionsResponseResponse | void>(
-      {url: `/api/v1/admin/providers/${providerId}/args/${argId}/filters/${filterId}`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getListProviderArgFiltersKey = (providerId: string,
-    argId: string,
-    filterId: string,) => [`/api/v1/admin/providers/${providerId}/args/${argId}/filters/${filterId}`];
-
-    
-export type ListProviderArgFiltersQueryResult = NonNullable<Awaited<ReturnType<typeof listProviderArgFilters>>>
-export type ListProviderArgFiltersQueryError = ErrorType<ErrorResponseResponse>
-
-export const useListProviderArgFilters = <TError = ErrorType<ErrorResponseResponse>>(
- providerId: string,
-    argId: string,
-    filterId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listProviderArgFilters>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(providerId && argId && filterId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProviderArgFiltersKey(providerId,argId,filterId) : null);
-  const swrFn = () => listProviderArgFilters(providerId,argId,filterId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

@@ -7,8 +7,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -100,71 +98,31 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 // (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
 func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.ListProviderArgOptionsParams) {
 	ctx := r.Context()
-	res := types.ArgOptionsResponse{
-		HasOptions: false,
-		Options:    []ahTypes.Option{},
+	res := ahTypes.ArgOptionsResponse{
+		Options: []ahTypes.Option{},
 	}
 	var options []cache.ProviderOption
 	var err error
 	if params.Refresh != nil && *params.Refresh {
-		res.HasOptions, options, err = a.Cache.RefreshCachedProviderArgOptions(ctx, providerId, argId)
+		_, options, err = a.Cache.RefreshCachedProviderArgOptions(ctx, providerId, argId)
 	} else {
-		res.HasOptions, options, err = a.Cache.LoadCachedProviderArgOptions(ctx, providerId, argId)
+		_, options, err = a.Cache.LoadCachedProviderArgOptions(ctx, providerId, argId)
 	}
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
-	if res.HasOptions {
-		for _, o := range options {
-			res.Options = append(res.Options, ahTypes.Option{
-				Label: o.Label,
-				Value: o.Value,
-			})
-		}
+
+	for _, o := range options {
+		res.Options = append(res.Options, ahTypes.Option{
+			Label: o.Label,
+			Value: o.Value,
+		})
 	}
+
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 type ListProvidersArgFilterResponse struct {
 	Options []ahTypes.Option `json:"options"`
-}
-
-// This is the function to fetch the dynamic values.
-// TODO: Update logic here to fetch.
-func (a *API) ListProviderArgFilters(w http.ResponseWriter, r *http.Request, providerId string, argId string, filterId string) {
-	ctx := r.Context()
-	res := ListProvidersArgFilterResponse{
-		Options: []ahTypes.Option{},
-	}
-	var filters []ahTypes.Option
-
-	prov, ok := config.Providers[providerId]
-	if !ok {
-		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
-		return
-	}
-
-	af, ok := prov.Provider.(providers.ArgFilterer)
-	if !ok {
-		logger.Get(ctx).Infow("provider does not provide argument options", "provider.id", providerId)
-		// we don't have any options to provide for this argument.
-		apio.JSON(ctx, w, res, http.StatusOK)
-		return
-	}
-
-	filters, err := af.Filters(ctx, filterId)
-	if err != nil {
-		if _, ok := err.(*providers.InvalidFilterIdError); ok {
-			apio.JSON(ctx, w, res, http.StatusBadRequest)
-			return
-		}
-
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	res.Options = filters
-
-	apio.JSON(ctx, w, res, http.StatusOK)
 }
