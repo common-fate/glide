@@ -53,14 +53,23 @@ type ConfigValidator interface {
 type ArgSchemarer interface {
 	ArgSchema() *jsonschema.Schema
 }
+type ArgSchemaMap map[string]Arg
 
-// TODO: Unable to make this work without interface{}
-// Add correct type here.
-type ArgSchemarerMapper interface {
-	ArgSchemaV2() interface{}
+type Arg struct {
+	ID          string            `json:"id"`
+	Title       string            `json:"title"`
+	Description string            `json:"description"`
+	Type        string            `json:"type"`
+	Filters     map[string]Filter `json:"filters"`
 }
 
-type DynamicGroupingValuesFetcherer interface {
+type Filter struct {
+	Title string `json:"title"`
+	Id    string `json:"id"`
+}
+
+type ArgSchemarerMapper interface {
+	ArgSchemaV2() ArgSchemaMap
 	FetchArgValuesFromDynamicIds(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)
 }
 

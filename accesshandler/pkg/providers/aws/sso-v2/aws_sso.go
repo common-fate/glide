@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
@@ -59,29 +60,14 @@ func (p *Provider) ArgSchema() *jsonschema.Schema {
 	return jsonschema.Reflect(&Args{})
 }
 
-type ArgSchemaMap map[string]Arg
-
-type Arg struct {
-	ID          string            `json:"id"`
-	Title       string            `json:"title"`
-	Description string            `json:"description"`
-	Type        string            `json:"type"`
-	Filters     map[string]Filter `json:"filters"`
-}
-
-type Filter struct {
-	Title string `json:"title"`
-	Id    string `json:"id"`
-}
-
-func (p *Provider) ArgSchemaV2() interface{} {
-	arg := ArgSchemaMap{
+func (p *Provider) ArgSchemaV2() providers.ArgSchemaMap {
+	arg := providers.ArgSchemaMap{
 		"permissionSetArn": {
 			ID:          "permissionSetArn",
 			Title:       "Permission Set",
 			Description: "The AWS Permission Set",
 			Type:        "input",
-			Filters: map[string]Filter{
+			Filters: map[string]providers.Filter{
 				"organizationalUnit": {
 					Title: "Organizational Unit",
 				},
@@ -92,7 +78,7 @@ func (p *Provider) ArgSchemaV2() interface{} {
 			Title:       "Account",
 			Description: "The AWS Account ID",
 			Type:        "multi-select",
-			Filters: map[string]Filter{
+			Filters: map[string]providers.Filter{
 				"organizationalUnit": {
 					Title: "Organizational Unit",
 					Id:    "organizationalUnit",
