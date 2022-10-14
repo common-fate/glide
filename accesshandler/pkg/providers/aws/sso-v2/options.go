@@ -120,7 +120,7 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 			return nil, err
 		}
 		tagGroup := types.Group{
-			Title:   "Tag Name",
+			Title:   "Tags",
 			Id:      "tag",
 			Options: tags,
 		}
@@ -232,28 +232,33 @@ func (p *Provider) listTagsForAccount(ctx context.Context, accountID string) (ta
 	return
 }
 
-func (p *Provider) generateTagGroupOptionsForAccounts(ctx context.Context, accounts []organizationTypes.Account) (groupOptions []types.GroupOption, err error) {
+func (p *Provider) generateTagGroupOptionsForAccounts(ctx context.Context, accounts []organizationTypes.Account) ([]types.GroupOption, error) {
+	groupOptions := []types.GroupOption{}
 	tagAccountMap := make(map[string][]string)
 	var mu sync.Mutex
-	g, gctx := errgroup.WithContext(ctx)
-	g.SetLimit(5) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
+	// commented out all the go routines because it was causing a context cancelled error
+	// g, gctx := errgroup.WithContext(ctx)
+	// g.SetLimit(1) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
 	for _, acct := range accounts {
-		g.Go(func() error {
-			tags, err := p.listTagsForAccount(gctx, aws.ToString(acct.Id))
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			for _, tag := range tags {
-				kv := aws.ToString(tag.Key) + ":" + aws.ToString(tag.Value)
-				tagAccounts := tagAccountMap[kv]
-				tagAccounts = append(tagAccounts, aws.ToString(acct.Id))
-				tagAccountMap[kv] = tagAccounts
-			}
-			mu.Unlock()
-			return nil
-		})
-		err = g.Wait()
+		// g.Go(func() error {
+		tags, err := p.listTagsForAccount(ctx, aws.ToString(acct.Id))
+		if err != nil {
+			return nil, err
+		}
+		mu.Lock()
+		for _, tag := range tags {
+			// Note: tags are key value pairs and we need both to look them up, we join them with a :
+			// TODO:consider adding native key:value pair support for option values?
+			// If required make the value some opaque encoded value if its difficult to store
+			kv := aws.ToString(tag.Key) + ":" + aws.ToString(tag.Value)
+			tagAccounts := tagAccountMap[kv]
+			tagAccounts = append(tagAccounts, aws.ToString(acct.Id))
+			tagAccountMap[kv] = tagAccounts
+		}
+		mu.Unlock()
+		// return nil
+		// })
+		// err = g.Wait()
 		if err != nil {
 			return nil, err
 		}
@@ -265,10 +270,11 @@ func (p *Provider) generateTagGroupOptionsForAccounts(ctx context.Context, accou
 			Value:    k,
 		})
 	}
-	return
+	return groupOptions, nil
 }
 
-func (p *Provider) generateOuGroupOptions(ctx context.Context) (groupOptions []types.GroupOption, err error) {
+func (p *Provider) generateOuGroupOptions(ctx context.Context) ([]types.GroupOption, error) {
+	groupOptions := []types.GroupOption{}
 	roots, err := p.orgClient.ListRoots(ctx, &organizations.ListRootsInput{})
 	if err != nil {
 		return nil, err
@@ -290,5 +296,5 @@ func (p *Provider) generateOuGroupOptions(ctx context.Context) (groupOptions []t
 		}
 		groupOptions = append(groupOptions, option)
 	}
-	return
+	return groupOptions, nil
 }
