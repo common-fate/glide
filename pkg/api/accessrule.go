@@ -305,6 +305,8 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		}
 	}
 
+	// @TODO be sure to deduplicate the results here
+
 	pq := storage.ListCachedProviderOptions{
 		ProviderID: rule.Target.ProviderID,
 	}
