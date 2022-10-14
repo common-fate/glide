@@ -127,11 +127,27 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 			if err != nil {
 				return nil, err
 			}
-
 			nextToken = ou.NextToken
 			hasMore = nextToken != nil
 			for _, orgUnit := range ou.OrganizationalUnits {
-				orgUnitGroup.Options = append(orgUnitGroup.Options, types.GroupOption{Label: aws.ToString(orgUnit.Name), Value: aws.ToString(orgUnit.Id)})
+				option := types.GroupOption{Label: aws.ToString(orgUnit.Name), Value: aws.ToString(orgUnit.Id)}
+				ouHasMore := true
+				var ouNextToken *string
+				for ouHasMore {
+					children, err := p.orgClient.ListAccountsForParent(ctx, &organizations.ListAccountsForParentInput{
+						ParentId:  orgUnit.Id,
+						NextToken: ou.NextToken,
+					})
+					if err != nil {
+						return nil, err
+					}
+					for _, a := range children.Accounts {
+						option.Children = append(option.Children, aws.ToString(a.Id))
+					}
+					ouNextToken = children.NextToken
+					ouHasMore = ouNextToken != nil
+				}
+				orgUnitGroup.Options = append(orgUnitGroup.Options, option)
 			}
 		}
 		opts.Groups = &types.Groups{
