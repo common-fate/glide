@@ -195,14 +195,17 @@ func (p *Provider) listAccountsWithTag(ctx context.Context, tags []resourcegroup
 	var nextToken *string
 	for hasMore {
 		resources, err := p.resourcesClient.GetResources(ctx, &resourcegroupstaggingapi.GetResourcesInput{
-			TagFilters:          tags,
-			ResourceTypeFilters: []string{"AWS::Organizations::Account"},
+			// TagFilters:          tags,
+			ResourceTypeFilters: []string{"organizations:account"},
 			PaginationToken:     nextToken,
 		})
 		if err != nil {
 			return nil, err
 		}
 		nextToken = resources.PaginationToken
+		if nextToken != nil && *nextToken == "" {
+			nextToken = nil
+		}
 		hasMore = nextToken != nil
 
 		// Split the account id from the arn
@@ -297,4 +300,41 @@ func (p *Provider) generateOuGroupOptions(ctx context.Context) ([]types.GroupOpt
 		groupOptions = append(groupOptions, option)
 	}
 	return groupOptions, nil
+}
+
+func (p *Provider) ArgOptionGroupValues(ctx context.Context, argId string, groupID string, groupValues []string) ([]string, error) {
+	switch argId {
+	case "accountId":
+		switch groupID {
+		case "organizationalUnit":
+			var accountIDs []string
+			for _, groupValue := range groupValues {
+				accounts, err := p.listChildAccountsForParent(ctx, groupValue)
+				if err != nil {
+					return nil, err
+				}
+				for _, account := range accounts {
+					accountIDs = append(accountIDs, aws.ToString(account.Id))
+				}
+			}
+			return accountIDs, nil
+		case "tag":
+			var tags []resourcegroupstaggingapitypes.TagFilter
+			for _, gv := range groupValues {
+				kv := strings.SplitN(gv, ":", 2)
+				if len(kv) != 2 {
+					return nil, &providers.InvalidGroupValueError{GroupID: groupID, GroupValue: gv}
+				}
+				tags = append(tags, resourcegroupstaggingapitypes.TagFilter{
+					Key:    aws.String(kv[0]),
+					Values: []string{kv[1]},
+				})
+			}
+			return p.listAccountsWithTag(ctx, tags)
+		default:
+			return nil, &providers.InvalidGroupIDError{GroupID: groupID}
+		}
+	default:
+		return nil, &providers.InvalidArgumentError{Arg: argId}
+	}
 }
