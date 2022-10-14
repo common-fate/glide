@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/invopop/jsonschema"
@@ -60,34 +61,19 @@ func (p *Provider) ArgSchema() *jsonschema.Schema {
 	return jsonschema.Reflect(&Args{})
 }
 
-func (p *Provider) ArgSchemaV2() providers.ArgSchemaMap {
-	arg := providers.ArgSchemaMap{
+func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+	arg := providers.ArgSchema{
 		"permissionSetArn": {
-			ID:          "permissionSetArn",
+			// ID:          "permissionSetArn",
 			Title:       "Permission Set",
-			Description: "The AWS Permission Set",
-			Type:        "input",
-			Filters: map[string]providers.Filter{
-				"organizationalUnit": {
-					Title: "Organizational Unit",
-				},
-			},
+			Description: aws.String("The AWS Permission Set"),
+			FormElement: types.MULTISELECT,
 		},
 		"accountId": {
-			ID:          "accountId",
+			// ID:          "accountId",
 			Title:       "Account",
-			Description: "The AWS Account ID",
-			Type:        "multi-select",
-			Filters: map[string]providers.Filter{
-				"organizationalUnit": {
-					Title: "Organizational Unit",
-					Id:    "organizationalUnit",
-				},
-				"tag": {
-					Title: "Tag Name",
-					Id:    "tag",
-				},
-			},
+			Description: aws.String("The AWS Account ID"),
+			FormElement: types.MULTISELECT,
 		},
 	}
 

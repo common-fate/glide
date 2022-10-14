@@ -16,13 +16,13 @@ import (
 )
 
 // List options for arg
-func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
+func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error) {
 	switch arg {
 	case "permissionSetArn":
 		log := zap.S().With("arg", arg)
 		log.Info("getting sso permission set options")
 
-		opts := []types.Option{}
+		var opts types.ArgOptionsResponse
 		// prevent concurrent writes to `opts` in goroutines
 		var mu sync.Mutex
 
@@ -73,7 +73,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 					if po.PermissionSet.Description != nil {
 						label = label + ": " + *po.PermissionSet.Description
 					}
-					opts = append(opts, types.Option{Label: label, Value: ARNCopy})
+					opts.Options = append(opts.Options, types.Option{Label: label, Value: ARNCopy})
 
 					return nil
 				})
@@ -88,11 +88,11 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 			return nil, err
 		}
 
-		return opts, nil
+		return &opts, nil
 	case "accountId":
 		log := zap.S().With("arg", arg)
 		log.Info("getting sso permission set options")
-		opts := []types.Option{}
+		var opts types.ArgOptionsResponse
 		hasMore := true
 		var nextToken *string
 		for hasMore {
@@ -105,10 +105,47 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 			nextToken = o.NextToken
 			hasMore = nextToken != nil
 			for _, acct := range o.Accounts {
-				opts = append(opts, types.Option{Label: aws.ToString(acct.Name), Value: aws.ToString(acct.Id)})
+				opts.Options = append(opts.Options, types.Option{Label: aws.ToString(acct.Name), Value: aws.ToString(acct.Id)})
 			}
 		}
-		return opts, nil
+		log.Info("getting aws organization unit id set options")
+
+		hasMore = true
+		nextToken = nil
+		roots, err := p.orgClient.ListRoots(ctx, &organizations.ListRootsInput{})
+		if err != nil {
+			return nil, err
+		}
+		orgUnitGroup := types.Group{
+			Title: "Organizational Unit",
+			Id:    "organizationalUnit",
+		}
+		for hasMore {
+			ou, err := p.orgClient.ListOrganizationalUnitsForParent(ctx, &organizations.ListOrganizationalUnitsForParentInput{
+				ParentId: roots.Roots[0].Id,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			nextToken = ou.NextToken
+			hasMore = nextToken != nil
+			for _, orgUnit := range ou.OrganizationalUnits {
+				orgUnitGroup.Options = append(orgUnitGroup.Options, types.GroupOption{Label: aws.ToString(orgUnit.Name), Value: aws.ToString(orgUnit.Id)})
+			}
+		}
+		opts.Groups = &types.Groups{
+			AdditionalProperties: map[string]types.Group{
+				"organizationalUnit": orgUnitGroup,
+				"tags": {
+					Title:   "Tag Name",
+					Id:      "tag",
+					Options: []types.GroupOption{{Label: "abc", Value: "123"}, {Label: "xyz", Value: "456"}},
+				},
+			},
+		}
+
+		return &opts, nil
 	}
 
 	return nil, &providers.InvalidArgumentError{Arg: arg}

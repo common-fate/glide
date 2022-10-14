@@ -126,7 +126,7 @@ const ProviderWithQuestions: React.FC = () => {
   return (
     <>
       {Object.keys(data).map((arg) => (
-        <ArgField argId={arg} value={data[arg]} providerId={providerId} />
+        <ArgField value={arg} providerId={providerId} />
       ))}
     </>
   );

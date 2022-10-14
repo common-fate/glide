@@ -226,12 +226,7 @@ paths:
       tags: []
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
+          $ref: "#/components/responses/ArgSchemaResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -517,6 +512,74 @@ components:
       required:
         - level
         - msg
+    Argument:
+      title: Argument
+      x-stoplight:
+        id: 8z6izf547yuch
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        formElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+      required:
+        - id
+        - title
+        - formElement
+    Groups:
+      title: Groups
+      x-stoplight:
+        id: igcye0lpfpqdh
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/Group"
+    Group:
+      title: Group
+      x-stoplight:
+        id: qkfqj9p8zwy6l
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupOption"
+      required:
+        - id
+        - title
+        - options
+    GroupOption:
+      title: GroupOption
+      x-stoplight:
+        id: d4xwup330jrg4
+      type: object
+      properties:
+        label:
+          type: string
+        description:
+          type: string
+        value:
+          type: string
+        children:
+          type: array
+          items:
+            type: string
+      required:
+        - label
+        - value
+        - children
   requestBodies:
     ValidateRequest:
       content:
@@ -576,16 +639,14 @@ components:
           schema:
             type: object
             properties:
-              hasOptions:
-                type: boolean
-                description: Whether any options have been suggested for the argument.
               options:
                 type: array
                 description: The suggested options.
                 items:
                   $ref: "#/components/schemas/Option"
+              groups:
+                $ref: "#/components/schemas/Groups"
             required:
-              - hasOptions
               - options
     ValidateResponse:
       description: Validation of a provider's configuration.
@@ -600,6 +661,14 @@ components:
                   $ref: "#/components/schemas/ProviderConfigValidation"
             required:
               - validations
+    ArgSchemaResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/Argument"
 tags:
   - name: grants
   - name: runtime

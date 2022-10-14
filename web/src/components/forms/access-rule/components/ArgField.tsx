@@ -20,25 +20,27 @@ interface ArgDetails {
 }
 
 interface ArgFieldProps {
-  argId: string;
-  value: ArgDetails;
+  argument: ArgDetails;
   providerId: string;
 }
 
 const ArgField = (props: ArgFieldProps) => {
-  const { argId, value, providerId } = props;
+  const { argument, providerId } = props;
   const { register } = useFormContext();
-  const { data: argOptions } = useListProviderArgOptions(providerId, argId);
+  const { data: argOptions } = useListProviderArgOptions(
+    providerId,
+    argument.id
+  );
 
   return (
     <>
       <FormControl w="100%">
         <>
-          {!!value?.filters ? (
+          {!!argument?.filters ? (
             <>
-              {Object.values(value.filters).map((group) => (
+              {Object.values(argument.filters).map((group) => (
                 <ArgGroupView
-                  argId={argId}
+                  argId={argument.id}
                   groupDetail={group}
                   providerId={providerId}
                 />
@@ -48,13 +50,13 @@ const ArgField = (props: ArgFieldProps) => {
         </>
         <div>
           <FormLabel htmlFor="target.providerId">
-            <Text textStyle={"Body/Medium"}>{value.title}</Text>
+            <Text textStyle={"Body/Medium"}>{argument.title}</Text>
           </FormLabel>
           {argOptions?.hasOptions ? (
             <HStack>
               <MultiSelect
                 rules={{ required: true, minLength: 1 }}
-                fieldName={`target.with.${value.id}`}
+                fieldName={`target.with.${argument.id}`}
                 options={argOptions?.options || []}
                 shouldAddSelectAllOption={true}
               />
@@ -64,7 +66,7 @@ const ArgField = (props: ArgFieldProps) => {
               id="provider-vault"
               bg="white"
               placeholder={""}
-              {...register(`target.withText.${value.id}`)}
+              {...register(`target.withText.${argument.id}`)}
             />
           )}
         </div>

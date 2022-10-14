@@ -119,7 +119,7 @@ func (a AccessRule) ToRequestAccessRuleDetailAPI(argOptions []cache.ProviderOpti
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+			if s, ok := provider.Provider.(providers.ArgSchemarerv1); ok {
 				t := providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
 				if t != "" {
 					with.Title = t
@@ -229,7 +229,7 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+			if s, ok := provider.Provider.(providers.ArgSchemarerv1); ok {
 				selectable.Title = providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
 			}
 		}
@@ -267,7 +267,7 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+			if s, ok := provider.Provider.(providers.ArgSchemarerv1); ok {
 				t := providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
 				if t != "" {
 					with.Title = t

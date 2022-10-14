@@ -24,6 +24,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Defines values for ArgumentFormElement.
+const (
+	INPUT       ArgumentFormElement = "INPUT"
+	MULTISELECT ArgumentFormElement = "MULTISELECT"
+)
+
 // Defines values for GrantStatus.
 const (
 	GrantStatusACTIVE  GrantStatus = "ACTIVE"
@@ -55,6 +61,17 @@ type AccessInstructions struct {
 	// Instructions on how to access the role or resource.
 	Instructions *string `json:"instructions,omitempty"`
 }
+
+// Argument defines model for Argument.
+type Argument struct {
+	Description *string             `json:"description,omitempty"`
+	FormElement ArgumentFormElement `json:"formElement"`
+	Id          string              `json:"id"`
+	Title       string              `json:"title"`
+}
+
+// ArgumentFormElement defines model for Argument.FormElement.
+type ArgumentFormElement string
 
 // A grant to be created.
 type CreateGrant struct {
@@ -112,6 +129,27 @@ type Grant_With struct {
 	AdditionalProperties map[string]string `json:"-"`
 }
 
+// Group defines model for Group.
+type Group struct {
+	Description *string       `json:"description,omitempty"`
+	Id          string        `json:"id"`
+	Options     []GroupOption `json:"options"`
+	Title       string        `json:"title"`
+}
+
+// GroupOption defines model for GroupOption.
+type GroupOption struct {
+	Children    []string `json:"children"`
+	Description *string  `json:"description,omitempty"`
+	Label       string   `json:"label"`
+	Value       string   `json:"value"`
+}
+
+// Groups defines model for Groups.
+type Groups struct {
+	AdditionalProperties map[string]Group `json:"-"`
+}
+
 // A log entry.
 type Log struct {
 	// The log level.
@@ -167,11 +205,15 @@ type ProviderHealth struct {
 
 // ArgOptionsResponse defines model for ArgOptionsResponse.
 type ArgOptionsResponse struct {
-	// Whether any options have been suggested for the argument.
-	HasOptions bool `json:"hasOptions"`
+	Groups *Groups `json:"groups,omitempty"`
 
 	// The suggested options.
 	Options []Option `json:"options"`
+}
+
+// ArgSchemaResponse defines model for ArgSchemaResponse.
+type ArgSchemaResponse struct {
+	AdditionalProperties map[string]Argument `json:"-"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -334,6 +376,112 @@ func (a *Grant_With) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for Grant_With to handle AdditionalProperties
 func (a Grant_With) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Groups. Returns the specified
+// element and whether it was found
+func (a Groups) Get(fieldName string) (value Group, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Groups
+func (a *Groups) Set(fieldName string, value Group) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Group)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a *Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Group)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Group
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a Groups) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for ArgSchemaResponse. Returns the specified
+// element and whether it was found
+func (a ArgSchemaResponse) Get(fieldName string) (value Argument, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ArgSchemaResponse
+func (a *ArgSchemaResponse) Set(fieldName string, value Argument) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Argument)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ArgSchemaResponse to handle AdditionalProperties
+func (a *ArgSchemaResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Argument)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Argument
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ArgSchemaResponse to handle AdditionalProperties
+func (a ArgSchemaResponse) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1451,8 +1599,10 @@ func (r GetAccessInstructionsResponse) StatusCode() int {
 type GetProviderArgsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]interface{}
-	JSON404      *struct {
+	JSON200      *struct {
+		AdditionalProperties map[string]Argument `json:"-"`
+	}
+	JSON404 *struct {
 		Error *string `json:"error,omitempty"`
 	}
 	JSON500 *struct {
@@ -1480,8 +1630,7 @@ type ListProviderArgOptionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// Whether any options have been suggested for the argument.
-		HasOptions bool `json:"hasOptions"`
+		Groups *Groups `json:"groups,omitempty"`
 
 		// The suggested options.
 		Options []Option `json:"options"`
@@ -2046,7 +2195,9 @@ func ParseGetProviderArgsResponse(rsp *http.Response) (*GetProviderArgsResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]interface{}
+		var dest struct {
+			AdditionalProperties map[string]Argument `json:"-"`
+		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2091,8 +2242,7 @@ func ParseListProviderArgOptionsResponse(rsp *http.Response) (*ListProviderArgOp
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// Whether any options have been suggested for the argument.
-			HasOptions bool `json:"hasOptions"`
+			Groups *Groups `json:"groups,omitempty"`
 
 			// The suggested options.
 			Options []Option `json:"options"`
@@ -2656,53 +2806,56 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"YBHaW8onRRm8fb/9fwAAAP//9jcB0O8yAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

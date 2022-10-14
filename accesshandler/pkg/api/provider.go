@@ -41,21 +41,10 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
 		return
 	}
-
-	// FIXME: Currently, we are supporting both json schema
-	// and custom arg schema. After removing support for json schema
-	// this check should be removed.
-	as, ok := prov.Provider.(providers.ArgSchemarerMapper)
+	as, ok := prov.Provider.(providers.ArgSchemarer)
 	if !ok {
-
-		as, ok := prov.Provider.(providers.ArgSchemarer)
-		if !ok {
-			apio.ErrorString(ctx, w, "provider does not accept arguments", http.StatusBadRequest)
-
-			return
-		}
-
-		apio.JSON(ctx, w, as.ArgSchema(), http.StatusOK)
+		apio.ErrorString(ctx, w, "provider does not accept arguments", http.StatusBadRequest)
+		return
 	}
 	apio.JSON(ctx, w, as.ArgSchemaV2(), http.StatusOK)
 }
@@ -68,17 +57,14 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		return
 	}
 
-	res := types.ArgOptionsResponse{
-		Options: []types.Option{},
-	}
-
 	ao, ok := prov.Provider.(providers.ArgOptioner)
 	if !ok {
 		logger.Get(ctx).Infow("provider does not provide argument options", "provider.id", providerId)
-		// we don't have any options to provide for this argument.
-		res.HasOptions = false
-		apio.JSON(ctx, w, res, http.StatusOK)
+		apio.ErrorString(ctx, w, "provider does not provide argument options", http.StatusBadRequest)
 		return
+	}
+	res := types.ArgOptionsResponse{
+		Options: []types.Option{},
 	}
 
 	options, err := ao.Options(ctx, argId)
@@ -92,48 +78,7 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		apio.Error(ctx, w, err)
 		return
 	}
-
-	res.HasOptions = true
-	res.Options = append(res.Options, options...)
-
-	apio.JSON(ctx, w, res, http.StatusOK)
-}
-
-func (a *API) ListProviderArgFilters(w http.ResponseWriter, r *http.Request, providerId string, argId string, filterId string) {
-	ctx := r.Context()
-	prov, ok := config.Providers[providerId]
-	if !ok {
-		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
-		return
-	}
-
-	res := types.ArgOptionsResponse{
-		Options: []types.Option{},
-	}
-
-	ao, ok := prov.Provider.(providers.ArgOptioner)
-	if !ok {
-		logger.Get(ctx).Infow("provider does not provide argument options", "provider.id", providerId)
-		// we don't have any options to provide for this argument.
-		res.HasOptions = false
-		apio.JSON(ctx, w, res, http.StatusOK)
-		return
-	}
-
-	options, err := ao.Options(ctx, argId)
-	badArg := &providers.InvalidArgumentError{}
-
-	if errors.As(err, &badArg) {
-		apio.Error(ctx, w, apio.NewRequestError(badArg, http.StatusNotFound))
-		return
-	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	res.HasOptions = true
-	res.Options = append(res.Options, options...)
+	res.Options = append(res.Options, options.Options...)
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
