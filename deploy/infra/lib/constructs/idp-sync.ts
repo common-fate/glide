@@ -82,7 +82,7 @@ export class IdpSync extends Construct {
         resources: ["*"],
         conditions: {
           StringEquals: {
-            "iam:ResourceTag/CommonFate": "GrantedApprovalsSSOIdentityProvider",
+            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
           },
         },
       })
