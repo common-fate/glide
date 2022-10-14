@@ -5,22 +5,13 @@ import { useFormContext } from "react-hook-form";
 import ArgGroupView from "./ArgGroupView";
 import { MultiSelect } from "../components/Select";
 import { useListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
-
-interface ArgDetails {
-  description: string;
-  title: string;
-  id: string;
-  type: string;
-  filters?: {
-    [key: string]: {
-      id: string;
-      title: string;
-    };
-  };
-}
+import {
+  Argument,
+  ArgumentFormElement,
+} from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 
 interface ArgFieldProps {
-  argument: ArgDetails;
+  argument: Argument;
   providerId: string;
 }
 
@@ -32,13 +23,29 @@ const ArgField = (props: ArgFieldProps) => {
     argument.id
   );
 
+  if (argument.formElement === ArgumentFormElement.INPUT) {
+    return (
+      <FormControl w="100%">
+        <FormLabel htmlFor="target.providerId">
+          <Text textStyle={"Body/Medium"}>{argument.title}</Text>
+        </FormLabel>
+        <Input
+          id="provider-vault"
+          bg="white"
+          placeholder={""}
+          {...register(`target.withText.${argument.id}`)}
+        />
+      </FormControl>
+    );
+  }
+
   return (
     <>
       <FormControl w="100%">
         <>
-          {!!argument?.filters ? (
+          {argOptions?.groups ? (
             <>
-              {Object.values(argument.filters).map((group) => (
+              {Object.values(argOptions.groups).map((group) => (
                 <ArgGroupView
                   argId={argument.id}
                   groupDetail={group}
@@ -52,23 +59,14 @@ const ArgField = (props: ArgFieldProps) => {
           <FormLabel htmlFor="target.providerId">
             <Text textStyle={"Body/Medium"}>{argument.title}</Text>
           </FormLabel>
-          {argOptions?.hasOptions ? (
-            <HStack>
-              <MultiSelect
-                rules={{ required: true, minLength: 1 }}
-                fieldName={`target.with.${argument.id}`}
-                options={argOptions?.options || []}
-                shouldAddSelectAllOption={true}
-              />
-            </HStack>
-          ) : (
-            <Input
-              id="provider-vault"
-              bg="white"
-              placeholder={""}
-              {...register(`target.withText.${argument.id}`)}
+          <HStack>
+            <MultiSelect
+              rules={{ required: true, minLength: 1 }}
+              fieldName={`target.with.${argument.id}`}
+              options={argOptions?.options || []}
+              shouldAddSelectAllOption={true}
             />
-          )}
+          </HStack>
         </div>
         <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel>
       </FormControl>

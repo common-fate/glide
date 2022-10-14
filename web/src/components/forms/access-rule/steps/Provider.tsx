@@ -21,6 +21,7 @@ import {
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
+
 import { RefreshIcon } from "../../../icons/Icons";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import ArgField from "../components/ArgField";
@@ -125,8 +126,8 @@ const ProviderWithQuestions: React.FC = () => {
 
   return (
     <>
-      {Object.keys(data).map((arg) => (
-        <ArgField value={arg} providerId={providerId} />
+      {Object.values(data).map((v) => (
+        <ArgField argument={v} providerId={providerId} />
       ))}
     </>
   );
