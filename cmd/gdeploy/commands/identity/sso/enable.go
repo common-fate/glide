@@ -108,7 +108,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 
 	clio.Info("The following parameters are required to setup a SAML app in your identity provider")
 	clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idp.DocsID)
-	o, err := dc.LoadSAMLOutput(ctx)
+	o, err := dc.LoadOutput(ctx)
 	if err != nil {
 		return err
 	}
@@ -187,6 +187,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		return err
 	}
 
+	// @TODO this fails for AWS SSO because the users credentials may not be able to assume the sso role because of a restrictive trust relationship
 	grps, err := idp.IdentityProvider.ListGroups(ctx)
 	if err != nil {
 		return err
