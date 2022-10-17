@@ -1,9 +1,17 @@
-import { FormControl, FormLabel, HStack, Input, Text } from "@chakra-ui/react";
+import {
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  HStack,
+  Input,
+  Text,
+} from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 
 import ArgGroupView from "./ArgGroupView";
 import { MultiSelect } from "../components/Select";
+import { AccessRuleFormData } from "../CreateForm";
 import { useListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
@@ -17,12 +25,21 @@ interface ArgFieldProps {
 
 const ArgField = (props: ArgFieldProps) => {
   const { argument, providerId } = props;
-  const { register } = useFormContext();
+  const { register, formState } = useFormContext<AccessRuleFormData>();
+
   const { data: argOptions } = useListProviderArgOptions(
     providerId,
-    argument.id
+    argument.id,
+    {},
+    {
+      swr: {
+        // don't call API if arg doesn't have options
+        enabled: argument.formElement !== ArgumentFormElement.INPUT,
+      },
+    }
   );
 
+  // TODO: Form input error is not handled for input type.
   if (argument.formElement === ArgumentFormElement.INPUT) {
     return (
       <FormControl w="100%">
@@ -32,16 +49,20 @@ const ArgField = (props: ArgFieldProps) => {
         <Input
           id="provider-vault"
           bg="white"
-          placeholder={""}
+          placeholder={`default-${argument.title}`}
           {...register(`target.withText.${argument.id}`)}
         />
       </FormControl>
     );
   }
 
+  const withError = formState.errors.target?.with;
   return (
     <>
-      <FormControl w="100%">
+      <FormControl
+        w="100%"
+        isInvalid={withError && withError[argument.id] !== undefined}
+      >
         <>
           {argOptions?.groups ? (
             <>
@@ -69,6 +90,7 @@ const ArgField = (props: ArgFieldProps) => {
           </HStack>
         </div>
         <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel>
+        <FormErrorMessage> {argument.title} is required </FormErrorMessage>
       </FormControl>
     </>
   );

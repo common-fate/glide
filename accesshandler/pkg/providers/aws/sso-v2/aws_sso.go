@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
+	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -17,12 +18,13 @@ import (
 )
 
 type Provider struct {
-	awsConfig     aws.Config
-	client        *ssoadmin.Client
-	idStoreClient *identitystore.Client
-	orgClient     *organizations.Client
-	ssoRoleARN    gconfig.StringValue
-	instanceARN   gconfig.StringValue
+	awsConfig       aws.Config
+	client          *ssoadmin.Client
+	idStoreClient   *identitystore.Client
+	orgClient       *organizations.Client
+	resourcesClient *resourcegroupstaggingapi.Client
+	ssoRoleARN      gconfig.StringValue
+	instanceARN     gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
@@ -47,11 +49,17 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	resourcesCfg := cfg.Copy()
+	// Hardcoded use east 1 region so that I can search organization accounts using the resource tagging api
+	// not sure how this works for other regions?
+	resourcesCfg.Region = "us-east-1"
 	cfg.RetryMaxAttempts = 5
 	p.awsConfig = cfg
 	p.client = ssoadmin.NewFromConfig(cfg)
 	p.orgClient = organizations.NewFromConfig(cfg)
 	p.idStoreClient = identitystore.NewFromConfig(cfg)
+	p.resourcesClient = resourcegroupstaggingapi.NewFromConfig(resourcesCfg)
 	zap.S().Infow("configured aws sso client", "instanceArn", p.instanceARN, "idstoreID", p.identityStoreID)
 	return nil
 }

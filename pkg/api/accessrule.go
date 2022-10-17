@@ -275,6 +275,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		return
 	}
 
+	// @TODO this needs to be replaced with an API call to the access handler because the rest api cannot fetch this directly
 	// check if target has dynamicIds.
 	// Mutating rule.WithSelectable if we have dynamicIds.
 	for arg, groupings := range rule.Target.WithDynamicId {
@@ -282,8 +283,8 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 
 			// if provider arg has values in groupings
 			if len(values) > 0 {
-				if p, ok := provider.Provider.(providers.DynamicGroupingValuesFetcherer); ok {
-					argValueBelongingToGroup, err := p.FetchArgValuesFromDynamicIds(ctx, arg, group, values)
+				if p, ok := provider.Provider.(providers.ArgOptionGroupValueser); ok {
+					argValueBelongingToGroup, err := p.ArgOptionGroupValues(ctx, arg, group, values)
 					if err != nil {
 						apio.Error(ctx, w, err)
 						return
@@ -295,9 +296,16 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 						}
 					}
 				}
+				// make the UI render correctly when dynamic values are available and only one value is selected in with
+				if rule.Target.With[arg] != "" {
+					rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], rule.Target.With[arg])
+					delete(rule.Target.With, arg)
+				}
 			}
 		}
 	}
+
+	// @TODO be sure to deduplicate the results here
 
 	pq := storage.ListCachedProviderOptions{
 		ProviderID: rule.Target.ProviderID,

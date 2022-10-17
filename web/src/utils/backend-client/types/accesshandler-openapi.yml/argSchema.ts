@@ -7,4 +7,4 @@
  */
 import type { Argument } from '../accesshandler-openapi.yml/argument';
 
-export type ArgSchemaResponseResponse = {[key: string]: Argument};
+export interface ArgSchema {[key: string]: Argument}

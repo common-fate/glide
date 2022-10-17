@@ -63,8 +63,8 @@ func (a ArgSchema) ToAPI() types.ArgSchema {
 type ArgSchemarer interface {
 	ArgSchemaV2() ArgSchema
 }
-type DynamicGroupingValuesFetcherer interface {
-	FetchArgValuesFromDynamicIds(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)
+type ArgOptionGroupValueser interface {
+	ArgOptionGroupValues(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)
 }
 
 // ArgOptioner provides a list of options for an argument and groupings if available.
