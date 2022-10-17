@@ -37,7 +37,7 @@ import type {
   IdentityConfigurationResponseResponse
 } from '.././types'
 import type {
-  ArgSchemaResponseResponse,
+  ArgSchema,
   ArgOptionsResponseResponse
 } from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
@@ -539,7 +539,7 @@ export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
 export const getProviderArgs = (
     providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgSchemaResponseResponse>(
+      return customInstance<ArgSchema>(
       {url: `/api/v1/admin/providers/${providerId}/args`, method: 'get'
     },
       options);
