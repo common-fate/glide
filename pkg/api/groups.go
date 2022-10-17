@@ -27,7 +27,7 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 		Status: types.IdpStatusACTIVE,
 	}
 
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 
 	if err != nil {
 		apio.Error(ctx, w, err)
@@ -36,6 +36,9 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 
 	res := types.ListGroupsResponse{
 		Groups: make([]types.Group, len(q.Result)),
+	}
+	if qr != nil && qr.NextPage != "" {
+		res.Next = &qr.NextPage
 	}
 
 	for i, g := range q.Result {

@@ -6,6 +6,6 @@ const root = ReactDOM.createRoot(document.getElementById("app") as HTMLElement);
 
 root.render(
   <StrictMode>
-    <Routes />
+    <Routes useErrorBoundary />
   </StrictMode>
 );

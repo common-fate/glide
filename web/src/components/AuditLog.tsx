@@ -39,7 +39,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
     // use map here to ensure order is preserved
     // foreach is not synchronous
     const l = data?.events.length || 0;
-    data?.events.map((e, i) => {
+    data?.events.forEach((e, i) => {
       if (e.grantCreated) {
         items.push(
           <CFTimelineRow
@@ -51,14 +51,21 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
           />
         );
       } else if (e.fromGrantStatus && e.actor) {
+        let selectCase: string | undefined;
+        if (e.toGrantStatus === "ACTIVE") selectCase = " approved the request";
+        if (e.toGrantStatus === "REVOKED") selectCase = " revoked the grant";
         items.push(
           <CFTimelineRow
             arrLength={l}
             header={
               <Text>
-                <UserText userId={e.actor || ""} />
-                {`changed grant status from
-              ${e.fromGrantStatus?.toLowerCase()} to ${e.toGrantStatus?.toLowerCase()}`}
+                <UserText userId={e.actor || ""} />{" "}
+                {
+                  /** if null, fallback to default case */
+                  selectCase ??
+                    `changed grant status from
+              ${e.fromGrantStatus?.toLowerCase()} to ${e.toGrantStatus?.toLowerCase()}`
+                }
               </Text>
             }
             index={i}
