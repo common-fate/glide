@@ -96,4 +96,7 @@ export class IdpSync extends Construct {
   getFunctionName(): string {
     return this._lambda.functionName;
   }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
+  }
 }

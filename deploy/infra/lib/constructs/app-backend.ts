@@ -354,4 +354,7 @@ export class AppBackend extends Construct {
   getKmsKeyArn(): string {
     return this._KMSkey.keyArn;
   }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
+  }
 }
