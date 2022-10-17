@@ -55,15 +55,10 @@ export const ProviderStep: React.FC = () => {
       return null;
     }
 
-    return (
-      <ProviderPreview
-        target={{
-          provider: provider,
-          withSelectable: {},
-          with: target.withText ?? {},
-        }}
-      />
-    );
+    console.log("Provider.tsx", { target, provider });
+    // @TODO:
+    // We need to hook into this, debug why new property is not translating through
+    return <ProviderPreview target={target} provider={provider} />;
   };
   return (
     <FormStep
