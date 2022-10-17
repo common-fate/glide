@@ -2,7 +2,7 @@ import { Duration, Stack } from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
@@ -75,6 +75,18 @@ export class IdpSync extends Construct {
         ],
       })
     );
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
+          },
+        },
+      })
+    );
     //allow the lambda to write to the table
     props.dynamoTable.grantWriteData(this._lambda);
   }
@@ -83,5 +95,8 @@ export class IdpSync extends Construct {
   }
   getFunctionName(): string {
     return this._lambda.functionName;
+  }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
   }
 }
