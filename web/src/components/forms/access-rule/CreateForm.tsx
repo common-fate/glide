@@ -45,6 +45,15 @@ const CreateAccessRuleForm = () => {
       with: {},
     };
 
+    // For fields with text i.e input type add the values to
+    // with.values for the API.
+    for (const k in target.withText) {
+      t.with[k] = {
+        values: [target.withText[k]],
+        groupings: {},
+      };
+    }
+
     // First add everything in `target.with` to values.
     for (const arg in target.with) {
       t.with[arg] = {

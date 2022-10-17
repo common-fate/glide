@@ -1,20 +1,14 @@
 import {
-  chakra,
   FormControl,
   FormErrorMessage,
   FormLabel,
-  HStack,
   IconButton,
-  Input,
-  Skeleton,
   Spinner,
   Text,
 } from "@chakra-ui/react";
-import Form from "@rjsf/chakra-ui";
-import { FieldProps } from "@rjsf/core";
-import { JSONSchema7 } from "json-schema";
 import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import { ArgumentFormElement } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 import {
   listProviderArgOptions,
   useGetProvider,
@@ -27,7 +21,6 @@ import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import ArgField from "../components/ArgField";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { MultiSelect } from "../components/Select";
 import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 
@@ -42,18 +35,18 @@ export const ProviderStep: React.FC = () => {
   // this helps to keep the cached options fresh.
   useEffect(() => {
     if (providerArgs != null) {
-      // example schema
-      // {"$defs":{"Args":{"properties":{"vault":{"description":"example","title":"Vault","type":"string"}},"required":["vault"],"type":"object"}},"$id":"https://commonfate.io/demo/1password/args","$ref":"#/$defs/Args","$schema":"http://json-schema.org/draft/2020-12/schema"}
-      const schema = providerArgs as JSONSchema7;
-      const argSchema = schema.$defs?.Args;
-      if (argSchema !== undefined && typeof argSchema !== "boolean") {
-        const args = Object.keys(argSchema.properties ?? {});
-        args.forEach((arg) => {
-          void listProviderArgOptions(target.providerId, arg, {
+      const args = Object.values(providerArgs);
+
+      // TODO: Currenly, we have only multi-select and input form element defined.
+      // If in future, we have other form element that doesn't have options then we need to change
+      // the if condition here.
+      args.forEach((arg) => {
+        if (arg.formElement != ArgumentFormElement.INPUT) {
+          void listProviderArgOptions(target.providerId, arg.id, {
             refresh: true,
           });
-        });
-      }
+        }
+      });
     }
   }, [providerArgs, target?.providerId]);
 
@@ -161,59 +154,3 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
     />
   );
 };
-
-// TODO:
-// Instead of deleting this commenting out for now.
-//
-//
-//
-// WithField is used to render the select input for a provider args field, the data is saved to target.with.<fieldName> in the formdata
-// const WithField: React.FC<FieldProps> = (props) => {
-//   const { watch, formState, register } = useFormContext<AccessRuleFormData>();
-//   const providerId = watch("target.providerId");
-//   const { data } = useListProviderArgOptions(providerId, props.name);
-//   const withError = formState.errors.target?.with;
-//   if (data === undefined) {
-//     return (
-//       <FormControl
-//         isInvalid={withError && withError[props.name] !== undefined}
-//         w="100%"
-//       >
-//         <FormLabel htmlFor="target.providerId">
-//           <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
-//         </FormLabel>
-//         <Skeleton h={8} />
-//       </FormControl>
-//     );
-//   }
-//   return (
-//     <FormControl
-//       isInvalid={withError && withError[props.name] !== undefined}
-//       w="100%"
-//     >
-//       <FormLabel htmlFor="target.providerId">
-//         <Text textStyle={"Body/Medium"}>{props.schema.title}</Text>
-//       </FormLabel>
-//       {data.hasOptions ? (
-//         <HStack>
-//           <MultiSelect
-//             rules={{ required: true, minLength: 1 }}
-//             fieldName={`target.with.${props.name}`}
-//             options={data.options}
-//             shouldAddSelectAllOption={true}
-//           />
-
-//           <RefreshButton providerId={providerId} argId={props.name} />
-//         </HStack>
-//       ) : (
-//         <Input
-//           id="provider-vault"
-//           bg="white"
-//           placeholder={props.schema.default?.toString() ?? ""}
-//           {...register(`target.withText.${props.name}`)}
-//         />
-//       )}
-//       <FormErrorMessage>{props.schema.title} is required</FormErrorMessage>
-//     </FormControl>
-//   );
-// };
