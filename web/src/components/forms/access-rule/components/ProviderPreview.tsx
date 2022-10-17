@@ -34,50 +34,8 @@ export const ProviderPreview: React.FC<{
   if (provider?.id === undefined || provider?.id === "" || data === undefined) {
     return null;
   }
-  const ProviderPreviewWithDisplay: React.FC<FieldProps> = (props) => {
-    const { data } = useListProviderArgOptions(provider.id, props.name);
-
-    // Handling for target.with params
-    if (props.name in target.with) {
-      const value = target.with[props.name];
-      let string = Array.isArray(value) ? value.join(",") : value;
-      return (
-        <VStack w="100%" align={"flex-start"} spacing={0}>
-          <Text>
-            ok
-            {/* {props.schema.title}: {string} */}
-          </Text>
-        </VStack>
-      );
-    }
-    // Handling for target.withFilter params
-    // if (props.name in target.withFilter) {
-    //   const value = target.withFilter[props.name];
-    //   return (
-    //     <VStack w="100%" align={"flex-start"} spacing={0}>
-    //       <Text>{props.schema.title}</Text>
-    //       <Wrap>
-    //         {value.map((opt: any) => {
-    //           return (
-    //             <CopyableOption
-    //               key={"cp-" + opt}
-    //               label={
-    //                 data?.options.find((d) => d.value === opt)?.label ?? ""
-    //               }
-    //               value={opt}
-    //             />
-    //           );
-    //         })}
-    //       </Wrap>
-    //     </VStack>
-    //   );
-    // }
-    return (
-      <VStack w="100%" align={"flex-start"} spacing={0}>
-        <Text>{props.schema.title}:</Text>
-      </VStack>
-    );
-  };
+  // I need to be run per arg... (i should be in a for loop)
+  // const { data: argOptions } = useListProviderArgOptions(provider.id, props.name);
 
   // Using a schema form here to do the heavy lifting of parsing the schema
   //  so we can get field names
@@ -87,33 +45,29 @@ export const ProviderPreview: React.FC<{
         <ProviderIcon shortType={provider.type} />
         <Text>{provider.id}</Text>
       </HStack>
-
-      {/* The purpose of the form here is that is will do the heavy lifting of parsing the json schema for us, we then render each attribute with a display only element and remove all the form components, so the purpose is purly to part jsonschema and provider some rendering hooks */}
-      <Box w="100%">
-        <Form
-          // tagname is a prop that allows us to prevent this using a <form> element to wrap this, this avoids a nested form error
-          tagName={"div"}
-          uiSchema={{
-            "ui:options": { title: false },
-            "ui:submitButtonOptions": {
-              props: {
-                disabled: true,
-                className: "btn btn-info",
-              },
-              norender: true,
-              submitText: "",
-            },
-          }}
-          // showErrorList={false}
-          showErrorList={true}
-          schema={data}
-          fields={{
-            StringField: ProviderPreviewWithDisplay,
-          }}
-          // This field template override removes all form elements wrapping fields, this is so that no form ui is rendered other than the stringField override above
-          FieldTemplate={(props) => props.children}
-        />
-      </Box>
+      {data &&
+        Object.keys(data).map((key) => {
+          const arg = data[key];
+          // const { data: argOptions } = useListProviderArgOptions(provider.id, arg.id);
+          return (
+            <VStack w="100%" align={"flex-start"} spacing={0}>
+              <Text>{arg.title}</Text>
+              <Wrap>
+                {/* {value.map((opt: any) => {
+            return (
+              <CopyableOption
+                key={"cp-" + opt}
+                label={data?.options.find((d) => d.value === opt)?.label ?? ""}
+                value={opt}
+              />
+            );
+          })} */}
+              </Wrap>
+            </VStack>
+          );
+        })}
+      {/* <Box w="100%">
+      </Box> */}
     </VStack>
   );
 };
