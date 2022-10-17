@@ -256,9 +256,9 @@ export const ECSIcon = createIcon({
       <g
         id="Icon-Architecture/64/Arch_Amazon-Elastic-Container-Service_64"
         stroke="none"
-        stroke-width="1"
+        strokeWidth="1"
         fill="none"
-        fill-rule="evenodd"
+        fillRule="evenodd"
       >
         <g
           id="Icon-Architecture-BG/64/Containers"
