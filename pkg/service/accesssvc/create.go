@@ -10,6 +10,7 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -49,6 +50,33 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	}
 
 	now := s.Clock.Now()
+
+	for arg, groupings := range rule.Target.WithDynamicId {
+		for group, values := range groupings {
+
+			// if provider arg has values in groupings
+			if len(values) > 0 {
+				res, err := s.AHClient.FetchArgGroupValuesWithResponse(ctx, rule.Target.ProviderID, arg, ahtypes.FetchArgGroupValuesJSONRequestBody{
+					GroupId:     &group,
+					GroupValues: &values,
+				})
+
+				if err != nil {
+					return nil, err
+				}
+
+				for _, value := range *res.JSON200 {
+					if _, exists := rule.Target.WithSelectable[value]; !exists {
+						rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], value)
+					}
+				}
+
+			}
+		}
+	}
+
+	// TODO: here
+	// fetch all the dynamic values and add them to withSelectables.
 	err = requestIsValid(in, rule)
 	if err != nil {
 		return nil, err

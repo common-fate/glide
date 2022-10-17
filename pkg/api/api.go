@@ -166,6 +166,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				DB:                  db,
 				AccessHandlerClient: opts.AccessHandlerClient,
 			},
+			AHClient: opts.AccessHandlerClient,
 		},
 		Cache: &cachesvc.Service{
 			DB:                  db,

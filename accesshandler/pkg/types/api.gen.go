@@ -270,6 +270,12 @@ type GetAccessInstructionsParams struct {
 	GrantId string `form:"grantId" json:"grantId"`
 }
 
+// FetchArgGroupValuesJSONBody defines parameters for FetchArgGroupValues.
+type FetchArgGroupValuesJSONBody struct {
+	GroupId     *string   `json:"groupId,omitempty"`
+	GroupValues *[]string `json:"groupValues,omitempty"`
+}
+
 // PostGrantsJSONRequestBody defines body for PostGrants for application/json ContentType.
 type PostGrantsJSONRequestBody = PostGrantsJSONBody
 
@@ -278,6 +284,9 @@ type ValidateGrantJSONRequestBody = ValidateGrantJSONBody
 
 // PostGrantsRevokeJSONRequestBody defines body for PostGrantsRevoke for application/json ContentType.
 type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
+
+// FetchArgGroupValuesJSONRequestBody defines body for FetchArgGroupValues for application/json ContentType.
+type FetchArgGroupValuesJSONRequestBody FetchArgGroupValuesJSONBody
 
 // ValidateSetupJSONRequestBody defines body for ValidateSetup for application/json ContentType.
 type ValidateSetupJSONRequestBody ValidateRequest
@@ -603,6 +612,11 @@ type ClientInterface interface {
 	// GetProviderArgs request
 	GetProviderArgs(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// FetchArgGroupValues request with any body
+	FetchArgGroupValuesWithBody(ctx context.Context, providerId string, argId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	FetchArgGroupValues(ctx context.Context, providerId string, argId string, body FetchArgGroupValuesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListProviderArgOptions request
 	ListProviderArgOptions(ctx context.Context, providerId string, argId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -758,6 +772,30 @@ func (c *Client) GetAccessInstructions(ctx context.Context, providerId string, p
 
 func (c *Client) GetProviderArgs(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetProviderArgsRequest(c.Server, providerId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FetchArgGroupValuesWithBody(ctx context.Context, providerId string, argId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFetchArgGroupValuesRequestWithBody(c.Server, providerId, argId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) FetchArgGroupValues(ctx context.Context, providerId string, argId string, body FetchArgGroupValuesJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewFetchArgGroupValuesRequest(c.Server, providerId, argId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -1181,6 +1219,60 @@ func NewGetProviderArgsRequest(server string, providerId string) (*http.Request,
 	return req, nil
 }
 
+// NewFetchArgGroupValuesRequest calls the generic FetchArgGroupValues builder with application/json body
+func NewFetchArgGroupValuesRequest(server string, providerId string, argId string, body FetchArgGroupValuesJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewFetchArgGroupValuesRequestWithBody(server, providerId, argId, "application/json", bodyReader)
+}
+
+// NewFetchArgGroupValuesRequestWithBody generates requests for FetchArgGroupValues with any type of body
+func NewFetchArgGroupValuesRequestWithBody(server string, providerId string, argId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "argId", runtime.ParamLocationPath, argId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/providers/%s/args/%s/groups", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListProviderArgOptionsRequest generates requests for ListProviderArgOptions
 func NewListProviderArgOptionsRequest(server string, providerId string, argId string) (*http.Request, error) {
 	var err error
@@ -1340,6 +1432,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetProviderArgs request
 	GetProviderArgsWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*GetProviderArgsResponse, error)
+
+	// FetchArgGroupValues request with any body
+	FetchArgGroupValuesWithBodyWithResponse(ctx context.Context, providerId string, argId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FetchArgGroupValuesResponse, error)
+
+	FetchArgGroupValuesWithResponse(ctx context.Context, providerId string, argId string, body FetchArgGroupValuesJSONRequestBody, reqEditors ...RequestEditorFn) (*FetchArgGroupValuesResponse, error)
 
 	// ListProviderArgOptions request
 	ListProviderArgOptionsWithResponse(ctx context.Context, providerId string, argId string, reqEditors ...RequestEditorFn) (*ListProviderArgOptionsResponse, error)
@@ -1624,6 +1721,28 @@ func (r GetProviderArgsResponse) StatusCode() int {
 	return 0
 }
 
+type FetchArgGroupValuesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]string
+}
+
+// Status returns HTTPResponse.Status
+func (r FetchArgGroupValuesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r FetchArgGroupValuesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListProviderArgOptionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1796,6 +1915,23 @@ func (c *ClientWithResponses) GetProviderArgsWithResponse(ctx context.Context, p
 		return nil, err
 	}
 	return ParseGetProviderArgsResponse(rsp)
+}
+
+// FetchArgGroupValuesWithBodyWithResponse request with arbitrary body returning *FetchArgGroupValuesResponse
+func (c *ClientWithResponses) FetchArgGroupValuesWithBodyWithResponse(ctx context.Context, providerId string, argId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*FetchArgGroupValuesResponse, error) {
+	rsp, err := c.FetchArgGroupValuesWithBody(ctx, providerId, argId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFetchArgGroupValuesResponse(rsp)
+}
+
+func (c *ClientWithResponses) FetchArgGroupValuesWithResponse(ctx context.Context, providerId string, argId string, body FetchArgGroupValuesJSONRequestBody, reqEditors ...RequestEditorFn) (*FetchArgGroupValuesResponse, error) {
+	rsp, err := c.FetchArgGroupValues(ctx, providerId, argId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseFetchArgGroupValuesResponse(rsp)
 }
 
 // ListProviderArgOptionsWithResponse request returning *ListProviderArgOptionsResponse
@@ -2222,6 +2358,32 @@ func ParseGetProviderArgsResponse(rsp *http.Response) (*GetProviderArgsResponse,
 	return response, nil
 }
 
+// ParseFetchArgGroupValuesResponse parses an HTTP response from a FetchArgGroupValuesWithResponse call
+func ParseFetchArgGroupValuesResponse(rsp *http.Response) (*FetchArgGroupValuesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &FetchArgGroupValuesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []string
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListProviderArgOptionsResponse parses an HTTP response from a ListProviderArgOptionsWithResponse call
 func ParseListProviderArgOptionsResponse(rsp *http.Response) (*ListProviderArgOptionsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -2340,6 +2502,9 @@ type ServerInterface interface {
 	// Get provider arg schema
 	// (GET /api/v1/providers/{providerId}/args)
 	GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string)
+	// Fetch argument having group option's values
+	// (GET /api/v1/providers/{providerId}/args/{argId}/groups)
+	FetchArgGroupValues(w http.ResponseWriter, r *http.Request, providerId string, argId string)
 	// List provider arg options
 	// (GET /api/v1/providers/{providerId}/args/{argId}/options)
 	ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string)
@@ -2596,6 +2761,41 @@ func (siw *ServerInterfaceWrapper) GetProviderArgs(w http.ResponseWriter, r *htt
 	handler(w, r.WithContext(ctx))
 }
 
+// FetchArgGroupValues operation middleware
+func (siw *ServerInterfaceWrapper) FetchArgGroupValues(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "providerId" -------------
+	var providerId string
+
+	err = runtime.BindStyledParameter("simple", false, "providerId", chi.URLParam(r, "providerId"), &providerId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providerId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "argId" -------------
+	var argId string
+
+	err = runtime.BindStyledParameter("simple", false, "argId", chi.URLParam(r, "argId"), &argId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "argId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.FetchArgGroupValues(w, r, providerId, argId)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // ListProviderArgOptions operation middleware
 func (siw *ServerInterfaceWrapper) ListProviderArgOptions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -2790,6 +2990,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/providers/{providerId}/args", wrapper.GetProviderArgs)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/providers/{providerId}/args/{argId}/groups", wrapper.FetchArgGroupValues)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/providers/{providerId}/args/{argId}/options", wrapper.ListProviderArgOptions)
 	})
 	r.Group(func(r chi.Router) {
@@ -2802,56 +3005,59 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"UjzJS0ubj5v/BgAA//9sfGRXezoAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

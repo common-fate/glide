@@ -101,3 +101,35 @@ func (a *API) RefreshAccessProviders(w http.ResponseWriter, r *http.Request) {
 	sort.Slice(listProvidersResponse, func(i, j int) bool { return listProvidersResponse[i].Id < listProvidersResponse[j].Id })
 	apio.JSON(r.Context(), w, listProvidersResponse, http.StatusOK)
 }
+
+func (a *API) FetchArgGroupValues(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
+	ctx := r.Context()
+	var b types.FetchArgGroupValuesJSONRequestBody
+
+	err := apio.DecodeJSONBody(w, r, &b)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	prov, ok := config.Providers[providerId]
+	if !ok {
+		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: providerId}, http.StatusNotFound))
+		return
+	}
+
+	ao, ok := prov.Provider.(providers.ArgOptionGroupValueser)
+	if !ok {
+		logger.Get(ctx).Infow("provider does not provide group options", "provider.id", providerId)
+		apio.ErrorString(ctx, w, "provider does not provide group options", http.StatusBadRequest)
+		return
+	}
+
+	options, err := ao.ArgOptionGroupValues(ctx, argId, *b.GroupId, *b.GroupValues)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, options, http.StatusOK)
+}

@@ -261,6 +261,46 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       operationId: list-provider-arg-options
       description: List the options for a provider argument.
+  "/api/v1/providers/{providerId}/args/{argId}/groups":
+    parameters:
+      - schema:
+          type: string
+        name: providerId
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: argId
+        in: path
+        required: true
+    get:
+      summary: Fetch argument having group option's values
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+      operationId: fetch-arg--group-values
+      description: Provider argument can have fields that are dynamic and their values should be fetched at read time instead of store time. This API will be fetch thoses dynamic group's actual argument value.
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groupId:
+                  type: string
+                groupValues:
+                  type: array
+                  items:
+                    type: string
+        description: ""
   /api/v1/health:
     get:
       summary: Healthcheck
