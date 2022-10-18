@@ -15,6 +15,7 @@ import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
+import { CacheSync } from "./cache-sync";
 
 interface Props {
   appName: string;
@@ -42,6 +43,7 @@ export class AppBackend extends Construct {
   private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
+  private _cacheSync: CacheSync;
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
   private _webhookLambda: lambda.Function;
@@ -273,6 +275,10 @@ export class AppBackend extends Construct {
       identityProviderSyncConfiguration:
         props.identityProviderSyncConfiguration,
     });
+    this._cacheSync = new CacheSync(this, "CacheSync", {
+      dynamoTable: this._dynamoTable,
+      accessHandler: props.accessHandler,
+    });
   }
 
   /**
@@ -337,6 +343,9 @@ export class AppBackend extends Construct {
   }
   getIdpSync(): IdpSync {
     return this._idpSync;
+  }
+  getCacheSync(): CacheSync {
+    return this._cacheSync;
   }
 
   getKmsKeyArn(): string {

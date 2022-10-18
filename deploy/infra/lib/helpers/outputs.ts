@@ -27,6 +27,7 @@ export type StackOutputs = {
   Region: string;
   PaginationKMSKeyARN: string;
   AccessHandlerExecutionRoleARN: string;
+  CacheSyncLogGroupName: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs

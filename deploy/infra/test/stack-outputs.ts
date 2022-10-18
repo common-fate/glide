@@ -30,6 +30,7 @@ const testOutputs: StackOutputs = {
   Region: "abcdefg",
   PaginationKMSKeyARN: "abcdefg",
   AccessHandlerExecutionRoleARN: "abcdefg",
+  CacheSyncLogGroupName: "abcdefg",
 };
 
 // Write the json object to ./testOutputs.json so that it can be parsed by a go test in pkg/deploy.output_test.go
