@@ -176,6 +176,7 @@ func PackageBackend() error {
 func Package() {
 	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
 	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageCacheSyncer)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
@@ -200,6 +201,12 @@ func PackageAccessHandler() error {
 func PackageSyncer() error {
 	mg.Deps(Build.Syncer)
 	return sh.Run("zip", "--junk-paths", "bin/syncer.zip", "bin/syncer")
+}
+
+// PackageSyncer zips the Go Syncer function handler so that it can be deployed to Lambda.
+func PackageCacheSyncer() error {
+	mg.Deps(Build.CacheSyncer)
+	return sh.Run("zip", "--junk-paths", "bin/cache-sync.zip", "bin/cache-sync")
 }
 
 // PackageNotifier zips the Go notifier so that it can be deployed to Lambda.
