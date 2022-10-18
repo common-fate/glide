@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/eks v1.21.8
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.13
-	github.com/aws/aws-sdk-go-v2/service/identitystore v1.14.10
+	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.6
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10

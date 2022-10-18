@@ -168,6 +168,18 @@ export class AppBackend extends Construct {
       })
     );
 
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
+          },
+        },
+      })
+    );
+
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 
@@ -350,5 +362,8 @@ export class AppBackend extends Construct {
 
   getKmsKeyArn(): string {
     return this._KMSkey.keyArn;
+  }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
   }
 }

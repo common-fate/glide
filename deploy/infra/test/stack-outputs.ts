@@ -31,6 +31,8 @@ const testOutputs: StackOutputs = {
   PaginationKMSKeyARN: "abcdefg",
   AccessHandlerExecutionRoleARN: "abcdefg",
   CacheSyncLogGroupName: "abcdefg",
+  RestAPIExecutionRoleARN: "abcdefg",
+  IDPSyncExecutionRoleARN: "abcdefg",
 };
 
 // Write the json object to ./testOutputs.json so that it can be parsed by a go test in pkg/deploy.output_test.go

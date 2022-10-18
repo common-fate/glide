@@ -25,7 +25,7 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request, params types.GetU
 
 	q := storage.ListUsersForStatus{Status: types.IdpStatusACTIVE}
 
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -33,6 +33,9 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request, params types.GetU
 
 	res := types.ListUserResponse{
 		Users: make([]types.User, len(q.Result)),
+	}
+	if qr != nil && qr.NextPage != "" {
+		res.Next = &qr.NextPage
 	}
 
 	for i, u := range q.Result {

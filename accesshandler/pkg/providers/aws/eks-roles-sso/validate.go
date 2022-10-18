@@ -16,7 +16,7 @@ import (
 func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-aws-sso": {
-			Name: "The user must exist in the AWS SSO instance",
+			UserErrorMessage: "We could not find your user in AWS SSO",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)

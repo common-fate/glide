@@ -28,6 +28,8 @@ export type StackOutputs = {
   PaginationKMSKeyARN: string;
   AccessHandlerExecutionRoleARN: string;
   CacheSyncLogGroupName: string;
+  RestAPIExecutionRoleARN: string;
+  IDPSyncExecutionRoleARN: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs

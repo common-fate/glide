@@ -117,6 +117,7 @@ const Home = () => {
     getValues,
   } = useForm<NewRequestFormData>({
     shouldUnregister: true,
+
     defaultValues: {
       when: "asap",
       startDateTime: now,
@@ -461,7 +462,7 @@ const Home = () => {
                   </FormControl>
                 </Flex>
 
-                <FormControl>
+                <FormControl isInvalid={!!errors?.reason}>
                   <FormLabel textStyle="Body/Medium" fontWeight="normal">
                     Why do you need access?
                   </FormLabel>
@@ -469,8 +470,28 @@ const Home = () => {
                     bg="white"
                     id="reasonField"
                     placeholder="Deploying initial Terraform infrastructure for CF-123"
-                    {...register("reason")}
+                    {...register("reason", {
+                      validate: (value) => {
+                        const res: string[] = [];
+                        [
+                          /[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/,
+                        ].every((pattern) => pattern.test(value as string)) &&
+                          res.push(
+                            "Invalid characters (only letters, numbers, and punctuation allowed)"
+                          );
+                        if (value && value.length > 2048) {
+                          res.push("Maximum length is 2048 characters");
+                        }
+                        return res.length > 0 ? res.join(", ") : undefined;
+                      },
+                    })}
                   />
+                  {errors?.reason && (
+                    <FormErrorMessage>
+                      {errors?.reason.message}
+                      {JSON.stringify(errors?.reason.types)}
+                    </FormErrorMessage>
+                  )}
                 </FormControl>
 
                 {/* Don't show approval section if approvers are still loading */}

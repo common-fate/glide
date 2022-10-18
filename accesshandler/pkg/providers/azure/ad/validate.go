@@ -25,7 +25,7 @@ type ADErr struct {
 func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-azure-ad": {
-			Name: "The user must exist in the Azure AD tenancy",
+			UserErrorMessage: "We couldn't find a matching user account in Azure AD",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)
@@ -52,7 +52,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 			},
 		},
 		"group-exists-in-azure-ad": {
-			Name: "The group must exist in the Azure AD tenancy",
+			UserErrorMessage: "We couldn't find a matching group in Azure AD",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
 				var a Args
 				err := json.Unmarshal(args, &a)

@@ -62,6 +62,8 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		PaginationKMSKeyARN:           "abcdefg",
 		AccessHandlerExecutionRoleARN: "abcdefg",
 		CacheSyncLogGroupName:         "abcdrfg",
+		RestAPIExecutionRoleARN:       "abcdefg",
+		IDPSyncExecutionRoleARN:       "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
