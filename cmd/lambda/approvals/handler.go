@@ -51,7 +51,7 @@ func buildHandler() (*Lambda, error) {
 	zap.ReplaceGlobals(log.Desugar())
 	auth := &auth.LambdaAuthenticator{}
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, cfg)
+	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL, MockAccessHandler: cfg.MockAccessHandler})
 	if err != nil {
 		return nil, err
 	}
