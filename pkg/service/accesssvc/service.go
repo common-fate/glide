@@ -6,6 +6,7 @@ import (
 	"github.com/benbjohnson/clock"
 
 	"github.com/common-fate/ddb"
+	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
@@ -19,6 +20,7 @@ type Service struct {
 	Granter     Granter
 	EventPutter EventPutter
 	Cache       CacheService
+	AHClient    AHClient
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/granter.go -package=mocks . Granter
@@ -37,6 +39,10 @@ type EventPutter interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/cache.go -package=mocks . CacheService
 type CacheService interface {
-	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
-	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
+	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+}
+
+type AHClient interface {
+	ahTypes.ClientWithResponsesInterface
 }

@@ -17,24 +17,34 @@ import (
 // loadCachedProviderArgOptions handles the case where we fetch arg options from the DynamoDB cache.
 // If cached options aren't present it falls back to refetching options from the Access Handler.
 // If options are refetched, the cache is updated.
-func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error) {
+func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 	q := storage.ListCachedProviderOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
 	_, err := s.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
-		return false, nil, err
+		return false, nil, nil, err
 	}
-	if err == ddb.ErrNoItems {
+
+	q2 := storage.ListCachedProviderArgGroupOptionsForArg{
+		ProviderID: providerId,
+		ArgID:      argId,
+	}
+	_, err2 := s.DB.Query(ctx, &q2)
+	if err2 != nil && err2 != ddb.ErrNoItems {
+		return false, nil, nil, err2
+	}
+
+	if err == ddb.ErrNoItems || err2 == ddb.ErrNoItems {
 		return s.RefreshCachedProviderArgOptions(ctx, providerId, argId)
 	}
-	return true, q.Result, nil
+	return true, q.Result, q2.Result, nil
 }
 
 // refreshProviderArgOptions deletes any cached options and then refetches them from the Access Handler.
 // It updates the cached options.
-func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error) {
+func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 
 	// delete any existing options
 	q := storage.ListCachedProviderOptionsForArg{
@@ -44,24 +54,34 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 
 	_, err := s.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
-		return false, nil, err
+		return false, nil, nil, err
+	}
+	q2 := storage.ListCachedProviderArgGroupOptionsForArg{
+		ProviderID: providerId,
+		ArgID:      argId,
+	}
+	_, err = s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return false, nil, nil, err
 	}
 	var items []ddb.Keyer
-	for _, row := range q.Result {
-		po := row
-		items = append(items, &po)
+	for i := range q.Result {
+		items = append(items, &q.Result[i])
+	}
+	for i := range q2.Result {
+		items = append(items, &q.Result[i])
 	}
 	if len(items) > 0 {
 		err = s.DB.DeleteBatch(ctx, items...)
 		if err != nil {
-			return false, nil, err
+			return false, nil, nil, err
 		}
 	}
 
 	// fetch new options
 	res, err := s.fetchProviderOptions(ctx, providerId, argId)
 	if err != nil {
-		return false, nil, err
+		return false, nil, nil, err
 	}
 
 	var keyers []ddb.Keyer
@@ -76,11 +96,30 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		keyers = append(keyers, &op)
 		cachedOpts = append(cachedOpts, op)
 	}
+
+	var cachedGroups []cache.ProviderArgGroupOption
+	if res.Groups != nil {
+		for k, v := range res.Groups.AdditionalProperties {
+			for _, option := range v {
+				op := cache.ProviderArgGroupOption{
+					Provider: providerId,
+					Arg:      argId,
+					Group:    k,
+					Value:    option.Value,
+					Label:    option.Label,
+					Children: option.Children,
+				}
+				keyers = append(keyers, &op)
+				cachedGroups = append(cachedGroups, op)
+			}
+		}
+	}
+
 	err = s.DB.PutBatch(ctx, keyers...)
 	if err != nil {
-		return false, nil, err
+		return false, nil, nil, err
 	}
-	return true, cachedOpts, nil
+	return true, cachedOpts, cachedGroups, nil
 
 }
 

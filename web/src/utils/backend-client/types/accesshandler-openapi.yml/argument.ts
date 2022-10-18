@@ -6,10 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 import type { ArgumentFormElement } from './argumentFormElement';
+import type { ArgumentGroups } from './argumentGroups';
 
 export interface Argument {
   id: string;
   title: string;
   description?: string;
   formElement: ArgumentFormElement;
+  groups?: ArgumentGroups;
 }

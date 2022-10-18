@@ -36,13 +36,14 @@ func (m *MockCacheService) EXPECT() *MockCacheServiceMockRecorder {
 }
 
 // LoadCachedProviderArgOptions mocks base method.
-func (m *MockCacheService) LoadCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, error) {
+func (m *MockCacheService) LoadCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LoadCachedProviderArgOptions", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].([]cache.ProviderOption)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].([]cache.ProviderArgGroupOption)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // LoadCachedProviderArgOptions indicates an expected call of LoadCachedProviderArgOptions.
@@ -52,13 +53,14 @@ func (mr *MockCacheServiceMockRecorder) LoadCachedProviderArgOptions(arg0, arg1,
 }
 
 // RefreshCachedProviderArgOptions mocks base method.
-func (m *MockCacheService) RefreshCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, error) {
+func (m *MockCacheService) RefreshCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshCachedProviderArgOptions", arg0, arg1, arg2)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].([]cache.ProviderOption)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].([]cache.ProviderArgGroupOption)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // RefreshCachedProviderArgOptions indicates an expected call of RefreshCachedProviderArgOptions.

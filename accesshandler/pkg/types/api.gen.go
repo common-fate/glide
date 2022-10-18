@@ -71,12 +71,18 @@ type ArgSchema struct {
 type Argument struct {
 	Description *string             `json:"description,omitempty"`
 	FormElement ArgumentFormElement `json:"formElement"`
+	Groups      *Argument_Groups    `json:"groups,omitempty"`
 	Id          string              `json:"id"`
 	Title       string              `json:"title"`
 }
 
 // ArgumentFormElement defines model for Argument.FormElement.
 type ArgumentFormElement string
+
+// Argument_Groups defines model for Argument.Groups.
+type Argument_Groups struct {
+	AdditionalProperties map[string]Group `json:"-"`
+}
 
 // A grant to be created.
 type CreateGrant struct {
@@ -136,10 +142,9 @@ type Grant_With struct {
 
 // Group defines model for Group.
 type Group struct {
-	Description *string       `json:"description,omitempty"`
-	Id          string        `json:"id"`
-	Options     []GroupOption `json:"options"`
-	Title       string        `json:"title"`
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
 }
 
 // GroupOption defines model for GroupOption.
@@ -152,7 +157,7 @@ type GroupOption struct {
 
 // Groups defines model for Groups.
 type Groups struct {
-	AdditionalProperties map[string]Group `json:"-"`
+	AdditionalProperties map[string][]GroupOption `json:"-"`
 }
 
 // A log entry.
@@ -335,6 +340,59 @@ func (a ArgSchema) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for Argument_Groups. Returns the specified
+// element and whether it was found
+func (a Argument_Groups) Get(fieldName string) (value Group, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Argument_Groups
+func (a *Argument_Groups) Set(fieldName string, value Group) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Group)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a *Argument_Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Group)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Group
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a Argument_Groups) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for CreateGrant_With. Returns the specified
 // element and whether it was found
 func (a CreateGrant_With) Get(fieldName string) (value string, found bool) {
@@ -443,7 +501,7 @@ func (a Grant_With) MarshalJSON() ([]byte, error) {
 
 // Getter for additional properties for Groups. Returns the specified
 // element and whether it was found
-func (a Groups) Get(fieldName string) (value Group, found bool) {
+func (a Groups) Get(fieldName string) (value []GroupOption, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
@@ -451,9 +509,9 @@ func (a Groups) Get(fieldName string) (value Group, found bool) {
 }
 
 // Setter for additional properties for Groups
-func (a *Groups) Set(fieldName string, value Group) {
+func (a *Groups) Set(fieldName string, value []GroupOption) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]Group)
+		a.AdditionalProperties = make(map[string][]GroupOption)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
@@ -467,9 +525,9 @@ func (a *Groups) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]Group)
+		a.AdditionalProperties = make(map[string][]GroupOption)
 		for fieldName, fieldBuf := range object {
-			var fieldVal Group
+			var fieldVal []GroupOption
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -2802,56 +2860,56 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/+xbe2/bOBL/KgTvgN4BfuXRXOO/Npdks752k8DJtofbLba0NJbZSqRCUk7dwN/9wIfe",
+	"lO0mKboLbP+pI/ExnPnNzI9D6gEHPEk5A6YkHj9gAXcZSPVvHlIwD96SmIZEwdS+0I8CzhQw85OkaUwD",
+	"oihnw4+SM/1MBgtIiP6VCp6CUG6kTNr/Q5CBoKnug8f4dgFonsUxUqsUUAhzyqh+hfgcqQWgVPAlDUHg",
+	"HobPJEljwGMtc8LZnCgYknvZl5LjHtYD4DGWSlAW4XUP31O1MEKGoRmSxNc1gVod2pLls7+QKOBsTqNM",
+	"mMUOyvn47CMECvfw537E++5hQtJf7bjv8+HXPaNcKiDE41+tNpyM75uDrfU/3V6mnDm1nYjoyogmp+7x",
+	"E2wRCZ6l5tffBczxGP9tWOJgaHvJ4YVtte5hbmf2m09mUQRSQYhcM60dqiDZOoFdkJ7ArZ8IQVYtXeWz",
+	"+/TUtJrTEZpzgQhDF4IwhYiIsgSYGuipzoXg4hl0CHocD47WO0h5wpDpjgSoTDAI0VzwxAD+JAhASvQT",
+	"YWEMwkhsFvEsVie202aj60ZNE9iuuxjgBEnKohis6o38PwGJ1eIZFrAwA21bwbVzWjvtbgaxbYMFBJ9Q",
+	"7nZoxsOVWUAZBJ+8hKUdKvemndwkX9CpCUFvixG2Ok51sl1sVw6twy/ZEP50XyeeCU4GtBMmlciCjlBR",
+	"fYs4Qwt+jxRHxOJdQ98lHwi1CXgmAhj8xn5jOsZ8oJXeH9CcQhyiexrHaAaI6fxB54hxVG2GiABEloTG",
+	"ZBaDDkp1U9CnistjQMaHnbDtJKQNRJXJWR4V+XKIVDyNabQwwKIhHuOXR9HR3f39KExny89myBMR3RTw",
+	"6spumwB14uIhrspXDLqbWAef7rN9enQsRiKNcrHsqC3Q1zTrSbxzLpLzGPLOwLJEw3dyef3LLe7hn395",
+	"czu5OX9zfnpbgXHZvcxmj1GGyXK4HSR6Zp0eaZ3GfIG/6nw0xHnb+grf15RuVbabzl99OaJf5i8P/7XK",
+	"AhvYTgUQBRd5YG+GYhO2NWxngALTNGz7AbDQn9iBhUjRBHIuZkejDE1url4djfZ0kk2IGtS42f5of78/",
+	"OurvHdzu7Y0PjscHo8Hx/t7/nBKIwmOsY2lfj9zymDqNopLreQa3umlhkFYqpaHxTClpxPQvtaASMbi3",
+	"AvuoYcEqveuenDXZpx7Vrj73f15fNf+ktOMklL0BFukcteeZVioiVAeJ0q+epO3RwTNrW2YWi35sJITG",
+	"iISh0OpwImeyU1WFNKbjdlU9kbznKbMvUwjonAZOppAoMkA/Z1KhhKhgUbPyC4lsUGjT+6Zz57qpQMnJ",
+	"nFu5Z/zKYLbi8FV/9fm8s6xZ4pXGVO6fm/yqRHOOQwe0TfAorKu3IuIHN/Eg4AkutW8iq3ayMKFMYrst",
+	"6Yw2CpKUCyJWzhd1ZLNEIgeGphSUBTQl8Z8/DpVzkRkZhcGM9EfkVdA/PDg+6JPweL9/dPxyb3SwfzTb",
+	"PyZdUzCS6IeTs7/i0q5xSRGVdexFg0wIjTrdpi6xkc8Ri+vzy7PJ5QXu4ZPT28nbc9zD0/O3V6/Pz3AP",
+	"n//3ejK1v6bTq6mXcfwVGrtDo+E9zka9nQNlJUY+c3Q0zGlHD31cJHV4rMDqKcHVPPxaBv1sVLVmBy3K",
+	"bsz07tP87uNx+urL/eooxsVCrgqJ68sJFjQOBbDaFrgtfW1v29uqhJjMIPa+WZI420EPdoC8ea8Us6kV",
+	"t67ddBMefr7P0oOD0UcRHZa62bhh2akuUBXFo66axLvuNmkUrGAUp/P0LrRbjDc88iX7mEcImBKrdiKP",
+	"YWnt0I6Nupd5XQ3Hk8sfr3APvzuZXlr36Q68iYy6B05AShJ17MNrdjYC2tEqptUr3U1Leyw5ELA8voMv",
+	"xzMzfBfSnxmTFWk7MLjuFRG+ranrMgY3aiHhBg/cLXzoJhXxKlN1CtgqaHlwVtawEIkIZVKZxFSrRyGj",
+	"nCLXuhJqPksboKZ8JPOqXgfrTIlQNMhiItxktuokc4kg7CE6R4StavXurVGMhtvYXbnkHpJZsEBEog8x",
+	"laovJe/rjCI/DHzb2phHu0cPjXaPeJaPPnhJYiftsu/a8te9/Pfr6dXF9PzmBvfwzS+np/ZXmTW73N4H",
+	"NyNmhWc0TeqU4QFkC3SPdflGnbn7gKAJ6eLvJbhjABe5DKBq/J5K9kIhW/de1Sn2yfXk99ur1+eXSEIg",
+	"QKEFkYhxhWYALB/BqCqLTQUUj5XIwAMbN3xb1HcLUAvNW+siVeVxg804j4GwTfguBpicefco23ZHPhTk",
+	"knvM7KyyhUZa0kXZnOc1fWJpvZv41Jw0oh+J0mjLRIzHeKFUKsfDYXkKOaC8zbMNjYWwcaCDTq4nuFkV",
+	"zl/qMA9C2v57g5E9egNGUorH+GAwGox0LCNqYQA2JCkdLveGhr/bEx7w7EneUKksxzcncxqiBvgTDesL",
+	"UBe2e+O8cX80eupR09cwGeKq0c3jjO0Hfq91v5dWWt8cxaqG9ZM/c4SRJQkRq1xJhSYU0YH013wZ7/XW",
+	"nEuPbm09BxG3x8yPK4pjPbu1mpzZs4oQUmAh4sxz0vdCIpExvR0eoHcLYPovRlmkW5+8u0FvSDILCdKb",
+	"B3SjIEU/ZsyeI/RswXNypl1TD0zZkls7VZJKvQ+65+LTPOb3epo2Kq65rMIivxOw2gERzT0aqrKRgvPs",
+	"tmsTcPf73v7B4cujp1e5goWg8oe6z27Zi5Xg3oTdaknPg8/bomTSKMOvWw63tx3C9aPgdQ8fPgL4z+Au",
+	"DvfFVr3pL+teIzoNc9ZkYoXXl96SWDfQGCYqdynrODILAoDQoJ9nLppp59DItsWUFoZzLpDL+HUwfpTt",
+	"1/4Y6gtY38ludaV4zPRg/p+E66GAJf9kzUUESUCB0DZ+6MT35Ez7rX6mM1TO0cbYjYir+dsykVLJTcb3",
+	"vivgTo1UiDBEAkOgiuJeVwSzPZ4AgHpms2oRk86jKAGpAAlM0RygpvYXkDi2D6jUJKA4vaYsiLMQQkRt",
+	"WnAurmcJESzBd4LV4EKlTN6rRH5U/jkCjbN3tEOgKW+HeGnQ1ORkiTTZE4m75WBVbnvmmdKlYURYWJBW",
+	"OUATs9dzbc1NEYnmhMbu6oK7MxLwEArTvhyN0D8mTIFgJEY3IJYgkFntP71MrOCsX2+vxh2bXVXf7FbT",
+	"feVSTEX1Tj113Rd62sxCy2bN1evX15W3T+KiX3WrxkM7vynJLHXgVeBQwFyAXHTnySnEnIQGjAEJFuUW",
+	"I19R+65iXddTO4Pt9cdWeiMWGLmby+1S5EP+cxKuO2F5Aapy0QnNVoiGXt+s1LOepKbdtNMFwcPR4feI",
+	"wlpLacV0DUbgSfql7r8u72+15NDSvX7z9la3dS1aajfDzO3QYkVm25anh59ub6/R/miErl7bzRZBH1gW",
+	"x/mlM921cRutWbQJOZiyjXvgk8ALMe8VsY3kK2cXL2T91DEnYncZiFVplPIwbneL9Hxz5hdqUUpWJhhR",
+	"hv5zc3XpzoI7picikk+bu9zO5qfQNV35Jn0k+/xmPu4x8gZvfwznekyMaHm7i7F1Ob+z44tIbmV3GhsG",
+	"ifYyI7I02JVcZ8WW0eHXRgJDydPKaUFn8D/JEfytwFFcwvwjZwCtPncd4I+AieEDEZH+o/KVQjcF1ebn",
+	"qS8NVD4T2MROyw8xHkXUPd9xfD+r1gipMWuuw29p1553MGPER+NDgsrS3YpM1FaZJChFWdQiA+iMgz1I",
+	"cZK0blzN9H4volKBgBD1EYnjxnmkjidESgjRkpLq3Xb7TUGVbxDDOA5Ho3IP2eQTAWH2XKd69KildrXW",
+	"vIM7pqSaaiDCEGWmfeWClr9CdqN11y6Q+GFV+T5s2Pw47FGVhtbHFY9MfN46l1ZDY7vwojS9jbLS7Mst",
+	"yMsTnvFwGPOAxAsu1fh4dLyPNS1wm+CHGrvQ3lI8ybfH6/fr/wcAAP//g5If6F03AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

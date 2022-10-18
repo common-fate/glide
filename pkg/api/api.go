@@ -103,8 +103,8 @@ type AccessRuleService interface {
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
 }
 type CacheService interface {
-	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
-	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
+	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
 }
 
 // API must meet the generated REST API interface.
@@ -166,6 +166,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				DB:                  db,
 				AccessHandlerClient: opts.AccessHandlerClient,
 			},
+			AHClient: opts.AccessHandlerClient,
 		},
 		Cache: &cachesvc.Service{
 			DB:                  db,

@@ -110,11 +110,6 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 		if err != nil {
 			return nil, err
 		}
-		orgUnitGroup := types.Group{
-			Title:   "Organizational Unit",
-			Id:      "organizationalUnit",
-			Options: ous,
-		}
 
 		// tags, err := p.generateTagGroupOptionsForAccounts(ctx, graph.Root.DescendantOrganisationTypeAccounts())
 		// if err != nil {
@@ -127,9 +122,9 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 		// }
 
 		opts.Groups = &types.Groups{
-			AdditionalProperties: map[string]types.Group{
-				"organizationalUnit": orgUnitGroup,
-				// "tags":               tagGroup,
+			AdditionalProperties: map[string][]types.GroupOption{
+				"organizationalUnit": ous,
+				// "tags":               tags,
 			},
 		}
 

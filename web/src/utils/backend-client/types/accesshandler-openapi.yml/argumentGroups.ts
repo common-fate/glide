@@ -5,6 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { GroupOption } from '../accesshandler-openapi.yml/groupOption';
+import type { Group } from '../accesshandler-openapi.yml/group';
 
-export interface Groups {[key: string]: GroupOption[]}
+export type ArgumentGroups = {[key: string]: Group};

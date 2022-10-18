@@ -533,6 +533,10 @@ components:
           enum:
             - INPUT
             - MULTISELECT
+        groups:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Group"
       required:
         - id
         - title
@@ -543,7 +547,9 @@ components:
         id: igcye0lpfpqdh
       type: object
       additionalProperties:
-        $ref: "#/components/schemas/Group"
+        type: array
+        items:
+          $ref: "#/components/schemas/GroupOption"
     Group:
       title: Group
       x-stoplight:
@@ -556,14 +562,9 @@ components:
           type: string
         description:
           type: string
-        options:
-          type: array
-          items:
-            $ref: "#/components/schemas/GroupOption"
       required:
         - id
         - title
-        - options
     GroupOption:
       title: GroupOption
       x-stoplight:

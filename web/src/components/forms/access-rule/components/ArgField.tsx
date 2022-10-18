@@ -57,6 +57,7 @@ const ArgField = (props: ArgFieldProps) => {
   }
 
   const withError = formState.errors.target?.with;
+
   return (
     <>
       <FormControl
@@ -64,15 +65,25 @@ const ArgField = (props: ArgFieldProps) => {
         isInvalid={withError && withError[argument.id] !== undefined}
       >
         <>
-          {argOptions?.groups ? (
+          {argument.groups ? (
             <>
-              {Object.values(argOptions.groups).map((group) => (
-                <ArgGroupView
-                  argId={argument.id}
-                  groupDetail={group}
-                  providerId={providerId}
-                />
-              ))}
+              {Object.values(argument.groups).map((group) => {
+                // catch the unexpected case where there are no options for group
+                if (
+                  argOptions?.groups == undefined ||
+                  !argOptions.groups[group.id]
+                ) {
+                  return null;
+                }
+                return (
+                  <ArgGroupView
+                    argId={argument.id}
+                    group={group}
+                    options={argOptions.groups[group.id]}
+                    providerId={providerId}
+                  />
+                );
+              })}
             </>
           ) : null}
         </>
