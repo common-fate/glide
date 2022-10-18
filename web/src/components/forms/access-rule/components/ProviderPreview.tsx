@@ -93,7 +93,6 @@ export const ProviderPreview: React.FC = () => {
                             if (!argOptions?.groups) {
                               return null;
                             }
-
                             const groupOptions = argOptions.groups[groupId];
                             return (
                               <CopyableOption
