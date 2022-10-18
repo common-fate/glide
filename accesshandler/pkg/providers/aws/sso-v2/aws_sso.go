@@ -80,6 +80,7 @@ func (p *Provider) ArgSchemaV2() providers.ArgSchema {
 				AdditionalProperties: map[string]types.Group{
 					"organizationalUnit": {
 						Title: "Organizational Unit",
+						Id:    "organizationalUnit",
 					},
 				},
 			},
