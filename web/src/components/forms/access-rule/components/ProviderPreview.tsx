@@ -47,71 +47,74 @@ export const ProviderPreview: React.FC = () => {
         <ProviderIcon shortType={provider.type} />
         <Text>{provider.id}</Text>
       </HStack>
-      {data &&
-        Object.entries(target.multiSelects).map(([k, v]) => {
-          const arg = data[k];
+      <VStack w="100%" align={"flex-start"} spacing={0}>
+        {data &&
+          Object.entries(target.multiSelects).map(([k, v]) => {
+            const arg = data[k];
 
-          // This will now fetch all arg options i.e.
-          // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
-          // This can make our flat values copyable
-          const { data: argOptions } = useListProviderArgOptions(
-            provider.id,
-            k
-          );
-          // console.log({ arg, argOptions });
+            // This will now fetch all arg options i.e.
+            // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
+            // This can make our flat values copyable
+            const { data: argOptions } = useListProviderArgOptions(
+              provider.id,
+              k
+            );
+            // console.log({ arg, argOptions });
 
-          return (
-            <VStack w="100%" align={"flex-start"} spacing={0}>
-              <Text>{arg.title}</Text>
-              <Wrap>
-                {v?.map((opt) => {
-                  return (
-                    <CopyableOption
-                      key={"cp-" + opt}
-                      label={
-                        argOptions?.options?.find((d) => d.value === opt)
-                          ?.label ?? ""
-                      }
-                      value={opt}
-                    />
-                  );
-                })}
-              </Wrap>
-              {target.argumentGroups[k] &&
-                arg.groups &&
-                Object.entries(target.argumentGroups[k]).map(
-                  ([groupId, groupValues]) => {
-                    if (!arg.groups) {
-                      return null;
-                    }
-                    const group = arg.groups[groupId];
+            return (
+              <VStack w="100%" align={"flex-start"} spacing={0}>
+                <Text>{arg.title}</Text>
+                <Wrap>
+                  {v?.map((opt) => {
                     return (
-                      <VStack>
-                        <Text>{group.title}</Text>
-                        {groupValues.map((groupValue) => {
-                          if (!argOptions?.groups) {
-                            return null;
-                          }
-
-                          const groupOptions = argOptions.groups[groupId];
-                          return (
-                            <CopyableOption
-                              key={"cp-" + groupValue}
-                              label={
-                                groupOptions.find((d) => d.value === groupValue)
-                                  ?.label ?? ""
-                              }
-                              value={groupValue}
-                            />
-                          );
-                        })}
-                      </VStack>
+                      <CopyableOption
+                        key={"cp-" + opt}
+                        label={
+                          argOptions?.options?.find((d) => d.value === opt)
+                            ?.label ?? ""
+                        }
+                        value={opt}
+                      />
                     );
-                  }
-                )}
-            </VStack>
-          );
-        })}
+                  })}
+                </Wrap>
+                {target.argumentGroups[k] &&
+                  arg.groups &&
+                  Object.entries(target.argumentGroups[k]).map(
+                    ([groupId, groupValues]) => {
+                      if (!arg.groups) {
+                        return null;
+                      }
+                      const group = arg.groups[groupId];
+                      return (
+                        <VStack>
+                          <Text>{group.title}</Text>
+                          {groupValues.map((groupValue) => {
+                            if (!argOptions?.groups) {
+                              return null;
+                            }
+
+                            const groupOptions = argOptions.groups[groupId];
+                            return (
+                              <CopyableOption
+                                key={"cp-" + groupValue}
+                                label={
+                                  groupOptions.find(
+                                    (d) => d.value === groupValue
+                                  )?.label ?? ""
+                                }
+                                value={groupValue}
+                              />
+                            );
+                          })}
+                        </VStack>
+                      );
+                    }
+                  )}
+              </VStack>
+            );
+          })}
+      </VStack>
     </VStack>
   );
 };
