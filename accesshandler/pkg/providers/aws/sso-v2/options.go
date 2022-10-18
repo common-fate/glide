@@ -3,16 +3,14 @@ package ssov2
 import (
 	"context"
 	"errors"
-	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	organizationTypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
-	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
-	resourcegroupstaggingapitypes "github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	ssoadmintypes "github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
+
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"go.uber.org/zap"
@@ -97,28 +95,36 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 		log := zap.S().With("arg", arg)
 		log.Info("getting sso permission set options")
 		var opts types.ArgOptionsResponse
-		accounts, err := p.listAccountsForOrganization(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, acct := range accounts {
-			opts.Options = append(opts.Options, types.Option{Label: aws.ToString(acct.Name), Value: aws.ToString(acct.Id)})
-		}
-		log.Info("getting aws organization unit id set options")
-		ous, err := p.generateOuGroupOptions(ctx)
+
+		graph, err := p.buildOrganizationGraph(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		tags, err := p.generateTagGroupOptionsForAccounts(ctx, accounts)
+		for _, acct := range graph.Root.DescendantAccounts() {
+			opts.Options = append(opts.Options, types.Option{Label: aws.ToString(acct.Account.Name), Value: aws.ToString(acct.Account.Id)})
+		}
+		log.Info("getting aws organization unit id set options")
+
+		ous, err := graph.generateOuGroupOptions(ctx)
 		if err != nil {
 			return nil, err
 		}
+
+		// tags, err := p.generateTagGroupOptionsForAccounts(ctx, graph.Root.DescendantOrganisationTypeAccounts())
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// tagGroup := types.Group{
+		// 	Title:   "Tags",
+		// 	Id:      "tag",
+		// 	Options: tags,
+		// }
 
 		opts.Groups = &types.Groups{
 			AdditionalProperties: map[string][]types.GroupOption{
 				"organizationalUnit": ous,
-				"tags":               tags,
+				// "tags":               tags,
 			},
 		}
 
@@ -129,22 +135,18 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 
 }
 
-func (p *Provider) listAccountsForOrganization(ctx context.Context) (accounts []organizationTypes.Account, err error) {
-	hasMore := true
-	var nextToken *string
-	for hasMore {
-		o, err := p.orgClient.ListAccounts(ctx, &organizations.ListAccountsInput{
-			NextToken: nextToken,
-		})
-		if err != nil {
-			return nil, err
-		}
-		nextToken = o.NextToken
-		hasMore = nextToken != nil
-		accounts = append(accounts, o.Accounts...)
+func (g *OrganizationGraph) generateOuGroupOptions(ctx context.Context) ([]types.GroupOption, error) {
+	// first add the organization root
+	groupOptions := []types.GroupOption{
+		{Label: aws.ToString(g.Root.Root.Name), Value: aws.ToString(g.Root.Root.Id), Children: g.Root.DescendantAccountIDs()},
 	}
-	return
+	for _, orgUnit := range g.Root.DescendantOrganizationalUnits() {
+		option := types.GroupOption{Label: aws.ToString(orgUnit.OrganizationalUnit.Name), Value: aws.ToString(orgUnit.OrganizationalUnit.Id), Children: orgUnit.DescendantAccountIDs()}
+		groupOptions = append(groupOptions, option)
+	}
+	return groupOptions, nil
 }
+
 func (p *Provider) listChildOusForParent(ctx context.Context, parentID string) (ous []organizationTypes.OrganizationalUnit, err error) {
 	hasMore := true
 	var nextToken *string
@@ -179,148 +181,44 @@ func (p *Provider) listChildAccountsForParent(ctx context.Context, parentID stri
 	}
 	return
 }
-
-func (p *Provider) listAccountsWithTag(ctx context.Context, tags []resourcegroupstaggingapitypes.TagFilter) (accounts []string, err error) {
-	hasMore := true
-	var nextToken *string
-	for hasMore {
-		resources, err := p.resourcesClient.GetResources(ctx, &resourcegroupstaggingapi.GetResourcesInput{
-			// TagFilters:          tags,
-			ResourceTypeFilters: []string{"organizations:account"},
-			PaginationToken:     nextToken,
-		})
-		if err != nil {
-			return nil, err
-		}
-		nextToken = resources.PaginationToken
-		if nextToken != nil && *nextToken == "" {
-			nextToken = nil
-		}
-		hasMore = nextToken != nil
-
-		// Split the account id from the arn
-		for _, resource := range resources.ResourceTagMappingList {
-			s := strings.Split(aws.ToString(resource.ResourceARN), "/")
-			accounts = append(accounts, s[len(s)-1])
-		}
-	}
-	return
-}
-
-func (p *Provider) listTagsForAccount(ctx context.Context, accountID string) (tags []organizationTypes.Tag, err error) {
-	hasMore := true
-	var nextToken *string
-	for hasMore {
-		acctTags, err := p.orgClient.ListTagsForResource(ctx, &organizations.ListTagsForResourceInput{
-			ResourceId: &accountID,
-			NextToken:  nextToken,
-		})
-		if err != nil {
-			return nil, err
-		}
-		nextToken = acctTags.NextToken
-		hasMore = nextToken != nil
-		tags = append(tags, acctTags.Tags...)
-	}
-	return
-}
-
-func (p *Provider) generateTagGroupOptionsForAccounts(ctx context.Context, accounts []organizationTypes.Account) ([]types.GroupOption, error) {
-	groupOptions := []types.GroupOption{}
-	tagAccountMap := make(map[string][]string)
-	var mu sync.Mutex
-	// commented out all the go routines because it was causing a context cancelled error
-	// g, gctx := errgroup.WithContext(ctx)
-	// g.SetLimit(1) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
-	for _, acct := range accounts {
-		// g.Go(func() error {
-		tags, err := p.listTagsForAccount(ctx, aws.ToString(acct.Id))
-		if err != nil {
-			return nil, err
-		}
-		mu.Lock()
-		for _, tag := range tags {
-			// Note: tags are key value pairs and we need both to look them up, we join them with a :
-			// TODO:consider adding native key:value pair support for option values?
-			// If required make the value some opaque encoded value if its difficult to store
-			kv := aws.ToString(tag.Key) + ":" + aws.ToString(tag.Value)
-			tagAccounts := tagAccountMap[kv]
-			tagAccounts = append(tagAccounts, aws.ToString(acct.Id))
-			tagAccountMap[kv] = tagAccounts
-		}
-		mu.Unlock()
-		// return nil
-		// })
-		// err = g.Wait()
-		if err != nil {
-			return nil, err
-		}
-	}
-	for k, v := range tagAccountMap {
-		groupOptions = append(groupOptions, types.GroupOption{
-			Children: v,
-			Label:    k,
-			Value:    k,
-		})
-	}
-	return groupOptions, nil
-}
-
-func (p *Provider) generateOuGroupOptions(ctx context.Context) ([]types.GroupOption, error) {
-	groupOptions := []types.GroupOption{}
-	roots, err := p.orgClient.ListRoots(ctx, &organizations.ListRootsInput{})
-	if err != nil {
-		return nil, err
-	}
-	// @TODO this is only 1 level of OUs, it will not return any nested OUs
-	childOus, err := p.listChildOusForParent(ctx, aws.ToString(roots.Roots[0].Id))
-	if err != nil {
-		return nil, err
-	}
-	for _, orgUnit := range childOus {
-		option := types.GroupOption{Label: aws.ToString(orgUnit.Name), Value: aws.ToString(orgUnit.Id)}
-		// @TODO this is only 1 level of accounts, it will not return accounts for nested OUs
-		childAccounts, err := p.listChildAccountsForParent(ctx, aws.ToString(orgUnit.Id))
-		if err != nil {
-			return nil, err
-		}
-		for _, a := range childAccounts {
-			option.Children = append(option.Children, aws.ToString(a.Id))
-		}
-		groupOptions = append(groupOptions, option)
-	}
-	return groupOptions, nil
-}
-
 func (p *Provider) ArgOptionGroupValues(ctx context.Context, argId string, groupID string, groupValues []string) ([]string, error) {
+	graph, err := p.buildOrganizationGraph(ctx)
+	if err != nil {
+		return nil, err
+	}
 	switch argId {
 	case "accountId":
 		switch groupID {
 		case "organizationalUnit":
-			var accountIDs []string
+			accountIDs := make(map[string]string)
 			for _, groupValue := range groupValues {
-				accounts, err := p.listChildAccountsForParent(ctx, groupValue)
-				if err != nil {
-					return nil, err
-				}
-				for _, account := range accounts {
-					accountIDs = append(accountIDs, aws.ToString(account.Id))
+				if node, ok := graph.idMap[groupValue]; ok {
+					if node.IsOrganizationalUnit() || node.IsRoot() {
+						for _, accountID := range node.DescendantAccountIDs() {
+							accountIDs[accountID] = accountID
+						}
+					}
 				}
 			}
-			return accountIDs, nil
-		case "tag":
-			var tags []resourcegroupstaggingapitypes.TagFilter
-			for _, gv := range groupValues {
-				kv := strings.SplitN(gv, ":", 2)
-				if len(kv) != 2 {
-					return nil, &providers.InvalidGroupValueError{GroupID: groupID, GroupValue: gv}
-				}
-				tags = append(tags, resourcegroupstaggingapitypes.TagFilter{
-					Key:    aws.String(kv[0]),
-					Values: []string{kv[1]},
-				})
+			keys := make([]string, 0, len(accountIDs))
+			for k := range accountIDs {
+				keys = append(keys, k)
 			}
-			return p.listAccountsWithTag(ctx, tags)
+
+			return keys, nil
+		// case "tag":
+		// 	var tags []resourcegroupstaggingapitypes.TagFilter
+		// 	for _, gv := range groupValues {
+		// 		kv := strings.SplitN(gv, ":", 2)
+		// 		if len(kv) != 2 {
+		// 			return nil, &providers.InvalidGroupValueError{GroupID: groupID, GroupValue: gv}
+		// 		}
+		// 		tags = append(tags, resourcegroupstaggingapitypes.TagFilter{
+		// 			Key:    aws.String(kv[0]),
+		// 			Values: []string{kv[1]},
+		// 		})
+		// 	}
+		// 	return p.listAccountsWithTag(ctx, tags)
 		default:
 			return nil, &providers.InvalidGroupIDError{GroupID: groupID}
 		}
@@ -328,3 +226,89 @@ func (p *Provider) ArgOptionGroupValues(ctx context.Context, argId string, group
 		return nil, &providers.InvalidArgumentError{Arg: argId}
 	}
 }
+
+// func (p *Provider) listAccountsWithTag(ctx context.Context, tags []resourcegroupstaggingapitypes.TagFilter) (accounts []string, err error) {
+// 	hasMore := true
+// 	var nextToken *string
+// 	for hasMore {
+// 		resources, err := p.resourcesClient.GetResources(ctx, &resourcegroupstaggingapi.GetResourcesInput{
+// 			// TagFilters:          tags,
+// 			ResourceTypeFilters: []string{"organizations:account"},
+// 			PaginationToken:     nextToken,
+// 		})
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		nextToken = resources.PaginationToken
+// 		if nextToken != nil && *nextToken == "" {
+// 			nextToken = nil
+// 		}
+// 		hasMore = nextToken != nil
+
+// 		// Split the account id from the arn
+// 		for _, resource := range resources.ResourceTagMappingList {
+// 			s := strings.Split(aws.ToString(resource.ResourceARN), "/")
+// 			accounts = append(accounts, s[len(s)-1])
+// 		}
+// 	}
+// 	return
+// }
+
+// func (p *Provider) listTagsForAccount(ctx context.Context, accountID string) (tags []organizationTypes.Tag, err error) {
+// 	hasMore := true
+// 	var nextToken *string
+// 	for hasMore {
+// 		acctTags, err := p.orgClient.ListTagsForResource(ctx, &organizations.ListTagsForResourceInput{
+// 			ResourceId: &accountID,
+// 			NextToken:  nextToken,
+// 		})
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		nextToken = acctTags.NextToken
+// 		hasMore = nextToken != nil
+// 		tags = append(tags, acctTags.Tags...)
+// 	}
+// 	return
+// }
+
+// func (p *Provider) generateTagGroupOptionsForAccounts(ctx context.Context, accounts []organizationTypes.Account) ([]types.GroupOption, error) {
+// 	groupOptions := []types.GroupOption{}
+// 	tagAccountMap := make(map[string][]string)
+// 	var mu sync.Mutex
+// 	// commented out all the go routines because it was causing a context cancelled error
+// 	// g, gctx := errgroup.WithContext(ctx)
+// 	// g.SetLimit(1) // set a limit here to avoid hitting API rate limits in cases where accounts have many permission sets
+// 	for _, acct := range accounts {
+// 		// g.Go(func() error {
+// 		tags, err := p.listTagsForAccount(ctx, aws.ToString(acct.Id))
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		mu.Lock()
+// 		for _, tag := range tags {
+// 			// Note: tags are key value pairs and we need both to look them up, we join them with a :
+// 			// TODO:consider adding native key:value pair support for option values?
+// 			// If required make the value some opaque encoded value if its difficult to store
+// 			kv := aws.ToString(tag.Key) + ":" + aws.ToString(tag.Value)
+// 			tagAccounts := tagAccountMap[kv]
+// 			tagAccounts = append(tagAccounts, aws.ToString(acct.Id))
+// 			tagAccountMap[kv] = tagAccounts
+// 		}
+// 		mu.Unlock()
+// 		// return nil
+// 		// })
+// 		// err = g.Wait()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	}
+// 	for k, v := range tagAccountMap {
+// 		groupOptions = append(groupOptions, types.GroupOption{
+// 			Children: v,
+// 			Label:    k,
+// 			Value:    k,
+// 		})
+// 	}
+// 	return groupOptions, nil
+// }
