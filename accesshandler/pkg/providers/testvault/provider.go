@@ -3,9 +3,11 @@ package testvault
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/testvault"
-	"github.com/invopop/jsonschema"
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 )
@@ -37,8 +39,15 @@ func (p *Provider) Init(ctx context.Context) error {
 	p.client = client
 	return nil
 }
+func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"vault": {
+			Id:          "vault",
+			Title:       "Vault",
+			Description: aws.String("The name of an example vault to grant access to (can be any string)"),
+			FormElement: types.INPUT,
+		},
+	}
 
-// ArgSchema returns the schema for the Okta provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+	return arg
 }
