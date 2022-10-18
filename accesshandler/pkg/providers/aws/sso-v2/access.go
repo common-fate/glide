@@ -16,8 +16,8 @@ import (
 )
 
 type Args struct {
-	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission Set"`
-	AccountID        string `json:"accountId" jsonschema:"title=Account"`
+	PermissionSetARN string `json:"permissionSetArn"`
+	AccountID        string `json:"accountId"`
 }
 
 // Grant the access by calling the AWS SSO API.
