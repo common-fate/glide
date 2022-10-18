@@ -102,11 +102,12 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		Options: []ahTypes.Option{},
 	}
 	var options []cache.ProviderOption
+	var groups []cache.ProviderArgGroupOption
 	var err error
 	if params.Refresh != nil && *params.Refresh {
-		_, options, err = a.Cache.RefreshCachedProviderArgOptions(ctx, providerId, argId)
+		_, options, groups, err = a.Cache.RefreshCachedProviderArgOptions(ctx, providerId, argId)
 	} else {
-		_, options, err = a.Cache.LoadCachedProviderArgOptions(ctx, providerId, argId)
+		_, options, groups, err = a.Cache.LoadCachedProviderArgOptions(ctx, providerId, argId)
 	}
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
@@ -120,25 +121,14 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		})
 	}
 
-	ao, err := a.AccessHandlerClient.ListProviderArgOptionsWithResponse(ctx, providerId, argId)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	code := ao.StatusCode()
-	switch code {
-	case 200:
-		res.Groups = ao.JSON200.Groups
-	case 404:
-		err := errors.New("provider not found")
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-		return
-	case 500:
-		apio.Error(ctx, w, errors.New(*ao.JSON500.Error))
-		return
-	default:
-		apio.Error(ctx, w, errors.New("unhandled"))
-		return
+	for _, group := range groups {
+		if g, ok := res.Groups.AdditionalProperties[group.Group]; ok {
+			res.Groups.AdditionalProperties[group.Group] = append(g, ahTypes.GroupOption{
+				Children: group.Children,
+				Label:    group.Label,
+				Value:    group.Value,
+			})
+		}
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

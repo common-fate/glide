@@ -36,46 +36,6 @@ func (m *MockClientWithResponsesInterface) EXPECT() *MockClientWithResponsesInte
 	return m.recorder
 }
 
-// FetchArgGroupValuesWithBodyWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) FetchArgGroupValuesWithBodyWithResponse(arg0 context.Context, arg1, arg2, arg3 string, arg4 io.Reader, arg5 ...types.RequestEditorFn) (*types.FetchArgGroupValuesResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2, arg3, arg4}
-	for _, a := range arg5 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "FetchArgGroupValuesWithBodyWithResponse", varargs...)
-	ret0, _ := ret[0].(*types.FetchArgGroupValuesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FetchArgGroupValuesWithBodyWithResponse indicates an expected call of FetchArgGroupValuesWithBodyWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) FetchArgGroupValuesWithBodyWithResponse(arg0, arg1, arg2, arg3, arg4 interface{}, arg5 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2, arg3, arg4}, arg5...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchArgGroupValuesWithBodyWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).FetchArgGroupValuesWithBodyWithResponse), varargs...)
-}
-
-// FetchArgGroupValuesWithResponse mocks base method.
-func (m *MockClientWithResponsesInterface) FetchArgGroupValuesWithResponse(arg0 context.Context, arg1, arg2 string, arg3 types.FetchArgGroupValuesJSONRequestBody, arg4 ...types.RequestEditorFn) (*types.FetchArgGroupValuesResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2, arg3}
-	for _, a := range arg4 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "FetchArgGroupValuesWithResponse", varargs...)
-	ret0, _ := ret[0].(*types.FetchArgGroupValuesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FetchArgGroupValuesWithResponse indicates an expected call of FetchArgGroupValuesWithResponse.
-func (mr *MockClientWithResponsesInterfaceMockRecorder) FetchArgGroupValuesWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchArgGroupValuesWithResponse", reflect.TypeOf((*MockClientWithResponsesInterface)(nil).FetchArgGroupValuesWithResponse), varargs...)
-}
-
 // GetAccessInstructionsWithResponse mocks base method.
 func (m *MockClientWithResponsesInterface) GetAccessInstructionsWithResponse(arg0 context.Context, arg1 string, arg2 *types.GetAccessInstructionsParams, arg3 ...types.RequestEditorFn) (*types.GetAccessInstructionsResponse, error) {
 	m.ctrl.T.Helper()
