@@ -27,8 +27,14 @@ import { adminArchiveAccessRule } from "../../../utils/backend-client/default/de
 import {
   AccessRuleDetail,
   CreateAccessRuleRequestBody,
+  CreateAccessRuleTarget,
 } from "../../../utils/backend-client/types";
-import { AccessRuleFormData, AccessRuleFormDataTarget } from "./CreateForm";
+import {
+  AccessRuleFormData,
+  AccessRuleFormDataTarget,
+  accessRuleFormDataTargetToApi,
+  accessRuleFormDataToApi,
+} from "./CreateForm";
 
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
@@ -108,58 +114,32 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
-
-    const { approval, target, ...d } = data;
-    // const t = {
-    //   providerId: target.providerId,
-    //   with: {
-    //     ...target?.with,
-    //   },
-    // };
-    // for (const k in target.withText) {
-    //   // TODO: FIXME:
-    //   // Update based on changes with `with` respoonse object.
-    //   // t.with[k] = [target.withText[k]];
-    // }
-    // const ruleData: CreateAccessRuleRequestBody = {
-    //   approval: { users: [], groups: [] },
-    //   target: t,
-    //   ...d,
-    // };
-    // only apply these fields if approval is enabled
-    // if (approval.required) {
-    //   ruleData["approval"].users = data.approval.users;
-    //   ruleData["approval"].groups = data.approval.groups;
-    // } else {
-    //   ruleData["approval"].users = [];
-    // }
-
-    // try {
-    //   await adminUpdateAccessRule(ruleId, ruleData);
-    //   toast({
-    //     title: "Access rule updated",
-    //     status: "success",
-    //     variant: "subtle",
-    //     duration: 2200,
-    //     isClosable: true,
-    //   });
-    //   void mutate();
-    //   navigate({ to: "/admin/access-rules" });
-    // } catch (err) {
-    //   let description: string | undefined;
-    //   if (axios.isAxiosError(err)) {
-    //     // @ts-ignore
-    //     description = err?.response?.data.error;
-    //   }
-    //   toast({
-    //     title: "Error updating access rule",
-    //     description,
-    //     status: "error",
-    //     variant: "subtle",
-    //     duration: 2200,
-    //     isClosable: true,
-    //   });
-    // }
+    try {
+      await adminUpdateAccessRule(ruleId, accessRuleFormDataToApi(data));
+      toast({
+        title: "Access rule updated",
+        status: "success",
+        variant: "subtle",
+        duration: 2200,
+        isClosable: true,
+      });
+      void mutate();
+      navigate({ to: "/admin/access-rules" });
+    } catch (err) {
+      let description: string | undefined;
+      if (axios.isAxiosError(err)) {
+        // @ts-ignore
+        description = err?.response?.data.error;
+      }
+      toast({
+        title: "Error updating access rule",
+        description,
+        status: "error",
+        variant: "subtle",
+        duration: 2200,
+        isClosable: true,
+      });
+    }
   };
 
   const handleArchive = async () => {
