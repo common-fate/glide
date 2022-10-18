@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
 	"go.uber.org/zap"
 )
 
@@ -57,8 +59,28 @@ func (p *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configured aws sso client", "instanceArn", p.instanceARN, "idstoreID", p.identityStoreID)
 	return nil
 }
+func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"permissionSetArn": {
+			Id:          "permissionSetArn",
+			Title:       "Permission Set",
+			Description: aws.String("The Permission Set field lists all the SSO Permission Sets which have a resource tag with key 'commonfate.io/managed-by-granted'. Granted Approvals can only manage SSO Permission Sets which have been created in the delegated SSO management account. See our documentation for more information. https://docs.commonfate.io/granted-approvals/providers/aws-sso"),
+			FormElement: types.MULTISELECT,
+		},
+		"accountId": {
+			Id:          "accountId",
+			Title:       "Account",
+			FormElement: types.MULTISELECT,
+			Groups: &types.Argument_Groups{
+				AdditionalProperties: map[string]types.Group{
+					"organizationalUnit": {
+						Title: "Organizational Unit",
+						Id:    "organizationalUnit",
+					},
+				},
+			},
+		},
+	}
 
-// ArgSchema returns the schema for the AWS SSO provider.
-func (p *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+	return arg
 }
