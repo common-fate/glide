@@ -13,7 +13,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
 	"go.uber.org/zap"
 )
 
@@ -64,11 +63,6 @@ func (p *Provider) Init(ctx context.Context) error {
 	return nil
 }
 
-// ArgSchema returns the schema for the AWS SSO provider.
-func (p *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
-}
-
 func (p *Provider) ArgSchemaV2() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"permissionSetArn": {
@@ -82,6 +76,14 @@ func (p *Provider) ArgSchemaV2() providers.ArgSchema {
 			Title:       "Account",
 			Description: aws.String("The AWS Account ID"),
 			FormElement: types.MULTISELECT,
+			Groups: &types.Argument_Groups{
+				AdditionalProperties: map[string]types.Group{
+					"organizationalUnit": {
+						Title: "Organizational Unit",
+						Id:    "organizationalUnit",
+					},
+				},
+			},
 		},
 	}
 
