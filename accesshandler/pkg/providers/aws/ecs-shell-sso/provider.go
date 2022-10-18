@@ -113,7 +113,7 @@ func (p *Provider) RequiresAccessToken() bool {
 	return true
 }
 
-func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"taskDefinitionFamily": {
 			Id:          "taskDefinitionFamily",

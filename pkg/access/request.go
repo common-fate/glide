@@ -176,7 +176,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
+				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
 					with.Title = arg.Title
 				}

@@ -18,7 +18,7 @@ func (p *Provider) Configure(ctx context.Context, jsonConfig []byte) error {
 
 }
 
-func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"group": {
 			Id:          "group",

@@ -59,7 +59,7 @@ func (p *Provider) Init(ctx context.Context) error {
 	zap.S().Infow("configured aws sso client", "instanceArn", p.instanceARN, "idstoreID", p.identityStoreID)
 	return nil
 }
-func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"permissionSetArn": {
 			Id:          "permissionSetArn",

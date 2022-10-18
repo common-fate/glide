@@ -52,7 +52,7 @@ func (a *Provider) Init(ctx context.Context) error {
 	return nil
 }
 
-func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"groupId": {
 			Id:          "groupId",
