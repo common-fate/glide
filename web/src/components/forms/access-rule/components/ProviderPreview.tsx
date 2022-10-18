@@ -24,7 +24,6 @@ import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
 import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 
-// TODO: Update ProviderPreview component based on new arg schema response object.
 export const ProviderPreview: React.FC = () => {
   const { watch } = useFormContext<AccessRuleFormData>();
   const target = watch("target");
@@ -41,10 +40,6 @@ export const ProviderPreview: React.FC = () => {
   ) {
     return null;
   }
-  // I need to be run per arg... (i should be in a for loop)
-
-  // Using a schema form here to do the heavy lifting of parsing the schema
-  //  so we can get field names
 
   return (
     <VStack w="100%" align="flex-start">
@@ -63,20 +58,17 @@ export const ProviderPreview: React.FC = () => {
             provider.id,
             k
           );
-          console.log({ arg, argOptions });
-          // const { data: argOptions } = useListProviderArgOptions(provider.id, arg.id);
+          // console.log({ arg, argOptions });
 
           return (
             <VStack w="100%" align={"flex-start"} spacing={0}>
               <Text>{arg.title}</Text>
-              {/* @TODO: make  */}
               <Wrap>
                 {v?.map((opt) => {
                   return (
                     <CopyableOption
                       key={"cp-" + opt}
                       label={
-                        // "hello"
                         argOptions?.options?.find((d) => d.value === opt)
                           ?.label ?? ""
                       }
@@ -106,7 +98,6 @@ export const ProviderPreview: React.FC = () => {
                             <CopyableOption
                               key={"cp-" + groupValue}
                               label={
-                                // "hello"
                                 groupOptions.find((d) => d.value === groupValue)
                                   ?.label ?? ""
                               }
@@ -121,8 +112,6 @@ export const ProviderPreview: React.FC = () => {
             </VStack>
           );
         })}
-      {/* <Box w="100%">
-      </Box> */}
     </VStack>
   );
 };
