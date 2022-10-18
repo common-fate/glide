@@ -775,7 +775,7 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: get-provider-args
-      description: gets the jsonschema describing the args for this provider
+      description: gets the argSchema describing the args for this provider
   "/api/v1/admin/providers/{providerId}/args/{argId}/options":
     parameters:
       - schema:

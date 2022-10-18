@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
+	github.com/aws/aws-sdk-go v1.44.71
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.15.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
@@ -30,7 +31,6 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-memdb v1.3.3
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/invopop/jsonschema v0.6.0
 	github.com/magefile/mage v1.13.0
 	github.com/mattn/go-colorable v0.1.12
 	github.com/okta/okta-sdk-golang/v2 v2.13.0
@@ -51,7 +51,6 @@ require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
-	github.com/aws/aws-sdk-go v1.44.71 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.13.12 // indirect
@@ -83,7 +82,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
-	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/itchyny/gojq v0.12.7 // indirect
