@@ -35,7 +35,6 @@ export const ProviderPreview: React.FC<{
     return null;
   }
   // I need to be run per arg... (i should be in a for loop)
-  // const { data: argOptions } = useListProviderArgOptions(provider.id, props.name);
 
   // Using a schema form here to do the heavy lifting of parsing the schema
   //  so we can get field names
@@ -46,22 +45,37 @@ export const ProviderPreview: React.FC<{
         <Text>{provider.id}</Text>
       </HStack>
       {data &&
-        Object.keys(data).map((key) => {
+        Object.keys(target.with).map((key) => {
           const arg = data[key];
+          const keyValues = target.with[key];
+
+          // This will now fetch all arg options i.e.
+          // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
+          // This can make our flat values copyable
+          const { data: argOptions } = useListProviderArgOptions(
+            provider.id,
+            key
+          );
+          console.log({ arg, argOptions });
           // const { data: argOptions } = useListProviderArgOptions(provider.id, arg.id);
           return (
             <VStack w="100%" align={"flex-start"} spacing={0}>
               <Text>{arg.title}</Text>
+              {/* @TODO: make  */}
               <Wrap>
-                {/* {value.map((opt: any) => {
-            return (
-              <CopyableOption
-                key={"cp-" + opt}
-                label={data?.options.find((d) => d.value === opt)?.label ?? ""}
-                value={opt}
-              />
-            );
-          })} */}
+                {keyValues?.map((opt: any) => {
+                  return (
+                    <CopyableOption
+                      key={"cp-" + opt}
+                      label={
+                        // "hello"
+                        argOptions?.options?.find((d) => d.value === opt)
+                          ?.label ?? ""
+                      }
+                      value={opt}
+                    />
+                  );
+                })}
               </Wrap>
             </VStack>
           );
