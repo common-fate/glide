@@ -20,7 +20,7 @@ type CacheSyncer struct {
 // if a particular argument fails to sync, the error is logged and it continues to try syncing the other arguments/providers
 func (s *CacheSyncer) Sync(ctx context.Context) error {
 	log := logger.Get(ctx)
-	_ = log
+	log.Info("starting to sync provider options cache")
 
 	providers, err := s.AccessHandlerClient.ListProvidersWithResponse(ctx)
 	if err != nil {
@@ -42,14 +42,21 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 			log.Errorw("failed to get provider schema", "providerId", provider.Id, "responseBody", string(providers.Body))
 			continue
 		}
-		for k := range providerSchema.JSON200.AdditionalProperties {
-			_, _, _, err = s.Cache.RefreshCachedProviderArgOptions(ctx, provider.Id, k)
-			if err != nil {
-				log.Errorw("failed to refresh cache for provider argument", "providerId", provider.Id, "argId", k, "error", err)
-				continue
+		for k, v := range providerSchema.JSON200.AdditionalProperties {
+			// Only fetch options for arguments which support it
+			// Currently only the Multiselect type has options, if we add other field types we may need to sync the options for those as well
+			if v.FormElement == ahtypes.MULTISELECT {
+				log.Info("refreshing cache for provider argument", "providerId", provider.Id, "argId", k)
+				_, _, _, err = s.Cache.RefreshCachedProviderArgOptions(ctx, provider.Id, k)
+				if err != nil {
+					log.Errorw("failed to refresh cache for provider argument", "providerId", provider.Id, "argId", k, "error", err)
+					continue
+				}
 			}
+
 		}
 	}
+	log.Info("completed syncing provider options cache")
 
 	return nil
 }
