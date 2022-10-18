@@ -62,8 +62,9 @@ func (g *Grant) ToAPI() types.Grant {
 }
 
 type Option struct {
-	Value string `json:"value" dynamodbav:"value"`
-	Label string `json:"label" dynamodbav:"label"`
+	Value       string  `json:"value" dynamodbav:"value"`
+	Label       string  `json:"label" dynamodbav:"label"`
+	Description *string `json:"description" dynamodbav:"description"`
 }
 
 type Request struct {
@@ -169,9 +170,10 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(accessRule.Target.ProviderType)
 	for k, v := range r.SelectedWith {
 		with := types.With{
-			Label: v.Label,
-			Value: v.Value,
-			Title: k,
+			Label:       v.Label,
+			Value:       v.Value,
+			Title:       k,
+			Description: v.Description,
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
