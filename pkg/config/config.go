@@ -50,6 +50,12 @@ type SyncConfig struct {
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
 	IdentitySettings string `env:"IDENTITY_SETTINGS,default={}"`
 }
+type CacheSyncConfig struct {
+	TableName        string `env:"APPROVALS_TABLE_NAME,required"`
+	LogLevel         string `env:"LOG_LEVEL,default=info"`
+	Region           string `env:"AWS_REGION,required"`
+	AccessHandlerURL string `env:"ACCESS_HANDLER_URL,default=http://0.0.0.0:9092"`
+}
 
 type FrontendDeployerConfig struct {
 	LogLevel                             string `env:"LOG_LEVEL,default=info"`

@@ -13,14 +13,19 @@ import (
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/config"
 )
+
+type BuildAccessHandlerClientOpts struct {
+	Region            string
+	AccessHandlerURL  string
+	MockAccessHandler bool
+}
 
 // buildAccessHandlerClient builds either a mock or real Access Handler client,
 // depending on the value of cfg.MockAccessHandler
 // the real access handler client uses aws sigv4 signing which provides IAM access control for the api gateway fronting the access handler
-func BuildAccessHandlerClient(ctx context.Context, cfg config.Config) (types.ClientWithResponsesInterface, error) {
-	if cfg.MockAccessHandler {
+func BuildAccessHandlerClient(ctx context.Context, opts BuildAccessHandlerClientOpts) (types.ClientWithResponsesInterface, error) {
+	if opts.MockAccessHandler {
 		return nil, nil
 	}
 	awsCfg, err := cfaws.ConfigFromContextOrDefault(ctx)
@@ -31,7 +36,7 @@ func BuildAccessHandlerClient(ctx context.Context, cfg config.Config) (types.Cli
 	if err != nil {
 		return nil, err
 	}
-	return types.NewClientWithResponses(cfg.AccessHandlerURL, types.WithRequestEditorFn(apiGatewayRequestSigner(creds, cfg.Region)))
+	return types.NewClientWithResponses(opts.AccessHandlerURL, types.WithRequestEditorFn(apiGatewayRequestSigner(creds, opts.Region)))
 }
 
 // apiGatewayRequestSigner uses the AWS SDK to sign the request with sigv4

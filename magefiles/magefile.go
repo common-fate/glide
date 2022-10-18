@@ -93,6 +93,13 @@ func (Build) Syncer() error {
 	}
 	return sh.RunWith(env, "go", "build", "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
 }
+func (Build) CacheSyncer() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-o", "bin/cache-sync", "cmd/lambda/cache-sync/handler.go")
+}
 
 func (Build) SlackNotifier() error {
 	env := map[string]string{
