@@ -9,15 +9,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	tv "github.com/common-fate/testvault"
 	"go.uber.org/zap"
 )
 
 type Args struct {
-	Vault string `json:"vault" jsonschema:"title=Vault,description=The name of an example vault to grant access to (can be any string),default=demovault"`
+	Vault string `json:"vault"`
 }
 
 // Grant the access
@@ -101,17 +98,4 @@ func (p *Provider) getPrefixedVault(vault string) string {
 		return vault
 	}
 	return p.uniqueID.Get() + "_" + vault
-}
-
-func (p *Provider) ArgSchemaV2() providers.ArgSchema {
-	arg := providers.ArgSchema{
-		"vault": {
-			Id:          "vault",
-			Title:       "Vault",
-			Description: aws.String("The name of an example vault to grant access to (can be any string)"),
-			FormElement: types.INPUT,
-		},
-	}
-
-	return arg
 }
