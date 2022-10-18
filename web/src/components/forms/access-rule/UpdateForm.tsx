@@ -60,105 +60,105 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const [cachedRule, setCachedRule] = useState<AccessRuleDetail | undefined>();
   const { mutate } = useAdminGetAccessRule(ruleId);
 
-  useEffect(() => {
-    // We will only reset form data if it has changed on the backend
-    if (data && (!cachedRule || cachedRule != data)) {
-      const t: AccessRuleFormDataTarget = {
-        providerId: data.target.provider.id,
-        with: {},
-        withText: {},
-      };
+  // useEffect(() => {
+  //   // We will only reset form data if it has changed on the backend
+  //   if (data && (!cachedRule || cachedRule != data)) {
+  //     const t: AccessRuleFormDataTarget = {
+  //       providerId: data.target.provider.id,
+  //       with: {},
+  //       withText: {},
+  //     };
 
-      for (const k in data.target.with) {
-        // TODO: FIXME:
-        // Update based on changes with `with` respoonse object.
-        // t.with[k] = [data.target.with[k]];
-        // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
-        t.withText![k] = data.target.with[k];
-      }
-      for (const k in data.target.withSelectable) {
-        // TODO: FIXME:
-        // Update based on changes with `with` respoonse object.
-        // t.with[k] = data.target.withSelectable[k];
-      }
+  //     for (const k in data.target.with) {
+  //       // TODO: FIXME:
+  //       // Update based on changes with `with` respoonse object.
+  //       // t.with[k] = [data.target.with[k]];
+  //       // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
+  //       t.withText![k] = data.target.with[k];
+  //     }
+  //     for (const k in data.target.withSelectable) {
+  //       // TODO: FIXME:
+  //       // Update based on changes with `with` respoonse object.
+  //       // t.with[k] = data.target.withSelectable[k];
+  //     }
 
-      const f: AccessRuleFormData = {
-        description: data.description,
-        groups: data.groups,
-        name: data.name,
-        timeConstraints: {
-          maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
-        },
-        approval: {
-          required:
-            data.approval.users.length > 0 || data.approval.groups?.length > 0,
-          users: data.approval.users,
-          groups: data.approval.groups,
-        },
-        target: t,
-      };
-      methods.reset(f);
-      setCachedRule(data);
-    }
-    return () => {
-      setCachedRule(undefined);
-    };
-  }, [data, methods]);
+  //     const f: AccessRuleFormData = {
+  //       description: data.description,
+  //       groups: data.groups,
+  //       name: data.name,
+  //       timeConstraints: {
+  //         maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
+  //       },
+  //       approval: {
+  //         required:
+  //           data.approval.users.length > 0 || data.approval.groups?.length > 0,
+  //         users: data.approval.users,
+  //         groups: data.approval.groups,
+  //       },
+  //       target: t,
+  //     };
+  //     methods.reset(f);
+  //     setCachedRule(data);
+  //   }
+  //   return () => {
+  //     setCachedRule(undefined);
+  //   };
+  // }, [data, methods]);
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
 
     const { approval, target, ...d } = data;
-    const t = {
-      providerId: target.providerId,
-      with: {
-        ...target?.with,
-      },
-    };
-    for (const k in target.withText) {
-      // TODO: FIXME:
-      // Update based on changes with `with` respoonse object.
-      // t.with[k] = [target.withText[k]];
-    }
-    const ruleData: CreateAccessRuleRequestBody = {
-      approval: { users: [], groups: [] },
-      target: t,
-      ...d,
-    };
+    // const t = {
+    //   providerId: target.providerId,
+    //   with: {
+    //     ...target?.with,
+    //   },
+    // };
+    // for (const k in target.withText) {
+    //   // TODO: FIXME:
+    //   // Update based on changes with `with` respoonse object.
+    //   // t.with[k] = [target.withText[k]];
+    // }
+    // const ruleData: CreateAccessRuleRequestBody = {
+    //   approval: { users: [], groups: [] },
+    //   target: t,
+    //   ...d,
+    // };
     // only apply these fields if approval is enabled
-    if (approval.required) {
-      ruleData["approval"].users = data.approval.users;
-      ruleData["approval"].groups = data.approval.groups;
-    } else {
-      ruleData["approval"].users = [];
-    }
+    // if (approval.required) {
+    //   ruleData["approval"].users = data.approval.users;
+    //   ruleData["approval"].groups = data.approval.groups;
+    // } else {
+    //   ruleData["approval"].users = [];
+    // }
 
-    try {
-      await adminUpdateAccessRule(ruleId, ruleData);
-      toast({
-        title: "Access rule updated",
-        status: "success",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-      void mutate();
-      navigate({ to: "/admin/access-rules" });
-    } catch (err) {
-      let description: string | undefined;
-      if (axios.isAxiosError(err)) {
-        // @ts-ignore
-        description = err?.response?.data.error;
-      }
-      toast({
-        title: "Error updating access rule",
-        description,
-        status: "error",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-    }
+    // try {
+    //   await adminUpdateAccessRule(ruleId, ruleData);
+    //   toast({
+    //     title: "Access rule updated",
+    //     status: "success",
+    //     variant: "subtle",
+    //     duration: 2200,
+    //     isClosable: true,
+    //   });
+    //   void mutate();
+    //   navigate({ to: "/admin/access-rules" });
+    // } catch (err) {
+    //   let description: string | undefined;
+    //   if (axios.isAxiosError(err)) {
+    //     // @ts-ignore
+    //     description = err?.response?.data.error;
+    //   }
+    //   toast({
+    //     title: "Error updating access rule",
+    //     description,
+    //     status: "error",
+    //     variant: "subtle",
+    //     duration: 2200,
+    //     isClosable: true,
+    //   });
+    // }
   };
 
   const handleArchive = async () => {

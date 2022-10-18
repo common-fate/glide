@@ -50,19 +50,21 @@ const ArgField = (props: ArgFieldProps) => {
           id="provider-vault"
           bg="white"
           placeholder={`default-${argument.title}`}
-          {...register(`target.withText.${argument.id}`)}
+          {...register(`target.inputs.${argument.id}`)}
         />
       </FormControl>
     );
   }
 
-  const withError = formState.errors.target?.with;
+  const multiSelectsError = formState.errors.target?.multiSelects;
 
   return (
     <>
       <FormControl
         w="100%"
-        isInvalid={withError && withError[argument.id] !== undefined}
+        isInvalid={
+          multiSelectsError && multiSelectsError[argument.id] !== undefined
+        }
       >
         <>
           {argument.groups ? (
@@ -94,7 +96,7 @@ const ArgField = (props: ArgFieldProps) => {
           <HStack>
             <MultiSelect
               rules={{ required: true, minLength: 1 }}
-              fieldName={`target.with.${argument.id}`}
+              fieldName={`target.multiSelects.${argument.id}`}
               options={argOptions?.options || []}
               shouldAddSelectAllOption={true}
             />

@@ -17,11 +17,14 @@ import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 
 export type AccessRuleFormDataTarget = {
-  // with test is used for string fields that are user inputs rather than a select from options
-  withText?: { [key: string]: string };
-  withFilter?: { [key: string]: { [key: string]: string[] } };
-} & CreateAccessRuleTarget;
-export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
+  providerId: string;
+  multiSelects: { [key: string]: string[] };
+  argumentGroups: { [key: string]: { [key: string]: string[] } };
+  inputs: { [key: string]: string };
+};
+
+export interface AccessRuleFormData
+  extends Omit<CreateAccessRuleRequestBody, "target"> {
   approval: { required: boolean; users: string[]; groups: string[] };
   // with text is used for single text fields
   target: AccessRuleFormDataTarget;
@@ -46,44 +49,44 @@ const CreateAccessRuleForm = () => {
       with: {},
     };
 
-    // For fields with text i.e input type add the values to
-    // with.values for the API.
-    for (const k in target.withText) {
-      t.with[k] = {
-        values: [target.withText[k]],
-        groupings: {},
-      };
-    }
+    // // For fields with text i.e input type add the values to
+    // // with.values for the API.
+    // for (const k in target.withText) {
+    //   t.with[k] = {
+    //     values: [target.withText[k]],
+    //     groupings: {},
+    //   };
+    // }
 
-    // First add everything in `target.with` to values.
-    for (const arg in target.with) {
-      t.with[arg] = {
-        ...t.with[arg],
-        values: target.with[arg] as any,
-        groupings: {},
-      };
-    }
+    // // First add everything in `target.with` to values.
+    // for (const arg in target.with) {
+    //   t.with[arg] = {
+    //     ...t.with[arg],
+    //     values: target.with[arg] as any,
+    //     groupings: {},
+    //   };
+    // }
 
-    // TODO: Grouping can be made an optional value.
-    for (const arg in target.withFilter) {
-      // Loop over any withFilter key for that arg
-      for (const key of Object.keys(target.withFilter[arg])) {
-        t.with[arg] = {
-          ...t.with[arg],
-          groupings: {
-            ...t.with[arg].groupings,
-            [key]: target.withFilter[arg][key],
-          },
-        };
-      }
-    }
+    // // TODO: Grouping can be made an optional value.
+    // for (const arg in target.withFilter) {
+    //   // Loop over any withFilter key for that arg
+    //   for (const key of Object.keys(target.withFilter[arg])) {
+    //     t.with[arg] = {
+    //       ...t.with[arg],
+    //       groupings: {
+    //         ...t.with[arg].groupings,
+    //         [key]: target.withFilter[arg][key],
+    //       },
+    //     };
+    //   }
+    // }
 
-    for (const k in target.withText) {
-      t.with[k] = {
-        ...t.with[k],
-        values: [target.withText[k]],
-      };
-    }
+    // for (const k in target.withText) {
+    //   t.with[k] = {
+    //     ...t.with[k],
+    //     values: [target.withText[k]],
+    //   };
+    // }
 
     const ruleData: CreateAccessRuleRequestBody = {
       approval: { users: [], groups: [] },

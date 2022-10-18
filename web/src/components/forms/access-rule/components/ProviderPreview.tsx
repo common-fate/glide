@@ -9,8 +9,10 @@ import {
 } from "@chakra-ui/react";
 import Form, { FieldProps } from "@rjsf/core";
 import React from "react";
+import { useFormContext } from "react-hook-form";
 
 import {
+  useGetProvider,
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
@@ -20,24 +22,30 @@ import {
 } from "../../../../utils/backend-client/types";
 import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
-import { AccessRuleFormDataTarget } from "../CreateForm";
+import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 
 // TODO: Update ProviderPreview component based on new arg schema response object.
-export const ProviderPreview: React.FC<{
-  target: AccessRuleFormDataTarget;
-  provider: Provider;
-}> = ({ target, provider }) => {
-  const { data } = useGetProviderArgs(provider?.id || "");
+export const ProviderPreview: React.FC = () => {
+  const { watch } = useFormContext<AccessRuleFormData>();
+  const target = watch("target");
+  const { data } = useGetProviderArgs(target?.providerId || "");
+  const { data: provider } = useGetProvider(target?.providerId);
 
   console.log({ target, useGetProviderArgs: data });
 
-  if (provider?.id === undefined || provider?.id === "" || data === undefined) {
+  if (
+    target?.providerId === undefined ||
+    target?.providerId === "" ||
+    data === undefined ||
+    provider === undefined
+  ) {
     return null;
   }
   // I need to be run per arg... (i should be in a for loop)
 
   // Using a schema form here to do the heavy lifting of parsing the schema
   //  so we can get field names
+
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
@@ -45,25 +53,25 @@ export const ProviderPreview: React.FC<{
         <Text>{provider.id}</Text>
       </HStack>
       {data &&
-        Object.keys(target.with).map((key) => {
-          const arg = data[key];
-          const keyValues = target.with[key];
+        Object.entries(target.multiSelects).map(([k, v]) => {
+          const arg = data[k];
 
           // This will now fetch all arg options i.e.
           // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
           // This can make our flat values copyable
           const { data: argOptions } = useListProviderArgOptions(
             provider.id,
-            key
+            k
           );
           console.log({ arg, argOptions });
           // const { data: argOptions } = useListProviderArgOptions(provider.id, arg.id);
+
           return (
             <VStack w="100%" align={"flex-start"} spacing={0}>
               <Text>{arg.title}</Text>
               {/* @TODO: make  */}
               <Wrap>
-                {keyValues?.map((opt: any) => {
+                {v?.map((opt) => {
                   return (
                     <CopyableOption
                       key={"cp-" + opt}
@@ -77,6 +85,39 @@ export const ProviderPreview: React.FC<{
                   );
                 })}
               </Wrap>
+              {target.argumentGroups[k] &&
+                arg.groups &&
+                Object.entries(target.argumentGroups[k]).map(
+                  ([groupId, groupValues]) => {
+                    if (!arg.groups) {
+                      return null;
+                    }
+                    const group = arg.groups[groupId];
+                    return (
+                      <VStack>
+                        <Text>{group.title}</Text>
+                        {groupValues.map((groupValue) => {
+                          if (!argOptions?.groups) {
+                            return null;
+                          }
+
+                          const groupOptions = argOptions.groups[groupId];
+                          return (
+                            <CopyableOption
+                              key={"cp-" + groupValue}
+                              label={
+                                // "hello"
+                                groupOptions.find((d) => d.value === groupValue)
+                                  ?.label ?? ""
+                              }
+                              value={groupValue}
+                            />
+                          );
+                        })}
+                      </VStack>
+                    );
+                  }
+                )}
             </VStack>
           );
         })}
