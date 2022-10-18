@@ -46,7 +46,7 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 			// Only fetch options for arguments which support it
 			// Currently only the Multiselect type has options, if we add other field types we may need to sync the options for those as well
 			if v.FormElement == ahtypes.MULTISELECT {
-				log.Info("refreshing cache for provider argument", "providerId", provider.Id, "argId", k)
+				log.Infow("refreshing cache for provider argument", "providerId", provider.Id, "argId", k)
 				_, _, _, err = s.Cache.RefreshCachedProviderArgOptions(ctx, provider.Id, k)
 				if err != nil {
 					log.Errorw("failed to refresh cache for provider argument", "providerId", provider.Id, "argId", k, "error", err)
