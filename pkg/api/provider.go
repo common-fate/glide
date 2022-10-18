@@ -100,6 +100,7 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 	ctx := r.Context()
 	res := ahTypes.ArgOptionsResponse{
 		Options: []ahTypes.Option{},
+		Groups:  &ahTypes.Groups{AdditionalProperties: make(map[string][]ahTypes.GroupOption)},
 	}
 	var options []cache.ProviderOption
 	var groups []cache.ProviderArgGroupOption
@@ -122,13 +123,11 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 	}
 
 	for _, group := range groups {
-		if g, ok := res.Groups.AdditionalProperties[group.Group]; ok {
-			res.Groups.AdditionalProperties[group.Group] = append(g, ahTypes.GroupOption{
-				Children: group.Children,
-				Label:    group.Label,
-				Value:    group.Value,
-			})
-		}
+		res.Groups.AdditionalProperties[group.Group] = append(res.Groups.AdditionalProperties[group.Group], ahTypes.GroupOption{
+			Children: group.Children,
+			Label:    group.Label,
+			Value:    group.Value,
+		})
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

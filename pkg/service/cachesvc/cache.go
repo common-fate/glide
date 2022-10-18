@@ -31,7 +31,7 @@ func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId s
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
-	_, err2 := s.DB.Query(ctx, &q)
+	_, err2 := s.DB.Query(ctx, &q2)
 	if err2 != nil && err2 != ddb.ErrNoItems {
 		return false, nil, nil, err2
 	}
@@ -98,20 +98,23 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 	}
 
 	var cachedGroups []cache.ProviderArgGroupOption
-	for k, v := range res.Groups.AdditionalProperties {
-		for _, option := range v {
-			op := cache.ProviderArgGroupOption{
-				Provider: providerId,
-				Arg:      argId,
-				Group:    k,
-				Value:    option.Value,
-				Label:    option.Label,
-				Children: option.Children,
+	if res.Groups != nil {
+		for k, v := range res.Groups.AdditionalProperties {
+			for _, option := range v {
+				op := cache.ProviderArgGroupOption{
+					Provider: providerId,
+					Arg:      argId,
+					Group:    k,
+					Value:    option.Value,
+					Label:    option.Label,
+					Children: option.Children,
+				}
+				keyers = append(keyers, &op)
+				cachedGroups = append(cachedGroups, op)
 			}
-			keyers = append(keyers, &op)
-			cachedGroups = append(cachedGroups, op)
 		}
 	}
+
 	err = s.DB.PutBatch(ctx, keyers...)
 	if err != nil {
 		return false, nil, nil, err
