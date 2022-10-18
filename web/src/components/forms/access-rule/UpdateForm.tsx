@@ -60,50 +60,51 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const [cachedRule, setCachedRule] = useState<AccessRuleDetail | undefined>();
   const { mutate } = useAdminGetAccessRule(ruleId);
 
-  // useEffect(() => {
-  //   // We will only reset form data if it has changed on the backend
-  //   if (data && (!cachedRule || cachedRule != data)) {
-  //     const t: AccessRuleFormDataTarget = {
-  //       providerId: data.target.provider.id,
-  //       with: {},
-  //       withText: {},
-  //     };
+  useEffect(() => {
+    // We will only reset form data if it has changed on the backend
+    if (data && (!cachedRule || cachedRule != data)) {
+      const t: AccessRuleFormDataTarget = {
+        providerId: data.target.provider.id,
+        multiSelects: {},
+        argumentGroups: {},
+        inputs: {},
+      };
 
-  //     for (const k in data.target.with) {
-  //       // TODO: FIXME:
-  //       // Update based on changes with `with` respoonse object.
-  //       // t.with[k] = [data.target.with[k]];
-  //       // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
-  //       t.withText![k] = data.target.with[k];
-  //     }
-  //     for (const k in data.target.withSelectable) {
-  //       // TODO: FIXME:
-  //       // Update based on changes with `with` respoonse object.
-  //       // t.with[k] = data.target.withSelectable[k];
-  //     }
+      // for (const k in data.target.with) {
+      //   // TODO: FIXME:
+      //   // Update based on changes with `with` respoonse object.
+      //   // t.with[k] = [data.target.with[k]];
+      //   // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
+      //   t.withText![k] = data.target.with[k];
+      // }
+      // for (const k in data.target.withSelectable) {
+      //   // TODO: FIXME:
+      //   // Update based on changes with `with` respoonse object.
+      //   // t.with[k] = data.target.withSelectable[k];
+      // }
 
-  //     const f: AccessRuleFormData = {
-  //       description: data.description,
-  //       groups: data.groups,
-  //       name: data.name,
-  //       timeConstraints: {
-  //         maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
-  //       },
-  //       approval: {
-  //         required:
-  //           data.approval.users.length > 0 || data.approval.groups?.length > 0,
-  //         users: data.approval.users,
-  //         groups: data.approval.groups,
-  //       },
-  //       target: t,
-  //     };
-  //     methods.reset(f);
-  //     setCachedRule(data);
-  //   }
-  //   return () => {
-  //     setCachedRule(undefined);
-  //   };
-  // }, [data, methods]);
+      const f: AccessRuleFormData = {
+        description: data.description,
+        groups: data.groups,
+        name: data.name,
+        timeConstraints: {
+          maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
+        },
+        approval: {
+          required:
+            data.approval.users.length > 0 || data.approval.groups?.length > 0,
+          users: data.approval.users,
+          groups: data.approval.groups,
+        },
+        target: t,
+      };
+      methods.reset(f);
+      setCachedRule(data);
+    }
+    return () => {
+      setCachedRule(undefined);
+    };
+  }, [data, methods]);
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
