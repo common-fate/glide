@@ -3,8 +3,9 @@ package okta
 import (
 	"context"
 
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"go.uber.org/zap"
 )
@@ -35,8 +36,14 @@ func (o *Provider) Init(ctx context.Context) error {
 	o.client = client
 	return nil
 }
+func (p *Provider) ArgSchemaV2() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"groupId": {
+			Id:          "groupId",
+			Title:       "Group",
+			FormElement: types.MULTISELECT,
+		},
+	}
 
-// ArgSchema returns the schema for the Okta provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+	return arg
 }
