@@ -29,7 +29,12 @@ interface ArgFieldProps {
 
 const ArgField = (props: ArgFieldProps) => {
   const { argument, providerId } = props;
-  const { register, formState, watch } = useFormContext<AccessRuleFormData>();
+  const {
+    register,
+    formState,
+    getValues,
+    watch,
+  } = useFormContext<AccessRuleFormData>();
 
   const { data: argOptions } = useListProviderArgOptions(
     providerId,
@@ -45,48 +50,10 @@ const ArgField = (props: ArgFieldProps) => {
 
   const multiSelectsError = formState.errors.target?.multiSelects;
 
-  const target = watch("target");
-  // filter the options by selected or effective from a group selection
-
-  // assign effective options to a state variable
-  // useEffect for handling and state setting
-  const [effectiveOptions, setEffectiveOptions] = useState<Option[]>([]);
-
-  useEffect(() => {
-    console.log({ target, argument });
-    if (target.argumentGroups || target.multiSelects) {
-      const selected = target.multiSelects?.[argument.id];
-
-      const selectedGroups = target.argumentGroups?.[argument.id];
-
-      console.log({ selected, selectedGroups });
-      let effectiveViaGroups: string[] = [];
-      if (selectedGroups) {
-        effectiveViaGroups = Object.entries(selectedGroups).flatMap(
-          ([groupId, selectedGroupValues]) => {
-            // get all the accounts for the selected group value
-            const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
-            return selectedGroupValues.flatMap((groupValue) => {
-              return group.find((g) => g.value === groupValue)?.children || [];
-            });
-          }
-        );
-        console.log({ effectiveViaGroups });
-      }
-      const effectiveAccountIds = [...selected, ...effectiveViaGroups].filter(
-        (v, i, a) => a.indexOf(v) === i
-      );
-
-      const effectiveOptions =
-        argOptions?.options.filter((option) => {
-          return effectiveAccountIds.includes(option.value);
-        }) || [];
-      setEffectiveOptions(effectiveOptions);
-    }
-    return () => {
-      setEffectiveOptions([]);
-    };
-  }, [target.argumentGroups, target.multiSelects, argOptions, argument]);
+  const [argumentGroups, multiSelects] = watch([
+    `target.argumentGroups.${argument.id}`,
+    `target.multiSelects.${argument.id}`,
+  ]);
 
   // TODO: Form input error is not handled for input type.
   if (argument.formElement === ArgumentFormElement.INPUT) {
@@ -104,7 +71,28 @@ const ArgField = (props: ArgFieldProps) => {
       </FormControl>
     );
   }
-  // console.log({ target, argument });
+
+  const effectiveViaGroups = Object.entries(argumentGroups || {}).flatMap(
+    ([groupId, selectedGroupValues]) => {
+      // get all the accounts for the selected group value
+      const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
+      return selectedGroupValues.flatMap((groupValue) => {
+        return group.find((g) => g.value === groupValue)?.children || [];
+      });
+    }
+  );
+
+  const effectiveAccountIds = [
+    ...(multiSelects || []),
+    ...effectiveViaGroups,
+  ].filter((v, i, a) => a.indexOf(v) === i);
+
+  const effectiveOptions =
+    argOptions?.options.filter((option) => {
+      return effectiveAccountIds.includes(option.value);
+    }) || [];
+  const required = effectiveOptions.length === 0;
+
   return (
     <Box border="1px solid" borderColor="black" p={2}>
       <FormControl
@@ -119,7 +107,7 @@ const ArgField = (props: ArgFieldProps) => {
           </FormLabel>
           <HStack>
             <MultiSelect
-              rules={{ required: true, minLength: 1 }}
+              rules={{ required: required, minLength: 1 }}
               fieldName={`target.multiSelects.${argument.id}`}
               options={argOptions?.options || []}
               shouldAddSelectAllOption={true}
@@ -157,7 +145,7 @@ const ArgField = (props: ArgFieldProps) => {
                     </FormLabel>
                     <HStack>
                       <MultiSelect
-                        rules={{ required: true, minLength: 1 }}
+                        rules={{ required: required, minLength: 1 }}
                         fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
                         options={argOptions.groups[group.id] || []}
                         shouldAddSelectAllOption={true}
@@ -166,9 +154,6 @@ const ArgField = (props: ArgFieldProps) => {
                   </div>
                   <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel>
                   {/* TODO: msg will eventually be more detailed (one or more options) */}
-                  <FormErrorMessage>
-                    {group.title} is required{" "}
-                  </FormErrorMessage>
                 </FormControl>
               );
             })}
@@ -177,7 +162,7 @@ const ArgField = (props: ArgFieldProps) => {
       </Box>
 
       <Box>
-        <Heading size="md">{"Effective " + ""}</Heading>
+        <Heading size="md">{"Effective " + argument.title + "s"}</Heading>
         <Wrap>
           {effectiveOptions &&
             effectiveOptions.map((c) => {
