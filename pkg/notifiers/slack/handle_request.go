@@ -340,6 +340,11 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		labelArr = append(labelArr, v)
 	}
 
+	// now sort labelArr by Title
+	sort.Slice(labelArr, func(i, j int) bool {
+		return labelArr[i].Title < labelArr[j].Title
+	})
+
 	// now itterate over labelArr and add to requestDetails
 	for _, v := range labelArr {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
@@ -347,10 +352,6 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 			Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
 		})
 	}
-	// now sort labelArr by Title
-	sort.Slice(labelArr, func(i, j int) bool {
-		return labelArr[i].Title < labelArr[j].Title
-	})
 
 	// Only show the Request reason if it is not empty
 	if o.Request.Data.Reason != nil && len(*o.Request.Data.Reason) > 0 {
