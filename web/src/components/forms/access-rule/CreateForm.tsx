@@ -8,6 +8,7 @@ import {
   CreateAccessRuleRequestBody,
   AccessRuleTarget,
   Provider,
+  CreateAccessRuleTarget,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
@@ -31,9 +32,9 @@ export interface AccessRuleFormData
 
 export const accessRuleFormDataTargetToApi = (
   target: AccessRuleFormDataTarget
-): AccessRuleTarget => {
-  const t: AccessRuleTarget = {
-    provider: { id: target.providerId, type: "" },
+): CreateAccessRuleTarget => {
+  const t: CreateAccessRuleTarget = {
+    providerId: target.providerId,
     with: {},
   };
   for (const k in target.inputs) {
