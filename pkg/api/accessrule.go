@@ -7,8 +7,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
@@ -269,43 +267,31 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		return
 	}
 
-	provider, ok := config.Providers[rule.Target.ProviderID]
-	if !ok {
-		apio.Error(ctx, w, apio.NewRequestError(&providers.ProviderNotFoundError{Provider: rule.Target.ProviderID}, http.StatusNotFound))
-		return
-	}
-
-	// @TODO this needs to be replaced with an API call to the access handler because the rest api cannot fetch this directly
-	// check if target has dynamicIds.
-	// Mutating rule.WithSelectable if we have dynamicIds.
 	for arg, groupings := range rule.Target.WithArgumentGroupOptions {
 		for group, values := range groupings {
 
 			// if provider arg has values in groupings
 			if len(values) > 0 {
-				if p, ok := provider.Provider.(providers.ArgOptionGroupValueser); ok {
-					argValueBelongingToGroup, err := p.ArgOptionGroupValues(ctx, arg, group, values)
+				for _, value := range values {
+					_, cachedGroup, err := a.Cache.LoadCachedProviderArgGroupOptions(ctx, rule.Target.ProviderID, arg, group, value)
 					if err != nil {
+						if err == ddb.ErrNoItems {
+							continue
+						}
+
 						apio.Error(ctx, w, err)
 						return
 					}
 
-					for _, value := range argValueBelongingToGroup {
-						if _, exists := rule.Target.WithSelectable[value]; !exists {
-							rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], value)
+					for _, option := range cachedGroup.Children {
+						if !contains(rule.Target.WithSelectable[arg], option) {
+							rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], option)
 						}
 					}
-				}
-				// make the UI render correctly when dynamic values are available and only one value is selected in with
-				if rule.Target.With[arg] != "" {
-					rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], rule.Target.With[arg])
-					delete(rule.Target.With, arg)
 				}
 			}
 		}
 	}
-
-	// @TODO be sure to deduplicate the results here
 
 	pq := storage.ListCachedProviderOptions{
 		ProviderID: rule.Target.ProviderID,
@@ -343,4 +329,13 @@ func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request,
 	}
 	apio.JSON(ctx, w, types.ListAccessRuleApproversResponse{Users: users}, http.StatusOK)
 
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
