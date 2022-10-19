@@ -31,8 +31,6 @@ export const ProviderPreview: React.FC = () => {
   const { data } = useGetProviderArgs(target?.providerId || "");
   const { data: provider } = useGetProvider(target?.providerId);
 
-  console.log({ target, useGetProviderArgs: data });
-
   if (
     target?.providerId === undefined ||
     target?.providerId === "" ||
@@ -63,9 +61,6 @@ export const ProviderPreview: React.FC = () => {
             provider.id,
             k
           );
-          console.log({ arg, argOptions });
-          // const { data: argOptions } = useListProviderArgOptions(provider.id, arg.id);
-
           return (
             <VStack w="100%" align={"flex-start"} spacing={0}>
               <Text>{arg.title}</Text>

@@ -70,7 +70,7 @@ func TestUpdateAccessRule(t *testing.T) {
 		Target: types.CreateAccessRuleTarget{
 			ProviderId: "newTarget",
 			With: types.CreateAccessRuleTarget_With{
-				AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
+				AdditionalProperties: make(map[string]types.CreateAccessRuleTargetDetailArguments),
 			},
 		},
 	}

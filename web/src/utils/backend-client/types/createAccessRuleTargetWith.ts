@@ -5,6 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { AccessRuleTargetDetailArguments } from './accessRuleTargetDetailArguments';
+import type { CreateAccessRuleTargetDetailArguments } from './createAccessRuleTargetDetailArguments';
 
-export type CreateAccessRuleTargetWith = {[key: string]: AccessRuleTargetDetailArguments};
+export type CreateAccessRuleTargetWith = {[key: string]: CreateAccessRuleTargetDetailArguments};

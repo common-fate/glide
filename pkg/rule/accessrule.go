@@ -220,15 +220,43 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
 		},
 	}
+	// Lookup the provider, ignore errors
+	// if provider is not found, fallback to using the argument key as the title
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
 
 	for k, v := range t.With {
 		argument := at.With.AdditionalProperties[k]
 		argument.Values = append(argument.Values, v)
+
+		// FormElement is used here when loading the UpdateAccessRule form for the first time
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				schema := s.ArgSchemaV2()
+				if arg, ok := schema[k]; ok {
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
+				} else {
+					// I don't expect this should ever fail to find a match, however if it does, default to input.
+					argument.FormElement = types.INPUT
+				}
+			}
+		}
 		at.With.AdditionalProperties[k] = argument
 	}
 	for k, v := range t.WithSelectable {
 		argument := at.With.AdditionalProperties[k]
 		argument.Values = append(argument.Values, v...)
+		// FormElement is used here when loading the UpdateAccessRule form for the first time
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				schema := s.ArgSchemaV2()
+				if arg, ok := schema[k]; ok {
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
+				} else {
+					// I don't expect this should ever fail to find a match, however if it does, default to input.
+					argument.FormElement = types.INPUT
+				}
+			}
+		}
 		at.With.AdditionalProperties[k] = argument
 	}
 	for k, v := range t.WithArgumentGroupOptions {
@@ -238,6 +266,18 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 			group := argument.Groupings.AdditionalProperties[k2]
 			group = append(group, v2...)
 			argument.Groupings.AdditionalProperties[k2] = group
+		}
+		// FormElement is used here when loading the UpdateAccessRule form for the first time
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				schema := s.ArgSchemaV2()
+				if arg, ok := schema[k]; ok {
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
+				} else {
+					// I don't expect this should ever fail to find a match, however if it does, default to input.
+					argument.FormElement = types.INPUT
+				}
+			}
 		}
 		at.With.AdditionalProperties[k] = argument
 	}

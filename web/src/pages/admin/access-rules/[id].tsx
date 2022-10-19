@@ -21,7 +21,6 @@ const Index = () => {
   } = useMatch();
   // const ruleId = typeof query?.id == "string" ? query.id : "";
   const { data, isValidating, error } = useAdminGetAccessRule(ruleId);
-  console.log(data);
   return (
     <AdminLayout>
       <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">

@@ -26,6 +26,7 @@ import {
 import { adminArchiveAccessRule } from "../../../utils/backend-client/default/default";
 import {
   AccessRuleDetail,
+  AccessRuleTargetDetailArgumentsFormElement,
   CreateAccessRuleRequestBody,
 } from "../../../utils/backend-client/types";
 import {
@@ -91,7 +92,18 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
         argumentGroups: {},
         inputs: {},
       };
-
+      Object.entries(data.target.with).forEach(([k, v]) => {
+        if (
+          v.formElement ===
+          AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+        ) {
+          t.multiSelects[k] = v.values;
+          t.argumentGroups[k] = v.groupings;
+        } else {
+          t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
+        }
+      });
+      console.log({ t, data });
       //set accessRuleTargetData from rule details from api
 
       const f: AccessRuleFormData = {
