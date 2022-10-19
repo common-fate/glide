@@ -13,18 +13,18 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
+func (s *Service) ProcessTarget(ctx context.Context, in types.AccessRuleTarget) (rule.Target, error) {
 	// After verifying the provider, we can save the provider type to the rule for convenience
 	p, err := s.verifyRuleTarget(ctx, in)
 	if err != nil {
 		return rule.Target{}, err
 	}
 	target := rule.Target{
-		ProviderID:     in.ProviderId,
-		ProviderType:   p.Type,
-		With:           make(map[string]string),
-		WithSelectable: make(map[string][]string),
-		WithDynamicId:  make(map[string]map[string][]string),
+		ProviderID:               in.Provider.Id,
+		ProviderType:             p.Type,
+		With:                     make(map[string]string),
+		WithSelectable:           make(map[string][]string),
+		WithArgumentGroupOptions: make(map[string]map[string][]string),
 	}
 
 	for k, obj := range in.With.AdditionalProperties {
@@ -32,7 +32,7 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		for groupId, groupValues := range obj.Groupings.AdditionalProperties {
 			nestedMap[groupId] = groupValues
 		}
-		target.WithDynamicId[k] = nestedMap
+		target.WithArgumentGroupOptions[k] = nestedMap
 
 		// min length 1 is configured in the api spec so len(0) is handled by builtin validation
 		if len(obj.Values) == 1 {
@@ -86,8 +86,8 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 }
 
 // verifyRuleTarget fetches the provider and returns it if it exists
-func (s *Service) verifyRuleTarget(ctx context.Context, target types.CreateAccessRuleTarget) (*ahTypes.Provider, error) {
-	p, err := s.AHClient.GetProviderWithResponse(ctx, target.ProviderId)
+func (s *Service) verifyRuleTarget(ctx context.Context, target types.AccessRuleTarget) (*ahTypes.Provider, error) {
+	p, err := s.AHClient.GetProviderWithResponse(ctx, target.Provider.Id)
 	if err != nil {
 		return nil, err
 	}

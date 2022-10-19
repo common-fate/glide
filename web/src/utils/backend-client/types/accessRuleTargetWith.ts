@@ -5,5 +5,9 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
+import type { AccessRuleAdditionalItems } from './accessRuleAdditionalItems';
 
-export type AccessRuleTargetWith = {[key: string]: string};
+/**
+ * The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.
+ */
+export type AccessRuleTargetWith = {[key: string]: AccessRuleAdditionalItems};

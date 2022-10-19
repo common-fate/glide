@@ -90,6 +90,7 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
 		},
+
 		Target:    a.Target.ToAPI(),
 		IsCurrent: a.Current,
 	}
@@ -105,7 +106,7 @@ func (a AccessRule) ToRequestAccessRuleDetailAPI(argOptions []cache.ProviderOpti
 		With: types.RequestAccessRuleDetail_With{
 			AdditionalProperties: make(map[string]types.With),
 		},
-		Provider:        a.Target.ToAPI().Provider,
+		Provider:        a.Target.ProviderToAPI(),
 		TimeConstraints: a.TimeConstraints,
 	}
 	// Lookup the provider, ignore errors
@@ -188,22 +189,43 @@ type Target struct {
 	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
 	// when target doesn't have values but instead belongs to a group
 	// which can be dynamically fetched at access request time.
-	WithDynamicId map[string]map[string][]string `json:"withDynamicId"  dynamodbav:"withDynamicId"`
+	WithArgumentGroupOptions map[string]map[string][]string `json:"withArgumentGroupOptions"  dynamodbav:"withArgumentGroupOptions"`
 }
 
+func (t Target) ProviderToAPI() types.Provider {
+	return types.Provider{
+		Id:   t.ProviderID,
+		Type: t.ProviderType,
+	}
+}
+
+// converts to basic api type
 func (t Target) ToAPI() types.AccessRuleTarget {
-	return types.AccessRuleTarget{
-		Provider: types.Provider{
-			Id:   t.ProviderID,
-			Type: t.ProviderType,
-		},
+	at := types.AccessRuleTarget{
+		Provider: t.ProviderToAPI(),
 		With: types.AccessRuleTarget_With{
-			AdditionalProperties: t.With,
-		},
-		WithSelectable: types.AccessRuleTarget_WithSelectable{
-			AdditionalProperties: t.WithSelectable,
+			AdditionalProperties: map[string]types.AccessRuleAdditionalItems{},
 		},
 	}
+	at.With.AdditionalProperties = make(map[string]types.AccessRuleAdditionalItems, len(t.With))
+
+	//put together the groupings for the api
+	for propertyParent, g := range t.WithArgumentGroupOptions {
+		groupings := types.AccessRuleAdditionalItems_Groupings{AdditionalProperties: make(map[string][]string)}
+
+		for optName, opt := range g {
+
+			groupings.AdditionalProperties[optName] = opt
+
+		}
+		at.With.AdditionalProperties[propertyParent] = types.AccessRuleAdditionalItems{
+			Values:    []string{},
+			Groupings: groupings,
+		}
+
+	}
+
+	return at
 }
 
 func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleTargetDetail {

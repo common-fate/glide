@@ -85,7 +85,8 @@ export const ProviderPreview: React.FC = () => {
                   );
                 })}
               </Wrap>
-              {target.argumentGroups[k] &&
+              {target.argumentGroups &&
+                target.argumentGroups[k] &&
                 arg.groups &&
                 Object.entries(target.argumentGroups[k]).map(
                   ([groupId, groupValues]) => {

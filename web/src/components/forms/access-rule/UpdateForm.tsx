@@ -27,7 +27,6 @@ import { adminArchiveAccessRule } from "../../../utils/backend-client/default/de
 import {
   AccessRuleDetail,
   CreateAccessRuleRequestBody,
-  CreateAccessRuleTarget,
 } from "../../../utils/backend-client/types";
 import {
   AccessRuleFormData,
@@ -46,6 +45,23 @@ interface Props {
   data: AccessRuleDetail;
   readOnly?: boolean;
 }
+
+//converts target api data to form data
+export const accessRuleTargetApiToTargetFormData = (
+  apiData: AccessRuleDetail
+): AccessRuleFormDataTarget => {
+  const formTargetData: AccessRuleFormDataTarget = {
+    providerId: apiData.target.provider.id,
+    argumentGroups: {},
+    inputs: {},
+    multiSelects: {},
+  };
+
+  for (const k in apiData.target.with) {
+  }
+
+  return formTargetData;
+};
 
 const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const {
@@ -76,18 +92,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
         inputs: {},
       };
 
-      // for (const k in data.target.with) {
-      //   // TODO: FIXME:
-      //   // Update based on changes with `with` respoonse object.
-      //   // t.with[k] = [data.target.with[k]];
-      //   // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
-      //   t.withText![k] = data.target.with[k];
-      // }
-      // for (const k in data.target.withSelectable) {
-      //   // TODO: FIXME:
-      //   // Update based on changes with `with` respoonse object.
-      //   // t.with[k] = data.target.withSelectable[k];
-      // }
+      //set accessRuleTargetData from rule details from api
 
       const f: AccessRuleFormData = {
         description: data.description,

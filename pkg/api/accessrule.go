@@ -96,7 +96,7 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
+	apio.JSON(ctx, w, c.ToAPI(), http.StatusCreated)
 }
 
 // Returns a rule for a given ruleId
@@ -278,7 +278,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 	// @TODO this needs to be replaced with an API call to the access handler because the rest api cannot fetch this directly
 	// check if target has dynamicIds.
 	// Mutating rule.WithSelectable if we have dynamicIds.
-	for arg, groupings := range rule.Target.WithDynamicId {
+	for arg, groupings := range rule.Target.WithArgumentGroupOptions {
 		for group, values := range groupings {
 
 			// if provider arg has values in groupings
