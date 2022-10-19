@@ -6,7 +6,9 @@ import {
   Heading,
   HStack,
   Input,
+  Tag,
   Text,
+  VStack,
   Wrap,
 } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
@@ -93,8 +95,20 @@ const ArgField = (props: ArgFieldProps) => {
     }) || [];
   const required = effectiveOptions.length === 0;
 
+  console.log({
+    effectiveOptions,
+    touchings: formState.touchedFields,
+  });
+
   return (
-    <Box border="1px solid" borderColor="black" p={2}>
+    <VStack
+      // border="1px solid" borderColor="gray.600"
+      p={2}
+      w="100%"
+      spacing={4}
+      justifyContent="start"
+      alignItems="start"
+    >
       <FormControl
         w="100%"
         isInvalid={
@@ -116,61 +130,114 @@ const ArgField = (props: ArgFieldProps) => {
         </div>
         <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel>
         {/* TODO: msg will eventually be more detailed (one or more options) */}
-        <FormErrorMessage> {argument.title} is required </FormErrorMessage>
+        {!argument.groups && (
+          <FormErrorMessage> {argument.title} is required </FormErrorMessage>
+        )}
       </FormControl>
 
-      <Box border="1px solid" borderColor="black" mt={4} p={2}>
-        <Heading size="md">Groups</Heading>
-        {argument.groups ? (
-          <>
-            {Object.values(argument.groups).map((group) => {
-              // catch the unexpected case where there are no options for group
-              if (
-                argOptions?.groups == undefined ||
-                !argOptions.groups?.[group.id]
-              ) {
-                return null;
-              }
-              return (
-                <FormControl
-                  w="100%"
-                  isInvalid={
-                    multiSelectsError &&
-                    multiSelectsError[argument.id] !== undefined
-                  }
-                >
-                  <div>
-                    <FormLabel htmlFor="target.providerId">
-                      <Text textStyle={"Body/Medium"}>{group.title}</Text>
-                    </FormLabel>
-                    <HStack>
-                      <MultiSelect
-                        rules={{ required: required, minLength: 1 }}
-                        fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
-                        options={argOptions.groups[group.id] || []}
-                        shouldAddSelectAllOption={true}
-                      />
-                    </HStack>
-                  </div>
-                  <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel>
-                  {/* TODO: msg will eventually be more detailed (one or more options) */}
-                </FormControl>
-              );
-            })}
-          </>
-        ) : null}
-      </Box>
+      {argument.groups && (
+        <Box
+          border="1px solid"
+          rounded="md"
+          borderColor="gray.300"
+          mt={4}
+          p={4}
+          py={4}
+          pt={8}
+          // overflow="clip"
+          pos="relative"
+          w={{ base: "100%", md: "100%" }}
+          minW={{ base: "100%", md: "400px", lg: "500px" }}
+          // zIndex={1}
+        >
+          <Tag
+            size="md"
+            pos="absolute"
+            top={"-2px"}
+            left={"-2px"}
+            // zIndex={0}
 
-      <Box>
-        <Heading size="md">{"Effective " + argument.title + "s"}</Heading>
-        <Wrap>
-          {effectiveOptions &&
-            effectiveOptions.map((c) => {
-              return <CopyableOption label={c.label} value={c.value} />;
-            })}
-        </Wrap>
-      </Box>
-    </Box>
+            //       fontWeight: "400",
+            // color: "#2D2F30",
+            // fontSize: "16px",
+            // lineHeight: "22.4px",
+            fontWeight="400"
+            color="#767676"
+            fontSize="16px"
+            lineHeight="22.4px"
+            roundedBottomLeft="0"
+            roundedTopRight="0"
+            // borderLeft="none"
+            // borderTop="white"
+            // variant="outline"
+            // colorScheme="yellow"
+            pl={4}
+            // grayscale emoji
+            filter="grayscale(1);"
+          >
+            Dynamic Fields ⚡️
+          </Tag>
+          {Object.values(argument.groups).map((group) => {
+            // catch the unexpected case where there are no options for group
+            if (
+              argOptions?.groups == undefined ||
+              !argOptions.groups?.[group.id]
+            ) {
+              return null;
+            }
+            return (
+              <FormControl
+                w="100%"
+                isInvalid={
+                  multiSelectsError &&
+                  multiSelectsError[argument.id] !== undefined
+                }
+              >
+                <>
+                  <FormLabel htmlFor="target.providerId">
+                    <Text textStyle={"Body/Medium"}>{group.title}</Text>
+                  </FormLabel>
+                  <HStack>
+                    <MultiSelect
+                      rules={{ required: required, minLength: 1 }}
+                      fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
+                      options={argOptions.groups[group.id] || []}
+                      shouldAddSelectAllOption={true}
+                    />
+                  </HStack>
+                </>
+                {/* <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel> */}
+                {/* TODO: msg will eventually be more detailed (one or more options) */}
+              </FormControl>
+            );
+          })}
+        </Box>
+      )}
+      {effectiveOptions.length > 0 &&
+        argOptions?.groups &&
+        Object.entries(argOptions?.groups ?? {}).length > 0 && (
+          <Box>
+            <Text textStyle={"Body/Medium"}>
+              {"Effective " + argument.title + "s"}
+            </Text>
+            {/* <Heading size="md">{"Effective " + argument.title + "s"}</Heading> */}
+            <Wrap>
+              {effectiveOptions &&
+                effectiveOptions.map((c) => {
+                  return <CopyableOption label={c.label} value={c.value} />;
+                })}
+            </Wrap>
+          </Box>
+        )}
+      {effectiveOptions.length == 0 &&
+        Object.entries(argOptions?.groups ?? {}).length > 0 &&
+        (formState.touchedFields.target?.argumentGroups?.[argument.id] ||
+          formState.touchedFields.target?.multiSelects?.[argument.id]) && (
+          <Text color="red.500" fontSize="sm">
+            {"At least one effective " + argument.title + " is required"}
+          </Text>
+        )}
+    </VStack>
   );
 };
 
