@@ -326,3 +326,16 @@ export const SlackBadgeIcon = createIcon({
     </svg>
   ),
 });
+
+export const BoltIcon = createIcon({
+  displayName: "BoltIcon",
+  viewBox: "0 0 16 16",
+  path: (
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <path
+        fill="currentColor"
+        d="M15 6H8.4L10 1.3c.3-1-.9-1.8-1.7-1l-8 8C-.3 8.9.1 10 1 10h6.6L6 14.7c-.3 1 .9 1.8 1.7 1l8-8c.6-.6.2-1.7-.7-1.7z"
+      />
+    </svg>
+  ),
+});

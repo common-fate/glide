@@ -22,9 +22,12 @@ import { useListProviderArgOptions } from "../../../../utils/backend-client/admi
 import {
   Argument,
   ArgumentFormElement,
+  GroupOption,
   Option,
 } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 import { CopyableOption } from "../../../CopyableOption";
+import { DynamicOption } from "../../../DynamicOption";
+import { BoltIcon } from "../../../icons/Icons";
 
 interface ArgFieldProps {
   argument: Argument;
@@ -76,31 +79,74 @@ const ArgField = (props: ArgFieldProps) => {
     );
   }
 
+  type Obj = {
+    option: Option;
+    parentGroup?: GroupOption;
+  };
+
+  type ResArr = (Obj | Option)[];
+
+  /** get all the group children (for aws these are the accounts for the OUs) */
   const effectiveViaGroups = Object.entries(argumentGroups || {}).flatMap(
     ([groupId, selectedGroupValues]) => {
       // get all the accounts for the selected group value
       const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
+      console.log({ groupId, selectedGroupValues, group });
       return selectedGroupValues.flatMap((groupValue) => {
         return group.find((g) => g.value === groupValue)?.children || [];
       });
     }
   );
 
+  // This type allows us to store the options in a flat array (with additional information for group fields)
+  // type EffectiveOptions = [string, GroupOption];
+
+  // Desired output: an array of Options (value and label) with ID(s) that can lookup into the richer map object
+  // Step 1: get all the options from the groups
+  // Step 2: get all the options from the multi-selects
+  // Step 3: store the options in an array of type Obj
+  // Step 4: remove any duplicate Option.key Option.value paires
+
+  const effectiveGroups = Object.entries(argumentGroups || {}).flatMap(
+    ([groupId, selectedGroupValues]) => {
+      // get all the accounts for the selected group value
+      const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
+      console.log({ groupId, selectedGroupValues, group });
+      return (
+        selectedGroupValues
+          .flatMap((groupValue) => {
+            return group.find((g) => g.value === groupValue) ?? null;
+          })
+          // Now remove any null values
+          .filter((g) => g)
+      );
+    }
+  );
+
+  console.log({ effectiveGroups, multiSelects });
+
+  // effectiveViaGroups.filter(g => {
+  // })
+
+  // Filter to remove duplicates
   const effectiveAccountIds = [
     ...(multiSelects || []),
     ...effectiveViaGroups,
   ].filter((v, i, a) => a.indexOf(v) === i);
 
+  // DE = we want to associate each 'effectiveOption' with either a group (dynamic) or a multiSelect (single)
+  // We can do this by checking if the effectiveOption is in the multiSelects array
+  // Or, avoid casting it to a string to begin with
   const effectiveOptions =
     argOptions?.options.filter((option) => {
       return effectiveAccountIds.includes(option.value);
     }) || [];
   const required = effectiveOptions.length === 0;
 
-  console.log({
-    effectiveOptions,
-    touchings: formState.touchedFields,
-  });
+  // console.log({
+  //   effectiveOptions,
+  //   touchings: formState.touchedFields,
+  // });
 
   return (
     <VStack
@@ -144,46 +190,11 @@ const ArgField = (props: ArgFieldProps) => {
 
       {argument.groups && (
         <Box
-          // border="1px solid"
-          // borderColor="gray.300"
-          // rounded="md"
           mt={4}
-          pl={6}
-          // py={4}
-          // pt={8}
-          // overflow="clip"
           pos="relative"
           w={{ base: "100%", md: "100%" }}
           minW={{ base: "100%", md: "400px", lg: "500px" }}
-          // zIndex={1}
         >
-          {/* <Tag
-            size="md"
-            pos="absolute"
-            top={"-2px"}
-            left={"-2px"}
-            // zIndex={0}
-
-            //       fontWeight: "400",
-            // color: "#2D2F30",
-            // fontSize: "16px",
-            // lineHeight: "22.4px",
-            fontWeight="400"
-            color="#767676"
-            fontSize="16px"
-            lineHeight="22.4px"
-            roundedBottomLeft="0"
-            roundedTopRight="0"
-            // borderLeft="none"
-            // borderTop="white"
-            // variant="outline"
-            // colorScheme="yellow"
-            pl={4}
-            // grayscale emoji
-            filter="grayscale(1);"
-          >
-            Dynamic Fields ⚡️
-          </Tag> */}
           {Object.values(argument.groups).map((group) => {
             // catch the unexpected case where there are no options for group
             if (
@@ -214,7 +225,7 @@ const ArgField = (props: ArgFieldProps) => {
                         display="inline-flex"
                         size="24px"
                         px={1}
-                        bg="gray.200"
+                        // bg="gray.200"
                         rounded="full"
                         filter="grayscale(1);"
                         transition="all .2s ease"
@@ -222,7 +233,7 @@ const ArgField = (props: ArgFieldProps) => {
                           filter: "grayscale(0);",
                         }}
                       >
-                        {"⚡️"}
+                        <BoltIcon boxSize="12px" color="brandGreen.200" />
                       </Circle>
                     </Tooltip>
                   </FormLabel>
@@ -250,7 +261,8 @@ const ArgField = (props: ArgFieldProps) => {
             <Wrap>
               {effectiveOptions &&
                 effectiveOptions.map((c) => {
-                  return <CopyableOption label={c.label} value={c.value} />;
+                  // console.log(c);
+                  return <DynamicOption label={c.label} value={c.value} />;
                 })}
             </Wrap>
           </Box>
