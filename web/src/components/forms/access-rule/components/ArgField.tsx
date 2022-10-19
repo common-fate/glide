@@ -80,16 +80,19 @@ const ArgField = (props: ArgFieldProps) => {
   }
 
   /** get all the group children (for aws these are the accounts for the OUs) */
-  const effectiveViaGroups = Object.entries(argumentGroups || {}).flatMap(
-    ([groupId, selectedGroupValues]) => {
-      // get all the accounts for the selected group value
-      const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
-      console.log({ groupId, selectedGroupValues, group });
-      return selectedGroupValues.flatMap((groupValue) => {
-        return group.find((g) => g.value === groupValue)?.children || [];
-      });
-    }
-  );
+  const effectiveViaGroups =
+    (argumentGroups &&
+      Object.entries(argumentGroups || {}).flatMap(
+        ([groupId, selectedGroupValues]) => {
+          // get all the accounts for the selected group value
+          const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
+          console.log({ groupId, selectedGroupValues, group });
+          return selectedGroupValues.flatMap((groupValue) => {
+            return group.find((g) => g.value === groupValue)?.children || [];
+          });
+        }
+      )) ??
+    [];
 
   type Obj = {
     option: Option;
@@ -102,21 +105,23 @@ const ArgField = (props: ArgFieldProps) => {
   // Step 3: store the options in an array of type Obj
   // Step 4: remove any duplicate Option.key Option.value paires
 
-  const effectiveGroups = Object.entries(argumentGroups || {}).flatMap(
-    ([groupId, selectedGroupValues]) => {
-      // get all the accounts for the selected group value
-      const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
-      console.log({ groupId, selectedGroupValues, group });
-      return (
-        selectedGroupValues
-          .flatMap((groupValue) => {
-            return group.find((g) => g.value === groupValue) ?? null;
-          })
-          // Now remove any null values
-          .filter((g) => g)
-      );
-    }
-  );
+  const effectiveGroups =
+    argumentGroups &&
+    Object.entries(argumentGroups || {}).flatMap(
+      ([groupId, selectedGroupValues]) => {
+        // get all the accounts for the selected group value
+        const group = argOptions?.groups ? argOptions?.groups?.[groupId] : [];
+        // console.log({ groupId, selectedGroupValues, group });
+        return (
+          selectedGroupValues
+            .flatMap((groupValue) => {
+              return group.find((g) => g.value === groupValue) ?? null;
+            })
+            // Now remove any null values
+            .filter((g) => g)
+        );
+      }
+    );
 
   let res: Obj[] = [];
 
@@ -149,6 +154,11 @@ const ArgField = (props: ArgFieldProps) => {
     return acc;
   }, [] as Obj[]);
 
+  // console.log({ effectiveGroups, multiSelects });
+  // console.log({ res });
+  // effectiveViaGroups.filter(g => {
+  // })
+
   // Filter to remove duplicates
   const effectiveAccountIds = [
     ...(multiSelects || []),
@@ -163,6 +173,11 @@ const ArgField = (props: ArgFieldProps) => {
       return effectiveAccountIds.includes(option.value);
     }) || [];
   const required = effectiveOptions.length === 0;
+
+  // console.log({
+  //   effectiveOptions,
+  //   touchings: formState.touchedFields,
+  // });
 
   return (
     <VStack
@@ -204,6 +219,7 @@ const ArgField = (props: ArgFieldProps) => {
         )}
       </FormControl>
 
+      {/* @TODO: add a skeleton group */}
       {argument.groups && (
         <Box
           mt={4}
@@ -211,62 +227,61 @@ const ArgField = (props: ArgFieldProps) => {
           w={{ base: "100%", md: "100%" }}
           minW={{ base: "100%", md: "400px", lg: "500px" }}
         >
-          {Object.values(argument.groups).map((group) => {
-            // catch the unexpected case where there are no options for group
-            if (
-              argOptions?.groups == undefined ||
-              !argOptions.groups?.[group.id]
-            ) {
-              return null;
-            }
-            return (
-              <FormControl
-                w="100%"
-                isInvalid={
-                  multiSelectsError &&
-                  multiSelectsError[argument.id] !== undefined
-                }
-              >
-                <>
-                  <FormLabel
-                    htmlFor="target.providerId"
-                    display="inline"
-                    mb={4}
-                  >
-                    <Text display="inline" textStyle={"Body/Medium"}>
-                      {group.title}{" "}
-                    </Text>{" "}
-                    <Tooltip label="Dynamic Field" hasArrow={true}>
-                      <Circle
-                        display="inline-flex"
-                        size="24px"
-                        px={1}
-                        // bg="gray.200"
-                        rounded="full"
-                        filter="grayscale(1);"
-                        transition="all .2s ease"
-                        _hover={{
-                          filter: "grayscale(0);",
-                        }}
-                      >
-                        <BoltIcon boxSize="12px" color="brandGreen.200" />
-                      </Circle>
-                    </Tooltip>
-                  </FormLabel>
-                  <HStack>
-                    <MultiSelect
-                      rules={{ required: required, minLength: 1 }}
-                      fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
-                      options={argOptions.groups[group.id] || []}
-                      shouldAddSelectAllOption={true}
-                    />
-                  </HStack>
-                </>
-                {/* <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel> */}
-                {/* TODO: msg will eventually be more detailed (one or more options) */}
-              </FormControl>
-            );
-          })}
+          {argument?.groups &&
+            Object.values(argument.groups).map((group) => {
+              // catch the unexpected case where there are no options for group
+              if (
+                argOptions?.groups == undefined ||
+                !argOptions.groups?.[group.id]
+              ) {
+                return null;
+              }
+              return (
+                <FormControl
+                  w="100%"
+                  isInvalid={
+                    multiSelectsError &&
+                    multiSelectsError[argument.id] !== undefined
+                  }
+                >
+                  <>
+                    <FormLabel
+                      htmlFor="target.providerId"
+                      display="inline"
+                      mb={4}
+                    >
+                      <Text display="inline" textStyle={"Body/Medium"}>
+                        {group.title}{" "}
+                      </Text>{" "}
+                      <Tooltip label="Dynamic Field" hasArrow={true}>
+                        <Circle
+                          display="inline-flex"
+                          size="24px"
+                          px={1}
+                          // bg="gray.200"
+                          rounded="full"
+                          filter="grayscale(1);"
+                          transition="all .2s ease"
+                          _hover={{
+                            filter: "grayscale(0);",
+                          }}
+                        >
+                          <BoltIcon boxSize="12px" color="brandGreen.200" />
+                        </Circle>
+                      </Tooltip>
+                    </FormLabel>
+                    <HStack>
+                      <MultiSelect
+                        rules={{ required: required, minLength: 1 }}
+                        fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
+                        options={argOptions.groups[group.id] || []}
+                        shouldAddSelectAllOption={true}
+                      />
+                    </HStack>
+                  </>
+                </FormControl>
+              );
+            })}
         </Box>
       )}
       {argOptions?.groups &&
