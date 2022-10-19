@@ -79,13 +79,6 @@ const ArgField = (props: ArgFieldProps) => {
     );
   }
 
-  type Obj = {
-    option: Option;
-    parentGroup?: GroupOption;
-  };
-
-  type ResArr = (Obj | Option)[];
-
   /** get all the group children (for aws these are the accounts for the OUs) */
   const effectiveViaGroups = Object.entries(argumentGroups || {}).flatMap(
     ([groupId, selectedGroupValues]) => {
@@ -98,8 +91,10 @@ const ArgField = (props: ArgFieldProps) => {
     }
   );
 
-  // This type allows us to store the options in a flat array (with additional information for group fields)
-  // type EffectiveOptions = [string, GroupOption];
+  type Obj = {
+    option: Option;
+    parentGroup?: GroupOption;
+  };
 
   // Desired output: an array of Options (value and label) with ID(s) that can lookup into the richer map object
   // Step 1: get all the options from the groups
@@ -123,10 +118,36 @@ const ArgField = (props: ArgFieldProps) => {
     }
   );
 
-  console.log({ effectiveGroups, multiSelects });
+  let res: Obj[] = [];
 
-  // effectiveViaGroups.filter(g => {
-  // })
+  effectiveGroups?.forEach((g) => {
+    g?.children?.forEach((c) => {
+      const option = argOptions?.options?.find((o) => o.value === c);
+      option && res.push({ option, parentGroup: g });
+    });
+  });
+  multiSelects?.forEach((ms) => {
+    const option = argOptions?.options?.find((o) => o.value === ms);
+    option && res.push({ option });
+  });
+
+  // Now remove any duplicate Option.label Option.value paires
+  // With a preference for the parentGroup option
+  const uniqueRes = res.reduce((acc, cur) => {
+    const existing = acc.find(
+      (a) =>
+        a.option.value === cur.option.value &&
+        a.option.label === cur.option.label
+    );
+    if (existing) {
+      if (cur.parentGroup) {
+        acc.splice(acc.indexOf(existing), 1, cur);
+      }
+    } else {
+      acc.push(cur);
+    }
+    return acc;
+  }, [] as Obj[]);
 
   // Filter to remove duplicates
   const effectiveAccountIds = [
@@ -142,11 +163,6 @@ const ArgField = (props: ArgFieldProps) => {
       return effectiveAccountIds.includes(option.value);
     }) || [];
   const required = effectiveOptions.length === 0;
-
-  // console.log({
-  //   effectiveOptions,
-  //   touchings: formState.touchedFields,
-  // });
 
   return (
     <VStack
@@ -253,16 +269,20 @@ const ArgField = (props: ArgFieldProps) => {
           })}
         </Box>
       )}
-      {effectiveOptions.length > 0 &&
-        argOptions?.groups &&
+      {argOptions?.groups &&
         Object.entries(argOptions?.groups ?? {}).length > 0 && (
-          <Box mt={2}>
-            {/* <Text textStyle={"Body/Medium"}>{argument.title + "s"}</Text> */}
+          <Box mt={4}>
             <Wrap>
-              {effectiveOptions &&
-                effectiveOptions.map((c) => {
+              {uniqueRes &&
+                uniqueRes.map((c) => {
                   // console.log(c);
-                  return <DynamicOption label={c.label} value={c.value} />;
+                  return (
+                    <DynamicOption
+                      label={c.option.label}
+                      value={c.option.value}
+                      parentGroup={c.parentGroup}
+                    />
+                  );
                 })}
             </Wrap>
           </Box>
