@@ -50,7 +50,7 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	now := s.Clock.Now()
 
-	for arg, groupings := range rule.Target.WithDynamicId {
+	for arg, groupings := range rule.Target.WithArgumentGroupOptions {
 		for group, values := range groupings {
 
 			// if provider arg has values in groupings

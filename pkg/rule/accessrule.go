@@ -120,7 +120,7 @@ func (a AccessRule) ToRequestAccessRuleAPI(argOptions []cache.ProviderOption) ty
 	// if provider is not found, fallback to using the argument key as the title
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(a.Target.ProviderType)
 
-	processArgumentOption := func(argumentID string, value string) {
+	processArgumentOption := func(argumentID string, value string, requireSelection bool) {
 		argument := ad.Target.Arguments.AdditionalProperties[argumentID]
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
@@ -141,16 +141,17 @@ func (a AccessRule) ToRequestAccessRuleAPI(argOptions []cache.ProviderOption) ty
 			option.Label = value
 		}
 		argument.Options = append(argument.Options, option)
+		argument.RequiresSelection = requireSelection
 		ad.Target.Arguments.AdditionalProperties[argumentID] = argument
 	}
 
 	for k, v := range a.Target.With {
-		processArgumentOption(k, v)
+		processArgumentOption(k, v, false)
 	}
 
 	for k, v := range a.Target.WithSelectable {
 		for _, v2 := range v {
-			processArgumentOption(k, v2)
+			processArgumentOption(k, v2, true)
 		}
 	}
 	return ad

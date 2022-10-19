@@ -5,5 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
+import type { With } from './with';
 
-export type AccessRuleAdditionalItemsGroupings = {[key: string]: string[]};
+export type RequestDetailArguments = {[key: string]: With};

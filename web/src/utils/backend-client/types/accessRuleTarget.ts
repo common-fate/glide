@@ -6,13 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 import type { Provider } from './provider';
-import type { AccessRuleTargetWith } from './accessRuleTargetWith';
 
 /**
  * A target for an access rule
  */
 export interface AccessRuleTarget {
   provider: Provider;
-  /** The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule. */
-  with: AccessRuleTargetWith;
 }

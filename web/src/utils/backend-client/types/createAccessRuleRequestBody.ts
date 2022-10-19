@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { ApproverConfig } from './approverConfig';
-import type { AccessRuleTarget } from './accessRuleTarget';
+import type { CreateAccessRuleTarget } from './createAccessRuleTarget';
 import type { TimeConstraints } from './timeConstraints';
 
 export type CreateAccessRuleRequestBody = {
@@ -15,6 +15,6 @@ export type CreateAccessRuleRequestBody = {
   approval: ApproverConfig;
   name: string;
   description: string;
-  target: AccessRuleTarget;
+  target: CreateAccessRuleTarget;
   timeConstraints: TimeConstraints;
 };

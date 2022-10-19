@@ -406,7 +406,7 @@ const UserAccessCard: React.FC<
     index: number;
   } & LinkBoxProps
 > = ({ req, type, index, ...rest }) => {
-  const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
+  const { data: rule } = useUserGetAccessRule(req?.accessRuleId);
 
   const option = getRequestOption(req);
 

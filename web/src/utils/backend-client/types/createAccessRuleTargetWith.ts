@@ -7,4 +7,4 @@
  */
 import type { AccessRuleTargetDetailArguments } from './accessRuleTargetDetailArguments';
 
-export type AccessRuleTargetDetailWith = {[key: string]: AccessRuleTargetDetailArguments};
+export type CreateAccessRuleTargetWith = {[key: string]: AccessRuleTargetDetailArguments};

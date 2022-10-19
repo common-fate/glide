@@ -13,14 +13,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (s *Service) ProcessTarget(ctx context.Context, in types.AccessRuleTarget) (rule.Target, error) {
+func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
 	// After verifying the provider, we can save the provider type to the rule for convenience
 	p, err := s.verifyRuleTarget(ctx, in)
 	if err != nil {
 		return rule.Target{}, err
 	}
 	target := rule.Target{
-		ProviderID:               in.Provider.Id,
+		ProviderID:               in.ProviderId,
 		ProviderType:             p.Type,
 		With:                     make(map[string]string),
 		WithSelectable:           make(map[string][]string),
@@ -91,8 +91,8 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 }
 
 // verifyRuleTarget fetches the provider and returns it if it exists
-func (s *Service) verifyRuleTarget(ctx context.Context, target types.AccessRuleTarget) (*ahTypes.Provider, error) {
-	p, err := s.AHClient.GetProviderWithResponse(ctx, target.Provider.Id)
+func (s *Service) verifyRuleTarget(ctx context.Context, target types.CreateAccessRuleTarget) (*ahTypes.Provider, error) {
+	p, err := s.AHClient.GetProviderWithResponse(ctx, target.ProviderId)
 	if err != nil {
 		return nil, err
 	}

@@ -1178,40 +1178,6 @@ components:
         - target
         - timeConstraints
         - isCurrent
-    RequestAccessRule:
-      title: RequestAccessRule
-      type: object
-      description: Access Rule contains information for an end user to make a request for access.
-      properties:
-        id:
-          type: string
-          x-go-name: ID
-          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
-        version:
-          type: string
-          description: |
-            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
-            When a rule is updated, it's ID remains consistent.
-        name:
-          type: string
-          example: Okta admin
-        description:
-          type: string
-          example: Admin access to Okta
-        target:
-          $ref: '#/components/schemas/RequestAccessRuleTarget'
-        timeConstraints:
-          $ref: '#/components/schemas/TimeConstraints'
-        isCurrent:
-          type: boolean
-      required:
-        - id
-        - version
-        - name
-        - description
-        - target
-        - timeConstraints
-        - isCurrent
     AccessRuleDetail:
       title: AccessRuleDetail
       type: object
@@ -1261,6 +1227,91 @@ components:
         - target
         - timeConstraints
         - isCurrent
+    RequestAccessRule:
+      title: RequestAccessRule
+      type: object
+      description: Access Rule contains information for an end user to make a request for access.
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
+        version:
+          type: string
+          description: |
+            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+            When a rule is updated, it's ID remains consistent.
+        name:
+          type: string
+          example: Okta admin
+        description:
+          type: string
+          example: Admin access to Okta
+        target:
+          $ref: '#/components/schemas/RequestAccessRuleTarget'
+        timeConstraints:
+          $ref: '#/components/schemas/TimeConstraints'
+        isCurrent:
+          type: boolean
+      required:
+        - id
+        - version
+        - name
+        - description
+        - target
+        - timeConstraints
+        - isCurrent
+    AccessRuleTarget:
+      title: AccessRuleTarget
+      type: object
+      description: A target for an access rule
+      properties:
+        provider:
+          $ref: '#/components/schemas/Provider'
+      required:
+        - provider
+    AccessRuleTargetDetail:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A detailed target for an access rule
+      properties:
+        provider:
+          $ref: '#/components/schemas/Provider'
+        with:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AccessRuleTargetDetailArguments'
+      required:
+        - provider
+        - with
+    CreateAccessRuleTarget:
+      title: CreateAccessRuleTarget
+      type: object
+      description: a request body for creating a Access Rule Target
+      properties:
+        providerId:
+          type: string
+        with:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AccessRuleTargetDetailArguments'
+      required:
+        - providerId
+        - with
+    RequestAccessRuleTarget:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A detailed target for an access rule request
+      properties:
+        provider:
+          $ref: '#/components/schemas/Provider'
+        arguments:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/RequestArgument'
+      required:
+        - provider
+        - arguments
     AccessRuleStatus:
       type: string
       description: The status of an Access Rule.
@@ -1290,57 +1341,6 @@ components:
         - createdBy
         - updatedAt
         - updatedBy
-    AccessRuleTarget:
-      title: AccessRuleTarget
-      type: object
-      description: A target for an access rule
-      properties:
-        provider:
-          $ref: '#/components/schemas/Provider'
-      required:
-        - provider
-    AccessRuleTargetDetail:
-      title: AccessRuleTargetDetail
-      type: object
-      description: A detailed target for an access rule
-      properties:
-        provider:
-          $ref: '#/components/schemas/Provider'
-        with:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/AccessRuleTargetDetailArguments'
-      required:
-        - provider
-        - with
-    RequestAccessRuleTarget:
-      title: AccessRuleTargetDetail
-      type: object
-      description: A detailed target for an access rule request
-      properties:
-        provider:
-          $ref: '#/components/schemas/Provider'
-        arguments:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/RequestArgument'
-      required:
-        - provider
-        - arguments
-    CreateAccessRuleTarget:
-      title: CreateAccessRuleTarget
-      type: object
-      description: a request body for creating a Access Rule Target
-      properties:
-        providerId:
-          type: string
-        with:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/AccessRuleTargetDetailArguments'
-      required:
-        - providerId
-        - with
     ApproverConfig:
       title: ApproverConfig
       type: object
@@ -1546,6 +1546,11 @@ components:
       enum:
         - AUTOMATIC
         - REVIEWED
+    AccessToken:
+      title: AccessToken
+      x-stoplight:
+        id: yxma8dkhj406q
+      type: string
     RequestArgument:
       title: RequestArgument
       x-stoplight:
@@ -1560,14 +1565,33 @@ components:
             $ref: '#/components/schemas/WithOption'
         description:
           type: string
+        requiresSelection:
+          type: boolean
+          description: This will be true if a selection is require when creating a request
       required:
         - title
         - options
-    AccessToken:
-      title: AccessToken
+        - requiresSelection
+    With:
+      title: With
       x-stoplight:
-        id: yxma8dkhj406q
-      type: string
+        id: 1sgrgc47iwg61
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+        optionDescription:
+          type: string
+        fieldDescription:
+          type: string
+      required:
+        - title
+        - label
+        - value
     WithOption:
       title: WithOption
       x-stoplight:
@@ -1584,21 +1608,6 @@ components:
         - value
         - label
         - valid
-    Selectable:
-      title: Selectable
-      x-stoplight:
-        id: ab18xdxwinqhb
-      type: object
-      properties:
-        options:
-          type: array
-          items:
-            $ref: '#/components/schemas/WithOption'
-        title:
-          type: string
-      required:
-        - options
-        - title
     CreateRequestWith:
       title: CreateRequestWith
       x-stoplight:
@@ -1815,26 +1824,6 @@ components:
           type: string
       required:
         - key
-        - value
-    With:
-      title: With
-      x-stoplight:
-        id: 1sgrgc47iwg61
-      type: object
-      properties:
-        title:
-          type: string
-        label:
-          type: string
-        value:
-          type: string
-        optionDescription:
-          type: string
-        fieldDescription:
-          type: string
-      required:
-        - title
-        - label
         - value
     AccessRuleTargetDetailArguments:
       title: AccessRuleTargetDetailArguments

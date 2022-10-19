@@ -7,13 +7,11 @@
  */
 import type { Provider } from './provider';
 import type { AccessRuleTargetDetailWith } from './accessRuleTargetDetailWith';
-import type { AccessRuleTargetDetailWithSelectable } from './accessRuleTargetDetailWithSelectable';
 
 /**
- * A target for an access rule
+ * A detailed target for an access rule
  */
 export interface AccessRuleTargetDetail {
   provider: Provider;
   with: AccessRuleTargetDetailWith;
-  withSelectable: AccessRuleTargetDetailWithSelectable;
 }
