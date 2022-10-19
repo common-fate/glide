@@ -1,5 +1,6 @@
 import {
   Box,
+  Circle,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -8,6 +9,7 @@ import {
   Input,
   Tag,
   Text,
+  Tooltip,
   VStack,
   Wrap,
 } from "@chakra-ui/react";
@@ -102,8 +104,11 @@ const ArgField = (props: ArgFieldProps) => {
 
   return (
     <VStack
-      // border="1px solid" borderColor="gray.600"
-      p={2}
+      border="1px solid"
+      borderColor="gray.300"
+      rounded="md"
+      p={4}
+      py={6}
       w="100%"
       spacing={4}
       justifyContent="start"
@@ -117,7 +122,9 @@ const ArgField = (props: ArgFieldProps) => {
       >
         <div>
           <FormLabel htmlFor="target.providerId">
-            <Text textStyle={"Body/Medium"}>{argument.title}</Text>
+            <Text textStyle={"Body/Medium"}>
+              Individual&nbsp;{argument.title}s
+            </Text>
           </FormLabel>
           <HStack>
             <MultiSelect
@@ -137,20 +144,20 @@ const ArgField = (props: ArgFieldProps) => {
 
       {argument.groups && (
         <Box
-          border="1px solid"
-          rounded="md"
-          borderColor="gray.300"
+          // border="1px solid"
+          // borderColor="gray.300"
+          // rounded="md"
           mt={4}
-          p={4}
-          py={4}
-          pt={8}
+          pl={6}
+          // py={4}
+          // pt={8}
           // overflow="clip"
           pos="relative"
           w={{ base: "100%", md: "100%" }}
           minW={{ base: "100%", md: "400px", lg: "500px" }}
           // zIndex={1}
         >
-          <Tag
+          {/* <Tag
             size="md"
             pos="absolute"
             top={"-2px"}
@@ -176,7 +183,7 @@ const ArgField = (props: ArgFieldProps) => {
             filter="grayscale(1);"
           >
             Dynamic Fields ⚡️
-          </Tag>
+          </Tag> */}
           {Object.values(argument.groups).map((group) => {
             // catch the unexpected case where there are no options for group
             if (
@@ -194,8 +201,30 @@ const ArgField = (props: ArgFieldProps) => {
                 }
               >
                 <>
-                  <FormLabel htmlFor="target.providerId">
-                    <Text textStyle={"Body/Medium"}>{group.title}</Text>
+                  <FormLabel
+                    htmlFor="target.providerId"
+                    display="inline"
+                    mb={4}
+                  >
+                    <Text display="inline" textStyle={"Body/Medium"}>
+                      {group.title}{" "}
+                    </Text>{" "}
+                    <Tooltip label="Dynamic Field" hasArrow={true}>
+                      <Circle
+                        display="inline-flex"
+                        size="24px"
+                        px={1}
+                        bg="gray.200"
+                        rounded="full"
+                        filter="grayscale(1);"
+                        transition="all .2s ease"
+                        _hover={{
+                          filter: "grayscale(0);",
+                        }}
+                      >
+                        {"⚡️"}
+                      </Circle>
+                    </Tooltip>
                   </FormLabel>
                   <HStack>
                     <MultiSelect
@@ -216,11 +245,8 @@ const ArgField = (props: ArgFieldProps) => {
       {effectiveOptions.length > 0 &&
         argOptions?.groups &&
         Object.entries(argOptions?.groups ?? {}).length > 0 && (
-          <Box>
-            <Text textStyle={"Body/Medium"}>
-              {"Effective " + argument.title + "s"}
-            </Text>
-            {/* <Heading size="md">{"Effective " + argument.title + "s"}</Heading> */}
+          <Box mt={2}>
+            {/* <Text textStyle={"Body/Medium"}>{argument.title + "s"}</Text> */}
             <Wrap>
               {effectiveOptions &&
                 effectiveOptions.map((c) => {
