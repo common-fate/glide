@@ -167,11 +167,13 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 	// if provider is not found, fallback to using the argument key as the title
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(accessRule.Target.ProviderType)
 	for k, v := range r.SelectedWith {
+
 		with := types.With{
-			Label:       v.Label,
-			Value:       v.Value,
-			Title:       k,
-			Description: v.Description,
+			Label:             v.Label,
+			Value:             v.Value,
+			Title:             k,
+			FieldDescription:  v.Description,
+			OptionDescription: v.Description,
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
