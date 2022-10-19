@@ -315,7 +315,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, rule.ToAPIWithSelectables(pq.Result), http.StatusOK)
+	apio.JSON(ctx, w, rule.ToRequestAccessRuleAPI(pq.Result), http.StatusOK)
 }
 
 func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request, ruleId string) {

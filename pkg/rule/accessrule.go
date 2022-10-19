@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -96,61 +94,51 @@ func (a AccessRule) ToAPI() types.AccessRule {
 	}
 }
 
-func (a AccessRule) ToRequestAccessRuleDetailAPI(argOptions []cache.ProviderOption) types.RequestAccessRuleDetail {
-	ad := types.RequestAccessRuleDetail{
+func (a AccessRule) ToRequestAccessRuleAPI(argOptions []cache.ProviderOption) types.RequestAccessRule {
+	ad := types.RequestAccessRule{
 		Version:     a.Version,
 		Description: a.Description,
 		Name:        a.Name,
 		IsCurrent:   a.Current,
-		Id:          a.ID,
-		With: types.RequestAccessRuleDetail_With{
-			AdditionalProperties: make(map[string]types.With),
+		ID:          a.ID,
+		Target: types.RequestAccessRuleTarget{
+			Provider: a.Target.ProviderToAPI(),
+			Arguments: types.RequestAccessRuleTarget_Arguments{
+				AdditionalProperties: make(map[string]types.RequestArgument),
+			},
 		},
-		Provider:        a.Target.ProviderToAPI(),
 		TimeConstraints: a.TimeConstraints,
 	}
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(a.Target.ProviderType)
-	for k, v := range a.Target.With {
-		with := types.With{
-			Value: v,
-			Title: k,
-			Label: v,
-		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
-				if arg, ok := schema[k]; ok {
-					with.Title = arg.Title
-				}
-			}
-		}
-		for _, ao := range argOptions {
-			// if a value is found, set it to true with a label
-			if ao.Arg == k && ao.Value == v {
-				with.Label = ao.Label
-				break
-			}
-		}
-		ad.With.AdditionalProperties[k] = with
-	}
-	return ad
-}
+	// _, provider, _ := providerregistry.Registry().GetLatestByShortType(a.Target.ProviderType)
+	// for k, v := range a.Target.With {
+	// 	with := types.With{
+	// 		Value: v,
+	// 		Title: k,
+	// 		Label: v,
+	// 	}
+	// 	// attempt to get the title for the argument from the provider arg schema
+	// 	if provider != nil {
+	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+	// 			schema := s.ArgSchemaV2()
+	// 			if arg, ok := schema[k]; ok {
+	// 				with.Title = arg.Title
+	// 			}
+	// 		}
+	// 	}
+	// 	for _, ao := range argOptions {
+	// 		// if a value is found, set it to true with a label
+	// 		if ao.Arg == k && ao.Value == v {
+	// 			with.Label = ao.Label
+	// 			break
+	// 		}
+	// 	}
+	// 	ad.Target.Arguments.AdditionalProperties[k] = types.RequestArgument{
 
-func (a AccessRule) ToAPIWithSelectables(argOptions []cache.ProviderOption) types.AccessRuleWithSelectables {
-	return types.AccessRuleWithSelectables{
-		ID:          a.ID,
-		Version:     a.Version,
-		Description: a.Description,
-		Name:        a.Name,
-		TimeConstraints: types.TimeConstraints{
-			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
-		},
-		Target:    a.Target.ToAPIDetail(argOptions),
-		IsCurrent: a.Current,
-	}
+	// 	}
+	// }
+	return ad
 }
 
 // AccessRuleMetadata defines model for AccessRuleMetadata.
@@ -203,27 +191,24 @@ func (t Target) ProviderToAPI() types.Provider {
 func (t Target) ToAPI() types.AccessRuleTarget {
 	at := types.AccessRuleTarget{
 		Provider: t.ProviderToAPI(),
-		With: types.AccessRuleTarget_With{
-			AdditionalProperties: map[string]types.AccessRuleAdditionalItems{},
-		},
 	}
-	at.With.AdditionalProperties = make(map[string]types.AccessRuleAdditionalItems, len(t.With))
+	// at.With.AdditionalProperties = make(map[string]types.AccessRuleAdditionalItems, len(t.With))
 
-	//put together the groupings for the api
-	for propertyParent, g := range t.WithArgumentGroupOptions {
-		groupings := types.AccessRuleAdditionalItems_Groupings{AdditionalProperties: make(map[string][]string)}
+	// //put together the groupings for the api
+	// for propertyParent, g := range t.WithArgumentGroupOptions {
+	// 	groupings := types.AccessRuleAdditionalItems_Groupings{AdditionalProperties: make(map[string][]string)}
 
-		for optName, opt := range g {
+	// 	for optName, opt := range g {
 
-			groupings.AdditionalProperties[optName] = opt
+	// 		groupings.AdditionalProperties[optName] = opt
 
-		}
-		at.With.AdditionalProperties[propertyParent] = types.AccessRuleAdditionalItems{
-			Values:    []string{},
-			Groupings: groupings,
-		}
+	// 	}
+	// 	at.With.AdditionalProperties[propertyParent] = types.AccessRuleAdditionalItems{
+	// 		Values:    []string{},
+	// 		Groupings: groupings,
+	// 	}
 
-	}
+	// }
 
 	return at
 }
@@ -235,79 +220,100 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 			Type: t.ProviderType,
 		},
 		With: types.AccessRuleTargetDetail_With{
-			AdditionalProperties: make(map[string]types.With),
+			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
 		},
-		WithSelectable: types.AccessRuleTargetDetail_WithSelectable{
-			AdditionalProperties: make(map[string]types.Selectable),
-		},
-	}
-
-	// Lookup the provider, ignore errors
-	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
-	for k, v := range t.WithSelectable {
-		selectable := types.Selectable{
-			Options: make([]types.WithOption, len(v)),
-		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
-				if arg, ok := schema[k]; ok {
-					selectable.Title = arg.Title
-				}
-			}
-		}
-		// If title was not found, fallback to using the arg key as the title
-		if selectable.Title == "" {
-			selectable.Title = k
-		}
-		for i, opt := range v {
-			// initially set it to false
-			selectable.Options[i] = types.WithOption{
-				Label: opt,
-				Value: opt,
-				Valid: false,
-			}
-			for _, ao := range argOptions {
-				// if a value is found, set it to true with a label
-				if ao.Arg == k && ao.Value == opt {
-					selectable.Options[i] = types.WithOption{
-						Label: ao.Label,
-						Value: opt,
-						Valid: true,
-					}
-					break
-				}
-			}
-		}
-		at.WithSelectable.AdditionalProperties[k] = selectable
 	}
 
 	for k, v := range t.With {
-		with := types.With{
-			Value: v,
-			Title: k,
-			Label: v,
-		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
-				if arg, ok := schema[k]; ok {
-					with.Title = arg.Title
-				}
-			}
-		}
-		for _, ao := range argOptions {
-			// if a value is found, set it to true with a label
-			if ao.Arg == k && ao.Value == v {
-				with.Label = ao.Label
-				break
-			}
-		}
-		at.With.AdditionalProperties[k] = with
+		argument := at.With.AdditionalProperties[k]
+		argument.Values = append(argument.Values, v)
+		at.With.AdditionalProperties[k] = argument
 	}
+	for k, v := range t.WithSelectable {
+		argument := at.With.AdditionalProperties[k]
+		argument.Values = append(argument.Values, v...)
+		at.With.AdditionalProperties[k] = argument
+	}
+	for k, v := range t.WithArgumentGroupOptions {
+		argument := at.With.AdditionalProperties[k]
+		argument.Groupings.AdditionalProperties = make(map[string][]string)
+		for k2, v2 := range v {
+			group := argument.Groupings.AdditionalProperties[k2]
+			group = append(group, v2...)
+			argument.Groupings.AdditionalProperties[k2] = group
+		}
+		at.With.AdditionalProperties[k] = argument
+	}
+
+	// // Lookup the provider, ignore errors
+	// // if provider is not found, fallback to using the argument key as the title
+	// _, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
+	// for k, v := range t.With {
+	// 	with := types.With{
+	// 		Value: v,
+	// 		Title: k,
+	// 		Label: v,
+	// 	}
+	// 	// attempt to get the title for the argument from the provider arg schema
+	// 	if provider != nil {
+	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+	// 			schema := s.ArgSchemaV2()
+	// 			if arg, ok := schema[k]; ok {
+	// 				with.Title = arg.Title
+	// 			}
+	// 		}
+	// 	}
+	// 	for _, ao := range argOptions {
+	// 		// if a value is found, set it to true with a label
+	// 		if ao.Arg == k && ao.Value == v {
+	// 			with.Label = ao.Label
+	// 			break
+	// 		}
+	// 	}
+	// 	at.With.AdditionalProperties[k] = types.AccessRuleTargetDetailArguments{
+	// 		Values: ,
+	// 	}
+	// }
+
+	// for k, v := range t.WithSelectable {
+	// 	selectable := types.Selectable{
+	// 		Options: make([]types.WithOption, len(v)),
+	// 	}
+	// 	// attempt to get the title for the argument from the provider arg schema
+	// 	if provider != nil {
+	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+	// 			schema := s.ArgSchemaV2()
+	// 			if arg, ok := schema[k]; ok {
+	// 				selectable.Title = arg.Title
+	// 			}
+	// 		}
+	// 	}
+	// 	// If title was not found, fallback to using the arg key as the title
+	// 	if selectable.Title == "" {
+	// 		selectable.Title = k
+	// 	}
+	// 	for i, opt := range v {
+	// 		// initially set it to false
+	// 		selectable.Options[i] = types.WithOption{
+	// 			Label: opt,
+	// 			Value: opt,
+	// 			Valid: false,
+	// 		}
+	// 		for _, ao := range argOptions {
+	// 			// if a value is found, set it to true with a label
+	// 			if ao.Arg == k && ao.Value == opt {
+	// 				selectable.Options[i] = types.WithOption{
+	// 					Label: ao.Label,
+	// 					Value: opt,
+	// 					Valid: true,
+	// 				}
+	// 				break
+	// 			}
+	// 		}
+	// 	}
+	// 	at.WithSelectable.AdditionalProperties[k] = selectable
+	// }
+
 	return at
 }
 
