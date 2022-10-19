@@ -7,7 +7,10 @@
  */
 import type { WithOption } from './withOption';
 
-export interface Selectable {
-  options: WithOption[];
+export interface RequestArgument {
   title: string;
+  options: WithOption[];
+  description?: string;
+  /** This will be true if a selection is require when creating a request */
+  requiresSelection: boolean;
 }

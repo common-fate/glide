@@ -26,8 +26,8 @@ import {
 import { adminArchiveAccessRule } from "../../../utils/backend-client/default/default";
 import {
   AccessRuleDetail,
+  AccessRuleTargetDetailArgumentsFormElement,
   CreateAccessRuleRequestBody,
-  CreateAccessRuleTarget,
 } from "../../../utils/backend-client/types";
 import {
   AccessRuleFormData,
@@ -46,6 +46,23 @@ interface Props {
   data: AccessRuleDetail;
   readOnly?: boolean;
 }
+
+//converts target api data to form data
+export const accessRuleTargetApiToTargetFormData = (
+  apiData: AccessRuleDetail
+): AccessRuleFormDataTarget => {
+  const formTargetData: AccessRuleFormDataTarget = {
+    providerId: apiData.target.provider.id,
+    argumentGroups: {},
+    inputs: {},
+    multiSelects: {},
+  };
+
+  for (const k in apiData.target.with) {
+  }
+
+  return formTargetData;
+};
 
 const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const {
@@ -66,50 +83,51 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const [cachedRule, setCachedRule] = useState<AccessRuleDetail | undefined>();
   const { mutate } = useAdminGetAccessRule(ruleId);
 
-  // useEffect(() => {
-  //   // We will only reset form data if it has changed on the backend
-  //   if (data && (!cachedRule || cachedRule != data)) {
-  //     const t: AccessRuleFormDataTarget = {
-  //       providerId: data.target.provider.id,
-  //       with: {},
-  //       withText: {},
-  //     };
+  useEffect(() => {
+    // We will only reset form data if it has changed on the backend
+    if (data && (!cachedRule || cachedRule != data)) {
+      const t: AccessRuleFormDataTarget = {
+        providerId: data.target.provider.id,
+        multiSelects: {},
+        argumentGroups: {},
+        inputs: {},
+      };
+      Object.entries(data.target.with).forEach(([k, v]) => {
+        if (
+          v.formElement ===
+          AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+        ) {
+          t.multiSelects[k] = v.values;
+          t.argumentGroups[k] = v.groupings;
+        } else {
+          t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
+        }
+      });
+      console.log({ t, data });
+      //set accessRuleTargetData from rule details from api
 
-  //     for (const k in data.target.with) {
-  //       // TODO: FIXME:
-  //       // Update based on changes with `with` respoonse object.
-  //       // t.with[k] = [data.target.with[k]];
-  //       // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
-  //       t.withText![k] = data.target.with[k];
-  //     }
-  //     for (const k in data.target.withSelectable) {
-  //       // TODO: FIXME:
-  //       // Update based on changes with `with` respoonse object.
-  //       // t.with[k] = data.target.withSelectable[k];
-  //     }
-
-  //     const f: AccessRuleFormData = {
-  //       description: data.description,
-  //       groups: data.groups,
-  //       name: data.name,
-  //       timeConstraints: {
-  //         maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
-  //       },
-  //       approval: {
-  //         required:
-  //           data.approval.users.length > 0 || data.approval.groups?.length > 0,
-  //         users: data.approval.users,
-  //         groups: data.approval.groups,
-  //       },
-  //       target: t,
-  //     };
-  //     methods.reset(f);
-  //     setCachedRule(data);
-  //   }
-  //   return () => {
-  //     setCachedRule(undefined);
-  //   };
-  // }, [data, methods]);
+      const f: AccessRuleFormData = {
+        description: data.description,
+        groups: data.groups,
+        name: data.name,
+        timeConstraints: {
+          maxDurationSeconds: data.timeConstraints.maxDurationSeconds,
+        },
+        approval: {
+          required:
+            data.approval.users.length > 0 || data.approval.groups?.length > 0,
+          users: data.approval.users,
+          groups: data.approval.groups,
+        },
+        target: t,
+      };
+      methods.reset(f);
+      setCachedRule(data);
+    }
+    return () => {
+      setCachedRule(undefined);
+    };
+  }, [data, methods]);
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });

@@ -61,7 +61,7 @@ func (a ArgSchema) ToAPI() types.ArgSchema {
 }
 
 type ArgSchemarer interface {
-	ArgSchemaV2() ArgSchema
+	ArgSchema() ArgSchema
 }
 type ArgOptionGroupValueser interface {
 	ArgOptionGroupValues(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)

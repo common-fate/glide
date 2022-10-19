@@ -15,6 +15,7 @@ import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
+import { CacheSync } from "./cache-sync";
 
 interface Props {
   appName: string;
@@ -42,6 +43,7 @@ export class AppBackend extends Construct {
   private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
+  private _cacheSync: CacheSync;
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
   private _webhookLambda: lambda.Function;
@@ -106,15 +108,14 @@ export class AppBackend extends Construct {
         IDENTITY_PROVIDER: props.userPool.getIdpType(),
         APPROVALS_ADMIN_GROUP: props.adminGroupId,
         MOCK_ACCESS_HANDLER: "false",
-        ACCESS_HANDLER_URL: props.accessHandler.getApiGateway().url,
+        ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
         PROVIDER_CONFIG: props.providerConfig,
         // SENTRY_DSN: can be added here
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        ACCESS_HANDLER_EXECUTION_ROLE_ARN:
-          props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         REMOTE_CONFIG_URL: props.remoteConfigUrl,
         REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
@@ -164,6 +165,18 @@ export class AppBackend extends Construct {
             Stack.of(this).account
           }:parameter/granted/providers/*`,
         ],
+      })
+    );
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
+          },
+        },
       })
     );
 
@@ -274,6 +287,10 @@ export class AppBackend extends Construct {
       identityProviderSyncConfiguration:
         props.identityProviderSyncConfiguration,
     });
+    this._cacheSync = new CacheSync(this, "CacheSync", {
+      dynamoTable: this._dynamoTable,
+      accessHandler: props.accessHandler,
+    });
   }
 
   /**
@@ -302,8 +319,7 @@ export class AppBackend extends Construct {
           webAclArn: apiGatewayWafAclArn,
         }
       );
-      apiGatewayWafAclAssociation.cfnOptions.condition =
-        createApiGatewayWafAssociation;
+      apiGatewayWafAclAssociation.cfnOptions.condition = createApiGatewayWafAssociation;
     }
   }
 
@@ -340,8 +356,14 @@ export class AppBackend extends Construct {
   getIdpSync(): IdpSync {
     return this._idpSync;
   }
+  getCacheSync(): CacheSync {
+    return this._cacheSync;
+  }
 
   getKmsKeyArn(): string {
     return this._KMSkey.keyArn;
+  }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
   }
 }

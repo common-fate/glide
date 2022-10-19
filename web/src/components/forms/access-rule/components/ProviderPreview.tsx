@@ -30,8 +30,6 @@ export const ProviderPreview: React.FC = () => {
   const { data } = useGetProviderArgs(target?.providerId || "");
   const { data: provider } = useGetProvider(target?.providerId);
 
-  console.log({ target, useGetProviderArgs: data });
-
   if (
     target?.providerId === undefined ||
     target?.providerId === "" ||

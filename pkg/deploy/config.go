@@ -51,10 +51,9 @@ var AvailableRegions = []string{
 }
 
 type Config struct {
-	Version          int        `yaml:"version"`
-	Deployment       Deployment `yaml:"deployment"`
-	cachedOutput     *Output
-	cachedSAMLOutput *SAMLOutputs
+	Version      int        `yaml:"version"`
+	Deployment   Deployment `yaml:"deployment"`
+	cachedOutput *Output
 }
 
 type Deployment struct {

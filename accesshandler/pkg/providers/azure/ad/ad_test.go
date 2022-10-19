@@ -1,7 +1,6 @@
 package ad
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIntegration(t *testing.T) {
@@ -63,25 +61,4 @@ func TestIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	integration.RunTests(t, ctx, "azure", &Provider{}, testcases, integration.WithProviderConfig(configMap["azure"]))
-}
-
-func TestArgSchema(t *testing.T) {
-	o := Provider{}
-
-	res := o.ArgSchema()
-	out, err := json.Marshal(res)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := os.ReadFile("./testdata/argschema.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, want)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, buffer.String(), string(out))
 }

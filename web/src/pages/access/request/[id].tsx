@@ -60,6 +60,7 @@ import {
 import {
   AccessRuleTargetDetail,
   CreateRequestRequestBody,
+  RequestAccessRuleTarget,
   WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
@@ -117,6 +118,7 @@ const Home = () => {
     getValues,
   } = useForm<NewRequestFormData>({
     shouldUnregister: true,
+
     defaultValues: {
       when: "asap",
       startDateTime: now,
@@ -143,7 +145,7 @@ const Home = () => {
       // If the field matches and the value is a valid option, it will be set in the form values.
       // if it is not a valid value it is ignored.
       // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
-      Object.entries(rule.target.withSelectable).map(([k, v]) => {
+      Object.entries(rule.target.arguments).map(([k, v]) => {
         const queryParamValue = new URLSearchParams(
           location.search.substring(1)
         ).get(k);
@@ -198,7 +200,7 @@ const Home = () => {
         });
         navigate({ to: "/requests" });
       })
-      .catch((e) => {
+      .catch((e: any) => {
         setLoading(false);
         let description: string | undefined;
         if (axios.isAxiosError(e)) {
@@ -265,93 +267,7 @@ const Home = () => {
                     </Text>
                   </Flex>
                   <Text textStyle="Body/Medium">{rule?.description}</Text>
-                  <AccessRuleWithDisplay rule={rule.target} />
-                  {rule &&
-                    Object.entries(rule.target.withSelectable).map(
-                      ([k, v], i) => {
-                        const name = "with." + k;
-
-                        return (
-                          <FormControl
-                            key={"selectable-" + k}
-                            pos="relative"
-                            id={name}
-                            isInvalid={
-                              errors.with && errors.with[k] !== undefined
-                            }
-                          >
-                            <FormLabel
-                              textStyle="Body/Medium"
-                              color="neutrals.600"
-                              fontWeight="normal"
-                            >
-                              {v.title}
-                            </FormLabel>
-
-                            <Controller
-                              name={`with.${k}`}
-                              control={control}
-                              rules={{ required: true }}
-                              render={({
-                                field: { value, onChange, ...rest },
-                              }) => (
-                                <>
-                                  <Select
-                                    components={{
-                                      Option: CustomOption,
-                                    }}
-                                    styles={{
-                                      option: (provided, state) => {
-                                        return {
-                                          ...provided,
-                                          background: state.isSelected
-                                            ? colors.blue[200]
-                                            : provided.background,
-                                          color: state.isSelected
-                                            ? colors.neutrals[800]
-                                            : provided.color,
-                                        };
-                                      },
-                                    }}
-                                    isMulti={false}
-                                    options={v.options
-                                      // exclude invalid options
-                                      .filter((op) => op.valid)
-                                      .map((op) => {
-                                        return op;
-                                      })
-                                      .sort((a, b) => {
-                                        return a.label < b.label
-                                          ? -1
-                                          : a.label === b.label
-                                          ? 0
-                                          : 1;
-                                      })}
-                                    value={v.options.find(
-                                      (op) => value === op.value
-                                    )}
-                                    onChange={(val) => {
-                                      onChange(val?.value);
-                                    }}
-                                    {...rest}
-                                  />
-                                  <Text
-                                    textStyle={"Body/Small"}
-                                    color="neutrals.600"
-                                  >
-                                    {value}
-                                  </Text>
-                                </>
-                              )}
-                            />
-
-                            <FormErrorMessage>
-                              This field is required
-                            </FormErrorMessage>
-                          </FormControl>
-                        );
-                      }
-                    )}
+                  <AccessRuleArguments target={rule.target} />
                 </>
               ) : (
                 <>
@@ -461,7 +377,7 @@ const Home = () => {
                   </FormControl>
                 </Flex>
 
-                <FormControl>
+                <FormControl isInvalid={!!errors?.reason}>
                   <FormLabel textStyle="Body/Medium" fontWeight="normal">
                     Why do you need access?
                   </FormLabel>
@@ -469,8 +385,28 @@ const Home = () => {
                     bg="white"
                     id="reasonField"
                     placeholder="Deploying initial Terraform infrastructure for CF-123"
-                    {...register("reason")}
+                    {...register("reason", {
+                      validate: (value) => {
+                        const res: string[] = [];
+                        [
+                          /[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/,
+                        ].every((pattern) => pattern.test(value as string)) &&
+                          res.push(
+                            "Invalid characters (only letters, numbers, and punctuation allowed)"
+                          );
+                        if (value && value.length > 2048) {
+                          res.push("Maximum length is 2048 characters");
+                        }
+                        return res.length > 0 ? res.join(", ") : undefined;
+                      },
+                    })}
                   />
+                  {errors?.reason && (
+                    <FormErrorMessage>
+                      {errors?.reason.message}
+                      {JSON.stringify(errors?.reason.types)}
+                    </FormErrorMessage>
+                  )}
                 </FormControl>
 
                 {/* Don't show approval section if approvers are still loading */}
@@ -505,30 +441,114 @@ export const WhenRadioGroup: React.FC<UseRadioGroupProps> = (props) => {
   );
 };
 
-export const AccessRuleWithDisplay: React.FC<{
-  rule?: AccessRuleTargetDetail;
-}> = ({ rule }) => {
-  if (rule === undefined) {
+export const AccessRuleArguments: React.FC<{
+  target?: RequestAccessRuleTarget;
+}> = ({ target }) => {
+  const {
+    register,
+    control,
+    formState: { errors },
+  } = useForm<NewRequestFormData>();
+
+  if (target === undefined) {
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
-  if (Object.entries(rule.with).length > 0) {
-    return (
+
+  return (
+    <>
       <Wrap>
-        {rule.with &&
-          Object.entries(rule.with).map(([k, v]) => {
+        {Object.entries(target.arguments)
+          .filter(([k, v]) => {
+            return !v.requiresSelection;
+          })
+          .map(([k, argument]) => {
             return (
               <WrapItem>
                 <VStack align={"left"}>
-                  <Text>{v.title}</Text>
-                  <InfoOption label={v.label} value={v.value} />
+                  <Text>{argument.title}</Text>
+                  <InfoOption
+                    label={argument.options[0].label}
+                    value={argument.options[0].value}
+                  />
                 </VStack>
               </WrapItem>
             );
           })}
       </Wrap>
-    );
-  }
-  return null;
+      {Object.entries(target.arguments).map(([k, v], i) => {
+        const name = `with.${k}`;
+
+        return (
+          <FormControl
+            key={"selectable-" + k}
+            pos="relative"
+            id={name}
+            isInvalid={errors.with && errors.with[k] !== undefined}
+          >
+            <FormLabel
+              textStyle="Body/Medium"
+              color="neutrals.600"
+              fontWeight="normal"
+            >
+              {v.title}
+            </FormLabel>
+
+            <Controller
+              name={`with.${k}`}
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, ...rest } }) => (
+                <>
+                  <Select
+                    components={{
+                      Option: CustomOption,
+                    }}
+                    styles={{
+                      option: (provided, state) => {
+                        return {
+                          ...provided,
+                          background: state.isSelected
+                            ? colors.blue[200]
+                            : provided.background,
+                          color: state.isSelected
+                            ? colors.neutrals[800]
+                            : provided.color,
+                        };
+                      },
+                    }}
+                    isMulti={false}
+                    options={v.options
+                      // exclude invalid options
+                      .filter((op) => op.valid)
+                      .map((op) => {
+                        return op;
+                      })
+                      .sort((a, b) => {
+                        return a.label < b.label
+                          ? -1
+                          : a.label === b.label
+                          ? 0
+                          : 1;
+                      })}
+                    value={v.options.find((op) => value === op.value)}
+                    onChange={(val) => {
+                      onChange(val?.value);
+                    }}
+                    {...rest}
+                  />
+                  <Text textStyle={"Body/Small"} color="neutrals.600">
+                    {value}
+                  </Text>
+                </>
+              )}
+            />
+
+            <FormErrorMessage>This field is required</FormErrorMessage>
+          </FormControl>
+        );
+      })}
+    </>
+  );
 };
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
   if (approvers === undefined) {

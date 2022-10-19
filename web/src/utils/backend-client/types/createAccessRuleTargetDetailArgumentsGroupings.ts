@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AccessRuleTargetWithSelectable = {[key: string]: string[]};
+export type CreateAccessRuleTargetDetailArgumentsGroupings = {[key: string]: string[]};

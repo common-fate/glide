@@ -54,10 +54,6 @@ export const ProviderStep: React.FC = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
       return null;
     }
-
-    console.log("Provider.tsx", { target, provider });
-    // @TODO:
-    // We need to hook into this, debug why new property is not translating through
     return <ProviderPreview />;
   };
   return (

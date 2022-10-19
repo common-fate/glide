@@ -6,8 +6,9 @@ import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin
 
 import {
   CreateAccessRuleRequestBody,
+  AccessRuleTarget,
+  Provider,
   CreateAccessRuleTarget,
-  CreateAccessRuleTargetWith,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";

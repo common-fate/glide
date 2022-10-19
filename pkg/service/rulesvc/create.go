@@ -20,22 +20,27 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		return rule.Target{}, err
 	}
 	target := rule.Target{
-		ProviderID:     in.ProviderId,
-		ProviderType:   p.Type,
-		With:           make(map[string]string),
-		WithSelectable: make(map[string][]string),
-		WithDynamicId:  make(map[string]map[string][]string),
+		ProviderID:               in.ProviderId,
+		ProviderType:             p.Type,
+		With:                     make(map[string]string),
+		WithSelectable:           make(map[string][]string),
+		WithArgumentGroupOptions: make(map[string]map[string][]string),
 	}
 
 	for k, obj := range in.With.AdditionalProperties {
 		nestedMap := make(map[string][]string)
 		for groupId, groupValues := range obj.Groupings.AdditionalProperties {
-			nestedMap[groupId] = groupValues
+
+			// only add key to map if there are values for the key.
+			if len(groupValues) > 0 {
+				nestedMap[groupId] = groupValues
+				target.WithArgumentGroupOptions[k] = nestedMap
+			}
 		}
-		target.WithDynamicId[k] = nestedMap
 
 		// min length 1 is configured in the api spec so len(0) is handled by builtin validation
-		if len(obj.Values) == 1 {
+		// if there is no dynamic fields and only 1 value then add to `With` field else add values to `WithSelectable`.
+		if len(obj.Values) == 1 && len(target.WithArgumentGroupOptions[k]) == 0 {
 			target.With[k] = obj.Values[0]
 		} else {
 			target.WithSelectable[k] = obj.Values

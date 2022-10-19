@@ -9,7 +9,7 @@ import (
 )
 
 // List options for arg
-func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
+func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error) {
 	switch arg {
 	case "groupId":
 		log := zap.S().With("arg", arg)
@@ -18,11 +18,11 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 		if err != nil {
 			return nil, err
 		}
-		opts := make([]types.Option, len(groups))
-		for i := range opts {
-			opts[i] = types.Option{Label: groups[i].DisplayName, Value: groups[i].ID}
+		var opts types.ArgOptionsResponse
+		for i := range groups {
+			opts.Options = append(opts.Options, types.Option{Label: groups[i].DisplayName, Value: groups[i].ID})
 		}
-		return opts, nil
+		return &opts, nil
 	}
 
 	return nil, &providers.InvalidArgumentError{Arg: arg}

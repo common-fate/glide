@@ -14,13 +14,13 @@ import (
 )
 
 // List options for arg
-func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
+func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error) {
 	switch arg {
 	case "permissionSetArn":
 		log := zap.S().With("arg", arg)
 		log.Info("getting sso permission set options")
 
-		opts := []types.Option{}
+		var opts types.ArgOptionsResponse
 		// prevent concurrent writes to `opts` in goroutines
 		var mu sync.Mutex
 
@@ -67,7 +67,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 						if po.PermissionSet.Description != nil {
 							label = label + ": " + *po.PermissionSet.Description
 						}
-						opts = append(opts, types.Option{Label: label, Value: ARNCopy})
+						opts.Options = append(opts.Options, types.Option{Label: label, Value: ARNCopy})
 					}
 					return nil
 				})
@@ -82,11 +82,11 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 			return nil, err
 		}
 
-		return opts, nil
+		return &opts, nil
 	case "accountId":
 		log := zap.S().With("arg", arg)
 		log.Info("getting sso permission set options")
-		opts := []types.Option{}
+		var opts types.ArgOptionsResponse
 		hasMore := true
 		var nextToken *string
 		for hasMore {
@@ -99,10 +99,10 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 			nextToken = o.NextToken
 			hasMore = nextToken != nil
 			for _, acct := range o.Accounts {
-				opts = append(opts, types.Option{Label: aws.ToString(acct.Name), Value: aws.ToString(acct.Id)})
+				opts.Options = append(opts.Options, types.Option{Label: aws.ToString(acct.Name), Value: aws.ToString(acct.Id)})
 			}
 		}
-		return opts, nil
+		return &opts, nil
 	}
 
 	return nil, &providers.InvalidArgumentError{Arg: arg}

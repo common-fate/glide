@@ -35,6 +35,22 @@ func (m *MockCacheService) EXPECT() *MockCacheServiceMockRecorder {
 	return m.recorder
 }
 
+// LoadCachedProviderArgGroupOptions mocks base method.
+func (m *MockCacheService) LoadCachedProviderArgGroupOptions(arg0 context.Context, arg1, arg2, arg3, arg4 string) (bool, cache.ProviderArgGroupOption, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadCachedProviderArgGroupOptions", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(cache.ProviderArgGroupOption)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// LoadCachedProviderArgGroupOptions indicates an expected call of LoadCachedProviderArgGroupOptions.
+func (mr *MockCacheServiceMockRecorder) LoadCachedProviderArgGroupOptions(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoadCachedProviderArgGroupOptions", reflect.TypeOf((*MockCacheService)(nil).LoadCachedProviderArgGroupOptions), arg0, arg1, arg2, arg3, arg4)
+}
+
 // LoadCachedProviderArgOptions mocks base method.
 func (m *MockCacheService) LoadCachedProviderArgOptions(arg0 context.Context, arg1, arg2 string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 	m.ctrl.T.Helper()
