@@ -239,8 +239,10 @@ export class CustomerGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN:
-        accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
+      IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
+      RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
     });
   }
 }

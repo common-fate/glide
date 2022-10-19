@@ -127,8 +127,10 @@ export class DevGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
       Region: this.region,
       PaginationKMSKeyARN: approvals.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN:
-        accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      CacheSyncLogGroupName: approvals.getCacheSync().getLogGroupName(),
+      IDPSyncExecutionRoleARN: approvals.getIdpSync().getExecutionRoleArn(),
+      RestAPIExecutionRoleARN: approvals.getExecutionRoleArn(),
     });
   }
 }

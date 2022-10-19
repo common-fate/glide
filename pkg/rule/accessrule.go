@@ -125,7 +125,7 @@ func (a AccessRule) ToRequestAccessRuleAPI(argOptions []cache.ProviderOption) ty
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
+				schema := s.ArgSchema()
 				if arg, ok := schema[argumentID]; ok {
 					argument.Title = arg.Title
 					argument.Description = arg.Description
@@ -231,7 +231,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 		// FormElement is used here when loading the UpdateAccessRule form for the first time
 		if provider != nil {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
+				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
 				} else {
@@ -248,7 +248,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 		// FormElement is used here when loading the UpdateAccessRule form for the first time
 		if provider != nil {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
+				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
 				} else {
@@ -270,7 +270,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 		// FormElement is used here when loading the UpdateAccessRule form for the first time
 		if provider != nil {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchemaV2()
+				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
 				} else {

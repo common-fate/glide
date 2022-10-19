@@ -10,4 +10,5 @@ export interface WithOption {
   value: string;
   label: string;
   valid: boolean;
+  description?: string;
 }
