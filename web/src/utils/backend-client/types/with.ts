@@ -10,5 +10,6 @@ export interface With {
   title: string;
   label: string;
   value: string;
-  description?: string;
+  optionDescription?: string;
+  fieldDescription?: string;
 }

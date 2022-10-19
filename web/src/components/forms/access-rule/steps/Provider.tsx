@@ -51,19 +51,10 @@ export const ProviderStep: React.FC = () => {
   }, [providerArgs, target?.providerId]);
 
   const Preview = () => {
-    if (!target || !provider || !(target?.with || target?.withText)) {
+    if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
       return null;
     }
-
-    return (
-      <ProviderPreview
-        target={{
-          provider: provider,
-          withSelectable: {},
-          with: target.withText ?? {},
-        }}
-      />
-    );
+    return <ProviderPreview />;
   };
   return (
     <FormStep

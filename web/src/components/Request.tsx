@@ -163,47 +163,30 @@ export const RequestStatusDisplay: React.FC<{
   );
 };
 
-export const RequestWithDisplay: React.FC<{
+export const RequestArgumentsDisplay: React.FC<{
   request: RequestDetail | undefined;
 }> = ({ request }) => {
   if (request === undefined) {
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
-  if (
-    Object.entries(request.selectedWith).length > 0 ||
-    Object.entries(request.accessRule.with).length > 0
-  ) {
-    return (
-      <VStack align={"left"}>
-        <Text textStyle="Body/Medium">Request Details</Text>
-        <Wrap>
-          {request?.selectedWith &&
-            Object.entries(request?.selectedWith).map(([k, v]) => {
-              return (
-                <WrapItem>
-                  <VStack align={"left"}>
-                    <Text>{v.title}</Text>
-                    <InfoOption label={v.label} value={v.value} />
-                  </VStack>
-                </WrapItem>
-              );
-            })}
-          {request?.selectedWith &&
-            Object.entries(request?.accessRule.with).map(([k, v]) => {
-              return (
-                <WrapItem>
-                  <VStack align={"left"}>
-                    <Text>{v.title}</Text>
-                    <InfoOption label={v.label} value={v.value} />
-                  </VStack>
-                </WrapItem>
-              );
-            })}
-        </Wrap>
-      </VStack>
-    );
-  }
-  return null;
+
+  return (
+    <VStack align={"left"}>
+      <Text textStyle="Body/Medium">Request Details</Text>
+      <Wrap>
+        {Object.entries(request.arguments).map(([k, v]) => {
+          return (
+            <WrapItem>
+              <VStack align={"left"}>
+                <Text>{v.title}</Text>
+                <InfoOption label={v.label} value={v.value} />
+              </VStack>
+            </WrapItem>
+          );
+        })}
+      </Wrap>
+    </VStack>
+  );
 };
 export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
   const { request } = useContext(Context);
@@ -240,7 +223,9 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon shortType={request?.accessRule.provider.type} />
+            <ProviderIcon
+              shortType={request?.accessRule.target.provider.type}
+            />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge
@@ -256,7 +241,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
             </Tooltip>
           </HStack>
         </Skeleton>
-        <RequestWithDisplay request={request} />
+        <RequestArgumentsDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
           {request?.reason && (
             <VStack align={"left"}>

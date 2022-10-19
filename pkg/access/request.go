@@ -123,18 +123,16 @@ func (r *Request) IsScheduled() bool {
 
 func (r *Request) ToAPI() types.Request {
 	req := types.Request{
-		AccessRule: types.RequestAccessRule{
-			Id:      r.Rule,
-			Version: r.RuleVersion,
-		},
-		Timing:         r.RequestedTiming.ToAPI(),
-		Reason:         r.Data.Reason,
-		ID:             r.ID,
-		RequestedAt:    r.CreatedAt,
-		Requestor:      r.RequestedBy,
-		Status:         types.RequestStatus(r.Status),
-		UpdatedAt:      r.UpdatedAt,
-		ApprovalMethod: r.ApprovalMethod,
+		AccessRuleId:      r.Rule,
+		AccessRuleVersion: r.RuleVersion,
+		Timing:            r.RequestedTiming.ToAPI(),
+		Reason:            r.Data.Reason,
+		ID:                r.ID,
+		RequestedAt:       r.CreatedAt,
+		Requestor:         r.RequestedBy,
+		Status:            types.RequestStatus(r.Status),
+		UpdatedAt:         r.UpdatedAt,
+		ApprovalMethod:    r.ApprovalMethod,
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -151,7 +149,7 @@ func (r *Request) ToAPI() types.Request {
 
 func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOptions []cache.ProviderOption) types.RequestDetail {
 	req := types.RequestDetail{
-		AccessRule:     accessRule.ToRequestAccessRuleDetailAPI(argOptions),
+		AccessRule:     accessRule.ToAPI(),
 		Timing:         r.RequestedTiming.ToAPI(),
 		Reason:         r.Data.Reason,
 		ID:             r.ID,
@@ -161,7 +159,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
-		SelectedWith: types.RequestDetail_SelectedWith{
+		Arguments: types.RequestDetail_Arguments{
 			AdditionalProperties: make(map[string]types.With),
 		},
 	}
@@ -169,11 +167,13 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 	// if provider is not found, fallback to using the argument key as the title
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(accessRule.Target.ProviderType)
 	for k, v := range r.SelectedWith {
+
 		with := types.With{
-			Label:       v.Label,
-			Value:       v.Value,
-			Title:       k,
-			Description: v.Description,
+			Label:             v.Label,
+			Value:             v.Value,
+			Title:             k,
+			FieldDescription:  v.Description,
+			OptionDescription: v.Description,
 		}
 		// attempt to get the title for the argument from the provider arg schema
 		if provider != nil {
@@ -184,7 +184,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 				}
 			}
 		}
-		req.SelectedWith.AdditionalProperties[k] = with
+		req.Arguments.AdditionalProperties[k] = with
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()

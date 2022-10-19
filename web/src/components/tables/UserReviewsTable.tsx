@@ -43,7 +43,7 @@ export const UserReviewsTable = () => {
         Cell: (props) => (
           <Link to={"/requests/" + props.row.original.id}>
             <RuleNameCell
-              accessRuleId={props.row.original.accessRule.id}
+              accessRuleId={props.row.original.accessRuleId}
               reason={props.value ?? ""}
               as="a"
               _hover={{

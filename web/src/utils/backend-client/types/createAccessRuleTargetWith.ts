@@ -5,9 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { CreateAccessRuleWithItem } from './createAccessRuleWithItem';
+import type { CreateAccessRuleTargetDetailArguments } from './createAccessRuleTargetDetailArguments';
 
-/**
- * The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.
- */
-export type CreateAccessRuleTargetWith = {[key: string]: CreateAccessRuleWithItem};
+export type CreateAccessRuleTargetWith = {[key: string]: CreateAccessRuleTargetDetailArguments};

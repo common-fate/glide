@@ -6,8 +6,9 @@ import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin
 
 import {
   CreateAccessRuleRequestBody,
+  AccessRuleTarget,
+  Provider,
   CreateAccessRuleTarget,
-  CreateAccessRuleTargetWith,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
@@ -17,15 +18,59 @@ import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
 
 export type AccessRuleFormDataTarget = {
-  // with test is used for string fields that are user inputs rather than a select from options
-  withText?: { [key: string]: string };
-  withFilter?: { [key: string]: { [key: string]: string[] } };
-} & CreateAccessRuleTarget;
-export interface AccessRuleFormData extends CreateAccessRuleRequestBody {
+  providerId: string;
+  multiSelects: { [key: string]: string[] };
+  argumentGroups: { [key: string]: { [key: string]: string[] } };
+  inputs: { [key: string]: string };
+};
+export interface AccessRuleFormData
+  extends Omit<CreateAccessRuleRequestBody, "target"> {
   approval: { required: boolean; users: string[]; groups: string[] };
   // with text is used for single text fields
   target: AccessRuleFormDataTarget;
 }
+
+export const accessRuleFormDataTargetToApi = (
+  target: AccessRuleFormDataTarget
+): CreateAccessRuleTarget => {
+  const t: CreateAccessRuleTarget = {
+    providerId: target.providerId,
+    with: {},
+  };
+  for (const k in target.inputs) {
+    t.with[k] = {
+      groupings: {},
+      values: [target.inputs[k]],
+    };
+  }
+  for (const k in target.multiSelects) {
+    t.with[k] = {
+      groupings: target.argumentGroups[k] || {},
+      values: target.multiSelects[k],
+    };
+  }
+  return t;
+};
+
+export const accessRuleFormDataToApi = (
+  formData: AccessRuleFormData
+): CreateAccessRuleRequestBody => {
+  const { approval, target, ...d } = formData;
+
+  const ruleData: CreateAccessRuleRequestBody = {
+    approval: { users: [], groups: [] },
+    target: accessRuleFormDataTargetToApi(target),
+    ...d,
+  };
+  // only apply these fields if approval is enabled
+  if (approval.required) {
+    ruleData["approval"].users = approval.users;
+    ruleData["approval"].groups = approval.groups;
+  } else {
+    ruleData["approval"].users = [];
+  }
+  return ruleData;
+};
 
 const CreateAccessRuleForm = () => {
   const navigate = useNavigate();
@@ -37,71 +82,8 @@ const CreateAccessRuleForm = () => {
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data", { data });
 
-    const { approval, timeConstraints, target, ...d } = data;
-    const t: {
-      providerId: string;
-      with: CreateAccessRuleTargetWith;
-    } = {
-      providerId: target.providerId,
-      with: {},
-    };
-
-    // For fields with text i.e input type add the values to
-    // with.values for the API.
-    for (const k in target.withText) {
-      t.with[k] = {
-        values: [target.withText[k]],
-        groupings: {},
-      };
-    }
-
-    // First add everything in `target.with` to values.
-    for (const arg in target.with) {
-      t.with[arg] = {
-        ...t.with[arg],
-        values: target.with[arg] as any,
-        groupings: {},
-      };
-    }
-
-    // TODO: Grouping can be made an optional value.
-    for (const arg in target.withFilter) {
-      // Loop over any withFilter key for that arg
-      for (const key of Object.keys(target.withFilter[arg])) {
-        t.with[arg] = {
-          ...t.with[arg],
-          groupings: {
-            ...t.with[arg].groupings,
-            [key]: target.withFilter[arg][key],
-          },
-        };
-      }
-    }
-
-    for (const k in target.withText) {
-      t.with[k] = {
-        ...t.with[k],
-        values: [target.withText[k]],
-      };
-    }
-
-    const ruleData: CreateAccessRuleRequestBody = {
-      approval: { users: [], groups: [] },
-      timeConstraints: {
-        maxDurationSeconds: timeConstraints.maxDurationSeconds,
-      },
-      target: t,
-      ...d,
-    };
-    // only apply these fields if approval is enabled
-    if (approval.required) {
-      ruleData["approval"].users = data.approval.users;
-      ruleData["approval"].groups = data.approval.groups;
-    } else {
-      ruleData["approval"].users = [];
-    }
     try {
-      await adminCreateAccessRule(ruleData);
+      await adminCreateAccessRule(accessRuleFormDataToApi(data));
       toast({
         id: "access-rule-created",
         title: "Access rule created",

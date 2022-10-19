@@ -9,102 +9,116 @@ import {
 } from "@chakra-ui/react";
 import Form, { FieldProps } from "@rjsf/core";
 import React from "react";
+import { useFormContext } from "react-hook-form";
 
 import {
+  useGetProvider,
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
-import { AccessRuleTarget } from "../../../../utils/backend-client/types";
+import {
+  AccessRuleTarget,
+  Provider,
+} from "../../../../utils/backend-client/types";
 import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
+import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 
 // TODO: Update ProviderPreview component based on new arg schema response object.
-export const ProviderPreview: React.FC<{ target: AccessRuleTarget }> = ({
-  target,
-}) => {
-  const { data } = useGetProviderArgs(target.provider?.id || "");
+export const ProviderPreview: React.FC = () => {
+  const { watch } = useFormContext<AccessRuleFormData>();
+  const target = watch("target");
+  const { data } = useGetProviderArgs(target?.providerId || "");
+  const { data: provider } = useGetProvider(target?.providerId);
+
   if (
-    target.provider?.id === undefined ||
-    target.provider?.id === "" ||
-    data === undefined
+    target?.providerId === undefined ||
+    target?.providerId === "" ||
+    data === undefined ||
+    provider === undefined
   ) {
     return null;
   }
-  const ProviderPreviewWithDisplay: React.FC<FieldProps> = (props) => {
-    const { data } = useListProviderArgOptions(target.provider.id, props.name);
+  // I need to be run per arg... (i should be in a for loop)
 
-    if (props.name in target.with) {
-      const value = target.with[props.name];
-      return (
-        <VStack w="100%" align={"flex-start"} spacing={0}>
-          <Text>
-            {props.schema.title}: {value}
-          </Text>
-        </VStack>
-      );
-    }
-    if (props.name in target.withSelectable) {
-      const value = target.withSelectable[props.name];
-      return (
-        <VStack w="100%" align={"flex-start"} spacing={0}>
-          <Text>{props.schema.title}</Text>
-          <Wrap>
-            {value.map((opt: any) => {
-              return (
-                <CopyableOption
-                  key={"cp-" + opt}
-                  label={
-                    data?.options.find((d) => d.value === opt)?.label ?? ""
-                  }
-                  value={opt}
-                />
-              );
-            })}
-          </Wrap>
-        </VStack>
-      );
-    }
-    return (
-      <VStack w="100%" align={"flex-start"} spacing={0}>
-        <Text>{props.schema.title}:</Text>
-      </VStack>
-    );
-  };
   // Using a schema form here to do the heavy lifting of parsing the schema
   //  so we can get field names
+
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
-        <ProviderIcon shortType={target.provider.type} />
-
-        <Text>{target.provider.id}</Text>
+        <ProviderIcon shortType={provider.type} />
+        <Text>{provider.id}</Text>
       </HStack>
+      {data &&
+        Object.entries(target.multiSelects).map(([k, v]) => {
+          const arg = data[k];
 
-      {/* The purpose of the form here is that is will do the heavy lifting of parsing the json schema for us, we then render each attribute with a display only element and remove all the form components, so the purpose is purly to part jsonschema and provider some rendering hooks */}
-      <Box w="100%">
-        <Form
-          // tagname is a prop that allows us to prevent this using a <form> element to wrap this, this avoids a nested form error
-          tagName={"div"}
-          uiSchema={{
-            "ui:options": { title: false },
-            "ui:submitButtonOptions": {
-              props: {
-                disabled: true,
-                className: "btn btn-info",
-              },
-              norender: true,
-              submitText: "",
-            },
-          }}
-          showErrorList={false}
-          schema={data}
-          fields={{
-            StringField: ProviderPreviewWithDisplay,
-          }}
-          // This field template override removes all form elements wrapping fields, this is so that no form ui is rendered other than the stringField override above
-          FieldTemplate={(props) => props.children}
-        ></Form>
-      </Box>
+          // This will now fetch all arg options i.e.
+          // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
+          // This can make our flat values copyable
+          const { data: argOptions } = useListProviderArgOptions(
+            provider.id,
+            k
+          );
+          return (
+            <VStack w="100%" align={"flex-start"} spacing={0}>
+              <Text>{arg.title}</Text>
+              {/* @TODO: make  */}
+              <Wrap>
+                {v?.map((opt) => {
+                  return (
+                    <CopyableOption
+                      key={"cp-" + opt}
+                      label={
+                        // "hello"
+                        argOptions?.options?.find((d) => d.value === opt)
+                          ?.label ?? ""
+                      }
+                      value={opt}
+                    />
+                  );
+                })}
+              </Wrap>
+              {target.argumentGroups &&
+                target.argumentGroups[k] &&
+                arg.groups &&
+                Object.entries(target.argumentGroups[k]).map(
+                  ([groupId, groupValues]) => {
+                    if (!arg.groups) {
+                      return null;
+                    }
+                    const group = arg.groups[groupId];
+                    return (
+                      <VStack>
+                        <Text>{group.title}</Text>
+                        {groupValues.map((groupValue) => {
+                          if (!argOptions?.groups) {
+                            return null;
+                          }
+
+                          const groupOptions = argOptions.groups[groupId];
+                          return (
+                            <CopyableOption
+                              key={"cp-" + groupValue}
+                              label={
+                                // "hello"
+                                groupOptions.find((d) => d.value === groupValue)
+                                  ?.label ?? ""
+                              }
+                              value={groupValue}
+                            />
+                          );
+                        })}
+                      </VStack>
+                    );
+                  }
+                )}
+            </VStack>
+          );
+        })}
+      {/* <Box w="100%">
+      </Box> */}
     </VStack>
   );
 };
@@ -121,7 +135,8 @@ export const ProviderPreviewOnlyStep: React.FC<{
         <Spacer />
       </Flex>
 
-      <ProviderPreview target={target} />
+      {/* @TODO resolve typing issue once above is compelte  */}
+      {/* <ProviderPreview target={target} provider={target.provider} /> */}
     </VStack>
   );
 };

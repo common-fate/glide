@@ -142,3 +142,19 @@ func (s *Service) fetchProviderOptions(ctx context.Context, providerID, argID st
 		return ahtypes.ArgOptionsResponse{}, fmt.Errorf("unhandled response code: %d", code)
 	}
 }
+
+// Load cached provider argument group option's option.
+func (s *Service) LoadCachedProviderArgGroupOptions(ctx context.Context, providerId string, argId string, groupId string, groupValue string) (bool, cache.ProviderArgGroupOption, error) {
+	q := storage.ListCachedProviderArgGroupOptionValueForArg{
+		ProviderID: providerId,
+		ArgID:      argId,
+		GroupId:    groupId,
+		GroupValue: groupValue,
+	}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return false, cache.ProviderArgGroupOption{}, err
+	}
+
+	return true, q.Result[0], nil
+}

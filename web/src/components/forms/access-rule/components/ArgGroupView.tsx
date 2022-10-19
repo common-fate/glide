@@ -22,7 +22,7 @@ const ArgGroupView = (props: FilterViewProps) => {
         <Text textStyle={"Body/Medium"}>{group.title}</Text>
       </FormLabel>
       <MultiSelect
-        fieldName={`target.withFilter.${argId}.${group.id}`}
+        fieldName={`target.argumentGroups.${argId}.${group.id}`}
         options={options}
       />
     </>

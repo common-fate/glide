@@ -50,32 +50,28 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	now := s.Clock.Now()
 
-	// for arg, groupings := range rule.Target.WithDynamicId {
-	// 	for group, values := range groupings {
+	for arg, groupings := range rule.Target.WithArgumentGroupOptions {
+		for group, values := range groupings {
 
-	// 		// if provider arg has values in groupings
-	// 		if len(values) > 0 {
-	// 			res, err := s.AHClient.FetchArgGroupValuesWithResponse(ctx, rule.Target.ProviderID, arg, ahtypes.FetchArgGroupValuesJSONRequestBody{
-	// 				GroupId:     &group,
-	// 				GroupValues: &values,
-	// 			})
+			// if provider arg has values in groupings
+			if len(values) > 0 {
+				for _, value := range values {
+					_, cachedGroup, err := s.Cache.LoadCachedProviderArgGroupOptions(ctx, rule.Target.ProviderID, arg, group, value)
+					if err != nil {
+						return nil, err
+					}
 
-	// 			if err != nil {
-	// 				return nil, err
-	// 			}
+					for _, option := range cachedGroup.Children {
+						if !contains(rule.Target.WithSelectable[arg], option) {
+							rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], option)
+						}
+					}
 
-	// 			for _, value := range *res.JSON200 {
-	// 				if _, exists := rule.Target.WithSelectable[value]; !exists {
-	// 					rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], value)
-	// 				}
-	// 			}
+				}
+			}
+		}
+	}
 
-	// 		}
-	// 	}
-	// }
-
-	// TODO: here
-	// fetch all the dynamic values and add them to withSelectables.
 	err = requestIsValid(in, rule)
 	if err != nil {
 		return nil, err
@@ -316,6 +312,7 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 	}
 	return nil
 }
+
 func contains(set []string, str string) bool {
 	for _, s := range set {
 		if s == str {
