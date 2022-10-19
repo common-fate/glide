@@ -111,7 +111,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       rules={{ ...rules }}
       defaultValue={[]}
       name={fieldName}
-      render={({ field: { onChange, ref, value } }) => {
+      render={({ field: { onChange, ref, value, onBlur } }) => {
         return (
           <Select
             id={id}
@@ -124,6 +124,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             ]}
             components={{ Option: CustomOption }}
             isMulti
+            onMenuClose={onBlur}
             styles={{
               multiValue: (provided, state) => {
                 return {

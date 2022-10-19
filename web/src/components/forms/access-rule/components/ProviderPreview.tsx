@@ -24,7 +24,6 @@ import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
 import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 
-// TODO: Update ProviderPreview component based on new arg schema response object.
 export const ProviderPreview: React.FC = () => {
   const { watch } = useFormContext<AccessRuleFormData>();
   const target = watch("target");
@@ -39,10 +38,6 @@ export const ProviderPreview: React.FC = () => {
   ) {
     return null;
   }
-  // I need to be run per arg... (i should be in a for loop)
-
-  // Using a schema form here to do the heavy lifting of parsing the schema
-  //  so we can get field names
 
   return (
     <VStack w="100%" align="flex-start">
@@ -50,75 +45,73 @@ export const ProviderPreview: React.FC = () => {
         <ProviderIcon shortType={provider.type} />
         <Text>{provider.id}</Text>
       </HStack>
-      {data &&
-        Object.entries(target.multiSelects).map(([k, v]) => {
-          const arg = data[k];
+      <VStack w="100%" align={"flex-start"} spacing={0}>
+        {data &&
+          Object.entries(target.multiSelects).map(([k, v]) => {
+            const arg = data[k];
 
-          // This will now fetch all arg options i.e.
-          // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
-          // This can make our flat values copyable
-          const { data: argOptions } = useListProviderArgOptions(
-            provider.id,
-            k
-          );
-          return (
-            <VStack w="100%" align={"flex-start"} spacing={0}>
-              <Text>{arg.title}</Text>
-              {/* @TODO: make  */}
-              <Wrap>
-                {v?.map((opt) => {
-                  return (
-                    <CopyableOption
-                      key={"cp-" + opt}
-                      label={
-                        // "hello"
-                        argOptions?.options?.find((d) => d.value === opt)
-                          ?.label ?? ""
-                      }
-                      value={opt}
-                    />
-                  );
-                })}
-              </Wrap>
-              {target.argumentGroups &&
-                target.argumentGroups[k] &&
-                arg.groups &&
-                Object.entries(target.argumentGroups[k]).map(
-                  ([groupId, groupValues]) => {
-                    if (!arg.groups) {
-                      return null;
-                    }
-                    const group = arg.groups[groupId];
+            // This will now fetch all arg options i.e.
+            // { label: 'AWSReadOnlyAccess', value: 'arn:aws...' }
+            // This can make our flat values copyable
+            const { data: argOptions } = useListProviderArgOptions(
+              provider.id,
+              k
+            );
+            // console.log({ arg, argOptions });
+
+            return (
+              <VStack w="100%" align={"flex-start"} spacing={0}>
+                <Text>{arg.title}</Text>
+                <Wrap>
+                  {v?.map((opt) => {
                     return (
-                      <VStack>
-                        <Text>{group.title}</Text>
-                        {groupValues.map((groupValue) => {
-                          if (!argOptions?.groups) {
-                            return null;
-                          }
-
-                          const groupOptions = argOptions.groups[groupId];
-                          return (
-                            <CopyableOption
-                              key={"cp-" + groupValue}
-                              label={
-                                // "hello"
-                                groupOptions.find((d) => d.value === groupValue)
-                                  ?.label ?? ""
-                              }
-                              value={groupValue}
-                            />
-                          );
-                        })}
-                      </VStack>
+                      <CopyableOption
+                        key={"cp-" + opt}
+                        label={
+                          argOptions?.options?.find((d) => d.value === opt)
+                            ?.label ?? ""
+                        }
+                        value={opt}
+                      />
                     );
-                  }
-                )}
-            </VStack>
-          );
-        })}
-      {/* <Box w="100%">
-      </Box> */}
+                  })}
+                </Wrap>
+                {target.argumentGroups[k] &&
+                  arg.groups &&
+                  Object.entries(target.argumentGroups[k]).map(
+                    ([groupId, groupValues]) => {
+                      if (!arg.groups) {
+                        return null;
+                      }
+                      const group = arg.groups[groupId];
+                      return (
+                        <VStack>
+                          <Text>{group.title}</Text>
+                          {groupValues.map((groupValue) => {
+                            if (!argOptions?.groups) {
+                              return null;
+                            }
+                            const groupOptions = argOptions.groups[groupId];
+                            return (
+                              <CopyableOption
+                                key={"cp-" + groupValue}
+                                label={
+                                  groupOptions.find(
+                                    (d) => d.value === groupValue
+                                  )?.label ?? ""
+                                }
+                                value={groupValue}
+                              />
+                            );
+                          })}
+                        </VStack>
+                      );
+                    }
+                  )}
+              </VStack>
+            );
+          })}
+      </VStack>
     </VStack>
   );
 };
