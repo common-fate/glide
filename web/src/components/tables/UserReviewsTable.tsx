@@ -31,8 +31,10 @@ export const UserReviewsTable = () => {
     swrHook: useUserListRequests,
     hookProps: {
       reviewer: true,
+
       status: status ? (status.toUpperCase() as RequestStatus) : undefined,
     },
+    swrProps: { swr: { refreshInterval: 10000 } },
   });
 
   const cols: Column<Request>[] = useMemo(

@@ -40,8 +40,9 @@ var UpdateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		o.PrintTable()
+
 		if status == "UPDATE_COMPLETE" {
+			o.PrintTable()
 			clio.Success("Your Granted deployment has been updated")
 		} else if status == "DEPLOY_SKIPPED" {
 			//return without displaying status, nothing changed
