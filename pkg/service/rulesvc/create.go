@@ -88,7 +88,11 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 }
 func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
 	// After verifying the provider, we can save the provider type to the rule for convenience
-	provider, providerArgSchema, err := s.getProviderByID(ctx, in)
+	provider, err := s.getProviderByID(ctx, in.ProviderId)
+	if err != nil {
+		return rule.Target{}, err
+	}
+	providerArgSchema, err := s.getProviderArgSchemaByID(ctx, in.ProviderId)
 	if err != nil {
 		return rule.Target{}, err
 	}
@@ -172,31 +176,37 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 }
 
 // getProviderByID fetches the provider and returns it if it exists
-func (s *Service) getProviderByID(ctx context.Context, target types.CreateAccessRuleTarget) (*ahTypes.Provider, *ahTypes.ArgSchema, error) {
-	providerResponse, err := s.AHClient.GetProviderWithResponse(ctx, target.ProviderId)
+func (s *Service) getProviderByID(ctx context.Context, providerID string) (*ahTypes.Provider, error) {
+	providerResponse, err := s.AHClient.GetProviderWithResponse(ctx, providerID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	switch providerResponse.StatusCode() {
 	case http.StatusOK:
-		argResponse, err := s.AHClient.GetProviderArgsWithResponse(ctx, target.ProviderId)
-		if err != nil {
-			return nil, nil, err
-		}
-		switch argResponse.StatusCode() {
-		case http.StatusOK:
-			return providerResponse.JSON200, argResponse.JSON200, nil
-		case http.StatusNotFound:
-			return nil, nil, ErrProviderNotFound
-		case http.StatusInternalServerError:
-			return nil, nil, errors.Wrap(errors.New(aws.ToString(argResponse.JSON500.Error)), "error while fetching provider argsSchema by ID when creating an access rule")
-		}
-		return nil, nil, ErrUnhandledResponseFromAccessHandler
+		return providerResponse.JSON200, nil
 	case http.StatusNotFound:
-		return nil, nil, ErrProviderNotFound
+		return nil, ErrProviderNotFound
 	case http.StatusInternalServerError:
-		return nil, nil, errors.Wrap(errors.New(aws.ToString(providerResponse.JSON500.Error)), "error while fetching provider by ID when creating an access rule")
+		return nil, errors.Wrap(errors.New(aws.ToString(providerResponse.JSON500.Error)), "error while fetching provider by ID when creating an access rule")
 	}
 
-	return nil, nil, ErrUnhandledResponseFromAccessHandler
+	return nil, ErrUnhandledResponseFromAccessHandler
+}
+
+// getProviderArgSchemaByID fetches the provider argschema and returns it if it exists
+func (s *Service) getProviderArgSchemaByID(ctx context.Context, providerID string) (*ahTypes.ArgSchema, error) {
+	argResponse, err := s.AHClient.GetProviderArgsWithResponse(ctx, providerID)
+	if err != nil {
+		return nil, err
+	}
+	switch argResponse.StatusCode() {
+	case http.StatusOK:
+		return argResponse.JSON200, nil
+	case http.StatusNotFound:
+		return nil, ErrProviderNotFound
+	case http.StatusInternalServerError:
+		return nil, errors.Wrap(errors.New(aws.ToString(argResponse.JSON500.Error)), "error while fetching provider argsSchema by ID when creating an access rule")
+	}
+
+	return nil, ErrUnhandledResponseFromAccessHandler
 }

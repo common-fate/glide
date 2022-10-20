@@ -101,6 +101,7 @@ type AccessRuleService interface {
 	CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
 	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.AccessRule, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
+	RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
 type CacheService interface {
 	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
@@ -166,6 +167,15 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Cache: &cachesvc.Service{
 				DB:                  db,
 				AccessHandlerClient: opts.AccessHandlerClient,
+			},
+			Rules: &rulesvc.Service{
+				Clock:    clk,
+				DB:       db,
+				AHClient: opts.AccessHandlerClient,
+				Cache: &cachesvc.Service{
+					DB:                  db,
+					AccessHandlerClient: opts.AccessHandlerClient,
+				},
 			},
 			AHClient: opts.AccessHandlerClient,
 		},

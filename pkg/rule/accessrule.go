@@ -6,7 +6,6 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -95,8 +94,8 @@ func (a AccessRule) ToAPI() types.AccessRule {
 }
 
 // This is used to serve a user making a request, it contains all the available arguments and options with title, description and labels
-func (a AccessRule) ToRequestAccessRuleAPI(argOptions []cache.ProviderOption) types.RequestAccessRule {
-	ad := types.RequestAccessRule{
+func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.RequestArgument) types.RequestAccessRule {
+	return types.RequestAccessRule{
 		Version:     a.Version,
 		Description: a.Description,
 		Name:        a.Name,
@@ -105,56 +104,11 @@ func (a AccessRule) ToRequestAccessRuleAPI(argOptions []cache.ProviderOption) ty
 		Target: types.RequestAccessRuleTarget{
 			Provider: a.Target.ProviderToAPI(),
 			Arguments: types.RequestAccessRuleTarget_Arguments{
-				AdditionalProperties: make(map[string]types.RequestArgument),
+				AdditionalProperties: requestArguments,
 			},
 		},
 		TimeConstraints: a.TimeConstraints,
 	}
-
-	optionMap := make(map[string]cache.ProviderOption)
-	for _, option := range argOptions {
-		optionMap[option.Value] = option
-	}
-
-	// Lookup the provider, ignore errors
-	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(a.Target.ProviderType)
-
-	processArgumentOption := func(argumentID string, value string, requireSelection bool) {
-		argument := ad.Target.Arguments.AdditionalProperties[argumentID]
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchema()
-				if arg, ok := schema[argumentID]; ok {
-					argument.Title = arg.Title
-					argument.Description = arg.Description
-				}
-			}
-		}
-		option := types.WithOption{
-			Value: value,
-			Label: optionMap[value].Label,
-		}
-		// if the label wasn't found, set the value as the label
-		if option.Label == "" {
-			option.Label = value
-		}
-		argument.Options = append(argument.Options, option)
-		argument.RequiresSelection = requireSelection
-		ad.Target.Arguments.AdditionalProperties[argumentID] = argument
-	}
-
-	for k, v := range a.Target.With {
-		processArgumentOption(k, v, false)
-	}
-
-	for k, v := range a.Target.WithSelectable {
-		for _, v2 := range v {
-			processArgumentOption(k, v2, true)
-		}
-	}
-	return ad
 }
 
 // AccessRuleMetadata defines model for AccessRuleMetadata.
