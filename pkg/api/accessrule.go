@@ -94,7 +94,8 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPI(), http.StatusCreated)
+
+	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
 }
 
 // Returns a rule for a given ruleId
