@@ -67,7 +67,7 @@ const ArgField = (props: ArgFieldProps) => {
   if (argument.formElement === ArgumentFormElement.INPUT) {
     return (
       <FormControl w="100%">
-        <FormLabel htmlFor="target.providerId">
+        <FormLabel htmlFor="target.providerId" display="inline">
           <Text textStyle={"Body/Medium"}>{argument.title}</Text>
         </FormLabel>
         <Input
@@ -186,7 +186,7 @@ const ArgField = (props: ArgFieldProps) => {
       borderColor="gray.300"
       rounded="md"
       p={4}
-      py={6}
+      // py={6}
       w="100%"
       spacing={4}
       justifyContent="start"
@@ -198,27 +198,20 @@ const ArgField = (props: ArgFieldProps) => {
           multiSelectsError && multiSelectsError[argument.id] !== undefined
         }
       >
-        <div>
-          <FormLabel htmlFor="target.providerId">
-            <Text textStyle={"Body/Medium"}>
-              Individual&nbsp;{argument.title}s
-            </Text>
-          </FormLabel>
-          <HStack w="90%">
-            <MultiSelect
-              rules={{ required: required, minLength: 1 }}
-              fieldName={`target.multiSelects.${argument.id}`}
-              options={argOptions?.options || []}
-              shouldAddSelectAllOption={true}
-            />
-            <RefreshButton
-              argId={argument.id}
-              providerId={providerId}
-              mx={20}
-            />
-          </HStack>
-        </div>
-        <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel>
+        <FormLabel htmlFor="target.providerId">
+          <Text textStyle={"Body/Medium"}>{argument.title}s</Text>
+        </FormLabel>
+        <HStack w="90%">
+          <MultiSelect
+            rules={{ required: required, minLength: 1 }}
+            fieldName={`target.multiSelects.${argument.id}`}
+            options={argOptions?.options || []}
+            shouldAddSelectAllOption={true}
+          />
+          <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
+        </HStack>
+
+        {/* <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel> */}
         {/* TODO: msg will eventually be more detailed (one or more options) */}
         {!argument.groups && (
           <FormErrorMessage> {argument.title} is required </FormErrorMessage>
@@ -228,7 +221,6 @@ const ArgField = (props: ArgFieldProps) => {
       {/* @TODO: add a skeleton group */}
       {argument.groups && (
         <Box
-          mt={4}
           pos="relative"
           w={{ base: "100%", md: "100%" }}
           minW={{ base: "100%", md: "400px", lg: "500px" }}
@@ -253,8 +245,8 @@ const ArgField = (props: ArgFieldProps) => {
                   <>
                     <FormLabel
                       htmlFor="target.providerId"
-                      display="inline"
-                      mb={4}
+                      // display="inline"
+                      // mb={4}
                     >
                       <Text display="inline" textStyle={"Body/Medium"}>
                         {group.title}{" "}
@@ -267,16 +259,16 @@ const ArgField = (props: ArgFieldProps) => {
                           // bg="gray.200"
                           rounded="full"
                           filter="grayscale(1);"
-                          transition="all .2s ease"
-                          _hover={{
-                            filter: "grayscale(0);",
-                          }}
+                          // transition="all .2s ease"
+                          // _hover={{
+                          //   filter: "grayscale(0);",
+                          // }}
                         >
                           <BoltIcon boxSize="12px" color="brandGreen.200" />
                         </Circle>
                       </Tooltip>
                     </FormLabel>
-                    <HStack>
+                    <HStack w="90%">
                       <MultiSelect
                         rules={{ required: required, minLength: 1 }}
                         fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
@@ -292,7 +284,7 @@ const ArgField = (props: ArgFieldProps) => {
       )}
       {argOptions?.groups &&
         Object.entries(argOptions?.groups ?? {}).length > 0 && (
-          <Box mt={4}>
+          <Box>
             <Wrap>
               {uniqueRes &&
                 uniqueRes.map((c) => {
