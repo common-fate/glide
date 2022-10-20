@@ -105,7 +105,6 @@ const Home = () => {
     d.setSeconds(0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   }, []);
-  console.log(rule);
 
   const {
     register,
