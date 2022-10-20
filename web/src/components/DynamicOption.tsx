@@ -42,12 +42,12 @@ export const DynamicOption: React.FC<{
             {label}{" "}
             {parentGroup && (
               <BoltIcon
-                filter="grayscale(1);"
+                // filter="grayscale(1);"
                 transition="all .2s ease"
                 // _hover={{
                 //   filter: "grayscale(0);",
                 // }}
-                color="brandGreen.200"
+                color="neutrals.400"
                 h="20px"
                 ml={2}
               />
@@ -64,26 +64,14 @@ export const DynamicOption: React.FC<{
           </Flex>
         </PopoverTrigger>
         <PopoverContent maxW="180px">
-          {/* <PopoverHeader mb={0} borderBottom="none" fontWeight="semibold">
-            {label}
-            {parentGroup && (
-              <BoltIcon
-                filter="grayscale(1);"
-                color="brandGreen.200"
-                h="12px"
-                ml={2}
-              />
-            )}
-          </PopoverHeader> */}
           <PopoverArrow />
-          {/* <PopoverCloseButton /> */}
           <PopoverBody>
             <Text fontWeight="semibold" textStyle={"Body/Medium"}>
               {label}
               {parentGroup && (
                 <BoltIcon
-                  filter="grayscale(1);"
-                  color="brandGreen.200"
+                  // filter="grayscale(1);"
+                  color="neutrals.400"
                   h="12px"
                   ml={2}
                 />

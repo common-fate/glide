@@ -62,6 +62,7 @@ interface MultiSelectProps extends SelectProps {
   options: {
     value: string;
     label: string;
+    description?: string;
   }[];
   id?: string;
   shouldAddSelectAllOption?: boolean;
@@ -74,22 +75,29 @@ export const CustomOption = ({
   {
     value: string;
     label: string;
+    description?: string;
   },
   true
->) => (
-  // @ts-ignore
-  <div data-testid={innerProps.value}>
-    <components.Option {...innerProps}>
-      <>
-        {children}
-        {
-          // @ts-ignore
-          <Text>{innerProps.value}</Text>
-        }
-      </>
-    </components.Option>
-  </div>
-);
+>) => {
+
+  return (
+    // @ts-ignore
+    <div data-testid={innerProps.value}>
+      <components.Option {...innerProps}>
+        <>
+          {children}
+          {innerProps?.data.description && (
+            <Text>{innerProps.data.description}</Text>
+          )}
+          {
+            // @ts-ignore
+            <Text>{innerProps.value}</Text>
+          }
+        </>
+      </components.Option>
+    </div>
+  );
+};
 
 const SELECT_ALL_LABEL = "Select all";
 const SELECT_ALL_OPTION = { label: SELECT_ALL_LABEL, value: "" };
