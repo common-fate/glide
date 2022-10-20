@@ -45,7 +45,7 @@ export const ProviderPreview: React.FC = () => {
         <ProviderIcon shortType={provider.type} />
         <Text>{provider.id}</Text>
       </HStack>
-      <VStack w="100%" align={"flex-start"} spacing={0}>
+      <VStack w="100%" align={"flex-start"} spacing={2}>
         {data &&
           Object.entries(target.multiSelects).map(([k, v]) => {
             const arg = data[k];
@@ -58,6 +58,7 @@ export const ProviderPreview: React.FC = () => {
               k
             );
             // console.log({ arg, argOptions });
+            if (v.length === 0) return null;
 
             return (
               <VStack w="100%" align={"flex-start"} spacing={0}>
@@ -80,7 +81,7 @@ export const ProviderPreview: React.FC = () => {
                   arg.groups &&
                   Object.entries(target.argumentGroups[k]).map(
                     ([groupId, groupValues]) => {
-                      if (!arg.groups) {
+                      if (!arg.groups || groupValues.length === 0) {
                         return null;
                       }
                       const group = arg.groups[groupId];
