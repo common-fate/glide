@@ -177,6 +177,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Clock:    clk,
 			DB:       db,
 			AHClient: opts.AccessHandlerClient,
+			Cache: &cachesvc.Service{
+				DB:                  db,
+				AccessHandlerClient: opts.AccessHandlerClient,
+			},
 		},
 		ProviderSetup: &psetupsvc.Service{
 			DB:               db,
