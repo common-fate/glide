@@ -55,7 +55,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 			// 	Email: "test@test.com",
 			// },
 
-			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:          "id already exists",
@@ -146,7 +146,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["granted_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
+			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["granted_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
 		},
 		{
 			name:     "malformed",
@@ -244,7 +244,7 @@ func TestAdminListAccessRules(t *testing.T) {
 				},
 			},
 
-			want: `{"accessRules":[{"approval":{"groups":["a"],"users":["b"]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule2","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
+			want: `{"accessRules":[{"approval":{"groups":["a"],"users":["b"]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule2","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
 		},
 		{
 			name:        "no rules returns an empty list not an error",
@@ -338,7 +338,7 @@ func TestUserListAccessRules(t *testing.T) {
 				},
 			},
 
-			want: `{"accessRules":[{"description":"string","id":"rule1","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"description":"string","id":"rule2","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
+			want: `{"accessRules":[{"description":"string","id":"rule1","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"description":"string","id":"rule2","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
 		},
 		{
 			name:         "no rules found",
@@ -407,7 +407,7 @@ func TestUserGetAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusOK,
-			want:     `{"description":"","id":"","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			want:     `{"description":"","id":"","isCurrent":false,"name":"","target":{"arguments":{},"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:           "no rule found",
@@ -587,7 +587,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
 		},
 		{
 			name:     "multiple matches",
@@ -621,7 +621,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}},{"accessRule":{"description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}},{"accessRule":{"description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
 		},
 		{
 			name:     "match with selectable",
@@ -652,7 +652,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{},"withSelectable":{"accountId":["123456789012","other"],"permissionSetArn":["arn:aws:sso:::permissionSet/ssoins-1234/ps-12341","other"]}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 	}
 

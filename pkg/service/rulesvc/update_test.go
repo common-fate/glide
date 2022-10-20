@@ -9,7 +9,9 @@ import (
 	"github.com/common-fate/ddb/ddbmock"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
+	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
+	"github.com/common-fate/granted-approvals/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -33,6 +35,8 @@ func TestUpdateAccessRule(t *testing.T) {
 	userID := "user1"
 	clk := clock.NewMock()
 	now := clk.Now()
+	cacheArgOptionsResponse := []cache.ProviderOption{}
+	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
 
 	/**
 	Input values needed:
@@ -124,16 +128,23 @@ func TestUpdateAccessRule(t *testing.T) {
 			dbc := ddbmock.Client{
 				PutBatchErr: tc.wantErr,
 			}
+			clk := clock.NewMock()
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()
 
 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			m.EXPECT().GetProviderWithResponse(gomock.Any(), tc.givenUpdateBody.Target.ProviderId).Return(&ahTypes.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: http.StatusOK}, JSON200: &ahTypes.Provider{Type: "awssso"}}, nil)
+			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId)).Return(&ahTypes.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.Provider{Type: "awssso"}}, nil)
+			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId)).Return(&ahTypes.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.ArgSchema{}}, nil)
+
+			cm := mocks.NewMockCacheService(ctrl)
+			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+
 			s := Service{
 				Clock:    clk,
 				DB:       &dbc,
 				AHClient: m,
+				Cache:    cm,
 			}
 
 			got, err := s.UpdateRule(context.Background(), &UpdateOpts{
