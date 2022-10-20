@@ -267,42 +267,12 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		apio.Error(ctx, w, err)
 		return
 	}
-
-	for arg, groupings := range rule.Target.WithArgumentGroupOptions {
-		for group, values := range groupings {
-
-			// if provider arg has values in groupings
-			if len(values) > 0 {
-				for _, value := range values {
-					_, cachedGroup, err := a.Cache.LoadCachedProviderArgGroupOptions(ctx, rule.Target.ProviderID, arg, group, value)
-					if err != nil {
-						if err == ddb.ErrNoItems {
-							continue
-						}
-
-						apio.Error(ctx, w, err)
-						return
-					}
-
-					for _, option := range cachedGroup.Children {
-						if !contains(rule.Target.WithSelectable[arg], option) {
-							rule.Target.WithSelectable[arg] = append(rule.Target.WithSelectable[arg], option)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	pq := storage.ListCachedProviderOptions{
-		ProviderID: rule.Target.ProviderID,
-	}
-	_, err = a.DB.Query(ctx, &pq)
-	if err != nil && err != ddb.ErrNoItems {
+	requestArguments, err := a.Rules.RequestArguments(ctx, rule.Target)
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, rule.ToRequestAccessRuleAPI(pq.Result), http.StatusOK)
+	apio.JSON(ctx, w, rule.ToRequestAccessRuleAPI(requestArguments), http.StatusOK)
 }
 
 func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request, ruleId string) {
@@ -330,13 +300,4 @@ func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request,
 	}
 	apio.JSON(ctx, w, types.ListAccessRuleApproversResponse{Users: users}, http.StatusOK)
 
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
