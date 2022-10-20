@@ -117,16 +117,18 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 
 	for _, o := range options {
 		res.Options = append(res.Options, ahTypes.Option{
-			Label: o.Label,
-			Value: o.Value,
+			Label:       o.Label,
+			Value:       o.Value,
+			Description: o.Description,
 		})
 	}
 
 	for _, group := range groups {
 		res.Groups.AdditionalProperties[group.Group] = append(res.Groups.AdditionalProperties[group.Group], ahTypes.GroupOption{
-			Children: group.Children,
-			Label:    group.Label,
-			Value:    group.Value,
+			Children:    group.Children,
+			Label:       group.Label,
+			Value:       group.Value,
+			Description: group.Description,
 		})
 	}
 

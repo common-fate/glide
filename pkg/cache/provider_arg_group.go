@@ -12,12 +12,13 @@ import (
 // ProviderArgGroupOption is an argument option that we've cached
 // from an Access Provider in DynamoDB.
 type ProviderArgGroupOption struct {
-	Provider string   `json:"provider" dynamodbav:"provider"`
-	Arg      string   `json:"arg" dynamodbav:"arg"`
-	Group    string   `json:"group" dynamodbav:"group"`
-	Label    string   `json:"label" dynamodbav:"label"`
-	Value    string   `json:"value" dynamodbav:"value"`
-	Children []string `json:"chidren" dynamodbav:"chidren"`
+	Provider    string   `json:"provider" dynamodbav:"provider"`
+	Arg         string   `json:"arg" dynamodbav:"arg"`
+	Group       string   `json:"group" dynamodbav:"group"`
+	Label       string   `json:"label" dynamodbav:"label"`
+	Value       string   `json:"value" dynamodbav:"value"`
+	Children    []string `json:"chidren" dynamodbav:"chidren"`
+	Description *string  `json:"description" dynamodbav:"description"`
 }
 
 func (r *ProviderArgGroupOption) DDBKeys() (ddb.Keys, error) {

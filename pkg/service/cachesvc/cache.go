@@ -88,10 +88,11 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 	var cachedOpts []cache.ProviderOption
 	for _, o := range res.Options {
 		op := cache.ProviderOption{
-			Provider: providerId,
-			Arg:      argId,
-			Label:    o.Label,
-			Value:    o.Value,
+			Provider:    providerId,
+			Arg:         argId,
+			Label:       o.Label,
+			Value:       o.Value,
+			Description: o.Description,
 		}
 		keyers = append(keyers, &op)
 		cachedOpts = append(cachedOpts, op)
@@ -102,12 +103,13 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		for k, v := range res.Groups.AdditionalProperties {
 			for _, option := range v {
 				op := cache.ProviderArgGroupOption{
-					Provider: providerId,
-					Arg:      argId,
-					Group:    k,
-					Value:    option.Value,
-					Label:    option.Label,
-					Children: option.Children,
+					Provider:    providerId,
+					Arg:         argId,
+					Group:       k,
+					Value:       option.Value,
+					Label:       option.Label,
+					Children:    option.Children,
+					Description: option.Description,
 				}
 				keyers = append(keyers, &op)
 				cachedGroups = append(cachedGroups, op)
