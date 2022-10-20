@@ -60,14 +60,8 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 					if hasTag {
 						mu.Lock()
 						defer mu.Unlock()
-						var label string
-						if po.PermissionSet.Name != nil {
-							label = *po.PermissionSet.Name
-						}
-						if po.PermissionSet.Description != nil {
-							label = label + ": " + *po.PermissionSet.Description
-						}
-						opts.Options = append(opts.Options, types.Option{Label: label, Value: ARNCopy, Description: po.PermissionSet.Description})
+
+						opts.Options = append(opts.Options, types.Option{Label: aws.ToString(po.PermissionSet.Name), Value: ARNCopy, Description: po.PermissionSet.Description})
 					}
 					return nil
 				})
