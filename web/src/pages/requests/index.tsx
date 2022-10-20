@@ -61,6 +61,7 @@ const Home = () => {
   } = useInfiniteScrollApi<typeof useUserListRequestsUpcoming>({
     swrHook: useUserListRequestsUpcoming,
     hookProps: {},
+    swrProps: { swr: { refreshInterval: 10000 } },
     listObjKey: "requests",
   });
 
@@ -69,6 +70,7 @@ const Home = () => {
   >({
     swrHook: useUserListRequestsPast,
     hookProps: {},
+
     listObjKey: "requests",
   });
 

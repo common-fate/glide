@@ -4,17 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/notifiers"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
@@ -95,8 +98,18 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 						return
 					}
 
+					// Consider adding a fallback if the cache lookup fails
+					pq := storage.ListCachedProviderOptions{
+						ProviderID: rule.Target.ProviderID,
+					}
+					_, err = n.DB.Query(ctx, &pq)
+					if err != nil && err != ddb.ErrNoItems {
+						log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.ProviderID, zap.Error(err))
+					}
+
 					summary, msg := BuildRequestMessage(RequestMessageOpts{
 						Request:          req,
+						RequestDetail:    req.ToAPIDetail(rule, false, pq.Result),
 						Rule:             rule,
 						RequestorSlackID: slackUserID,
 						RequestorEmail:   userQuery.Result.Email,
@@ -105,7 +118,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 					ts, err := SendMessageBlocks(ctx, n.client, approver.Result.Email, msg, summary)
 					if err != nil {
-						log.Errorw("failed to send request approval message", "user", usr, zap.Error(err))
+						log.Errorw("failed to send request approval message", "user", usr, "msg", msg, zap.Error(err))
 					}
 
 					updatedUsr := usr
@@ -247,9 +260,19 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 	if err != nil {
 		return errors.Wrap(err, "building review URL")
 	}
+
+	pq := storage.ListCachedProviderOptions{
+		ProviderID: opts.Rule.Target.ProviderID,
+	}
+	_, err = n.DB.Query(ctx, &pq)
+	if err != nil && err != ddb.ErrNoItems {
+		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", opts.Rule.Target.ProviderID, zap.Error(err))
+	}
+
 	// Here we want to update the original approvers slack messages
 	_, msg := BuildRequestMessage(RequestMessageOpts{
 		Request:          opts.Request,
+		RequestDetail:    opts.Request.ToAPIDetail(opts.Rule, false, pq.Result),
 		Rule:             opts.Rule,
 		RequestorSlackID: slackUserID,
 		RequestorEmail:   opts.DbRequestor.Email,
@@ -268,6 +291,7 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 
 type RequestMessageOpts struct {
 	Request          access.Request
+	RequestDetail    types.RequestDetail
 	Rule             rule.AccessRule
 	ReviewURLs       notifiers.ReviewURLs
 	RequestorSlackID string
@@ -306,6 +330,27 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Status:*\n%s", status),
 		},
+	}
+
+	var labelArr []types.With
+	for _, v := range o.RequestDetail.AccessRule.With.AdditionalProperties {
+		labelArr = append(labelArr, v)
+	}
+	for _, v := range o.RequestDetail.SelectedWith.AdditionalProperties {
+		labelArr = append(labelArr, v)
+	}
+
+	// now sort labelArr by Title
+	sort.Slice(labelArr, func(i, j int) bool {
+		return labelArr[i].Title < labelArr[j].Title
+	})
+
+	// now itterate over labelArr and add to requestDetails
+	for _, v := range labelArr {
+		requestDetails = append(requestDetails, &slack.TextBlockObject{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+		})
 	}
 
 	// Only show the Request reason if it is not empty

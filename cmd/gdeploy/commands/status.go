@@ -17,8 +17,8 @@ var StatusCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		o, err := dc.LoadOutput(ctx)
 
+		o, err := dc.LoadOutput(ctx)
 		if err != nil {
 			return err
 		}
