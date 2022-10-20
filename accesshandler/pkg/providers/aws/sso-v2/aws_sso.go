@@ -49,16 +49,18 @@ func (p *Provider) Init(ctx context.Context) error {
 		return err
 	}
 
-	resourcesCfg := cfg.Copy()
+	// NOTE: commented until "tags" group option is release.
+	// resourcesCfg := cfg.Copy()
 	// Hardcoded use east 1 region so that I can search organization accounts using the resource tagging api
 	// not sure how this works for other regions?
-	resourcesCfg.Region = "us-east-1"
+	// resourcesCfg.Region = "us-east-1"
 	cfg.RetryMaxAttempts = 5
 	p.awsConfig = cfg
 	p.client = ssoadmin.NewFromConfig(cfg)
 	p.orgClient = organizations.NewFromConfig(cfg)
 	p.idStoreClient = identitystore.NewFromConfig(cfg)
-	p.resourcesClient = resourcegroupstaggingapi.NewFromConfig(resourcesCfg)
+	// NOTE: commented until "tags" group option is release.
+	// p.resourcesClient = resourcegroupstaggingapi.NewFromConfig(resourcesCfg)
 	zap.S().Infow("configured aws sso client", "instanceArn", p.instanceARN, "idstoreID", p.identityStoreID)
 	return nil
 }
