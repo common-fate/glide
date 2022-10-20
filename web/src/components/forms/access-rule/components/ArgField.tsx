@@ -118,7 +118,7 @@ const ArgField = (props: ArgFieldProps) => {
     }
   );
 
-  let res: Obj[] = [];
+  const res: Obj[] = [];
 
   effectiveGroups?.forEach((g) => {
     g?.children?.forEach((c) => {
