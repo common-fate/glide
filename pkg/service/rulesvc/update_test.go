@@ -95,10 +95,11 @@ func TestUpdateAccessRule(t *testing.T) {
 		},
 		Version: versionID,
 		Target: rule.Target{
-			ProviderID:     "newTarget",
-			ProviderType:   "awssso",
-			With:           map[string]string{},
-			WithSelectable: map[string][]string{},
+			ProviderID:               "newTarget",
+			ProviderType:             "awssso",
+			With:                     make(map[string]string),
+			WithSelectable:           make(map[string][]string),
+			WithArgumentGroupOptions: make(map[string]map[string][]string),
 		},
 	}
 
