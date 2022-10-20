@@ -18,7 +18,7 @@ func (c *Server) Handler() http.Handler {
 	r.Use(c.requestIDMiddleware)
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
-	r.Use(chiMiddleware.Timeout(30000 * time.Second))
+	r.Use(chiMiddleware.Timeout(30 * time.Second))
 	r.Use(logger.Middleware(c.log.Desugar()))
 	r.Use(sentryMiddleware)
 	r.Use(cors.Handler(cors.Options{
