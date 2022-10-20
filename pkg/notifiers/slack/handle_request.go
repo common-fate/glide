@@ -333,12 +333,13 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 	}
 
 	var labelArr []types.With
-	for _, v := range o.RequestDetail.AccessRule.With.AdditionalProperties {
-		labelArr = append(labelArr, v)
-	}
-	for _, v := range o.RequestDetail.SelectedWith.AdditionalProperties {
-		labelArr = append(labelArr, v)
-	}
+	// @TODO fix this
+	// for _, v := range o.RequestDetail.AccessRule.With.AdditionalProperties {
+	// 	labelArr = append(labelArr, v)
+	// }
+	// for _, v := range o.RequestDetail.SelectedWith.AdditionalProperties {
+	// 	labelArr = append(labelArr, v)
+	// }
 
 	// now sort labelArr by Title
 	sort.Slice(labelArr, func(i, j int) bool {
