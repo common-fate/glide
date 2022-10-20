@@ -19,7 +19,9 @@ const Home = () => {
     params: { id: requestId },
   } = useMatch();
 
-  const { data, mutate } = useAdminGetRequest(requestId);
+  const { data, mutate } = useAdminGetRequest(requestId, {
+    swr: { refreshInterval: 10000 },
+  });
   return (
     <div>
       <AdminLayout>
