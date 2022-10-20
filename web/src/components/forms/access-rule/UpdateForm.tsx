@@ -27,12 +27,10 @@ import { adminArchiveAccessRule } from "../../../utils/backend-client/default/de
 import {
   AccessRuleDetail,
   AccessRuleTargetDetailArgumentsFormElement,
-  CreateAccessRuleRequestBody,
 } from "../../../utils/backend-client/types";
 import {
   AccessRuleFormData,
   AccessRuleFormDataTarget,
-  accessRuleFormDataTargetToApi,
   accessRuleFormDataToApi,
 } from "./CreateForm";
 
@@ -51,17 +49,24 @@ interface Props {
 export const accessRuleTargetApiToTargetFormData = (
   apiData: AccessRuleDetail
 ): AccessRuleFormDataTarget => {
-  const formTargetData: AccessRuleFormDataTarget = {
+  const t: AccessRuleFormDataTarget = {
     providerId: apiData.target.provider.id,
+    multiSelects: {},
     argumentGroups: {},
     inputs: {},
-    multiSelects: {},
   };
+  Object.entries(apiData.target.with).forEach(([k, v]) => {
+    if (
+      v.formElement === AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+    ) {
+      t.multiSelects[k] = v.values;
+      t.argumentGroups[k] = v.groupings;
+    } else {
+      t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
+    }
+  });
 
-  for (const k in apiData.target.with) {
-  }
-
-  return formTargetData;
+  return t;
 };
 
 const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
@@ -86,24 +91,6 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
     if (data && (!cachedRule || cachedRule != data)) {
-      const t: AccessRuleFormDataTarget = {
-        providerId: data.target.provider.id,
-        multiSelects: {},
-        argumentGroups: {},
-        inputs: {},
-      };
-      Object.entries(data.target.with).forEach(([k, v]) => {
-        if (
-          v.formElement ===
-          AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
-        ) {
-          t.multiSelects[k] = v.values;
-          t.argumentGroups[k] = v.groupings;
-        } else {
-          t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
-        }
-      });
-      console.log({ t, data });
       //set accessRuleTargetData from rule details from api
 
       const f: AccessRuleFormData = {
@@ -119,7 +106,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
           users: data.approval.users,
           groups: data.approval.groups,
         },
-        target: t,
+        target: accessRuleTargetApiToTargetFormData(data),
       };
       methods.reset(f);
       setCachedRule(data);

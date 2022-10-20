@@ -61,7 +61,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		Region:                        "abcdefg",
 		PaginationKMSKeyARN:           "abcdefg",
 		AccessHandlerExecutionRoleARN: "abcdefg",
-		CacheSyncLogGroupName:         "abcdrfg",
+		CacheSyncLogGroupName:         "abcdefg",
 		RestAPIExecutionRoleARN:       "abcdefg",
 		IDPSyncExecutionRoleARN:       "abcdefg",
 	}

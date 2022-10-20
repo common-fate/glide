@@ -269,7 +269,7 @@ func TestNewRequest(t *testing.T) {
 			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.wantValidationError).AnyTimes()
 
 			ca := accessMocks.NewMockCacheService(ctrl)
-			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil).AnyTimes()
+			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil, nil).AnyTimes()
 			s := Service{
 				Clock:       clk,
 				DB:          db,

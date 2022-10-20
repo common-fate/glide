@@ -28,6 +28,7 @@ import {
 import { CopyableOption } from "../../../CopyableOption";
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
+import { RefreshButton } from "../steps/Provider";
 
 interface ArgFieldProps {
   argument: Argument;
@@ -123,7 +124,7 @@ const ArgField = (props: ArgFieldProps) => {
       }
     );
 
-  let res: Obj[] = [];
+  const res: Obj[] = [];
 
   effectiveGroups?.forEach((g) => {
     g?.children?.forEach((c) => {
@@ -203,12 +204,17 @@ const ArgField = (props: ArgFieldProps) => {
               Individual&nbsp;{argument.title}s
             </Text>
           </FormLabel>
-          <HStack>
+          <HStack w="90%">
             <MultiSelect
               rules={{ required: required, minLength: 1 }}
               fieldName={`target.multiSelects.${argument.id}`}
               options={argOptions?.options || []}
               shouldAddSelectAllOption={true}
+            />
+            <RefreshButton
+              argId={argument.id}
+              providerId={providerId}
+              mx={20}
             />
           </HStack>
         </div>

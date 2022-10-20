@@ -3,8 +3,10 @@ import {
   FormErrorMessage,
   FormLabel,
   IconButton,
+  IconButtonProps,
   Spinner,
   Text,
+  Tooltip,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -117,12 +119,16 @@ const ProviderWithQuestions: React.FC = () => {
   );
 };
 
-interface RefreshButtonProps {
+type RefreshButtonProps = {
   providerId: string;
   argId: string;
-}
+} & Omit<IconButtonProps, "aria-label">;
 
-const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
+export const RefreshButton: React.FC<RefreshButtonProps> = ({
+  argId,
+  providerId,
+  ...props
+}) => {
   const [loading, setLoading] = useState(false);
   const { mutate } = useListProviderArgOptions(providerId, argId);
 
@@ -136,12 +142,15 @@ const RefreshButton: React.FC<RefreshButtonProps> = ({ argId, providerId }) => {
   };
 
   return (
-    <IconButton
-      onClick={onClick}
-      isLoading={loading}
-      icon={<RefreshIcon boxSize="24px" />}
-      aria-label="Refresh"
-      variant={"ghost"}
-    />
+    <Tooltip>
+      <IconButton
+        {...props}
+        onClick={onClick}
+        isLoading={loading}
+        icon={<RefreshIcon boxSize="24px" />}
+        aria-label="Refresh"
+        variant={"ghost"}
+      />
+    </Tooltip>
   );
 };
