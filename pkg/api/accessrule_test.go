@@ -146,7 +146,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["granted_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
+			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["granted_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
 		},
 		{
 			name:     "malformed",
