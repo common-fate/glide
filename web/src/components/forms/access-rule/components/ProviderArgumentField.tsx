@@ -201,6 +201,11 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
       >
         <FormLabel htmlFor="target.providerId">
           <Text textStyle={"Body/Medium"}>{argument.title}s</Text>
+          {argument.description && (
+            <Text textStyle={"Body/Medium"} color="neutrals.500">
+              {argument.description}
+            </Text>
+          )}
         </FormLabel>
         <HStack w="90%">
           <MultiSelect
@@ -212,14 +217,12 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
           <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
         </HStack>
 
-        {/* <FormLabel htmlFor="target.providerId.filters.filterId"></FormLabel> */}
-        {/* TODO: msg will eventually be more detailed (one or more options) */}
         {!argument.groups && (
           <FormErrorMessage> {argument.title} is required </FormErrorMessage>
         )}
       </FormControl>
 
-      {/* @TODO: add a skeleton group */}
+      {/* @TODO: consider adding skeleton group or improving CLS */}
       {argument.groups && (
         <Box
           pos="relative"
@@ -244,11 +247,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                   }
                 >
                   <>
-                    <FormLabel
-                      htmlFor="target.providerId"
-                      // display="inline"
-                      // mb={4}
-                    >
+                    <FormLabel htmlFor="target.providerId">
                       <Text display="inline" textStyle={"Body/Medium"}>
                         {group.title}{" "}
                       </Text>{" "}
@@ -259,15 +258,15 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                           px={1}
                           // bg="gray.200"
                           rounded="full"
-                          filter="grayscale(1);"
-                          // transition="all .2s ease"
-                          // _hover={{
-                          //   filter: "grayscale(0);",
-                          // }}
                         >
-                          <BoltIcon boxSize="12px" color="brandGreen.200" />
+                          <BoltIcon boxSize="12px" color="neutrals.400" />
                         </Circle>
                       </Tooltip>
+                      {group.description && (
+                        <Text textStyle={"Body/Medium"} color="neutrals.500">
+                          {group.description}
+                        </Text>
+                      )}
                     </FormLabel>
                     <HStack w="90%">
                       <MultiSelect
