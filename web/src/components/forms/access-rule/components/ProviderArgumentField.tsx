@@ -304,7 +304,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
         (formState.touchedFields.target?.argumentGroups?.[argument.id] ||
           formState.touchedFields.target?.multiSelects?.[argument.id]) && (
           <Text color="red.500" fontSize="sm">
-            {"At least one effective " + argument.title + " is required"}
+            {"At least one " + argument.title + " is required"}
           </Text>
         )}
     </VStack>

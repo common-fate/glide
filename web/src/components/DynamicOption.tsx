@@ -29,7 +29,6 @@ export const DynamicOption: React.FC<{
 
   return (
     <WrapItem>
-      {/* // label={value} */}
       <Popover trigger="hover">
         <PopoverTrigger>
           <Flex
@@ -42,11 +41,7 @@ export const DynamicOption: React.FC<{
             {label}{" "}
             {parentGroup && (
               <BoltIcon
-                // filter="grayscale(1);"
                 transition="all .2s ease"
-                // _hover={{
-                //   filter: "grayscale(0);",
-                // }}
                 color="neutrals.400"
                 h="20px"
                 ml={2}

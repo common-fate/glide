@@ -1,4 +1,14 @@
-import { Flex, HStack, Spacer, Text, VStack, Wrap } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  HStack,
+  Spacer,
+  Text,
+  Tooltip,
+  VStack,
+  Wrap,
+  Circle,
+} from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -8,6 +18,8 @@ import {
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
 import { CopyableOption } from "../../../CopyableOption";
+import { DynamicOption } from "../../../DynamicOption";
+import { BoltIcon } from "../../../icons/Icons";
 import { ProviderIcon } from "../../../icons/providerIcon";
 import { AccessRuleFormData } from "../CreateForm";
 
@@ -32,7 +44,7 @@ export const ProviderPreview: React.FC = () => {
         <ProviderIcon shortType={provider.type} />
         <Text>{provider.id}</Text>
       </HStack>
-      <VStack w="100%" align={"flex-start"} spacing={2}>
+      <VStack w="100%" align={"flex-start"} spacing={4}>
         {data &&
           target.multiSelects &&
           Object.entries(target.multiSelects).map(([k, v]) => {
@@ -48,22 +60,40 @@ export const ProviderPreview: React.FC = () => {
             if (v.length === 0) return null;
 
             return (
-              <VStack w="100%" align={"flex-start"} spacing={0} key={k}>
-                <Text>{arg.title}</Text>
-                <Wrap>
-                  {v?.map((opt) => {
-                    return (
-                      <CopyableOption
-                        key={"cp-" + opt}
-                        label={
-                          argOptions?.options?.find((d) => d.value === opt)
-                            ?.label ?? ""
-                        }
-                        value={opt}
-                      />
-                    );
-                  })}
-                </Wrap>
+              <VStack
+                w="100%"
+                align={"flex-start"}
+                spacing={4}
+                key={k}
+                p={4}
+                rounded="md"
+                border="1px solid"
+                borderColor="gray.300"
+              >
+                <Box>
+                  <Text textStyle={"Body/Medium"} color="neutrals.500">
+                    {arg.title}s
+                  </Text>
+                  {/* {arg.description && (
+                    <Text textStyle={"Body/Medium"} color="neutrals.500">
+                      {arg.description}
+                    </Text>
+                  )} */}
+                  <Wrap>
+                    {v?.map((opt) => {
+                      return (
+                        <DynamicOption
+                          key={"cp-" + opt}
+                          label={
+                            argOptions?.options?.find((d) => d.value === opt)
+                              ?.label ?? ""
+                          }
+                          value={opt}
+                        />
+                      );
+                    })}
+                  </Wrap>
+                </Box>
                 {target.argumentGroups &&
                   target.argumentGroups[k] &&
                   arg.groups &&
@@ -74,26 +104,53 @@ export const ProviderPreview: React.FC = () => {
                       }
                       const group = arg.groups[groupId];
                       return (
-                        <VStack>
-                          <Text>{group.title}</Text>
-                          {groupValues.map((groupValue) => {
-                            if (!argOptions?.groups) {
-                              return null;
-                            }
-                            const groupOptions = argOptions.groups[groupId];
-                            return (
-                              <CopyableOption
-                                key={"cp-" + groupValue}
-                                label={
-                                  groupOptions.find(
-                                    (d) => d.value === groupValue
-                                  )?.label ?? ""
-                                }
-                                value={groupValue}
-                              />
-                            );
-                          })}
-                        </VStack>
+                        <Box>
+                          <Flex>
+                            <Text
+                              textStyle={"Body/Medium"}
+                              color="neutrals.500"
+                            >
+                              {group.title}s
+                            </Text>
+                            <Tooltip label="Dynamic Field" hasArrow={true}>
+                              <Circle
+                                display="inline-flex"
+                                size="24px"
+                                px={1}
+                                rounded="full"
+                              >
+                                <BoltIcon boxSize="12px" color="neutrals.400" />
+                              </Circle>
+                            </Tooltip>
+                          </Flex>
+                          {/* {group.description && (
+                            <Text
+                              textStyle={"Body/Medium"}
+                              color="neutrals.500"
+                            >
+                              {group.description}
+                            </Text>
+                          )} */}
+                          <Wrap>
+                            {groupValues.map((groupValue) => {
+                              if (!argOptions?.groups) {
+                                return null;
+                              }
+                              const groupOptions = argOptions.groups[groupId];
+                              return (
+                                <DynamicOption
+                                  key={"cp-" + groupValue}
+                                  label={
+                                    groupOptions.find(
+                                      (d) => d.value === groupValue
+                                    )?.label ?? ""
+                                  }
+                                  value={groupValue}
+                                />
+                              );
+                            })}
+                          </Wrap>
+                        </Box>
                       );
                     }
                   )}
