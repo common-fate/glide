@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
@@ -34,10 +33,9 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 
 	for ptype, pversions := range pr.Providers {
 		for pversion, rp := range pversions {
-			if !rp.isDeprecated {
-				key := ptype + "@" + pversion
-				all[key] = rp
-			}
+
+			key := ptype + "@" + pversion
+			all[key] = rp
 
 		}
 	}
@@ -68,12 +66,7 @@ func Registry() ProviderRegistry {
 				},
 			},
 			"commonfate/aws-sso": {
-				"v1": {
-					Provider:     &sso.Provider{},
-					DefaultID:    "aws-sso",
-					Description:  "AWS SSO PermissionSets",
-					isDeprecated: true,
-				},
+
 				"v2": {
 					Provider:    &ssov2.Provider{},
 					DefaultID:   "aws-sso-v2",
@@ -199,6 +192,4 @@ type RegisteredProvider struct {
 	Provider    providers.Accessor
 	DefaultID   string
 	Description string
-	//optional parameter to flag deprecated providers / versions
-	isDeprecated bool
 }

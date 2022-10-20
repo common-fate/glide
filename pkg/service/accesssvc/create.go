@@ -237,6 +237,7 @@ func groupMatches(ruleGroups []string, userGroups []string) error {
 // requestIsValid checks that the request meets the constraints of the rule
 // Add additional constraint checks here in this method.
 func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) error {
+
 	if request.Timing.DurationSeconds > rule.TimeConstraints.MaxDurationSeconds {
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),

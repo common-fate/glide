@@ -26,79 +26,50 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
   const input = getInputProps();
   const checkbox = getCheckboxProps();
 
-  if (props.provider.isDeprecated) {
-    return (
-      <Box as="label">
-        <Tooltip hasArrow label="This provider has been deprecated">
-          <Box
-            bg="white"
-            cursor="pointer"
-            borderWidth="1px"
-            borderRadius="md"
-            m="1px"
-            px={6}
-            py={5}
-            position="relative"
-            data-testid={"provider-selector-" + props.provider.type}
-          >
-            <HStack>
-              <ProviderIcon
-                filter="grayscale(100%)"
-                shortType={props.provider.type}
-              />
+  return (
+    <Box as="label">
+      <input {...input} />
+      <Box
+        {...checkbox}
+        bg="white"
+        cursor="pointer"
+        borderWidth="1px"
+        borderRadius="md"
+        m="1px"
+        _checked={{
+          m: "0px",
+          borderColor: "brandGreen.300",
+          borderWidth: "2px",
+        }}
+        _focus={{
+          boxShadow: "outline",
+        }}
+        px={6}
+        py={5}
+        position="relative"
+        data-testid={"provider-selector-" + props.provider.type}
+      >
+        {/* @ts-ignore */}
+        {checkbox?.["data-checked"] !== undefined && (
+          <CheckCircleIcon
+            position="absolute"
+            top={2}
+            right={2}
+            h="12px"
+            w="12px"
+            color={"brandGreen.300"}
+          />
+        )}
+        <HStack>
+          <ProviderIcon shortType={props.provider.type} />
 
-              <Text>{props.provider.id}</Text>
-            </HStack>
-          </Box>
-        </Tooltip>
+          <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
+            {props.provider.id}
+          </Text>
+        </HStack>
       </Box>
-    );
-  } else {
-    return (
-      <Box as="label">
-        <input {...input} />
-        <Box
-          {...checkbox}
-          bg="white"
-          cursor="pointer"
-          borderWidth="1px"
-          borderRadius="md"
-          m="1px"
-          _checked={{
-            m: "0px",
-            borderColor: "brandGreen.300",
-            borderWidth: "2px",
-          }}
-          _focus={{
-            boxShadow: "outline",
-          }}
-          px={6}
-          py={5}
-          position="relative"
-          data-testid={"provider-selector-" + props.provider.type}
-        >
-          {/* @ts-ignore */}
-          {checkbox?.["data-checked"] !== undefined && (
-            <CheckCircleIcon
-              position="absolute"
-              top={2}
-              right={2}
-              h="12px"
-              w="12px"
-              color={"brandGreen.300"}
-            />
-          )}
-          <HStack>
-            <ProviderIcon shortType={props.provider.type} />
-
-            <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
-              {props.provider.id}
-            </Text>
-          </HStack>
-        </Box>
-      </Box>
-    );
-  }
+    </Box>
+  );
 };
 
 export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {

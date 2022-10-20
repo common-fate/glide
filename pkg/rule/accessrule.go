@@ -278,6 +278,7 @@ func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleT
 		}
 		at.With.AdditionalProperties[k] = with
 	}
+
 	return at
 }
 
