@@ -29,7 +29,9 @@ const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
-  const { data, mutate } = useUserGetRequest(requestId);
+  const { data, mutate } = useUserGetRequest(requestId, {
+    swr: { refreshInterval: 10000 },
+  });
   const search = useSearch<MyLocationGenerics>();
   const { action } = search;
   const Content = () => {
@@ -65,6 +67,7 @@ const Home = () => {
       </RequestDisplay>
     );
   };
+
   return (
     <div>
       <UserLayout>

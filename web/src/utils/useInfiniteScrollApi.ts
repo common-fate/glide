@@ -4,6 +4,7 @@ type InputParams<T extends (...args: any[]) => any> = {
   /** This will be called within useInfiniteScrollApi, the resulting nextToken will be extracted */
   swrHook: T;
   hookProps?: Parameters<T>[0];
+  swrProps?: Parameters<T>[1];
   /** by specifying the listObjKey we know what array value to mutate from the returned data type (helps keep this method generic!)  */
   listObjKey: keyof Exclude<ReturnType<T>["data"], undefined>;
 };
@@ -22,14 +23,18 @@ export type PaginationProps<T extends (...args: any[]) => any> = {
 export const useInfiniteScrollApi = <T extends (...args: any[]) => any>({
   swrHook,
   hookProps,
+  swrProps,
   listObjKey,
 }: InputParams<T>): PaginationProps<T> => {
   const [nextToken, setNextToken] = useState<string | undefined>();
 
-  const { data, mutate, isValidating } = swrHook({
-    ...hookProps,
-    nextToken: nextToken,
-  });
+  const { data, mutate, isValidating } = swrHook(
+    {
+      nextToken: nextToken,
+      ...hookProps,
+    },
+    swrProps
+  );
 
   const [virtualData, setVirtualData] = useState<any | undefined>();
 

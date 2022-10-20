@@ -30,6 +30,7 @@ export const AdminRequestsTable = () => {
     hookProps: {
       status: status ? (status.toUpperCase() as RequestStatus) : undefined,
     },
+    swrProps: { swr: { refreshInterval: 10000 } },
   });
 
   const cols: Column<Request>[] = useMemo(

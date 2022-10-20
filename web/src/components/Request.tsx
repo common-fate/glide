@@ -554,7 +554,6 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
   const { request, overrideTiming } = useContext(Context);
   const toast = useToast();
   const auth = useUser();
-  const [comment, setComment] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<ReviewDecision>();
 
   const submitReview = async (decision: ReviewDecision) => {
@@ -563,7 +562,6 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
       setIsSubmitting(decision);
       await reviewRequest(request.id, {
         decision,
-        comment,
         overrideTiming: overrideTiming,
       });
       toast({

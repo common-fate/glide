@@ -113,8 +113,7 @@ export class AppBackend extends Construct {
         EVENT_BUS_SOURCE: props.eventBusSourceName,
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        ACCESS_HANDLER_EXECUTION_ROLE_ARN:
-          props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         REMOTE_CONFIG_URL: props.remoteConfigUrl,
         REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
@@ -164,6 +163,18 @@ export class AppBackend extends Construct {
             Stack.of(this).account
           }:parameter/granted/providers/*`,
         ],
+      })
+    );
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
+          },
+        },
       })
     );
 
@@ -302,8 +313,7 @@ export class AppBackend extends Construct {
           webAclArn: apiGatewayWafAclArn,
         }
       );
-      apiGatewayWafAclAssociation.cfnOptions.condition =
-        createApiGatewayWafAssociation;
+      apiGatewayWafAclAssociation.cfnOptions.condition = createApiGatewayWafAssociation;
     }
   }
 
@@ -343,5 +353,8 @@ export class AppBackend extends Construct {
 
   getKmsKeyArn(): string {
     return this._KMSkey.keyArn;
+  }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
   }
 }
