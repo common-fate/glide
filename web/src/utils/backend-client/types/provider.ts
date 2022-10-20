@@ -12,5 +12,4 @@
 export interface Provider {
   id: string;
   type: string;
-  isDeprecated: boolean;
 }
