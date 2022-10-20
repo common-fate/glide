@@ -79,7 +79,6 @@ export const CustomOption = ({
   },
   true
 >) => {
-
   return (
     // @ts-ignore
     <div data-testid={innerProps.value}>
