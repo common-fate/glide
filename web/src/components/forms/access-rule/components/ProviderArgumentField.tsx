@@ -4,20 +4,15 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   HStack,
   Input,
-  Tag,
   Text,
   Tooltip,
   VStack,
   Wrap,
 } from "@chakra-ui/react";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
-import ArgGroupView from "./ArgGroupView";
-import { MultiSelect } from "../components/Select";
-import { AccessRuleFormData } from "../CreateForm";
 import { useListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
@@ -25,61 +20,76 @@ import {
   GroupOption,
   Option,
 } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
-import { CopyableOption } from "../../../CopyableOption";
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
+import { AccessRuleFormData } from "../CreateForm";
 import { RefreshButton } from "../steps/Provider";
+import { MultiSelect } from "./Select";
 
-interface ArgFieldProps {
+interface ProviderArgumentFieldProps {
   argument: Argument;
   providerId: string;
 }
 
-const ArgField = (props: ArgFieldProps) => {
-  const { argument, providerId } = props;
-  const {
-    register,
-    formState,
-    getValues,
-    watch,
-  } = useFormContext<AccessRuleFormData>();
+const ProviderArgumentField: React.FC<ProviderArgumentFieldProps> = ({
+  argument,
+  providerId,
+}) => {
+  switch (argument.formElement) {
+    case ArgumentFormElement.MULTISELECT:
+      return (
+        <ProviderFormElementMultiSelect
+          argument={argument}
+          providerId={providerId}
+        />
+      );
+    case ArgumentFormElement.INPUT:
+      return (
+        <ProviderFormElementInput argument={argument} providerId={providerId} />
+      );
+    default:
+      return (
+        <ProviderFormElementInput argument={argument} providerId={providerId} />
+      );
+  }
+};
 
+export default ProviderArgumentField;
+
+const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
+  argument,
+  providerId,
+}) => {
+  const { register } = useFormContext<AccessRuleFormData>();
+  return (
+    <FormControl w="100%">
+      <FormLabel htmlFor="target.providerId" display="inline">
+        <Text textStyle={"Body/Medium"}>{argument.title}</Text>
+      </FormLabel>
+      <Input
+        id="provider-vault"
+        bg="white"
+        placeholder={`default-${argument.title}`}
+        {...register(`target.inputs.${argument.id}`)}
+      />
+    </FormControl>
+  );
+};
+const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
+  argument,
+  providerId,
+}) => {
+  const { formState, watch } = useFormContext<AccessRuleFormData>();
   const { data: argOptions } = useListProviderArgOptions(
     providerId,
-    argument.id,
-    {},
-    {
-      swr: {
-        // don't call API if arg doesn't have options
-        enabled: argument.formElement !== ArgumentFormElement.INPUT,
-      },
-    }
+    argument.id
   );
-
   const multiSelectsError = formState.errors.target?.multiSelects;
 
   const [argumentGroups, multiSelects] = watch([
     `target.argumentGroups.${argument.id}`,
     `target.multiSelects.${argument.id}`,
   ]);
-
-  // TODO: Form input error is not handled for input type.
-  if (argument.formElement === ArgumentFormElement.INPUT) {
-    return (
-      <FormControl w="100%">
-        <FormLabel htmlFor="target.providerId" display="inline">
-          <Text textStyle={"Body/Medium"}>{argument.title}</Text>
-        </FormLabel>
-        <Input
-          id="provider-vault"
-          bg="white"
-          placeholder={`default-${argument.title}`}
-          {...register(`target.inputs.${argument.id}`)}
-        />
-      </FormControl>
-    );
-  }
-
   /** get all the group children (for aws these are the accounts for the OUs) */
   const effectiveViaGroups =
     (argumentGroups &&
@@ -87,7 +97,6 @@ const ArgField = (props: ArgFieldProps) => {
         ([groupId, selectedGroupValues]) => {
           // get all the accounts for the selected group value
           const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
-          console.log({ groupId, selectedGroupValues, group });
           return selectedGroupValues.flatMap((groupValue) => {
             return group.find((g) => g.value === groupValue)?.children || [];
           });
@@ -112,7 +121,6 @@ const ArgField = (props: ArgFieldProps) => {
       ([groupId, selectedGroupValues]) => {
         // get all the accounts for the selected group value
         const group = argOptions?.groups ? argOptions?.groups?.[groupId] : [];
-        // console.log({ groupId, selectedGroupValues, group });
         return (
           selectedGroupValues
             .flatMap((groupValue) => {
@@ -155,8 +163,6 @@ const ArgField = (props: ArgFieldProps) => {
     return acc;
   }, [] as Obj[]);
 
-  // console.log({ effectiveGroups, multiSelects });
-  // console.log({ res });
   // effectiveViaGroups.filter(g => {
   // })
 
@@ -174,11 +180,6 @@ const ArgField = (props: ArgFieldProps) => {
       return effectiveAccountIds.includes(option.value);
     }) || [];
   const required = effectiveOptions.length === 0;
-
-  // console.log({
-  //   effectiveOptions,
-  //   touchings: formState.touchedFields,
-  // });
 
   return (
     <VStack
@@ -288,7 +289,6 @@ const ArgField = (props: ArgFieldProps) => {
             <Wrap>
               {uniqueRes &&
                 uniqueRes.map((c) => {
-                  // console.log(c);
                   return (
                     <DynamicOption
                       label={c.option.label}
@@ -311,5 +311,3 @@ const ArgField = (props: ArgFieldProps) => {
     </VStack>
   );
 };
-
-export default ArgField;

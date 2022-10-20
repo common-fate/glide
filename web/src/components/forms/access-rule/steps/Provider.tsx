@@ -20,7 +20,7 @@ import {
 
 import { RefreshIcon } from "../../../icons/Icons";
 import ProviderSetupNotice from "../../../ProviderSetupNotice";
-import ArgField from "../components/ArgField";
+import ProviderArgumentField from "../components/ProviderArgumentField";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { AccessRuleFormData } from "../CreateForm";
@@ -88,34 +88,16 @@ export const ProviderStep: React.FC = () => {
 
           <FormErrorMessage>Provider is required</FormErrorMessage>
         </FormControl>
-        <ProviderWithQuestions />
+        {providerArgs &&
+          target?.providerId &&
+          Object.values(providerArgs).map((v) => (
+            <ProviderArgumentField
+              argument={v}
+              providerId={target?.providerId}
+            />
+          ))}
       </>
     </FormStep>
-  );
-};
-
-// // Enable chakra styling of the react json schema form component!!!!
-// // https://chakra-ui.com/docs/styled-system/chakra-factory
-// const StyledForm = chakra(Form);
-const ProviderWithQuestions: React.FC = () => {
-  const { watch } = useFormContext();
-  const providerId = watch("target.providerId");
-  const { data } = useGetProviderArgs(providerId ?? "");
-
-  if (providerId === undefined || providerId === "") {
-    return null;
-  }
-
-  if (data === undefined) {
-    return <Spinner />;
-  }
-
-  return (
-    <>
-      {Object.values(data).map((v) => (
-        <ArgField argument={v} providerId={providerId} />
-      ))}
-    </>
   );
 };
 

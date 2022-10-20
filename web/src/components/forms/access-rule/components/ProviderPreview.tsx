@@ -1,13 +1,4 @@
-import {
-  Box,
-  Flex,
-  HStack,
-  Spacer,
-  Text,
-  VStack,
-  Wrap,
-} from "@chakra-ui/react";
-import Form, { FieldProps } from "@rjsf/core";
+import { Flex, HStack, Spacer, Text, VStack, Wrap } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -16,13 +7,9 @@ import {
   useGetProviderArgs,
   useListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
-import {
-  AccessRuleTarget,
-  Provider,
-} from "../../../../utils/backend-client/types";
 import { CopyableOption } from "../../../CopyableOption";
 import { ProviderIcon } from "../../../icons/providerIcon";
-import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
+import { AccessRuleFormData } from "../CreateForm";
 
 export const ProviderPreview: React.FC = () => {
   const { watch } = useFormContext<AccessRuleFormData>();
@@ -47,6 +34,7 @@ export const ProviderPreview: React.FC = () => {
       </HStack>
       <VStack w="100%" align={"flex-start"} spacing={2}>
         {data &&
+          target.multiSelects &&
           Object.entries(target.multiSelects).map(([k, v]) => {
             const arg = data[k];
 
@@ -57,11 +45,10 @@ export const ProviderPreview: React.FC = () => {
               provider.id,
               k
             );
-            // console.log({ arg, argOptions });
             if (v.length === 0) return null;
 
             return (
-              <VStack w="100%" align={"flex-start"} spacing={0}>
+              <VStack w="100%" align={"flex-start"} spacing={0} key={k}>
                 <Text>{arg.title}</Text>
                 <Wrap>
                   {v?.map((opt) => {
@@ -77,7 +64,8 @@ export const ProviderPreview: React.FC = () => {
                     );
                   })}
                 </Wrap>
-                {target.argumentGroups[k] &&
+                {target.argumentGroups &&
+                  target.argumentGroups[k] &&
                   arg.groups &&
                   Object.entries(target.argumentGroups[k]).map(
                     ([groupId, groupValues]) => {
@@ -117,9 +105,7 @@ export const ProviderPreview: React.FC = () => {
   );
 };
 
-export const ProviderPreviewOnlyStep: React.FC<{
-  target: AccessRuleTarget;
-}> = ({ target }) => {
+export const ProviderPreviewOnlyStep: React.FC = () => {
   return (
     <VStack px={8} py={8} bg="neutrals.100" rounded="md" w="100%">
       <Flex w="100%">
@@ -128,9 +114,7 @@ export const ProviderPreviewOnlyStep: React.FC<{
         </Text>
         <Spacer />
       </Flex>
-
-      {/* @TODO resolve typing issue once above is compelte  */}
-      {/* <ProviderPreview target={target} provider={target.provider} /> */}
+      <ProviderPreview />
     </VStack>
   );
 };
