@@ -338,7 +338,7 @@ func TestUserListAccessRules(t *testing.T) {
 				},
 			},
 
-			want: `{"accessRules":[{"description":"string","id":"rule1","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"description":"string","id":"rule2","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
+			want: `{"accessRules":[{"description":"string","id":"rule1","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"description":"string","id":"rule2","isCurrent":false,"name":"string","target":{"provider":{"id":"string","type":"okta"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
 		},
 		{
 			name:         "no rules found",
@@ -407,7 +407,7 @@ func TestUserGetAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusOK,
-			want:     `{"description":"","id":"","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			want:     `{"description":"","id":"","isCurrent":false,"name":"","target":{"arguments":{},"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:           "no rule found",
@@ -587,7 +587,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
 		},
 		{
 			name:     "multiple matches",
@@ -621,7 +621,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}},{"accessRule":{"description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{"accountId":"123456789012","permissionSetArn":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}},{"accessRule":{"description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
 		},
 		{
 			name:     "match with selectable",
@@ -652,7 +652,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"},"with":{},"withSelectable":{"accountId":["123456789012","other"],"permissionSetArn":["arn:aws:sso:::permissionSet/ssoins-1234/ps-12341","other"]}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
+			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 	}
 
