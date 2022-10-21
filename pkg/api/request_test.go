@@ -19,6 +19,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -204,7 +205,8 @@ func TestUserGetRequest(t *testing.T) {
 		// expected HTTP response code
 		wantCode int
 		// expected HTTP response body
-		wantBody string
+		wantBody                     string
+		withRequestArgumentsResponse map[string]types.RequestArgument
 	}
 
 	testcases := []testcase{
@@ -218,7 +220,8 @@ func TestUserGetRequest(t *testing.T) {
 				Rule:        "abcd",
 				RuleVersion: "efgh",
 			},
-			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
+			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 			// canReview is false in the response
 			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"arguments":{},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
@@ -233,7 +236,8 @@ func TestUserGetRequest(t *testing.T) {
 				Rule:        "abcd",
 				RuleVersion: "efgh",
 			},
-			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
+			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 			mockGetReviewer: &access.Reviewer{Request: access.Request{
 				ID:          "req_123",
 				Status:      access.PENDING,
@@ -258,10 +262,11 @@ func TestUserGetRequest(t *testing.T) {
 				RequestedBy: "notThisUser",
 				Status:      access.PENDING,
 			},
-			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
-			mockGetReviewerErr:       ddb.ErrNoItems,
-			wantCode:                 http.StatusNotFound,
-			wantBody:                 `{"error":"item query returned no items"}`,
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
+			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
+			mockGetReviewerErr:           ddb.ErrNoItems,
+			wantCode:                     http.StatusNotFound,
+			wantBody:                     `{"error":"item query returned no items"}`,
 		},
 	}
 
@@ -272,7 +277,12 @@ func TestUserGetRequest(t *testing.T) {
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: tc.mockGetReviewer}, tc.mockGetReviewerErr)
 			db.MockQuery(&storage.GetAccessRuleVersion{Result: tc.mockGetAccessRuleVersion})
 			db.MockQuery(&storage.ListCachedProviderOptions{Result: []cache.ProviderOption{}})
-			a := API{DB: db}
+			ctrl := gomock.NewController(t)
+			rs := mocks.NewMockAccessRuleService(ctrl)
+			if tc.withRequestArgumentsResponse != nil {
+				rs.EXPECT().RequestArguments(gomock.Any(), gomock.Any()).Return(tc.withRequestArgumentsResponse, nil)
+			}
+			a := API{DB: db, Rules: rs}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("GET", "/api/v1/requests/"+tc.givenID, strings.NewReader(""))

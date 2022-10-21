@@ -1,32 +1,21 @@
 import React from "react";
-import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
 import {
   Flex,
-  IconButton,
   Popover,
   PopoverArrow,
   PopoverBody,
-  PopoverCloseButton,
   PopoverContent,
-  PopoverHeader,
   PopoverTrigger,
   Text,
-  Tooltip,
-  useClipboard,
   WrapItem,
 } from "@chakra-ui/react";
 import { BoltIcon } from "./icons/Icons";
-import { GroupOption } from "../utils/backend-client/types/accesshandler-openapi.yml";
 
 export const DynamicOption: React.FC<{
   label: string;
   value: string;
-  parentGroup?: GroupOption;
-}> = ({ label, value, parentGroup }) => {
-  const { hasCopied, onCopy } = useClipboard(value);
-
-  const colArr = [""];
-
+  isParentGroup?: boolean;
+}> = ({ label, value, isParentGroup }) => {
   return (
     <WrapItem>
       <Popover trigger="hover">
@@ -39,7 +28,7 @@ export const DynamicOption: React.FC<{
             px={4}
           >
             {label}{" "}
-            {parentGroup && (
+            {isParentGroup && (
               <BoltIcon
                 transition="all .2s ease"
                 color="neutrals.400"
@@ -63,7 +52,7 @@ export const DynamicOption: React.FC<{
           <PopoverBody>
             <Text fontWeight="semibold" textStyle={"Body/Medium"}>
               {label}
-              {parentGroup && (
+              {isParentGroup && (
                 <BoltIcon
                   // filter="grayscale(1);"
                   color="neutrals.400"

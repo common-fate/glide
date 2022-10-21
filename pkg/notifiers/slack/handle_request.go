@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -98,18 +97,24 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 						return
 					}
 
-					// Consider adding a fallback if the cache lookup fails
-					pq := storage.ListCachedProviderOptions{
-						ProviderID: rule.Target.ProviderID,
-					}
-					_, err = n.DB.Query(ctx, &pq)
-					if err != nil && err != ddb.ErrNoItems {
-						log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.ProviderID, zap.Error(err))
-					}
+					// // Consider adding a fallback if the cache lookup fails
+					// pq := storage.ListCachedProviderOptions{
+					// 	ProviderID: rule.Target.ProviderID,
+					// }
+					// _, err = n.DB.Query(ctx, &pq)
+					// if err != nil && err != ddb.ErrNoItems {
+					// 	log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.ProviderID, zap.Error(err))
+					// }
 
 					summary, msg := BuildRequestMessage(RequestMessageOpts{
-						Request:          req,
-						RequestDetail:    req.ToAPIDetail(rule, false, pq.Result),
+						Request: req,
+						// @TODO this has been disabled pending a rework of the provider schema apis
+						// @TODO: fix this before the next release
+						RequestDetail: types.RequestDetail{
+							Arguments: types.RequestDetail_Arguments{
+								AdditionalProperties: make(map[string]types.With),
+							},
+						},
 						Rule:             rule,
 						RequestorSlackID: slackUserID,
 						RequestorEmail:   userQuery.Result.Email,
@@ -261,18 +266,24 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 		return errors.Wrap(err, "building review URL")
 	}
 
-	pq := storage.ListCachedProviderOptions{
-		ProviderID: opts.Rule.Target.ProviderID,
-	}
-	_, err = n.DB.Query(ctx, &pq)
-	if err != nil && err != ddb.ErrNoItems {
-		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", opts.Rule.Target.ProviderID, zap.Error(err))
-	}
+	// pq := storage.ListCachedProviderOptions{
+	// 	ProviderID: opts.Rule.Target.ProviderID,
+	// }
+	// _, err = n.DB.Query(ctx, &pq)
+	// if err != nil && err != ddb.ErrNoItems {
+	// 	log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", opts.Rule.Target.ProviderID, zap.Error(err))
+	// }
 
 	// Here we want to update the original approvers slack messages
 	_, msg := BuildRequestMessage(RequestMessageOpts{
-		Request:          opts.Request,
-		RequestDetail:    opts.Request.ToAPIDetail(opts.Rule, false, pq.Result),
+		Request: opts.Request,
+		// @TODO this has been disabled pending a rework of the provider schema apis
+		// @TODO: fix this before the next release
+		RequestDetail: types.RequestDetail{
+			Arguments: types.RequestDetail_Arguments{
+				AdditionalProperties: make(map[string]types.With),
+			},
+		},
 		Rule:             opts.Rule,
 		RequestorSlackID: slackUserID,
 		RequestorEmail:   opts.DbRequestor.Email,

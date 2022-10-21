@@ -386,13 +386,14 @@ func TestUserListAccessRules(t *testing.T) {
 }
 func TestUserGetAccessRule(t *testing.T) {
 	type testcase struct {
-		name                     string
-		giveRuleID               string
-		mockGetRuleResponse      *rule.AccessRule
-		mockGetRuleErr           error
-		mockGetAccessRuleVersion *rule.AccessRule
-		want                     string
-		wantCode                 int
+		name                         string
+		giveRuleID                   string
+		mockGetRuleResponse          *rule.AccessRule
+		mockGetRuleErr               error
+		mockGetAccessRuleVersion     *rule.AccessRule
+		withRequestArgumentsResponse map[string]types.RequestArgument
+		want                         string
+		wantCode                     int
 	}
 
 	testcases := []testcase{
@@ -406,8 +407,9 @@ func TestUserGetAccessRule(t *testing.T) {
 					Users:  []string{"a"},
 				},
 			},
-			wantCode: http.StatusOK,
-			want:     `{"description":"","id":"","isCurrent":false,"name":"","target":{"arguments":{},"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			wantCode:                     http.StatusOK,
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
+			want:                         `{"description":"","id":"","isCurrent":false,"name":"","target":{"arguments":{},"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:           "no rule found",
@@ -442,6 +444,9 @@ func TestUserGetAccessRule(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.GetAccessRuleVersion{Result: tc.mockGetAccessRuleVersion})
 			db.MockQuery(&storage.ListCachedProviderOptions{Result: []cache.ProviderOption{}})
+			if tc.withRequestArgumentsResponse != nil {
+				m.EXPECT().RequestArguments(gomock.Any(), gomock.Any()).Return(tc.withRequestArgumentsResponse, nil)
+			}
 			a := API{Rules: m, DB: db}
 			handler := newTestServer(t, &a)
 

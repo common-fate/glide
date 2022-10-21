@@ -27,16 +27,17 @@ func TestNewRequest(t *testing.T) {
 		err     error
 	}
 	type testcase struct {
-		name                    string
-		giveInput               types.CreateRequestRequest
-		giveUser                identity.User
-		rule                    *rule.AccessRule
-		ruleErr                 error
-		wantErr                 error
-		want                    *CreateRequestResult
-		withCreateGrantResponse createGrantResponse
-		withGetGroupResponse    *storage.GetGroup
-		wantValidationError     error
+		name                         string
+		giveInput                    types.CreateRequestRequest
+		giveUser                     identity.User
+		rule                         *rule.AccessRule
+		ruleErr                      error
+		wantErr                      error
+		want                         *CreateRequestResult
+		withCreateGrantResponse      createGrantResponse
+		withGetGroupResponse         *storage.GetGroup
+		withRequestArgumentsResponse map[string]types.RequestArgument
+		wantValidationError          error
 	}
 
 	clk := clock.NewMock()
@@ -72,6 +73,7 @@ func TestNewRequest(t *testing.T) {
 					SelectedWith:   make(map[string]access.Option),
 				},
 			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 		},
 		{
 			name:     "fails because requested duration is greater than max duration",
@@ -97,6 +99,7 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 		},
 		{
 			name:     "user not in correct group",
@@ -144,6 +147,7 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 		},
 		{
 			name:     "requestor is approver on access rule",
@@ -181,6 +185,7 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 		},
 		{
 			name:     "requestor is in approver group on access rule",
@@ -224,6 +229,7 @@ func TestNewRequest(t *testing.T) {
 					},
 				},
 			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 		},
 		{
 			name: "failed validation should not create request",
@@ -244,8 +250,9 @@ func TestNewRequest(t *testing.T) {
 					SelectedWith:   make(map[string]access.Option),
 				},
 			},
-			wantValidationError: fmt.Errorf("unexpected response while validating grant"),
-			wantErr:             fmt.Errorf("unexpected response while validating grant"),
+			wantValidationError:          fmt.Errorf("unexpected response while validating grant"),
+			wantErr:                      fmt.Errorf("unexpected response while validating grant"),
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 		},
 	}
 
@@ -270,12 +277,17 @@ func TestNewRequest(t *testing.T) {
 
 			ca := accessMocks.NewMockCacheService(ctrl)
 			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil, nil).AnyTimes()
+			rs := accessMocks.NewMockAccessRuleService(ctrl)
+			if tc.withRequestArgumentsResponse != nil {
+				rs.EXPECT().RequestArguments(gomock.Any(), tc.rule.Target).Return(tc.withRequestArgumentsResponse, nil)
+			}
 			s := Service{
 				Clock:       clk,
 				DB:          db,
 				Granter:     g,
 				EventPutter: ep,
 				Cache:       ca,
+				Rules:       rs,
 			}
 			got, err := s.CreateRequest(context.Background(), &tc.giveUser, tc.giveInput)
 			if got != nil {

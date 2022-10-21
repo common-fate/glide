@@ -56,8 +56,9 @@ export const ProviderStep: React.FC = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
       return null;
     }
-    return <ProviderPreview />;
+    return <ProviderPreview provider={provider} />;
   };
+
   return (
     <FormStep
       heading="Provider"

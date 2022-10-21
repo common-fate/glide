@@ -236,6 +236,14 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 		at.With.AdditionalProperties[k] = argument
 	}
 
+	// It is essential that all slices be initialised for the apitypes otherwise it will be serialised as null instead of empty
+	for k, v := range at.With.AdditionalProperties {
+		if v.Values == nil {
+			v.Values = make([]string, 0)
+		}
+		at.With.AdditionalProperties[k] = v
+	}
+
 	return at
 }
 
