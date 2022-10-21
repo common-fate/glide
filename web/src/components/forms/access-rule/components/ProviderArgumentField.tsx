@@ -62,6 +62,10 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
 }) => {
   const { formState, register, trigger } = useFormContext<AccessRuleFormData>();
   const inputs = formState.errors.target?.inputs;
+  const { onBlur, ...rest } = register(`target.inputs.${argument.id}`, {
+    minLength: 1,
+    required: true,
+  });
   return (
     <FormControl
       w="100%"
@@ -74,10 +78,11 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
         id="provider-vault"
         bg="white"
         placeholder={"example"}
-        {...register(`target.inputs.${argument.id}`, {
-          minLength: 1,
-          required: true,
-        })}
+        onBlur={(e) => {
+          void trigger(`target.inputs.${argument.id}`);
+          void onBlur(e);
+        }}
+        {...rest}
       />
       <FormErrorMessage> {argument.title} is required </FormErrorMessage>
     </FormControl>
