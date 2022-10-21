@@ -24,9 +24,11 @@ export const UserSelect: React.FC<SelectProps> = (props) => {
   const { data } = useGetUsers();
   const options = useMemo(() => {
     return (
-      data?.users.map((u) => {
-        return { value: u.id, label: u.email };
-      }) ?? []
+      data?.users
+        .map((u) => {
+          return { value: u.id, label: u.email };
+        })
+        .sort((a, b) => a.label.localeCompare(b.label)) ?? []
     );
   }, [data]);
   return <MultiSelect id="user-select" options={options} {...props} />;
@@ -37,23 +39,26 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const { data } = useGetGroups();
   const options = useMemo(() => {
     return (
-      data?.groups.map((g) => {
-        const totalMembersInGroup =
-          g.memberCount <= 1
-            ? `${g.memberCount} member`
-            : `${g.memberCount} members`;
+      data?.groups
+        .map((g) => {
+          const totalMembersInGroup =
+            g.memberCount <= 1
+              ? `${g.memberCount} member`
+              : `${g.memberCount} members`;
 
-        return {
-          value: g.id,
-          label: shouldShowGroupMembers
-            ? `${g.name} (${totalMembersInGroup})`
-            : g.name,
-        };
-      }) ?? []
+          return {
+            value: g.id,
+            label: shouldShowGroupMembers
+              ? `${g.name} (${totalMembersInGroup})`
+              : g.name,
+          };
+        })
+        .sort((a, b) => a.label.localeCompare(b.label)) ?? []
     );
   }, [data, shouldShowGroupMembers]);
   return <MultiSelect id={props.testId} options={options} {...props} />;
 };
+
 type MultiSelectRules = Partial<{
   required: boolean;
   minLength: number;
@@ -79,7 +84,6 @@ export const CustomOption = ({
   },
   true
 >) => {
-
   return (
     // @ts-ignore
     <div data-testid={innerProps.value}>
@@ -112,6 +116,11 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   ...rest
 }) => {
   const { control, trigger } = useFormContext();
+  // sort the options alphabetically
+  const sortedOptions = useMemo(
+    () => options.sort((a, b) => a.label.localeCompare(b.label)),
+    [options]
+  );
 
   return (
     <Controller
@@ -127,8 +136,8 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             //getOptionLabel={(option) => `${option.label}  (${option.value})`}
             options={[
               ...(shouldAddSelectAllOption
-                ? [SELECT_ALL_OPTION, ...options]
-                : options),
+                ? [SELECT_ALL_OPTION, ...sortedOptions]
+                : sortedOptions),
             ]}
             components={{ Option: CustomOption }}
             isMulti
@@ -154,7 +163,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
               },
             }}
             // ref={ref}
-            value={options.filter((c) => value.includes(c.value))}
+            value={sortedOptions.filter((c) => value.includes(c.value))}
             onChange={(val) => {
               // for MultiSelect with 'Select All' option
               // we check if the selected value is 'select all'
@@ -165,7 +174,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 );
 
                 if (isAllOptionSelected) {
-                  onChange(options.map((o) => o.value));
+                  onChange(sortedOptions.map((o) => o.value));
 
                   return;
                 }
@@ -184,7 +193,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     />
   );
 };
-// MultiSelectOptions is the same as MultiSelect except that it sets the field value to the array or options rather than an array of values
+// MultiSelectOptions is the same as MultiSelect except that it sets the field value to the array of options rather than an array of values
 export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
   options,
   fieldName,
@@ -194,7 +203,11 @@ export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
   ...rest
 }) => {
   const { control, trigger } = useFormContext();
-
+  // sort the options alphabetically
+  const sortedOptions = useMemo(
+    () => options.sort((a, b) => a.label.localeCompare(b.label)),
+    [options]
+  );
   return (
     <Controller
       control={control}
@@ -206,7 +219,7 @@ export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
           <Select
             id={id}
             isDisabled={isDisabled}
-            options={options}
+            options={sortedOptions}
             components={{ Option: CustomOption }}
             isMulti
             styles={{
