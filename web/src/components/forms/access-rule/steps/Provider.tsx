@@ -56,13 +56,14 @@ export const ProviderStep: React.FC = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
       return null;
     }
-    return <ProviderPreview />;
+    return <ProviderPreview provider={provider} />;
   };
+
   return (
     <FormStep
       heading="Provider"
       subHeading="The permissions that the rule gives access to"
-      fields={["target.with", "target.providerId"]}
+      fields={["target", "target.providerId"]}
       preview={<Preview />}
     >
       <>
