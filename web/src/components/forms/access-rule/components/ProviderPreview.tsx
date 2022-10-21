@@ -219,14 +219,19 @@ export const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
                   argOptions?.options?.find((d) => d.value === opt)?.label ?? ""
                 }
                 value={opt}
-                parentGroup={multiSelects.find(c => c === opt)? undefined : ["random"] as any}
+                parentGroup={
+                  multiSelects.find((c) => c === opt)
+                    ? undefined
+                    : (["random"] as any)
+                }
               />
             );
           })}
         </Wrap>
       </Box>
       <>
-        {argumentGroups && !!selectedGroups.length &&
+        {argumentGroups &&
+          !!selectedGroups.length &&
           Object.entries(argumentGroups).map(([groupName, groupId]) => {
             return (
               <Box>

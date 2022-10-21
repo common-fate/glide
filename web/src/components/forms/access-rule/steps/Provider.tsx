@@ -58,7 +58,7 @@ export const ProviderStep: React.FC = () => {
     }
     return <ProviderPreview provider={provider} />;
   };
-  
+
   return (
     <FormStep
       heading="Provider"
