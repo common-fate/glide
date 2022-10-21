@@ -205,7 +205,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		// convert groups to a string map
 		groupMap := make(map[string]identity.IDPGroup)
 		groupNames := []string{}
-		chosenKey := ""
+		chosenKey := "grantedadministrators"
 		for _, g := range grps {
 			key := fmt.Sprintf("%s: %s", g.Name, g.Description)
 			groupMap[key] = g
@@ -215,14 +215,19 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		// sort groupNames alphabetically
 		sort.Strings(groupNames)
 
-		err = survey.AskOne(&survey.Select{
-			Message: "The ID of the Granted Administrators group in your identity provider:",
-			Options: groupNames,
-		}, &chosenKey)
+		if len(groupNames) == 0 {
+			clio.Warn("no groups found please make at least 1 group in your identity provider")
+		} else {
+			err = survey.AskOne(&survey.Select{
+				Message: "The ID of the Granted Administrators group in your identity provider:",
+				Options: groupNames,
+			}, &chosenKey)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return err
+			}
 		}
+
 		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
 	}
 

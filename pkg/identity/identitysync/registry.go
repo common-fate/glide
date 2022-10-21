@@ -9,11 +9,12 @@ import (
 )
 
 const (
-	IDPTypeCognito = "cognito"
-	IDPTypeOkta    = "okta"
-	IDPTypeAzureAD = "azure"
-	IDPTypeGoogle  = "google"
-	IDPTypeAWSSSO  = "aws-sso"
+	IDPTypeCognito  = "cognito"
+	IDPTypeOkta     = "okta"
+	IDPTypeAzureAD  = "azure"
+	IDPTypeGoogle   = "google"
+	IDPTypeAWSSSO   = "aws-sso"
+	IDPTypeOneLogin = "one-login"
 )
 
 type RegisteredIdentityProvider struct {
@@ -56,6 +57,11 @@ func Registry() IdentityProviderRegistry {
 				IdentityProvider: &AWSSSO{},
 				Description:      "AWS Single Sign On",
 				DocsID:           "aws-sso",
+			},
+			IDPTypeOneLogin: {
+				IdentityProvider: &OneLoginSync{},
+				Description:      "One Login",
+				DocsID:           "one-login",
 			},
 		},
 	}
