@@ -109,96 +109,96 @@ func (a *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 
 	//get all users
 	idpUsers := []identity.IDPUser{}
-	// hasMore := true
-	// var nextToken *string
-	// url := OneLoginBaseURL + "/api/1/users"
-	// for hasMore {
+	hasMore := true
+	var nextToken *string
+	url := OneLoginBaseURL + "/api/1/users"
+	for hasMore {
 
-	req, _ := http.NewRequest("GET", OneLoginBaseURL+"/api/1/users", nil)
-	req.Header.Add("Authorization", "Bearer: "+a.token.Get())
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("Authorization", "Bearer: "+a.token.Get())
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	//return the error if its anything but a 200
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf(string(b))
-	}
-
-	var lu OneLoginListUserResponse
-	err = json.Unmarshal(b, &lu)
-	if err != nil {
-		return nil, err
-	}
-	for _, u := range lu.Users {
-
-		user, err := a.idpUserFromOneLoginUser(ctx, &u)
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
-		idpUsers = append(idpUsers, user)
-	}
-	// nextToken = &lu.Pagination.NextLink
-	// if nextToken != nil {
-	// 	url = *nextToken
-	// } else {
-	// 	hasMore = false
-	// }
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
 
-	// }
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
+		}
+
+		var lu OneLoginListUserResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
+		for _, u := range lu.Users {
+
+			user, err := a.idpUserFromOneLoginUser(ctx, &u)
+			if err != nil {
+				return nil, err
+			}
+			idpUsers = append(idpUsers, user)
+		}
+		nextToken = &lu.Pagination.NextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
+
+	}
 	return idpUsers, nil
 }
 
 func (a *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 	idpGroups := []identity.IDPGroup{}
-	// hasMore := true
-	// var nextToken *string
+	hasMore := true
+	var nextToken *string
 	url := OneLoginBaseURL + "/api/1/roles"
 
-	// for hasMore {
+	for hasMore {
 
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer: "+a.token.Get())
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Add("Authorization", "Bearer: "+a.token.Get())
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		//return the error if its anything but a 200
+		if res.StatusCode != 200 {
+			return nil, fmt.Errorf(string(b))
+		}
+
+		var lu OneLoginListGroupsResponse
+		err = json.Unmarshal(b, &lu)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, u := range lu.Groups {
+
+			group := a.idpGroupFromOneLoginGroup(u)
+
+			idpGroups = append(idpGroups, group)
+		}
+		nextToken = &lu.Pagination.NextLink
+		if nextToken != nil {
+			url = *nextToken
+		} else {
+			hasMore = false
+		}
 	}
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	//return the error if its anything but a 200
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf(string(b))
-	}
-
-	var lu OneLoginListGroupsResponse
-	err = json.Unmarshal(b, &lu)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, u := range lu.Groups {
-
-		group := a.idpGroupFromOneLoginGroup(u)
-
-		idpGroups = append(idpGroups, group)
-	}
-	// 	nextToken = &lu.Pagination.NextLink
-	// 	if nextToken != nil {
-	// 		url = *nextToken
-	// 	} else {
-	// 		hasMore = false
-	// 	}
-	// }
 	return idpGroups, nil
 }
 
