@@ -18,6 +18,7 @@ import {
 } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
+  ArgumentFormElement,
   GroupOption,
   Option,
   Provider,
@@ -51,13 +52,63 @@ export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
     </VStack>
   );
 };
+const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
+  argument,
+  providerId,
+}) => {
+  switch (argument.formElement) {
+    case ArgumentFormElement.MULTISELECT:
+      return (
+        <ProviderPreviewMultiSelect
+          argument={argument}
+          providerId={providerId}
+        />
+      );
+    case ArgumentFormElement.INPUT:
+      return (
+        <ProviderPreviewInput argument={argument} providerId={providerId} />
+      );
+    default:
+      return (
+        <ProviderPreviewInput argument={argument} providerId={providerId} />
+      );
+  }
+};
 
+export const ProviderPreviewInput: React.FC<ProviderArgFieldProps> = ({
+  argument,
+}) => {
+  const { watch } = useFormContext<AccessRuleFormData>();
+  const inputs = watch(`target.inputs.${argument.id}`);
+
+  return (
+    <VStack
+      w="100%"
+      align={"flex-start"}
+      spacing={4}
+      // key={k}
+      p={4}
+      rounded="md"
+      border="1px solid"
+      borderColor="gray.300"
+    >
+      <Box>
+        <Text textStyle={"Body/Medium"} color="neutrals.500">
+          {argument.title}
+        </Text>
+        <Text textStyle={"Body/Medium"} color="neutrals.500">
+          {inputs}
+        </Text>
+      </Box>
+    </VStack>
+  );
+};
 interface ProviderArgFieldProps {
   argument: Argument;
   providerId: string;
 }
 
-export const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
+export const ProviderPreviewMultiSelect: React.FC<ProviderArgFieldProps> = ({
   argument,
   providerId,
 }) => {

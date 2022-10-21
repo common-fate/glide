@@ -69,7 +69,7 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
       <Input
         id="provider-vault"
         bg="white"
-        placeholder={`default-${argument.title}`}
+        placeholder={"example"}
         {...register(`target.inputs.${argument.id}`)}
       />
     </FormControl>
