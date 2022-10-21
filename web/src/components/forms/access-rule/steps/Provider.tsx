@@ -63,7 +63,7 @@ export const ProviderStep: React.FC = () => {
     <FormStep
       heading="Provider"
       subHeading="The permissions that the rule gives access to"
-      fields={["target.with", "target.providerId"]}
+      fields={["target", "target.providerId"]}
       preview={<Preview />}
     >
       <>

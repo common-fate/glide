@@ -60,9 +60,13 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
   argument,
   providerId,
 }) => {
-  const { register } = useFormContext<AccessRuleFormData>();
+  const { formState, register, trigger } = useFormContext<AccessRuleFormData>();
+  const inputs = formState.errors.target?.inputs;
   return (
-    <FormControl w="100%">
+    <FormControl
+      w="100%"
+      isInvalid={inputs && inputs[argument.id] !== undefined}
+    >
       <FormLabel htmlFor="target.providerId" display="inline">
         <Text textStyle={"Body/Medium"}>{argument.title}</Text>
       </FormLabel>
@@ -70,8 +74,12 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
         id="provider-vault"
         bg="white"
         placeholder={"example"}
-        {...register(`target.inputs.${argument.id}`)}
+        {...register(`target.inputs.${argument.id}`, {
+          minLength: 1,
+          required: true,
+        })}
       />
+      <FormErrorMessage> {argument.title} is required </FormErrorMessage>
     </FormControl>
   );
 };
