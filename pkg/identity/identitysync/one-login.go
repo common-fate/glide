@@ -19,19 +19,15 @@ const OneLoginBaseURL = "https://commonfate-dev.onelogin.com"
 
 type OneLoginSync struct {
 	// This is initialised during the Init function call and is not saved in config
-
 	clientID     gconfig.StringValue
 	clientSecret gconfig.SecretStringValue
-	//region       gconfig.StringValue
-	token gconfig.SecretStringValue
-	// emailIdentifier gconfig.OptionalStringValue
+	token        gconfig.SecretStringValue
 }
 
 func (s *OneLoginSync) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("clientId", &s.clientID, "the One Login client ID"),
 		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the One Login client secret", gconfig.WithNoArgs("/granted/secrets/identity/one-login/secret")),
-		// gconfig.StringField("region", &s.region, "the One Login region"),
 	}
 }
 
@@ -335,45 +331,3 @@ type GetAccessTokenResponse struct {
 	TokenType    string    `json:"token_type"`
 	AccountID    int       `json:"account_id"`
 }
-
-// func (a *OneLoginSync) ListUsersGroups(ctx context.Context, userId string) ([]identity.IDPUser, error) {
-// 	idpUsers := []identity.IDPUser{}
-// 	url := OneLoginBaseURL + fmt.Sprintf("/api/1/users/%s", userId)
-
-// 	req, _ := http.NewRequest("GET", url, nil)
-// 	req.Header.Add("Authorization", "Bearer "+a.token.Get())
-// 	res, err := http.DefaultClient.Do(req)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	b, err := io.ReadAll(res.Body)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	//return the error if its anything but a 200
-// 	if res.StatusCode != 200 {
-// 		return nil, fmt.Errorf(string(b))
-// 	}
-
-// 	var lu OneLoginUserDetail
-// 	err = json.Unmarshal(b, &lu)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	//this should only ever be of length 1
-// 	for _, u := range lu.Data {
-// 		for _, info := range u.MemberOf {
-
-// 		}
-
-// 		user, err := a.idpUserFromOneLoginUser(ctx, u)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		idpUsers = append(idpUsers, user)
-// 	}
-
-// 	return idpUsers, nil
-// }
