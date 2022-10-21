@@ -2,7 +2,6 @@ import {
   Box,
   Flex,
   HStack,
-  Spacer,
   Text,
   Tooltip,
   VStack,
@@ -19,30 +18,23 @@ import {
 } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
-  ArgumentFormElement,
   GroupOption,
   Option,
+  Provider,
 } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
-import { CopyableOption } from "../../../CopyableOption";
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
 import { ProviderIcon } from "../../../icons/providerIcon";
 import { AccessRuleFormData } from "../CreateForm";
 
-interface ProviderArgumentFieldProps {
-  argument: Argument;
-  providerId: string;
+interface ProviderPreviewProps {
+  provider: Provider;
 }
 
-export const ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
-  argument,
-  providerId,
+export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
+  provider,
 }) => {
-  const methods = useFormContext<AccessRuleFormData>();
-  const target = methods.watch("target");
-
-  const { data: provider } = useGetProvider(target.providerId);
-  const { data: providerArgs } = useGetProviderArgs(target.providerId ?? "");
+  const { data: providerArgs } = useGetProviderArgs(provider.id ?? "");
 
   if (!provider) return null;
 
@@ -53,32 +45,23 @@ export const ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
         <Text>{provider.id}</Text>
       </HStack>
       {providerArgs &&
-        target?.providerId &&
         Object.values(providerArgs).map((v) => (
-          <_ProviderPreview argument={v} providerId={target?.providerId} />
+          <PreviewArgument argument={v} providerId={provider.id} />
         ))}
     </VStack>
   );
 };
 
-export const _ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
+interface ProviderArgFieldProps {
+  argument: Argument;
+  providerId: string;
+}
+
+export const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
   argument,
   providerId,
 }) => {
   const { formState, watch } = useFormContext<AccessRuleFormData>();
-  // const target = watch("target");
-  // const target = watch("target");
-  // const { data } = useGetProviderArgs(target?.providerId || "");
-  const { data: _provider } = useGetProvider(providerId);
-
-  // if (
-  //   target?.providerId === undefined ||
-  //   target?.providerId === "" ||
-  //   data === undefined ||
-  //   _provider === undefined
-  // ) {
-  //   return null;
-  // }
 
   const { data: argOptions } = useListProviderArgOptions(
     providerId,
@@ -90,16 +73,42 @@ export const _ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
     `target.argumentGroups.${argument.id}`,
     `target.multiSelects.${argument.id}`,
   ]);
+
   /** get all the group children (for aws these are the accounts for the OUs) */
   const effectiveViaGroups =
     (argumentGroups &&
       Object.entries(argumentGroups || {}).flatMap(
         ([groupId, selectedGroupValues]) => {
           // get all the accounts for the selected group value
-          const group = argOptions?.groups ? argOptions?.groups[groupId] : [];
+          const allOptionsForSelectedGroup = argOptions?.groups
+            ? argOptions?.groups[groupId]
+            : [];
+
           return selectedGroupValues.flatMap((groupValue) => {
-            return group.find((g) => g.value === groupValue)?.children || [];
+            const selectedGroupDetails = allOptionsForSelectedGroup.filter(
+              (group) => selectedGroupValues.includes(group.value)
+            );
+
+            return selectedGroupDetails.flatMap((g) => g.children || []);
+            // return group.find((g) => g.value === groupValue)?.children || [];
           });
+        }
+      )) ||
+    [];
+
+  const selectedGroups =
+    (argumentGroups &&
+      Object.entries(argumentGroups || {}).flatMap(
+        ([groupId, selectedGroupValues]) => {
+          // get all the accounts for the selected group value
+          const groupDetails = argOptions?.groups
+            ? argOptions?.groups[groupId]
+            : ([] as GroupOption[]);
+
+          const group = groupDetails.filter((group) =>
+            selectedGroupValues.includes(group.value)
+          );
+          return group;
         }
       )) ??
     [];
@@ -181,8 +190,6 @@ export const _ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
     }) || [];
   const required = effectiveOptions.length === 0;
 
-  if (!_provider) return null;
-
   return (
     <VStack
       w="100%"
@@ -204,7 +211,7 @@ export const _ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
                     </Text>
                   )} */}
         <Wrap>
-          {multiSelects?.map((opt) => {
+          {[...effectiveAccountIds].map((opt) => {
             return (
               <DynamicOption
                 key={"cp-" + opt}
@@ -212,34 +219,33 @@ export const _ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
                   argOptions?.options?.find((d) => d.value === opt)?.label ?? ""
                 }
                 value={opt}
+                parentGroup={multiSelects.find(c => c === opt)? undefined : ["random"] as any}
               />
             );
           })}
         </Wrap>
       </Box>
-      {argument.groups &&
-        Object.values(argument.groups).map((group) => {
-          // if (!argument.groups || group..length === 0) {
-          //   return null;
-          // }
-          return (
-            <Box>
-              <Flex>
-                <Text textStyle={"Body/Medium"} color="neutrals.500">
-                  {group.title}s
-                </Text>
-                <Tooltip label="Dynamic Field" hasArrow={true}>
-                  <Circle
-                    display="inline-flex"
-                    size="24px"
-                    px={1}
-                    rounded="full"
-                  >
-                    <BoltIcon boxSize="12px" color="neutrals.400" />
-                  </Circle>
-                </Tooltip>
-              </Flex>
-              {/* {group.description && (
+      <>
+        {argumentGroups && !!selectedGroups.length &&
+          Object.entries(argumentGroups).map(([groupName, groupId]) => {
+            return (
+              <Box>
+                <Flex>
+                  <Text textStyle={"Body/Medium"} color="neutrals.500">
+                    {groupName}s
+                  </Text>
+                  <Tooltip label="Dynamic Field" hasArrow={true}>
+                    <Circle
+                      display="inline-flex"
+                      size="24px"
+                      px={1}
+                      rounded="full"
+                    >
+                      <BoltIcon boxSize="12px" color="neutrals.400" />
+                    </Circle>
+                  </Tooltip>
+                </Flex>
+                {/* {group.description && (
                     <Text
                       textStyle={"Body/Medium"}
                       color="neutrals.500"
@@ -248,63 +254,23 @@ export const _ProviderPreview: React.FC<ProviderArgumentFieldProps> = ({
                     </Text>
                   )} */}
 
-              {argumentGroups &&
-                Object.entries(argumentGroups ?? {}).length > 0 && (
+                {selectedGroups && (
                   <Box>
                     <Wrap>
-                      {Object.entries(argumentGroups).map(([k, v]) => {
-                        // const c =
-                        // the option is argOptions.groups[group.id
-                        const c = argOptions?.groups?.[k];
-                        // console.log(k, v, argOptions?.groups, c);
-
-                        if (!c) return null;
-
-                        return c.map((g) => (
-                          <DynamicOption
-                            label={g.label}
-                            value={g.value}
-                            parentGroup={g.parentGroup}
-                          />
-                        ));
-                      })}
+                      {selectedGroups.map((group) => (
+                        <DynamicOption
+                          label={group.label}
+                          value={group.value}
+                          parentGroup={group}
+                        />
+                      ))}
                     </Wrap>
                   </Box>
                 )}
-            </Box>
-          );
-        })}
-      {argOptions?.groups &&
-        Object.entries(argOptions?.groups ?? {}).length > 0 && (
-          <Box>
-            <Wrap>
-              {uniqueRes &&
-                uniqueRes.map((c) => {
-                  return (
-                    <DynamicOption
-                      label={c.option.label}
-                      value={c.option.value}
-                      parentGroup={c.parentGroup}
-                    />
-                  );
-                })}
-            </Wrap>
-          </Box>
-        )}
-    </VStack>
-  );
-};
-
-export const ProviderPreviewOnlyStep: React.FC = () => {
-  return (
-    <VStack px={8} py={8} bg="neutrals.100" rounded="md" w="100%">
-      <Flex w="100%">
-        <Text textStyle="Heading/H3" opacity={0.6}>
-          Provider
-        </Text>
-        <Spacer />
-      </Flex>
-      <ProviderPreview />
+              </Box>
+            );
+          })}
+      </>
     </VStack>
   );
 };
