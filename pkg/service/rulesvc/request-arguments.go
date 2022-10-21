@@ -40,7 +40,6 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
-	err = nil
 
 	// for convenience, convert the list into a maps for easy indexing
 	argOptionsQueryMap := make(map[string]map[string]cache.ProviderOption)
