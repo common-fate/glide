@@ -3,6 +3,8 @@ package rulesvc
 import (
 	"context"
 
+	"github.com/common-fate/ddb"
+	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
@@ -30,14 +32,15 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 	// fetch the options from the cache
 	argOptionsQuery := &storage.ListCachedProviderOptions{ProviderID: accessRuleTarget.ProviderID}
 	_, err = s.DB.Query(ctx, argOptionsQuery)
-	if err != nil {
+	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
 	argGroupOptionsQuery := &storage.ListAllCachedProviderArgGroupOptions{ProviderID: accessRuleTarget.ProviderID}
 	_, err = s.DB.Query(ctx, argGroupOptionsQuery)
-	if err != nil {
+	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
+	err = nil
 
 	// for convenience, convert the list into a maps for easy indexing
 	argOptionsQueryMap := make(map[string]map[string]cache.ProviderOption)
@@ -93,9 +96,12 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 			if !matched {
 				options[argValue] = types.WithOption{
 					Label: argValue,
-					Valid: false,
+					// If the field is an input, it won't match any options, but its still valid for selection!
+					// the label and value are the same for an input field
+					Valid: providerSchema.AdditionalProperties[argId].FormElement == ahtypes.INPUT,
 					Value: argValue,
 				}
+
 			}
 		}
 

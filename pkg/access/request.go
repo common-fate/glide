@@ -4,10 +4,7 @@ import (
 	"time"
 
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -147,7 +144,7 @@ func (r *Request) ToAPI() types.Request {
 	return req
 }
 
-func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOptions []cache.ProviderOption) types.RequestDetail {
+func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, requestArguments map[string]types.RequestArgument) types.RequestDetail {
 	req := types.RequestDetail{
 		AccessRule:     accessRule.ToAPI(),
 		Timing:         r.RequestedTiming.ToAPI(),
@@ -163,26 +160,35 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 			AdditionalProperties: make(map[string]types.With),
 		},
 	}
-	// Lookup the provider, ignore errors
-	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(accessRule.Target.ProviderType)
-	for k, v := range r.SelectedWith {
 
-		with := types.With{
-			Label:             v.Label,
-			Value:             v.Value,
-			Title:             k,
-			FieldDescription:  v.Description,
-			OptionDescription: v.Description,
+	// gets the option properties from requestArgumenst and maps to the fields selected for this request.
+	// @TODO, it would be simpler if the request stored the value of all arguments rather than just the selected arguments,
+	// because we need to infer which ones were fixed values at the time of teh request which is available in request arguments
+	for k, v := range requestArguments {
+		// in the unexpected case that an option is not found, fallback rather than returning an error
+		option := types.WithOption{
+			Label: "error not found",
+			Value: "error not found",
 		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchema()
-				if arg, ok := schema[k]; ok {
-					with.Title = arg.Title
+		if !v.RequiresSelection {
+			if len(v.Options) == 1 {
+				option = v.Options[0]
+			}
+		} else {
+			if selected, ok := r.SelectedWith[k]; ok {
+				for _, o := range v.Options {
+					if o.Value == selected.Value {
+						option = o
+					}
 				}
 			}
+		}
+		with := types.With{
+			Title:             v.Title,
+			FieldDescription:  v.Description,
+			Label:             option.Label,
+			Value:             option.Value,
+			OptionDescription: option.Description,
 		}
 		req.Arguments.AdditionalProperties[k] = with
 	}
