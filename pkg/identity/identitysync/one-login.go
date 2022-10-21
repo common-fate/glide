@@ -144,7 +144,7 @@ func (a *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 			}
 			idpUsers = append(idpUsers, user)
 		}
-		nextToken = &lu.Pagination.NextLink
+		nextToken = lu.Pagination.NextLink
 		if nextToken != nil {
 			url = *nextToken
 		} else {
@@ -192,7 +192,7 @@ func (a *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, err
 
 			idpGroups = append(idpGroups, group)
 		}
-		nextToken = &lu.Pagination.NextLink
+		nextToken = lu.Pagination.NextLink
 		if nextToken != nil {
 			url = *nextToken
 		} else {
@@ -213,7 +213,7 @@ type OneLoginListGroupsResponse struct {
 		BeforeCursor interface{} `json:"before_cursor"`
 		AfterCursor  interface{} `json:"after_cursor"`
 		PreviousLink interface{} `json:"previous_link"`
-		NextLink     string      `json:"next_link"`
+		NextLink     *string     `json:"next_link"`
 	} `json:"pagination"`
 	Groups []OneLoginGroup `json:"data"`
 }
@@ -234,7 +234,7 @@ type OneLoginListUserResponse struct {
 		BeforeCursor interface{} `json:"before_cursor"`
 		AfterCursor  string      `json:"after_cursor"`
 		PreviousLink interface{} `json:"previous_link"`
-		NextLink     string      `json:"next_link"`
+		NextLink     *string     `json:"next_link"`
 	} `json:"pagination"`
 	Users []OneLoginUser `json:"data"`
 }
