@@ -292,7 +292,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                     <DynamicOption
                       label={c.option.label}
                       value={c.option.value}
-                      parentGroup={c.parentGroup}
+                      isParentGroup={!!c.parentGroup}
                     />
                   );
                 })}

@@ -219,10 +219,8 @@ export const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
                   argOptions?.options?.find((d) => d.value === opt)?.label ?? ""
                 }
                 value={opt}
-                parentGroup={
-                  multiSelects.find((c) => c === opt)
-                    ? undefined
-                    : (["random"] as any)
+                isParentGroup={
+                  multiSelects.find((c) => c === opt) ? false : true
                 }
               />
             );
@@ -266,7 +264,7 @@ export const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
                         <DynamicOption
                           label={group.label}
                           value={group.value}
-                          parentGroup={group}
+                          isParentGroup={true}
                         />
                       ))}
                     </Wrap>
