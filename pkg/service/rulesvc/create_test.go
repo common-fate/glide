@@ -8,6 +8,7 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/ddb/ddbmock"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/granted-approvals/pkg/cache"
@@ -130,14 +131,55 @@ func TestProcessTarget(t *testing.T) {
 		wantErr                  error
 		withProviderResponse     ahTypes.GetProviderResponse
 		withProviderArgsResponse ahTypes.GetProviderArgsResponse
+		dontExpectCacheCall      bool
 		want                     rule.Target
 	}
 
 	cacheArgOptionsResponse := []cache.ProviderOption{{Provider: "abcd", Arg: "accountId", Label: "", Value: "account1"}, {Provider: "abcd", Arg: "accountId", Label: "", Value: "account2"}, {Provider: "abcd", Arg: "permissionSetArn", Label: "", Value: "abcdefg"}}
 	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{{Provider: "abcd", Arg: "accountId", Group: "organizationalUnit", Label: "", Value: "orgunit1"}, {Provider: "abcd", Arg: "accountId", Group: "organizationalUnit", Label: "", Value: "orgunit2"}}
 	ssov2Schema := (&ssov2.Provider{}).ArgSchema().ToAPI()
+	testVaultSchema := (&testvault.Provider{}).ArgSchema().ToAPI()
 
 	testcases := []testcase{
+		{
+			name: "ok testvault with input element",
+			give: types.CreateAccessRuleTarget{
+				ProviderId: "abcd",
+				With: types.CreateAccessRuleTarget_With{
+					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
+						"vault": {
+							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
+								AdditionalProperties: map[string][]string{},
+							},
+							Values: []string{"example-vault"},
+						},
+					},
+				},
+			},
+			want: rule.Target{
+				ProviderID:               "abcd",
+				ProviderType:             "testvault",
+				With:                     map[string]string{"vault": "example-vault"},
+				WithSelectable:           map[string][]string{},
+				WithArgumentGroupOptions: map[string]map[string][]string{},
+			},
+			withProviderResponse: ahTypes.GetProviderResponse{
+				HTTPResponse: &http.Response{
+					StatusCode: http.StatusOK,
+				},
+				JSON200: &ahTypes.Provider{
+					Id:   "abcd",
+					Type: "testvault",
+				},
+			},
+			withProviderArgsResponse: ahTypes.GetProviderArgsResponse{
+				HTTPResponse: &http.Response{
+					StatusCode: http.StatusOK,
+				},
+				JSON200: &testVaultSchema,
+			},
+			dontExpectCacheCall: true,
+		},
 		{
 			name: "ok single value for field is stored in target.With, all other fields on target are empty",
 			give: types.CreateAccessRuleTarget{
@@ -284,11 +326,14 @@ func TestProcessTarget(t *testing.T) {
 			defer ctrl.Finish()
 
 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
+
 			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.give.ProviderId)).Return(&tc.withProviderResponse, nil)
 			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.ProviderId)).Return(&tc.withProviderArgsResponse, nil)
 
 			cm := mocks.NewMockCacheService(ctrl)
-			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+			if !tc.dontExpectCacheCall {
+				cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+			}
 			s := Service{
 				Clock:    clk,
 				DB:       &dbc,

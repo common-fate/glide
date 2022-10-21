@@ -46,41 +46,43 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 // validateTargetArgumentAgainstCachedOptions checks that all the argument values and argument group values currently exist in the cache.
 // this prevents being able to create an access rule with arguments which are invalid for the provider.
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget) error {
+func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
 	for argumentID, argument := range in.With.AdditionalProperties {
-		_, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
-		if err != nil {
-			return err
-		}
-		groupOptionsValueMap := make(map[string]map[string]string)
-		argOptionsValueMap := make(map[string]string)
-		for _, arg := range argOptions {
-			argOptionsValueMap[arg.Value] = arg.Value
-		}
-		for _, group := range groupOptions {
-			options := groupOptionsValueMap[group.Group]
-			if options == nil {
-				options = make(map[string]string)
+		if providerArgSchema.AdditionalProperties[argumentID].FormElement != ahTypes.INPUT {
+			_, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
+			if err != nil {
+				return err
 			}
-			options[group.Value] = group.Value
-			groupOptionsValueMap[group.Group] = options
-		}
-
-		for groupId, groupValues := range argument.Groupings.AdditionalProperties {
-			if len(groupValues) > 0 {
-				if _, ok := groupOptionsValueMap[groupId]; !ok {
-					return apio.NewRequestError(errors.New("argument group values do not match available options for provider"), http.StatusBadRequest)
+			groupOptionsValueMap := make(map[string]map[string]string)
+			argOptionsValueMap := make(map[string]string)
+			for _, arg := range argOptions {
+				argOptionsValueMap[arg.Value] = arg.Value
+			}
+			for _, group := range groupOptions {
+				options := groupOptionsValueMap[group.Group]
+				if options == nil {
+					options = make(map[string]string)
 				}
-				for _, value := range groupValues {
-					if _, ok := groupOptionsValueMap[groupId][value]; !ok {
+				options[group.Value] = group.Value
+				groupOptionsValueMap[group.Group] = options
+			}
+
+			for groupId, groupValues := range argument.Groupings.AdditionalProperties {
+				if len(groupValues) > 0 {
+					if _, ok := groupOptionsValueMap[groupId]; !ok {
 						return apio.NewRequestError(errors.New("argument group values do not match available options for provider"), http.StatusBadRequest)
+					}
+					for _, value := range groupValues {
+						if _, ok := groupOptionsValueMap[groupId][value]; !ok {
+							return apio.NewRequestError(errors.New("argument group values do not match available options for provider"), http.StatusBadRequest)
+						}
 					}
 				}
 			}
-		}
-		for _, value := range argument.Values {
-			if _, ok := argOptionsValueMap[value]; !ok {
-				return apio.NewRequestError(errors.New("argument values do not match available options for provider"), http.StatusBadRequest)
+			for _, value := range argument.Values {
+				if _, ok := argOptionsValueMap[value]; !ok {
+					return apio.NewRequestError(errors.New("argument values do not match available options for provider"), http.StatusBadRequest)
+				}
 			}
 		}
 	}
@@ -100,7 +102,7 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 	if err != nil {
 		return rule.Target{}, err
 	}
-	err = s.validateTargetArgumentAgainstCachedOptions(ctx, in)
+	err = s.validateTargetArgumentAgainstCachedOptions(ctx, in, providerArgSchema)
 	if err != nil {
 		return rule.Target{}, err
 	}
