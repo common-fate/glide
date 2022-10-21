@@ -60,18 +60,31 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
   argument,
   providerId,
 }) => {
-  const { register } = useFormContext<AccessRuleFormData>();
+  const { formState, register, trigger } = useFormContext<AccessRuleFormData>();
+  const inputs = formState.errors.target?.inputs;
+  const { onBlur, ...rest } = register(`target.inputs.${argument.id}`, {
+    minLength: 1,
+    required: true,
+  });
   return (
-    <FormControl w="100%">
+    <FormControl
+      w="100%"
+      isInvalid={inputs && inputs[argument.id] !== undefined}
+    >
       <FormLabel htmlFor="target.providerId" display="inline">
         <Text textStyle={"Body/Medium"}>{argument.title}</Text>
       </FormLabel>
       <Input
         id="provider-vault"
         bg="white"
-        placeholder={`default-${argument.title}`}
-        {...register(`target.inputs.${argument.id}`)}
+        placeholder={"example"}
+        onBlur={(e) => {
+          void trigger(`target.inputs.${argument.id}`);
+          void onBlur(e);
+        }}
+        {...rest}
       />
+      <FormErrorMessage> {argument.title} is required </FormErrorMessage>
     </FormControl>
   );
 };
@@ -292,7 +305,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                     <DynamicOption
                       label={c.option.label}
                       value={c.option.value}
-                      parentGroup={c.parentGroup}
+                      isParentGroup={!!c.parentGroup}
                     />
                   );
                 })}
@@ -304,7 +317,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
         (formState.touchedFields.target?.argumentGroups?.[argument.id] ||
           formState.touchedFields.target?.multiSelects?.[argument.id]) && (
           <Text color="red.500" fontSize="sm">
-            {"At least one effective " + argument.title + " is required"}
+            {"At least one " + argument.title + " is required"}
           </Text>
         )}
     </VStack>
