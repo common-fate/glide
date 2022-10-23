@@ -22,6 +22,8 @@ type OneLoginSync struct {
 	clientID     gconfig.StringValue
 	clientSecret gconfig.SecretStringValue
 	token        gconfig.SecretStringValue
+	refreshToken gconfig.SecretStringValue
+	tokenExpiry  gconfig.StringValue
 }
 
 func (s *OneLoginSync) Config() gconfig.Config {
@@ -61,6 +63,10 @@ func (s *OneLoginSync) Init(ctx context.Context) error {
 	}
 
 	s.token.Set(lu.AccessToken)
+	s.refreshToken.Set(lu.RefreshToken)
+
+	// expiresTime := iso8601.New(time.Now().Add(time.Second * 36000))
+	// s.tokenExpiry.Set()
 
 	return nil
 }
