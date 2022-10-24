@@ -431,28 +431,33 @@ func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.Sug
 	}
 
 	for k, v := range rule.Target.With {
-		with := types.With{
-			Value: v,
-			Title: k,
-			Label: v,
-		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				t, ok := s.ArgSchema()[k]
-				if ok {
-					with.Title = t.Title
+		// only include the with values if it does not have any groups selected,
+		// if it does have groups selected, it means that it was a selectable field
+		// so this check avoids duplicate/inaccurate values in the slack message
+		if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
+			with := types.With{
+				Value: v,
+				Title: k,
+				Label: v,
+			}
+			// attempt to get the title for the argument from the provider arg schema
+			if provider != nil {
+				if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+					t, ok := s.ArgSchema()[k]
+					if ok {
+						with.Title = t.Title
+					}
 				}
 			}
-		}
-		for _, ao := range pq.Result {
-			// if a value is found, set it to true with a label
-			if ao.Arg == k && ao.Value == v {
-				with.Label = ao.Label
-				break
+			for _, ao := range pq.Result {
+				// if a value is found, set it to true with a label
+				if ao.Arg == k && ao.Value == v {
+					with.Label = ao.Label
+					break
+				}
 			}
+			labelArr = append(labelArr, with)
 		}
-		labelArr = append(labelArr, with)
 	}
 
 	// now sort labelArr by Title
