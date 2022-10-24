@@ -3,7 +3,6 @@ package rulesvc
 import (
 	"context"
 	"sort"
-	"strings"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
@@ -72,6 +71,7 @@ func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]Looked
 	// store the matching rules and return results
 
 	providerOptionsCache := newProviderOptionsCache(s.DB)
+	providerGroupOptionsCache := newproviderGroupOptionsCache(s.DB)
 Filterloop:
 	for _, r := range q.Result {
 		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
@@ -82,26 +82,39 @@ Filterloop:
 			case "aws-sso":
 				// we must support string and []string for With/WithSelectable
 				ruleAccIds := []string{}
-				singleRuleAccId, ok := r.Target.With["accountId"]
-				if !ok {
-					ruleAccIds, ok = r.Target.WithSelectable["accountId"]
-					if !ok {
-						continue Filterloop // if not found continue
+				accountID, ok := r.Target.With["accountId"]
+				if ok {
+					ruleAccIds = append(ruleAccIds, accountID)
+				}
+				selectable, ok := r.Target.WithSelectable["accountId"]
+				if ok {
+					ruleAccIds = append(ruleAccIds, selectable...)
+				}
+				groups, ok := r.Target.WithArgumentGroupOptions["accountId"]
+				if ok {
+					for group, values := range groups {
+						for _, value := range values {
+							accounts, err := providerGroupOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "accountId", group, value)
+							if err != nil {
+								logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+								continue Filterloop
+							}
+							ruleAccIds = append(ruleAccIds, accounts...)
+						}
+
 					}
-				} else {
-					ruleAccIds = append(ruleAccIds, singleRuleAccId)
+
 				}
 				if contains(ruleAccIds, opts.Fields.AccountID) {
 					// we must support string and []string for With/WithSelectable
 					rulePermissionSetARNs := []string{}
 					singleRulePermissionSetARN, ok := r.Target.With["permissionSetArn"]
-					if !ok {
-						rulePermissionSetARNs, ok = r.Target.WithSelectable["permissionSetArn"]
-						if !ok {
-							continue Filterloop // if not found continue
-						}
-					} else {
+					if ok {
 						rulePermissionSetARNs = append(rulePermissionSetARNs, singleRulePermissionSetARN)
+					}
+					selectable, ok := r.Target.WithSelectable["permissionSetArn"]
+					if ok {
+						rulePermissionSetARNs = append(rulePermissionSetARNs, selectable...)
 					}
 					// lookup the permission set options from the cache, the cache allows us to only looks these up once
 					permissionSets, err := providerOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "permissionSetArn")
@@ -110,14 +123,7 @@ Filterloop:
 						continue Filterloop
 					}
 					for _, po := range permissionSets {
-						// The label is not good to match on, but for our current data structures it's the best we've got.
-						// If the Permission Set has a description, the label looks like:
-						// <RoleName>: <Role Description>
-						//
-						// So we can match it with strings.HasPrefix.
-						// Note: in some cases this could lead to users being presented multiple Access Rules, if
-						// a role name is a superset of another.
-						if strings.HasPrefix(po.Label, opts.Fields.RoleName) {
+						if po.Label == opts.Fields.RoleName {
 							// Does this rule contain the matched permission set as an option?
 							// if so then we included it in the results
 							if contains(rulePermissionSetARNs, po.Value) {
@@ -218,4 +224,57 @@ func (p *providerOptionsCache) FetchOptions(ctx context.Context, id, arg string)
 		}
 	}
 	return p.providers[id][arg], nil
+}
+
+// A helper used with LookupAccessRule to cache provider options
+type providerGroupOptionsCache struct {
+	providers map[string]map[string]map[string]map[string][]string
+	db        ddb.Storage
+}
+
+func newproviderGroupOptionsCache(db ddb.Storage) *providerGroupOptionsCache {
+	return &providerGroupOptionsCache{
+		providers: make(map[string]map[string]map[string]map[string][]string),
+		db:        db,
+	}
+}
+
+// FetchOptions first checks whether the value has already been looked up and returns it else it looks it up
+func (p *providerGroupOptionsCache) FetchOptions(ctx context.Context, id, arg, groupID, groupValue string) ([]string, error) {
+	if p.providers != nil {
+		if provider, ok := p.providers[id]; ok {
+			if groups, ok := provider[arg]; ok {
+				if group, ok := groups[groupID]; ok {
+					if value, ok := group[groupValue]; ok {
+						return value, nil
+					}
+				}
+			}
+		}
+	}
+	q := storage.GetCachedProviderArgGroupOptionValueForArg{ProviderID: id, ArgID: arg, GroupId: groupID, GroupValue: groupValue}
+	_, err := p.db.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return nil, err
+	}
+	provider := p.providers[id]
+	if provider == nil {
+		provider = make(map[string]map[string]map[string][]string)
+	}
+	argument := provider[arg]
+	if argument == nil {
+		argument = make(map[string]map[string][]string)
+	}
+	groups := argument[groupID]
+	if groups == nil {
+		groups = make(map[string][]string)
+	}
+	if q.Result != nil {
+		groups[groupValue] = q.Result.Children
+	}
+	argument[groupID] = groups
+	provider[arg] = argument
+	p.providers[id] = provider
+
+	return p.providers[id][arg][groupID][groupValue], nil
 }

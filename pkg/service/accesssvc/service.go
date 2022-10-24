@@ -44,7 +44,6 @@ type EventPutter interface {
 type CacheService interface {
 	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
 	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
-	LoadCachedProviderArgGroupOptions(ctx context.Context, providerId string, argId string, groupId string, groupValue string) (bool, cache.ProviderArgGroupOption, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_accessrule_service.go -package=mocks . AccessRuleService
