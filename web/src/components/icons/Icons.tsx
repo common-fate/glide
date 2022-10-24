@@ -256,9 +256,9 @@ export const ECSIcon = createIcon({
       <g
         id="Icon-Architecture/64/Arch_Amazon-Elastic-Container-Service_64"
         stroke="none"
-        stroke-width="1"
+        strokeWidth="1"
         fill="none"
-        fill-rule="evenodd"
+        fillRule="evenodd"
       >
         <g
           id="Icon-Architecture-BG/64/Containers"
@@ -322,6 +322,19 @@ export const SlackBadgeIcon = createIcon({
       <path
         d="M32.6172 36.2955C31.6422 36.2955 30.707 35.9082 30.0175 35.2187C29.328 34.5292 28.9407 33.594 28.9407 32.6189C28.9407 31.6439 29.328 30.7087 30.0175 30.0192C30.707 29.3297 31.6422 28.9424 32.6172 28.9424H41.8235C42.7986 28.9424 43.7337 29.3297 44.4232 30.0192C45.1127 30.7087 45.5 31.6439 45.5 32.6189C45.5 33.594 45.1127 34.5292 44.4232 35.2187C43.7337 35.9082 42.7986 36.2955 41.8235 36.2955H32.6172Z"
         fill="white"
+      />
+    </svg>
+  ),
+});
+
+export const BoltIcon = createIcon({
+  displayName: "BoltIcon",
+  viewBox: "0 0 16 16",
+  path: (
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <path
+        fill="currentColor"
+        d="M15 6H8.4L10 1.3c.3-1-.9-1.8-1.7-1l-8 8C-.3 8.9.1 10 1 10h6.6L6 14.7c-.3 1 .9 1.8 1.7 1l8-8c.6-.6.2-1.7-.7-1.7z"
       />
     </svg>
   ),

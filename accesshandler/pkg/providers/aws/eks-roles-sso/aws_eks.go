@@ -13,9 +13,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -133,7 +134,13 @@ func (p *Provider) Init(ctx context.Context) error {
 	return nil
 }
 
-// ArgSchema returns the schema for the AWS SSO provider.
-func (p *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"role": {
+			Id:          "role",
+			Title:       "Role",
+			FormElement: types.MULTISELECT,
+		},
+	}
+	return arg
 }

@@ -27,7 +27,7 @@ import (
 )
 
 type Args struct {
-	Role string `json:"role" jsonschema:"title=Role"`
+	Role string `json:"role"`
 }
 
 func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grantID string) error {

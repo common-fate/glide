@@ -8,7 +8,7 @@ import (
 )
 
 type Args struct {
-	GroupID string `json:"groupId" jsonschema:"title=Group"`
+	GroupID string `json:"groupId"`
 }
 
 // Grant the access by calling azure's API.

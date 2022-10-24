@@ -75,6 +75,7 @@ const Access = () => {
       navigate({ to: "/requests" });
     }
   }, [error, search]);
+
   if (!data && isValidating) {
     return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
   }

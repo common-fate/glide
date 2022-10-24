@@ -78,18 +78,6 @@ const Home = () => {
 
   const user = useUser();
 
-  // const upcomingRef = useRef();
-  // const pastRef = useRef();
-
-  // const inViewport = useIntersection(upcomingRef, "90px"); // Trigger if 200px is visible from the element
-
-  // useEffect(() => {
-  //   console.log("in view");
-  //   upcomingApi.incrementPage();
-  //   // if (inViewport && !isValidating && upcomingApi.canNextPage) {
-  //   // }
-  // }, [inViewport]);
-
   return (
     <>
       <UserLayout>
@@ -408,7 +396,7 @@ const UserAccessCard: React.FC<
     index: number;
   } & LinkBoxProps
 > = ({ req, type, index, ...rest }) => {
-  const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
+  const { data: rule } = useUserGetAccessRule(req?.accessRuleId);
 
   const option = getRequestOption(req);
 

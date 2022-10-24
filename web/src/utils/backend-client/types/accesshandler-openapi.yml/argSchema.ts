@@ -5,6 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { With } from './with';
+import type { Argument } from '../accesshandler-openapi.yml/argument';
 
-export type RequestAccessRuleDetailWith = {[key: string]: With};
+export interface ArgSchema {[key: string]: Argument}

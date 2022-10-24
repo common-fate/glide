@@ -28,8 +28,6 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
-  GetProviderArgs200,
-  ArgOptionsResponseResponse,
   ListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -38,6 +36,10 @@ import type {
   ProviderSetupStepCompleteRequestBody,
   IdentityConfigurationResponseResponse
 } from '.././types'
+import type {
+  ArgSchema,
+  ArgOptionsResponseResponse
+} from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
 
@@ -531,13 +533,13 @@ export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
- * gets the jsonschema describing the args for this provider
+ * gets the argSchema describing the args for this provider
  * @summary Get provider arg schema
  */
 export const getProviderArgs = (
     providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<GetProviderArgs200>(
+      return customInstance<ArgSchema>(
       {url: `/api/v1/admin/providers/${providerId}/args`, method: 'get'
     },
       options);

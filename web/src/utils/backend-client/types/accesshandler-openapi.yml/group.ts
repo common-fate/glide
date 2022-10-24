@@ -5,6 +5,9 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { With } from './with';
 
-export type RequestDetailSelectedWith = {[key: string]: With};
+export interface Group {
+  id: string;
+  title: string;
+  description?: string;
+}

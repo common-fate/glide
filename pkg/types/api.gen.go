@@ -28,6 +28,12 @@ const (
 	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
 )
 
+// Defines values for AccessRuleTargetDetailArgumentsFormElement.
+const (
+	INPUT       AccessRuleTargetDetailArgumentsFormElement = "INPUT"
+	MULTISELECT AccessRuleTargetDetailArgumentsFormElement = "MULTISELECT"
+)
+
 // Defines values for ApprovalMethod.
 const (
 	AUTOMATIC ApprovalMethod = "AUTOMATIC"
@@ -139,8 +145,8 @@ type AccessRuleDetail struct {
 	// The status of an Access Rule.
 	Status AccessRuleStatus `json:"status"`
 
-	// A target for an access rule
-	Target AccessRuleTarget `json:"target"`
+	// A detailed target for an access rule
+	Target AccessRuleTargetDetail `json:"target"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints TimeConstraints `json:"timeConstraints"`
@@ -165,55 +171,34 @@ type AccessRuleStatus string
 // A target for an access rule
 type AccessRuleTarget struct {
 	// Provider
-	Provider       Provider                        `json:"provider"`
-	With           AccessRuleTarget_With           `json:"with"`
-	WithSelectable AccessRuleTarget_WithSelectable `json:"withSelectable"`
+	Provider Provider `json:"provider"`
 }
 
-// AccessRuleTarget_With defines model for AccessRuleTarget.With.
-type AccessRuleTarget_With struct {
-	AdditionalProperties map[string]string `json:"-"`
-}
-
-// AccessRuleTarget_WithSelectable defines model for AccessRuleTarget.WithSelectable.
-type AccessRuleTarget_WithSelectable struct {
-	AdditionalProperties map[string][]string `json:"-"`
-}
-
-// A target for an access rule
+// A detailed target for an access rule
 type AccessRuleTargetDetail struct {
 	// Provider
-	Provider       Provider                              `json:"provider"`
-	With           AccessRuleTargetDetail_With           `json:"with"`
-	WithSelectable AccessRuleTargetDetail_WithSelectable `json:"withSelectable"`
+	Provider Provider                    `json:"provider"`
+	With     AccessRuleTargetDetail_With `json:"with"`
 }
 
 // AccessRuleTargetDetail_With defines model for AccessRuleTargetDetail.With.
 type AccessRuleTargetDetail_With struct {
-	AdditionalProperties map[string]With `json:"-"`
+	AdditionalProperties map[string]AccessRuleTargetDetailArguments `json:"-"`
 }
 
-// AccessRuleTargetDetail_WithSelectable defines model for AccessRuleTargetDetail.WithSelectable.
-type AccessRuleTargetDetail_WithSelectable struct {
-	AdditionalProperties map[string]Selectable `json:"-"`
+// AccessRuleTargetDetailArguments defines model for AccessRuleTargetDetailArguments.
+type AccessRuleTargetDetailArguments struct {
+	FormElement AccessRuleTargetDetailArgumentsFormElement `json:"formElement"`
+	Groupings   AccessRuleTargetDetailArguments_Groupings  `json:"groupings"`
+	Values      []string                                   `json:"values"`
 }
 
-// Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
-type AccessRuleWithSelectables struct {
-	Description string `json:"description"`
-	ID          string `json:"id"`
-	IsCurrent   bool   `json:"isCurrent"`
-	Name        string `json:"name"`
+// AccessRuleTargetDetailArgumentsFormElement defines model for AccessRuleTargetDetailArguments.FormElement.
+type AccessRuleTargetDetailArgumentsFormElement string
 
-	// A target for an access rule
-	Target AccessRuleTargetDetail `json:"target"`
-
-	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
-
-	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
-	// When a rule is updated, it's ID remains consistent.
-	Version string `json:"version"`
+// AccessRuleTargetDetailArguments_Groupings defines model for AccessRuleTargetDetailArguments.Groupings.
+type AccessRuleTargetDetailArguments_Groupings struct {
+	AdditionalProperties map[string][]string `json:"-"`
 }
 
 // AccessToken defines model for AccessToken.
@@ -230,16 +215,25 @@ type ApproverConfig struct {
 	Users []string `json:"users"`
 }
 
-// A target for an access rule
+// a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
-	ProviderId string `json:"providerId"`
-
-	// The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.
-	With CreateAccessRuleTarget_With `json:"with"`
+	ProviderId string                      `json:"providerId"`
+	With       CreateAccessRuleTarget_With `json:"with"`
 }
 
-// The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.
+// CreateAccessRuleTarget_With defines model for CreateAccessRuleTarget.With.
 type CreateAccessRuleTarget_With struct {
+	AdditionalProperties map[string]CreateAccessRuleTargetDetailArguments `json:"-"`
+}
+
+// CreateAccessRuleTargetDetailArguments defines model for CreateAccessRuleTargetDetailArguments.
+type CreateAccessRuleTargetDetailArguments struct {
+	Groupings CreateAccessRuleTargetDetailArguments_Groupings `json:"groupings"`
+	Values    []string                                        `json:"values"`
+}
+
+// CreateAccessRuleTargetDetailArguments_Groupings defines model for CreateAccessRuleTargetDetailArguments.Groupings.
+type CreateAccessRuleTargetDetailArguments_Groupings struct {
 	AdditionalProperties map[string][]string `json:"-"`
 }
 
@@ -400,7 +394,8 @@ type ProviderSetupValidationStatus string
 
 // A request to access something made by an end user in Granted.
 type Request struct {
-	AccessRule RequestAccessRule `json:"accessRule"`
+	AccessRuleId      string `json:"accessRuleId"`
+	AccessRuleVersion string `json:"accessRuleVersion"`
 
 	// Describes whether a request has been approved automatically or from a review
 	ApprovalMethod *ApprovalMethod `json:"approvalMethod,omitempty"`
@@ -418,50 +413,65 @@ type Request struct {
 	UpdatedAt time.Time     `json:"updatedAt"`
 }
 
-// RequestAccessRule defines model for RequestAccessRule.
+// Access Rule contains information for an end user to make a request for access.
 type RequestAccessRule struct {
-	Id      string `json:"id"`
-	Version string `json:"version"`
-}
-
-// RequestAccessRuleDetail defines model for RequestAccessRuleDetail.
-type RequestAccessRuleDetail struct {
 	Description string `json:"description"`
-	Id          string `json:"id"`
+	ID          string `json:"id"`
 	IsCurrent   bool   `json:"isCurrent"`
 	Name        string `json:"name"`
 
-	// Provider
-	Provider Provider `json:"provider"`
+	// A detailed target for an access rule request
+	Target RequestAccessRuleTarget `json:"target"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints              `json:"timeConstraints"`
-	Version         string                       `json:"version"`
-	With            RequestAccessRuleDetail_With `json:"with"`
+	TimeConstraints TimeConstraints `json:"timeConstraints"`
+
+	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
+	// When a rule is updated, it's ID remains consistent.
+	Version string `json:"version"`
 }
 
-// RequestAccessRuleDetail_With defines model for RequestAccessRuleDetail.With.
-type RequestAccessRuleDetail_With struct {
-	AdditionalProperties map[string]With `json:"-"`
+// A detailed target for an access rule request
+type RequestAccessRuleTarget struct {
+	Arguments RequestAccessRuleTarget_Arguments `json:"arguments"`
+
+	// Provider
+	Provider Provider `json:"provider"`
+}
+
+// RequestAccessRuleTarget_Arguments defines model for RequestAccessRuleTarget.Arguments.
+type RequestAccessRuleTarget_Arguments struct {
+	AdditionalProperties map[string]RequestArgument `json:"-"`
+}
+
+// RequestArgument defines model for RequestArgument.
+type RequestArgument struct {
+	Description *string      `json:"description,omitempty"`
+	Options     []WithOption `json:"options"`
+
+	// This will be true if a selection is require when creating a request
+	RequiresSelection bool   `json:"requiresSelection"`
+	Title             string `json:"title"`
 }
 
 // A request to access something made by an end user in Granted.
 type RequestDetail struct {
-	AccessRule RequestAccessRuleDetail `json:"accessRule"`
+	// Access Rule contains information for an end user to make a request for access.
+	AccessRule AccessRule `json:"accessRule"`
 
 	// Describes whether a request has been approved automatically or from a review
-	ApprovalMethod *ApprovalMethod `json:"approvalMethod,omitempty"`
+	ApprovalMethod *ApprovalMethod         `json:"approvalMethod,omitempty"`
+	Arguments      RequestDetail_Arguments `json:"arguments"`
 
 	// true if the requesting user is a reviewer of this request.
 	CanReview bool `json:"canReview"`
 
 	// A temporary assignment of a user to a principal.
-	Grant        *Grant                     `json:"grant,omitempty"`
-	ID           string                     `json:"id"`
-	Reason       *string                    `json:"reason,omitempty"`
-	RequestedAt  time.Time                  `json:"requestedAt"`
-	Requestor    string                     `json:"requestor"`
-	SelectedWith RequestDetail_SelectedWith `json:"selectedWith"`
+	Grant       *Grant    `json:"grant,omitempty"`
+	ID          string    `json:"id"`
+	Reason      *string   `json:"reason,omitempty"`
+	RequestedAt time.Time `json:"requestedAt"`
+	Requestor   string    `json:"requestor"`
 
 	// The status of an Access Request.
 	Status    RequestStatus `json:"status"`
@@ -469,8 +479,8 @@ type RequestDetail struct {
 	UpdatedAt time.Time     `json:"updatedAt"`
 }
 
-// RequestDetail_SelectedWith defines model for RequestDetail.SelectedWith.
-type RequestDetail_SelectedWith struct {
+// RequestDetail_Arguments defines model for RequestDetail.Arguments.
+type RequestDetail_Arguments struct {
 	AdditionalProperties map[string]With `json:"-"`
 }
 
@@ -522,12 +532,6 @@ type RequestTiming struct {
 // A decision made on an Access Request.
 type ReviewDecision string
 
-// Selectable defines model for Selectable.
-type Selectable struct {
-	Options []WithOption `json:"options"`
-	Title   string       `json:"title"`
-}
-
 // Time configuration for an Access Rule.
 type TimeConstraints struct {
 	// The maximum duration in seconds the access is allowed for.
@@ -548,25 +552,19 @@ type User struct {
 
 // With defines model for With.
 type With struct {
-	Label string `json:"label"`
-	Title string `json:"title"`
-	Value string `json:"value"`
+	FieldDescription  *string `json:"fieldDescription,omitempty"`
+	Label             string  `json:"label"`
+	OptionDescription *string `json:"optionDescription,omitempty"`
+	Title             string  `json:"title"`
+	Value             string  `json:"value"`
 }
 
 // WithOption defines model for WithOption.
 type WithOption struct {
-	Label string `json:"label"`
-	Valid bool   `json:"valid"`
-	Value string `json:"value"`
-}
-
-// ArgOptionsResponse defines model for ArgOptionsResponse.
-type ArgOptionsResponse struct {
-	// Whether any options have been suggested for the argument.
-	HasOptions bool `json:"hasOptions"`
-
-	// The suggested options.
-	Options []externalRef0.Option `json:"options"`
+	Description *string `json:"description,omitempty"`
+	Label       string  `json:"label"`
+	Valid       bool    `json:"valid"`
+	Value       string  `json:"value"`
 }
 
 // AuthUserResponse defines model for AuthUserResponse.
@@ -659,7 +657,7 @@ type CreateAccessRuleRequest struct {
 	Groups []string `json:"groups"`
 	Name   string   `json:"name"`
 
-	// A target for an access rule
+	// a request body for creating a Access Rule Target
 	Target CreateAccessRuleTarget `json:"target"`
 
 	// Time configuration for an Access Rule.
@@ -828,115 +826,9 @@ type UserCreateRequestJSONRequestBody CreateRequestRequest
 // ReviewRequestJSONRequestBody defines body for ReviewRequest for application/json ContentType.
 type ReviewRequestJSONRequestBody ReviewRequest
 
-// Getter for additional properties for AccessRuleTarget_With. Returns the specified
-// element and whether it was found
-func (a AccessRuleTarget_With) Get(fieldName string) (value string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for AccessRuleTarget_With
-func (a *AccessRuleTarget_With) Set(fieldName string, value string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for AccessRuleTarget_With to handle AdditionalProperties
-func (a *AccessRuleTarget_With) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for AccessRuleTarget_With to handle AdditionalProperties
-func (a AccessRuleTarget_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for AccessRuleTarget_WithSelectable. Returns the specified
-// element and whether it was found
-func (a AccessRuleTarget_WithSelectable) Get(fieldName string) (value []string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for AccessRuleTarget_WithSelectable
-func (a *AccessRuleTarget_WithSelectable) Set(fieldName string, value []string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for AccessRuleTarget_WithSelectable to handle AdditionalProperties
-func (a *AccessRuleTarget_WithSelectable) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal []string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for AccessRuleTarget_WithSelectable to handle AdditionalProperties
-func (a AccessRuleTarget_WithSelectable) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
 // Getter for additional properties for AccessRuleTargetDetail_With. Returns the specified
 // element and whether it was found
-func (a AccessRuleTargetDetail_With) Get(fieldName string) (value With, found bool) {
+func (a AccessRuleTargetDetail_With) Get(fieldName string) (value AccessRuleTargetDetailArguments, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
@@ -944,9 +836,9 @@ func (a AccessRuleTargetDetail_With) Get(fieldName string) (value With, found bo
 }
 
 // Setter for additional properties for AccessRuleTargetDetail_With
-func (a *AccessRuleTargetDetail_With) Set(fieldName string, value With) {
+func (a *AccessRuleTargetDetail_With) Set(fieldName string, value AccessRuleTargetDetailArguments) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]With)
+		a.AdditionalProperties = make(map[string]AccessRuleTargetDetailArguments)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
@@ -960,9 +852,9 @@ func (a *AccessRuleTargetDetail_With) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]With)
+		a.AdditionalProperties = make(map[string]AccessRuleTargetDetailArguments)
 		for fieldName, fieldBuf := range object {
-			var fieldVal With
+			var fieldVal AccessRuleTargetDetailArguments
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -987,78 +879,25 @@ func (a AccessRuleTargetDetail_With) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for AccessRuleTargetDetail_WithSelectable. Returns the specified
+// Getter for additional properties for AccessRuleTargetDetailArguments_Groupings. Returns the specified
 // element and whether it was found
-func (a AccessRuleTargetDetail_WithSelectable) Get(fieldName string) (value Selectable, found bool) {
+func (a AccessRuleTargetDetailArguments_Groupings) Get(fieldName string) (value []string, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for AccessRuleTargetDetail_WithSelectable
-func (a *AccessRuleTargetDetail_WithSelectable) Set(fieldName string, value Selectable) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]Selectable)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for AccessRuleTargetDetail_WithSelectable to handle AdditionalProperties
-func (a *AccessRuleTargetDetail_WithSelectable) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]Selectable)
-		for fieldName, fieldBuf := range object {
-			var fieldVal Selectable
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for AccessRuleTargetDetail_WithSelectable to handle AdditionalProperties
-func (a AccessRuleTargetDetail_WithSelectable) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for CreateAccessRuleTarget_With. Returns the specified
-// element and whether it was found
-func (a CreateAccessRuleTarget_With) Get(fieldName string) (value []string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for CreateAccessRuleTarget_With
-func (a *CreateAccessRuleTarget_With) Set(fieldName string, value []string) {
+// Setter for additional properties for AccessRuleTargetDetailArguments_Groupings
+func (a *AccessRuleTargetDetailArguments_Groupings) Set(fieldName string, value []string) {
 	if a.AdditionalProperties == nil {
 		a.AdditionalProperties = make(map[string][]string)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for CreateAccessRuleTarget_With to handle AdditionalProperties
-func (a *CreateAccessRuleTarget_With) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for AccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a *AccessRuleTargetDetailArguments_Groupings) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -1079,8 +918,114 @@ func (a *CreateAccessRuleTarget_With) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Override default JSON handling for AccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a AccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for CreateAccessRuleTarget_With. Returns the specified
+// element and whether it was found
+func (a CreateAccessRuleTarget_With) Get(fieldName string) (value CreateAccessRuleTargetDetailArguments, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CreateAccessRuleTarget_With
+func (a *CreateAccessRuleTarget_With) Set(fieldName string, value CreateAccessRuleTargetDetailArguments) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]CreateAccessRuleTargetDetailArguments)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CreateAccessRuleTarget_With to handle AdditionalProperties
+func (a *CreateAccessRuleTarget_With) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]CreateAccessRuleTargetDetailArguments)
+		for fieldName, fieldBuf := range object {
+			var fieldVal CreateAccessRuleTargetDetailArguments
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
 // Override default JSON handling for CreateAccessRuleTarget_With to handle AdditionalProperties
 func (a CreateAccessRuleTarget_With) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for CreateAccessRuleTargetDetailArguments_Groupings. Returns the specified
+// element and whether it was found
+func (a CreateAccessRuleTargetDetailArguments_Groupings) Get(fieldName string) (value []string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CreateAccessRuleTargetDetailArguments_Groupings
+func (a *CreateAccessRuleTargetDetailArguments_Groupings) Set(fieldName string, value []string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string][]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CreateAccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a *CreateAccessRuleTargetDetailArguments_Groupings) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string][]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal []string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for CreateAccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a CreateAccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1146,25 +1091,25 @@ func (a CreateRequestWith) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for RequestAccessRuleDetail_With. Returns the specified
+// Getter for additional properties for RequestAccessRuleTarget_Arguments. Returns the specified
 // element and whether it was found
-func (a RequestAccessRuleDetail_With) Get(fieldName string) (value With, found bool) {
+func (a RequestAccessRuleTarget_Arguments) Get(fieldName string) (value RequestArgument, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for RequestAccessRuleDetail_With
-func (a *RequestAccessRuleDetail_With) Set(fieldName string, value With) {
+// Setter for additional properties for RequestAccessRuleTarget_Arguments
+func (a *RequestAccessRuleTarget_Arguments) Set(fieldName string, value RequestArgument) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]With)
+		a.AdditionalProperties = make(map[string]RequestArgument)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for RequestAccessRuleDetail_With to handle AdditionalProperties
-func (a *RequestAccessRuleDetail_With) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for RequestAccessRuleTarget_Arguments to handle AdditionalProperties
+func (a *RequestAccessRuleTarget_Arguments) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -1172,9 +1117,9 @@ func (a *RequestAccessRuleDetail_With) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]With)
+		a.AdditionalProperties = make(map[string]RequestArgument)
 		for fieldName, fieldBuf := range object {
-			var fieldVal With
+			var fieldVal RequestArgument
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -1185,8 +1130,8 @@ func (a *RequestAccessRuleDetail_With) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for RequestAccessRuleDetail_With to handle AdditionalProperties
-func (a RequestAccessRuleDetail_With) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for RequestAccessRuleTarget_Arguments to handle AdditionalProperties
+func (a RequestAccessRuleTarget_Arguments) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1199,25 +1144,25 @@ func (a RequestAccessRuleDetail_With) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for RequestDetail_SelectedWith. Returns the specified
+// Getter for additional properties for RequestDetail_Arguments. Returns the specified
 // element and whether it was found
-func (a RequestDetail_SelectedWith) Get(fieldName string) (value With, found bool) {
+func (a RequestDetail_Arguments) Get(fieldName string) (value With, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for RequestDetail_SelectedWith
-func (a *RequestDetail_SelectedWith) Set(fieldName string, value With) {
+// Setter for additional properties for RequestDetail_Arguments
+func (a *RequestDetail_Arguments) Set(fieldName string, value With) {
 	if a.AdditionalProperties == nil {
 		a.AdditionalProperties = make(map[string]With)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for RequestDetail_SelectedWith to handle AdditionalProperties
-func (a *RequestDetail_SelectedWith) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for RequestDetail_Arguments to handle AdditionalProperties
+func (a *RequestDetail_Arguments) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -1238,8 +1183,8 @@ func (a *RequestDetail_SelectedWith) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for RequestDetail_SelectedWith to handle AdditionalProperties
-func (a RequestDetail_SelectedWith) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for RequestDetail_Arguments to handle AdditionalProperties
+func (a RequestDetail_Arguments) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -2883,140 +2828,139 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+x9/XfbtrLgv4Llvj23vUeWZMdJE+/Z89a1nTzdJrGfrTRvX93bQCQkoSYBBgBtq1nv",
-	"374HXyRIgBL14STty09xbBAYzAzmCzODT1FMs5wSRASPjj5FDH0sEBc/0gQj9YsThqBAx3GMOL8sUnSp",
-	"B8g/xZQIRNSPMM9THEOBKRn8zimRv+PxHGVQ/pQzmiMmzIwwzxm9han8+V8YmkZH0X8fVFAM9Hd8cKzG",
-	"IXZCyRTPoodelCAeM5zLVeTH6B5meYqio+g4yTABUAEJBAXnNwJGvSiD968RmYl5dHQwPHzei3IoBGIk",
-	"Oop+gXt/HO/953DvRa//P4+++/6X6+tf//W/XV/v/fbh/10Xw+HBs8H1Nbm+5r/+33/+S9SLxCKXC3HB",
-	"MFGwzBgtcrWfGlTReI6A+hsYnXIg5lAAMUcWNlakCChkIQloP+pFWKBMzeMtYX4BGYML+X8CM1Tft9wn",
-	"gHLz9d0eDoe9KMPE/n9/s62H9i0gmyGxinZNrhnrr+T3OEMnlHDBIDY8t2yicWP4w0NP8ShmKImOfrFk",
-	"6FVcZfBU55YSbh+AX8tN0snvKBbRw4NcRO/glZx+e5ZvMO5j8qVlEm+NNnb4Z7Xkb/29AM0bGFcLLEXa",
-	"BaO3OEHsColdIC83043VgqHzJkEBdKoOmh0txQBHAhR5f1eSYCVqapCGUNQQYdGPaIaJAntW4AQlEuIi",
-	"l3tQ0mJKGYCAoDugTxKwmO1HJbINfncglsvDOkoaDPSI4oQhyB//UAicyZ9WyBqDw7Ee/NCL7rCEpouk",
-	"M5++lx80uaKG2BKWpSfoHUdse4qiDGKlZaeUZVBER+Y3vVXCwcPfFDMu3q4rWbbjDMyVVnc044TSFEEi",
-	"/5jCzwxPg6YWkRViHJgq2FuIXBOQVwLlJ1QqdLED4yo2M/mC8v0cibmUi3MEuEA5wBzY0YAyQKjoV/t2",
-	"cB0r++tnmBZGUCQJlnPC9KK2tEdBX1DrqcCtmgsgIhBDCZgsFFAFRwzczXE8BzFlDPGckkSKcQWxEowS",
-	"bgdIg9RedL83o3vmlxnMf9Ew/NpCvBJHjb21UOsS3WJ0txPSZOazx5R1CYoxN4bGcmknt3VqRz/0Imls",
-	"M5yg8SbSsoHjEoouavCYAGiM/b9xwBRgUp9DYhWfWax/TcaOMa1/CbREBTEkYIKA3QWRfIVJnBaJ/Kv9",
-	"tR1t9K6dY0KTRf+ajKYAC3kyaIaFQElPDaIMzzCBaXPFO5ymcsmCo6RvUCC5lmuCH7PZudoivzS/3oJ7",
-	"5pCbydqPNiQLQPUgMIe3CEwQIoAXsxniAiXKnlDOCJsVkhXD5522LSNRX01mhtVcGMMv/YGm0BySJEVs",
-	"QHNEYI77iywNspLemO/yNHjKQUEFZRf+Ml9pe4qAVwwS4SDhoRcdF2Kule7WhHL0VrsAVrIOcwmNct+w",
-	"dEcEZZLrFXiSoULEkR+uOplyIx7y1IfLNVMTbadIQJxyACe0MF5sIeaICIkKlKhNKEPUyNOG3b81JhOU",
-	"p3QhaaRDAO/yxJhaelOtxwBkkBQwBYX6QOLZYsKqE4NjcGy8Rg6qxYyWKpiCEnz3YaYH71VDJCd/+F5O",
-	"BmOBb+Uiru8RIp0nH5furQt5xkp8aSyDuzkiVp1L0VSJTkuVmouhmP6MMboLjkdynoAF0LSZ1LCO+kAN",
-	"BgyJghEpuRjNjB3AbnGMFPyjRPKiWJy49NrBfmonUkUAtEfkm6gGAIvi1TjwvuiFV+uCpUuFHA4w0fa9",
-	"ZNbqqNqVGtysvGTssrtC5WvMRRWtsZG3Xegtgu7VN6RIUzhJUXQkWIECdouUJlqAdgyIBQScVAxqwU5c",
-	"BlLMhcSIlsYJB3dzqswIa40o+exE7oz+9zHGtazcBfNVc9aQsTRSWn6jwQgGD7vRodV3XQu1ZzpCWYqn",
-	"AMK+OKq+OJIq/rNGrpyhPI5KFOwCTVWkuhOG1Lq7Q04ZoN2aeWrmxS4Qk9cm7IygGhwrxVJjkfUYA5O9",
-	"nNEZk9zRUOccTJBU9DrGaX1oa9fUlErFU8aNOruVG9qF5r+190adMOcuvzsOM0DsgMMMfJ9V7RmVsjYS",
-	"VzJeOfEOELMj12gLW2C1v7Nr8+ACSp9fHibXTOBRM363EV7WkC/thh8EtaFA70Uddhuz2ppkrAp7dWLK",
-	"h06Gq3FapsrEl5Aql8WaVzqUYqZWgZRKaXtOn6M7pakrIG6YxMbpR0Q7rNJpy+ANqpbTI9Q00nFbenO3",
-	"8so54CPUv2NF+tvB87uDMzQRB//+nLz8938cJD/B/Zfjsxf/MfyHN4UJbuprvWh0qkPjJwVjhpp+jGDF",
-	"PfGGV7qPcZnbi6SXYXDbVIIFwR8LBMwI49BMMWJlHMuhfR8oD9rwkWIGdZPCzQWamaUPrsl76SqbQZib",
-	"IEHSA1j8jYPRKWAoU0wUU8Ixl4emf01W3gjgJKp2s+4dtEtSKZuw0DxW8b13rHqRZ/W3nI1qRHVAEvV/",
-	"lAScR4MZSBKFHa4GuQYFvkUA5jhwWD5fZsfXkI7xBU52hgRMoIDdz+ob+8UGcoELKIo1PKorPf6bRHkU",
-	"iWKo0eue8lJyyzaSx8iWpfLnjcOWjTsvhbLkWPgnqn5rJ+HqS2qqG0f91Y+L4DnU6H2DOIcztGSEWbW8",
-	"/JZLtB3CEBRmliAUzRvFcpsu8C4g7nRBPL9xiNWO6avySAauZtTfGvdmkpGjXoRIkUlAj0/Go5/Pol50",
-	"fHnyb6Ofz07DwFxZXvNQ653ZwDHTzGYNL0fUegojdwKnXUxiNymj8zW0h045wxVKUSy0E9I+V3dl0DR6",
-	"w0GAyIDvwRCkwrg8tO0Moce0GgBfmBbL5tG5MluRZ9n0zgyPSp4u8vF9bTb+2E4M+NC69IdqeggyylBl",
-	"CX7QrPIBTDFKEyAxoG9cchTjKY7Lm2VlRJnLdq6m1peV3xynbmaOE6P/Zux8HvepeQBbT+uY3iCdclab",
-	"Q/86xGFc0DzFs7niAsmy0eI+g8+Tm/nvh8NnH9U+7SXzGyTmNHBvfar+N0Ec3JU32PZYzyHXWRzmSioB",
-	"sBBUSoUYpukCUKbvRqFNm3GV/bvx+Zvj8egk6kWXZz+Pzt439H0drm7be/b8RZaK5/DjPbk/dLZXenM+",
-	"K9rLNJP9VUkqxUTcEx2BC4uV+reMGPp2kRKY0vszGcL2co+XB6GMO/W2vXw0oHtILrET4LyWXPmdKPOW",
-	"i+tVers73n10K8WhdQhWWgbmEvPUycGROFcjegBPtRoSc0gAJciMk58axWOTsAyRpIjSmYIm+UqeaJ3s",
-	"Lc+3nkMT2i6pciOcz9UFODOWcTfLQGXuKqytaan56cFrma5mJX+WUA6kf1ifU/gkPrz7IUt/EPdqc+qC",
-	"KMhbKMspg2wBIOd4RlQmjPQlSoMDgpxhEuMcpr66RyQJnz5pskh5bYmikmmUS1Iq2YPhwcHe8Nne/pPx",
-	"8MnRkxdHT4b9Fwf7/xn1KudNKpm9dT0416T1IRudhmoGZjo5zJondUipqStani3NBWSi1Udj4ovhgy/x",
-	"HmOtP5UXGQDOqJSLs7eno7evpANpPcmzy8vzS61hzn86O5W/+Y+L0aVRNR5uCs2vYV7JIE4BTBJ14Wlg",
-	"sOwXIIyf176MMI2jXcZTLEg91w/QNOwpvnaOvD4+gXOub81XFf60GLnerzOUTaTKKGqWKiYCzbTjZS3V",
-	"DqU6TStKWVruArXtyV0EtjdK8ir0UNoXNoZQcoMzVfVFN7sCPpkmbP+HWTwfHkK1k5/QQiVm+1i9QeHI",
-	"0K0dvhwt8nM72IG4XK+bbH3y9PdblBYv7vcP0gO1xmtKb4p86WUVyKCI59KKcwLQSmMavWdS47Hi/QWA",
-	"DFW5i2X6biAjqdeaG7NeRgwvrWSpZnTibJX6X9/NSB/Q0Jak2VpNpZU972nNq2wHrb6NM1qbxmBAUJtZ",
-	"LX/MGZrKD5TlQFnW1OmBJOTgZksarzLoHPw5LOJRuBur5PN79nH4QhxMbw/+iNwKEB+pZbqmR9IWWSFM",
-	"WVwH/0rYujSzHScL0d+G0Uf6Avb9VbmZ8hQbz7r8v8XnnfJMlVvf9RulV2ulMdpcfin5ZmdSFZv0cZgu",
-	"T852q1RULYD5KpyRjfkVilnIYLdz6uIad2rHPObqY/Bdim+QCtxejMANUo4dBDnk/I6y5Pvgyi1KQB5i",
-	"OecF1NZmHShl70Axl6fqbo4YMmm1CgprU3NBmfLpSQkhBxkkcIYYUJAev78CV1dvwAVkMEMCMXAlv+l3",
-	"c/TDiqkij4PVALu6vNHtAN49hbd3fyB6dzD5/UXk81mLnsHJKsvRpWc/FCIqVZI/i+avQBFURyR6Ciy0",
-	"p274md4esvkkucunN7iOH52EElBkpc1sxLetWaXTemKamDNazOZ+kesdZTfTlN7JCWzJAxjPEa/sca70",
-	"39//Tqj4+9/BAgmdbo9896Os48IJtGJh26oUD5127oAb3K1GbgpTjnpLjO96rrbWhBvUu/WCnFuGBEen",
-	"pSlRUlFXBYCxVNBKLjFIEpqBn67ejU6V93dLcQJyKhARGCrVPU1xLLg2XyTf7pUeezXv6JRbDmmrowBT",
-	"nKL+8gvoZbddVXmg4UHXYTk5f3Px+mwsHZWfj1+PTo/Ho/O3v708Hr1Wdqv9nXJpRm9H49Hx699Ozt++",
-	"HL16d6nHjt7+dnF5/ury7OqqPsnVu5Ozs9M2P0egUDrCMVGFaLbAzdZiShwlKiWLzMogYGkA2nrFflcr",
-	"x6svPTdrtt9crSqrbxaTuGc8LPjaItNK9JmgdMP/7ij41JDg1bjGeuM49nzpEBCaWtB1E5f7JHvC0O2L",
-	"j+iPFxNfXJ5iOCOUCxy/pqF4KEjpTMp9tgAMpSrF0IRX3MMoj7+B15d3KbpFaRi3cnL1Z/cYjN6+PI96",
-	"0fvjy7ea17XXHuLcjM/aJ870rftqQmkA9Wxt2K7jaSeoHxEuWBGXBYx1rEn2MEVtm2V7XzkTrPIg3MXa",
-	"MFADd1tTxoMwUIFcGk7rI8C1ukLZUA3Mt8UyVzkqelhjvl4d9DZ0upvfGTZL2en7v1pm1+5tqjr1lvr6",
-	"jcv1y5sg+03SocywnH8Zysod7uQI1o2wpuirhBqAMyiJ7NjRdcOnRfX4SNTRBbMuarHZc8gEjosUsprR",
-	"zi1ESF9GQLJw1Wxr2t8yp6DaYw/wIp4DyMGHFHOxxzndU1dFH4I6M6WzDQVTXZQGoO5uStXVTqVAXCvo",
-	"6t3Jif6pCgi3aZSQBi8VdpN0bWzqMNWmTOo0cGgyZVnWT20Qi9MMibk0cTKYIOmcudkXjseyReDNAFSP",
-	"v0Hvrnh1Im05WuXBmvud5SVeUBfghAIlobyJqktPW/3K1tl2Zp5gIXHXVFSDUScPdbO+P7vIHwyxfbVH",
-	"5wgYGOuY7Ll85ALkHJDLMvTrhet91mqJbSwz29dI2PChWp667g2qEth2FOnrlOfjfbdJDtxOk3jWvqnf",
-	"IMNug8wbkxVXobV2VxbqqNfGDe3pcmZoeyrjVyKlq/StbWV1DImu0wpEaVmBzCWQl/igwzPqQ8TKgn4n",
-	"h8Vn+L+qVjDZh+8fIw31m8qpUtpLRm3gfC1tpMt+A1X8beStFQ9szEJTRjPF2ldfPvtBwnK1GV/JT8eb",
-	"8Zbah04hSsIKUY14CXFaMHTZfqpbtC1DMWUJSkoC+91c5F9Mb7c7KIWV/kLHv1ROFq2jfO2It2Hlpds0",
-	"Y1qS4gT9WthE0A2ZRNBd9G5zBYdKfKsOon/gNdG7OWX3+0//ePoxThFPPr5wnbK1y1rKdnBuuuvFxeW5",
-	"TkepKHBy/Pbk7LUO9p+enbweva3nwNYBCNCijirfQDUxiysUU5LwcLaOSiZS8sjbIeb0+bPhvkoJ4wJm",
-	"uTRb3o1P1C/+oAS5aU5bqYMmpD4SxlYtdKHlIaWLj+n0+f0EPrUOdq2hYMCCs00BtblGSYCiYXqGKVdb",
-	"LkC6ehFJnW5Ok7tO0ZYqGyZ4h9IttknL7nX6A2c3Dqzd8A8n+8/vk/s7TD7ONf7HviPSOE04a0baTCpx",
-	"o1qsjqoM3p/6XO4f1Aze46zIgGU0yclcf+CmLUnzNU3pnU5o6uusPflhdPRs2PNOTwOFAWAcLI69wgDP",
-	"GHlnGui1tMpd3vp2SdnxunXDfvAPLlknx7EoGNoiNlLl4z2itRlqi2tBd+xPp1Oua2b6yfPveIfkpJM5",
-	"wy4Ro1j+4n+je42CFE54H1Od+einIqmvwVuJA+JAexTNhcj50WAAb6GAjPdnWMyLifTATCuNfkyzQTHY",
-	"PzzYPzwYDv/19n8dStz+g/K5C0254PJMqA0W/uHwYPjk2Qu9sKSH9YMad4VwgtK1rmQ6Z1LqqXvlpY2X",
-	"krJGrvo+n7FZfPgDvps924/sds7L2E/XTan4ddj+67irW5M5Y3enZ2zs6jxfIxp9T9HvuHga4+HTpDBt",
-	"hTGZUtuYBeqMaMuSNMsoAS+halFcsNRhilj9bQoFkjztFWD4fS2PL0aRX/LDnZjPUbTfH+rGryohJjqK",
-	"nvSH/WGk2hLPFboHMMeD232TQbPHbM+1YKHKKySkiK8V+QDI3eBMX3VwRVqQS3u8bDN0XGumVuunezAc",
-	"tkm5ctygrc2cailTZBlkC7Nare2aKi+bcUn+M5IAJXh+ld+Edj5IVR5oKwIQSXKKiTD9K3WbV5X1SqfS",
-	"5UG3Tiq7Rs93ttFGTLMJJlqBqswakzUD4hR/72Gt2qlOTVU0Mxl5cjPB7L+y2mGRI4D7qA8qrhrAO77H",
-	"Oe3rv/I5LdIETBBAJKbSY1PjwQTGNzyFfA72rovh8AkC/+NAXdpGR9HHArFFJeFMtkbVYMjad/6iwduj",
-	"4BYQyzDnyggQx4wAdVR7EmZTF8cQR9lEMR5gNEVAQqOBVwWopjWaxl8L5M1V+lYgVHvpBC2845LYtCAC",
-	"KDUZWswMUP5W+/y/ho9E5+ZOnWxdL8vZT3XwWyz/JEcdDg9Xn9B629nGuVRLN9tuTqA8HFSnkZkq0Naz",
-	"+YmplxYeloqnxLQ2Dti/1+SanBkxpRMQKUkXZZmZSt1yJUctVx8CXVlRxQaoyoFENls/VfkCgvYAZbUv",
-	"E8TxTPcb06Ky7EEaLNcdlZVZCUWc/E2ADCF1l86Vja8DobwHIPi38fjicLgPCgILMacM/4ES019XxY11",
-	"i11fIksZ+ArVb3K2Yr5uVQjNWt0lzLa/NrPtgEUl+zikCCsOTwyrIy/VaXXimX0RpLI9dDu8Jcd/FdMP",
-	"yuLWpezvl8HWT1wfXJPxvOQOKURrvXJHp/zbOWk9J2X75B0YMH4r5i/H+U2jqWKhL3cIpC7vZpUq6Jtm",
-	"qW9QyQkbNuQqo+olTgVidWafLFT5RplzpH3ffovyrxJYPSsp3LFnldmBSMwWuc4svVE5Y6rQCpMZyHVf",
-	"Sx2gmdIWiAi6F7brwdrmyFoWeqNzdnc73TxkINmMhvJ69FWAXykfIHizBL+Kf/9Ik0X7lpy3EgdtDyU+",
-	"eDjafwStaW+lfWVpb0SUBBhuJDf2t5MbhhBhpWmpuPRQdzPq/EBmgNRfwKJpp81Xasg4J+tRBHgvyosA",
-	"DfUbGLxJx46tacLk1nN+rpP9Zbhn6KPyR5gAB0zDYQ10O3aOw1D1QW+pAC9pQdSIp6GlRkQgRmAKrhCT",
-	"ZphiuQaraSrsRAIMIIvn+FZf6TwWdwb1yRvIbnjTNZU2qAYo6V+TY7IAOSLqwSnbf9vYpZg3ar51pWUM",
-	"SYzSNGRXKrwc68n/64qskus2F3QGhzX268ptRrq0m5VVM25b1DTHXFC2MK93OjbgmsrpZ7v0IxhZOxIJ",
-	"y/RJEx+fUb+sSdvBJ/PTQwcql+3w7PbCV6gdifvNAHEYpsLJZ2KUXnCiW4c0m7NcdTPcZq+qe3BQdvOt",
-	"c8wrZB6AWeV8fu2eXuMZm4B7V2JgTcdOGn86bmQKjE/ojGBBdbgnpzQF2D7niAicBJWs88z35qZh7ZXw",
-	"x/T3zNs8X4mTtwPVbEhZ9h1aZRJqXhl8mul30lYLbK+JqmaZfuuBe0yJ3Eo+KYY90ahGA6eecQOhaPC0",
-	"pSyzb8kt9b7XeYbOw37wKb+NDJ/ljwJ+OU5XKGpDxkq+t18O+ILEyvUJSsbLgtSxLoeDEtWAEpCgDJKk",
-	"lQBXcv4w3ndnOWyNTAklsCB3wV/ZUWR5eLgaFkpPuHD++vi3sLUao463r1+EGB7mulNj8KlqsLk8tlcm",
-	"LUwW+g7dk95OM6tHE+AVTf5sNOiiLGrNTrfRF2H6DiCbtZ+/mTSIpeySFNGLAT1ionu2qmernWiKU4DW",
-	"ygvHcsUt+WH169I/fWG1Up4NyGbAAP71csDgE2Qz+R8nBXupCee28m2LqVw4KNCveoOx81kGFzrYFs9V",
-	"lykKGJoyxHVbKvXrnmq2phsVmT9+AMpVAiXe+kvVQvXc+yqfDRPbdKBaXz245EJl8fY3XntqPeDBma9C",
-	"/lvVF2IjBy7wgv1XIuMUrzv59J+P2cNBA8XTuzo05XukHSwVU1UFGQJc4DRd0Y9tOQublTf19VteaA2Q",
-	"0e89ptqE2cdO1wgG/Ihm2AiJWns5u38tMUiVjOL2EQnFAmq42Dwm0HgjcmlsYDlmw69Nbujp10ihcOf3",
-	"T2vHWfSwgmkrca/+b6y6BIV73FyijN7qCz/3pdtGHywpGPUMOmKWQAFrhYNYqGQkV1/o8Umts1id2Kdq",
-	"hE/sdfm+hTo1POu1lm9TVZMsy9fSyHDbIjVCz+2M7VhEj7tRcwu/ZJfbiWrDVDuVsz7LDtyuTI8MXJtY",
-	"G03BZUFUo/haJMMJZpp2yuom8Y5hY0w0DSJTWFsv++KCMjjTNodqqSlNESxUulzrsgnm7rplkntCEQeE",
-	"qkYMAaFqcLk9AzZnWsaIdmzzjdy1vNM29mi2Ovtcx7bRLe7RvVy/RV3X0OVaG/9zyATVWnLwSf4zIgm6",
-	"XyolQlXMSCIjQffyROqqN3Mw1Sz6VKpKZ1MVGdhyuXiXzToVlI8itoqWRxxMRV+ztazH3VfFJMN1Br8S",
-	"aCOLy+toZ4//ikyd7RXeuxWEdOSP0xpwJ1LIupBfUEnZvm28vYdfPbc899rHFrmy3d5LJaZTrE0m9sFw",
-	"CM5/Kl+iVy0kTCI4Q8rdcVoJqixtrn1+/bN9oG5KC6Kaa2PCcxQLG0tyPk7K3nlVq+Jmx1jzKl4LrIfD",
-	"YQUobrwpE0NCqJCwlJ0GwXcSLaaGtef1nOd+e2a5X0ysxPneP02WFJ/Hzvu5Fr7wK8orpu+sdW261Ipw",
-	"kFOJABUZzFetedyX1YilQppmWJjAohxWljDoVXiRCr5B8naghUG9J4XtVPFXSOq2qG5hmv9DCwZenY1L",
-	"y3Edthh8KhuSdMjSqXL0qrYS4Yycqm3Ro5lT9cZmO62d21EAGTrPyGxax+G0i9nGDivf8QsS+CUS8bxR",
-	"jBTMnXln/vCnTp2Rm2ih2mWwLmvDJBrbLW+7HBrTq2HDcJne6+Nn0Cgo/3oJNLZRxipxqrhk8En+YwTp",
-	"6qOtB+/GYjT2MrQ8F6eFSpbWeVy6JpDPce4X2akPwzzWmTG2fWa00SfC6VfSvCN8zNKANhaulQP8ObjX",
-	"sMNq7l1pHapbBTuqf03GqnGm6ZHpXOPp3kMcLGghTbypUihlqr6+S5F/k+6D/j5c8PkXMy35nN5VaFAv",
-	"fJdvL9b7jU4p6wEGTW96SNq+mkOu23yJOco4Sm8Rb72+1FMvv7/8q1nDimGzhevBhE2vllqU2uPvgZa4",
-	"ylVVZhDICi5M3vqikaqu39HL4I0przLmMnhXFnU7tdD+o/NuYbZ6K8zWcRtOcFdiaIoYIjHifXAu2ecO",
-	"c2TrrsHh8LByoW1xzPKa69qjuJtbHmaCz2F8lGsssT9C2n2FfR6Qk4McarYJCssE8zyFC6BOfVmB1APo",
-	"Psfq3Tedi3BLb1SLzlKorpSEF1A/RflntrrX9mKD+C/ymNqOkUtp4JWLqTsZ+9h7Xbiqx6B0C9J0Yd5C",
-	"A5SpnJ+kSPURnahLXSkH9DvDmIBpIQqGViuydxbobyRcN+JQdo9oxgGtCrUvQJYNmfULj1b5KXGtBDZY",
-	"HQCxnS/kAGw6GZVWRTPjvWQhCYHtky6cZrYKwu8IFejIvjUbNAFsb7Hast+39sP4Fln5WiIrIRayJXGd",
-	"7zJt907vPq80GtwcDJcJKQFSz1Q2ijoGNFWiiyFOCxaj4O2nNh8e4dpz3acgA4B0vQo1JlDzpa+vkReU",
-	"MO/CBFrqfx7qWzXxyGWSepmvUYQYBrJ4+Lo4RxuPHWvxNwOhNZSkXBTpp2sg/Kh/qcQWYA5vbd+IRHr5",
-	"KTJBTRP2NL6ybuweiHCqFXak0TonlA//PCX2J4YE6zsqLjepZwL4ZzG2gmmwbkv7zbNga7N8LXnT9kgg",
-	"u7evS46w8h2czy5HdB/5gPQo3xTSHWtBFVIsn+JRkZUJ8trQeZEUkwSgP5esiRmgd1XwrOfmN5gWeSta",
-	"23kcrDeyRTykPsFGOTN2ipZLK43pzYUE1qxCb9BarIJ3xCq6c6zroRsNpGGqslzQLaYFlz66ceT74Gw6",
-	"Rdphx1mGEgwFShcgRER6g5Zrmj+9trg06CI2htGVIfT1le6R37nsuypGrmInKZ3NdL/lcDfqV0i8QRtp",
-	"gONCzOsXt516rXhmn9uhtumtd8STe823QqFa374VG+XN2xe61HqMZjVwCTJ7j3QxqqBQjbL0tFV396PB",
-	"IKUxTOeUi6Pnw+fDSAoiA1rZG74E8aFX/k7flz38+vD/AwAA//+4v5KwzcEAAA==",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

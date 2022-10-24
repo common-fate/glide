@@ -14,7 +14,7 @@ import (
 )
 
 type Args struct {
-	Vault string `json:"vault" jsonschema:"title=Vault,description=The name of an example vault to grant access to (can be any string),default=demovault"`
+	Vault string `json:"vault"`
 }
 
 // Grant the access

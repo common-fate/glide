@@ -5,6 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { Selectable } from './selectable';
+import type { With } from './with';
 
-export type AccessRuleTargetDetailWithSelectable = {[key: string]: Selectable};
+export type RequestDetailArguments = {[key: string]: With};

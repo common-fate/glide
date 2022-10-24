@@ -27,6 +27,7 @@ export type StackOutputs = {
   Region: string;
   PaginationKMSKeyARN: string;
   AccessHandlerExecutionRoleARN: string;
+  CacheSyncLogGroupName: string;
   RestAPIExecutionRoleARN: string;
   IDPSyncExecutionRoleARN: string;
 };
