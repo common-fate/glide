@@ -239,9 +239,10 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 			if err != nil {
 				return err
 			}
+			dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
+
 		}
 
-		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
 	}
 
 	clio.Info("Updating your deployment config")

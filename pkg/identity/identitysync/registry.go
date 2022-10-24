@@ -14,7 +14,7 @@ const (
 	IDPTypeAzureAD  = "azure"
 	IDPTypeGoogle   = "google"
 	IDPTypeAWSSSO   = "aws-sso"
-	IDPTypeOneLogin = "one login"
+	IDPTypeOneLogin = "one-login"
 )
 
 type RegisteredIdentityProvider struct {

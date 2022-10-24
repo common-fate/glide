@@ -21,12 +21,12 @@ type OneLoginSync struct {
 	// This is initialised during the Init function call and is not saved in config
 	token gconfig.SecretStringValue
 
-	baseUrl gconfig.StringValue
+	baseURL gconfig.StringValue
 }
 
 func (s *OneLoginSync) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("baseUrl", &s.clientID, "your tenants One Login URL (eg. https://{tenancy}.onelogin.com)"),
+		gconfig.StringField("baseURL", &s.baseURL, "your tenants One Login URL (eg. https://{tenancy}.onelogin.com)"),
 		gconfig.StringField("clientId", &s.clientID, "the One Login client ID"),
 		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the One Login client secret", gconfig.WithNoArgs("/granted/secrets/identity/one-login/secret")),
 	}
@@ -34,7 +34,7 @@ func (s *OneLoginSync) Config() gconfig.Config {
 
 func (s *OneLoginSync) Init(ctx context.Context) error {
 
-	url := s.baseUrl.Get() + "/auth/oauth2/v2/token"
+	url := s.baseURL.Get() + "/auth/oauth2/v2/token"
 
 	var jsonStr = []byte(`{ "grant_type": "client_credentials"}`)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
@@ -106,8 +106,7 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 	//get all users
 	var idpUsers []identity.IDPUser
 	hasMore := true
-	var nextToken *string
-	url := s.baseUrl.Get() + "/api/1/users"
+	url := s.baseURL.Get() + "/api/1/users"
 
 	for hasMore {
 
@@ -142,7 +141,7 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 			}
 			idpUsers = append(idpUsers, user)
 		}
-		if nextToken != nil {
+		if lu.Pagination.NextLink != nil {
 			url = *lu.Pagination.NextLink
 		} else {
 			hasMore = false
@@ -155,8 +154,8 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 func (s *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 	var idpGroups = []identity.IDPGroup{}
 	hasMore := true
-	var nextToken *string
-	url := s.baseUrl.Get() + "/api/1/roles"
+
+	url := s.baseURL.Get() + "/api/1/roles"
 
 	for hasMore {
 
@@ -189,7 +188,7 @@ func (s *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, err
 
 			idpGroups = append(idpGroups, group)
 		}
-		if nextToken != nil {
+		if lu.Pagination.NextLink != nil {
 			url = *lu.Pagination.NextLink
 		} else {
 			hasMore = false
