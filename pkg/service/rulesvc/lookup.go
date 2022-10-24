@@ -3,7 +3,6 @@ package rulesvc
 import (
 	"context"
 	"sort"
-	"strings"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
@@ -110,14 +109,7 @@ Filterloop:
 						continue Filterloop
 					}
 					for _, po := range permissionSets {
-						// The label is not good to match on, but for our current data structures it's the best we've got.
-						// If the Permission Set has a description, the label looks like:
-						// <RoleName>: <Role Description>
-						//
-						// So we can match it with strings.HasPrefix.
-						// Note: in some cases this could lead to users being presented multiple Access Rules, if
-						// a role name is a superset of another.
-						if strings.HasPrefix(po.Label, opts.Fields.RoleName) {
+						if po.Label == opts.Fields.RoleName {
 							// Does this rule contain the matched permission set as an option?
 							// if so then we included it in the results
 							if contains(rulePermissionSetARNs, po.Value) {
