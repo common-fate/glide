@@ -71,6 +71,7 @@ func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]Looked
 	// store the matching rules and return results
 
 	providerOptionsCache := newProviderOptionsCache(s.DB)
+	providerGroupOptionsCache := newproviderGroupOptionsCache(s.DB)
 Filterloop:
 	for _, r := range q.Result {
 		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
@@ -90,17 +91,31 @@ Filterloop:
 				} else {
 					ruleAccIds = append(ruleAccIds, singleRuleAccId)
 				}
+				groups, ok := r.Target.WithArgumentGroupOptions["accountId"]
+				if ok {
+					for group, values := range groups {
+						for _, value := range values {
+							accounts, err := providerGroupOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "accountId", group, value)
+							if err != nil {
+								logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+								continue Filterloop
+							}
+							ruleAccIds = append(ruleAccIds, accounts...)
+						}
+
+					}
+
+				}
 				if contains(ruleAccIds, opts.Fields.AccountID) {
 					// we must support string and []string for With/WithSelectable
 					rulePermissionSetARNs := []string{}
 					singleRulePermissionSetARN, ok := r.Target.With["permissionSetArn"]
-					if !ok {
-						rulePermissionSetARNs, ok = r.Target.WithSelectable["permissionSetArn"]
-						if !ok {
-							continue Filterloop // if not found continue
-						}
-					} else {
+					if ok {
 						rulePermissionSetARNs = append(rulePermissionSetARNs, singleRulePermissionSetARN)
+					}
+					selectable, ok := r.Target.WithSelectable["permissionSetArn"]
+					if ok {
+						rulePermissionSetARNs = append(rulePermissionSetARNs, selectable...)
 					}
 					// lookup the permission set options from the cache, the cache allows us to only looks these up once
 					permissionSets, err := providerOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "permissionSetArn")
@@ -210,4 +225,49 @@ func (p *providerOptionsCache) FetchOptions(ctx context.Context, id, arg string)
 		}
 	}
 	return p.providers[id][arg], nil
+}
+
+// A helper used with LookupAccessRule to cache provider options
+type providerGroupOptionsCache struct {
+	providers map[string]map[string]map[string]map[string][]string
+	db        ddb.Storage
+}
+
+func newproviderGroupOptionsCache(db ddb.Storage) *providerGroupOptionsCache {
+	return &providerGroupOptionsCache{
+		providers: make(map[string]map[string]map[string]map[string][]string),
+		db:        db,
+	}
+}
+
+// FetchOptions first checks whether the value has already been looked up and returns it else it looks it up
+func (p *providerGroupOptionsCache) FetchOptions(ctx context.Context, id, arg, groupID, groupValue string) ([]string, error) {
+	if p.providers != nil {
+		if provider, ok := p.providers[id]; ok {
+			if groups, ok := provider[arg]; ok {
+				if group, ok := groups[groupID]; ok {
+					if value, ok := group[groupValue]; ok {
+						return value, nil
+					}
+				} else {
+					groups[groupID] = make(map[string][]string)
+				}
+			} else {
+				provider[arg] = make(map[string]map[string][]string)
+			}
+		} else {
+			p.providers[id] = make(map[string]map[string]map[string][]string)
+		}
+	} else {
+		p.providers = make(map[string]map[string]map[string]map[string][]string)
+	}
+	q := storage.GetCachedProviderArgGroupOptionValueForArg{ProviderID: id, ArgID: arg, GroupId: groupID, GroupValue: groupValue}
+	_, err := p.db.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return nil, err
+	}
+	if q.Result != nil {
+		p.providers[id][arg][groupID][groupValue] = q.Result.Children
+	}
+	return p.providers[id][arg][groupID][groupValue], nil
 }
