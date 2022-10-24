@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/invopop/jsonschema"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 )
 
 type Provider struct {
@@ -17,7 +18,14 @@ func (p *Provider) Configure(ctx context.Context, jsonConfig []byte) error {
 
 }
 
-// ArgSchema returns the schema for the Okta provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"group": {
+			Id:          "group",
+			Title:       "Group",
+			FormElement: types.INPUT,
+		},
+	}
+
+	return arg
 }

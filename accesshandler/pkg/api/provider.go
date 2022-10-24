@@ -46,8 +46,7 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 		apio.ErrorString(ctx, w, "provider does not accept arguments", http.StatusBadRequest)
 		return
 	}
-
-	apio.JSON(ctx, w, as.ArgSchema(), http.StatusOK)
+	apio.JSON(ctx, w, as.ArgSchema().ToAPI(), http.StatusOK)
 }
 
 func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
@@ -58,16 +57,10 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		return
 	}
 
-	res := types.ArgOptionsResponse{
-		Options: []types.Option{},
-	}
-
 	ao, ok := prov.Provider.(providers.ArgOptioner)
 	if !ok {
 		logger.Get(ctx).Infow("provider does not provide argument options", "provider.id", providerId)
-		// we don't have any options to provide for this argument.
-		res.HasOptions = false
-		apio.JSON(ctx, w, res, http.StatusOK)
+		apio.ErrorString(ctx, w, "provider does not provide argument options", http.StatusBadRequest)
 		return
 	}
 
@@ -83,10 +76,7 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 		return
 	}
 
-	res.HasOptions = true
-	res.Options = append(res.Options, options...)
-
-	apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, options, http.StatusOK)
 }
 
 // Refresh Access Providers

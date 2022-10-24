@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"sync"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
@@ -19,7 +18,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 	"github.com/common-fate/granted-approvals/pkg/types"
-	"golang.org/x/sync/errgroup"
 )
 
 type CreateRequestResult struct {
@@ -49,7 +47,12 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	}
 
 	now := s.Clock.Now()
-	err = requestIsValid(in, rule)
+
+	requestArguments, err := s.Rules.RequestArguments(ctx, rule.Target)
+	if err != nil {
+		return nil, err
+	}
+	err = validateRequest(in, rule, requestArguments)
 	if err != nil {
 		return nil, err
 	}
@@ -69,44 +72,26 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		RuleVersion:     rule.Version,
 		SelectedWith:    make(map[string]access.Option),
 	}
-
-	if in.With != nil {
-		argOptionsLabels := make(map[string]map[string]string)
-		var mu sync.Mutex
-		g, gctx := errgroup.WithContext(ctx)
-		for k := range in.With.AdditionalProperties {
-			kCopy := k
-			g.Go(func() error {
-				_, opts, err := s.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
-				if err != nil {
-					return err
-				}
-				labels := make(map[string]string)
-				for _, op := range opts {
-					labels[op.Value] = op.Label
-				}
-				mu.Lock()
-				defer mu.Unlock()
-				argOptionsLabels[kCopy] = labels
-				return nil
-			})
-		}
-		err = g.Wait()
-		if err != nil {
-			return nil, err
-		}
+	if in.With != nil && in.With.AdditionalProperties != nil {
 		for k, v := range in.With.AdditionalProperties {
-			labels, ok := argOptionsLabels[k]
-			if !ok {
-				return nil, fmt.Errorf("options not found for arg %s", k)
+			argument := requestArguments[k]
+			found := false
+			for _, option := range argument.Options {
+				// because validation has passed, we can have certainty that the matching value will be found here
+				// as a fallback, return an error if it is not found because something has gone seriously wrong with validation
+				if option.Value == v {
+					req.SelectedWith[k] = access.Option{
+						Value:       option.Value,
+						Label:       option.Label,
+						Description: option.Description,
+					}
+					found = true
+					break
+				}
 			}
-			label, ok := labels[v]
-			if !ok {
-				return nil, fmt.Errorf("no matching option found for value %s for arg %s", v, k)
-			}
-			req.SelectedWith[k] = access.Option{
-				Value: v,
-				Label: label,
+			if !found {
+				// this should never happen but here just in case
+				return nil, errors.New("unexpected error, failed to find a matching option for a with argument when creating a new access request")
 			}
 		}
 	}
@@ -236,7 +221,7 @@ func groupMatches(ruleGroups []string, userGroups []string) error {
 
 // requestIsValid checks that the request meets the constraints of the rule
 // Add additional constraint checks here in this method.
-func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) error {
+func validateRequest(request types.CreateRequestRequest, rule *rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
 	if request.Timing.DurationSeconds > rule.TimeConstraints.MaxDurationSeconds {
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
@@ -249,39 +234,49 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 			},
 		}
 	}
-	given := types.CreateRequestWith{AdditionalProperties: make(map[string]string)}
+
+	given := make(map[string]string)
 	expected := make(map[string][]string)
-
-	if request.With != nil {
-		given = *request.With
+	if request.With != nil && request.With.AdditionalProperties != nil {
+		given = request.With.AdditionalProperties
 	}
-	if rule.Target.WithSelectable != nil {
-		expected = rule.Target.WithSelectable
+	for k, v := range requestArguments {
+		if v.RequiresSelection {
+			options := make([]string, len(v.Options))
+			for _, o := range v.Options {
+				if o.Valid {
+					options = append(options, o.Value)
+				}
+			}
+			expected[k] = options
+		}
 	}
 
-	if len(given.AdditionalProperties) != len(expected) {
+	// assert they are the same length.
+	// the user provided the expected number of values based on the requestArguments
+	if len(given) != len(expected) {
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
 			Status: http.StatusBadRequest,
 			Fields: []apio.FieldError{
 				{
 					Field: "with",
-					Error: "unexpected with values",
+					Error: "unexpected number of arguments in 'with' field",
 				},
 			},
 		}
 	}
-
-	for arg, options := range expected {
-		value, ok := given.AdditionalProperties[arg]
-		if !ok || !contains(options, value) {
+	// assert that the given argument ids are expected and the the value is an allowed value
+	for argumentId, allowedValues := range expected {
+		givenArgumentValue, ok := given[argumentId]
+		if !ok || !contains(allowedValues, givenArgumentValue) {
 			return &apio.APIError{
 				Err:    errors.New("request validation failed"),
 				Status: http.StatusBadRequest,
 				Fields: []apio.FieldError{
 					{
 						Field: "with",
-						Error: fmt.Sprintf("unexpected with value for %s", arg),
+						Error: fmt.Sprintf("unexpected value given for argument %s in with field", argumentId),
 					},
 				},
 			}
@@ -289,6 +284,7 @@ func requestIsValid(request types.CreateRequestRequest, rule *rule.AccessRule) e
 	}
 	return nil
 }
+
 func contains(set []string, str string) bool {
 	for _, s := range set {
 		if s == str {

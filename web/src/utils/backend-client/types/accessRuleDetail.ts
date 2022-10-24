@@ -8,7 +8,7 @@
 import type { AccessRuleStatus } from './accessRuleStatus';
 import type { ApproverConfig } from './approverConfig';
 import type { AccessRuleMetadata } from './accessRuleMetadata';
-import type { AccessRuleTarget } from './accessRuleTarget';
+import type { AccessRuleTargetDetail } from './accessRuleTargetDetail';
 import type { TimeConstraints } from './timeConstraints';
 
 /**
@@ -27,7 +27,7 @@ When a rule is updated, it's ID remains consistent.
   name: string;
   description: string;
   metadata: AccessRuleMetadata;
-  target: AccessRuleTarget;
+  target: AccessRuleTargetDetail;
   timeConstraints: TimeConstraints;
   isCurrent: boolean;
 }

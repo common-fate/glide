@@ -181,16 +181,13 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
-	pq := storage.ListCachedProviderOptions{
-		ProviderID: qr.Result.Target.ProviderID,
-	}
-	_, err = a.DB.Query(ctx, &pq)
-	if err != nil && err != ddb.ErrNoItems {
+	requestArguments, err := a.Rules.RequestArguments(ctx, qr.Result.Target)
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 	if q.Result.RequestedBy == u.ID {
-		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false, pq.Result), http.StatusOK)
+		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false, requestArguments), http.StatusOK)
 		return
 	}
 	qrv := storage.GetRequestReviewer{RequestID: requestId, ReviewerID: u.ID}
@@ -203,7 +200,7 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, pq.Result), http.StatusOK)
+	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, requestArguments), http.StatusOK)
 }
 
 // Creates a request

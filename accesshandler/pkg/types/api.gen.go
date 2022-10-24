@@ -24,6 +24,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Defines values for ArgumentFormElement.
+const (
+	INPUT       ArgumentFormElement = "INPUT"
+	MULTISELECT ArgumentFormElement = "MULTISELECT"
+)
+
 // Defines values for GrantStatus.
 const (
 	GrantStatusACTIVE  GrantStatus = "ACTIVE"
@@ -54,6 +60,28 @@ const (
 type AccessInstructions struct {
 	// Instructions on how to access the role or resource.
 	Instructions *string `json:"instructions,omitempty"`
+}
+
+// ArgSchema defines model for ArgSchema.
+type ArgSchema struct {
+	AdditionalProperties map[string]Argument `json:"-"`
+}
+
+// Argument defines model for Argument.
+type Argument struct {
+	Description *string             `json:"description,omitempty"`
+	FormElement ArgumentFormElement `json:"formElement"`
+	Groups      *Argument_Groups    `json:"groups,omitempty"`
+	Id          string              `json:"id"`
+	Title       string              `json:"title"`
+}
+
+// ArgumentFormElement defines model for Argument.FormElement.
+type ArgumentFormElement string
+
+// Argument_Groups defines model for Argument.Groups.
+type Argument_Groups struct {
+	AdditionalProperties map[string]Group `json:"-"`
 }
 
 // A grant to be created.
@@ -112,6 +140,26 @@ type Grant_With struct {
 	AdditionalProperties map[string]string `json:"-"`
 }
 
+// Group defines model for Group.
+type Group struct {
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+}
+
+// GroupOption defines model for GroupOption.
+type GroupOption struct {
+	Children    []string `json:"children"`
+	Description *string  `json:"description,omitempty"`
+	Label       string   `json:"label"`
+	Value       string   `json:"value"`
+}
+
+// Groups defines model for Groups.
+type Groups struct {
+	AdditionalProperties map[string][]GroupOption `json:"-"`
+}
+
 // A log entry.
 type Log struct {
 	// The log level.
@@ -126,8 +174,9 @@ type LogLevel string
 
 // Option defines model for Option.
 type Option struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+	Description *string `json:"description,omitempty"`
+	Label       string  `json:"label"`
+	Value       string  `json:"value"`
 }
 
 // Provider
@@ -167,8 +216,7 @@ type ProviderHealth struct {
 
 // ArgOptionsResponse defines model for ArgOptionsResponse.
 type ArgOptionsResponse struct {
-	// Whether any options have been suggested for the argument.
-	HasOptions bool `json:"hasOptions"`
+	Groups *Groups `json:"groups,omitempty"`
 
 	// The suggested options.
 	Options []Option `json:"options"`
@@ -239,6 +287,112 @@ type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
 
 // ValidateSetupJSONRequestBody defines body for ValidateSetup for application/json ContentType.
 type ValidateSetupJSONRequestBody ValidateRequest
+
+// Getter for additional properties for ArgSchema. Returns the specified
+// element and whether it was found
+func (a ArgSchema) Get(fieldName string) (value Argument, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ArgSchema
+func (a *ArgSchema) Set(fieldName string, value Argument) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Argument)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a *ArgSchema) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Argument)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Argument
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a ArgSchema) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Argument_Groups. Returns the specified
+// element and whether it was found
+func (a Argument_Groups) Get(fieldName string) (value Group, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Argument_Groups
+func (a *Argument_Groups) Set(fieldName string, value Group) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Group)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a *Argument_Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Group)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Group
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a Argument_Groups) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for CreateGrant_With. Returns the specified
 // element and whether it was found
@@ -334,6 +488,59 @@ func (a *Grant_With) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for Grant_With to handle AdditionalProperties
 func (a Grant_With) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Groups. Returns the specified
+// element and whether it was found
+func (a Groups) Get(fieldName string) (value []GroupOption, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Groups
+func (a *Groups) Set(fieldName string, value []GroupOption) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string][]GroupOption)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a *Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string][]GroupOption)
+		for fieldName, fieldBuf := range object {
+			var fieldVal []GroupOption
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a Groups) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1451,7 +1658,7 @@ func (r GetAccessInstructionsResponse) StatusCode() int {
 type GetProviderArgsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]interface{}
+	JSON200      *ArgSchema
 	JSON404      *struct {
 		Error *string `json:"error,omitempty"`
 	}
@@ -1480,8 +1687,7 @@ type ListProviderArgOptionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// Whether any options have been suggested for the argument.
-		HasOptions bool `json:"hasOptions"`
+		Groups *Groups `json:"groups,omitempty"`
 
 		// The suggested options.
 		Options []Option `json:"options"`
@@ -2046,7 +2252,7 @@ func ParseGetProviderArgsResponse(rsp *http.Response) (*GetProviderArgsResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]interface{}
+		var dest ArgSchema
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2091,8 +2297,7 @@ func ParseListProviderArgOptionsResponse(rsp *http.Response) (*ListProviderArgOp
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// Whether any options have been suggested for the argument.
-			HasOptions bool `json:"hasOptions"`
+			Groups *Groups `json:"groups,omitempty"`
 
 			// The suggested options.
 			Options []Option `json:"options"`
@@ -2656,53 +2861,56 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xbbW8bNxL+KwTvgNwBqzc7MWp9qi92XV1ysSH7ksO1QUPtjlZsdskNyZWrM/TfD3zZ",
-	"d66lSCmSAu2XyrtLcjjzzMwzQ+YRhzzNOAOmJJ4+YgGfcpDqHzyiYB68JQmNiIK5faEfhZwpYOYnybKE",
-	"hkRRzka/Ss70MxmuICX6VyZ4BkK5mXJp/x+BDAXN9Bg8xfcrQMs8SZDaZIAiWFJG9SvEl0itAGWCr2kE",
-	"AgcYfiNplgCeaplTzpZEwYg8yIGUHAdYT4CnWCpBWYy3AX6gamWEjCIzJUluGwJ1BnQlK1Z/JlHI2ZLG",
-	"uTCbHVbr8cWvECoc4N8GMR+4hynJfrLzvi+m3wZGuVRAhKc/WW04Gd+3J9vq//T3MuPMqe1CxDdGNDl3",
-	"j4+wxYpIN1nXIu9WoFYgEGEbxO1HaEXWgBYADMk8jkEqiNCSC2MhIuI8BaZqOllwngBhWqe8bxmt3moy",
-	"95megypIzfd/FbDEU/yXUQXRkd2QHFnp9QJuSSIE2XS0XNtnJYpP3W3ju1Fmk4Sha0GYqu10G+ArIbj4",
-	"AqYAPY8Hjts9pLxgyAxHAlQumDaK4KmxykUYgpToR8KiBISR2GziC0gc63l2Gcgs1rGHHbqPAS6QpCxO",
-	"wKreyP8jkEStvgT6zUS7dnDrfN8uu59B7LfhCsKPqPBetODRxmygiqVHb2Ftpypcay+fKTb00kSyt+UM",
-	"O72ovtg+tqum1lGcPBFF9VgnnolxBrQzJpXIw564UX+LOEMr/oAUR8TiXUPf5TCItAl4LkIY/sx+Zjrg",
-	"fKC10R/QkkISoQeaJGgBiOk0RJeIcVT/DBEBiKwJTcgiAR2hmqagx4rLE0DGh52w3VymDUSVSX0eFflS",
-	"kVQ8S2i8MsCiEZ7iF2fx2aeHh3GULda/mSlfCiAKrgtvbvuf8VUt6wJQaD6NupsHFvlDO7AIKZpCkcft",
-	"bJSh2d3Nd2fjiY6sKTFJo8rrJ+OTk8H4bDA5vZ9Mpqfn09Px8Pxk8l8cYPs5nmLtQAM9c0dNzRRMJdfr",
-	"DO/1p9vAKOGxGz9pZMwhJY2Z/qVWVCIGD1ZgH60oGYl337PLNnPRs9rdF0bnzV3zj4rgAKeUvQYW68A0",
-	"8SwrFRGqJ43qV0dpe3z6hbUtc4tFPzZSQhNEokhodTiRc9mrqlIaM3C3qo4kfkWcHMgMQrqkoZMpIooM",
-	"0b9yqVBKVLhqWPmZRDaQdalhO5wWuqlByclcWDkwfmUw+75y/bq/+nzeWdZs8UZjqvDPp/yqQnOBQwe0",
-	"p+BRWlfTWPG9W3gY8hRX2o8FzzPtZFFKmcSW0vZGGwVpxgURG+eLmmfZ7FEAQ+cRykKakeSPH4eqtciC",
-	"jKNwQQZj8l04eH56fjog0fnJ4Oz8xWR8enK2ODknfUswkuqHs8s/49K+cUkRlfdUI2EuhEad/qYpsZGP",
-	"5an23turN5ezN9c4wBcv72dvr3CA51dvb15dXeIAX/3ndja3v+bzm3mNLdUU9mdo7A2NNMKljYK9A2Ut",
-	"Rn7h6GiY054eelgkdXiswerw4Pqax77QmvAYAVNi0w2bCawh8SNRjzKv6+CfvfnhBgf43cX8jRW2H+ap",
-	"jPsnTkFKEvdQ3TogrIB2tpqZ9U73o70Tlp4KWJ9/gv+dL8z0rnXQKakSsrC66GxlTZIc/CV6Q1YzQfF5",
-	"TVq3Ygf8QelPXU3dVohvlRuRV0b7YJeIxr/MJzXxakv1CtipGT04q8pERGKiyyITBholHzLKKSOb61IU",
-	"q3QBaio0WRTOPTk+I0LRME+IcIvZwk4WEkEU6LqOsE2jv9Sjw6II9pcMzVxabTlAMg9XiEj0IaFSDaTk",
-	"A+2/8sPQV0QkPN6/cNdo94hns/+jNyX3Jjn7rit/08t/uZ3fXM+v7u5wgO/+/fKl/VXFqD6398HNiFmL",
-	"6m2TOmV4ANkB3aEu32rl9Pfg2pAu/16D67S5yGUA1WBTVLJnCtnW0qZJaC5uZ7/c37y6eoMkhAIUWhGJ",
-	"GFe2o+pmMKrKE9NkwFMlcvDAxk3f37RtiVSXp9ub7cN3OcHs0ssId3FRHwoKyT1mdlbZkbRtiqNsyYu2",
-	"GbEkyi380pwJoB+I0mjLRYKneKVUJqejUXVeMKS8y2oMaYCo1TNFF7cz3G68FC91mAch7fjJcGxb3cBI",
-	"RvEUnw7Hw7GOZUStDMBGJKOj9WRk2JJtooKHAb6mUllGZTrhGqIG+DMN62tQ13Z462TgZDw+tpu7fyxy",
-	"fV1Px3B3T/2VHvfCSutbo9zVqNlcN13CPE2J2BRKKjWhiA6kPxXbeK8LIS49urXVMyKO0RcdwbJzbons",
-	"7NK2AyPIdOXImaeZ/kwikTNdfAzRuxUw/RejLNZfX7y7Q69JuogI0lQN3SnI0A85s626wLaXZpfaNfXE",
-	"lK25tVMtqTTHoAcuPi4T/qCX6aLilss6LIrTu80eiGgzYlRnIyXn2Y8jC/j0y+Tk9PmLs+N7CuFKUPl9",
-	"02d3MN8K3E9ht95A8eDzvixQW03PbcfhJrsh3Dxt2Qb4+QHA/wLu4nBfFkZtf9kGreg0KliTiRVeX3pL",
-	"Ev2BxjBRhUtZx5F5GAJEBv08d9FMO4c5KjR+1MFwwQUKGT8PxgfZfuuPob6A9ZXs1lSKx0yP5v+zaDsS",
-	"sOYfrbmIICkoENrGj734nl1qv9XPdIYqONoUuxlxPX9bJlIpuc343vcF3LmRChGGSGgIVNlK6YtgdsQR",
-	"AGhmNqsWMett/AvIBEhgihYANZ2WkCSJfUClJgHlARFlYZJHECFq04Jzcb1KhGANvvOCFheqZPIe+vtR",
-	"+ccINM7e8R6BpjqA9dKgucnJEmmyJ1J3kGhVbkcWmdKlYURYVJJWOUQzU+u5b81hrERLQhN3OuiOZUMe",
-	"QWnaF+Mx+tuMKRCMJOgOxBoEMrv9u5eJlZz18+3VOsbeV/XtYQ3d186da6p36mnqvtTT0yy0+qy9e/36",
-	"tvb2KC76WQfXHtr5u5LMSgdeBY4ELAXIVX+enEPCSWTAGJJwVZUYxY66t4qaup7bFeyob1vprVhg5G5v",
-	"t0+Rj8XPWbTtheU1qNpdArTYIBp5fbPWzzpKTftppw+Cz8fPv0YU1lrKaqZrMQJP0q90/3l5f6clR5bu",
-	"DdoXJPqta9HSuHxhLmCVOzJlW5Eefry/v0Un4zG6eWWLLYI+sDxJinsdemjrwke7aRNxMG0b98AngRdi",
-	"3lsYT5Kvgl08k80znoKIfcpBbCqjVEcf+1sk8K1Z3FlDGdmYYEQZ+ufdzRt38tazPBGxPG7tqpwtzvwa",
-	"uvIteiD7/N183GPkJ7z9EM51SIzoeLuLsU05v7Lji1juZHcaGwaJd2YpZGmwa7kuypLR4Ve6+6ZUVsHg",
-	"qeB/USD4CHDs2dH6BiK9VpM7ZP0WbD96JCLWf9Ru//ZTTW1mnvnCfeNucT8Lra5GH0TIPTerv55VG8TT",
-	"mLXQ4e9p18A7mTHiwfiQoPJsv2YStd0kCUpRFneSPrrkYA9MnCSdeywLXdfFVCoQEKEBIknSOnfUcYNI",
-	"CRFaU1K/Jmqv59Z5BTHM4vl4XNWKbd4QEmbPb+pHjFpq11MtBrjjSKopBSIMUWa+r1178XfC7rTuuo0Q",
-	"P6xq/2Jj1P7nGgd1FDr3lA9McN5+llZDqyx4VpneRllp6m8L8uokZzoaJTwkyYpLNT0fn59gnf5dsfvY",
-	"YBHaW8onRRm8fb/9fwAAAP//9jcB0O8yAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

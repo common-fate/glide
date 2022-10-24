@@ -4,10 +4,7 @@ import (
 	"time"
 
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -62,8 +59,9 @@ func (g *Grant) ToAPI() types.Grant {
 }
 
 type Option struct {
-	Value string `json:"value" dynamodbav:"value"`
-	Label string `json:"label" dynamodbav:"label"`
+	Value       string  `json:"value" dynamodbav:"value"`
+	Label       string  `json:"label" dynamodbav:"label"`
+	Description *string `json:"description" dynamodbav:"description"`
 }
 
 type Request struct {
@@ -122,18 +120,16 @@ func (r *Request) IsScheduled() bool {
 
 func (r *Request) ToAPI() types.Request {
 	req := types.Request{
-		AccessRule: types.RequestAccessRule{
-			Id:      r.Rule,
-			Version: r.RuleVersion,
-		},
-		Timing:         r.RequestedTiming.ToAPI(),
-		Reason:         r.Data.Reason,
-		ID:             r.ID,
-		RequestedAt:    r.CreatedAt,
-		Requestor:      r.RequestedBy,
-		Status:         types.RequestStatus(r.Status),
-		UpdatedAt:      r.UpdatedAt,
-		ApprovalMethod: r.ApprovalMethod,
+		AccessRuleId:      r.Rule,
+		AccessRuleVersion: r.RuleVersion,
+		Timing:            r.RequestedTiming.ToAPI(),
+		Reason:            r.Data.Reason,
+		ID:                r.ID,
+		RequestedAt:       r.CreatedAt,
+		Requestor:         r.RequestedBy,
+		Status:            types.RequestStatus(r.Status),
+		UpdatedAt:         r.UpdatedAt,
+		ApprovalMethod:    r.ApprovalMethod,
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -148,9 +144,9 @@ func (r *Request) ToAPI() types.Request {
 	return req
 }
 
-func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOptions []cache.ProviderOption) types.RequestDetail {
+func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, requestArguments map[string]types.RequestArgument) types.RequestDetail {
 	req := types.RequestDetail{
-		AccessRule:     accessRule.ToRequestAccessRuleDetailAPI(argOptions),
+		AccessRule:     accessRule.ToAPI(),
 		Timing:         r.RequestedTiming.ToAPI(),
 		Reason:         r.Data.Reason,
 		ID:             r.ID,
@@ -160,29 +156,41 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, argOpt
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
-		SelectedWith: types.RequestDetail_SelectedWith{
+		Arguments: types.RequestDetail_Arguments{
 			AdditionalProperties: make(map[string]types.With),
 		},
 	}
-	// Lookup the provider, ignore errors
-	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(accessRule.Target.ProviderType)
-	for k, v := range r.SelectedWith {
-		with := types.With{
-			Label: v.Label,
-			Value: v.Value,
-			Title: k,
+
+	// gets the option properties from requestArgumenst and maps to the fields selected for this request.
+	// @TODO, it would be simpler if the request stored the value of all arguments rather than just the selected arguments,
+	// because we need to infer which ones were fixed values at the time of teh request which is available in request arguments
+	for k, v := range requestArguments {
+		// in the unexpected case that an option is not found, fallback rather than returning an error
+		option := types.WithOption{
+			Label: "error not found",
+			Value: "error not found",
 		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				t := providers.GetArgumentTitleFromSchema(s.ArgSchema(), k)
-				if t != "" {
-					with.Title = t
+		if !v.RequiresSelection {
+			if len(v.Options) == 1 {
+				option = v.Options[0]
+			}
+		} else {
+			if selected, ok := r.SelectedWith[k]; ok {
+				for _, o := range v.Options {
+					if o.Value == selected.Value {
+						option = o
+					}
 				}
 			}
 		}
-		req.SelectedWith.AdditionalProperties[k] = with
+		with := types.With{
+			Title:             v.Title,
+			FieldDescription:  v.Description,
+			Label:             option.Label,
+			Value:             option.Value,
+			OptionDescription: option.Description,
+		}
+		req.Arguments.AdditionalProperties[k] = with
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()

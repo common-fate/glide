@@ -31,12 +31,13 @@ func TestService_LookupRule(t *testing.T) {
 	}
 
 	tests := []struct {
-		name            string
-		rules           []rule.AccessRule
-		providerOptions []cache.ProviderOption
-		args            LookupRuleOpts
-		want            []LookedUpRule
-		wantErr         bool
+		name                   string
+		rules                  []rule.AccessRule
+		providerOptions        []cache.ProviderOption
+		providerArgGroupOption *cache.ProviderArgGroupOption
+		args                   LookupRuleOpts
+		want                   []LookedUpRule
+		wantErr                bool
 	}{
 		{
 			name:  "no rules returns nil not an error",
@@ -145,26 +146,7 @@ func TestService_LookupRule(t *testing.T) {
 			},
 			want: nil,
 		},
-		{
-			name:  "match where permission set label has a description",
-			rules: []rule.AccessRule{rule1},
-			providerOptions: []cache.ProviderOption{
-				{
-					Provider: "test-provider",
-					Arg:      "permissionSetArn",
-					Label:    "GrantedAdministratorAccess: this is a test permission set",
-					Value:    rule1PermissionSetARN,
-				},
-			},
-			args: LookupRuleOpts{
-				ProviderType: "commonfate/aws-sso",
-				Fields: LookupFields{
-					AccountID: rule1AccountID,
-					RoleName:  "GrantedAdministratorAccess",
-				},
-			},
-			want: []LookedUpRule{{Rule: rule1}},
-		},
+
 		{
 			name:  "provider matches the permissions set arn by label but the rule does not contain the option should return no results",
 			rules: []rule.AccessRule{rule1},
@@ -334,27 +316,6 @@ func TestService_LookupRule(t *testing.T) {
 			want: nil,
 		},
 		{
-			name:  "description label containing extra ':' characters",
-			rules: []rule.AccessRule{rule1},
-			providerOptions: []cache.ProviderOption{
-				{
-					Provider: "test-provider",
-					Arg:      "permissionSetArn",
-					// this should be an invalid description anyway, but test it just in case.
-					Label: "GrantedAdministratorAccess: test::: test: : test",
-					Value: rule1PermissionSetARN,
-				},
-			},
-			args: LookupRuleOpts{
-				ProviderType: "commonfate/aws-sso",
-				Fields: LookupFields{
-					AccountID: rule1AccountID,
-					RoleName:  "GrantedAdministratorAccess",
-				},
-			},
-			want: []LookedUpRule{{Rule: rule1}},
-		},
-		{
 			name:  "no options for provider",
 			rules: []rule.AccessRule{rule1},
 			args: LookupRuleOpts{
@@ -366,12 +327,74 @@ func TestService_LookupRule(t *testing.T) {
 			},
 			want: nil,
 		},
+		{
+			name: "match via arg group",
+			rules: []rule.AccessRule{
+				{
+					ID: "test",
+					Target: rule.Target{
+						ProviderID:   "test-provider",
+						ProviderType: "aws-sso",
+						With: map[string]string{
+							"permissionSetArn": rule1PermissionSetARN,
+						},
+						WithArgumentGroupOptions: map[string]map[string][]string{
+							"accountId": {
+								"organizationalUnit": {"orgUnit1"},
+							},
+						},
+					},
+				},
+			},
+			providerOptions: []cache.ProviderOption{
+				{
+					Provider: "test-provider",
+					Arg:      "permissionSetArn",
+					Label:    "GrantedAdministratorAccess",
+					Value:    rule1PermissionSetARN,
+				},
+			},
+			args: LookupRuleOpts{
+				ProviderType: "commonfate/aws-sso",
+				Fields: LookupFields{
+					AccountID: rule1AccountID,
+					RoleName:  "GrantedAdministratorAccess",
+				},
+			},
+			providerArgGroupOption: &cache.ProviderArgGroupOption{
+				Provider: "test-provider",
+				Arg:      "accountId",
+				Group:    "organizationalUnit",
+				Value:    "orgUnit1",
+				Children: []string{rule1AccountID},
+			},
+			want: []LookedUpRule{
+				{
+					Rule: rule.AccessRule{
+						ID: "test",
+						Target: rule.Target{
+							ProviderID:   "test-provider",
+							ProviderType: "aws-sso",
+							With: map[string]string{
+								"permissionSetArn": rule1PermissionSetARN,
+							},
+							WithArgumentGroupOptions: map[string]map[string][]string{
+								"accountId": {
+									"organizationalUnit": {"orgUnit1"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.ListAccessRulesForGroupsAndStatus{Result: tt.rules})
 			db.MockQuery(&storage.ListCachedProviderOptionsForArg{Result: tt.providerOptions})
+			db.MockQuery(&storage.GetCachedProviderArgGroupOptionValueForArg{Result: tt.providerArgGroupOption})
 
 			s := &Service{
 				DB: db,

@@ -94,6 +94,7 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
+
 	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
 }
 
@@ -266,15 +267,12 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	pq := storage.ListCachedProviderOptions{
-		ProviderID: rule.Target.ProviderID,
-	}
-	_, err = a.DB.Query(ctx, &pq)
-	if err != nil && err != ddb.ErrNoItems {
+	requestArguments, err := a.Rules.RequestArguments(ctx, rule.Target)
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, rule.ToAPIWithSelectables(pq.Result), http.StatusOK)
+	apio.JSON(ctx, w, rule.ToRequestAccessRuleAPI(requestArguments), http.StatusOK)
 }
 
 func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request, ruleId string) {

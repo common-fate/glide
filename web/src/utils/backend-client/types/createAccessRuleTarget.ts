@@ -8,10 +8,9 @@
 import type { CreateAccessRuleTargetWith } from './createAccessRuleTargetWith';
 
 /**
- * A target for an access rule
+ * a request body for creating a Access Rule Target
  */
 export interface CreateAccessRuleTarget {
   providerId: string;
-  /** The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule. */
   with: CreateAccessRuleTargetWith;
 }

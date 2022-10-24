@@ -12,7 +12,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testgroups"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/invopop/jsonschema"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -105,7 +104,7 @@ func TestGetProviderArgs(t *testing.T) {
 	type testcase struct {
 		name           string
 		giveProviderId string
-		wantBody       *jsonschema.Schema
+		wantBody       *types.ArgSchema
 		wantCode       int
 		wantErr        string
 	}
@@ -120,8 +119,9 @@ func TestGetProviderArgs(t *testing.T) {
 
 	notFoundErr := &providers.ProviderNotFoundError{Provider: "badid"}
 
+	schema := tg.ArgSchema().ToAPI()
 	testcases := []testcase{
-		{name: "ok", giveProviderId: "test", wantCode: http.StatusOK, wantBody: tg.ArgSchema()},
+		{name: "ok", giveProviderId: "test", wantCode: http.StatusOK, wantBody: &schema},
 		{name: "not found", giveProviderId: "badid", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 	}
 
@@ -189,7 +189,7 @@ func TestListProviderArgOptions(t *testing.T) {
 		},
 	})
 	testcases := []testcase{
-		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{HasOptions: true, Options: options}},
+		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{Options: options}},
 		{name: "provider not found", giveProviderId: "badid", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 		{name: "arg not found", giveProviderId: "test", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: invalidArgErr.Error()},
 	}

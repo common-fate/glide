@@ -26,9 +26,13 @@ import {
 import { adminArchiveAccessRule } from "../../../utils/backend-client/default/default";
 import {
   AccessRuleDetail,
-  CreateAccessRuleRequestBody,
+  AccessRuleTargetDetailArgumentsFormElement,
 } from "../../../utils/backend-client/types";
-import { AccessRuleFormData, AccessRuleFormDataTarget } from "./CreateForm";
+import {
+  AccessRuleFormData,
+  AccessRuleFormDataTarget,
+  accessRuleFormDataToApi,
+} from "./CreateForm";
 
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
@@ -40,6 +44,30 @@ interface Props {
   data: AccessRuleDetail;
   readOnly?: boolean;
 }
+
+//converts target api data to form data
+export const accessRuleTargetApiToTargetFormData = (
+  apiData: AccessRuleDetail
+): AccessRuleFormDataTarget => {
+  const t: AccessRuleFormDataTarget = {
+    providerId: apiData.target.provider.id,
+    multiSelects: {},
+    argumentGroups: {},
+    inputs: {},
+  };
+  Object.entries(apiData.target.with).forEach(([k, v]) => {
+    if (
+      v.formElement === AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+    ) {
+      t.multiSelects[k] = v.values;
+      t.argumentGroups[k] = v.groupings;
+    } else {
+      t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
+    }
+  });
+
+  return t;
+};
 
 const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   const {
@@ -63,20 +91,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
     if (data && (!cachedRule || cachedRule != data)) {
-      const t: AccessRuleFormDataTarget = {
-        providerId: data.target.provider.id,
-        with: {},
-        withText: {},
-      };
-
-      for (const k in data.target.with) {
-        t.with[k] = [data.target.with[k]];
-        // Hack, because we don't know by looking at an access rule target whether a with field was a string or select input, we just initialise the with text data with all single string values.
-        t.withText![k] = data.target.with[k];
-      }
-      for (const k in data.target.withSelectable) {
-        t.with[k] = data.target.withSelectable[k];
-      }
+      //set accessRuleTargetData from rule details from api
 
       const f: AccessRuleFormData = {
         description: data.description,
@@ -91,7 +106,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
           users: data.approval.users,
           groups: data.approval.groups,
         },
-        target: t,
+        target: accessRuleTargetApiToTargetFormData(data),
       };
       methods.reset(f);
       setCachedRule(data);
@@ -103,32 +118,8 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });
-
-    const { approval, target, ...d } = data;
-    const t = {
-      providerId: target.providerId,
-      with: {
-        ...target?.with,
-      },
-    };
-    for (const k in target.withText) {
-      t.with[k] = [target.withText[k]];
-    }
-    const ruleData: CreateAccessRuleRequestBody = {
-      approval: { users: [], groups: [] },
-      target: t,
-      ...d,
-    };
-    // only apply these fields if approval is enabled
-    if (approval.required) {
-      ruleData["approval"].users = data.approval.users;
-      ruleData["approval"].groups = data.approval.groups;
-    } else {
-      ruleData["approval"].users = [];
-    }
-
     try {
-      await adminUpdateAccessRule(ruleId, ruleData);
+      await adminUpdateAccessRule(ruleId, accessRuleFormDataToApi(data));
       toast({
         title: "Access rule updated",
         status: "success",

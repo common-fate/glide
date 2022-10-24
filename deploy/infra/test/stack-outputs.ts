@@ -30,6 +30,7 @@ const testOutputs: StackOutputs = {
   Region: "abcdefg",
   PaginationKMSKeyARN: "abcdefg",
   AccessHandlerExecutionRoleARN: "abcdefg",
+  CacheSyncLogGroupName: "abcdefg",
   RestAPIExecutionRoleARN: "abcdefg",
   IDPSyncExecutionRoleARN: "abcdefg",
 };

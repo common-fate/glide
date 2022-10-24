@@ -5,8 +5,21 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
+import type { RequestAccessRuleTarget } from './requestAccessRuleTarget';
+import type { TimeConstraints } from './timeConstraints';
 
+/**
+ * Access Rule contains information for an end user to make a request for access.
+ */
 export interface RequestAccessRule {
   id: string;
+  /** A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+When a rule is updated, it's ID remains consistent.
+ */
   version: string;
+  name: string;
+  description: string;
+  target: RequestAccessRuleTarget;
+  timeConstraints: TimeConstraints;
+  isCurrent: boolean;
 }
