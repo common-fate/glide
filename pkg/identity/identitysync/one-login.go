@@ -15,19 +15,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-const OneLoginBaseURL = "https://commonfate-dev.onelogin.com"
-
 type OneLoginSync struct {
-	// This is initialised during the Init function call and is not saved in config
 	clientID     gconfig.StringValue
 	clientSecret gconfig.SecretStringValue
+	// This is initialised during the Init function call and is not saved in config
 	token        gconfig.SecretStringValue
 	refreshToken gconfig.SecretStringValue
 	tokenExpiry  gconfig.StringValue
+	baseUrl      gconfig.StringValue
 }
 
 func (s *OneLoginSync) Config() gconfig.Config {
 	return gconfig.Config{
+		gconfig.StringField("baseUrl", &s.clientID, "your tenants One Login URL (eg. https://{tenancy}.onelogin.com)"),
 		gconfig.StringField("clientId", &s.clientID, "the One Login client ID"),
 		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the One Login client secret", gconfig.WithNoArgs("/granted/secrets/identity/one-login/secret")),
 	}
@@ -35,7 +35,7 @@ func (s *OneLoginSync) Config() gconfig.Config {
 
 func (s *OneLoginSync) Init(ctx context.Context) error {
 
-	url := OneLoginBaseURL + "/auth/oauth2/v2/token"
+	url := s.baseUrl.Get() + "/auth/oauth2/v2/token"
 
 	var jsonStr = []byte(`{ "grant_type": "client_credentials"}`)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
@@ -83,7 +83,7 @@ func (s *OneLoginSync) TestConfig(ctx context.Context) error {
 }
 
 // userFromOktaUser converts a Okta user to the identityprovider interface user type
-func (o *OneLoginSync) idpUserFromOneLoginUser(ctx context.Context, oneLoginUser *OneLoginUser) (identity.IDPUser, error) {
+func (s *OneLoginSync) idpUserFromOneLoginUser(ctx context.Context, oneLoginUser *OneLoginUser) (identity.IDPUser, error) {
 	u := identity.IDPUser{
 		ID:        strconv.Itoa(oneLoginUser.ID),
 		FirstName: oneLoginUser.Firstname,
@@ -99,7 +99,7 @@ func (o *OneLoginSync) idpUserFromOneLoginUser(ctx context.Context, oneLoginUser
 	return u, nil
 }
 
-func (o *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) identity.IDPGroup {
+func (s *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) identity.IDPGroup {
 	return identity.IDPGroup{
 		ID:   strconv.Itoa(oneLoginGroup.ID),
 		Name: oneLoginGroup.Name,
@@ -107,17 +107,18 @@ func (o *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) id
 
 }
 
-func (a *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
+func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 
 	//get all users
-	idpUsers := []identity.IDPUser{}
+	var idpUsers []identity.IDPUser
 	hasMore := true
 	var nextToken *string
-	url := OneLoginBaseURL + "/api/1/users"
+	url := s.baseUrl.Get() + "/api/1/users"
+
 	for hasMore {
 
 		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", "Bearer: "+a.token.Get())
+		req.Header.Add("Authorization", "Bearer: "+s.token.Get())
 
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -140,15 +141,14 @@ func (a *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 		}
 		for _, u := range lu.Users {
 
-			user, err := a.idpUserFromOneLoginUser(ctx, &u)
+			user, err := s.idpUserFromOneLoginUser(ctx, &u)
 			if err != nil {
 				return nil, err
 			}
 			idpUsers = append(idpUsers, user)
 		}
-		nextToken = lu.Pagination.NextLink
 		if nextToken != nil {
-			url = *nextToken
+			url = *lu.Pagination.NextLink
 		} else {
 			hasMore = false
 		}
@@ -157,16 +157,16 @@ func (a *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 	return idpUsers, nil
 }
 
-func (a *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
-	idpGroups := []identity.IDPGroup{}
+func (s *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
+	var idpGroups = []identity.IDPGroup{}
 	hasMore := true
 	var nextToken *string
-	url := OneLoginBaseURL + "/api/1/roles"
+	url := s.baseUrl.Get() + "/api/1/roles"
 
 	for hasMore {
 
 		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", "Bearer: "+a.token.Get())
+		req.Header.Add("Authorization", "Bearer: "+s.token.Get())
 
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -190,13 +190,12 @@ func (a *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, err
 
 		for _, u := range lu.Groups {
 
-			group := a.idpGroupFromOneLoginGroup(u)
+			group := s.idpGroupFromOneLoginGroup(u)
 
 			idpGroups = append(idpGroups, group)
 		}
-		nextToken = lu.Pagination.NextLink
 		if nextToken != nil {
-			url = *nextToken
+			url = *lu.Pagination.NextLink
 		} else {
 			hasMore = false
 		}

@@ -216,7 +216,8 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		sort.Strings(groupNames)
 
 		if len(groupNames) == 0 {
-			clio.Warn("no groups found please make at least 1 group in your identity provider")
+			clio.Error("no groups found please make at least 1 group in your identity provider")
+			return nil
 		} else {
 			err = survey.AskOne(&survey.Select{
 				Message: "The ID of the Granted Administrators group in your identity provider:",

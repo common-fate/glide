@@ -281,6 +281,11 @@ func CLIPrompt(f *gconfig.Field) error {
 				return err
 			}
 			if !doUpdate {
+				defaultValue := f.Get()
+				if defaultValue == "" {
+					defaultValue = f.Default()
+				}
+				f.Set(defaultValue)
 				return nil
 			}
 		}
