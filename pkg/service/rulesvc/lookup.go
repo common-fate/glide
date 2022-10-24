@@ -82,14 +82,13 @@ Filterloop:
 			case "aws-sso":
 				// we must support string and []string for With/WithSelectable
 				ruleAccIds := []string{}
-				singleRuleAccId, ok := r.Target.With["accountId"]
-				if !ok {
-					ruleAccIds, ok = r.Target.WithSelectable["accountId"]
-					if !ok {
-						continue Filterloop // if not found continue
-					}
-				} else {
-					ruleAccIds = append(ruleAccIds, singleRuleAccId)
+				accountID, ok := r.Target.With["accountId"]
+				if ok {
+					ruleAccIds = append(ruleAccIds, accountID)
+				}
+				selectable, ok := r.Target.WithSelectable["accountId"]
+				if ok {
+					ruleAccIds = append(ruleAccIds, selectable...)
 				}
 				groups, ok := r.Target.WithArgumentGroupOptions["accountId"]
 				if ok {
