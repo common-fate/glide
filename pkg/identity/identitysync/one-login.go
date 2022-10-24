@@ -19,10 +19,9 @@ type OneLoginSync struct {
 	clientID     gconfig.StringValue
 	clientSecret gconfig.SecretStringValue
 	// This is initialised during the Init function call and is not saved in config
-	token        gconfig.SecretStringValue
-	refreshToken gconfig.SecretStringValue
-	tokenExpiry  gconfig.StringValue
-	baseUrl      gconfig.StringValue
+	token gconfig.SecretStringValue
+
+	baseUrl gconfig.StringValue
 }
 
 func (s *OneLoginSync) Config() gconfig.Config {
@@ -61,12 +60,7 @@ func (s *OneLoginSync) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
 	s.token.Set(lu.AccessToken)
-	s.refreshToken.Set(lu.RefreshToken)
-
-	// expiresTime := iso8601.New(time.Now().Add(time.Second * 36000))
-	// s.tokenExpiry.Set()
 
 	return nil
 }
@@ -131,6 +125,7 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 
 		//return the error if its anything but a 200
 		if res.StatusCode != 200 {
+
 			return nil, fmt.Errorf(string(b))
 		}
 
