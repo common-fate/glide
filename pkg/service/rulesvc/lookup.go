@@ -249,25 +249,33 @@ func (p *providerGroupOptionsCache) FetchOptions(ctx context.Context, id, arg, g
 					if value, ok := group[groupValue]; ok {
 						return value, nil
 					}
-				} else {
-					groups[groupID] = make(map[string][]string)
 				}
-			} else {
-				provider[arg] = make(map[string]map[string][]string)
 			}
-		} else {
-			p.providers[id] = make(map[string]map[string]map[string][]string)
 		}
-	} else {
-		p.providers = make(map[string]map[string]map[string]map[string][]string)
 	}
 	q := storage.GetCachedProviderArgGroupOptionValueForArg{ProviderID: id, ArgID: arg, GroupId: groupID, GroupValue: groupValue}
 	_, err := p.db.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
-	if q.Result != nil {
-		p.providers[id][arg][groupID][groupValue] = q.Result.Children
+	provider := p.providers[id]
+	if provider == nil {
+		provider = make(map[string]map[string]map[string][]string)
 	}
+	argument := provider[arg]
+	if argument == nil {
+		argument = make(map[string]map[string][]string)
+	}
+	groups := argument[groupID]
+	if groups == nil {
+		groups = make(map[string][]string)
+	}
+	if q.Result != nil {
+		groups[groupValue] = q.Result.Children
+	}
+	argument[groupID] = groups
+	provider[arg] = argument
+	p.providers[id] = provider
+
 	return p.providers[id][arg][groupID][groupValue], nil
 }
