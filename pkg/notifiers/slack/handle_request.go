@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -96,25 +99,13 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 						log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", usr, zap.Error(err))
 						return
 					}
-
-					// // Consider adding a fallback if the cache lookup fails
-					// pq := storage.ListCachedProviderOptions{
-					// 	ProviderID: rule.Target.ProviderID,
-					// }
-					// _, err = n.DB.Query(ctx, &pq)
-					// if err != nil && err != ddb.ErrNoItems {
-					// 	log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.ProviderID, zap.Error(err))
-					// }
-
+					requestArguments, err := n.RenderRequestArguments(ctx, log, req, rule)
+					if err != nil {
+						log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+					}
 					summary, msg := BuildRequestMessage(RequestMessageOpts{
-						Request: req,
-						// @TODO this has been disabled pending a rework of the provider schema apis
-						// @TODO: fix this before the next release
-						RequestDetail: types.RequestDetail{
-							Arguments: types.RequestDetail_Arguments{
-								AdditionalProperties: make(map[string]types.With),
-							},
-						},
+						Request:          req,
+						RequestArguments: requestArguments,
 						Rule:             rule,
 						RequestorSlackID: slackUserID,
 						RequestorEmail:   userQuery.Result.Email,
@@ -266,24 +257,14 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 		return errors.Wrap(err, "building review URL")
 	}
 
-	// pq := storage.ListCachedProviderOptions{
-	// 	ProviderID: opts.Rule.Target.ProviderID,
-	// }
-	// _, err = n.DB.Query(ctx, &pq)
-	// if err != nil && err != ddb.ErrNoItems {
-	// 	log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", opts.Rule.Target.ProviderID, zap.Error(err))
-	// }
-
+	requestArguments, err := n.RenderRequestArguments(ctx, log, opts.Request, opts.Rule)
+	if err != nil {
+		log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+	}
 	// Here we want to update the original approvers slack messages
 	_, msg := BuildRequestMessage(RequestMessageOpts{
-		Request: opts.Request,
-		// @TODO this has been disabled pending a rework of the provider schema apis
-		// @TODO: fix this before the next release
-		RequestDetail: types.RequestDetail{
-			Arguments: types.RequestDetail_Arguments{
-				AdditionalProperties: make(map[string]types.With),
-			},
-		},
+		Request:          opts.Request,
+		RequestArguments: requestArguments,
 		Rule:             opts.Rule,
 		RequestorSlackID: slackUserID,
 		RequestorEmail:   opts.DbRequestor.Email,
@@ -302,7 +283,7 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 
 type RequestMessageOpts struct {
 	Request          access.Request
-	RequestDetail    types.RequestDetail
+	RequestArguments []types.With
 	Rule             rule.AccessRule
 	ReviewURLs       notifiers.ReviewURLs
 	RequestorSlackID string
@@ -343,18 +324,7 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		},
 	}
 
-	var labelArr []types.With
-	for _, v := range o.RequestDetail.Arguments.AdditionalProperties {
-		labelArr = append(labelArr, v)
-	}
-
-	// now sort labelArr by Title
-	sort.Slice(labelArr, func(i, j int) bool {
-		return labelArr[i].Title < labelArr[j].Title
-	})
-
-	// now itterate over labelArr and add to requestDetails
-	for _, v := range labelArr {
+	for _, v := range o.RequestArguments {
 		requestDetails = append(requestDetails, &slack.TextBlockObject{
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
@@ -425,4 +395,74 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 	}
 
 	return summary, msg
+}
+
+// @TODO this method maps request arguments in a deprecated way.
+// it shoudl be replaced eventually with a cache lookup for the options available for the access rule
+func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request access.Request, rule rule.AccessRule) ([]types.With, error) {
+	// Consider adding a fallback if the cache lookup fails
+	pq := storage.ListCachedProviderOptions{
+		ProviderID: rule.Target.ProviderID,
+	}
+	_, err := n.DB.Query(ctx, &pq)
+	if err != nil && err != ddb.ErrNoItems {
+		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.ProviderID, zap.Error(err))
+	}
+	var labelArr []types.With
+	// Lookup the provider, ignore errors
+	// if provider is not found, fallback to using the argument key as the title
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.ProviderType)
+	for k, v := range request.SelectedWith {
+		with := types.With{
+			Label: v.Label,
+			Value: v.Value,
+			Title: k,
+		}
+		// attempt to get the title for the argument from the provider arg schema
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				t, ok := s.ArgSchema()[k]
+				if ok {
+					with.Title = t.Title
+				}
+			}
+		}
+		labelArr = append(labelArr, with)
+	}
+
+	for k, v := range rule.Target.With {
+		// only include the with values if it does not have any groups selected,
+		// if it does have groups selected, it means that it was a selectable field
+		// so this check avoids duplicate/inaccurate values in the slack message
+		if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
+			with := types.With{
+				Value: v,
+				Title: k,
+				Label: v,
+			}
+			// attempt to get the title for the argument from the provider arg schema
+			if provider != nil {
+				if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+					t, ok := s.ArgSchema()[k]
+					if ok {
+						with.Title = t.Title
+					}
+				}
+			}
+			for _, ao := range pq.Result {
+				// if a value is found, set it to true with a label
+				if ao.Arg == k && ao.Value == v {
+					with.Label = ao.Label
+					break
+				}
+			}
+			labelArr = append(labelArr, with)
+		}
+	}
+
+	// now sort labelArr by Title
+	sort.Slice(labelArr, func(i, j int) bool {
+		return labelArr[i].Title < labelArr[j].Title
+	})
+	return labelArr, nil
 }
