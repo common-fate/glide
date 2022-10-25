@@ -2,6 +2,7 @@ package identitysync
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -19,7 +20,9 @@ func TestIntegration(t *testing.T) {
 	ctx := context.Background()
 	err := godotenv.Load("../../../.env")
 	assert.NoError(t, err)
-
+	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
+		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	}
 	testcases := []idpTestCase{
 		{
 			Name:    "list users ok",
