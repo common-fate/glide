@@ -149,4 +149,4 @@ jobs:
           cache: true
 
       - name: test idp
-        run: go test ./pkg/identity/identitySync
+        run: go test ./pkg/identity/identitysync
