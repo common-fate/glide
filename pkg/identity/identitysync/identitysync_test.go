@@ -11,27 +11,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type idpTestCase struct {
+type identitySyncTestCase struct {
 	Name    string
 	idpType string
 }
 
 func TestIntegration(t *testing.T) {
 	ctx := context.Background()
-	err := godotenv.Load("../../../.env")
-	assert.NoError(t, err)
+	_ = godotenv.Load("../../../.env")
 
-	if os.Getenv("IDENTITY_SETTINGS") == "" {
-		t.Skip("IDENTITY_SETTINGS is not set, skipping integration testing")
+	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
+		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
 	}
 	idpConfig := os.Getenv("IDENTITY_SETTINGS")
+	if idpConfig == "" {
+		t.Skip("IDENTITY_SETTINGS is not set, skipping integration testing")
+	}
 
 	ic, err := deploy.UnmarshalFeatureMap(idpConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	testcases := []idpTestCase{
+	testcases := []identitySyncTestCase{
 		{
 			Name:    "OneLogin ok",
 			idpType: "one-login",
