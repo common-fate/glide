@@ -18,6 +18,7 @@ import {
 import { useUser } from "../../utils/context/userContext";
 
 import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
+import { Helmet } from "react-helmet";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -71,6 +72,9 @@ const Home = () => {
   return (
     <div>
       <UserLayout>
+        <Helmet>
+          <title>{requestId}</title>
+        </Helmet>
         {/* The header bar */}
         <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">
           <IconButton
