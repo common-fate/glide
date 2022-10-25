@@ -14,7 +14,9 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({
       <AdminNavbar />
       {children}
       <Text position="fixed" bottom={4} left={4} textStyle={"Body/ExtraSmall"}>
-        {data?.version !== undefined && "Version: " + data.version}
+        {data?.version !== undefined &&
+          data.version !== "dev" &&
+          "Version: " + data.version}
       </Text>
     </main>
   );
