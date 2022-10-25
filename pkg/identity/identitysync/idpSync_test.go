@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
@@ -13,25 +14,43 @@ import (
 type idpTestCase struct {
 	Name    string
 	idpType string
-	config  map[string]string
 }
 
 func TestIntegration(t *testing.T) {
 	ctx := context.Background()
 	err := godotenv.Load("../../../.env")
 	assert.NoError(t, err)
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+
+	if os.Getenv("IDENTITY_SETTINGS") == "" {
+		t.Skip("IDENTITY_SETTINGS is not set, skipping integration testing")
 	}
+	idpConfig := os.Getenv("IDENTITY_SETTINGS")
+
+	ic, err := deploy.UnmarshalFeatureMap(idpConfig)
+	if err != nil {
+		panic(err)
+	}
+
 	testcases := []idpTestCase{
 		{
-			Name:    "list users ok",
+			Name:    "OneLogin ok",
 			idpType: "one-login",
-			config: map[string]string{
-				"baseURL":      "https://commonfate-dev.onelogin.com",
-				"clientId":     "ec6dad650566db9f4f12241f9b55ad18220be45c7049feb8b667db16cc01f36e",
-				"clientSecret": "awsssm:///granted/secrets/identity/one-login/secret:6",
-			},
+		},
+		{
+			Name:    "Azure ok",
+			idpType: "azure",
+		},
+		{
+			Name:    "Okta ok",
+			idpType: "okta",
+		},
+		{
+			Name:    "Gsuite ok",
+			idpType: "google",
+		},
+		{
+			Name:    "AWS SSO ok",
+			idpType: "aws-sso",
 		},
 	}
 
@@ -42,18 +61,30 @@ func TestIntegration(t *testing.T) {
 			assert.True(t, ok)
 
 			cfg := idp.IdentityProvider.Config()
+			idpCfg, ok := ic[tc.idpType]
+			if !ok {
+				t.Skip("identity config for idp type is missing", tc.idpType)
+			}
 
 			//set the config
-			err := cfg.Load(ctx, &gconfig.MapLoader{Values: tc.config})
+			err := cfg.Load(ctx, &gconfig.MapLoader{Values: idpCfg})
 			assert.NoError(t, err)
 
 			err = idp.IdentityProvider.Init(ctx)
 
 			assert.NoError(t, err)
 
+			if tester, ok := idp.IdentityProvider.(gconfig.Tester); ok {
+				err = tester.TestConfig(ctx)
+				assert.NoError(t, err)
+			}
 			grps, err := idp.IdentityProvider.ListGroups(ctx)
 			assert.NoError(t, err)
 			assert.Greater(t, len(grps), 0)
+
+			usrs, err := idp.IdentityProvider.ListUsers(ctx)
+			assert.NoError(t, err)
+			assert.Greater(t, len(usrs), 0)
 
 		})
 	}
