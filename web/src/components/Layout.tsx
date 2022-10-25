@@ -1,4 +1,4 @@
-import { Text } from "@chakra-ui/react";
+import { Box, Spacer, Text } from "@chakra-ui/react";
 import React from "react";
 import { useAdminGetDeploymentVersion } from "../utils/backend-client/admin/admin";
 import { AdminNavbar } from "./nav/AdminNavbar";
@@ -10,15 +10,17 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({
   const { data } = useAdminGetDeploymentVersion();
 
   return (
-    <main>
-      <AdminNavbar />
-      {children}
-      <Text position="fixed" bottom={4} left={4} textStyle={"Body/ExtraSmall"}>
-        {data?.version !== undefined &&
-          data.version !== "dev" &&
-          "Version: " + data.version}
-      </Text>
-    </main>
+    <>
+      <Box as="main" h="100%" minH="100vh">
+        <AdminNavbar />
+        {children}
+      </Box>
+      <Box as="footer" marginTop={"-36px"} px={5}>
+        <Text textStyle={"Body/ExtraSmall"}>
+          {data?.version !== undefined && "Version: " + data.version}
+        </Text>
+      </Box>
+    </>
   );
 };
 
