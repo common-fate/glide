@@ -17,7 +17,9 @@ export const AdminLayout: React.FC<{ children?: React.ReactNode }> = ({
       </Box>
       <Box as="footer" marginTop={"-36px"} px={5}>
         <Text textStyle={"Body/ExtraSmall"}>
-          {data?.version !== undefined && "Version: " + data.version}
+          {data?.version !== undefined &&
+            data.version !== "dev" &&
+            "Version: " + data.version}
         </Text>
       </Box>
     </>
