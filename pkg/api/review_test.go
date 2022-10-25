@@ -109,6 +109,7 @@ func TestReviewRequest(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 
