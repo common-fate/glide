@@ -42,7 +42,7 @@ func ldFlags() string {
 		release = "dev"
 	}
 
-	return fmt.Sprintf(`-X 'github.com/common-fate/granted/internal/build.Version=%s'`, release)
+	return fmt.Sprintf(`-X 'github.com/common-fate/granted-approvals/internal/build.Version=%s'`, release)
 }
 
 type Deps mg.Namespace
