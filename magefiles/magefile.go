@@ -34,6 +34,17 @@ func init() {
 	zap.ReplaceGlobals(log)
 }
 
+// ldFlags returns the linker flags. These are used to inject the release details into the
+// built binaries.
+func ldFlags() string {
+	release := os.Getenv("COMMONFATE_RELEASE")
+	if release == "" {
+		release = "dev"
+	}
+
+	return fmt.Sprintf(`-ldflags="-X 'github.com/common-fate/granted/internal/build.Version=%s'"`, release)
+}
+
 type Deps mg.Namespace
 
 // NPM installs NPM dependencies for the repository using pnpm.
@@ -59,7 +70,7 @@ func (Build) Backend() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
 }
 
 func (Build) Granter() error {
@@ -67,7 +78,7 @@ func (Build) Granter() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/granter", "cmd/lambda/granter/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/granter", "cmd/lambda/granter/handler.go")
 }
 
 func (Build) FrontendDeployer() error {
@@ -75,7 +86,7 @@ func (Build) FrontendDeployer() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
 }
 
 func (Build) AccessHandler() error {
@@ -83,7 +94,7 @@ func (Build) AccessHandler() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
 }
 
 func (Build) Syncer() error {
@@ -91,14 +102,14 @@ func (Build) Syncer() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
 }
 func (Build) CacheSyncer() error {
 	env := map[string]string{
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/cache-sync", "cmd/lambda/cache-sync/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/cache-sync", "cmd/lambda/cache-sync/handler.go")
 }
 
 func (Build) SlackNotifier() error {
@@ -106,7 +117,7 @@ func (Build) SlackNotifier() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
 }
 
 func (Build) EventHandler() error {
@@ -114,7 +125,7 @@ func (Build) EventHandler() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
 }
 
 func (Build) Webhook() error {
@@ -122,7 +133,7 @@ func (Build) Webhook() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
+	return sh.RunWith(env, "go", "build", ldFlags(), "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
 }
 
 func (Build) FrontendAWSExports() error {
