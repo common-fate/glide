@@ -26,9 +26,9 @@ type OneLoginSync struct {
 
 func (s *OneLoginSync) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.StringField("baseURL", &s.baseURL, "your tenants One Login URL (eg. https://{tenancy}.onelogin.com)"),
-		gconfig.StringField("clientId", &s.clientID, "the One Login client ID"),
-		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the One Login client secret", gconfig.WithNoArgs("/granted/secrets/identity/one-login/secret")),
+		gconfig.StringField("baseURL", &s.baseURL, "your OneLogin URL (eg. https://{tenancy}.onelogin.com)"),
+		gconfig.StringField("clientId", &s.clientID, "the OneLogin client ID"),
+		gconfig.SecretStringField("clientSecret", &s.clientSecret, "the OneLogin client secret", gconfig.WithNoArgs("/granted/secrets/identity/one-login/secret")),
 	}
 }
 
@@ -76,7 +76,6 @@ func (s *OneLoginSync) TestConfig(ctx context.Context) error {
 	return nil
 }
 
-// userFromOktaUser converts a Okta user to the identityprovider interface user type
 func (s *OneLoginSync) idpUserFromOneLoginUser(ctx context.Context, oneLoginUser *OneLoginUser) (identity.IDPUser, error) {
 	u := identity.IDPUser{
 		ID:        strconv.Itoa(oneLoginUser.ID),

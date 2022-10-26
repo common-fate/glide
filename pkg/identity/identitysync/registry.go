@@ -60,7 +60,7 @@ func Registry() IdentityProviderRegistry {
 			},
 			IDPTypeOneLogin: {
 				IdentityProvider: &OneLoginSync{},
-				Description:      "One Login",
+				Description:      "OneLogin",
 				DocsID:           "one-login",
 			},
 		},
