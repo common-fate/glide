@@ -83,7 +83,7 @@ const Home = () => {
     <>
       <UserLayout>
         <Helmet>
-          (<title>Granted</title>)
+          <title>Granted</title>
         </Helmet>
         <Box overflow="auto">
           <Container maxW="container.xl" pt={{ base: 12, lg: 32 }}>

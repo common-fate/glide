@@ -73,7 +73,7 @@ const Home = () => {
     <div>
       <UserLayout>
         <Helmet>
-          <title>{requestId}</title>
+          <title>Access Request</title>
         </Helmet>
         {/* The header bar */}
         <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">

@@ -26,7 +26,7 @@ const Home = () => {
   return (
     <div>
       <Helmet>
-        <title>{requestId}</title>
+        <title>Access Request</title>
       </Helmet>
       <AdminLayout>
         {/* The header bar */}

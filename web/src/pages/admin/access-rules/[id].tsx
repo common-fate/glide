@@ -26,7 +26,7 @@ const Index = () => {
     <>
       <AdminLayout>
         <Helmet>
-          <title>{ruleId}</title>
+          <title>Access Rule</title>
         </Helmet>
         <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">
           <IconButton

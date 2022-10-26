@@ -217,7 +217,7 @@ const Page = () => {
         </Text>
         {registeredProvider !== undefined && (
           <Helmet>
-            (<title>{registeredProvider.name} Setup</title>)
+            <title>{registeredProvider.name} Setup</title>
           </Helmet>
         )}
         {data && (
