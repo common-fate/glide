@@ -49,7 +49,7 @@ func TestReviewRequest(t *testing.T) {
 			},
 			wantAddReviewOpts: accesssvc.AddReviewOpts{Decision: access.DecisionApproved},
 			wantCode:          http.StatusCreated,
-			wantBody:          `{"request":{"accessRule":{"id":"","version":""},"id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}}`,
+			wantBody:          `{"request":{"accessRuleId":"","accessRuleVersion":"","id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}}`,
 		},
 		{
 			name: "ok with override timing",
@@ -69,7 +69,7 @@ func TestReviewRequest(t *testing.T) {
 				StartTime: &overrideTime,
 			}},
 			wantCode: http.StatusCreated,
-			wantBody: `{"request":{"accessRule":{"id":"","version":""},"id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"","timing":{"durationSeconds":3600,"startTime":"2020-01-01T16:20:10Z"},"updatedAt":"0001-01-01T00:00:00Z"}}`,
+			wantBody: `{"request":{"accessRuleId":"","accessRuleVersion":"","id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"","timing":{"durationSeconds":3600,"startTime":"2020-01-01T16:20:10Z"},"updatedAt":"0001-01-01T00:00:00Z"}}`,
 		},
 		{
 			name:              "not authorized",

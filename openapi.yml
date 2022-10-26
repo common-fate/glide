@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessRuleWithSelectables"
+                $ref: "#/components/schemas/RequestAccessRule"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "404":
@@ -523,6 +523,17 @@ paths:
         name: version
         in: path
         required: true
+  /api/v1/admin/deployment/version:
+    get:
+      summary: Get deployment version details
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentVersionResponse"
+      operationId: admin-get-deployment-version
+      description: Returns the version information
+    parameters: []
   /api/v1/admin/requests:
     get:
       summary: Your GET endpoint
@@ -769,14 +780,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties: {}
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgSchema
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: get-provider-args
-      description: gets the jsonschema describing the args for this provider
+      description: gets the argSchema describing the args for this provider
   "/api/v1/admin/providers/{providerId}/args/{argId}/options":
     parameters:
       - schema:
@@ -795,7 +805,7 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: "#/components/responses/ArgOptionsResponse"
+          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1067,8 +1077,10 @@ components:
           type: string
           x-go-type: time.Time
           format: time
-        accessRule:
-          $ref: "#/components/schemas/RequestAccessRule"
+        accessRuleId:
+          type: string
+        accessRuleVersion:
+          type: string
         updatedAt:
           type: string
           x-go-type: time.Time
@@ -1083,7 +1095,8 @@ components:
         - status
         - timing
         - requestedAt
-        - accessRule
+        - accessRuleId
+        - accessRuleVersion
         - updatedAt
     RequestDetail:
       title: Request
@@ -1106,7 +1119,7 @@ components:
           x-go-type: time.Time
           format: time
         accessRule:
-          $ref: "#/components/schemas/RequestAccessRuleDetail"
+          $ref: "#/components/schemas/AccessRule"
         updatedAt:
           type: string
           x-go-type: time.Time
@@ -1118,7 +1131,7 @@ components:
           description: true if the requesting user is a reviewer of this request.
         approvalMethod:
           $ref: "#/components/schemas/ApprovalMethod"
-        selectedWith:
+        arguments:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/With"
@@ -1131,7 +1144,7 @@ components:
         - accessRule
         - updatedAt
         - canReview
-        - selectedWith
+        - arguments
     RequestStatus:
       type: string
       description: |
@@ -1142,48 +1155,6 @@ components:
         - CANCELLED
         - DECLINED
       title: RequestStatus
-    RequestAccessRule:
-      title: RequestAccessRule
-      type: object
-      properties:
-        id:
-          type: string
-        version:
-          type: string
-      required:
-        - id
-        - version
-    RequestAccessRuleDetail:
-      title: RequestAccessRuleDetail
-      type: object
-      properties:
-        id:
-          type: string
-        version:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        with:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/With"
-        isCurrent:
-          type: boolean
-        provider:
-          $ref: "#/components/schemas/Provider"
-        timeConstraints:
-          $ref: "#/components/schemas/TimeConstraints"
-      required:
-        - id
-        - version
-        - name
-        - description
-        - with
-        - isCurrent
-        - provider
-        - timeConstraints
     AccessRule:
       title: AccessRule
       type: object
@@ -1206,40 +1177,6 @@ components:
           example: Admin access to Okta
         target:
           $ref: "#/components/schemas/AccessRuleTarget"
-        timeConstraints:
-          $ref: "#/components/schemas/TimeConstraints"
-        isCurrent:
-          type: boolean
-      required:
-        - id
-        - version
-        - name
-        - description
-        - target
-        - timeConstraints
-        - isCurrent
-    AccessRuleWithSelectables:
-      title: AccessRuleWithSelectables
-      type: object
-      description: Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
-      properties:
-        id:
-          type: string
-          x-go-name: ID
-          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
-        version:
-          type: string
-          description: |
-            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
-            When a rule is updated, it's ID remains consistent.
-        name:
-          type: string
-          example: Okta admin
-        description:
-          type: string
-          example: Admin access to Okta
-        target:
-          $ref: "#/components/schemas/AccessRuleTargetDetail"
         timeConstraints:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
@@ -1284,7 +1221,7 @@ components:
         metadata:
           $ref: "#/components/schemas/AccessRuleMetadata"
         target:
-          $ref: "#/components/schemas/AccessRuleTarget"
+          $ref: "#/components/schemas/AccessRuleTargetDetail"
         timeConstraints:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
@@ -1301,6 +1238,91 @@ components:
         - target
         - timeConstraints
         - isCurrent
+    RequestAccessRule:
+      title: RequestAccessRule
+      type: object
+      description: Access Rule contains information for an end user to make a request for access.
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
+        version:
+          type: string
+          description: |
+            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+            When a rule is updated, it's ID remains consistent.
+        name:
+          type: string
+          example: Okta admin
+        description:
+          type: string
+          example: Admin access to Okta
+        target:
+          $ref: "#/components/schemas/RequestAccessRuleTarget"
+        timeConstraints:
+          $ref: "#/components/schemas/TimeConstraints"
+        isCurrent:
+          type: boolean
+      required:
+        - id
+        - version
+        - name
+        - description
+        - target
+        - timeConstraints
+        - isCurrent
+    AccessRuleTarget:
+      title: AccessRuleTarget
+      type: object
+      description: A target for an access rule
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+      required:
+        - provider
+    AccessRuleTargetDetail:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A detailed target for an access rule
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        with:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
+      required:
+        - provider
+        - with
+    CreateAccessRuleTarget:
+      title: CreateAccessRuleTarget
+      type: object
+      description: a request body for creating a Access Rule Target
+      properties:
+        providerId:
+          type: string
+        with:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/CreateAccessRuleTargetDetailArguments"
+      required:
+        - providerId
+        - with
+    RequestAccessRuleTarget:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A detailed target for an access rule request
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        arguments:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/RequestArgument"
+      required:
+        - provider
+        - arguments
     AccessRuleStatus:
       type: string
       description: The status of an Access Rule.
@@ -1330,63 +1352,6 @@ components:
         - createdBy
         - updatedAt
         - updatedBy
-    CreateAccessRuleTarget:
-      title: AccessRuleTarget
-      type: object
-      description: A target for an access rule
-      properties:
-        providerId:
-          type: string
-        with:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-          description: "The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule."
-      required:
-        - providerId
-        - with
-    AccessRuleTarget:
-      title: AccessRuleTarget
-      type: object
-      description: A target for an access rule
-      properties:
-        provider:
-          $ref: "#/components/schemas/Provider"
-        with:
-          type: object
-          additionalProperties:
-            type: string
-        withSelectable:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-      required:
-        - provider
-        - with
-        - withSelectable
-    AccessRuleTargetDetail:
-      title: AccessRuleTargetDetail
-      type: object
-      description: A target for an access rule
-      properties:
-        provider:
-          $ref: "#/components/schemas/Provider"
-        with:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/With"
-        withSelectable:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/Selectable"
-      required:
-        - provider
-        - with
-        - withSelectable
     ApproverConfig:
       title: ApproverConfig
       type: object
@@ -1513,30 +1478,6 @@ components:
         - provider
         - start
         - end
-    RequestTiming:
-      title: RequestTiming
-      x-stoplight:
-        id: 4ooyqlf8xba5b
-      type: object
-      properties:
-        durationSeconds:
-          type: integer
-        startTime:
-          type: string
-          description: iso8601 timestamp in UTC timezone
-          x-go-type: time.Time
-          format: time
-      required:
-        - durationSeconds
-    ApprovalMethod:
-      type: string
-      description: "Describes whether a request has been approved automatically or from a review "
-      title: ApprovalMethod
-      x-stoplight:
-        id: 689mlt8aqxnx4
-      enum:
-        - AUTOMATIC
-        - REVIEWED
     RequestEvent:
       title: RequestEvent
       x-stoplight:
@@ -1593,11 +1534,76 @@ components:
         - id
         - requestId
         - createdAt
+    RequestTiming:
+      title: RequestTiming
+      x-stoplight:
+        id: 4ooyqlf8xba5b
+      type: object
+      properties:
+        durationSeconds:
+          type: integer
+        startTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+      required:
+        - durationSeconds
+    ApprovalMethod:
+      type: string
+      description: "Describes whether a request has been approved automatically or from a review "
+      title: ApprovalMethod
+      x-stoplight:
+        id: 689mlt8aqxnx4
+      enum:
+        - AUTOMATIC
+        - REVIEWED
     AccessToken:
       title: AccessToken
       x-stoplight:
         id: yxma8dkhj406q
       type: string
+    RequestArgument:
+      title: RequestArgument
+      x-stoplight:
+        id: 1sgrgc47iwg61
+      type: object
+      properties:
+        title:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/WithOption"
+        description:
+          type: string
+        requiresSelection:
+          type: boolean
+          description: This will be true if a selection is require when creating a request
+      required:
+        - title
+        - options
+        - requiresSelection
+    With:
+      title: With
+      x-stoplight:
+        id: 1sgrgc47iwg61
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+        optionDescription:
+          type: string
+        fieldDescription:
+          type: string
+      required:
+        - title
+        - label
+        - value
     WithOption:
       title: WithOption
       x-stoplight:
@@ -1610,25 +1616,12 @@ components:
           type: string
         valid:
           type: boolean
+        description:
+          type: string
       required:
         - value
         - label
         - valid
-    Selectable:
-      title: Selectable
-      x-stoplight:
-        id: ab18xdxwinqhb
-      type: object
-      properties:
-        options:
-          type: array
-          items:
-            $ref: "#/components/schemas/WithOption"
-        title:
-          type: string
-      required:
-        - options
-        - title
     CreateRequestWith:
       title: CreateRequestWith
       x-stoplight:
@@ -1846,22 +1839,52 @@ components:
       required:
         - key
         - value
-    With:
-      title: With
+    AccessRuleTargetDetailArguments:
+      title: AccessRuleTargetDetailArguments
       x-stoplight:
-        id: 1sgrgc47iwg61
+        id: e4h3bs3hxeqyx
       type: object
+      description: ""
       properties:
-        title:
+        values:
+          type: array
+          items:
+            type: string
+        groupings:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        formElement:
           type: string
-        label:
-          type: string
-        value:
-          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
       required:
-        - label
-        - title
-        - value
+        - values
+        - groupings
+        - formElement
+    CreateAccessRuleTargetDetailArguments:
+      title: CreateAccessRuleTargetDetailArguments
+      x-stoplight:
+        id: e4h3bs3hxeqyx
+      type: object
+      description: ""
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+        groupings:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+        - values
+        - groupings
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2002,24 +2025,6 @@ components:
             required:
               - user
               - isAdmin
-    ArgOptionsResponse:
-      description: Options for an Grant argument.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              hasOptions:
-                type: boolean
-                description: Whether any options have been suggested for the argument.
-              options:
-                type: array
-                description: The suggested options.
-                items:
-                  $ref: ./accesshandler/openapi.yml#/components/schemas/Option
-            required:
-              - hasOptions
-              - options
     ListRequestEventsResponse:
       description: Example response
       content:
@@ -2082,6 +2087,18 @@ components:
             required:
               - identityProvider
               - administratorGroupId
+    DeploymentVersionResponse:
+      description: Deployment version information.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              version:
+                type: string
+                description: 'The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.'
+            required:
+              - version
   examples: {}
   securitySchemes: {}
   requestBodies:

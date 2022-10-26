@@ -128,6 +128,7 @@ export class DevGrantedStack extends cdk.Stack {
       Region: this.region,
       PaginationKMSKeyARN: approvals.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      CacheSyncLogGroupName: approvals.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: approvals.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: approvals.getExecutionRoleArn(),
     });

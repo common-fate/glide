@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 import type { Option } from '../accesshandler-openapi.yml/option';
+import type { Groups } from '../accesshandler-openapi.yml/groups';
 
 export type ArgOptionsResponseResponse = {
-  /** Whether any options have been suggested for the argument. */
-  hasOptions: boolean;
   /** The suggested options. */
   options: Option[];
+  groups?: Groups;
 };

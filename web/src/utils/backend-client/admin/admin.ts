@@ -16,6 +16,7 @@ import type {
   AccessRuleDetail,
   ErrorResponseResponse,
   CreateAccessRuleRequestBody,
+  DeploymentVersionResponseResponse,
   ListRequestsResponseResponse,
   AdminListRequestsParams,
   User,
@@ -28,8 +29,6 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
-  GetProviderArgs200,
-  ArgOptionsResponseResponse,
   ListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -38,6 +37,10 @@ import type {
   ProviderSetupStepCompleteRequestBody,
   IdentityConfigurationResponseResponse
 } from '.././types'
+import type {
+  ArgSchema,
+  ArgOptionsResponseResponse
+} from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
 
@@ -235,6 +238,45 @@ export const useAdminGetAccessRuleVersion = <TError = ErrorType<ErrorResponseRes
   const isEnabled = swrOptions?.enabled !== false && !!(ruleId && version)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetAccessRuleVersionKey(ruleId,version) : null);
   const swrFn = () => adminGetAccessRuleVersion(ruleId,version, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Returns the version information
+ * @summary Get deployment version details
+ */
+export const adminGetDeploymentVersion = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<DeploymentVersionResponseResponse>(
+      {url: `/api/v1/admin/deployment/version`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetDeploymentVersionKey = () => [`/api/v1/admin/deployment/version`];
+
+    
+export type AdminGetDeploymentVersionQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetDeploymentVersion>>>
+export type AdminGetDeploymentVersionQueryError = ErrorType<unknown>
+
+export const useAdminGetDeploymentVersion = <TError = ErrorType<unknown>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetDeploymentVersion>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetDeploymentVersionKey() : null);
+  const swrFn = () => adminGetDeploymentVersion(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -531,13 +573,13 @@ export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
- * gets the jsonschema describing the args for this provider
+ * gets the argSchema describing the args for this provider
  * @summary Get provider arg schema
  */
 export const getProviderArgs = (
     providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<GetProviderArgs200>(
+      return customInstance<ArgSchema>(
       {url: `/api/v1/admin/providers/${providerId}/args`, method: 'get'
     },
       options);

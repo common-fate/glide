@@ -41,18 +41,34 @@ const UserProvider: React.FC<Props> = ({ children }) => {
 
   if (loadingMe && user === undefined) {
     return (
-      <Center h="100vh">
-        <CFSpinner />
-      </Center>
+      <UserContextProvider
+        value={{
+          user,
+
+          isAdmin,
+        }}
+      >
+        <Center h="100vh">
+          <CFSpinner />
+        </Center>
+      </UserContextProvider>
     );
   }
 
   // if loading has finished, and there is not user, report that something went wrong
   if (!loadingMe && user === undefined) {
     return (
-      <Center h="100vh">
-        <NoUser />
-      </Center>
+      <UserContextProvider
+        value={{
+          user,
+
+          isAdmin,
+        }}
+      >
+        <Center h="100vh">
+          <NoUser />
+        </Center>
+      </UserContextProvider>
     );
   }
 

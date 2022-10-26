@@ -240,6 +240,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
     });

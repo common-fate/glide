@@ -6,7 +6,6 @@ import (
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/invopop/jsonschema"
 )
 
 // Accessors know how to grant and revoke access to something.
@@ -49,14 +48,28 @@ type ConfigValidator interface {
 	ValidateConfig() map[string]ConfigValidationStep
 }
 
-// ArgSchemarers provide a JSON Schema for the arguments they accept.
-type ArgSchemarer interface {
-	ArgSchema() *jsonschema.Schema
+type ArgSchema map[string]types.Argument
+
+func (a ArgSchema) ToAPI() types.ArgSchema {
+	argSchema := types.ArgSchema{
+		AdditionalProperties: make(map[string]types.Argument),
+	}
+	for k, v := range a {
+		argSchema.AdditionalProperties[k] = v
+	}
+	return argSchema
 }
 
-// ArgOptioner provides a list of options for an argument.
+type ArgSchemarer interface {
+	ArgSchema() ArgSchema
+}
+type ArgOptionGroupValueser interface {
+	ArgOptionGroupValues(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)
+}
+
+// ArgOptioner provides a list of options for an argument and groupings if available.
 type ArgOptioner interface {
-	Options(ctx context.Context, arg string) ([]types.Option, error)
+	Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error)
 }
 
 // Instructioners provide instructions on how a user can access a role or

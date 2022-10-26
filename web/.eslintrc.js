@@ -16,9 +16,16 @@ module.exports = {
     },
     ecmaVersion: 11,
     sourceType: "module",
-    project: "./tsconfig.json",
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ["globalSetup.ts", "playwright.config.ts","vite.config.ts","tests/**","**/client.d.ts"],
+  ignorePatterns: [
+    "globalSetup.ts",
+    "playwright.config.ts",
+    "vite.config.ts",
+    "tests/**",
+    "**/client.d.ts",
+  ],
   plugins: ["@typescript-eslint"],
   rules: {
     "@typescript-eslint/ban-ts-comment": "off",

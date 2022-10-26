@@ -24,6 +24,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import React from "react";
+import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
@@ -78,21 +79,12 @@ const Home = () => {
 
   const user = useUser();
 
-  // const upcomingRef = useRef();
-  // const pastRef = useRef();
-
-  // const inViewport = useIntersection(upcomingRef, "90px"); // Trigger if 200px is visible from the element
-
-  // useEffect(() => {
-  //   console.log("in view");
-  //   upcomingApi.incrementPage();
-  //   // if (inViewport && !isValidating && upcomingApi.canNextPage) {
-  //   // }
-  // }, [inViewport]);
-
   return (
     <>
       <UserLayout>
+        <Helmet>
+          <title>Granted</title>
+        </Helmet>
         <Box overflow="auto">
           <Container maxW="container.xl" pt={{ base: 12, lg: 32 }}>
             <Stack
@@ -408,7 +400,7 @@ const UserAccessCard: React.FC<
     index: number;
   } & LinkBoxProps
 > = ({ req, type, index, ...rest }) => {
-  const { data: rule } = useUserGetAccessRule(req?.accessRule?.id);
+  const { data: rule } = useUserGetAccessRule(req?.accessRuleId);
 
   const option = getRequestOption(req);
 

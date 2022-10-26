@@ -7,7 +7,6 @@
  */
 import type { RequestStatus } from './requestStatus';
 import type { RequestTiming } from './requestTiming';
-import type { RequestAccessRule } from './requestAccessRule';
 import type { Grant } from './grant';
 import type { ApprovalMethod } from './approvalMethod';
 
@@ -21,7 +20,8 @@ export interface Request {
   reason?: string;
   timing: RequestTiming;
   requestedAt: string;
-  accessRule: RequestAccessRule;
+  accessRuleId: string;
+  accessRuleVersion: string;
   updatedAt: string;
   grant?: Grant;
   approvalMethod?: ApprovalMethod;

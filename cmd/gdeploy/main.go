@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
@@ -14,7 +16,6 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
 	mw "github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
 	"github.com/common-fate/granted-approvals/internal/build"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
@@ -75,10 +76,10 @@ func main() {
 	err := app.Run(os.Args)
 	if err != nil {
 		// if the error is an instance of clio.PrintCLIErrorer then print the error accordingly
-		if clierr, ok := err.(clio.PrintCLIErrorer); ok {
-			clierr.PrintCLIError()
+		if cliError, ok := err.(clierr.PrintCLIErrorer); ok {
+			cliError.PrintCLIError()
 		} else {
-			clio.Error("%s", err.Error())
+			clio.Error(err.Error())
 		}
 		os.Exit(1)
 	}

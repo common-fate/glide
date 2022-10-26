@@ -15,9 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
 )
 
 type Provider struct {
@@ -113,7 +113,13 @@ func (p *Provider) RequiresAccessToken() bool {
 	return true
 }
 
-// ArgSchema returns the schema for the provider.
-func (p *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"taskDefinitionFamily": {
+			Id:          "taskDefinitionFamily",
+			Title:       "Task Definition Family",
+			FormElement: types.MULTISELECT,
+		},
+	}
+	return arg
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/TylerBrock/saw/blade"
 	sawconfig "github.com/TylerBrock/saw/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -67,7 +67,7 @@ var watchCommand = cli.Command{
 			}
 			wg.Add(1)
 			go func(lg, s string) {
-				clio.Info("Starting to watch logs for %s, log group id: %s", s, lg)
+				clio.Infof("Starting to watch logs for %s, log group id: %s", s, lg)
 				watchEvents(lg, cfg.Region, c.String("filter"))
 				wg.Done()
 			}(logGroup, service)

@@ -38,11 +38,11 @@ type Accessor interface {
 
 It should also contain a struct `Args` always call this `Args` by convention. Args defines what is being requested when granting access. For example, in Okta, a `groupId` is requested. Args should contain all the parameters required by your provider implementation.
 
-The `Args` struct must define both `json` and `jsonschema` tags. There is some automation happening whereby the `Args` struct is used to dynamically render part of the `Create Access Rule` form in the frontend. This allows flexibility when creating new providers as it means the frontend does not need to be updated to work with a new provider.
+The `Args` struct must define `json` tags.
 
 ```
 type Args struct {
-	GroupID string `json:"groupId" jsonschema:"title=Group"`
+	GroupID string `json:"groupId"`
 }
 ```
 
@@ -84,7 +84,7 @@ As required, your provider may implement the `Configer`, `Initer` and `ArgSchema
 
 If implemented, `Config` is called first, followed by `Init`. Find out more about gconfig and how to use it [here](../backend/gconfig.md).
 
-`ArgSchema` should return `jsonSchema`. This `jsonSchema` is used to render a dynamic form element in the frontend. We have been using `jsonschema.Reflect(&Args{})` however if you needed something more custom, you could implement that here.
+`ArgSchema` should return `providers.ArgSchema`. This schema is used to render a dynamic form element in the frontend.
 
 ```go
 type Configer interface {
@@ -94,7 +94,7 @@ type Initer interface {
 	Init(ctx context.Context) error
 }
 type ArgSchemarer interface {
-	ArgSchema() *jsonschema.Schema
+	ArgSchema() providers.ArgSchema
 }
 ```
 
@@ -126,10 +126,18 @@ func (o *Provider) Init(ctx context.Context) error {
 	return nil
 }
 
-// ArgSchema returns the schema for the Okta provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"groupId": {
+			Id:          "groupId",
+			Title:       "Group",
+			FormElement: types.MULTISELECT,
+		},
+	}
+
+	return arg
 }
+
 ```
 
 ### options.go
