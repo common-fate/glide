@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -50,7 +50,7 @@ var removeCommand = cli.Command{
 		}
 
 		if _, ok := dc.Deployment.Parameters.ProviderConfiguration[chosen]; !ok {
-			clio.Error("Provider configuration doesn't exist. Unable to remove provider '%s'", chosen)
+			clio.Errorf("Provider configuration doesn't exist. Unable to remove provider '%s'", chosen)
 			return nil
 		}
 
@@ -77,7 +77,7 @@ var removeCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Successfully removed provider %s", chosen)
+		clio.Successf("Successfully removed provider %s", chosen)
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 	},
