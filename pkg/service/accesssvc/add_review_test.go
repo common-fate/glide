@@ -24,10 +24,10 @@ func TestOverlapsExistingGrant(t *testing.T) {
 		want           bool
 	}
 	clk := clock.NewMock()
-	a := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(-time.Minute + time.Second)}
-	b := access.Grant{Start: clk.Now(), End: clk.Now().Add(time.Minute)}
-	c := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(time.Minute)}
-	d := access.Grant{Start: clk.Now().Add(time.Second * 30), End: clk.Now().Add(time.Minute)}
+	a := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(-time.Minute + time.Second)} //started 1 minute ago
+	b := access.Grant{Start: clk.Now(), End: clk.Now().Add(time.Minute)}                                  //started now, ends in a minute
+	c := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(time.Minute)}                // started 1 minute ago and ends in 1 minute
+	d := access.Grant{Start: clk.Now().Add(time.Second * 30), End: clk.Now().Add(time.Minute)}            //starts in 30 seconds and ends in 1 minute
 
 	testcases := []testcase{
 		{

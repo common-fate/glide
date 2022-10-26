@@ -153,7 +153,7 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 			UserID:               req.RequestedBy,
 			RuleID:               req.Rule,
 			RequestEndComparator: storage.GreaterThanEqual,
-			CompareTo:            end,
+			CompareTo:            start,
 		}
 		_, err := s.DB.Query(ctx, &rq)
 		if err != nil && err != ddb.ErrNoItems {

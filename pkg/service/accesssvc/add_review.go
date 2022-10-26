@@ -63,12 +63,12 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		request.OverrideTiming = opts.OverrideTiming
 		start, end := request.GetInterval(access.WithNow(s.Clock.Now()))
 		// this request must not overlap an existing grant for the user and rule
-		// This fetches all grants which end in the future, these may or may not have a grant associated yet.
+		// This fetches all grants which during or in the future of a grant, these may or may not have a grant associated yet.
 		rq := storage.ListRequestsForUserAndRuleAndRequestend{
 			UserID:               request.RequestedBy,
 			RuleID:               request.Rule,
 			RequestEndComparator: storage.GreaterThanEqual,
-			CompareTo:            end,
+			CompareTo:            start,
 		}
 		_, err := s.DB.Query(ctx, &rq)
 		if err != nil && err != ddb.ErrNoItems {
