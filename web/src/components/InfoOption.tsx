@@ -37,7 +37,7 @@ export const InfoOption: React.FC<{ label: string; value: string }> = ({
             />
           </PopoverTrigger>
         </HStack>
-        <PopoverContent px={7} w="auto" textAlign="center">
+        <PopoverContent pr={6} w="auto" textAlign="center">
           <PopoverArrow />
           <PopoverCloseButton top={2} />
           <PopoverBody>{value}</PopoverBody>

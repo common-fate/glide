@@ -29,6 +29,7 @@ import {
 import axios, { AxiosError } from "axios";
 import { format } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet";
 import {
   Controller,
   FormProvider,
@@ -220,6 +221,9 @@ const Home = () => {
   return (
     <>
       <UserLayout>
+        <Helmet>
+          <title>New Request</title>
+        </Helmet>
         <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">
           <IconButton
             as={Link}

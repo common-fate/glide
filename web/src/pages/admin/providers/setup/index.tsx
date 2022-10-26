@@ -10,6 +10,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { Helmet } from "react-helmet";
 import { Link, useNavigate } from "react-location";
 import { ProviderIcon } from "../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../components/Layout";
@@ -31,6 +32,9 @@ const Page = () => {
 
   return (
     <AdminLayout>
+      <Helmet>
+        <title>New Access Provider</title>
+      </Helmet>
       <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">
         <IconButton
           as={Link}

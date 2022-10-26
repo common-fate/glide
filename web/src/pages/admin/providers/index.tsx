@@ -22,6 +22,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
+import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { Column } from "react-table";
 import { CFCode } from "../../../components/CodeInstruction";
@@ -66,6 +67,9 @@ const Providers = () => {
 
   return (
     <AdminLayout>
+      <Helmet>
+        <title>Providers</title>
+      </Helmet>
       <Container
         my={12}
         // This prevents unbounded widths for small screen widths
