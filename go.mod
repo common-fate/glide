@@ -37,7 +37,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-retry v0.2.3
-	go.uber.org/zap v1.22.0
+	go.uber.org/zap v1.23.0
 	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7
 	google.golang.org/api v0.91.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -61,7 +61,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/common-fate/clio v0.4.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -184,9 +183,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.18.1
+	github.com/common-fate/clio v1.0.0
 	github.com/common-fate/ddb v0.13.1-0.20220930114850-2dfab8086fc6
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0

@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"go.uber.org/zap"
 )
 
@@ -61,7 +61,7 @@ func GetManifest(ctx context.Context, region string) (Manifest, error) {
 	bucket := fmt.Sprintf("granted-releases-%s", region)
 	key := "manifest.json"
 
-	clio.Debug("fetching manifest, bucket=%s key=%s", bucket, key)
+	clio.Debugf("fetching manifest, bucket=%s key=%s", bucket, key)
 
 	downloader := manager.NewDownloader(client)
 	_, err = downloader.Download(ctx, buffer, &s3.GetObjectInput{

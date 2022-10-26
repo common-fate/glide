@@ -1,7 +1,7 @@
 package sso
 
 import (
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 
@@ -24,7 +24,7 @@ var updateCommand = cli.Command{
 			clio.Info("You are currently using cognito as your identity provider. If you were trying to sync users and groups. run `gdeploy identity sync` otherwise, you can setup SSO now.")
 			return enableCommand.Run(c)
 		}
-		clio.Info("Updating configuration for %s", currentIdpType)
+		clio.Infof("Updating configuration for %s", currentIdpType)
 		return updateOrAddSSO(c, currentIdpType)
 	},
 }

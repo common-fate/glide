@@ -6,7 +6,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -46,7 +46,7 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Info("Restoring Granted Approvals backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
+		clio.Infof("Restoring Granted Approvals backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
 		confirm := c.Bool("confirm")
 		if !confirm {
 			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
@@ -61,7 +61,7 @@ var Command = cli.Command{
 			return err
 		}
 		clio.Success("Successfully started restoration")
-		clio.Success("To check the status of a restoration run `gdeploy restore status --table-name=%s`", tableName)
+		clio.Successf("To check the status of a restoration run `gdeploy restore status --table-name=%s`", tableName)
 
 		return nil
 	},

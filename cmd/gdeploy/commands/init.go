@@ -3,7 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -38,7 +39,7 @@ var InitCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Wrote config to %s", f)
+		clio.Successf("Wrote config to %s", f)
 		clio.Warn("Nothing has been deployed yet. To finish deploying Granted Approvals, run 'gdeploy create' to create the CloudFormation stack in AWS.")
 		return nil
 	},
@@ -60,13 +61,13 @@ func ensureConfigDoesntExist(c *cli.Context) error {
 	}
 
 	if overwrite {
-		clio.Warn("--overwrite has been set, the config file %s will be overwritten", f)
+		clio.Warnf("--overwrite has been set, the config file %s will be overwritten", f)
 		return nil
 	}
 
 	// if we get here, the config file exists and is at risk of being overwritten.
-	return clio.NewCLIError(fmt.Sprintf("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f),
-		clio.LogMsg(`
+	return clierr.New(fmt.Sprintf("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f),
+		clierr.Log(`
 To fix this, take one of the following actions:
   a) run 'gdeploy init' from a different folder
   b) run 'gdeploy -f other-config.toml init' to use a separate config file

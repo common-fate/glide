@@ -9,8 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/briandowns/spinner"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 	"github.com/urfave/cli/v2"
@@ -36,7 +37,7 @@ var SyncCommand = cli.Command{
 		}
 
 		if o.IdpSyncFunctionName == "" {
-			return clio.NewCLIError("The sync function name is not yet available. You may need to update your deployment to use this feature.")
+			return clierr.New("The sync function name is not yet available. You may need to update your deployment to use this feature.")
 		}
 		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		si.Suffix = " invoking IDP sync lambda function"
@@ -57,7 +58,7 @@ var SyncCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Debug("idp sync lamda invoke response: %s", string(b))
+		clio.Debugf("idp sync lamda invoke response: %s", string(b))
 		if res.FunctionError != nil {
 			return fmt.Errorf("user and group sync failed with lambda execution error: %s", *res.FunctionError)
 		} else if res.StatusCode == 200 {
@@ -65,7 +66,7 @@ var SyncCommand = cli.Command{
 			if idp == "" {
 				idp = identitysync.IDPTypeCognito
 			}
-			clio.Success("Successfully synced users and groups using %s", idp)
+			clio.Successf("Successfully synced users and groups using %s", idp)
 		} else {
 			return fmt.Errorf("user and group sync failed with lambda invoke status code: %d", res.StatusCode)
 		}
