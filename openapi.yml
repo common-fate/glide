@@ -523,6 +523,17 @@ paths:
         name: version
         in: path
         required: true
+  /api/v1/admin/deployment/version:
+    get:
+      summary: Get deployment version details
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentVersionResponse"
+      operationId: admin-get-deployment-version
+      description: Returns the version information
+    parameters: []
   /api/v1/admin/requests:
     get:
       summary: Your GET endpoint
@@ -2075,6 +2086,18 @@ components:
             required:
               - identityProvider
               - administratorGroupId
+    DeploymentVersionResponse:
+      description: Deployment version information.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              version:
+                type: string
+                description: 'The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.'
+            required:
+              - version
   examples: {}
   securitySchemes: {}
   requestBodies:
