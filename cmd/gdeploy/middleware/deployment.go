@@ -20,7 +20,7 @@ func RequireDeploymentConfig() cli.BeforeFunc {
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
 			return clierr.New(fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
-				clierr.Log(`
+				clierr.Info(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
@@ -135,7 +135,7 @@ func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string, ignoreM
 	}
 	parsedBuildVersion, err := version.NewVersion(buildVersion)
 	if err != nil {
-		return false, true, clierr.New(err.Error(), clierr.Log("Unexpected error encountered while checking build version compatibility. If you see this, let us know via an issue on Github. You can skip this warning by passing the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'"))
+		return false, true, clierr.New(err.Error(), clierr.Warn("Unexpected error encountered while checking build version compatibility. If you see this, let us know via an issue on Github. You can skip this warning by passing the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'"))
 	}
 	parsedReleaseVersion, err := version.NewVersion(d.Release)
 	if err != nil {

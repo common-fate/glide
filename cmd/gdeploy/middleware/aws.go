@@ -27,7 +27,7 @@ func RequireAWSCredentials() cli.BeforeFunc {
 		si.Writer = os.Stderr
 		si.Start()
 		defer si.Stop()
-		needCredentialsLog := clierr.Log(`Please export valid AWS credentials to run this command.
+		needCredentialsLog := clierr.Info(`Please export valid AWS credentials to run this command.
 For more information see:
 https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
 `)
@@ -46,7 +46,7 @@ https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
 			}
 			if dc.Deployment.Account != "" {
 				// include the account id in the log message if available
-				needCredentialsLog = clierr.Log("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
+				needCredentialsLog = clierr.Infof("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
 			}
 		}
 

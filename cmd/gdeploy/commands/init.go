@@ -67,7 +67,7 @@ func ensureConfigDoesntExist(c *cli.Context) error {
 
 	// if we get here, the config file exists and is at risk of being overwritten.
 	return clierr.New(fmt.Sprintf("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f),
-		clierr.Log(`
+		clierr.Info(`
 To fix this, take one of the following actions:
   a) run 'gdeploy init' from a different folder
   b) run 'gdeploy -f other-config.toml init' to use a separate config file

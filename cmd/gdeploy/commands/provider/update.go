@@ -6,6 +6,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -53,9 +54,7 @@ var updateCommand = cli.Command{
 		}
 
 		if _, ok := dc.Deployment.Parameters.ProviderConfiguration[chosen]; !ok {
-			clio.Errorf("Provider configuration doesn't exist. Unable to remove provider '%s'", chosen)
-			clio.Log("Try using 'gdeploy providers add' to add a new provider.")
-			return nil
+			return clierr.New(fmt.Sprintf("Provider configuration doesn't exist. Unable to remove provider '%s'", chosen), clierr.Info("Try using 'gdeploy providers add' to add a new provider."))
 		}
 
 		with := map[string]string{}
@@ -70,7 +69,6 @@ var updateCommand = cli.Command{
 		uses = currentConfig.Uses
 		providerType, version, err := providerregistry.ParseUses(uses)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 
