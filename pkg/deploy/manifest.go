@@ -61,7 +61,7 @@ func GetManifest(ctx context.Context, region string) (Manifest, error) {
 	bucket := fmt.Sprintf("granted-releases-%s", region)
 	key := "manifest.json"
 
-	clio.Debugf("fetching manifest, bucket=%s key=%s", bucket, key)
+	clio.Debugw("fetching manifest", "bucket", bucket, "key", key)
 
 	downloader := manager.NewDownloader(client)
 	_, err = downloader.Download(ctx, buffer, &s3.GetObjectInput{
