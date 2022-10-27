@@ -19,8 +19,7 @@ type SlackNotifier struct {
 	DB          ddb.Storage
 	FrontendURL string
 	client      *slack.Client
-	// @TODO: consider replicating this whole notifier/slack folder for slack-webhook
-	apiToken gconfig.SecretStringValue
+	apiToken    gconfig.SecretStringValue
 }
 
 func (s *SlackNotifier) Config() gconfig.Config {

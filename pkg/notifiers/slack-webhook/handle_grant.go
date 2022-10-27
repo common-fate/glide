@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
+func (n *SlackWebhookNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 	var grantEvent gevent.GrantEventPayload
 	err := json.Unmarshal(event.Detail, &grantEvent)
 	if err != nil {

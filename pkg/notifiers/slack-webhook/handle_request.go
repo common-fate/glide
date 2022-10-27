@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
+func (n *SlackWebhookNotifier) HandleRequestEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 	var requestEvent gevent.RequestEventPayload
 	err := json.Unmarshal(event.Detail, &requestEvent)
 	if err != nil {
@@ -225,7 +225,7 @@ type UpdateSlackMessageOpts struct {
 	DbRequestor       *identity.User
 }
 
-func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.SugaredLogger, opts UpdateSlackMessageOpts) error {
+func (n *SlackWebhookNotifier) UpdateSlackMessage(ctx context.Context, log *zap.SugaredLogger, opts UpdateSlackMessageOpts) error {
 
 	// Skip if requestor == reviewer
 
@@ -399,7 +399,7 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 
 // @TODO this method maps request arguments in a deprecated way.
 // it shoudl be replaced eventually with a cache lookup for the options available for the access rule
-func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request access.Request, rule rule.AccessRule) ([]types.With, error) {
+func (n *SlackWebhookNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request access.Request, rule rule.AccessRule) ([]types.With, error) {
 	// Consider adding a fallback if the cache lookup fails
 	pq := storage.ListCachedProviderOptions{
 		ProviderID: rule.Target.ProviderID,

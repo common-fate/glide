@@ -12,29 +12,29 @@ import (
 	"go.uber.org/zap"
 )
 
-const NotificationsTypeSlack = "slack"
+const NotificationsTypeSlackWebhook = "slackWebhook"
 
 // Notifier provides handler methods for sending notifications to slack based on events
-type SlackNotifier struct {
+type SlackWebhookNotifier struct {
 	DB          ddb.Storage
 	FrontendURL string
 	client      *slack.Client
-	// @TODO: consider replicating this whole notifier/slack folder for slack-webhook
-	apiToken gconfig.SecretStringValue
+	// @TODO: turn this into an array of gconfig.SecretStringValue
+	webhookUrls gconfig.SecretStringValue
 }
 
-func (s *SlackNotifier) Config() gconfig.Config {
+func (s *SlackWebhookNotifier) Config() gconfig.Config {
 	return gconfig.Config{
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Slack API token", gconfig.WithNoArgs("/granted/secrets/notifications/slack/token")),
+		gconfig.SecretStringField("webhookUrls", &s.webhookUrls, "the Slack API token", gconfig.WithNoArgs("/granted/secrets/notifications/slack-webhook/url")),
 	}
 }
 
-func (s *SlackNotifier) Init(ctx context.Context) error {
-	s.client = slack.New(s.apiToken.Get())
+func (s *SlackWebhookNotifier) Init(ctx context.Context) error {
+	s.client = slack.New(s.webhookUrls.Get())
 	return nil
 }
 
-func (s *SlackNotifier) TestConfig(ctx context.Context) error {
+func (s *SlackWebhookNotifier) TestConfig(ctx context.Context) error {
 	_, err := s.client.GetUsersContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to list users while testing slack configuration")
@@ -42,7 +42,7 @@ func (s *SlackNotifier) TestConfig(ctx context.Context) error {
 	return nil
 }
 
-func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
+func (n *SlackWebhookNotifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
 	log := zap.S()
 
 	log.Infow("received event", "event", event)
