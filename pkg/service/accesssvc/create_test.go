@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/apikit/apio"
@@ -38,6 +39,7 @@ func TestNewRequest(t *testing.T) {
 		withGetGroupResponse         *storage.GetGroup
 		withRequestArgumentsResponse map[string]types.RequestArgument
 		wantValidationError          error
+		currentRequestsForGrant      []access.Request
 	}
 
 	clk := clock.NewMock()
@@ -74,6 +76,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "fails because requested duration is greater than max duration",
@@ -100,6 +103,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "user not in correct group",
@@ -107,13 +111,15 @@ func TestNewRequest(t *testing.T) {
 			rule: &rule.AccessRule{
 				Groups: []string{"b"},
 			},
-			wantErr: ErrNoMatchingGroup,
+			wantErr:                 ErrNoMatchingGroup,
+			currentRequestsForGrant: []access.Request{},
 		},
 		{
-			name:     "rule not found",
-			giveUser: identity.User{Groups: []string{"a"}},
-			ruleErr:  ddb.ErrNoItems,
-			wantErr:  ErrRuleNotFound,
+			name:                    "rule not found",
+			giveUser:                identity.User{Groups: []string{"a"}},
+			ruleErr:                 ddb.ErrNoItems,
+			wantErr:                 ErrRuleNotFound,
+			currentRequestsForGrant: []access.Request{},
 		},
 		{
 			name:     "with reviewers",
@@ -148,6 +154,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "requestor is approver on access rule",
@@ -186,6 +193,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "requestor is in approver group on access rule",
@@ -230,6 +238,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name: "failed validation should not create request",
@@ -253,6 +262,83 @@ func TestNewRequest(t *testing.T) {
 			wantValidationError:          fmt.Errorf("unexpected response while validating grant"),
 			wantErr:                      fmt.Errorf("unexpected response while validating grant"),
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
+		},
+		{
+			name: "making request with overlapping grant should fail",
+
+			giveUser: identity.User{Groups: []string{"a"}},
+			rule: &rule.AccessRule{
+				Groups: []string{"a"},
+			},
+			want: nil,
+			withCreateGrantResponse: createGrantResponse{
+				request: &access.Request{
+					ID:             "-",
+					Status:         access.APPROVED,
+					CreatedAt:      clk.Now(),
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{},
+					ApprovalMethod: &autoApproval,
+					SelectedWith:   make(map[string]access.Option),
+				},
+			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant: []access.Request{
+				{
+					ID:             "-",
+					Status:         access.APPROVED,
+					CreatedAt:      clk.Now(),
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{Start: clk.Now(), End: clk.Now().Add(time.Minute)},
+					ApprovalMethod: &autoApproval,
+					SelectedWith:   make(map[string]access.Option),
+				},
+			},
+			// wantValidationError: fmt.Errorf("unexpected response while validating grant"),
+			wantErr: fmt.Errorf("this request overlaps an existing grant"),
+		},
+		{
+			name: "making request with future overlapping grant should fail",
+
+			giveUser: identity.User{Groups: []string{"a"}},
+			rule: &rule.AccessRule{
+				TimeConstraints: types.TimeConstraints{
+					MaxDurationSeconds: 200,
+				}, Groups: []string{"a"},
+			},
+			want: nil,
+			withCreateGrantResponse: createGrantResponse{
+				request: &access.Request{
+					ID:             "-",
+					Status:         access.APPROVED,
+					CreatedAt:      clk.Now(),
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{},
+					ApprovalMethod: &autoApproval,
+
+					SelectedWith: make(map[string]access.Option),
+				},
+			},
+			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant: []access.Request{
+				{
+					ID:             "-",
+					Status:         access.APPROVED,
+					CreatedAt:      clk.Now(),
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{Start: clk.Now(), End: clk.Now().Add(time.Minute * 2)},
+					ApprovalMethod: &autoApproval,
+					SelectedWith:   make(map[string]access.Option),
+				},
+			},
+			giveInput: types.CreateRequestRequest{
+				Timing: types.RequestTiming{
+					DurationSeconds: 20,
+				},
+			},
+			// wantValidationError: fmt.Errorf("unexpected response while validating grant"),
+			wantErr: fmt.Errorf("this request overlaps an existing grant"),
 		},
 	}
 
@@ -262,7 +348,7 @@ func TestNewRequest(t *testing.T) {
 			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: tc.rule}, tc.ruleErr)
 			db.MockQuery(tc.withGetGroupResponse)
 			db.MockQuery(&storage.ListRequestReviewers{})
-			db.MockQuery(&storage.ListRequestsForUserAndRuleAndRequestend{})
+			db.MockQuery(&storage.ListRequestsForUserAndRuleAndRequestend{Result: tc.currentRequestsForGrant})
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()
