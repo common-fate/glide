@@ -158,6 +158,11 @@ const Home = () => {
       );
       if (bookmarkId != null) {
         userGetBookmark(bookmarkId).then((bookmark) => {
+          setValue("timing.durationSeconds", bookmark.timing.durationSeconds);
+          if (bookmark.timing.startTime) {
+            setValue("startDateTime", bookmark.timing.startTime);
+            setValue("when", "scheduled");
+          }
           setValue("reason", bookmark.reason);
           setValue("with", bookmark.with);
           // @TODO timing
