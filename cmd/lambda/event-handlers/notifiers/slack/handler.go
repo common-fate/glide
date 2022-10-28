@@ -66,6 +66,7 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 	// This avoids us using stale config if we're reading config from a remote API,
 	// rather than from env vars. This adds latency but this is an async operation
 	// anyway so it doesn't really matter.
+	// 👀
 	notificationsConfig, err := dc.ReadNotifications(ctx)
 	if err != nil {
 		return err
@@ -73,19 +74,31 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 
 	ncfg := notifier.Config()
 
-	slackCfg, ok := notificationsConfig[slacknotifier.NotificationsTypeSlack]
-	if !ok {
+	// @TODO: decide whether to run .Load() twice, or to merge the two configs
+	slackCfg, ok1 := notificationsConfig[slacknotifier.NotificationsTypeSlack]
+
+	slackWebhookCfg, ok2 := notificationsConfig[slacknotifier.NotificationsTypeSlackWebhook]
+
+	if !ok1 && !ok2 {
 		h.Log.Infow("notifications not configured, skipping handling event")
 		return nil
+	}
+
+	// merge slackWebhookCfg and slackCfg
+	for k, v := range slackWebhookCfg {
+		slackCfg[k] = v
 	}
 
 	err = ncfg.Load(ctx, &gconfig.MapLoader{Values: slackCfg})
 	if err != nil {
 		panic(err)
 	}
-	err = notifier.Init(ctx)
-	if err != nil {
-		panic(err)
+
+	if ok1 {
+		err = notifier.InitForToken(ctx)
+		if err != nil {
+			panic(err)
+		}
 	}
 	return notifier.HandleEvent(ctx, event)
 }

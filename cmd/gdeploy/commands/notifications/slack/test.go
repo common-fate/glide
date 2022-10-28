@@ -32,7 +32,7 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		err = slack.Init(ctx)
+		err = slack.InitForToken(ctx)
 		if err != nil {
 			return err
 		}

@@ -113,6 +113,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					})
 
 					ts, err := SendMessageBlocks(ctx, n.client, approver.Result.Email, msg, summary)
+
+					// @TODO: create conditional handling here for slack webhooks, instead send msg to webhook as json
+					// basic http post request to webhook url with json body
+					// https://api.slack.com/messaging/webhooks
+
 					if err != nil {
 						log.Errorw("failed to send request approval message", "user", usr, "msg", msg, zap.Error(err))
 					}
