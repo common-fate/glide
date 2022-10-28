@@ -1016,34 +1016,34 @@ paths:
       summary: Your GET endpoint
       tags: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Bookmark'
+                  $ref: "#/components/schemas/Bookmark"
       operationId: user-list-bookmarks
     post:
-      summary: ''
+      summary: ""
       operationId: user-create-bookmark
       responses:
-        '200':
+        "200":
           description: OK
       requestBody:
-        $ref: '#/components/requestBodies/CreateBookmarkRequest'
-  '/api/v1/bookmarks/{id}':
+        $ref: "#/components/requestBodies/CreateBookmarkRequest"
+  "/api/v1/bookmarks/{id}":
     get:
       summary: Your GET endpoint
       tags: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BookmarkDetail'
+                $ref: "#/components/schemas/BookmarkDetail"
       operationId: user-get-bookmark
     parameters:
       - schema:
@@ -1960,11 +1960,11 @@ components:
         name:
           type: string
         with:
-          $ref: '#/components/schemas/CreateRequestWithSubRequest'
+          $ref: "#/components/schemas/CreateRequestWithSubRequest"
         reason:
           type: string
         timing:
-          $ref: '#/components/schemas/RequestTiming'
+          $ref: "#/components/schemas/RequestTiming"
       required:
         - id
         - name
@@ -2365,9 +2365,9 @@ components:
                 minLength: 0
                 maxLength: 2048
               timing:
-                $ref: '#/components/schemas/RequestTiming'
+                $ref: "#/components/schemas/RequestTiming"
               with:
-                $ref: '#/components/schemas/CreateRequestWithSubRequest'
+                $ref: "#/components/schemas/CreateRequestWithSubRequest"
               name:
                 type: string
             required:
