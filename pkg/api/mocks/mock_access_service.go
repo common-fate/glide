@@ -8,8 +8,10 @@ import (
 	context "context"
 	reflect "reflect"
 
+	access "github.com/common-fate/granted-approvals/pkg/access"
 	identity "github.com/common-fate/granted-approvals/pkg/identity"
 	accesssvc "github.com/common-fate/granted-approvals/pkg/service/accesssvc"
+	types "github.com/common-fate/granted-approvals/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -63,6 +65,21 @@ func (m *MockAccessService) CancelRequest(arg0 context.Context, arg1 accesssvc.C
 func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRequest", reflect.TypeOf((*MockAccessService)(nil).CancelRequest), arg0, arg1)
+}
+
+// CreateBookmark mocks base method.
+func (m *MockAccessService) CreateBookmark(arg0 context.Context, arg1 *identity.User, arg2 types.CreateBookmarkRequest) (*access.Bookmark, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBookmark", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*access.Bookmark)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBookmark indicates an expected call of CreateBookmark.
+func (mr *MockAccessServiceMockRecorder) CreateBookmark(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBookmark", reflect.TypeOf((*MockAccessService)(nil).CreateBookmark), arg0, arg1, arg2)
 }
 
 // CreateRequest mocks base method.

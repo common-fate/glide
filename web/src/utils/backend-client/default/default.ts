@@ -19,7 +19,10 @@ import type {
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody,
   LookupAccessRule,
-  AccessRuleLookupParams
+  AccessRuleLookupParams,
+  Bookmark,
+  CreateBookmarkRequestBody,
+  BookmarkDetail
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -193,6 +196,94 @@ export const useAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAccessRuleLookupKey(params) : null);
   const swrFn = () => accessRuleLookup(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Your GET endpoint
+ */
+export const userListBookmarks = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Bookmark[]>(
+      {url: `/api/v1/bookmarks`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListBookmarksKey = () => [`/api/v1/bookmarks`];
+
+    
+export type UserListBookmarksQueryResult = NonNullable<Awaited<ReturnType<typeof userListBookmarks>>>
+export type UserListBookmarksQueryError = ErrorType<unknown>
+
+export const useUserListBookmarks = <TError = ErrorType<unknown>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListBookmarks>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListBookmarksKey() : null);
+  const swrFn = () => userListBookmarks(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export const userCreateBookmark = (
+    createBookmarkRequestBody: CreateBookmarkRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/bookmarks`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createBookmarkRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Your GET endpoint
+ */
+export const userGetBookmark = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<BookmarkDetail>(
+      {url: `/api/v1/bookmarks/${id}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetBookmarkKey = (id: string,) => [`/api/v1/bookmarks/${id}`];
+
+    
+export type UserGetBookmarkQueryResult = NonNullable<Awaited<ReturnType<typeof userGetBookmark>>>
+export type UserGetBookmarkQueryError = ErrorType<unknown>
+
+export const useUserGetBookmark = <TError = ErrorType<unknown>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetBookmark>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetBookmarkKey(id) : null);
+  const swrFn = () => userGetBookmark(id, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

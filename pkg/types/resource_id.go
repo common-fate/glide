@@ -17,7 +17,9 @@ func newResourceID(prefix string) string {
 func NewUserID() string {
 	return newResourceID("usr")
 }
-
+func NewBookmarkID() string {
+	return newResourceID("bmk")
+}
 func NewAccessRuleID() string {
 	return newResourceID("rul")
 }

@@ -1011,6 +1011,46 @@ paths:
           name: accountId
           description: the aws account id
       description: endpoint returns an array of relevant access rules (used in combination with granted cli)
+  /api/v1/bookmarks:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bookmark'
+      operationId: user-list-bookmarks
+    post:
+      summary: ''
+      operationId: user-create-bookmark
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        $ref: '#/components/requestBodies/CreateBookmarkRequest'
+  '/api/v1/bookmarks/{id}':
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkDetail'
+      operationId: user-get-bookmark
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
 components:
   schemas:
     User:
@@ -1893,6 +1933,43 @@ components:
       required:
         - values
         - groupings
+    Bookmark:
+      title: Bookmark
+      x-stoplight:
+        id: wyyga2547rs1n
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ruleId:
+          type: string
+      required:
+        - id
+        - name
+        - ruleId
+    BookmarkDetail:
+      title: BookmarkDetail
+      x-stoplight:
+        id: wyyga2547rs1n
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        with:
+          $ref: '#/components/schemas/CreateRequestWithSubRequest'
+        reason:
+          type: string
+        timing:
+          $ref: '#/components/schemas/RequestTiming'
+      required:
+        - id
+        - name
+        - with
+        - timing
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2270,6 +2347,32 @@ components:
                 minLength: 0
                 maxLength: 2048
             required:
+              - name
+    CreateBookmarkRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              accessRuleId:
+                type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 1
+                maxLength: 400
+              reason:
+                type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]|^$'
+                minLength: 0
+                maxLength: 2048
+              timing:
+                $ref: '#/components/schemas/RequestTiming'
+              with:
+                $ref: '#/components/schemas/CreateRequestWithSubRequest'
+              name:
+                type: string
+            required:
+              - accessRuleId
+              - timing
               - name
 tags:
   - name: End User

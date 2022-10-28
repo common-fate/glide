@@ -22,6 +22,7 @@ import {
   Tabs,
   Text,
   useDisclosure,
+  VStack,
 } from "@chakra-ui/react";
 import React from "react";
 import { Helmet } from "react-helmet";
@@ -31,6 +32,7 @@ import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
 import { RequestStatusDisplay } from "../../components/Request";
 import {
+  useUserListBookmarks,
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
 } from "../../utils/backend-client/default/default";
@@ -92,141 +94,144 @@ const Home = () => {
               justifyContent="center"
               spacing={12}
             >
-              <Box>
-                <Flex>
-                  <Text
-                    as="h3"
-                    textStyle="Heading/H3"
-                    mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
+              <VStack>
+                <Bookmarks />
+                <Box>
+                  <Flex>
+                    <Text
+                      as="h3"
+                      textStyle="Heading/H3"
+                      mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
+                    >
+                      New Request
+                    </Text>
+                    <Button
+                      display={{ base: "flex", lg: "none" }}
+                      variant="brandSecondary"
+                      size="sm"
+                      ml="auto"
+                      onClick={onToggle}
+                    >
+                      View All
+                    </Button>
+                  </Flex>
+                  <Grid
+                    mt={8}
+                    templateColumns={{
+                      base: "repeat(20, 1fr)",
+                      lg: "repeat(1, 1fr)",
+                      xl: "repeat(2, 1fr)",
+                    }}
+                    templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
+                    minW={{ base: "unset", xl: "488px" }}
+                    gap={6}
                   >
-                    New Request
-                  </Text>
-                  <Button
-                    display={{ base: "flex", lg: "none" }}
-                    variant="brandSecondary"
-                    size="sm"
-                    ml="auto"
-                    onClick={onToggle}
-                  >
-                    View All
-                  </Button>
-                </Flex>
-                <Grid
-                  mt={8}
-                  templateColumns={{
-                    base: "repeat(20, 1fr)",
-                    lg: "repeat(1, 1fr)",
-                    xl: "repeat(2, 1fr)",
-                  }}
-                  templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
-                  minW={{ base: "unset", xl: "488px" }}
-                  gap={6}
-                >
-                  {rules ? (
-                    rules.accessRules.length > 0 ? (
-                      rules.accessRules.map((r, i) => (
-                        <Link
-                          style={{ display: "flex" }}
-                          to={"/access/request/" + r.id}
-                          key={r.id}
-                        >
-                          <Box
-                            className="group"
-                            textAlign="center"
-                            bg="neutrals.100"
-                            p={6}
-                            h="172px"
-                            w="232px"
-                            rounded="md"
-                            data-testid={"r_" + i}
+                    {rules ? (
+                      rules.accessRules.length > 0 ? (
+                        rules.accessRules.map((r, i) => (
+                          <Link
+                            style={{ display: "flex" }}
+                            to={"/access/request/" + r.id}
+                            key={r.id}
                           >
-                            <ProviderIcon
-                              shortType={r.target.provider.type}
-                              mb={3}
-                              h="8"
-                              w="8"
-                            />
-
-                            <Text
-                              textStyle="Body/SmallBold"
-                              color="neutrals.700"
+                            <Box
+                              className="group"
+                              textAlign="center"
+                              bg="neutrals.100"
+                              p={6}
+                              h="172px"
+                              w="232px"
+                              rounded="md"
+                              data-testid={"r_" + i}
                             >
-                              {r.name}
-                            </Text>
+                              <ProviderIcon
+                                shortType={r.target.provider.type}
+                                mb={3}
+                                h="8"
+                                w="8"
+                              />
 
-                            <Button
-                              mt={4}
-                              variant="brandSecondary"
-                              size="sm"
-                              opacity={0}
-                              sx={{
-                                // This media query ensure always visible for touch screens
-                                "@media (hover: none)": {
+                              <Text
+                                textStyle="Body/SmallBold"
+                                color="neutrals.700"
+                              >
+                                {r.name}
+                              </Text>
+
+                              <Button
+                                mt={4}
+                                variant="brandSecondary"
+                                size="sm"
+                                opacity={0}
+                                sx={{
+                                  // This media query ensure always visible for touch screens
+                                  "@media (hover: none)": {
+                                    opacity: 1,
+                                  },
+                                }}
+                                transition="all .2s ease-in-out"
+                                transform="translateY(8px)"
+                                _groupHover={{
+                                  bg: "white",
                                   opacity: 1,
-                                },
-                              }}
-                              transition="all .2s ease-in-out"
-                              transform="translateY(8px)"
-                              _groupHover={{
-                                bg: "white",
-                                opacity: 1,
-                                transform: "translateY(0px)",
-                              }}
-                            >
-                              Request
-                            </Button>
-                          </Box>
-                        </Link>
-                      ))
-                    ) : (
-                      <Center
-                        bg="neutrals.100"
-                        p={6}
-                        as="a"
-                        h="193px"
-                        w="488px"
-                        rounded="md"
-                        flexDir="column"
-                        textAlign="center"
-                      >
-                        <Text textStyle="Heading/H3" color="neutrals.500">
-                          No Access
-                        </Text>
-                        <Text
-                          textStyle="Body/Medium"
-                          color="neutrals.400"
-                          mt={2}
+                                  transform: "translateY(0px)",
+                                }}
+                              >
+                                Request
+                              </Button>
+                            </Box>
+                          </Link>
+                        ))
+                      ) : (
+                        <Center
+                          bg="neutrals.100"
+                          p={6}
+                          as="a"
+                          h="193px"
+                          w="488px"
+                          rounded="md"
+                          flexDir="column"
+                          textAlign="center"
                         >
-                          You don’t have access to anything yet.{" "}
-                          {user?.isAdmin ? (
-                            <ChakraLink
-                              as={Link}
-                              to="/admin/access-rules/create"
-                              textDecor="none"
-                              _hover={{ textDecor: "underline" }}
-                            >
-                              Click here to create a new access rule.
-                            </ChakraLink>
-                          ) : (
-                            "Ask your Granted administrator to finish setting up Granted."
-                          )}
-                        </Text>
-                      </Center>
-                    )
-                  ) : (
-                    // Otherwise loading state
-                    [1, 2, 3, 4].map((i) => (
-                      <Skeleton
-                        key={i}
-                        p={6}
-                        h="172px"
-                        w="232px"
-                        rounded="sm"
-                      />
-                    ))
-                  )}
-                </Grid>
-              </Box>
+                          <Text textStyle="Heading/H3" color="neutrals.500">
+                            No Access
+                          </Text>
+                          <Text
+                            textStyle="Body/Medium"
+                            color="neutrals.400"
+                            mt={2}
+                          >
+                            You don’t have access to anything yet.{" "}
+                            {user?.isAdmin ? (
+                              <ChakraLink
+                                as={Link}
+                                to="/admin/access-rules/create"
+                                textDecor="none"
+                                _hover={{ textDecor: "underline" }}
+                              >
+                                Click here to create a new access rule.
+                              </ChakraLink>
+                            ) : (
+                              "Ask your Granted administrator to finish setting up Granted."
+                            )}
+                          </Text>
+                        </Center>
+                      )
+                    ) : (
+                      // Otherwise loading state
+                      [1, 2, 3, 4].map((i) => (
+                        <Skeleton
+                          key={i}
+                          p={6}
+                          h="172px"
+                          w="232px"
+                          rounded="sm"
+                        />
+                      ))
+                    )}
+                  </Grid>
+                </Box>
+              </VStack>
 
               <Tabs
                 variant="brand"
@@ -452,5 +457,102 @@ const UserAccessCard: React.FC<
         </LinkOverlay>
       </Link>
     </LinkBox>
+  );
+};
+
+const Bookmarks: React.FC = () => {
+  const { data: bookmarks } = useUserListBookmarks();
+  return (
+    <Box>
+      <Flex>
+        <Text
+          as="h3"
+          textStyle="Heading/H3"
+          mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
+        >
+          Bookmarks
+        </Text>
+      </Flex>
+      <Grid
+        mt={8}
+        templateColumns={{
+          base: "repeat(20, 1fr)",
+          lg: "repeat(1, 1fr)",
+          xl: "repeat(2, 1fr)",
+        }}
+        templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
+        minW={{ base: "unset", xl: "488px" }}
+        gap={6}
+      >
+        {bookmarks ? (
+          bookmarks.length > 0 ? (
+            bookmarks.map((r, i) => (
+              <Link
+                style={{ display: "flex" }}
+                to={"/access/request/" + r.ruleId + "?bookmark=" + r.id}
+                key={r.id}
+              >
+                <Box
+                  className="group"
+                  textAlign="center"
+                  bg="neutrals.100"
+                  p={6}
+                  h="172px"
+                  w="232px"
+                  rounded="md"
+                  data-testid={"r_" + i}
+                >
+                  <Text textStyle="Body/SmallBold" color="neutrals.700">
+                    {r.name}
+                  </Text>
+
+                  <Button
+                    mt={4}
+                    variant="brandSecondary"
+                    size="sm"
+                    opacity={0}
+                    sx={{
+                      // This media query ensure always visible for touch screens
+                      "@media (hover: none)": {
+                        opacity: 1,
+                      },
+                    }}
+                    transition="all .2s ease-in-out"
+                    transform="translateY(8px)"
+                    _groupHover={{
+                      bg: "white",
+                      opacity: 1,
+                      transform: "translateY(0px)",
+                    }}
+                  >
+                    Request
+                  </Button>
+                </Box>
+              </Link>
+            ))
+          ) : (
+            <Center
+              bg="neutrals.100"
+              p={6}
+              as="a"
+              h="193px"
+              w="488px"
+              rounded="md"
+              flexDir="column"
+              textAlign="center"
+            >
+              <Text textStyle="Heading/H3" color="neutrals.500">
+                You don't have any bookmarks yet
+              </Text>
+            </Center>
+          )
+        ) : (
+          // Otherwise loading state
+          [1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} p={6} h="172px" w="232px" rounded="sm" />
+          ))
+        )}
+      </Grid>
+    </Box>
   );
 };

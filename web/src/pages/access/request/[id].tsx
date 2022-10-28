@@ -13,12 +13,21 @@ import {
   HStack,
   IconButton,
   Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  ModalProps,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
   Stack,
   Text,
   Textarea,
+  useDisclosure,
   useRadioGroup,
   UseRadioGroupProps,
   useToast,
@@ -51,12 +60,17 @@ import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
+  userCreateBookmark,
+  userGetBookmark,
+} from "../../../utils/backend-client/default/default";
+import {
   getUserGetAccessRuleApproversKey,
   userCreateRequest,
   useUserGetAccessRule,
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
 import {
+  CreateBookmarkRequestBody,
   CreateRequestRequestBody,
   CreateRequestWith,
   RequestAccessRuleTarget,
@@ -97,6 +111,8 @@ const Home = () => {
     params: { id: ruleId },
   } = useMatch();
   const { data: rule } = useUserGetAccessRule(ruleId);
+
+  const { isOpen, onClose, onOpen } = useDisclosure();
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
@@ -107,7 +123,6 @@ const Home = () => {
   const methods = useForm<NewRequestFormData>({
     defaultValues: {
       when: "asap",
-      with: [{}],
       startDateTime: now,
       timing: {
         durationSeconds: 60,
@@ -138,23 +153,37 @@ const Home = () => {
           ? 3600
           : rule.timeConstraints.maxDurationSeconds
       );
-      // The following will attempt to match any query params to withSelectable fields for this rule.
-      // If the field matches and the value is a valid option, it will be set in the form values.
-      // if it is not a valid value it is ignored.
-      // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
-      Object.entries(rule.target.arguments).map(([k, v]) => {
-        const queryParamValue = new URLSearchParams(
-          location.search.substring(1)
-        ).get(k);
-        if (
-          queryParamValue !== null &&
-          v.options.find((s) => {
-            return s.value === queryParamValue;
-          }) !== undefined
-        ) {
-          // setValue(`with.${k}`, queryParamValue);
-        }
-      });
+      const bookmarkId = new URLSearchParams(location.search.substring(1)).get(
+        "bookmark"
+      );
+      if (bookmarkId != null) {
+        userGetBookmark(bookmarkId).then((bookmark) => {
+          setValue("reason", bookmark.reason);
+          setValue("with", bookmark.with);
+          // @TODO timing
+          console.log({ values: getValues(), bookmark });
+        });
+      } else {
+        // default value if there is no bookmark is an empty selection
+        setValue("with", [{}]);
+        // The following will attempt to match any query params to withSelectable fields for this rule.
+        // If the field matches and the value is a valid option, it will be set in the form values.
+        // if it is not a valid value it is ignored.
+        // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
+        Object.entries(rule.target.arguments).map(([k, v]) => {
+          const queryParamValue = new URLSearchParams(
+            location.search.substring(1)
+          ).get(k);
+          if (
+            queryParamValue !== null &&
+            v.options.find((s) => {
+              return s.value === queryParamValue;
+            }) !== undefined
+          ) {
+            // setValue(`with.${k}`, queryParamValue);
+          }
+        });
+      }
     }
   }, [rule, location.search]);
 
@@ -241,6 +270,12 @@ const Home = () => {
           </Text>
         </Center>
         <Container minW="864px">
+          <NewBookmarkModal
+            ruleId={ruleId}
+            isOpen={isOpen}
+            onClose={onClose}
+            parentFormData={getValues()}
+          />
           <FormProvider {...methods}>
             <Box
               p={8}
@@ -250,9 +285,14 @@ const Home = () => {
               as="form"
               onSubmit={handleSubmit(onSubmit)}
             >
-              <Text as="h3" textStyle="Heading/H3">
-                You are requesting access to
-              </Text>
+              <Flex justify={"space-between"}>
+                <Text as="h3" textStyle="Heading/H3">
+                  You are requesting access to
+                </Text>
+                <Button type="button" onClick={onOpen}>
+                  Bookmark
+                </Button>
+              </Flex>
 
               <Stack
                 spacing={2}
@@ -591,3 +631,124 @@ const CustomOption = ({
   </div>
 );
 export default Home;
+
+interface NewBookmarkModalProps extends Omit<ModalProps, "children"> {
+  ruleId: string;
+  parentFormData: NewRequestFormData;
+}
+const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
+  ruleId,
+  parentFormData,
+  ...rest
+}) => {
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const methods = useForm<{ name: string }>();
+  // the state of the parent form
+
+  const toast = useToast();
+  const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
+    const r: CreateBookmarkRequestBody = {
+      name: data.name,
+      accessRuleId: ruleId,
+      timing: {
+        durationSeconds: parentFormData.timing.durationSeconds,
+      },
+      reason: parentFormData.reason ? parentFormData.reason : "",
+      with: parentFormData.with,
+    };
+    if (parentFormData.when === "scheduled") {
+      r.timing.startTime = new Date(parentFormData.startDateTime).toISOString();
+    }
+    setIsSubmitting(true);
+    userCreateBookmark(r)
+      .then(() => {
+        toast({
+          title: "Bookmark created",
+          status: "success",
+          duration: 2200,
+          isClosable: true,
+        });
+        rest.onClose();
+        methods.reset();
+      })
+      .catch((e: any) => {
+        let description: string | undefined;
+        if (axios.isAxiosError(e)) {
+          description = (e as AxiosError<{ error: string }>)?.response?.data
+            .error;
+        }
+        toast({
+          title: "Bookmark failed",
+          status: "error",
+          duration: 5000,
+          description: (
+            <Text color={"white"} whiteSpace={"pre"}>
+              {description}
+            </Text>
+          ),
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
+  };
+  return (
+    <Modal {...rest}>
+      <ModalOverlay />
+      <ModalContent as={"form"} onSubmit={methods.handleSubmit(onSubmit)}>
+        <ModalHeader>Bookmark Request</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <FormControl isInvalid={!!methods.formState.errors?.name}>
+            <FormLabel textStyle="Body/Medium" fontWeight="normal">
+              Name
+            </FormLabel>
+            <Input
+              bg="white"
+              id="nameField"
+              placeholder="Daily Development Access"
+              {...methods.register("name", {
+                required: true,
+                minLength: 1,
+                maxLength: 128,
+                validate: (value) => {
+                  const res: string[] = [];
+                  [/[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/].every((pattern) =>
+                    pattern.test(value as string)
+                  ) &&
+                    res.push(
+                      "Invalid characters (only letters, numbers, and punctuation allowed)"
+                    );
+                  if (value && value.length > 2048) {
+                    res.push("Maximum length is 2048 characters");
+                  }
+                  return res.length > 0 ? res.join(", ") : undefined;
+                },
+              })}
+              onBlur={() => methods.trigger("name")}
+            />
+            {methods.formState.errors?.name && (
+              <FormErrorMessage>
+                {methods.formState.errors?.name.message}
+              </FormErrorMessage>
+            )}
+          </FormControl>
+        </ModalBody>
+
+        <ModalFooter>
+          <Button type={"submit"} mr={3} isLoading={isSubmitting}>
+            Bookmark
+          </Button>
+          <Button
+            variant={"brandSecondary"}
+            onClick={rest.onClose}
+            isDisabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};

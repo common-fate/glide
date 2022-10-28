@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/auth"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
@@ -90,6 +91,7 @@ type AccessService interface {
 	CreateRequest(ctx context.Context, user *identity.User, in accesssvc.CreateRequest) (*accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
+	CreateBookmark(ctx context.Context, user *identity.User, in types.CreateBookmarkRequest) (*access.Bookmark, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_accessrule_service.go -package=mocks . AccessRuleService
