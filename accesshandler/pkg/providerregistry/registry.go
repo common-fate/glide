@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
@@ -34,8 +33,10 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 
 	for ptype, pversions := range pr.Providers {
 		for pversion, rp := range pversions {
+
 			key := ptype + "@" + pversion
 			all[key] = rp
+
 		}
 	}
 	return all
@@ -65,11 +66,7 @@ func Registry() ProviderRegistry {
 				},
 			},
 			"commonfate/aws-sso": {
-				"v1": {
-					Provider:    &sso.Provider{},
-					DefaultID:   "aws-sso",
-					Description: "AWS SSO PermissionSets",
-				},
+
 				"v2": {
 					Provider:    &ssov2.Provider{},
 					DefaultID:   "aws-sso-v2",

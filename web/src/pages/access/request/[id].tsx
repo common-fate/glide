@@ -181,7 +181,7 @@ const Home = () => {
       timing: {
         durationSeconds: data.timing.durationSeconds,
       },
-      reason: data.reason,
+      reason: data.reason ? data.reason : "",
       with: data.with,
     };
     if (data.when === "scheduled") {

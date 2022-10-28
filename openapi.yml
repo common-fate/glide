@@ -1393,15 +1393,16 @@ components:
           id: string
           name: string
           type: okta
+      description: "Provider "
       properties:
         id:
           type: string
         type:
           type: string
+
       required:
         - id
         - type
-      description: "Provider "
     Group:
       title: Group
       type: object
