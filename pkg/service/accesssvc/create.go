@@ -24,10 +24,16 @@ type CreateRequestResult struct {
 	Request   access.Request
 	Reviewers []access.Reviewer
 }
+type CreateRequest struct {
+	AccessRuleId string
+	Reason       *string
+	Timing       types.RequestTiming
+	With         map[string]string
+}
 
 // CreateRequest creates a new request and saves it in the database.
 // Returns an error if the request is invalid.
-func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in types.CreateRequestRequest) (*CreateRequestResult, error) {
+func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in CreateRequest) (*CreateRequestResult, error) {
 	log := logger.Get(ctx).With("user.id", user.ID)
 	q := storage.GetAccessRuleCurrent{ID: in.AccessRuleId}
 	_, err := s.DB.Query(ctx, &q)
@@ -72,8 +78,8 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 		RuleVersion:     rule.Version,
 		SelectedWith:    make(map[string]access.Option),
 	}
-	if in.With != nil && in.With.AdditionalProperties != nil {
-		for k, v := range in.With.AdditionalProperties {
+	if in.With != nil {
+		for k, v := range in.With {
 			argument := requestArguments[k]
 			found := false
 			for _, option := range argument.Options {
@@ -221,7 +227,7 @@ func groupMatches(ruleGroups []string, userGroups []string) error {
 
 // requestIsValid checks that the request meets the constraints of the rule
 // Add additional constraint checks here in this method.
-func validateRequest(request types.CreateRequestRequest, rule *rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
+func validateRequest(request CreateRequest, rule *rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
 	if request.Timing.DurationSeconds > rule.TimeConstraints.MaxDurationSeconds {
 		return &apio.APIError{
 			Err:    errors.New("request validation failed"),
@@ -237,8 +243,8 @@ func validateRequest(request types.CreateRequestRequest, rule *rule.AccessRule, 
 
 	given := make(map[string]string)
 	expected := make(map[string][]string)
-	if request.With != nil && request.With.AdditionalProperties != nil {
-		given = request.With.AdditionalProperties
+	if request.With != nil {
+		given = request.With
 	}
 	for k, v := range requestArguments {
 		if v.RequiresSelection {

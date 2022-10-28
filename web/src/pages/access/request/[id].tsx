@@ -1,4 +1,4 @@
-import { ArrowBackIcon, InfoIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, InfoIcon, PlusSquareIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -45,6 +45,7 @@ import {
   Hours,
   Minutes,
 } from "../../../components/DurationInput";
+import { MultiSelect } from "../../../components/forms/access-rule/components/Select";
 import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
@@ -104,10 +105,9 @@ const Home = () => {
   }, []);
 
   const methods = useForm<NewRequestFormData>({
-    shouldUnregister: true,
-
     defaultValues: {
       when: "asap",
+      with: [{}],
       startDateTime: now,
       timing: {
         durationSeconds: 60,
@@ -152,7 +152,7 @@ const Home = () => {
             return s.value === queryParamValue;
           }) !== undefined
         ) {
-          setValue(`with.${k}`, queryParamValue);
+          // setValue(`with.${k}`, queryParamValue);
         }
       });
     }
@@ -450,108 +450,98 @@ export const AccessRuleArguments: React.FC<{
     control,
     getValues,
     formState: { errors },
+    watch,
+    setValue,
   } = useFormContext<NewRequestFormData>();
 
   if (target === undefined) {
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
+  const subRequests = watch("with");
+  console.log({ subRequests });
   return (
-    <>
-      <Wrap>
-        {Object.entries(target.arguments)
-          .filter(([k, v]) => {
-            return !v.requiresSelection;
-          })
-          .map(([k, argument]) => {
-            return (
-              <WrapItem>
-                <VStack align={"left"}>
-                  <Text>{argument.title}</Text>
-                  <InfoOption
-                    label={argument.options[0].label}
-                    value={argument.options[0].value}
-                  />
-                </VStack>
-              </WrapItem>
-            );
-          })}
-      </Wrap>
-      {Object.entries(target.arguments)
-        .filter(([k, v]) => {
-          return v.requiresSelection;
-        })
-        .map(([k, v], i) => {
-          const name = `with.${k}`;
-          return (
-            <FormControl
-              key={"selectable-" + k}
-              pos="relative"
-              id={name}
-              isInvalid={errors.with && errors.with[k] !== undefined}
-            >
-              <FormLabel
-                textStyle="Body/Medium"
-                color="neutrals.600"
-                fontWeight="normal"
-              >
-                {v.title}
-              </FormLabel>
-
-              <Controller
-                name={`with.${k}`}
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <>
-                    <Select
-                      components={{
-                        Option: CustomOption,
-                      }}
-                      styles={{
-                        option: (provided, state) => {
-                          return {
-                            ...provided,
-                            background: state.isSelected
-                              ? colors.blue[200]
-                              : provided.background,
-                            color: state.isSelected
-                              ? colors.neutrals[800]
-                              : provided.color,
-                          };
-                        },
-                      }}
-                      isMulti={false}
+    <Flex direction={"column"} justify={"left"}>
+      <VStack w="100%">
+        {subRequests?.map((subRequest, subRequestIndex) => (
+          <VStack
+            w="100%"
+            key={`subrequest-${subRequestIndex}`}
+            border="1px solid"
+            borderColor="gray.300"
+            rounded="md"
+            p={4}
+          >
+            <Wrap>
+              {Object.entries(target.arguments)
+                .filter(([k, v]) => {
+                  return !v.requiresSelection;
+                })
+                .map(([k, argument]) => {
+                  return (
+                    <WrapItem>
+                      <VStack align={"left"}>
+                        <Text>{argument.title}</Text>
+                        <InfoOption
+                          label={argument.options[0].label}
+                          value={argument.options[0].value}
+                        />
+                      </VStack>
+                    </WrapItem>
+                  );
+                })}
+            </Wrap>
+            {Object.entries(target.arguments)
+              .filter(([k, v]) => {
+                return v.requiresSelection;
+              })
+              .map(([k, v], i) => {
+                const name = `with.${subRequestIndex}.${k}`;
+                return (
+                  <FormControl
+                    key={"selectable-" + k}
+                    pos="relative"
+                    id={name}
+                    isInvalid={
+                      errors.with &&
+                      errors.with?.[subRequestIndex]?.[k] !== undefined
+                    }
+                  >
+                    <FormLabel
+                      textStyle="Body/Medium"
+                      color="neutrals.600"
+                      fontWeight="normal"
+                    >
+                      {v.title}
+                    </FormLabel>
+                    <MultiSelect
+                      fieldName={`with.${subRequestIndex}.${k}`}
                       options={v.options
                         // exclude invalid options
                         .filter((op) => op.valid)
                         .map((op) => {
                           return op;
-                        })
-                        .sort((a, b) => {
-                          return a.label < b.label
-                            ? -1
-                            : a.label === b.label
-                            ? 0
-                            : 1;
                         })}
-                      value={v.options.find((op) => value === op.value)}
-                      onChange={(val) => {
-                        onChange(val?.value);
-                      }}
-                      {...rest}
                     />
-                    <Text textStyle={"Body/Small"} color="neutrals.600">
-                      {value}
-                    </Text>
-                  </>
-                )}
-              />
-
-              <FormErrorMessage>This field is required</FormErrorMessage>
-            </FormControl>
-          );
-        })}
-    </>
+                    <FormErrorMessage>This field is required</FormErrorMessage>
+                  </FormControl>
+                );
+              })}
+          </VStack>
+        ))}
+      </VStack>
+      <IconButton
+        type="button"
+        mt={1}
+        boxSize={25}
+        aria-label="add"
+        icon={<PlusSquareIcon />}
+        onClick={() => {
+          const newValue = [...(subRequests || []), {}];
+          console.log(newValue);
+          setValue("with", [...(subRequests || []), {}]);
+        }}
+      />
+    </Flex>
   );
 };
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {

@@ -87,7 +87,7 @@ type ProviderSetupService interface {
 
 // RequestServices can create Access Requests.
 type AccessService interface {
-	CreateRequest(ctx context.Context, user *identity.User, in types.CreateRequestRequest) (*accesssvc.CreateRequestResult, error)
+	CreateRequest(ctx context.Context, user *identity.User, in accesssvc.CreateRequest) (*accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 // List my requests
@@ -202,6 +203,38 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	}
 	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, requestArguments), http.StatusOK)
 }
+func combinations(subRequest map[string][]string) []map[string]string {
+	keys := make([]string, 0, len(subRequest))
+	for k := range subRequest {
+		keys = append(keys, k)
+	}
+	var combinations []map[string]string
+	if len(keys) > 0 {
+		for _, value := range subRequest[keys[0]] {
+			combinations = append(combinations, branch(subRequest, keys, map[string]string{keys[0]: value}, 1)...)
+		}
+	}
+	return combinations
+}
+
+func branch(subRequest map[string][]string, keys []string, combination map[string]string, keyIndex int) []map[string]string {
+	var combos []map[string]string
+	key := keys[keyIndex]
+	for _, value := range subRequest[key] {
+		// Create the target map
+		next := map[string]string{key: value}
+		// Copy from the original map to the target map
+		for k, v := range combination {
+			next[k] = v
+		}
+		if len(keys) == keyIndex+1 {
+			combos = append(combos, next)
+		} else {
+			combos = append(combos, branch(subRequest, keys, next, keyIndex+1)...)
+		}
+	}
+	return combos
+}
 
 // Creates a request
 // (POST /api/v1/requests/)
@@ -218,10 +251,38 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 
 	log := zap.S()
 	log.Infow("validating and creating grant")
-
 	// create the request. The RequestCreator handles the validation
 	// and saving the request to the database.
-	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
+	if incomingRequest.With != nil {
+		g, gctx := errgroup.WithContext(ctx)
+		for _, v := range *incomingRequest.With {
+			if v.AdditionalProperties != nil {
+				argumentCombos := combinations(v.AdditionalProperties)
+				for _, argumentcombo := range argumentCombos {
+					argComboCopy := argumentcombo
+					g.Go(func() error {
+						_, err := a.Access.CreateRequest(gctx, u, accesssvc.CreateRequest{
+							With:         argComboCopy,
+							AccessRuleId: incomingRequest.AccessRuleId,
+							Reason:       incomingRequest.Reason,
+							Timing:       incomingRequest.Timing,
+						})
+						return err
+					})
+				}
+
+			}
+
+		}
+		err = g.Wait()
+	} else {
+		_, err = a.Access.CreateRequest(ctx, u, accesssvc.CreateRequest{
+			With:         make(map[string]string),
+			AccessRuleId: incomingRequest.AccessRuleId,
+			Reason:       incomingRequest.Reason,
+			Timing:       incomingRequest.Timing,
+		})
+	}
 	var grantValidationError *grantsvc.GrantValidationError
 	if errors.As(err, &grantValidationError) {
 		apio.Error(ctx, w, apio.NewRequestError(grantValidationError, http.StatusBadRequest))
@@ -238,7 +299,7 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apio.JSON(ctx, w, result.Request.ToAPI(), http.StatusCreated)
+	apio.JSON(ctx, w, nil, http.StatusCreated)
 }
 
 func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {

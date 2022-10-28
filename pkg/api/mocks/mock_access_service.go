@@ -10,7 +10,6 @@ import (
 
 	identity "github.com/common-fate/granted-approvals/pkg/identity"
 	accesssvc "github.com/common-fate/granted-approvals/pkg/service/accesssvc"
-	types "github.com/common-fate/granted-approvals/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -67,7 +66,7 @@ func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *
 }
 
 // CreateRequest mocks base method.
-func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 *identity.User, arg2 types.CreateRequestRequest) (*accesssvc.CreateRequestResult, error) {
+func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 *identity.User, arg2 accesssvc.CreateRequest) (*accesssvc.CreateRequestResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRequest", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*accesssvc.CreateRequestResult)
