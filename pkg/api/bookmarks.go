@@ -23,7 +23,7 @@ func (a *API) UserListBookmarks(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	var res []types.Bookmark
+	res := []types.Bookmark{}
 	for _, bookmark := range q.Result {
 		res = append(res, bookmark.ToAPI())
 	}
