@@ -17,10 +17,10 @@ func (el *EnvDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap, 
 	return UnmarshalProviderMap(env)
 }
 
-func (el *EnvDeploymentConfig) ReadNotifications(ctx context.Context) (FeatureMap, error) {
+func (el *EnvDeploymentConfig) ReadNotifications(ctx context.Context) (*NotificationsMap, error) {
 	env, ok := os.LookupEnv("NOTIFICATIONS_SETTINGS")
 	if !ok {
 		return nil, errors.New("NOTIFICATIONS_SETTINGS env var not set")
 	}
-	return UnmarshalFeatureMap(env)
+	return UnmarshalNotificationsMap(env)
 }

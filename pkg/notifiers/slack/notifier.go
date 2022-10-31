@@ -6,40 +6,43 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
-const NotificationsTypeSlack = "slack"
-
+// DE = we initialise the slack notifier, which may have config for slack DMS and or config for webhooks
+// DE = it sends messages to whatever is configured
 // Notifier provides handler methods for sending notifications to slack based on events
 type SlackNotifier struct {
-	DB          ddb.Storage
-	FrontendURL string
-	client      *slack.Client
-	apiToken    gconfig.SecretStringValue
-	webhooks    []*SlackWebhookNotifier
+	DB                  ddb.Storage
+	FrontendURL         string
+	webhooks            []*SlackIncomingWebhook
+	directMessageClient *SlackDirectMessage
 }
 
-func (s *SlackNotifier) Config() gconfig.Config {
-	return gconfig.Config{
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Slack API token", gconfig.WithNoArgs("/granted/secrets/notifications/slack/token")),
+func (n *SlackNotifier) Init(ctx context.Context, config *deploy.NotificationsMap) error {
+	if config.Slack != nil {
+		slackDMClient := &SlackDirectMessage{}
+		err := slackDMClient.Config().Load(ctx, &gconfig.MapLoader{Values: config.Slack})
+		if err != nil {
+			return err
+		}
+		err = slackDMClient.Init(ctx)
+		if err != nil {
+			return err
+		}
+		n.directMessageClient = slackDMClient
 	}
-}
-
-// NOTE: it seems liek we don't need to call slack.New for webhooks since it doens't rely on the same OAuth client?
-func (s *SlackNotifier) Init(ctx context.Context) error {
-	s.client = slack.New(s.apiToken.Get())
-	return nil
-}
-
-func (s *SlackNotifier) TestConfig(ctx context.Context) error {
-	// @TODO: split me into dual methods for token and webhook
-	_, err := s.client.GetUsersContext(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to list users while testing slack configuration")
+	if config.SlackIncomingWebhooks != nil {
+		for _, webhook := range config.SlackIncomingWebhooks {
+			sw := SlackIncomingWebhook{}
+			err := sw.Config().Load(ctx, &gconfig.MapLoader{Values: webhook})
+			if err != nil {
+				return err
+			}
+			n.webhooks = append(n.webhooks, &sw)
+		}
 	}
 	return nil
 }

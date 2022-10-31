@@ -132,7 +132,7 @@ func (r *RemoteDeploymentConfig) WriteProviders(ctx context.Context, pm Provider
 	return err
 }
 
-func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (FeatureMap, error) {
+func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (*NotificationsMap, error) {
 	p, err := r.client.GetConfigWithResponse(ctx)
 	if err != nil {
 		return nil, err
@@ -145,15 +145,15 @@ func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (Feature
 
 	// return a FeatureMap to remain compatible with the rest of the application, rather than
 	// our strongly-typed API response.
-	var fm FeatureMap
+	var fm NotificationsMap
 
 	nc := p.JSON200.DeploymentConfiguration.NotificationsConfiguration
 
 	if nc.Slack != nil {
-		fm.Upsert("slack", map[string]string{
+		fm.Slack = map[string]string{
 			"apiToken": nc.Slack.ApiToken,
-		})
+		}
 	}
 
-	return fm, nil
+	return &fm, nil
 }

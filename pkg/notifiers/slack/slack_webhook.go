@@ -9,17 +9,17 @@ import (
 
 const NotificationsTypeSlackWebhook = "slackIncomingWebhooks"
 
-type SlackWebhookNotifier struct {
+type SlackIncomingWebhook struct {
 	webhookURL gconfig.SecretStringValue
 }
 
-func (s *SlackWebhookNotifier) Config() gconfig.Config {
+func (s *SlackIncomingWebhook) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.SecretStringField("webhookURL", &s.webhookURL, "the Slack incoming webhook url", gconfig.WithArgs("/granted/secrets/notifications/slackIncomingWebhooks/%s/webhookUrl", 1)),
 	}
 }
 
-func (n *SlackWebhookNotifier) SendWebhookMessage(ctx context.Context, blocks slack.Blocks, summary string) error {
+func (n *SlackIncomingWebhook) SendWebhookMessage(ctx context.Context, blocks slack.Blocks, summary string) error {
 	// log := zap.S()
 	// for _, webhookURL := range n.webhookURL {
 	// 	// standard net library POST request to the webhook URL

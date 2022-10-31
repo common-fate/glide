@@ -22,6 +22,7 @@ var templateFiles embed.FS
 var configureSlackCommand = cli.Command{
 	Name:        "configure",
 	Description: "configure and enable slack integration",
+	// @TODO: add dual support for slack webhooks
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		f := c.Path("file")
@@ -46,9 +47,9 @@ var configureSlackCommand = cli.Command{
 		fmt.Printf("\n\n%s\n\n", appInstallURL)
 		clio.Info("After creating the app, install it to your workspace and find your Bot User OAuth Token in the OAuth & Permissions tab.")
 
-		var slack slacknotifier.SlackNotifier
+		var slack slacknotifier.SlackDirectMessage
 		cfg := slack.Config()
-		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration[slacknotifier.NotificationsTypeSlack]
+		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration.Slack
 		if currentConfig != nil {
 			err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
 			if err != nil {
@@ -73,7 +74,8 @@ var configureSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		dc.Deployment.Parameters.NotificationsConfiguration.Upsert(slacknotifier.NotificationsTypeSlack, newConfig)
+		dc.Deployment.Parameters.NotificationsConfiguration.Slack = newConfig
+
 		err = dc.Save(f)
 		if err != nil {
 			return err

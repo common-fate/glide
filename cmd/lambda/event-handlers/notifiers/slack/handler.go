@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -72,33 +71,9 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 		return err
 	}
 
-	ncfg := notifier.Config()
-
-	// @TODO: decide whether to run .Load() twice, or to merge the two configs
-	slackCfg, ok1 := notificationsConfig[slacknotifier.NotificationsTypeSlack]
-
-	slackWebhookCfg, ok2 := notificationsConfig[slacknotifier.NotificationsTypeSlackWebhook]
-
-	if !ok1 && !ok2 {
-		h.Log.Infow("notifications not configured, skipping handling event")
-		return nil
-	}
-
-	// merge slackWebhookCfg and slackCfg
-	for k, v := range slackWebhookCfg {
-		slackCfg[k] = v
-	}
-
-	err = ncfg.Load(ctx, &gconfig.MapLoader{Values: slackCfg})
+	err = notifier.Init(ctx, notificationsConfig)
 	if err != nil {
-		panic(err)
-	}
-
-	if ok1 {
-		err = notifier.Init(ctx)
-		if err != nil {
-			panic(err)
-		}
+		return err
 	}
 	return notifier.HandleEvent(ctx, event)
 }

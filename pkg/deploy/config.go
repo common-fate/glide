@@ -129,6 +129,11 @@ type Provider struct {
 	With map[string]string `yaml:"with" json:"with"`
 }
 
+type NotificationsMap struct {
+	Slack                 map[string]string `yaml:"slack" json:"slack"`
+	SlackIncomingWebhooks FeatureMap        `yaml:"slackIncomingWebhooks" json:"slackIncomingWebhooks"`
+}
+
 // Feature map represents the type used for features like identity and notifications
 type FeatureMap map[string]map[string]string
 
@@ -153,21 +158,21 @@ func (f FeatureMap) Remove(id string) {
 }
 
 type Parameters struct {
-	CognitoDomainPrefix             string      `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID            string      `yaml:"AdministratorGroupID"`
-	DeploymentSuffix                string      `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType            string      `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata                 string      `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL              string      `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain                  string      `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN          string      `yaml:"FrontendCertificateARN,omitempty"`
-	CloudfrontWAFACLARN             string      `yaml:"CloudfrontWAFACLARN,omitempty"`
-	APIGatewayWAFACLARN             string      `yaml:"APIGatewayWAFACLARN,omitempty"`
-	ExperimentalRemoteConfigURL     string      `yaml:"ExperimentalRemoteConfigURL,omitempty"`
-	ExperimentalRemoteConfigHeaders string      `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
-	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration           FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration      FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
+	CognitoDomainPrefix             string            `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID            string            `yaml:"AdministratorGroupID"`
+	DeploymentSuffix                string            `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType            string            `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata                 string            `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL              string            `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain                  string            `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN          string            `yaml:"FrontendCertificateARN,omitempty"`
+	CloudfrontWAFACLARN             string            `yaml:"CloudfrontWAFACLARN,omitempty"`
+	APIGatewayWAFACLARN             string            `yaml:"APIGatewayWAFACLARN,omitempty"`
+	ExperimentalRemoteConfigURL     string            `yaml:"ExperimentalRemoteConfigURL,omitempty"`
+	ExperimentalRemoteConfigHeaders string            `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
+	ProviderConfiguration           ProviderMap       `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration           FeatureMap        `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration      *NotificationsMap `yaml:"NotificationsConfiguration,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -187,6 +192,25 @@ func UnmarshalFeatureMap(data string) (FeatureMap, error) {
 		return nil, err
 	}
 	return i, nil
+}
+
+// UnmarshalFeatureMap parses the JSON configuration data and returns
+// an initialised FeatureMap. If `data` is an empty string an empty
+// FeatureMap is returned.
+func UnmarshalNotificationsMap(data string) (*NotificationsMap, error) {
+	if data == "" {
+		return &NotificationsMap{}, nil
+	}
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
+	var i NotificationsMap
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return nil, err
+	}
+	return &i, nil
 }
 
 // UnmarshalProviderMap parses the JSON configuration data and returns
