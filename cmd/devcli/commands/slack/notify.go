@@ -46,7 +46,7 @@ var requestMessageCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		err = slack.InitForToken(ctx)
+		err = slack.Init(ctx)
 		if err != nil {
 			return err
 		}

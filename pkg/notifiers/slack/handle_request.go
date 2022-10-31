@@ -84,12 +84,31 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 			log.Infow("messaging reviewers", "reviewers", reviewers)
 
+			requestArguments, err := n.RenderRequestArguments(ctx, log, req, rule)
+			if err != nil {
+				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+			}
+			reviewerSummary, reviewerMsg := BuildRequestMessage(RequestMessageOpts{
+				Request:          req,
+				RequestArguments: requestArguments,
+				Rule:             rule,
+				RequestorSlackID: slackUserID,
+				RequestorEmail:   userQuery.Result.Email,
+				ReviewURLs:       reviewURL,
+			})
+
+			// send the review message to any configured webhook channels channels
+			for _, webhook := range n.webhooks {
+				err = webhook.SendWebhookMessage(ctx, reviewerMsg.Blocks, reviewerSummary)
+				if err != nil {
+					log.Errorw("failed to send review message to incomingWebhook channel", "error", err)
+				}
+			}
 			for _, usr := range reviewers.Result {
 				if usr.ReviewerID == req.RequestedBy {
 					log.Infow("skipping sending approval message to requestor", "user.id", usr)
 					continue
 				}
-
 				wg.Add(1)
 				go func(usr access.Reviewer) {
 					defer wg.Done()
@@ -99,25 +118,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 						log.Errorw("failed to fetch user by id while trying to send message in slack", "user.id", usr, zap.Error(err))
 						return
 					}
-					requestArguments, err := n.RenderRequestArguments(ctx, log, req, rule)
-					if err != nil {
-						log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-					}
-					summary, msg := BuildRequestMessage(RequestMessageOpts{
-						Request:          req,
-						RequestArguments: requestArguments,
-						Rule:             rule,
-						RequestorSlackID: slackUserID,
-						RequestorEmail:   userQuery.Result.Email,
-						ReviewURLs:       reviewURL,
-					})
-
-					ts, err := SendMessageBlocks(ctx, n.client, approver.Result.Email, msg, summary)
-
-					// @TODO: create conditional handling here for slack webhooks, instead send msg to webhook as json
-					// basic http post request to webhook url with json body
-					// https://api.slack.com/messaging/webhooks
-
+					ts, err := SendMessageBlocks(ctx, n.client, approver.Result.Email, reviewerMsg, reviewerSummary)
 					if err != nil {
 						log.Errorw("failed to send request approval message", "user", usr, "msg", msg, zap.Error(err))
 					}
@@ -135,7 +136,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					}
 				}(usr)
 			}
-
 			wg.Wait()
 		} else {
 			//Review not required
@@ -274,7 +274,7 @@ func (n *SlackNotifier) UpdateSlackMessage(ctx context.Context, log *zap.Sugared
 		RequestorSlackID: slackUserID,
 		RequestorEmail:   opts.DbRequestor.Email,
 		ReviewURLs:       reviewURL,
-		Reviewer:         reviewerQuery.Result,
+		WasReviewed:      true,
 		RequestReviewer:  reqReviewer.Result,
 	})
 	msg.Timestamp = *opts.Review.Notifications.SlackMessageID
@@ -293,7 +293,7 @@ type RequestMessageOpts struct {
 	ReviewURLs       notifiers.ReviewURLs
 	RequestorSlackID string
 	RequestorEmail   string
-	Reviewer         *identity.User
+	WasReviewed      bool
 	RequestReviewer  *identity.User
 }
 
@@ -358,7 +358,7 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		},
 	)
 
-	if o.Reviewer != nil || o.Request.Status == access.CANCELLED {
+	if o.WasReviewed || o.Request.Status == access.CANCELLED {
 		t := time.Now()
 		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
 

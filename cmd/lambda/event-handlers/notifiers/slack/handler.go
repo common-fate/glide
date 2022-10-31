@@ -95,7 +95,7 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 	}
 
 	if ok1 {
-		err = notifier.InitForToken(ctx)
+		err = notifier.Init(ctx)
 		if err != nil {
 			panic(err)
 		}
