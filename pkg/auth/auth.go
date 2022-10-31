@@ -52,6 +52,8 @@ type IdentitySyncer interface {
 // connected identity provider.
 func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
+		var isLocked bool
+
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log := logger.Get(ctx)
@@ -77,11 +79,12 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 				return
 			}
 
-			// if we get ddb.ErrNoItems, the user may not have been synced yet from the IDP.
-			// try and sync them now.
-			// Note: this approach isn't very performant. In future this can be replaced with an incremental sync,
-			// which we can use for handling IDP webhook notifications rather than polling.
-			if err == ddb.ErrNoItems {
+			// // if we get ddb.ErrNoItems, the user may not have been synced yet from the IDP.
+			// // try and sync them now.
+			// // Note: this approach isn't very performant. In future this can be replaced with an incremental sync,
+			// // which we can use for handling IDP webhook notifications rather than polling.
+			if err == ddb.ErrNoItems && !isLocked {
+				isLocked = true
 				log.Info("user does not exist in database - running an IDP sync and trying again", "user", claims)
 				err = idp.Sync(ctx)
 				if err != nil {
@@ -92,20 +95,27 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 				log.Info("looking up user again")
 				// reuse the same query, so that we can access the results later if it's successful.
 				_, err = db.Query(ctx, q)
+
 				if err != nil {
 					log.Infow("authentication error", zap.Error(err))
 					apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 					return
+				} else {
+					isLocked = false
+
 				}
+
 			}
 
-			ctx = context.WithValue(ctx, userContext, q.Result)
-			ctx = context.WithValue(ctx, userIDContext, q.Result.ID)
-			ctx = userid.Set(ctx, q.Result.ID)
+			if q.Result != nil {
+				ctx = context.WithValue(ctx, userContext, q.Result)
+				ctx = context.WithValue(ctx, userIDContext, q.Result.ID)
+				ctx = userid.Set(ctx, q.Result.ID)
+				log.Debugw("user is authenticated", "claims", claims)
+				r = r.WithContext(ctx)
+				next.ServeHTTP(w, r)
+			}
 
-			log.Debugw("user is authenticated", "claims", claims)
-			r = r.WithContext(ctx)
-			next.ServeHTTP(w, r)
 		})
 	}
 }
