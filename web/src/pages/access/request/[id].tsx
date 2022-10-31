@@ -1,4 +1,10 @@
-import { ArrowBackIcon, InfoIcon, PlusSquareIcon } from "@chakra-ui/icons";
+import {
+  ArrowBackIcon,
+  CheckIcon,
+  CopyIcon,
+  InfoIcon,
+  PlusSquareIcon,
+} from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -27,6 +33,7 @@ import {
   Stack,
   Text,
   Textarea,
+  useClipboard,
   useDisclosure,
   useRadioGroup,
   UseRadioGroupProps,
@@ -46,7 +53,15 @@ import {
   useForm,
   useFormContext,
 } from "react-hook-form";
-import { Link, useMatch, useNavigate } from "react-location";
+import {
+  Link,
+  useMatch,
+  useNavigate,
+  MakeGenerics,
+  useSearch,
+  ReactLocation,
+  useLocation,
+} from "react-location";
 import Select, { components, GroupBase, OptionProps } from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
@@ -73,7 +88,9 @@ import {
   CreateBookmarkRequestBody,
   CreateRequestRequestBody,
   CreateRequestWith,
+  CreateRequestWithSubRequest,
   RequestAccessRuleTarget,
+  RequestTiming,
   WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
@@ -105,6 +122,17 @@ export const getWhenHelperText = (
   return "Choose a time in future for the access to be activated";
 };
 
+type Fields = {
+  with?: CreateRequestWithSubRequest;
+  timing?: RequestTiming;
+  reason?: string;
+};
+
+type MyLocationGenerics = MakeGenerics<{
+  Search: {
+    bookmark?: string;
+  } & Fields;
+}>;
 const Home = () => {
   const [loading, setLoading] = useState(false);
   const {
@@ -139,10 +167,9 @@ const Home = () => {
     reset,
     getValues,
   } = methods;
+
   const toast = useToast();
-
-  const [validationErrors, setValidationErrors] = useState<FieldError[]>();
-
+  const search = useSearch<MyLocationGenerics>();
   // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
   // it does then when the rule loads for the first time
   useEffect(() => {
@@ -153,44 +180,73 @@ const Home = () => {
           ? 3600
           : rule.timeConstraints.maxDurationSeconds
       );
-      const bookmarkId = new URLSearchParams(location.search.substring(1)).get(
-        "bookmark"
-      );
-      if (bookmarkId != null) {
-        userGetBookmark(bookmarkId).then((bookmark) => {
-          setValue("timing.durationSeconds", bookmark.timing.durationSeconds);
-          if (bookmark.timing.startTime) {
-            setValue("startDateTime", bookmark.timing.startTime);
+      const resetForm = (fields: Fields) => {
+        if (fields.timing) {
+          setValue("timing.durationSeconds", fields.timing.durationSeconds);
+          if (fields.timing.startTime) {
+            setValue("startDateTime", fields.timing.startTime);
             setValue("when", "scheduled");
           }
-          setValue("reason", bookmark.reason);
-          setValue("with", bookmark.with);
-          // @TODO timing
-          console.log({ values: getValues(), bookmark });
-        });
+        }
+        fields.reason && setValue("reason", fields.reason);
+        fields.with && setValue("with", fields.with);
+      };
+      if (search.bookmark) {
+        userGetBookmark(search.bookmark)
+          .then((bookmark) => {
+            resetForm(bookmark);
+          })
+          .catch((e) => {
+            let description: string | undefined;
+            if (axios.isAxiosError(e)) {
+              description = (e as AxiosError<{ error: string }>)?.response?.data
+                .error;
+            }
+            toast({
+              title: "Failed to load bookmark",
+              status: "error",
+              duration: 5000,
+              description: (
+                <Text color={"white"} whiteSpace={"pre"}>
+                  {description}
+                </Text>
+              ),
+              isClosable: true,
+            });
+          });
       } else {
-        // default value if there is no bookmark is an empty selection
-        setValue("with", [{}]);
         // The following will attempt to match any query params to withSelectable fields for this rule.
         // If the field matches and the value is a valid option, it will be set in the form values.
         // if it is not a valid value it is ignored.
         // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
-        Object.entries(rule.target.arguments).map(([k, v]) => {
-          const queryParamValue = new URLSearchParams(
-            location.search.substring(1)
-          ).get(k);
-          if (
-            queryParamValue !== null &&
-            v.options.find((s) => {
-              return s.value === queryParamValue;
-            }) !== undefined
-          ) {
-            // setValue(`with.${k}`, queryParamValue);
-          }
+        // resetForm(bookmark);
+        const filteredSearchWith = search.with?.map((w) => {
+          const filteredWith: CreateRequestWith = {};
+          Object.entries(w).map(([k, v]) => {
+            if (rule.target.arguments[k]) {
+              filteredWith[k] = v.filter((element) => {
+                return !!rule.target.arguments[k].options.find(
+                  (s) => s.value === element
+                );
+              });
+            }
+          });
+          return filteredWith;
         });
+        // default value if there is no bookmark is an empty selection
+        const fields: Fields = {
+          with:
+            filteredSearchWith === undefined || filteredSearchWith?.length == 0
+              ? [{}]
+              : filteredSearchWith,
+          reason: search.reason,
+          timing: search.timing,
+        };
+
+        resetForm(fields);
       }
     }
-  }, [rule, location.search]);
+  }, [rule]);
 
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
@@ -251,6 +307,28 @@ const Home = () => {
         });
       });
   };
+  const [urlClipboardValue, setUrlClipboardValue] = useState("");
+  const clipboard = useClipboard(urlClipboardValue);
+  const location = useLocation();
+  const fd = methods.watch();
+  useEffect(() => {
+    const a: MyLocationGenerics = {
+      Search: {
+        reason: getValues("reason"),
+        with: getValues("with"),
+      },
+    };
+    const timing: RequestTiming = {
+      durationSeconds: getValues("timing.durationSeconds"),
+    };
+    if (getValues("when") === "scheduled") {
+      timing.startTime = new Date(getValues("startDateTime")).toISOString();
+    }
+    a.Search.timing = timing;
+    const u = new URL(window.location.href);
+    u.search = location.stringifySearch(a.Search);
+    setUrlClipboardValue(u.toString());
+  }, [fd]);
 
   return (
     <>
@@ -294,9 +372,21 @@ const Home = () => {
                 <Text as="h3" textStyle="Heading/H3">
                   You are requesting access to
                 </Text>
-                <Button type="button" onClick={onOpen}>
-                  Bookmark
-                </Button>
+                <Flex>
+                  <Button type="button" onClick={onOpen} mr={2}>
+                    Bookmark
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={clipboard.onCopy}
+                    rightIcon={
+                      clipboard.hasCopied ? <CheckIcon /> : <CopyIcon />
+                    }
+                  >
+                    Share
+                  </Button>
+                </Flex>
               </Flex>
 
               <Stack
