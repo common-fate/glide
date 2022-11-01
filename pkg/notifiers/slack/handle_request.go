@@ -82,6 +82,11 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				ReviewURLs:       reviewURL,
 			})
 
+			// log for testing purposes
+			if len(n.webhooks) > 0 {
+				log.Infow("webhooks found", "webhooks", n.webhooks)
+			}
+
 			// send the review message to any configured webhook channels channels
 			for _, webhook := range n.webhooks {
 				err = webhook.SendWebhookMessage(ctx, reviewerMsg.Blocks, reviewerSummary)
@@ -217,6 +222,12 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 			}
 		}
 	}
+
+	// log for testing purposes
+	if len(n.webhooks) > 0 {
+		log.Infow("webhooks found", "webhooks", n.webhooks)
+	}
+
 	for _, webhook := range n.webhooks {
 		// this does not include the slackUserID because we don't have access to look it up
 		summary, msg := BuildRequestMessage(RequestMessageOpts{

@@ -36,10 +36,10 @@ func (m *MockDeployConfigReader) EXPECT() *MockDeployConfigReaderMockRecorder {
 }
 
 // ReadNotifications mocks base method.
-func (m *MockDeployConfigReader) ReadNotifications(arg0 context.Context) (deploy.FeatureMap, error) {
+func (m *MockDeployConfigReader) ReadNotifications(arg0 context.Context) (*deploy.NotificationsMap, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadNotifications", arg0)
-	ret0, _ := ret[0].(deploy.FeatureMap)
+	ret0, _ := ret[0].(*deploy.NotificationsMap)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

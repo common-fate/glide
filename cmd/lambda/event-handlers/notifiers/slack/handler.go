@@ -65,14 +65,15 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 	// This avoids us using stale config if we're reading config from a remote API,
 	// rather than from env vars. This adds latency but this is an async operation
 	// anyway so it doesn't really matter.
-	// 👀
 	notificationsConfig, err := dc.ReadNotifications(ctx)
 	if err != nil {
+		h.Log.Errorw("failed to initialise slack notifier", "error", err)
 		return err
 	}
 
 	err = notifier.Init(ctx, notificationsConfig)
 	if err != nil {
+		h.Log.Errorw("failed to initialise slack notifier", "error", err)
 		return err
 	}
 	return notifier.HandleEvent(ctx, event)

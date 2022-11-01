@@ -35,6 +35,9 @@ func (n *SlackNotifier) Init(ctx context.Context, config *deploy.NotificationsMa
 		n.directMessageClient = slackDMClient
 	}
 	if config.SlackIncomingWebhooks != nil {
+		log := zap.S()
+		log.Info("initialising slack incoming webhooks", "webhooks", config.SlackIncomingWebhooks)
+
 		for _, webhook := range config.SlackIncomingWebhooks {
 			sw := SlackIncomingWebhook{}
 			err := sw.Config().Load(ctx, &gconfig.MapLoader{Values: webhook})
