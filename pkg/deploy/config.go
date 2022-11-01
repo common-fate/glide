@@ -168,6 +168,10 @@ type Parameters struct {
 	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
 	IdentityConfiguration           FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
 	NotificationsConfiguration      FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
+	AnalyticsDisabled               string      `yaml:"AnalyticsDisabled,omitempty"`
+	AnalyticsURL                    string      `yaml:"AnalyticsURL,omitempty"`
+	AnalyticsDebug                  string      `yaml:"AnalyticsDebug,omitempty"`
+	AnalyticsDeploymentStage        string      `yaml:"AnalyticsDeploymentStage,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -426,6 +430,31 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		})
 	}
 
+	if c.Deployment.Parameters.AnalyticsDisabled != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsDisabled"),
+			ParameterValue: &p.AnalyticsDisabled,
+		})
+	}
+	if c.Deployment.Parameters.AnalyticsURL != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsURL"),
+			ParameterValue: &p.AnalyticsURL,
+		})
+	}
+	if c.Deployment.Parameters.AnalyticsDebug != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsDebug"),
+			ParameterValue: &p.AnalyticsDebug,
+		})
+	}
+	if c.Deployment.Parameters.AnalyticsDeploymentStage != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsDeploymentStage"),
+			ParameterValue: &p.AnalyticsDeploymentStage,
+		})
+	}
+
 	return res, nil
 }
 
@@ -539,6 +568,7 @@ func SetupDevConfig() (*Config, error) {
 			Dev:       &dev,
 			Parameters: Parameters{
 				AdministratorGroupID: "granted_administrators",
+				AnalyticsDisabled:    "true",
 			},
 		},
 	}

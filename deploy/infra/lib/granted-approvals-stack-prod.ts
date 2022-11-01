@@ -138,6 +138,36 @@ export class CustomerGrantedStack extends cdk.Stack {
       default: "",
     });
 
+    const analyticsUrl = new CfnParameter(this, "AnalyticsURL", {
+      type: "String",
+      description: "A custom URL to send anonymous analytics to.",
+      default: "",
+    });
+
+    const analyticsDisabled = new CfnParameter(this, "AnalyticsDisabled", {
+      type: "String",
+      description: "Disable anonymous analytics",
+      default: "false",
+      allowedValues: ["", "true", "false"],
+    });
+
+    const analyticsDebug = new CfnParameter(this, "AnalyticsDebug", {
+      type: "String",
+      description: "Enable debug logging for analytics",
+      default: "false",
+      allowedValues: ["", "true", "false"],
+    });
+
+    const analyticsDeploymentStage = new CfnParameter(
+      this,
+      "AnalyticsDeploymentStage",
+      {
+        type: "String",
+        description: "A label for the deployment stage (dev, uat)",
+        default: "",
+      }
+    );
+
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -196,6 +226,10 @@ export class CustomerGrantedStack extends cdk.Stack {
       remoteConfigUrl: remoteConfigUrl.valueAsString,
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
       apiGatewayWafAclArn: apiGatewayWafAclArn.valueAsString,
+      analyticsDisabled: analyticsDisabled.valueAsString,
+      analyticsUrl: analyticsUrl.valueAsString,
+      analyticsDebug: analyticsDebug.valueAsString,
+      analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

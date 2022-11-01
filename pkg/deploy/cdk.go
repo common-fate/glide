@@ -73,6 +73,15 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.ExperimentalRemoteConfigHeaders != "" {
 		args = append(args, "-c", fmt.Sprintf("experimentalRemoteConfigHeaders=%s", string(c.Deployment.Parameters.ExperimentalRemoteConfigHeaders)))
 	}
+	if c.Deployment.Parameters.AnalyticsDisabled != "" {
+		args = append(args, "-c", fmt.Sprintf("analyticsDisabled=%s", string(c.Deployment.Parameters.AnalyticsDisabled)))
+	}
+
+	// CDK deploys always use the dev analytics endpoint and debug mode
+	args = append(args, "-c", "analyticsUrl=https://t-dev.commonfate.io")
+	args = append(args, "-c", "analyticsDebug=true")
+	args = append(args, "-c", "analyticsDeploymentStage=dev")
+
 	return args
 }
 

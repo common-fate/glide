@@ -31,6 +31,10 @@ interface Props {
   deploymentSuffix: string;
   remoteConfigUrl: string;
   remoteConfigHeaders: string;
+  analyticsDisabled: string;
+  analyticsUrl: string;
+  analyticsDebug: string;
+  analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
 }
@@ -119,6 +123,10 @@ export class AppBackend extends Construct {
         DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         REMOTE_CONFIG_URL: props.remoteConfigUrl,
         REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        CF_ANALYTICS_DISABLED: props.analyticsDisabled,
+        CF_ANALYTICS_URL: props.analyticsUrl,
+        CF_ANALYTICS_DEBUG: props.analyticsDebug,
+        CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "approvals",
@@ -174,7 +182,8 @@ export class AppBackend extends Construct {
         resources: ["*"],
         conditions: {
           StringEquals: {
-            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
+            "iam:ResourceTag/common-fate-abac-role":
+              "aws-sso-identity-provider",
           },
         },
       })

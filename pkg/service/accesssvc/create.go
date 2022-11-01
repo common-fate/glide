@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
@@ -183,7 +184,6 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	// check to see if it valid for instant approval
 	if !rule.Approval.IsRequired() {
-
 		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
 		updatedReq, err := s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
 		if err != nil {
@@ -199,6 +199,24 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 			return nil, err
 		}
 	}
+
+	// analytics event
+
+	timingMode := analytics.TimingModeASAP
+	if req.RequestedTiming.IsScheduled() {
+		timingMode = analytics.TimingModeScheduled
+	}
+
+	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
+		RequestedBy: req.RequestedBy,
+		Provider:    req.Grant.Provider,
+		Rule:        req.Rule,
+		Timing: analytics.Timing{
+			DurationSeconds: req.RequestedTiming.Duration.Seconds(),
+			Mode:            timingMode,
+		},
+		HasReason: req.Data.Reason != nil && *req.Data.Reason != "",
+	})
 
 	res := CreateRequestResult{
 		Request:   req,
