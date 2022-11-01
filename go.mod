@@ -183,9 +183,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.18.1
+	github.com/common-fate/clio v1.0.0
 	github.com/common-fate/ddb v0.13.1-0.20220930114850-2dfab8086fc6
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0

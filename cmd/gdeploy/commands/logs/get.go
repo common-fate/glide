@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -99,7 +99,7 @@ var getCommand = cli.Command{
 				if hasLogs {
 					getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region, c.String("filter"))
 				} else {
-					clio.Warn("No logs found for %s, the service may not have run yet. Log group id: %s", s, lg)
+					clio.Warnf("No logs found for %s, the service may not have run yet. Log group id: %s", s, lg)
 				}
 
 				wg.Done()

@@ -12,6 +12,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { Helmet } from "react-helmet";
 import { Link, Navigate, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
 import {
@@ -109,6 +110,11 @@ const Page = () => {
           {registeredProvider !== undefined &&
             `Setting up the ${registeredProvider.name} provider`}
         </Text>
+        {registeredProvider !== undefined && (
+          <Helmet>
+            <title>{registeredProvider.name} Setup</title>
+          </Helmet>
+        )}
         {data && (
           <HStack
             spacing={3}

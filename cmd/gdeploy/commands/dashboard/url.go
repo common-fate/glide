@@ -1,7 +1,8 @@
 package dashboard
 
 import (
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"fmt"
+
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -20,7 +21,7 @@ var urlCommand = cli.Command{
 			return err
 		}
 
-		clio.Log(o.FrontendURL())
+		fmt.Println(o.FrontendURL())
 		return nil
 	},
 }

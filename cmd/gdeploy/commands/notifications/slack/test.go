@@ -3,7 +3,7 @@ package slack
 import (
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
@@ -40,7 +40,7 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Success("Successfully sent a slack test message to %s", c.String("email"))
+		clio.Successf("Successfully sent a slack test message to %s", c.String("email"))
 		return nil
 	},
 }

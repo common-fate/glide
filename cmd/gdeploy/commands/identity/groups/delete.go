@@ -4,8 +4,8 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -55,7 +55,7 @@ var DeleteCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Successfully deleted group '%s'", group)
+		clio.Successf("Successfully deleted group '%s'", group)
 		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	},

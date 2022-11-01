@@ -153,8 +153,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             header={
               <Text>
                 <UserText userId={e.actor || ""} />
-                {` changed request status from
-              ${e.fromStatus?.toLowerCase()} to ${e.toStatus?.toLowerCase()}`}
+                {` ${e.toStatus?.toLowerCase()} the request`}
               </Text>
             }
             index={i}

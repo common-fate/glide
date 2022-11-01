@@ -7,7 +7,7 @@ import (
 	"sort"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -75,7 +75,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		// Should never happen
 		return errors.New("no matching identity provider found")
 	}
-	clio.Info("You can follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s for detailed instruction on setting up SSO", idpType, idp.DocsID)
+	clio.Infof("You can follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s for detailed instruction on setting up SSO", idpType, idp.DocsID)
 
 	cfg := idp.IdentityProvider.Config()
 
@@ -107,7 +107,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 	dc.Deployment.Parameters.IdentityConfiguration.Upsert(idpType, newConfig)
 
 	clio.Info("The following parameters are required to setup a SAML app in your identity provider")
-	clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idp.DocsID)
+	clio.Infof("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idp.DocsID)
 	o, err := dc.LoadOutput(ctx)
 	if err != nil {
 		return err
@@ -174,7 +174,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 			dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 		}
 	}
-	clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
+	clio.Warnf("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 
 	dc.Deployment.Parameters.IdentityProviderType = idpType
 	clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
@@ -192,7 +192,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 
 	grps, err := idp.IdentityProvider.ListGroups(ctx)
 	if err != nil {
-		clio.Debug("could not list groups for IDP due to the following error %s", err)
+		clio.Debugf("could not list groups for IDP due to the following error %s", err)
 		clio.Debug("Falling back to prompting user to enter a group ID manually")
 		var groupID string
 		err = survey.AskOne(&survey.Input{

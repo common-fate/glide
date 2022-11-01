@@ -7,7 +7,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -49,7 +49,7 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Info("Creating backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
+		clio.Infof("Creating backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
 		confirm := c.Bool("confirm")
 		if !confirm {
 			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
@@ -66,10 +66,10 @@ var Command = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Success("Successfully started a backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
-		clio.Info("Backup details\n%s", deploy.BackupDetailsToString(backupOutput))
-		clio.Info("To view the status of this backup, run `gdeploy backup status --arn=%s`", aws.ToString(backupOutput.BackupArn))
-		clio.Info("To restore from this backup, run `gdeploy restore --arn=%s`", aws.ToString(backupOutput.BackupArn))
+		clio.Successf("Successfully started a backup of Granted Approvals dynamoDB table: %s", stackOutput.DynamoDBTable)
+		clio.Infof("Backup details\n%s", deploy.BackupDetailsToString(backupOutput))
+		clio.Infof("To view the status of this backup, run `gdeploy backup status --arn=%s`", aws.ToString(backupOutput.BackupArn))
+		clio.Infof("To restore from this backup, run `gdeploy restore --arn=%s`", aws.ToString(backupOutput.BackupArn))
 
 		return nil
 	},

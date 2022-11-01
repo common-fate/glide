@@ -16,6 +16,7 @@ import type {
   AccessRuleDetail,
   ErrorResponseResponse,
   CreateAccessRuleRequestBody,
+  DeploymentVersionResponseResponse,
   ListRequestsResponseResponse,
   AdminListRequestsParams,
   User,
@@ -237,6 +238,45 @@ export const useAdminGetAccessRuleVersion = <TError = ErrorType<ErrorResponseRes
   const isEnabled = swrOptions?.enabled !== false && !!(ruleId && version)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetAccessRuleVersionKey(ruleId,version) : null);
   const swrFn = () => adminGetAccessRuleVersion(ruleId,version, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Returns the version information
+ * @summary Get deployment version details
+ */
+export const adminGetDeploymentVersion = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<DeploymentVersionResponseResponse>(
+      {url: `/api/v1/admin/deployment/version`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetDeploymentVersionKey = () => [`/api/v1/admin/deployment/version`];
+
+    
+export type AdminGetDeploymentVersionQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetDeploymentVersion>>>
+export type AdminGetDeploymentVersionQueryError = ErrorType<unknown>
+
+export const useAdminGetDeploymentVersion = <TError = ErrorType<unknown>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetDeploymentVersion>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetDeploymentVersionKey() : null);
+  const swrFn = () => adminGetDeploymentVersion(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

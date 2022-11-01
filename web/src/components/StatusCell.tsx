@@ -53,7 +53,7 @@ export const StatusCell: React.FC<Props> = ({
   }
 
   return (
-    <Flex align="center" {...rest}>
+    <Flex minW="75px" align="center" {...rest}>
       <Circle bg={statusColor} size="8px" mr={2} />{" "}
       <Text as="span" css={{ ":first-letter": { textTransform: "uppercase" } }}>
         {replaceValue ? replaceValue : value.toLowerCase()}

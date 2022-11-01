@@ -5,7 +5,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/urfave/cli/v2"
 )
 
@@ -26,12 +27,12 @@ func RequireCleanGitWorktree() cli.BeforeFunc {
 				return nil
 			}
 			if err != nil {
-				return clio.NewCLIError(err.Error(), clio.InfoMsg("The above error occurred while checking if this is a git repo.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
+				return clierr.New(err.Error(), clierr.Infof("The above error occurred while checking if this is a git repo.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
 			}
 			_, err = exec.LookPath("git")
 			if err != nil {
 				// ignore check if git is not installed
-				clio.Debug("could not find 'git' when trying to check if repository is clean. err: %s", err)
+				clio.Debugf("could not find 'git' when trying to check if repository is clean. err: %s", err)
 				return nil
 			}
 			cmd := exec.Command("git", "status", "--porcelain")
@@ -39,10 +40,10 @@ func RequireCleanGitWorktree() cli.BeforeFunc {
 			cmd.Stdout = &stdout
 			err = cmd.Run()
 			if err != nil {
-				return clio.NewCLIError(err.Error(), clio.InfoMsg("The above error occurred while checking if this git repo worktree is clean.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
+				return clierr.New(err.Error(), clierr.Infof("The above error occurred while checking if this git repo worktree is clean.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
 			}
 			if stdout.Len() > 0 {
-				return clio.NewCLIError("Git worktree is not clean", clio.InfoMsg("We recommend that you commit all changes before creating or updating your deployment.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
+				return clierr.New("Git worktree is not clean", clierr.Infof("We recommend that you commit all changes before creating or updating your deployment.\nTo silence this warning, add the 'ignore-git-dirty' flag e.g 'gdeploy --ignore-git-dirty %s'", c.Command.Name))
 			}
 		}
 		return nil

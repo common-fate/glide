@@ -53,21 +53,6 @@ export class AccessHandler extends Construct {
                 }:parameter/granted/providers/*`,
               ],
             }),
-            new iam.PolicyStatement({
-              actions: [
-                "sso:ListPermissionSets",
-                "sso:ListTagsForResource",
-                "sso:DescribePermissionSet",
-                "organizations:ListAccounts",
-                "sso:DeleteAccountAssignment",
-                "sso:ListAccountAssignments",
-                "identitystore:ListUsers",
-                "organizations:DescribeAccount",
-                "organizations:DescribeOrganization",
-                "sso:CreateAccountAssignment",
-              ],
-              resources: ["*"],
-            }),
             new PolicyStatement({
               actions: ["states:StopExecution"],
               resources: ["*"],
