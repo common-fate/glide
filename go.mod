@@ -37,7 +37,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-retry v0.2.3
-	go.uber.org/zap v1.22.0
+	go.uber.org/zap v1.23.0
 	golang.org/x/oauth2 v0.1.0
 	google.golang.org/api v0.91.0
 	gopkg.in/yaml.v3 v3.0.1
