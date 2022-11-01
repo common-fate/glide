@@ -8,11 +8,11 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 )
 
-type ListGroups struct {
+type ListActiveGroups struct {
 	Result []identity.Group `ddb:"result"`
 }
 
-func (l *ListGroups) BuildQuery() (*dynamodb.QueryInput, error) {
+func (l *ListActiveGroups) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk1"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -25,7 +25,7 @@ func (l *ListGroups) BuildQuery() (*dynamodb.QueryInput, error) {
 	var expr string
 
 	expr += "#group_status <> :key"
-	key := "INTERNAL"
+	key := "ARCHIVED"
 	qi.ExpressionAttributeValues[":key"] = &types.AttributeValueMemberS{Value: key}
 	qi.ExpressionAttributeNames["#group_status"] = "status"
 	qi.FilterExpression = &expr

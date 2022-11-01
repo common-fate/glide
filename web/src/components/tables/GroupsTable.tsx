@@ -7,7 +7,7 @@ import {
   useIdentityConfiguration,
 } from "../../utils/backend-client/admin/admin";
 
-import { Group } from "../../utils/backend-client/types";
+import { Group, IdpStatus } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
@@ -17,7 +17,7 @@ export const GroupsTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
   const paginator = usePaginatorApi<typeof useGetGroups>({
     swrHook: useGetGroups,
-    hookProps: {},
+    hookProps: { status: IdpStatus.ACTIVE },
   });
 
   const cols: Column<Group>[] = useMemo(

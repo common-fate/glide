@@ -24,31 +24,43 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	status := types.IdpStatusACTIVE
+	var status string
 
 	if params.Status != nil {
-		status = types.IdpStatus(*params.Status)
+		status = *params.Status
 	}
 
-	q := storage.ListGroupsForStatus{
-		Status: status,
-	}
+	var groups []identity.Group
+	var nextToken string
+	if status != "" {
+		q := storage.ListGroupsForStatus{
+			Status: types.IdpStatus(status),
+		}
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		groups = q.Result
+		nextToken = qr.NextPage
+	} else {
+		q := storage.ListActiveGroups{}
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		groups = q.Result
+		nextToken = qr.NextPage
 
-	qr, err := a.DB.Query(ctx, &q, queryOpts...)
-
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
 	}
 
 	res := types.ListGroupsResponse{
-		Groups: make([]types.Group, len(q.Result)),
-	}
-	if qr != nil && qr.NextPage != "" {
-		res.Next = &qr.NextPage
+		Groups: make([]types.Group, len(groups)),
+		Next:   &nextToken,
 	}
 
-	for i, g := range q.Result {
+	for i, g := range groups {
 		res.Groups[i] = g.ToAPI()
 	}
 
@@ -112,11 +124,26 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt:   time.Now(),
 		}
 
-		err = a.DB.Put(ctx, &group)
+		//update which groups users are apart of
+		items := []ddb.Keyer{&group}
+
+		for _, u := range group.Users {
+			u := storage.GetUser{ID: u}
+			_, err = a.DB.Query(ctx, &u)
+			if err != nil {
+				apio.Error(ctx, w, err)
+				return
+			}
+			u.Result.Groups = append(u.Result.Groups, group.ID)
+			items = append(items, u.Result)
+		}
+
+		err = a.DB.PutBatch(ctx, items...)
 		if err != nil {
 			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 			return
 		}
+
 	}
 
 }
