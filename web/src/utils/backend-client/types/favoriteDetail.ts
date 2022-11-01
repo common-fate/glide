@@ -8,7 +8,7 @@
 import type { CreateRequestWithSubRequest } from './createRequestWithSubRequest';
 import type { RequestTiming } from './requestTiming';
 
-export interface BookmarkDetail {
+export interface FavoriteDetail {
   id: string;
   name: string;
   with: CreateRequestWithSubRequest;

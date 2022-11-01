@@ -1,13 +1,15 @@
 import {
   ArrowBackIcon,
   CheckIcon,
-  CopyIcon,
   InfoIcon,
-  PlusSquareIcon,
+  LinkIcon,
+  SmallAddIcon,
+  StarIcon,
 } from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  ButtonGroup,
   Center,
   Collapse,
   Container,
@@ -19,20 +21,21 @@ import {
   HStack,
   IconButton,
   Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  ModalProps,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverFooter,
+  PopoverHeader,
+  PopoverTrigger,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
   Stack,
   Text,
   Textarea,
+  Tooltip,
   useClipboard,
   useDisclosure,
   useRadioGroup,
@@ -55,14 +58,13 @@ import {
 } from "react-hook-form";
 import {
   Link,
+  MakeGenerics,
+  useLocation,
   useMatch,
   useNavigate,
-  MakeGenerics,
   useSearch,
-  ReactLocation,
-  useLocation,
 } from "react-location";
-import Select, { components, GroupBase, OptionProps } from "react-select";
+import { components, GroupBase, OptionProps } from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
@@ -75,8 +77,8 @@ import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
-  userCreateBookmark,
-  userGetBookmark,
+  userCreateFavorite,
+  userGetFavorite,
 } from "../../../utils/backend-client/default/default";
 import {
   getUserGetAccessRuleApproversKey,
@@ -85,7 +87,7 @@ import {
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
 import {
-  CreateBookmarkRequestBody,
+  CreateFavoriteRequestBody,
   CreateRequestRequestBody,
   CreateRequestWith,
   CreateRequestWithSubRequest,
@@ -94,7 +96,6 @@ import {
   WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
-import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -130,17 +131,19 @@ type Fields = {
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
-    bookmark?: string;
+    favorite?: string;
   } & Fields;
 }>;
-const Home = () => {
+const AccessRequestForm = () => {
   const [loading, setLoading] = useState(false);
   const {
     params: { id: ruleId },
   } = useMatch();
-  const { data: rule } = useUserGetAccessRule(ruleId);
+  // prevent the form resetting unexpectedly
+  const { data: rule } = useUserGetAccessRule(ruleId, {
+    swr: { refreshInterval: 0 },
+  });
 
-  const { isOpen, onClose, onOpen } = useDisclosure();
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
@@ -191,10 +194,10 @@ const Home = () => {
         fields.reason && setValue("reason", fields.reason);
         fields.with && setValue("with", fields.with);
       };
-      if (search.bookmark) {
-        userGetBookmark(search.bookmark)
-          .then((bookmark) => {
-            resetForm(bookmark);
+      if (search.favorite) {
+        userGetFavorite(search.favorite)
+          .then((favorite) => {
+            resetForm(favorite);
           })
           .catch((e) => {
             let description: string | undefined;
@@ -203,7 +206,7 @@ const Home = () => {
                 .error;
             }
             toast({
-              title: "Failed to load bookmark",
+              title: "Failed to load favorite",
               status: "error",
               duration: 5000,
               description: (
@@ -219,7 +222,7 @@ const Home = () => {
         // If the field matches and the value is a valid option, it will be set in the form values.
         // if it is not a valid value it is ignored.
         // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
-        // resetForm(bookmark);
+        // resetForm(favorite);
         const filteredSearchWith = search.with?.map((w) => {
           const filteredWith: CreateRequestWith = {};
           Object.entries(w).map(([k, v]) => {
@@ -233,7 +236,7 @@ const Home = () => {
           });
           return filteredWith;
         });
-        // default value if there is no bookmark is an empty selection
+        // default value if there is no favorite is an empty selection
         const fields: Fields = {
           with:
             filteredSearchWith === undefined || filteredSearchWith?.length == 0
@@ -353,12 +356,6 @@ const Home = () => {
           </Text>
         </Center>
         <Container minW="864px">
-          <NewBookmarkModal
-            ruleId={ruleId}
-            isOpen={isOpen}
-            onClose={onClose}
-            parentFormData={getValues()}
-          />
           <FormProvider {...methods}>
             <Box
               p={8}
@@ -372,21 +369,21 @@ const Home = () => {
                 <Text as="h3" textStyle="Heading/H3">
                   You are requesting access to
                 </Text>
-                <Flex>
-                  <Button type="button" onClick={onOpen} mr={2}>
-                    Bookmark
-                  </Button>
 
-                  <Button
-                    type="button"
-                    onClick={clipboard.onCopy}
-                    rightIcon={
-                      clipboard.hasCopied ? <CheckIcon /> : <CopyIcon />
-                    }
-                  >
-                    Share
-                  </Button>
-                </Flex>
+                <ButtonGroup>
+                  <FavoriteRequestButton
+                    ruleId={ruleId}
+                    parentFormData={getValues()}
+                  />
+                  <Tooltip label="Copy a shareable link for this request">
+                    <IconButton
+                      variant={"ghost"}
+                      aria-label="Copy link"
+                      onClick={clipboard.onCopy}
+                      icon={clipboard.hasCopied ? <CheckIcon /> : <LinkIcon />}
+                    />
+                  </Tooltip>
+                </ButtonGroup>
               </Flex>
 
               <Stack
@@ -596,7 +593,7 @@ export const AccessRuleArguments: React.FC<{
   console.log({ subRequests });
   return (
     <Flex direction={"column"} justify={"left"}>
-      <VStack w="100%">
+      <VStack w="100%" spacing={4}>
         {subRequests?.map((subRequest, subRequestIndex) => (
           <VStack
             w="100%"
@@ -604,7 +601,9 @@ export const AccessRuleArguments: React.FC<{
             border="1px solid"
             borderColor="gray.300"
             rounded="md"
-            p={4}
+            px={4}
+            pb={4}
+            spacing={4}
           >
             <Wrap>
               {Object.entries(target.arguments)
@@ -664,18 +663,20 @@ export const AccessRuleArguments: React.FC<{
           </VStack>
         ))}
       </VStack>
-      <IconButton
-        type="button"
-        mt={1}
-        boxSize={25}
-        aria-label="add"
-        icon={<PlusSquareIcon />}
-        onClick={() => {
-          const newValue = [...(subRequests || []), {}];
-          console.log(newValue);
-          setValue("with", [...(subRequests || []), {}]);
-        }}
-      />
+      <ButtonGroup>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          aria-label="add"
+          leftIcon={<SmallAddIcon />}
+          onClick={() => {
+            setValue("with", [...(subRequests || []), {}]);
+          }}
+        >
+          Add permissions
+        </Button>
+      </ButtonGroup>
     </Flex>
   );
 };
@@ -725,16 +726,15 @@ const CustomOption = ({
     </components.Option>
   </div>
 );
-export default Home;
+export default AccessRequestForm;
 
-interface NewBookmarkModalProps extends Omit<ModalProps, "children"> {
+interface FavoriteRequestButtonProps {
   ruleId: string;
   parentFormData: NewRequestFormData;
 }
-const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
+const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
   ruleId,
   parentFormData,
-  ...rest
 }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const methods = useForm<{ name: string }>();
@@ -742,7 +742,7 @@ const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
 
   const toast = useToast();
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
-    const r: CreateBookmarkRequestBody = {
+    const r: CreateFavoriteRequestBody = {
       name: data.name,
       accessRuleId: ruleId,
       timing: {
@@ -755,15 +755,15 @@ const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
       r.timing.startTime = new Date(parentFormData.startDateTime).toISOString();
     }
     setIsSubmitting(true);
-    userCreateBookmark(r)
+    userCreateFavorite(r)
       .then(() => {
         toast({
-          title: "Bookmark created",
+          title: "Favorite created",
           status: "success",
           duration: 2200,
           isClosable: true,
         });
-        rest.onClose();
+        // rest.onClose();
         methods.reset();
       })
       .catch((e: any) => {
@@ -773,7 +773,7 @@ const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
             .error;
         }
         toast({
-          title: "Bookmark failed",
+          title: "Favorite failed",
           status: "error",
           duration: 5000,
           description: (
@@ -788,17 +788,43 @@ const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
         setIsSubmitting(false);
       });
   };
+
+  const { onOpen, onClose, isOpen } = useDisclosure();
+
+  const firstFieldRef = React.useRef(null);
   return (
-    <Modal {...rest}>
-      <ModalOverlay />
-      <ModalContent as={"form"} onSubmit={methods.handleSubmit(onSubmit)}>
-        <ModalHeader>Bookmark Request</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
+    <Popover
+      closeOnBlur={false}
+      isOpen={isOpen}
+      onOpen={onOpen}
+      onClose={onClose}
+      initialFocusRef={firstFieldRef}
+    >
+      <Tooltip label="Add this request to your favorites">
+        {/* additional element */}
+        <Box display="inline-block">
+          <PopoverTrigger>
+            <IconButton
+              onClick={onOpen}
+              variant={"ghost"}
+              aria-label="Favorite"
+              icon={<StarIcon />}
+            />
+          </PopoverTrigger>
+        </Box>
+      </Tooltip>
+
+      <PopoverContent as={"form"} onSubmit={methods.handleSubmit(onSubmit)}>
+        <PopoverArrow />
+        <PopoverCloseButton />
+        <PopoverHeader>Add to Favorites</PopoverHeader>
+
+        <PopoverBody>
           <FormControl isInvalid={!!methods.formState.errors?.name}>
             <FormLabel textStyle="Body/Medium" fontWeight="normal">
               Name
             </FormLabel>
+
             <Input
               bg="white"
               id="nameField"
@@ -821,29 +847,27 @@ const NewBookmarkModal: React.FC<NewBookmarkModalProps> = ({
                   return res.length > 0 ? res.join(", ") : undefined;
                 },
               })}
+              ref={firstFieldRef}
               onBlur={() => methods.trigger("name")}
             />
+            <FormHelperText>
+              Access favorites from your dashboard
+            </FormHelperText>
             {methods.formState.errors?.name && (
               <FormErrorMessage>
                 {methods.formState.errors?.name.message}
               </FormErrorMessage>
             )}
           </FormControl>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button type={"submit"} mr={3} isLoading={isSubmitting}>
-            Bookmark
-          </Button>
-          <Button
-            variant={"brandSecondary"}
-            onClick={rest.onClose}
-            isDisabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </PopoverBody>
+        <PopoverFooter>
+          <Flex justify={"right"}>
+            <Button size={"sm"} type={"submit"} mr={3} isLoading={isSubmitting}>
+              Save
+            </Button>
+          </Flex>
+        </PopoverFooter>
+      </PopoverContent>
+    </Popover>
   );
 };

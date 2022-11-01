@@ -20,9 +20,9 @@ import type {
   CreateProviderSetupRequestBody,
   LookupAccessRule,
   AccessRuleLookupParams,
-  Bookmark,
-  CreateBookmarkRequestBody,
-  BookmarkDetail
+  Favorite,
+  CreateFavoriteRequestBody,
+  FavoriteDetail
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -206,34 +206,34 @@ export const useAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
- * @summary Your GET endpoint
+ * @summary ListFavorites
  */
-export const userListBookmarks = (
+export const userListFavorites = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Bookmark[]>(
-      {url: `/api/v1/bookmarks`, method: 'get'
+      return customInstance<Favorite[]>(
+      {url: `/api/v1/favorites`, method: 'get'
     },
       options);
     }
   
 
-export const getUserListBookmarksKey = () => [`/api/v1/bookmarks`];
+export const getUserListFavoritesKey = () => [`/api/v1/favorites`];
 
     
-export type UserListBookmarksQueryResult = NonNullable<Awaited<ReturnType<typeof userListBookmarks>>>
-export type UserListBookmarksQueryError = ErrorType<unknown>
+export type UserListFavoritesQueryResult = NonNullable<Awaited<ReturnType<typeof userListFavorites>>>
+export type UserListFavoritesQueryError = ErrorType<ErrorResponseResponse>
 
-export const useUserListBookmarks = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListBookmarks>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListFavorites>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListBookmarksKey() : null);
-  const swrFn = () => userListBookmarks(requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListFavoritesKey() : null);
+  const swrFn = () => userListFavorites(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -243,47 +243,50 @@ export const useUserListBookmarks = <TError = ErrorType<unknown>>(
   }
 }
 
-export const userCreateBookmark = (
-    createBookmarkRequestBody: CreateBookmarkRequestBody,
+/**
+ * @summary Create Favorite
+ */
+export const userCreateFavorite = (
+    createFavoriteRequestBody: CreateFavoriteRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/bookmarks`, method: 'post',
+      return customInstance<Favorite>(
+      {url: `/api/v1/favorites`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: createBookmarkRequestBody
+      data: createFavoriteRequestBody
     },
       options);
     }
   
 
 /**
- * @summary Your GET endpoint
+ * @summary Get Favorite
  */
-export const userGetBookmark = (
+export const userGetFavorite = (
     id: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<BookmarkDetail>(
-      {url: `/api/v1/bookmarks/${id}`, method: 'get'
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites/${id}`, method: 'get'
     },
       options);
     }
   
 
-export const getUserGetBookmarkKey = (id: string,) => [`/api/v1/bookmarks/${id}`];
+export const getUserGetFavoriteKey = (id: string,) => [`/api/v1/favorites/${id}`];
 
     
-export type UserGetBookmarkQueryResult = NonNullable<Awaited<ReturnType<typeof userGetBookmark>>>
-export type UserGetBookmarkQueryError = ErrorType<unknown>
+export type UserGetFavoriteQueryResult = NonNullable<Awaited<ReturnType<typeof userGetFavorite>>>
+export type UserGetFavoriteQueryError = ErrorType<ErrorResponseResponse>
 
-export const useUserGetBookmark = <TError = ErrorType<unknown>>(
- id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetBookmark>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetFavorite>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(id)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetBookmarkKey(id) : null);
-  const swrFn = () => userGetBookmark(id, requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetFavoriteKey(id) : null);
+  const swrFn = () => userGetFavorite(id, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

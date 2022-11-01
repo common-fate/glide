@@ -28,7 +28,7 @@ func TestNewRequest(t *testing.T) {
 	}
 	type testcase struct {
 		name                         string
-		giveInput                    types.CreateRequestRequest
+		giveInput                    CreateRequest
 		giveUser                     identity.User
 		rule                         *rule.AccessRule
 		ruleErr                      error
@@ -78,7 +78,7 @@ func TestNewRequest(t *testing.T) {
 		{
 			name:     "fails because requested duration is greater than max duration",
 			giveUser: identity.User{Groups: []string{"a"}},
-			giveInput: types.CreateRequestRequest{
+			giveInput: CreateRequest{
 				Timing: types.RequestTiming{
 					DurationSeconds: 20,
 				},

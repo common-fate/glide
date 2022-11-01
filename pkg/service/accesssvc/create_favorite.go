@@ -13,7 +13,7 @@ import (
 
 // CreateRequest creates a new request and saves it in the database.
 // Returns an error if the request is invalid.
-func (s *Service) CreateBookmark(ctx context.Context, user *identity.User, in types.CreateBookmarkRequest) (*access.Bookmark, error) {
+func (s *Service) CreateFavorite(ctx context.Context, user *identity.User, in types.CreateFavoriteRequest) (*access.Favorite, error) {
 	log := logger.Get(ctx).With("user.id", user.ID)
 	q := storage.GetAccessRuleCurrent{ID: in.AccessRuleId}
 	_, err := s.DB.Query(ctx, &q)
@@ -38,7 +38,7 @@ func (s *Service) CreateBookmark(ctx context.Context, user *identity.User, in ty
 	if err != nil {
 		return nil, err
 	}
-	var bookmarkWith []map[string][]string
+	var favoriteWith []map[string][]string
 	if in.With != nil {
 		for _, v := range *in.With {
 			if v.AdditionalProperties != nil {
@@ -54,7 +54,7 @@ func (s *Service) CreateBookmark(ctx context.Context, user *identity.User, in ty
 						return nil, err
 					}
 				}
-				bookmarkWith = append(bookmarkWith, v.AdditionalProperties)
+				favoriteWith = append(favoriteWith, v.AdditionalProperties)
 			}
 		}
 	} else {
@@ -69,25 +69,25 @@ func (s *Service) CreateBookmark(ctx context.Context, user *identity.User, in ty
 		}
 	}
 
-	bookmark := access.Bookmark{
-		ID:     types.NewBookmarkID(),
+	favorite := access.Favorite{
+		ID:     types.NewRequestFavoriteID(),
 		UserID: user.ID,
 		Name:   in.Name,
 		Rule:   in.AccessRuleId,
 		Data: access.RequestData{
 			Reason: in.Reason,
 		},
-		With:            bookmarkWith,
+		With:            favoriteWith,
 		RequestedTiming: access.TimingFromRequestTiming(in.Timing),
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
 
-	err = s.DB.Put(ctx, &bookmark)
+	err = s.DB.Put(ctx, &favorite)
 	if err != nil {
 		return nil, err
 	}
-	return &bookmark, nil
+	return &favorite, nil
 }
 
 func combinations(subRequest map[string][]string) []map[string]string {

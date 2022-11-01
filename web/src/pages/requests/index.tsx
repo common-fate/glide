@@ -32,7 +32,7 @@ import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
 import { RequestStatusDisplay } from "../../components/Request";
 import {
-  useUserListBookmarks,
+  useUserListFavorites,
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
 } from "../../utils/backend-client/default/default";
@@ -95,7 +95,7 @@ const Home = () => {
               spacing={12}
             >
               <VStack>
-                <Bookmarks />
+                <Favorites />
                 <Box>
                   <Flex>
                     <Text
@@ -460,8 +460,8 @@ const UserAccessCard: React.FC<
   );
 };
 
-const Bookmarks: React.FC = () => {
-  const { data: bookmarks } = useUserListBookmarks();
+const Favorites: React.FC = () => {
+  const { data: favorites } = useUserListFavorites();
   return (
     <Box>
       <Flex>
@@ -470,7 +470,7 @@ const Bookmarks: React.FC = () => {
           textStyle="Heading/H3"
           mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
         >
-          Bookmarks
+          Favorites
         </Text>
       </Flex>
       <Grid
@@ -484,12 +484,12 @@ const Bookmarks: React.FC = () => {
         minW={{ base: "unset", xl: "488px" }}
         gap={6}
       >
-        {bookmarks ? (
-          bookmarks.length > 0 ? (
-            bookmarks.map((r, i) => (
+        {favorites ? (
+          favorites.length > 0 ? (
+            favorites.map((r, i) => (
               <Link
                 style={{ display: "flex" }}
-                to={"/access/request/" + r.ruleId + "?bookmark=" + r.id}
+                to={"/access/request/" + r.ruleId + "?favorite=" + r.id}
                 key={r.id}
               >
                 <Box
@@ -542,7 +542,7 @@ const Bookmarks: React.FC = () => {
               textAlign="center"
             >
               <Text textStyle="Heading/H3" color="neutrals.500">
-                You don't have any bookmarks yet
+                You don't have any favorites yet
               </Text>
             </Center>
           )

@@ -8,7 +8,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-type Bookmark struct {
+type Favorite struct {
 	// ID
 	ID     string `json:"id" dynamodbav:"id"`
 	UserID string `json:"userId" dynamodbav:"userId"`
@@ -22,16 +22,16 @@ type Bookmark struct {
 	UpdatedAt       time.Time             `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
-func (b Bookmark) ToAPI() types.Bookmark {
-	return types.Bookmark{
+func (b Favorite) ToAPI() types.Favorite {
+	return types.Favorite{
 		Id:     b.ID,
 		Name:   b.Name,
 		RuleId: b.Rule,
 	}
 }
 
-func (b Bookmark) ToAPIDetail() types.BookmarkDetail {
-	bm := types.BookmarkDetail{
+func (b Favorite) ToAPIDetail() types.FavoriteDetail {
+	bm := types.FavoriteDetail{
 		Id:     b.ID,
 		Name:   b.Name,
 		Reason: b.Data.Reason,
@@ -46,10 +46,10 @@ func (b Bookmark) ToAPIDetail() types.BookmarkDetail {
 	return bm
 }
 
-func (b *Bookmark) DDBKeys() (ddb.Keys, error) {
+func (b *Favorite) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.Bookmark.PK1,
-		SK: keys.Bookmark.SK1(b.UserID, b.ID),
+		PK: keys.Favorite.PK1,
+		SK: keys.Favorite.SK1(b.UserID, b.ID),
 	}
 	return keys, nil
 }

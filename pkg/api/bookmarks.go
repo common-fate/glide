@@ -11,11 +11,11 @@ import (
 )
 
 // Your GET endpoint
-// (GET /api/v1/bookmarks)
-func (a *API) UserListBookmarks(w http.ResponseWriter, r *http.Request) {
+// (GET /api/v1/favorites)
+func (a *API) UserListFavorites(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
-	q := storage.ListBookmarksForUser{
+	q := storage.ListFavoritesForUser{
 		UserID: u.ID,
 	}
 	_, err := a.DB.Query(ctx, &q)
@@ -23,39 +23,39 @@ func (a *API) UserListBookmarks(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	res := []types.Bookmark{}
-	for _, bookmark := range q.Result {
-		res = append(res, bookmark.ToAPI())
+	res := []types.Favorite{}
+	for _, favorite := range q.Result {
+		res = append(res, favorite.ToAPI())
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 
 }
 
-// (POST /api/v1/bookmarks)
-func (a *API) UserCreateBookmark(w http.ResponseWriter, r *http.Request) {
+// (POST /api/v1/favorites)
+func (a *API) UserCreateFavorite(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var createBookmark types.CreateBookmarkRequest
-	err := apio.DecodeJSONBody(w, r, &createBookmark)
+	var createFavorite types.CreateFavoriteRequest
+	err := apio.DecodeJSONBody(w, r, &createFavorite)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 	u := auth.UserFromContext(ctx)
-	bookmark, err := a.Access.CreateBookmark(ctx, u, createBookmark)
+	favorite, err := a.Access.CreateFavorite(ctx, u, createFavorite)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, bookmark, http.StatusCreated)
+	apio.JSON(ctx, w, favorite, http.StatusCreated)
 
 }
 
 // Your GET endpoint
-// (GET /api/v1/bookmarks/{id})
-func (a *API) UserGetBookmark(w http.ResponseWriter, r *http.Request, id string) {
+// (GET /api/v1/favorites/{id})
+func (a *API) UserGetFavorite(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
-	q := storage.GetBookmarkForUser{
+	q := storage.GetFavoriteForUser{
 		UserID: u.ID,
 		ID:     id,
 	}

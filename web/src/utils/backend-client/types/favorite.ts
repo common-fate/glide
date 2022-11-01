@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Bookmark {
+export interface Favorite {
   id: string;
   name: string;
   ruleId: string;

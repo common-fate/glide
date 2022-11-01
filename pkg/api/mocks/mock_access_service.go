@@ -67,19 +67,19 @@ func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRequest", reflect.TypeOf((*MockAccessService)(nil).CancelRequest), arg0, arg1)
 }
 
-// CreateBookmark mocks base method.
-func (m *MockAccessService) CreateBookmark(arg0 context.Context, arg1 *identity.User, arg2 types.CreateBookmarkRequest) (*access.Bookmark, error) {
+// CreateFavorite mocks base method.
+func (m *MockAccessService) CreateFavorite(arg0 context.Context, arg1 *identity.User, arg2 types.CreateFavoriteRequest) (*access.Favorite, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateBookmark", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*access.Bookmark)
+	ret := m.ctrl.Call(m, "CreateFavorite", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*access.Favorite)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateBookmark indicates an expected call of CreateBookmark.
-func (mr *MockAccessServiceMockRecorder) CreateBookmark(arg0, arg1, arg2 interface{}) *gomock.Call {
+// CreateFavorite indicates an expected call of CreateFavorite.
+func (mr *MockAccessServiceMockRecorder) CreateFavorite(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBookmark", reflect.TypeOf((*MockAccessService)(nil).CreateBookmark), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFavorite", reflect.TypeOf((*MockAccessService)(nil).CreateFavorite), arg0, arg1, arg2)
 }
 
 // CreateRequest mocks base method.

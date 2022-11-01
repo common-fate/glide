@@ -10,26 +10,26 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 )
 
-type GetBookmarkForUser struct {
+type GetFavoriteForUser struct {
 	ID     string
 	UserID string
-	Result *access.Bookmark
+	Result *access.Favorite
 }
 
-func (b *GetBookmarkForUser) BuildQuery() (*dynamodb.QueryInput, error) {
+func (b *GetFavoriteForUser) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		Limit:                  aws.Int32(1),
 		KeyConditionExpression: aws.String("PK = :pk1 and SK = :sk1"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk1": &types.AttributeValueMemberS{Value: keys.Bookmark.PK1},
-			":sk1": &types.AttributeValueMemberS{Value: keys.Bookmark.SK1(b.UserID, b.ID)},
+			":pk1": &types.AttributeValueMemberS{Value: keys.Favorite.PK1},
+			":sk1": &types.AttributeValueMemberS{Value: keys.Favorite.SK1(b.UserID, b.ID)},
 		},
 	}
 
 	return qi, nil
 }
 
-func (g *GetBookmarkForUser) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetFavoriteForUser) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
 	if len(out.Items) != 1 {
 		return ddb.ErrNoItems
 	}

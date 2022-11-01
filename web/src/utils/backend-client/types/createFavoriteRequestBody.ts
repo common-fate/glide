@@ -8,7 +8,7 @@
 import type { RequestTiming } from './requestTiming';
 import type { CreateRequestWithSubRequest } from './createRequestWithSubRequest';
 
-export type CreateBookmarkRequestBody = {
+export type CreateFavoriteRequestBody = {
   accessRuleId: string;
   reason?: string;
   timing: RequestTiming;

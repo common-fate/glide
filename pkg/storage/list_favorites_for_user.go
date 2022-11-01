@@ -8,17 +8,17 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 )
 
-type ListBookmarksForUser struct {
+type ListFavoritesForUser struct {
 	UserID string
-	Result []access.Bookmark `ddb:"result"`
+	Result []access.Favorite `ddb:"result"`
 }
 
-func (l *ListBookmarksForUser) BuildQuery() (*dynamodb.QueryInput, error) {
+func (l *ListFavoritesForUser) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk1 and begins_with(SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk1": &types.AttributeValueMemberS{Value: keys.Bookmark.PK1},
-			":sk1": &types.AttributeValueMemberS{Value: keys.Bookmark.SK1User(l.UserID)},
+			":pk1": &types.AttributeValueMemberS{Value: keys.Favorite.PK1},
+			":sk1": &types.AttributeValueMemberS{Value: keys.Favorite.SK1User(l.UserID)},
 		},
 	}
 	return &qi, nil
