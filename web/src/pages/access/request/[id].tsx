@@ -29,6 +29,7 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
+  Portal,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
@@ -731,15 +732,17 @@ export default AccessRequestForm;
 interface FavoriteRequestButtonProps {
   ruleId: string;
   parentFormData: NewRequestFormData;
+  containerRef?: React.RefObject<HTMLElement | null>;
 }
 const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
   ruleId,
   parentFormData,
+  containerRef,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const methods = useForm<{ name: string }>();
   // the state of the parent form
-
+  const { onOpen, onClose, isOpen } = useDisclosure();
   const toast = useToast();
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
     const r: CreateFavoriteRequestBody = {
@@ -755,6 +758,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
       r.timing.startTime = new Date(parentFormData.startDateTime).toISOString();
     }
     setIsSubmitting(true);
+
     userCreateFavorite(r)
       .then(() => {
         toast({
@@ -763,7 +767,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
           duration: 2200,
           isClosable: true,
         });
-        // rest.onClose();
+        onClose();
         methods.reset();
       })
       .catch((e: any) => {
@@ -789,16 +793,12 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
       });
   };
 
-  const { onOpen, onClose, isOpen } = useDisclosure();
-
-  const firstFieldRef = React.useRef(null);
   return (
     <Popover
       closeOnBlur={false}
       isOpen={isOpen}
       onOpen={onOpen}
       onClose={onClose}
-      initialFocusRef={firstFieldRef}
     >
       <Tooltip label="Add this request to your favorites">
         {/* additional element */}
@@ -813,12 +813,16 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
           </PopoverTrigger>
         </Box>
       </Tooltip>
-
-      <PopoverContent as={"form"} onSubmit={methods.handleSubmit(onSubmit)}>
+      <PopoverContent>
         <PopoverArrow />
         <PopoverCloseButton />
         <PopoverHeader>Add to Favorites</PopoverHeader>
 
+        {/* I have chosen not to use a native form element wrapper because it can't be easily nested in this popover inside the base request form
+
+I experimented with using a <Portal/> to wrap the popover however this form submitting still triggered the parent form to submit
+
+So I have just submitted the form directly using the submit button*/}
         <PopoverBody>
           <FormControl isInvalid={!!methods.formState.errors?.name}>
             <FormLabel textStyle="Body/Medium" fontWeight="normal">
@@ -847,7 +851,6 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
                   return res.length > 0 ? res.join(", ") : undefined;
                 },
               })}
-              ref={firstFieldRef}
               onBlur={() => methods.trigger("name")}
             />
             <FormHelperText>
@@ -862,7 +865,12 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
         </PopoverBody>
         <PopoverFooter>
           <Flex justify={"right"}>
-            <Button size={"sm"} type={"submit"} mr={3} isLoading={isSubmitting}>
+            <Button
+              size={"sm"}
+              onClick={methods.handleSubmit(onSubmit)}
+              mr={3}
+              isLoading={isSubmitting}
+            >
               Save
             </Button>
           </Flex>
