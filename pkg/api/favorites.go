@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// Your GET endpoint
 // (GET /api/v1/favorites)
 func (a *API) UserListFavorites(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -18,14 +17,19 @@ func (a *API) UserListFavorites(w http.ResponseWriter, r *http.Request) {
 	q := storage.ListFavoritesForUser{
 		UserID: u.ID,
 	}
-	_, err := a.DB.Query(ctx, &q)
+	qr, err := a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
-	res := []types.Favorite{}
+	res := types.ListFavoritesResponse{
+		Favorites: []types.Favorite{},
+	}
+	if qr != nil && qr.NextPage != "" {
+		res.Next = &qr.NextPage
+	}
 	for _, favorite := range q.Result {
-		res = append(res, favorite.ToAPI())
+		res.Favorites = append(res.Favorites, favorite.ToAPI())
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 
@@ -46,11 +50,10 @@ func (a *API) UserCreateFavorite(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, favorite, http.StatusCreated)
+	apio.JSON(ctx, w, favorite.ToAPIDetail(), http.StatusCreated)
 
 }
 
-// Your GET endpoint
 // (GET /api/v1/favorites/{id})
 func (a *API) UserGetFavorite(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()

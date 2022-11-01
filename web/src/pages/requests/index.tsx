@@ -485,8 +485,8 @@ const Favorites: React.FC = () => {
         gap={6}
       >
         {favorites ? (
-          favorites.length > 0 ? (
-            favorites.map((r, i) => (
+          favorites.favorites.length > 0 ? (
+            favorites.favorites.map((r, i) => (
               <Link
                 style={{ display: "flex" }}
                 to={"/access/request/" + r.ruleId + "?favorite=" + r.id}

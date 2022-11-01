@@ -20,6 +20,7 @@ import type {
   CreateProviderSetupRequestBody,
   LookupAccessRule,
   AccessRuleLookupParams,
+  ListFavoritesResponseResponse,
   Favorite,
   CreateFavoriteRequestBody,
   FavoriteDetail
@@ -211,7 +212,7 @@ export const useAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse>>(
 export const userListFavorites = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Favorite[]>(
+      return customInstance<ListFavoritesResponseResponse>(
       {url: `/api/v1/favorites`, method: 'get'
     },
       options);
