@@ -281,6 +281,7 @@ func CLIPrompt(f *gconfig.Field) error {
 				return err
 			}
 			if !doUpdate {
+
 				return nil
 			}
 		}
