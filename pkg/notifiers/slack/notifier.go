@@ -39,7 +39,9 @@ func (n *SlackNotifier) Init(ctx context.Context, config *deploy.NotificationsMa
 		log.Info("initialising slack incoming webhooks", "webhooks", config.SlackIncomingWebhooks)
 
 		for _, webhook := range config.SlackIncomingWebhooks {
-			sw := SlackIncomingWebhook{}
+			sw := SlackIncomingWebhook{
+				webhookURL: gconfig.SecretStringValue{Value: webhook["webhookUrl"]},
+			}
 			err := sw.Config().Load(ctx, &gconfig.MapLoader{Values: webhook})
 			if err != nil {
 				return err

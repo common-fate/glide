@@ -154,6 +154,9 @@ func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (*Notifi
 			"apiToken": nc.Slack.ApiToken,
 		}
 	}
+	if nc.SlackIncomingWebhooks != nil {
+		fm.SlackIncomingWebhooks = *nc.SlackIncomingWebhooks
+	}
 
 	return &fm, nil
 }
