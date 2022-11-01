@@ -13,4 +13,5 @@ export type IdpStatus = typeof IdpStatus[keyof typeof IdpStatus];
 export const IdpStatus = {
   ARCHIVED: 'ARCHIVED',
   ACTIVE: 'ACTIVE',
+  INTERNAL: 'INTERNAL',
 } as const;

@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type GetGroupsParams = { nextToken?: string };
+export type GetGroupsParams = { nextToken?: string; status?: string };

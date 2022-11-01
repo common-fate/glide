@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/apio"
@@ -23,8 +24,14 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
+	status := types.IdpStatusACTIVE
+
+	if params.Status != nil {
+		status = types.IdpStatus(*params.Status)
+	}
+
 	q := storage.ListGroupsForStatus{
-		Status: types.IdpStatusACTIVE,
+		Status: status,
 	}
 
 	qr, err := a.DB.Query(ctx, &q, queryOpts...)
@@ -71,25 +78,45 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 
 // Create Group
 // (POST /api/v1/admin/groups)
+// Creates a group in cognito if cognito is the selected idp, otherwise will create an Internal Granted group
 func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	if a.Cognito == nil {
-		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
-		return
-	}
 	var createGroupRequest types.CreateGroupJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
-		Name:        createGroupRequest.Name,
-		Description: aws.ToString(createGroupRequest.Description),
-	})
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	if a.Cognito == nil {
+		//create cognito group
+
+		group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
+			Name:        createGroupRequest.Name,
+			Description: aws.ToString(createGroupRequest.Description),
+		})
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
+	} else {
+		// Create internal group
+		group := identity.Group{
+			ID:          createGroupRequest.Name,
+			IdpID:       createGroupRequest.Name,
+			Name:        createGroupRequest.Name,
+			Description: *createGroupRequest.Description,
+			Status:      types.IdpStatusINTERNAL,
+			Users:       *createGroupRequest.Members,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+
+		err = a.DB.Put(ctx, &group)
+		if err != nil {
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+			return
+		}
 	}
-	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
+
 }
