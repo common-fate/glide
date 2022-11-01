@@ -110,10 +110,6 @@ paths:
       responses:
         '201':
           description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Request'
       description: |-
         Make a request to access something.
 

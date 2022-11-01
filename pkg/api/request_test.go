@@ -52,7 +52,7 @@ func TestUserCreateRequest(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusCreated,
-			wantBody: `{"accessRuleId":"rul_123","accessRuleVersion":"0001-01-01T00:00:00Z","id":"123","requestedAt":"0001-01-01T00:00:00Z","requestor":"testuser","status":"PENDING","timing":{"durationSeconds":10},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `null`,
 		},
 		{
 			name:     "no duration",

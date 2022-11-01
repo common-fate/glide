@@ -21,7 +21,6 @@ func (s *Service) CreateFavorite(ctx context.Context, user *identity.User, in ty
 		return nil, ErrRuleNotFound
 	}
 	if err != nil {
-		// we don't know how to handle the error from the rule getter, so just return nil,it to the caller.
 		return nil, err
 	}
 	rule := q.Result
@@ -41,21 +40,18 @@ func (s *Service) CreateFavorite(ctx context.Context, user *identity.User, in ty
 	var favoriteWith []map[string][]string
 	if in.With != nil {
 		for _, v := range *in.With {
-			if v.AdditionalProperties != nil {
-				argumentCombos := combinations(v.AdditionalProperties)
-				for _, argumentcombo := range argumentCombos {
-					err = validateRequest(CreateRequest{
-						AccessRuleId: in.AccessRuleId,
-						Reason:       in.Reason,
-						Timing:       in.Timing,
-						With:         argumentcombo,
-					}, rule, requestArguments)
-					if err != nil {
-						return nil, err
-					}
+			for _, argumentcombo := range v.ArgumentCombinations() {
+				err = validateRequest(CreateRequest{
+					AccessRuleId: in.AccessRuleId,
+					Reason:       in.Reason,
+					Timing:       in.Timing,
+					With:         argumentcombo,
+				}, rule, requestArguments)
+				if err != nil {
+					return nil, err
 				}
-				favoriteWith = append(favoriteWith, v.AdditionalProperties)
 			}
+			favoriteWith = append(favoriteWith, v.AdditionalProperties)
 		}
 	} else {
 		err = validateRequest(CreateRequest{
@@ -88,37 +84,4 @@ func (s *Service) CreateFavorite(ctx context.Context, user *identity.User, in ty
 		return nil, err
 	}
 	return &favorite, nil
-}
-
-func combinations(subRequest map[string][]string) []map[string]string {
-	keys := make([]string, 0, len(subRequest))
-	for k := range subRequest {
-		keys = append(keys, k)
-	}
-	var combinations []map[string]string
-	if len(keys) > 0 {
-		for _, value := range subRequest[keys[0]] {
-			combinations = append(combinations, branch(subRequest, keys, map[string]string{keys[0]: value}, 1)...)
-		}
-	}
-	return combinations
-}
-
-func branch(subRequest map[string][]string, keys []string, combination map[string]string, keyIndex int) []map[string]string {
-	var combos []map[string]string
-	key := keys[keyIndex]
-	for _, value := range subRequest[key] {
-		// Create the target map
-		next := map[string]string{key: value}
-		// Copy from the original map to the target map
-		for k, v := range combination {
-			next[k] = v
-		}
-		if len(keys) == keyIndex+1 {
-			combos = append(combos, next)
-		} else {
-			combos = append(combos, branch(subRequest, keys, next, keyIndex+1)...)
-		}
-	}
-	return combos
 }

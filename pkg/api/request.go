@@ -203,38 +203,6 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	}
 	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, requestArguments), http.StatusOK)
 }
-func combinations(subRequest map[string][]string) []map[string]string {
-	keys := make([]string, 0, len(subRequest))
-	for k := range subRequest {
-		keys = append(keys, k)
-	}
-	var combinations []map[string]string
-	if len(keys) > 0 {
-		for _, value := range subRequest[keys[0]] {
-			combinations = append(combinations, branch(subRequest, keys, map[string]string{keys[0]: value}, 1)...)
-		}
-	}
-	return combinations
-}
-
-func branch(subRequest map[string][]string, keys []string, combination map[string]string, keyIndex int) []map[string]string {
-	var combos []map[string]string
-	key := keys[keyIndex]
-	for _, value := range subRequest[key] {
-		// Create the target map
-		next := map[string]string{key: value}
-		// Copy from the original map to the target map
-		for k, v := range combination {
-			next[k] = v
-		}
-		if len(keys) == keyIndex+1 {
-			combos = append(combos, next)
-		} else {
-			combos = append(combos, branch(subRequest, keys, next, keyIndex+1)...)
-		}
-	}
-	return combos
-}
 
 // Creates a request
 // (POST /api/v1/requests/)
@@ -256,21 +224,17 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	if incomingRequest.With != nil {
 		g, gctx := errgroup.WithContext(ctx)
 		for _, v := range *incomingRequest.With {
-			if v.AdditionalProperties != nil {
-				argumentCombos := combinations(v.AdditionalProperties)
-				for _, argumentcombo := range argumentCombos {
-					argComboCopy := argumentcombo
-					g.Go(func() error {
-						_, err := a.Access.CreateRequest(gctx, u, accesssvc.CreateRequest{
-							With:         argComboCopy,
-							AccessRuleId: incomingRequest.AccessRuleId,
-							Reason:       incomingRequest.Reason,
-							Timing:       incomingRequest.Timing,
-						})
-						return err
+			for _, argumentcombination := range v.ArgumentCombinations() {
+				argumentcombinationCopy := argumentcombination
+				g.Go(func() error {
+					_, err := a.Access.CreateRequest(gctx, u, accesssvc.CreateRequest{
+						With:         argumentcombinationCopy,
+						AccessRuleId: incomingRequest.AccessRuleId,
+						Reason:       incomingRequest.Reason,
+						Timing:       incomingRequest.Timing,
 					})
-				}
-
+					return err
+				})
 			}
 
 		}
