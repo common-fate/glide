@@ -96,7 +96,7 @@ const Home = () => {
             >
               <VStack>
                 <Favorites />
-                <Box>
+                <Flex flexDirection="column" w="100%">
                   <Flex>
                     <Text
                       as="h3"
@@ -230,7 +230,7 @@ const Home = () => {
                       ))
                     )}
                   </Grid>
-                </Box>
+                </Flex>
               </VStack>
 
               <Tabs
