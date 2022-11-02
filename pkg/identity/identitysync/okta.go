@@ -23,6 +23,8 @@ func (s *OktaSync) Config() gconfig.Config {
 	}
 }
 
+func (s *OktaSync) Name() string { return "okta" }
+
 func (s *OktaSync) Init(ctx context.Context) error {
 	_, client, err := okta.NewClient(
 		ctx,

@@ -14,18 +14,14 @@ import (
 )
 
 type Deployment struct {
-	ID         string `json:"id" dynamodbav:"id"`
-	UserCount  int    `json:"userCount" dynamodbav:"userCount"`
-	GroupCount int    `json:"groupCount" dynamodbav:"groupCount"`
+	ID string `json:"id" dynamodbav:"id"`
 }
 
 func (d *Deployment) ToAnalytics() *analytics.Deployment {
 	return &analytics.Deployment{
-		ID:         d.ID,
-		Version:    build.Version,
-		UserCount:  d.UserCount,
-		GroupCount: d.GroupCount,
-		Stage:      os.Getenv("CF_ANALYTICS_DEPLOYMENT_STAGE"),
+		ID:      d.ID,
+		Version: build.Version,
+		Stage:   os.Getenv("CF_ANALYTICS_DEPLOYMENT_STAGE"),
 	}
 }
 
@@ -51,11 +47,10 @@ func (l *Loader) GetDeployment(ctx context.Context) (*Deployment, error) {
 }
 
 func (l *Loader) getOrCreateDeployment(ctx context.Context) (*Deployment, error) {
-	l.log.Info("fetching deployment info")
 	var d Deployment
 	_, err := l.client.Get(ctx, ddb.GetKey{PK: keys.Deployment.PK1, SK: keys.Deployment.SK1}, &d)
 	if err == nil {
-		l.log.Infow("found existing deployment info", "deployment.id", d.ID, "deployment.users", d.UserCount, "deployment.groups", d.GroupCount)
+		l.log.Debugw("found existing deployment info", "deployment.id", d.ID)
 		return &d, nil
 	}
 	if err != ddb.ErrNoItems {
@@ -65,7 +60,6 @@ func (l *Loader) getOrCreateDeployment(ctx context.Context) (*Deployment, error)
 	// this means the deployment isn't in the database, so provision it.
 	d = Deployment{
 		ID: types.NewDeploymentID(),
-		// user and group count are zeroed, they are set when IDP sync is run.
 	}
 
 	l.log.Infow("created deployment info", "deployment.id", d.ID)
@@ -76,22 +70,4 @@ func (l *Loader) getOrCreateDeployment(ctx context.Context) (*Deployment, error)
 	}
 
 	return &d, nil
-}
-
-type UserInfo struct {
-	UserCount  int
-	GroupCount int
-}
-
-func (l *Loader) SetUserInfo(ctx context.Context, ui UserInfo) error {
-	d, err := l.getOrCreateDeployment(ctx)
-	if err != nil {
-		return err
-	}
-	d.UserCount = ui.UserCount
-	d.GroupCount = ui.GroupCount
-
-	l.log.Infow("set deployment user info", "deployment.id", d.ID, "deployment.users", d.UserCount, "deployment.groups", d.GroupCount)
-
-	return l.client.Put(ctx, d)
 }

@@ -295,6 +295,10 @@ export class AppBackend extends Construct {
       userPool: props.userPool,
       identityProviderSyncConfiguration:
         props.identityProviderSyncConfiguration,
+      analyticsDebug: props.analyticsDebug,
+      analyticsDeploymentStage: props.analyticsDeploymentStage,
+      analyticsDisabled: props.analyticsDisabled,
+      analyticsUrl: props.analyticsUrl,
     });
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,

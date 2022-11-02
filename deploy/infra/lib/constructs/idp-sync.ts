@@ -12,6 +12,10 @@ interface Props {
   dynamoTable: Table;
   userPool: WebUserPool;
   identityProviderSyncConfiguration: string;
+  analyticsDisabled: string;
+  analyticsUrl: string;
+  analyticsDebug: string;
+  analyticsDeploymentStage: string;
 }
 
 export class IdpSync extends Construct {
@@ -32,6 +36,10 @@ export class IdpSync extends Construct {
         IDENTITY_PROVIDER: props.userPool.getIdpType(),
         APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        CF_ANALYTICS_DISABLED: props.analyticsDisabled,
+        CF_ANALYTICS_URL: props.analyticsUrl,
+        CF_ANALYTICS_DEBUG: props.analyticsDebug,
+        CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "syncer",
@@ -82,7 +90,8 @@ export class IdpSync extends Construct {
         resources: ["*"],
         conditions: {
           StringEquals: {
-            "iam:ResourceTag/common-fate-abac-role": "aws-sso-identity-provider",
+            "iam:ResourceTag/common-fate-abac-role":
+              "aws-sso-identity-provider",
           },
         },
       })
