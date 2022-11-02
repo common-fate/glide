@@ -46,7 +46,7 @@ func Registry() ProviderRegistry {
 	return ProviderRegistry{
 		Providers: map[string]map[string]RegisteredProvider{
 			"commonfate/ecs-exec-sso": {
-				"v1-alpha1": {Provider: &ecsshellsso.Provider{},
+				"v1-alpha2": {Provider: &ecsshellsso.Provider{},
 					DefaultID:   "ecs-exec-sso",
 					Description: "ECS Exec SSO",
 				},
