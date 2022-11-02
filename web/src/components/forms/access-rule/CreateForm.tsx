@@ -6,8 +6,6 @@ import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin
 
 import {
   CreateAccessRuleRequestBody,
-  AccessRuleTarget,
-  Provider,
   CreateAccessRuleTarget,
 } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
@@ -19,6 +17,7 @@ import { StepsProvider } from "./StepsContext";
 
 export type AccessRuleFormDataTarget = {
   providerId: string;
+  selects: { [key: string]: string };
   multiSelects: { [key: string]: string[] };
   argumentGroups: { [key: string]: { [key: string]: string[] } };
   inputs: { [key: string]: string };
@@ -47,6 +46,12 @@ export const accessRuleFormDataTargetToApi = (
     t.with[k] = {
       groupings: target.argumentGroups[k] || {},
       values: target.multiSelects[k],
+    };
+  }
+  for (const k in target.selects) {
+    t.with[k] = {
+      groupings: {},
+      values: [target.selects[k]],
     };
   }
   return t;

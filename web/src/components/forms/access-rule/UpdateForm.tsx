@@ -54,6 +54,7 @@ export const accessRuleTargetApiToTargetFormData = (
     multiSelects: {},
     argumentGroups: {},
     inputs: {},
+    selects: {},
   };
   Object.entries(apiData.target.with).forEach(([k, v]) => {
     if (
@@ -61,6 +62,10 @@ export const accessRuleTargetApiToTargetFormData = (
     ) {
       t.multiSelects[k] = v.values;
       t.argumentGroups[k] = v.groupings;
+    } else if (
+      v.formElement === AccessRuleTargetDetailArgumentsFormElement.SELECT
+    ) {
+      t.selects[k] = v.values.length == 1 ? v.values[0] : "";
     } else {
       t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
     }

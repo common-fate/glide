@@ -24,7 +24,7 @@ import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
 import { AccessRuleFormData } from "../CreateForm";
 import { RefreshButton } from "../steps/Provider";
-import { MultiSelect } from "./Select";
+import { MultiSelect, Select } from "./Select";
 
 interface ProviderArgumentFieldProps {
   argument: Argument;
@@ -39,6 +39,13 @@ const ProviderArgumentField: React.FC<ProviderArgumentFieldProps> = ({
     case ArgumentFormElement.MULTISELECT:
       return (
         <ProviderFormElementMultiSelect
+          argument={argument}
+          providerId={providerId}
+        />
+      );
+    case ArgumentFormElement.SELECT:
+      return (
+        <ProviderFormElementSelect
           argument={argument}
           providerId={providerId}
         />
@@ -320,6 +327,62 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
             {"At least one " + argument.title + " is required"}
           </Text>
         )}
+    </VStack>
+  );
+};
+
+const ProviderFormElementSelect: React.FC<ProviderArgumentFieldProps> = ({
+  argument,
+  providerId,
+}) => {
+  const { formState, watch } = useFormContext<AccessRuleFormData>();
+  const { data: argOptions } = useListProviderArgOptions(
+    providerId,
+    argument.id
+  );
+  const multiSelectsError = formState.errors.target?.multiSelects;
+
+  const selects = watch(`target.selects.${argument.id}`);
+
+  return (
+    <VStack
+      border="1px solid"
+      borderColor="gray.300"
+      rounded="md"
+      p={4}
+      // py={6}
+      w="100%"
+      spacing={4}
+      justifyContent="start"
+      alignItems="start"
+    >
+      <FormControl
+        w="100%"
+        isInvalid={
+          multiSelectsError && multiSelectsError[argument.id] !== undefined
+        }
+      >
+        <FormLabel>
+          <Text textStyle={"Body/Medium"}>{argument.title}s</Text>
+          {argument.description && (
+            <Text textStyle={"Body/Medium"} color="neutrals.500">
+              {argument.description}
+            </Text>
+          )}
+        </FormLabel>
+        <HStack w="90%">
+          <Select
+            rules={{ required: true }}
+            fieldName={`target.selects.${argument.id}`}
+            options={argOptions?.options || []}
+          />
+          <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
+        </HStack>
+
+        {!argument.groups && (
+          <FormErrorMessage> {argument.title} is required </FormErrorMessage>
+        )}
+      </FormControl>
     </VStack>
   );
 };
