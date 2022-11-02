@@ -72,7 +72,10 @@ import {
   Hours,
   Minutes,
 } from "../../../components/DurationInput";
-import { MultiSelect } from "../../../components/forms/access-rule/components/Select";
+import {
+  MultiSelect,
+  Select,
+} from "../../../components/forms/access-rule/components/Select";
 import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
@@ -93,6 +96,7 @@ import {
   CreateRequestWith,
   CreateRequestWithSubRequest,
   RequestAccessRuleTarget,
+  RequestArgumentFormElement,
   RequestTiming,
   WithOption,
 } from "../../../utils/backend-client/types";
@@ -648,15 +652,27 @@ export const AccessRuleArguments: React.FC<{
                     >
                       {v.title}
                     </FormLabel>
-                    <MultiSelect
-                      fieldName={`with.${subRequestIndex}.${k}`}
-                      options={v.options
-                        // exclude invalid options
-                        .filter((op) => op.valid)
-                        .map((op) => {
-                          return op;
-                        })}
-                    />
+                    {v.formElement === RequestArgumentFormElement.SELECT ? (
+                      <Select
+                        fieldName={`with.${subRequestIndex}.${k}`}
+                        options={v.options
+                          // exclude invalid options
+                          .filter((op) => op.valid)
+                          .map((op) => {
+                            return op;
+                          })}
+                      />
+                    ) : (
+                      <MultiSelect
+                        fieldName={`with.${subRequestIndex}.${k}`}
+                        options={v.options
+                          // exclude invalid options
+                          .filter((op) => op.valid)
+                          .map((op) => {
+                            return op;
+                          })}
+                      />
+                    )}
                     <FormErrorMessage>This field is required</FormErrorMessage>
                   </FormControl>
                 );

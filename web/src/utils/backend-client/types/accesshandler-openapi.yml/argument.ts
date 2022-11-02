@@ -5,13 +5,16 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { ArgumentFormElement } from './argumentFormElement';
+import type { ArgumentRuleFormElement } from './argumentRuleFormElement';
+import type { ArgumentRequestFormElement } from './argumentRequestFormElement';
 import type { ArgumentGroups } from './argumentGroups';
 
 export interface Argument {
   id: string;
   title: string;
   description?: string;
-  formElement: ArgumentFormElement;
+  ruleFormElement: ArgumentRuleFormElement;
+  /** Optional form element for the request form, if not provided, defaults to multiselect */
+  requestFormElement?: ArgumentRequestFormElement;
   groups?: ArgumentGroups;
 }
