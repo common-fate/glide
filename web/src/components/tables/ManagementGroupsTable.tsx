@@ -75,6 +75,7 @@ export const ManagementGroupsTable = () => {
         data: paginator?.data?.groups,
         emptyText: "No groups",
         apiPaginator: paginator,
+        linkTo: true,
       })}
 
       <CreateGroupModal
