@@ -253,6 +253,17 @@ export const Select: React.FC<SelectProps> = ({
                   minWidth: "calc(-20px + 100%)",
                 };
               },
+              option: (provided, state) => {
+                return {
+                  ...provided,
+                  background: state.isSelected
+                    ? colors.blue[200]
+                    : provided.background,
+                  color: state.isSelected
+                    ? colors.neutrals[800]
+                    : provided.color,
+                };
+              },
             }}
             // ref={ref}
             value={sortedOptions.find((c) => value === c.value)}
