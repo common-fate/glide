@@ -148,7 +148,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		PendingDurationSeconds: s.Clock.Since(request.CreatedAt).Seconds(),
 		Review:                 string(r.Decision),
 		OverrideTiming:         ot,
-		Provider:               request.Grant.Provider,
+		Provider:               opts.AccessRule.Target.ProviderType,
 		RuleID:                 request.Rule,
 		Timing:                 request.RequestedTiming.ToAnalytics(),
 		HasReason:              request.HasReason(),
