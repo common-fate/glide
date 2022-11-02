@@ -47,8 +47,6 @@ export class Notifiers extends Construct {
       new iam.PolicyStatement({
         actions: [
           "ssm:GetParameter",
-          "ssm:PutParameter",
-          "ssm:DeleteParameter",
         ],
         resources: [
           `arn:aws:ssm:${Stack.of(this).region}:${

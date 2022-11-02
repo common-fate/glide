@@ -21,7 +21,7 @@ type SlackNotifier struct {
 	directMessageClient *SlackDirectMessage
 }
 
-func (n *SlackNotifier) Init(ctx context.Context, config *deploy.NotificationsMap) error {
+func (n *SlackNotifier) Init(ctx context.Context, config *deploy.Notifications) error {
 	if config.Slack != nil {
 		slackDMClient := &SlackDirectMessage{}
 		err := slackDMClient.Config().Load(ctx, &gconfig.MapLoader{Values: config.Slack})

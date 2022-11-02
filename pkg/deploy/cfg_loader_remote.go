@@ -132,7 +132,7 @@ func (r *RemoteDeploymentConfig) WriteProviders(ctx context.Context, pm Provider
 	return err
 }
 
-func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (*NotificationsMap, error) {
+func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (*Notifications, error) {
 	p, err := r.client.GetConfigWithResponse(ctx)
 	if err != nil {
 		return nil, err
@@ -143,9 +143,9 @@ func (r *RemoteDeploymentConfig) ReadNotifications(ctx context.Context) (*Notifi
 
 	logger.Get(ctx).Infow("fetched remote config", "config", p.JSON200, "body", string(p.Body))
 
-	// return a FeatureMap to remain compatible with the rest of the application, rather than
+	// return a Notifications struct to remain compatible with the rest of the application, rather than
 	// our strongly-typed API response.
-	var fm NotificationsMap
+	var fm Notifications
 
 	nc := p.JSON200.DeploymentConfiguration.NotificationsConfiguration
 
