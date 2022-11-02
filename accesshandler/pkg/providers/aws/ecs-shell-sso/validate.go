@@ -10,28 +10,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore/types"
-	"github.com/aws/aws-sdk-go-v2/service/organizations"
-	orgtypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
+	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 )
 
-func (p *Provider) ensureAccountExists(ctx context.Context, accountID string) error {
-	_, err := p.orgClient.DescribeAccount(ctx, &organizations.DescribeAccountInput{
-		AccountId: &accountID,
-	})
-	var anf *orgtypes.AccountNotFoundException
-	if errors.As(err, &anf) {
-		return &AccountNotFoundError{AccountID: accountID}
-	}
-
-	return err
-}
-
 // Validate the access against AWS SSO without actually granting it.
 // This provider requires that the user name matches the user's email address.
 func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
-
 	return map[string]providers.GrantValidationStep{
 		"user-exists-in-aws-sso": {
 			UserErrorMessage: "The user does not exist in the AWS SSO instance",
@@ -61,22 +47,6 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 				return diagnostics.Info("User exists in SSO")
 			},
 		},
-		"account-exists": {
-			UserErrorMessage: "We could not find your AWS Account",
-			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
-				var a Args
-				err := json.Unmarshal(args, &a)
-				if err != nil {
-					return diagnostics.Error(err)
-				}
-				err = p.ensureAccountExists(ctx, p.awsAccountID)
-				if err != nil {
-					return diagnostics.Error(fmt.Errorf("account does not exist %v", err))
-
-				}
-				return diagnostics.Info("account exists")
-			},
-		},
 		"cluster-exists": {
 			UserErrorMessage: "We could not find the target cluster specified",
 			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
@@ -91,6 +61,24 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 
 				}
 				return diagnostics.Info("cluster exists")
+			},
+		},
+		"permission-set-should-exist": {
+			UserErrorMessage: "We could not find the permission set in AWS SSO",
+			Run: func(ctx context.Context, subject string, args []byte) diagnostics.Logs {
+				var a Args
+				err := json.Unmarshal(args, &a)
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+				_, err = p.ssoClient.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+					InstanceArn:      aws.String(p.instanceARN.Get()),
+					PermissionSetArn: &a.PermissionSetARN,
+				})
+				if err != nil {
+					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}))
+				}
+				return diagnostics.Info("permission set exists")
 			},
 		},
 	}
@@ -139,16 +127,6 @@ func (p *Provider) ValidateConfig() map[string]providers.ConfigValidationStep {
 					diagnostics.Error(errors.New("credentials are expired"))
 				}
 				return diagnostics.Info("Assumed Access Role successfully")
-			},
-		},
-		"describe-organization": {
-			Name: "Verify AWS organization access",
-			Run: func(ctx context.Context) diagnostics.Logs {
-				res, err := p.orgClient.DescribeOrganization(ctx, &organizations.DescribeOrganizationInput{})
-				if err != nil {
-					return diagnostics.Error(err)
-				}
-				return diagnostics.Info("Main account ARN: %s", *res.Organization.MasterAccountArn)
 			},
 		},
 		"list-tasks": {

@@ -13,4 +13,5 @@ export type ArgumentFormElement = typeof ArgumentFormElement[keyof typeof Argume
 export const ArgumentFormElement = {
   INPUT: 'INPUT',
   MULTISELECT: 'MULTISELECT',
+  SELECT: 'SELECT',
 } as const;

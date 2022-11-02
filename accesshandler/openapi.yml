@@ -535,6 +535,7 @@ components:
           enum:
             - INPUT
             - MULTISELECT
+            - SELECT
         groups:
           type: object
           additionalProperties:

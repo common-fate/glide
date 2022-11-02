@@ -6,12 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
-	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
-	"github.com/aws/aws-sdk-go-v2/service/organizations"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
@@ -24,14 +20,10 @@ type Provider struct {
 	ssoCredentialCache *aws.CredentialsCache
 	ecsCredentialCache *aws.CredentialsCache
 
-	ecsClient        *ecs.Client
-	ssoClient        *ssoadmin.Client
-	iamClient        *iam.Client
-	ssmClient        *ssm.Client
-	cloudtrailClient *cloudtrail.Client
-	idStoreClient    *identitystore.Client
-	orgClient        *organizations.Client
-	awsAccountID     string
+	ecsClient         *ecs.Client
+	ssoClient         *ssoadmin.Client
+	idStoreClient     *identitystore.Client
+	ecsClusterAccount string
 
 	// the below fields are configured by gconfig
 
@@ -75,13 +67,9 @@ func (p *Provider) Init(ctx context.Context) error {
 		return err
 	}
 
-	p.cloudtrailClient = cloudtrail.NewFromConfig(ecsCfg)
-	p.ssmClient = ssm.NewFromConfig(ecsCfg)
 	p.ecsClient = ecs.NewFromConfig(ecsCfg)
 	p.ssoClient = ssoadmin.NewFromConfig(ssoCfg)
-	p.orgClient = organizations.NewFromConfig(ssoCfg)
 	p.idStoreClient = identitystore.NewFromConfig(ssoCfg)
-	p.iamClient = iam.NewFromConfig(ssoCfg)
 	stsClient := sts.NewFromConfig(ecsCfg)
 	res, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
 	if err != nil {
@@ -90,7 +78,7 @@ func (p *Provider) Init(ctx context.Context) error {
 	if res.Account == nil {
 		return errors.New("aws accountID was nil in sts get caller id response")
 	}
-	p.awsAccountID = *res.Account
+	p.ecsClusterAccount = *res.Account
 
 	//check to see if cluster is running and has exec enabled
 	clusters, err := p.ecsClient.DescribeClusters(ctx, &ecs.DescribeClustersInput{Clusters: []string{p.ecsClusterARN.Get()}})
@@ -118,7 +106,12 @@ func (p *Provider) ArgSchema() providers.ArgSchema {
 		"taskDefinitionFamily": {
 			Id:          "taskDefinitionFamily",
 			Title:       "Task Definition Family",
-			FormElement: types.MULTISELECT,
+			FormElement: types.SELECT,
+		},
+		"permissionSetArn": {
+			Id:          "permissionSetArn",
+			Title:       "Permission Set",
+			FormElement: types.SELECT,
 		},
 	}
 	return arg

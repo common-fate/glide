@@ -13,4 +13,5 @@ export type AccessRuleTargetDetailArgumentsFormElement = typeof AccessRuleTarget
 export const AccessRuleTargetDetailArgumentsFormElement = {
   INPUT: 'INPUT',
   MULTISELECT: 'MULTISELECT',
+  SELECT: 'SELECT',
 } as const;
