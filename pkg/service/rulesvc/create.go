@@ -22,23 +22,34 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 		return apio.NewRequestError(errors.New("target is missing required arguments from the provider schema"), http.StatusBadRequest)
 	}
 	for argumentID, argument := range in.With.AdditionalProperties {
-		hasAtLeastOneValue := len(argument.Values) != 0
 		argumentSchema, ok := providerArgSchema.AdditionalProperties[argumentID]
 		if !ok {
 			return apio.NewRequestError(errors.New("argument does not match schema for provider"), http.StatusBadRequest)
 		}
-		// filter any group options which do not have any values
-		for groupId, group := range argument.Groupings.AdditionalProperties {
-			if _, ok := argumentSchema.Groups.AdditionalProperties[groupId]; !ok {
-				return apio.NewRequestError(errors.New("argument group does not match schema for provider"), http.StatusBadRequest)
+		switch argumentSchema.FormElement {
+		case ahTypes.MULTISELECT:
+			hasAtLeastOneValue := len(argument.Values) != 0
+			// filter any group options which do not have any values
+			for groupId, group := range argument.Groupings.AdditionalProperties {
+				if _, ok := argumentSchema.Groups.AdditionalProperties[groupId]; !ok {
+					return apio.NewRequestError(errors.New("argument group does not match schema for provider"), http.StatusBadRequest)
+				}
+				if len(group) != 0 {
+					hasAtLeastOneValue = true
+				}
 			}
-			if len(group) != 0 {
-				hasAtLeastOneValue = true
+			if !hasAtLeastOneValue {
+				return apio.NewRequestError(errors.New("arguments must have at least 1 value or group value"), http.StatusBadRequest)
+			}
+		default: // default is valid for input and select form elements
+			if len(argument.Values) != 1 {
+				return apio.NewRequestError(errors.New("INPUT and SELECT field arguments must have one value"), http.StatusBadRequest)
+			}
+			if len(argument.Groupings.AdditionalProperties) != 0 {
+				return apio.NewRequestError(errors.New("INPUT and SELECT field arguments do not support groupings"), http.StatusBadRequest)
 			}
 		}
-		if !hasAtLeastOneValue {
-			return apio.NewRequestError(errors.New("arguments must have at least 1 value or group value"), http.StatusBadRequest)
-		}
+
 	}
 	return nil
 }
