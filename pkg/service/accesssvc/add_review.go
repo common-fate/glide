@@ -138,7 +138,8 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 
 	var ot *analytics.Timing
 	if r.OverrideTimings != nil {
-		*ot = r.OverrideTimings.ToAnalytics()
+		t := r.OverrideTimings.ToAnalytics()
+		ot = &t
 	}
 
 	analytics.FromContext(ctx).Track(&analytics.RequestReviewed{
