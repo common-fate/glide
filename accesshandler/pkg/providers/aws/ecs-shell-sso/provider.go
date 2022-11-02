@@ -112,6 +112,7 @@ func (p *Provider) ArgSchema() providers.ArgSchema {
 			Id:          "permissionSetArn",
 			Title:       "Permission Set",
 			FormElement: types.SELECT,
+			Description: aws.String("The permission set should have IAM permissions granting access to the task definition you have selected. When a user requests this access rule, they will be able to access the task defined by the task definition."),
 		},
 	}
 	return arg
