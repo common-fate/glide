@@ -18,7 +18,7 @@ import {
 } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
-  ArgumentFormElement,
+  ArgumentRuleFormElement,
   GroupOption,
   Option,
   Provider,
@@ -56,15 +56,15 @@ const PreviewArgument: React.FC<ProviderArgFieldProps> = ({
   argument,
   providerId,
 }) => {
-  switch (argument.formElement) {
-    case ArgumentFormElement.MULTISELECT:
+  switch (argument.ruleFormElement) {
+    case ArgumentRuleFormElement.MULTISELECT:
       return (
         <ProviderPreviewMultiSelect
           argument={argument}
           providerId={providerId}
         />
       );
-    case ArgumentFormElement.INPUT:
+    case ArgumentRuleFormElement.INPUT:
       return (
         <ProviderPreviewInput argument={argument} providerId={providerId} />
       );

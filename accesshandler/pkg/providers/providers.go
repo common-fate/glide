@@ -82,3 +82,8 @@ type Instructioner interface {
 type SetupDocer interface {
 	SetupDocs() embed.FS
 }
+
+// returns a pointer to an ArgumentRequestFormElement
+func ArgumentRequestFormElement(element types.ArgumentRequestFormElement) *types.ArgumentRequestFormElement {
+	return &element
+}

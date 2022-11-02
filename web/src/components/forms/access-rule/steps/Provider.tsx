@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { ArgumentFormElement } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+import { ArgumentRuleFormElement } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 import {
   listProviderArgOptions,
   useGetProvider,
@@ -43,7 +43,7 @@ export const ProviderStep: React.FC = () => {
       // If in future, we have other form element that doesn't have options then we need to change
       // the if condition here.
       args.forEach((arg) => {
-        if (arg.formElement != ArgumentFormElement.INPUT) {
+        if (arg.ruleFormElement != ArgumentRuleFormElement.INPUT) {
           void listProviderArgOptions(target.providerId, arg.id, {
             refresh: true,
           });

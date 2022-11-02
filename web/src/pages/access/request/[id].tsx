@@ -74,7 +74,7 @@ import {
 } from "../../../components/DurationInput";
 import {
   MultiSelect,
-  Select,
+  SelectWithArrayAsValue,
 } from "../../../components/forms/access-rule/components/Select";
 import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { InfoOption } from "../../../components/InfoOption";
@@ -653,7 +653,7 @@ export const AccessRuleArguments: React.FC<{
                       {v.title}
                     </FormLabel>
                     {v.formElement === RequestArgumentFormElement.SELECT ? (
-                      <Select
+                      <SelectWithArrayAsValue
                         fieldName={`with.${subRequestIndex}.${k}`}
                         options={v.options
                           // exclude invalid options

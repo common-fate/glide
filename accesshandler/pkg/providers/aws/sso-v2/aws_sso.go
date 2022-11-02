@@ -67,10 +67,11 @@ func (p *Provider) Init(ctx context.Context) error {
 func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"permissionSetArn": {
-			Id:              "permissionSetArn",
-			Title:           "Permission Set",
-			Description:     aws.String("The AWS Permission Set"),
-			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
+			Id:                 "permissionSetArn",
+			Title:              "Permission Set",
+			Description:        aws.String("The AWS Permission Set"),
+			RuleFormElement:    types.ArgumentRuleFormElementMULTISELECT,
+			RequestFormElement: providers.ArgumentRequestFormElement(types.ArgumentRequestFormElementSELECT),
 		},
 		"accountId": {
 			Id:              "accountId",
