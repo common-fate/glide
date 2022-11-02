@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
@@ -132,6 +133,25 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	res := AddReviewResult{
 		Request: request,
 	}
+
+	// analytics event
+
+	var ot *analytics.Timing
+	if r.OverrideTimings != nil {
+		*ot = r.OverrideTimings.ToAnalytics()
+	}
+
+	analytics.FromContext(ctx).Track(&analytics.RequestReviewed{
+		RequestedBy:            request.RequestedBy,
+		ReviewedBy:             r.ReviewerID,
+		PendingDurationSeconds: s.Clock.Since(request.CreatedAt).Seconds(),
+		Review:                 string(r.Decision),
+		OverrideTiming:         ot,
+		Provider:               request.Grant.Provider,
+		RuleID:                 request.Rule,
+		Timing:                 request.RequestedTiming.ToAnalytics(),
+		HasReason:              request.HasReason(),
+	})
 
 	return &res, nil
 }

@@ -16,7 +16,7 @@ func analyticsMiddleware(db ddb.Storage, log *zap.SugaredLogger) func(next http.
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			client := analytics.NewFromEnv()
+			client := analytics.New(analytics.Env())
 			ctx = analytics.SetContext(ctx, client)
 			r = r.WithContext(ctx)
 

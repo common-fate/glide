@@ -201,21 +201,12 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	}
 
 	// analytics event
-
-	timingMode := analytics.TimingModeASAP
-	if req.RequestedTiming.IsScheduled() {
-		timingMode = analytics.TimingModeScheduled
-	}
-
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
 		RequestedBy: req.RequestedBy,
 		Provider:    req.Grant.Provider,
-		Rule:        req.Rule,
-		Timing: analytics.Timing{
-			DurationSeconds: req.RequestedTiming.Duration.Seconds(),
-			Mode:            timingMode,
-		},
-		HasReason: req.Data.Reason != nil && *req.Data.Reason != "",
+		RuleID:      req.Rule,
+		Timing:      req.RequestedTiming.ToAnalytics(),
+		HasReason:   req.HasReason(),
 	})
 
 	res := CreateRequestResult{

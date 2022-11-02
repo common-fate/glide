@@ -3,6 +3,7 @@ package rulesvc
 import (
 	"context"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -43,6 +44,17 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	if err != nil {
 		return nil, err
 	}
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
+		UpdatedBy:             in.UpdaterID,
+		RuleID:                in.Rule.ID,
+		Provider:              in.Rule.Target.ProviderType,
+		MaxDurationSeconds:    in.Rule.TimeConstraints.MaxDurationSeconds,
+		UsesSelectableOptions: in.Rule.Target.UsesSelectableOptions(),
+		UsesDynamicOptions:    in.Rule.Target.UsesDynamicOptions(),
+		RequiresApproval:      in.Rule.Approval.IsRequired(),
+	})
 
 	return &newVersion, nil
 }

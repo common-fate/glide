@@ -150,6 +150,18 @@ type Target struct {
 	WithArgumentGroupOptions map[string]map[string][]string `json:"withArgumentGroupOptions"  dynamodbav:"withArgumentGroupOptions"`
 }
 
+// UsesSelectableOptions is true if the rule allows users to select an option
+// when making a request.
+func (t Target) UsesSelectableOptions() bool {
+	return t.WithSelectable != nil && len(t.WithSelectable) > 0
+}
+
+// UsesDynamicOptions is true if the rule uses dynamic options that are automatically
+// updated, such as AWS Organizational Units.
+func (t Target) UsesDynamicOptions() bool {
+	return t.WithArgumentGroupOptions != nil && len(t.WithArgumentGroupOptions) > 0
+}
+
 func (t Target) ProviderToAPI() types.Provider {
 	return types.Provider{
 		Id:   t.ProviderID,
