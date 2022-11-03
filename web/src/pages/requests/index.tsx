@@ -3,6 +3,7 @@ import {
   Button,
   Center,
   CenterProps,
+  Collapse,
   Container,
   Flex,
   Grid,
@@ -461,7 +462,12 @@ const UserAccessCard: React.FC<
 };
 
 const Favorites: React.FC = () => {
-  const { data: favorites } = useUserListFavorites();
+  const { data: favorites, isValidating } = useUserListFavorites();
+
+  if (favorites?.favorites.length === 0) {
+    return null;
+  }
+
   return (
     <Box>
       <Flex>
@@ -484,9 +490,8 @@ const Favorites: React.FC = () => {
         minW={{ base: "unset", xl: "488px" }}
         gap={6}
       >
-        {favorites ? (
-          favorites.favorites.length > 0 ? (
-            favorites.favorites.map((r, i) => (
+        {favorites
+          ? favorites.favorites.map((r, i) => (
               <Link
                 style={{ display: "flex" }}
                 to={"/access/request/" + r.ruleId + "?favorite=" + r.id}
@@ -500,7 +505,6 @@ const Favorites: React.FC = () => {
                   h="172px"
                   w="232px"
                   rounded="md"
-                  data-testid={"r_" + i}
                 >
                   <Text textStyle="Body/SmallBold" color="neutrals.700">
                     {r.name}
@@ -530,28 +534,10 @@ const Favorites: React.FC = () => {
                 </Box>
               </Link>
             ))
-          ) : (
-            <Center
-              bg="neutrals.100"
-              p={6}
-              as="a"
-              h="193px"
-              w="488px"
-              rounded="md"
-              flexDir="column"
-              textAlign="center"
-            >
-              <Text textStyle="Heading/H3" color="neutrals.500">
-                You don't have any favorites yet
-              </Text>
-            </Center>
-          )
-        ) : (
-          // Otherwise loading state
-          [1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} p={6} h="172px" w="232px" rounded="sm" />
-          ))
-        )}
+          : // Otherwise loading state
+            [1, 2].map((i) => (
+              <Skeleton key={i} p={6} h="172px" w="232px" rounded="sm" />
+            ))}
       </Grid>
     </Box>
   );
