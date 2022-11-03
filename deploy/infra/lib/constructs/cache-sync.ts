@@ -25,12 +25,13 @@ export class CacheSync extends Construct {
 
     this._lambda = new lambda.Function(this, "HandlerFunction", {
       code,
-      timeout: Duration.seconds(20),
+      timeout: Duration.seconds(120),
       environment: {
         ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
         APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
+      memorySize: 256,
       handler: "cache-sync",
     });
 
