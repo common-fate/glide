@@ -33,7 +33,7 @@ interface Props {
   remoteConfigHeaders: string;
   analyticsDisabled: string;
   analyticsUrl: string;
-  analyticsDebug: string;
+  analyticsLogLevel: string;
   analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
@@ -126,7 +126,7 @@ export class AppBackend extends Construct {
         REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,
         CF_ANALYTICS_URL: props.analyticsUrl,
-        CF_ANALYTICS_DEBUG: props.analyticsDebug,
+        CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
@@ -296,7 +296,7 @@ export class AppBackend extends Construct {
       userPool: props.userPool,
       identityProviderSyncConfiguration:
         props.identityProviderSyncConfiguration,
-      analyticsDebug: props.analyticsDebug,
+      analyticsLogLevel: props.analyticsLogLevel,
       analyticsDeploymentStage: props.analyticsDeploymentStage,
       analyticsDisabled: props.analyticsDisabled,
       analyticsUrl: props.analyticsUrl,

@@ -170,7 +170,7 @@ type Parameters struct {
 	NotificationsConfiguration      FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
 	AnalyticsDisabled               string      `yaml:"AnalyticsDisabled,omitempty"`
 	AnalyticsURL                    string      `yaml:"AnalyticsURL,omitempty"`
-	AnalyticsDebug                  string      `yaml:"AnalyticsDebug,omitempty"`
+	AnalyticsLogLevel               string      `yaml:"AnalyticsLogLevel,omitempty"`
 	AnalyticsDeploymentStage        string      `yaml:"AnalyticsDeploymentStage,omitempty"`
 }
 
@@ -442,10 +442,10 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &p.AnalyticsURL,
 		})
 	}
-	if c.Deployment.Parameters.AnalyticsDebug != "" {
+	if c.Deployment.Parameters.AnalyticsLogLevel != "" {
 		res = append(res, types.Parameter{
-			ParameterKey:   aws.String("AnalyticsDebug"),
-			ParameterValue: &p.AnalyticsDebug,
+			ParameterKey:   aws.String("AnalyticsLogLevel"),
+			ParameterValue: &p.AnalyticsLogLevel,
 		})
 	}
 	if c.Deployment.Parameters.AnalyticsDeploymentStage != "" {

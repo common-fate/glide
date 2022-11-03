@@ -14,7 +14,7 @@ interface Props {
   identityProviderSyncConfiguration: string;
   analyticsDisabled: string;
   analyticsUrl: string;
-  analyticsDebug: string;
+  analyticsLogLevel: string;
   analyticsDeploymentStage: string;
 }
 
@@ -38,7 +38,7 @@ export class IdpSync extends Construct {
         IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,
         CF_ANALYTICS_URL: props.analyticsUrl,
-        CF_ANALYTICS_DEBUG: props.analyticsDebug,
+        CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,

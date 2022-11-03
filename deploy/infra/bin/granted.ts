@@ -35,7 +35,7 @@ const apiGatewayWafAclArn = app.node.tryGetContext("apiGatewayWafAclArn");
 const cloudfrontWafAclArn = app.node.tryGetContext("cloudfrontWafAclArn");
 const analyticsDisabled = app.node.tryGetContext("analyticsDisabled");
 const analyticsUrl = app.node.tryGetContext("analyticsUrl");
-const analyticsDebug = app.node.tryGetContext("analyticsDebug");
+const analyticsLogLevel = app.node.tryGetContext("analyticsLogLevel");
 const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
@@ -80,7 +80,7 @@ if (stackTarget === "dev") {
     cloudfrontWafAclArn: cloudfrontWafAclArn,
     analyticsDisabled: analyticsDisabled || "",
     analyticsUrl: analyticsUrl || "",
-    analyticsDebug: analyticsDebug || "",
+    analyticsLogLevel: analyticsLogLevel || "",
     analyticsDeploymentStage: analyticsDeploymentStage || "",
   });
 } else if (stackTarget === "prod") {

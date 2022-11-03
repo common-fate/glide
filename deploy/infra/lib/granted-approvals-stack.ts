@@ -29,7 +29,7 @@ interface Props extends cdk.StackProps {
   apiGatewayWafAclArn: string;
   analyticsDisabled: string;
   analyticsUrl: string;
-  analyticsDebug: string;
+  analyticsLogLevel: string;
   analyticsDeploymentStage: string;
 }
 
@@ -53,7 +53,7 @@ export class DevGrantedStack extends cdk.Stack {
       apiGatewayWafAclArn,
       analyticsDisabled,
       analyticsUrl,
-      analyticsDebug,
+      analyticsLogLevel,
       analyticsDeploymentStage,
     } = props;
     const appName = `granted-approvals-${stage}`;
@@ -110,7 +110,7 @@ export class DevGrantedStack extends cdk.Stack {
       apiGatewayWafAclArn,
       analyticsDisabled,
       analyticsUrl,
-      analyticsDebug,
+      analyticsLogLevel,
       analyticsDeploymentStage,
     });
     /* Outputs */

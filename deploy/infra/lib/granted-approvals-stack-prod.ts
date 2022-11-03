@@ -151,11 +151,10 @@ export class CustomerGrantedStack extends cdk.Stack {
       allowedValues: ["", "true", "false"],
     });
 
-    const analyticsDebug = new CfnParameter(this, "AnalyticsDebug", {
+    const analyticsLogLevel = new CfnParameter(this, "AnalyticsLogLevel", {
       type: "String",
-      description: "Enable debug logging for analytics",
-      default: "false",
-      allowedValues: ["", "true", "false"],
+      description: "Analytics logging level",
+      default: "",
     });
 
     const analyticsDeploymentStage = new CfnParameter(
@@ -228,7 +227,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       apiGatewayWafAclArn: apiGatewayWafAclArn.valueAsString,
       analyticsDisabled: analyticsDisabled.valueAsString,
       analyticsUrl: analyticsUrl.valueAsString,
-      analyticsDebug: analyticsDebug.valueAsString,
+      analyticsLogLevel: analyticsLogLevel.valueAsString,
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
     });
 
