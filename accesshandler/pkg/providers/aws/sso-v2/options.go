@@ -145,7 +145,8 @@ func (p *Provider) listChildOusForParent(ctx context.Context, parentID string) (
 	var nextToken *string
 	for hasMore {
 		ou, err := p.orgClient.ListOrganizationalUnitsForParent(ctx, &organizations.ListOrganizationalUnitsForParentInput{
-			ParentId: aws.String(parentID),
+			ParentId:  aws.String(parentID),
+			NextToken: nextToken,
 		})
 		if err != nil {
 			return nil, err
