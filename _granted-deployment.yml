@@ -1,0 +1,28 @@
+version: 2
+deployment:
+  stackName: granted-approvals-jhc-test-sandbox
+  account: "616777145260"
+  region: ap-southeast-2
+  release: ""
+  dev: true
+  parameters:
+    CognitoDomainPrefix: ""
+    AdministratorGroupID: granted_administrators
+    ProviderConfiguration:
+      aws-sso-v2:
+        uses: commonfate/aws-sso@v2
+        with:
+          identityStoreId: d-976708da7d
+          instanceArn: arn:aws:sso:::instance/ssoins-825968feece9a0b6
+          region: ap-southeast-2
+          ssoRoleArn: arn:aws:iam::616777145260:role/Granted-Access-Handler-SS-GrantedAccessHandlerSSOR-YUQ3U626TQH1
+      ecs-exec-sso:
+        uses: commonfate/ecs-exec-sso@v1-alpha1
+        with:
+          ecsClusterArn: arn:aws:ecs:ap-southeast-2:616777145260:cluster/jhc-test-1
+          ecsRegion: ap-southeast-2
+          ecsRoleArn: arn:aws:iam::616777145260:role/Granted-Access-Handler-EC-GrantedAccessHandlerECSR-1MOCFLQQG32QR
+          identityStoreId: d-976708da7d
+          instanceArn: arn:aws:sso:::instance/ssoins-825968feece9a0b6
+          ssoRegion: ap-southeast-2
+          ssoRoleArn: arn:aws:iam::616777145260:role/Granted-Access-Handler-EC-GrantedAccessHandlerSSOR-1AIOBCBKK3RXN
