@@ -14,8 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/briandowns/spinner"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -281,6 +281,7 @@ func CLIPrompt(f *gconfig.Field) error {
 				return err
 			}
 			if !doUpdate {
+
 				return nil
 			}
 		}
@@ -644,13 +645,13 @@ func getVersion(c *cli.Context, region string) (string, error) {
 	m, err := GetManifest(c.Context, region)
 	si.Stop()
 	if err == nil {
-		clio.Info("using deployment version %s", m.LatestDeploymentVersion)
+		clio.Infof("using deployment version %s", m.LatestDeploymentVersion)
 		return m.LatestDeploymentVersion, nil
 	}
 
 	// we couldn't fetch the manifest for some reason, so allow the user to enter a version manually.
 	if err != nil {
-		clio.Error(`error fetching manifest: %s.
+		clio.Errorf(`error fetching manifest: %s.
 You can try and enter a deployment version manually now, but there's no guarantees we'll be able to deploy it.
 `, err)
 	}

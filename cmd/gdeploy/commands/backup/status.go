@@ -1,7 +1,7 @@
 package backup
 
 import (
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -19,7 +19,7 @@ var BackupStatus = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Info("Backup details\n%s", deploy.BackupDetailsToString(backupOutput.BackupDetails))
+		clio.Infof("Backup details\n%s", deploy.BackupDetailsToString(backupOutput.BackupDetails))
 		return nil
 	},
 }

@@ -2,8 +2,8 @@ package groups
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -49,7 +49,7 @@ var CreateCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Successfully created group '%s'", group)
+		clio.Successf("Successfully created group '%s'", group)
 		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	},

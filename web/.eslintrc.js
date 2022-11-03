@@ -16,7 +16,8 @@ module.exports = {
     },
     ecmaVersion: 11,
     sourceType: "module",
-    project: "./tsconfig.json",
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
   ignorePatterns: [
     "globalSetup.ts",

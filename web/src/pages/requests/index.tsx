@@ -24,6 +24,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import React from "react";
+import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
@@ -81,6 +82,9 @@ const Home = () => {
   return (
     <>
       <UserLayout>
+        <Helmet>
+          <title>Granted</title>
+        </Helmet>
         <Box overflow="auto">
           <Container maxW="container.xl" pt={{ base: 12, lg: 32 }}>
             <Stack

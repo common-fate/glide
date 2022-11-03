@@ -1,5 +1,6 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
+import { Helmet } from "react-helmet";
 import { Link, useMatch } from "react-location";
 import { AuditLog } from "../../../components/AuditLog";
 import { AdminLayout } from "../../../components/Layout";
@@ -24,6 +25,9 @@ const Home = () => {
   });
   return (
     <div>
+      <Helmet>
+        <title>Access Request</title>
+      </Helmet>
       <AdminLayout>
         {/* The header bar */}
         <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">

@@ -27,7 +27,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	//set up the sync handler
 	syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
 		TableName:      cfg.TableName,

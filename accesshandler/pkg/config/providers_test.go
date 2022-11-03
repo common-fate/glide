@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
+	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -65,30 +65,35 @@ func TestConfigureProviders(t *testing.T) {
 		},
 		{
 			name: "aws sso",
-			give: `{"test": {"uses": "commonfate/aws-sso@v1", "with": {"identityStoreId": "id-123", "instanceArn": "arn::test", "region": "us-east-1"}}}`,
+			give: `{"test": {"uses": "commonfate/aws-sso@v2", "with": {"identityStoreId": "id-123", "instanceArn": "arn::test", "region": "us-east-1", "ssoRoleArn": "arn::test"}}}`,
 			want: map[string]Provider{
 				"test": {
-					ID:   "test",
-					Type: "aws-sso",
-					Provider: testProvider(t, &sso.Provider{}, map[string]string{
+					ID:      "test",
+					Type:    "aws-sso",
+					Version: "v2",
+
+					Provider: testProvider(t, &ssov2.Provider{}, map[string]string{
 						"identityStoreId": "id-123",
 						"instanceArn":     "arn::test",
 						"region":          "us-east-1",
+						"ssoRoleArn":      "arn::test",
 					}),
 				},
 			},
 		},
 		{
 			name: "aws sso with no region",
-			give: `{"test": {"uses": "commonfate/aws-sso@v1", "with": {"identityStoreId": "id-123", "instanceArn": "arn::test"}}}`,
+			give: `{"test": {"uses": "commonfate/aws-sso@v2", "with": {"identityStoreId": "id-123", "instanceArn": "arn::test", "ssoRoleArn": "arn::test"}}}`,
 			want: map[string]Provider{
 				"test": {
-					ID:   "test",
-					Type: "aws-sso",
-					Provider: testProvider(t, &sso.Provider{}, map[string]string{
+					ID:      "test",
+					Type:    "aws-sso",
+					Version: "v2",
+					Provider: testProvider(t, &ssov2.Provider{}, map[string]string{
 						"identityStoreId": "id-123",
 						"instanceArn":     "arn::test",
 						"region":          "",
+						"ssoRoleArn":      "arn::test",
 					}),
 				},
 			},

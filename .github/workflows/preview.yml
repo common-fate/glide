@@ -45,6 +45,8 @@ jobs:
 
       - name: Release CloudFormation
         run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
+        env:
+          COMMONFATE_RELEASE: dev-${{ github.sha }}
 
   deploy:
     name: Deploy

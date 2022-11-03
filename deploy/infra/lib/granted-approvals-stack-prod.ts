@@ -243,6 +243,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
+      CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
     });
   }
 }

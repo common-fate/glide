@@ -51,6 +51,7 @@ func TestPostGrants(t *testing.T) {
 	})
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t, withClock(clk))
 
 			req, err := http.NewRequest("POST", "/api/v1/grants", strings.NewReader(tc.body))
@@ -96,6 +97,7 @@ func TestRevokeGrant(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t, withClock(clk))
 
 			//create grant
@@ -169,6 +171,7 @@ func TestValidateGrant(t *testing.T) {
 	})
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t, withClock(clk))
 
 			req, err := http.NewRequest("POST", "/api/v1/grants/validate", strings.NewReader(tc.body))
