@@ -182,9 +182,12 @@ func overlapsExistingGrantCheck(req access.Request, upcomingRequests []access.Re
 				}
 				//check if the grant is actually active
 				if r.request.Grant != nil {
-					if reflect.DeepEqual(currentRequestArguments, upcomingRequestArguments) {
-						return true, nil
+					if r.request.Grant.Status == "ACTIVE" || r.request.Grant.Status == "PENDING" {
+						if reflect.DeepEqual(currentRequestArguments, upcomingRequestArguments) {
+							return true, nil
+						}
 					}
+
 				}
 
 			}

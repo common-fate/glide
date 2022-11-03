@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/common-fate/granted-approvals/pkg/types"
 
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc/mocks"
@@ -33,15 +34,17 @@ func TestOverlapsExistingGrant(t *testing.T) {
 	now := clk.Now()
 
 	//some requests premade with specific timings
-	a := access.Request{RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 2}, Rule: "rule_a"} //started 1 minute ago ends in a minute
-	b := access.Request{RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 2}, Rule: "rule_a"}         //started now, ends in 2 minute
+	activeRequest := access.Request{Status: access.Status(types.RequestStatusAPPROVED), Grant: &access.Grant{Status: "ACTIVE"}, Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 2}}
+	cancelledRequest := access.Request{Status: access.Status(types.RequestStatusCANCELLED), RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 2}, Rule: "rule_a"}
+	revokedRequest := access.Request{Status: access.Status(types.RequestStatusCANCELLED), Grant: &access.Grant{Status: "REVOKED"}, RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 2}, Rule: "rule_a"}
+
 	args1 := make(map[string]string)
 	args1["1"] = "arg1"
 	args1["2"] = "arg2"
 
 	args2 := make(map[string]string)
-	args1["a"] = "argA"
-	args1["b"] = "argB"
+	args2["a"] = "argA"
+	args2["b"] = "argB"
 
 	testcases := []testcase{
 		{
@@ -65,7 +68,7 @@ func TestOverlapsExistingGrant(t *testing.T) {
 		{
 			name:               "request overlaps current active request fails",
 			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 5}},
-			upcomingRequests:   []access.Request{a},
+			upcomingRequests:   []access.Request{activeRequest},
 			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}},
 			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}}},
 			clock:              clk,
@@ -74,16 +77,17 @@ func TestOverlapsExistingGrant(t *testing.T) {
 		{
 			name:               "scheduled request overlaps current active request fails",
 			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 5}},
-			upcomingRequests:   []access.Request{b},
+			upcomingRequests:   []access.Request{activeRequest},
 			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}},
 			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}}},
 			clock:              clk,
 			want:               true,
 		},
+
 		{
 			name:               "same rule different arguments should succeed",
 			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 5}},
-			upcomingRequests:   []access.Request{b},
+			upcomingRequests:   []access.Request{activeRequest},
 			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}},
 			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args2}}},
 			clock:              clk,
@@ -92,11 +96,29 @@ func TestOverlapsExistingGrant(t *testing.T) {
 		{
 			name:               "same rule same arguments should fail",
 			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 5}},
-			upcomingRequests:   []access.Request{b},
+			upcomingRequests:   []access.Request{activeRequest},
 			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}},
 			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}}},
 			clock:              clk,
 			want:               true,
+		},
+		{
+			name:               "same rule same arguments on expired request should pass",
+			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 5}},
+			upcomingRequests:   []access.Request{cancelledRequest},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}}},
+			clock:              clk,
+			want:               false,
+		},
+		{
+			name:               "same rule same arguments on revoked request should pass",
+			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 5}},
+			upcomingRequests:   []access.Request{revokedRequest},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}}},
+			clock:              clk,
+			want:               false,
 		},
 	}
 
