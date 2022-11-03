@@ -147,20 +147,12 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	//before saving the request check to see if there already is a active approved rule
 	if !rule.Approval.IsRequired() {
-		start, end := req.GetInterval(access.WithNow(s.Clock.Now()))
 
-		rq := storage.ListRequestsForUserAndRuleAndRequestend{
-			UserID:               req.RequestedBy,
-			RuleID:               req.Rule,
-			RequestEndComparator: storage.GreaterThanEqual,
-			CompareTo:            start,
-		}
-		_, err := s.DB.Query(ctx, &rq)
-		if err != nil && err != ddb.ErrNoItems {
+		// This will check against the requests which do have grants already
+		overlaps, err := s.overlapsExistingGrant(ctx, req)
+		if err != nil {
 			return nil, err
 		}
-		// This will check against the requests which do have grants already
-		overlaps := overlapsExistingGrant(start, end, rq.Result)
 		if overlaps {
 			return nil, ErrRequestOverlapsExistingGrant
 		}

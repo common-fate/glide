@@ -7,6 +7,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 
 	"github.com/common-fate/ddb/ddbmock"
@@ -18,52 +19,91 @@ import (
 
 func TestOverlapsExistingGrant(t *testing.T) {
 	type testcase struct {
-		name           string
-		grant          access.Grant
-		existingGrants []access.Request
-		want           bool
+		name               string
+		accessRequest      access.Request
+		upcomingRequests   []access.Request
+		currentRequestRule rule.AccessRule
+		allRules           []rule.AccessRule
+		want               bool
+		clock              clock.Clock
 	}
 	clk := clock.NewMock()
-	a := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(-time.Minute + time.Second)} //started 1 minute ago
-	b := access.Grant{Start: clk.Now(), End: clk.Now().Add(time.Minute)}                                  //started now, ends in a minute
-	c := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(time.Minute)}                // started 1 minute ago and ends in 1 minute
-	d := access.Grant{Start: clk.Now().Add(time.Second * 30), End: clk.Now().Add(time.Minute)}            //starts in 30 seconds and ends in 1 minute
+	inOneMinute := clk.Now().Add(time.Minute)
+
+	now := clk.Now()
+
+	//some requests premade with specific timings
+	a := access.Request{RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 2}, Rule: "rule_a"} //started 1 minute ago ends in a minute
+	b := access.Request{RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 2}, Rule: "rule_a"}         //started now, ends in 2 minute
+	args1 := make(map[string]string)
+	args1["1"] = "arg1"
+	args1["2"] = "arg2"
+
+	args2 := make(map[string]string)
+	args1["a"] = "argA"
+	args1["b"] = "argB"
 
 	testcases := []testcase{
 		{
-			name:           "no existing grants",
-			grant:          a,
-			existingGrants: []access.Request{},
-			want:           false,
+			name:               "no existing grants",
+			accessRequest:      access.Request{ID: "123"},
+			upcomingRequests:   []access.Request{},
+			currentRequestRule: rule.AccessRule{Target: rule.Target{}},
+			allRules:           []rule.AccessRule{},
+			clock:              clk,
+			want:               false,
 		},
 		{
-			name:           "no overlap before",
-			grant:          a,
-			existingGrants: []access.Request{{Grant: &b}},
-			want:           false,
+			name:               "different provider passes",
+			accessRequest:      access.Request{ID: "abc", Rule: "rule_b"},
+			upcomingRequests:   []access.Request{{ID: "def", Rule: "rule_a"}},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_b"}}},
+			clock:              clk,
+			want:               false,
 		},
 		{
-			name:           "overlap",
-			grant:          a,
-			existingGrants: []access.Request{{Grant: &a}},
-			want:           true,
+			name:               "request overlaps current active request fails",
+			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &now, Duration: time.Minute * 5}},
+			upcomingRequests:   []access.Request{a},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}}},
+			clock:              clk,
+			want:               true,
 		},
 		{
-			name:           "partial overlap",
-			grant:          c,
-			existingGrants: []access.Request{{Grant: &b}},
-			want:           true,
+			name:               "scheduled request overlaps current active request fails",
+			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 5}},
+			upcomingRequests:   []access.Request{b},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a"}}},
+			clock:              clk,
+			want:               true,
 		},
 		{
-			name:           "partial overlap",
-			grant:          d,
-			existingGrants: []access.Request{{Grant: &b}},
-			want:           true,
+			name:               "same rule different arguments should succeed",
+			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 5}},
+			upcomingRequests:   []access.Request{b},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args2}}},
+			clock:              clk,
+			want:               false,
+		},
+		{
+			name:               "same rule same arguments should fail",
+			accessRequest:      access.Request{ID: "123", Rule: "rule_a", RequestedTiming: access.Timing{StartTime: &inOneMinute, Duration: time.Minute * 5}},
+			upcomingRequests:   []access.Request{b},
+			currentRequestRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}},
+			allRules:           []rule.AccessRule{{ID: "rule_a", Target: rule.Target{ProviderID: "prov_a", With: args1}}},
+			clock:              clk,
+			want:               true,
 		},
 	}
+
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := overlapsExistingGrant(tc.grant.Start, tc.grant.End, tc.existingGrants)
+			got, err := overlapsExistingGrantCheck(tc.accessRequest, tc.upcomingRequests, tc.currentRequestRule, tc.allRules, tc.clock)
+			assert.NoError(t, err)
 			assert.Equal(t, tc.want, got)
 		})
 

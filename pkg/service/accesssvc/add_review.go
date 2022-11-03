@@ -2,8 +2,10 @@ package accesssvc
 
 import (
 	"context"
-	"time"
+	"fmt"
+	"reflect"
 
+	"github.com/benbjohnson/clock"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
@@ -61,21 +63,11 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	case access.DecisionApproved:
 		request.Status = access.APPROVED
 		request.OverrideTiming = opts.OverrideTiming
-		start, end := request.GetInterval(access.WithNow(s.Clock.Now()))
-		// this request must not overlap an existing grant for the user and rule
-		// This fetches all grants which during or in the future of a grant, these may or may not have a grant associated yet.
-		rq := storage.ListRequestsForUserAndRuleAndRequestend{
-			UserID:               request.RequestedBy,
-			RuleID:               request.Rule,
-			RequestEndComparator: storage.GreaterThanEqual,
-			CompareTo:            start,
-		}
-		_, err := s.DB.Query(ctx, &rq)
-		if err != nil && err != ddb.ErrNoItems {
+		// This will check against the requests which do have grants already
+		overlaps, err := s.overlapsExistingGrant(ctx, request)
+		if err != nil {
 			return nil, err
 		}
-		// This will check against the requests which do have grants already
-		overlaps := overlapsExistingGrant(start, end, rq.Result)
 		if overlaps {
 			return nil, ErrRequestOverlapsExistingGrant
 		}
@@ -136,20 +128,106 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	return &res, nil
 }
 
-func overlapsExistingGrant(start, end time.Time, upcomingRequests []access.Request) bool {
-	if len(upcomingRequests) == 0 {
-		return false
+type requestAndRule struct {
+	request access.Request
+	rule    rule.AccessRule
+}
+
+func overlapsExistingGrantCheck(req access.Request, upcomingRequests []access.Request, currentRequestRule rule.AccessRule, allRules []rule.AccessRule, clock clock.Clock) (bool, error) {
+	start, end := req.GetInterval(access.WithNow(clock.Now()))
+	var upcomingRequestAndRules []requestAndRule
+
+	ruleMap := make(map[string]rule.AccessRule)
+
+	for _, accessRule := range allRules {
+		ruleMap[accessRule.ID] = accessRule
 	}
-	// maybe we need to add a buffer here to prevent edge cases where a race condition occurs in the step functions and access is provisioned for a new grant and cancelled for an old one leaving no access.
-	for _, r := range upcomingRequests {
-		if r.Grant != nil {
-			if (start.Before(r.Grant.End) || start.Equal(r.Grant.End)) && (end.After(r.Grant.Start) || end.Equal(r.Grant.Start)) {
-				return true
+
+	//make a map of requests mapped to their relative access rules
+	for _, upcomingRequest := range upcomingRequests {
+
+		if accessRule, ok := ruleMap[upcomingRequest.Rule]; ok {
+			upcomingRequestAndRules = append(upcomingRequestAndRules, requestAndRule{request: upcomingRequest, rule: accessRule})
+
+		} else {
+			return false, fmt.Errorf("request contains access rule that does not exist")
+		}
+	}
+
+	currentRequestArguments := make(map[string]string)
+	for k, v := range currentRequestRule.Target.With {
+		currentRequestArguments[k] = v
+	}
+	for k, v := range req.SelectedWith {
+		currentRequestArguments[k] = v.Value
+	}
+
+	//todo move time checking overlap into its own function
+
+	for _, r := range upcomingRequestAndRules {
+
+		//check provider is the same
+		if r.rule.Target.ProviderID == currentRequestRule.Target.ProviderID {
+
+			upcomingStart, upcomingEnd := r.request.GetInterval(access.WithNow(clock.Now()))
+			if (start.Before(upcomingEnd) || start.Equal(upcomingEnd)) && (end.After(upcomingStart) || end.Equal(upcomingStart)) {
+
+				//check the arguments overlap
+				upcomingRequestArguments := make(map[string]string)
+				for k, v := range r.rule.Target.With {
+					upcomingRequestArguments[k] = v
+				}
+				for k, v := range r.request.SelectedWith {
+					upcomingRequestArguments[k] = v.Value
+				}
+
+				if reflect.DeepEqual(currentRequestArguments, upcomingRequestArguments) {
+					return true, nil
+				}
+
 			}
 		}
 
 	}
-	return false
+	return false, nil
+}
+
+func (s *Service) overlapsExistingGrant(ctx context.Context, req access.Request) (bool, error) {
+	start, _ := req.GetInterval(access.WithNow(s.Clock.Now()))
+
+	rq := storage.ListRequestsForUserAndRequestend{
+		UserID: req.RequestedBy,
+		//RuleID:               req.Rule,
+		RequestEndComparator: storage.GreaterThanEqual,
+		CompareTo:            start,
+	}
+	_, err := s.DB.Query(ctx, &rq)
+	if err != nil && err != ddb.ErrNoItems {
+		return false, err
+	}
+	upcomingRequests := rq.Result
+	if len(upcomingRequests) == 0 {
+		return false, nil
+	}
+
+	ruleq := storage.GetAccessRuleCurrent{ID: req.Rule}
+	_, err = s.DB.Query(ctx, &ruleq)
+	if err != nil {
+		return false, err
+	}
+	currentRequestRule := ruleq.Result
+
+	allRules := storage.ListCurrentAccessRules{}
+	_, err = s.DB.Query(ctx, &allRules)
+	if err != nil {
+		return false, err
+	}
+
+	isOverlapping, err := overlapsExistingGrantCheck(req, upcomingRequests, *currentRequestRule, allRules.Result, s.Clock)
+	if err != nil {
+		return false, err
+	}
+	return isOverlapping, nil
 }
 
 // users can review requests if they are a Granted administrator,
