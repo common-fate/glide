@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
+	"github.com/common-fate/granted-approvals/internal"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -25,6 +26,11 @@ var InitCommand = cli.Command{
 		err := ensureConfigDoesntExist(c)
 		if err != nil {
 			return err
+		}
+
+		err = internal.PrintAnalyticsNotice(true)
+		if err != nil {
+			clio.Debugf("error printing analytics notice: %s", err)
 		}
 
 		cfg, err := deploy.SetupReleaseConfig(c)
