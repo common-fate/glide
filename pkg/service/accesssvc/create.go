@@ -202,11 +202,12 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
-		RequestedBy: req.RequestedBy,
-		Provider:    rule.Target.ProviderID,
-		RuleID:      req.Rule,
-		Timing:      req.RequestedTiming.ToAnalytics(),
-		HasReason:   req.HasReason(),
+		RequestedBy:      req.RequestedBy,
+		Provider:         rule.Target.ProviderID,
+		RuleID:           req.Rule,
+		Timing:           req.RequestedTiming.ToAnalytics(),
+		HasReason:        req.HasReason(),
+		RequiresApproval: rule.Approval.IsRequired(),
 	})
 
 	res := CreateRequestResult{
