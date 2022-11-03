@@ -162,7 +162,6 @@ func overlapsExistingGrantCheck(req access.Request, upcomingRequests []access.Re
 		currentRequestArguments[k] = v.Value
 	}
 
-	//todo move time checking overlap into its own function
 
 	for _, r := range upcomingRequestAndRules {
 
