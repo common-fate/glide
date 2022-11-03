@@ -145,6 +145,7 @@ export class DevGrantedStack extends cdk.Stack {
       CacheSyncLogGroupName: approvals.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: approvals.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: approvals.getExecutionRoleArn(),
+      CacheSyncFunctionName: approvals.getCacheSync().getFunctionName(),
     });
   }
 }

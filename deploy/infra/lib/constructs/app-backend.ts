@@ -62,6 +62,7 @@ export class AppBackend extends Construct {
     this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pendingWindow: cdk.Duration.days(7),
+      enableKeyRotation: true,
       description:
         "used for encrypting and decrypting pagination tokens for granted approvals",
     });

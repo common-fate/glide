@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/cache"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
@@ -57,6 +58,7 @@ func main() {
 			mw.WithBeforeFuncs(&provider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&notifications.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&dashboard.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&cache.Command, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&commands.InitCommand, mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&release.Command, mw.RequireDeploymentConfig()),
 		},
