@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
@@ -230,6 +231,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 func (a *API) ListUserAccessRules(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
+	admin := auth.IsAdmin(ctx)
 	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
 	_, err := a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
@@ -243,7 +245,12 @@ func (a *API) ListUserAccessRules(w http.ResponseWriter, r *http.Request) {
 	for i, r := range q.Result {
 		res.AccessRules[i] = r.ToAPI()
 	}
-
+	analytics.FromContext(ctx).Track(&analytics.UserInfo{
+		ID:             u.ID,
+		GroupCount:     len(u.Groups),
+		IsAdmin:        admin,
+		AvailableRules: len(q.Result),
+	})
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
