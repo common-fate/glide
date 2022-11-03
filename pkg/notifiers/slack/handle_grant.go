@@ -12,6 +12,7 @@ import (
 )
 
 func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
+
 	var grantEvent gevent.GrantEventPayload
 	err := json.Unmarshal(event.Detail, &grantEvent)
 	if err != nil {
@@ -48,7 +49,7 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 		zap.S().Infow("unhandled grant event", "detailType", event.DetailType)
 	}
 	if msg != "" {
-		_, err = SendMessage(ctx, n.client, gq.Result.Grant.Subject, msg, fallback)
+		_, err = SendMessage(ctx, n.directMessageClient.client, gq.Result.Grant.Subject, msg, fallback)
 		return err
 	}
 	return nil

@@ -79,6 +79,9 @@ components:
       properties:
         slack:
           $ref: '#/components/schemas/SlackConfiguration'
+        slackIncomingWebhooks:
+          type: object
+          x-go-type: 'map[string]map[string]string'
     SlackConfiguration:
       title: SlackConfiguration
       x-stoplight:

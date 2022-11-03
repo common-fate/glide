@@ -129,6 +129,11 @@ type Provider struct {
 	With map[string]string `yaml:"with" json:"with"`
 }
 
+type Notifications struct {
+	Slack                 map[string]string `yaml:"slack" json:"slack"`
+	SlackIncomingWebhooks FeatureMap        `yaml:"slackIncomingWebhooks" json:"slackIncomingWebhooks"`
+}
+
 // Feature map represents the type used for features like identity and notifications
 type FeatureMap map[string]map[string]string
 
@@ -167,7 +172,7 @@ type Parameters struct {
 	ExperimentalRemoteConfigHeaders string      `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
 	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
 	IdentityConfiguration           FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration      FeatureMap  `yaml:"NotificationsConfiguration,omitempty"`
+	NotificationsConfiguration      *Notifications  `yaml:"NotificationsConfiguration,omitempty"`
 	AnalyticsDisabled               string      `yaml:"AnalyticsDisabled,omitempty"`
 	AnalyticsURL                    string      `yaml:"AnalyticsURL,omitempty"`
 	AnalyticsLogLevel               string      `yaml:"AnalyticsLogLevel,omitempty"`
@@ -191,6 +196,25 @@ func UnmarshalFeatureMap(data string) (FeatureMap, error) {
 		return nil, err
 	}
 	return i, nil
+}
+
+// UnmarshalNotifications parses the JSON configuration data and returns
+// an initialised Notifications. If `data` is an empty string an empty
+// Notifications is returned.
+func UnmarshalNotifications(data string) (*Notifications, error) {
+	if data == "" {
+		return &Notifications{}, nil
+	}
+	// first remove any double backslashes which may have been added while loading from or to environment
+	// the process of loading escaped strings into the environment can sometimes add double escapes which cannot be parsed correctly
+	// unless removed
+	data = strings.ReplaceAll(string(data), "\\", "")
+	var i Notifications
+	err := json.Unmarshal([]byte(data), &i)
+	if err != nil {
+		return nil, err
+	}
+	return &i, nil
 }
 
 // UnmarshalProviderMap parses the JSON configuration data and returns

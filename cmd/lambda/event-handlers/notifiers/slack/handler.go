@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/config"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -68,24 +67,14 @@ func (h *handler) handleEvent(ctx context.Context, event events.CloudWatchEvent)
 	// anyway so it doesn't really matter.
 	notificationsConfig, err := dc.ReadNotifications(ctx)
 	if err != nil {
+		h.Log.Errorw("failed to initialise slack notifier", "error", err)
 		return err
 	}
 
-	ncfg := notifier.Config()
-
-	slackCfg, ok := notificationsConfig[slacknotifier.NotificationsTypeSlack]
-	if !ok {
-		h.Log.Infow("notifications not configured, skipping handling event")
-		return nil
-	}
-
-	err = ncfg.Load(ctx, &gconfig.MapLoader{Values: slackCfg})
+	err = notifier.Init(ctx, notificationsConfig)
 	if err != nil {
-		panic(err)
-	}
-	err = notifier.Init(ctx)
-	if err != nil {
-		panic(err)
+		h.Log.Errorw("failed to initialise slack notifier", "error", err)
+		return err
 	}
 	return notifier.HandleEvent(ctx, event)
 }

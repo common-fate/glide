@@ -45,7 +45,9 @@ export class Notifiers extends Construct {
 
     this._slackLambda.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: ["ssm:GetParameter"],
+        actions: [
+          "ssm:GetParameter",
+        ],
         resources: [
           `arn:aws:ssm:${Stack.of(this).region}:${
             Stack.of(this).account

@@ -5,7 +5,6 @@ import (
 
 	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
@@ -22,17 +21,12 @@ var testSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		currentConfig, ok := dc.Deployment.Parameters.NotificationsConfiguration[slacknotifier.NotificationsTypeSlack]
-		if !ok {
+		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration.Slack
+		if currentConfig == nil {
 			return fmt.Errorf("slack is not yet configured, configure it now by running 'gdeploy notifications slack configure'")
 		}
 		var slack slacknotifier.SlackNotifier
-		cfg := slack.Config()
-		err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
-		if err != nil {
-			return err
-		}
-		err = slack.Init(ctx)
+		err = slack.Init(ctx, dc.Deployment.Parameters.NotificationsConfiguration)
 		if err != nil {
 			return err
 		}
