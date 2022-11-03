@@ -187,7 +187,7 @@ require (
 	github.com/briandowns/spinner v1.18.1
 	github.com/common-fate/analytics-go v0.0.0-20221103150131-462978118bbf
 	github.com/common-fate/clio v1.0.0
-	github.com/common-fate/ddb v0.14.1-0.20221015175555-69b5385a4f7c
+	github.com/common-fate/ddb v0.15.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
