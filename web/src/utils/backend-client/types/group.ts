@@ -5,12 +5,11 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { User } from './user';
 
 export interface Group {
   name: string;
   description: string;
   id: string;
   memberCount: number;
-  members: User[];
+  members: string[];
 }

@@ -47,6 +47,7 @@ func (g *Group) ToAPI() types.Group {
 		Description: g.Description,
 		Id:          g.ID,
 		MemberCount: len(g.Users),
+		Members:     g.Users,
 	}
 
 	return req

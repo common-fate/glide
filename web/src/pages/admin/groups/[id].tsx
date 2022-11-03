@@ -24,10 +24,14 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import axios from "axios";
+import { type } from "os";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useMatch } from "react-location";
-import { GroupSelect } from "../../../components/forms/access-rule/components/Select";
+import {
+  GroupSelect,
+  UserSelect,
+} from "../../../components/forms/access-rule/components/Select";
 
 import { AdminLayout } from "../../../components/Layout";
 import {
@@ -36,23 +40,21 @@ import {
 } from "../../../utils/backend-client/admin/admin";
 
 import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
-import { UpdateUserBody, User } from "../../../utils/backend-client/types";
+import { Group, User } from "../../../utils/backend-client/types";
 
-const GroupDisplay: React.FC<{ groupId: string }> = ({ groupId }) => {
-  const { data } = useGetGroup(encodeURIComponent(groupId));
+const UserDisplay: React.FC<{ userId: string }> = ({ userId }) => {
+  const { data } = useGetUser(encodeURIComponent(userId));
   return (
-    <Tooltip label={data?.description}>
-      <Flex
-        cursor="help"
-        textStyle={"Body/Small"}
-        rounded="full"
-        bg="neutrals.300"
-        py={1}
-        px={4}
-      >
-        {data?.name}
-      </Flex>
-    </Tooltip>
+    <Flex
+      cursor="help"
+      textStyle={"Body/Small"}
+      rounded="full"
+      bg="neutrals.300"
+      py={1}
+      px={4}
+    >
+      {data?.email}
+    </Flex>
   );
 };
 
@@ -85,7 +87,7 @@ const Index = () => {
           <Text textStyle="Body/Small">{group?.name}</Text>
           <Text textStyle="Body/Medium">Description</Text>
           <Text textStyle="Body/Small">{group?.description}</Text>
-          {/* <Groups user={user} onSubmit={(u) => mutate(u)} /> */}
+          <Members group={group} onSubmit={(u) => mutate(u)} />
         </VStack>
       </>
     );
@@ -128,71 +130,73 @@ const Index = () => {
 
 export default Index;
 
-interface GroupsProps {
-  user: User;
-  onSubmit?: (u: User) => void;
+interface MemberProps {
+  group: Group;
+  onSubmit?: (u: Group) => void;
 }
-const Groups: React.FC<GroupsProps> = ({ user, onSubmit }) => {
-  const methods = useForm<UpdateUserBody>({});
-  const toast = useToast();
+
+type GroupForm = {
+  members: string[];
+};
+
+const Members: React.FC<MemberProps> = ({ group, onSubmit }) => {
+  const methods = useForm<GroupForm>({});
+  // const toast = useToast();
   const { onOpen, onClose, isOpen } = useDisclosure();
   useEffect(() => {
     if (!isOpen) {
-      methods.reset({
-        groups: user.groups,
-      });
+      methods.reset({ members: group.members });
     }
   }, [isOpen]);
 
-  const handleSubmit = async (data: UpdateUserBody) => {
-    try {
-      const u = await updateUser(user.id, data);
-      toast({
-        title: "Updated Groups",
-        status: "success",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-      onSubmit?.(u);
-      onClose();
-    } catch (err) {
-      let description: string | undefined;
-      if (axios.isAxiosError(err)) {
-        // @ts-ignore
-        description = err?.response?.data.error;
-      }
-
-      toast({
-        title: "Error Updating Groups",
-        description,
-        status: "error",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-    }
-  };
+  // const handleSubmit = async (data: UpdateGroupBody) => {
+  //   // try {
+  //   //   const u = await updateUser(user.id, data);
+  //   //   toast({
+  //   //     title: "Updated Groups",
+  //   //     status: "success",
+  //   //     variant: "subtle",
+  //   //     duration: 2200,
+  //   //     isClosable: true,
+  //   //   });
+  //   //   onSubmit?.(u);
+  //   //   onClose();
+  //   // } catch (err) {
+  //   //   let description: string | undefined;
+  //   //   if (axios.isAxiosError(err)) {
+  //   //     // @ts-ignore
+  //   //     description = err?.response?.data.error;
+  //   //   }
+  //   //   toast({
+  //   //     title: "Error Updating Groups",
+  //   //     description,
+  //   //     status: "error",
+  //   //     variant: "subtle",
+  //   //     duration: 2200,
+  //   //     isClosable: true,
+  //   //   });
+  //   // }
+  // };
 
   if (isOpen) {
     return (
       <FormProvider {...methods}>
         <VStack
           as="form"
-          onSubmit={methods.handleSubmit(handleSubmit)}
+          // onSubmit={methods.handleSubmit(handleSubmit)}
           align={"left"}
           spacing={1}
         >
-          <FormControl id="groups">
+          <FormControl id="members">
             <FormLabel>
               <HStack>
-                <Text textStyle="Body/Medium">Groups</Text>
+                <Text textStyle="Body/Medium">Members</Text>
                 <IconButton
                   isLoading={methods.formState.isSubmitting}
                   size="sm"
                   variant="ghost"
                   icon={<CheckIcon />}
-                  aria-label={"save groups"}
+                  aria-label={"save members"}
                   type="submit"
                 />
                 <IconButton
@@ -200,14 +204,14 @@ const Groups: React.FC<GroupsProps> = ({ user, onSubmit }) => {
                   size="sm"
                   variant="ghost"
                   icon={<CloseIcon />}
-                  aria-label={"cancel edit groups"}
+                  aria-label={"cancel edit members"}
                   onClick={onClose}
                 />
               </HStack>
             </FormLabel>
             <Flex flex={1}>
-              <GroupSelect
-                fieldName="groups"
+              <UserSelect
+                fieldName="members"
                 isDisabled={methods.formState.isSubmitting}
               />
             </Flex>
@@ -219,20 +223,20 @@ const Groups: React.FC<GroupsProps> = ({ user, onSubmit }) => {
   return (
     <VStack align={"left"} spacing={1}>
       <HStack>
-        <Text textStyle="Body/Medium">Groups</Text>
+        <Text textStyle="Body/Medium">Members</Text>
         <IconButton
           size="sm"
           variant="ghost"
           icon={<EditIcon />}
-          aria-label={"edit groups"}
+          aria-label={"edit members"}
           onClick={onOpen}
         />
       </HStack>
       <Wrap>
-        {user.groups.map((g) => {
+        {group.members.map((u) => {
           return (
-            <WrapItem key={g}>
-              <GroupDisplay groupId={g} />
+            <WrapItem key={u}>
+              <UserDisplay userId={u} />
             </WrapItem>
           );
         })}
