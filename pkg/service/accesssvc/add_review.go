@@ -180,9 +180,11 @@ func overlapsExistingGrantCheck(req access.Request, upcomingRequests []access.Re
 				for k, v := range r.request.SelectedWith {
 					upcomingRequestArguments[k] = v.Value
 				}
-
-				if reflect.DeepEqual(currentRequestArguments, upcomingRequestArguments) {
-					return true, nil
+				//check if the grant is actually active
+				if r.request.Grant != nil {
+					if reflect.DeepEqual(currentRequestArguments, upcomingRequestArguments) {
+						return true, nil
+					}
 				}
 
 			}
