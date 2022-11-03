@@ -595,11 +595,10 @@ export const AccessRuleArguments: React.FC<{
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
   const subRequests = watch("with");
-  console.log({ subRequests });
   return (
     <Flex direction={"column"} justify={"left"}>
       <VStack w="100%" spacing={4}>
-        {subRequests?.map((subRequest, subRequestIndex) => (
+        {subRequests?.map((_, subRequestIndex) => (
           <VStack
             w="100%"
             key={`subrequest-${subRequestIndex}`}
@@ -609,6 +608,7 @@ export const AccessRuleArguments: React.FC<{
             px={4}
             pb={4}
             spacing={4}
+            align={"left"}
           >
             <Wrap>
               {Object.entries(target.arguments)
@@ -680,20 +680,25 @@ export const AccessRuleArguments: React.FC<{
           </VStack>
         ))}
       </VStack>
-      <ButtonGroup>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          aria-label="add"
-          leftIcon={<SmallAddIcon />}
-          onClick={() => {
-            setValue("with", [...(subRequests || []), {}]);
-          }}
-        >
-          Add permissions
-        </Button>
-      </ButtonGroup>
+      {/* Only render the add permissions button if the rule has fields which require selection */}
+      {Object.entries(target.arguments).find(
+        ([k, v]) => v.requiresSelection
+      ) !== undefined && (
+        <ButtonGroup>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            aria-label="add"
+            leftIcon={<SmallAddIcon />}
+            onClick={() => {
+              setValue("with", [...(subRequests || []), {}]);
+            }}
+          >
+            Add permissions
+          </Button>
+        </ButtonGroup>
+      )}
     </Flex>
   );
 };
