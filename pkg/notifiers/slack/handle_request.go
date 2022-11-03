@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
@@ -21,7 +19,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
@@ -251,137 +248,8 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 	}
 }
 
-type RequestMessageOpts struct {
-	Request          access.Request
-	RequestArguments []types.With
-	Rule             rule.AccessRule
-	ReviewURLs       notifiers.ReviewURLs
-	RequestorSlackID string
-	RequestorEmail   string
-	WasReviewed      bool
-	RequestReviewer  *identity.User
-	IsWebhook        bool
-}
-
-func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
-	requestor := o.RequestorEmail
-	if o.RequestorSlackID != "" {
-		requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
-	}
-
-	statusLower := strings.ToLower(string(o.Request.Status))
-	status := strings.ToUpper(string(statusLower[0])) + statusLower[1:]
-
-	if o.IsWebhook && o.WasReviewed && o.Request.Status != access.PENDING {
-		summary = fmt.Sprintf("%s %s %s's request", o.RequestReviewer.Email, statusLower, o.RequestorEmail)
-	} else {
-		summary = fmt.Sprintf("New request for %s from %s", o.Rule.Name, o.RequestorEmail)
-	}
-
-	when := "ASAP"
-	if o.Request.RequestedTiming.StartTime != nil {
-		t := o.Request.RequestedTiming.StartTime
-		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
-	}
-
-	requestDetails := []*slack.TextBlockObject{
-		{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*When:*\n%s", when),
-		},
-		{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Duration:*\n%s", o.Request.RequestedTiming.Duration),
-		},
-		{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Status:*\n%s", status),
-		},
-	}
-
-	for _, v := range o.RequestArguments {
-		requestDetails = append(requestDetails, &slack.TextBlockObject{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
-		})
-	}
-
-	// Only show the Request reason if it is not empty
-	if o.Request.Data.Reason != nil && len(*o.Request.Data.Reason) > 0 {
-		requestDetails = append(requestDetails, &slack.TextBlockObject{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Request Reason:*\n%s", *o.Request.Data.Reason),
-		})
-	}
-
-	var richTextSummary string
-
-	if o.IsWebhook && o.WasReviewed && o.Request.Status != access.PENDING {
-		richTextSummary = fmt.Sprintf("*%s %s %s's request*", o.RequestReviewer.Email, statusLower, o.RequestorEmail)
-	} else {
-		richTextSummary = fmt.Sprintf("*<%s|New request for %s> from %s*", o.ReviewURLs.Review, o.Rule.Name, requestor)
-	}
-
-	msg = slack.NewBlockMessage(
-		slack.SectionBlock{
-			Type: slack.MBTSection,
-			Text: &slack.TextBlockObject{
-				Type: slack.MarkdownType,
-				Text: richTextSummary,
-			},
-		},
-		slack.SectionBlock{
-			Type:   slack.MBTSection,
-			Fields: requestDetails,
-		},
-	)
-
-	if o.WasReviewed || o.Request.Status == access.CANCELLED {
-		t := time.Now()
-		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
-
-		text := fmt.Sprintf("*Reviewed by* %s at %s", o.RequestReviewer.Email, when)
-
-		if o.Request.Status == access.CANCELLED {
-			text = fmt.Sprintf("*Cancelled by* %s at %s", o.RequestorEmail, when)
-		}
-
-		reviewContextBlock := slack.NewContextBlock("", slack.TextBlockObject{
-			Type: slack.MarkdownType,
-			Text: text,
-		})
-
-		msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, reviewContextBlock)
-	}
-
-	// If the request has just been sent (PENDING), then append Action Blocks
-	if o.Request.Status == access.PENDING {
-		msg.Blocks.BlockSet = append(msg.Blocks.BlockSet, slack.NewActionBlock("review_actions",
-			slack.ButtonBlockElement{
-				Type:     slack.METButton,
-				Text:     &slack.TextBlockObject{Type: slack.PlainTextType, Text: "Approve"},
-				Style:    slack.StylePrimary,
-				ActionID: "approve",
-				Value:    "approve",
-				URL:      o.ReviewURLs.Approve,
-			},
-			slack.ButtonBlockElement{
-				Type:     slack.METButton,
-				Text:     &slack.TextBlockObject{Type: slack.PlainTextType, Text: "Close Request"},
-				Style:    slack.StyleDanger,
-				ActionID: "deny",
-				Value:    "deny",
-				URL:      o.ReviewURLs.Deny,
-			},
-		))
-
-	}
-
-	return summary, msg
-}
-
-// @TODO this method maps request arguments in a deprecated way.
-// it shoudl be replaced eventually with a cache lookup for the options available for the access rule
+// This method maps request arguments in a deprecated way.
+// it should be replaced eventually with a cache lookup for the options available for the access rule
 func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request access.Request, rule rule.AccessRule) ([]types.With, error) {
 	// Consider adding a fallback if the cache lookup fails
 	pq := storage.ListCachedProviderOptions{
