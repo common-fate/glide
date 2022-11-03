@@ -233,7 +233,7 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	} else if err == accesssvc.ErrRuleNotFound {
 		err = apio.NewRequestError(fmt.Errorf("access rule %s not found", incomingRequest.AccessRuleId), http.StatusNotFound)
 	} else if err == accesssvc.ErrRequestOverlapsExistingGrant {
-		err = apio.NewRequestError(err.Error(), http.StatusBadRequest)
+		err = apio.NewRequestError(err, http.StatusBadRequest)
 	}
 	if err != nil {
 		apio.Error(ctx, w, err)
