@@ -2,8 +2,8 @@ package accesssvc
 
 import (
 	"context"
+
 	"github.com/common-fate/analytics-go"
-	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/rule"
