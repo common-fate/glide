@@ -84,6 +84,7 @@ func TestUserCreateRequest(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 			mockAccess.EXPECT().CreateRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
@@ -161,6 +162,7 @@ func TestUserCancelRequest(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 			mockAccess.EXPECT().CancelRequest(gomock.Any(), gomock.Any()).Return(tc.mockCancelErr).AnyTimes()
@@ -272,6 +274,7 @@ func TestUserGetRequest(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetRequest{Result: tc.mockGetRequest}, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: tc.mockGetReviewer}, tc.mockGetReviewerErr)
@@ -432,6 +435,7 @@ func TestUserListRequests(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(tc.mockDBQuery, tc.mockDBQueryErr)
 			a := API{DB: db}
@@ -490,6 +494,7 @@ func TestRevokeRequest(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.wantErr)
@@ -613,6 +618,7 @@ func TestUserListRequestEvents(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)

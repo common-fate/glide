@@ -46,6 +46,7 @@ type Output struct {
 	CacheSyncLogGroupName         string `json:"CacheSyncLogGroupName"`
 	RestAPIExecutionRoleARN       string `json:"RestAPIExecutionRoleARN"`
 	IDPSyncExecutionRoleARN       string `json:"IDPSyncExecutionRoleARN"`
+	CacheSyncFunctionName         string `json:"CacheSyncFunctionName"`
 }
 
 func (c Output) FrontendURL() string {

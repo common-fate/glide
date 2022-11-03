@@ -3,6 +3,7 @@ package identitysync
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
@@ -23,6 +24,9 @@ type IdentityProvider interface {
 type IdentitySyncer struct {
 	db  ddb.Storage
 	idp IdentityProvider
+	// used to prevent concurrent calls to sync
+	// prevents unexpected duplication of users and groups when used asyncronously
+	syncMutex sync.Mutex
 }
 
 type SyncOpts struct {
@@ -78,6 +82,9 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 }
 
 func (s *IdentitySyncer) Sync(ctx context.Context) error {
+	// prevent concurrent calls to sync
+	s.syncMutex.Lock()
+	defer s.syncMutex.Unlock()
 	log := logger.Get(ctx)
 
 	//Fetch all users from IDP
