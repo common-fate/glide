@@ -92,7 +92,7 @@ export class AccessHandler extends Construct {
 
     this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
       code,
-      timeout: Duration.seconds(120),
+      timeout: Duration.seconds(60),
       environment: {
         GRANTED_RUNTIME: "lambda",
         STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
@@ -102,7 +102,6 @@ export class AccessHandler extends Construct {
         REMOTE_CONFIG_URL: props.remoteConfigUrl,
         REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
-      memorySize: 1024,
       runtime: lambda.Runtime.GO_1_X,
       handler: "access-handler",
       role: this._executionRole,
