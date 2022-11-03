@@ -196,8 +196,7 @@ func (s *Service) overlapsExistingGrant(ctx context.Context, req access.Request)
 	start, _ := req.GetInterval(access.WithNow(s.Clock.Now()))
 
 	rq := storage.ListRequestsForUserAndRequestend{
-		UserID: req.RequestedBy,
-		//RuleID:               req.Rule,
+		UserID:               req.RequestedBy,
 		RequestEndComparator: storage.GreaterThanEqual,
 		CompareTo:            start,
 	}
@@ -215,7 +214,6 @@ func (s *Service) overlapsExistingGrant(ctx context.Context, req access.Request)
 	if err != nil {
 		return false, err
 	}
-	currentRequestRule := ruleq.Result
 
 	allRules := storage.ListCurrentAccessRules{}
 	_, err = s.DB.Query(ctx, &allRules)
@@ -223,7 +221,7 @@ func (s *Service) overlapsExistingGrant(ctx context.Context, req access.Request)
 		return false, err
 	}
 
-	isOverlapping, err := overlapsExistingGrantCheck(req, upcomingRequests, *currentRequestRule, allRules.Result, s.Clock)
+	isOverlapping, err := overlapsExistingGrantCheck(req, upcomingRequests, *ruleq.Result, allRules.Result, s.Clock)
 	if err != nil {
 		return false, err
 	}
