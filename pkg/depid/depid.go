@@ -14,14 +14,20 @@ import (
 )
 
 type Deployment struct {
-	ID string `json:"id" dynamodbav:"id"`
+	ID         string `json:"id" dynamodbav:"id"`
+	UserCount  int    `json:"userCount" dynamodbav:"userCount"`
+	GroupCount int    `json:"groupCount" dynamodbav:"groupCount"`
+	IDP        string `json:"idp" dynamodbav:"idp"`
 }
 
-func (d *Deployment) ToAnalytics() *analytics.Deployment {
-	return &analytics.Deployment{
-		ID:      d.ID,
-		Version: build.Version,
-		Stage:   os.Getenv("CF_ANALYTICS_DEPLOYMENT_STAGE"),
+func (d *Deployment) ToAnalytics() *analytics.DeploymentInfo {
+	return &analytics.DeploymentInfo{
+		ID:         d.ID,
+		Version:    build.Version,
+		Stage:      os.Getenv("CF_ANALYTICS_DEPLOYMENT_STAGE"),
+		UserCount:  d.UserCount,
+		GroupCount: d.GroupCount,
+		IDP:        d.IDP,
 	}
 }
 
@@ -70,4 +76,26 @@ func (l *Loader) getOrCreateDeployment(ctx context.Context) (*Deployment, error)
 	}
 
 	return &d, nil
+}
+
+type UserInfo struct {
+	UserCount  int
+	GroupCount int
+}
+
+func (l *Loader) SetUserInfo(ctx context.Context, ui UserInfo) (*Deployment, error) {
+	d, err := l.getOrCreateDeployment(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d.UserCount = ui.UserCount
+	d.GroupCount = ui.GroupCount
+
+	l.log.Infow("set deployment user info", "deployment.id", d.ID, "deployment.users", d.UserCount, "deployment.groups", d.GroupCount)
+
+	err = l.client.Put(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }

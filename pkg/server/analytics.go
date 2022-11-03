@@ -23,8 +23,9 @@ func analyticsMiddleware(db ddb.Storage, log *zap.SugaredLogger) func(next http.
 			dep, err := dl.GetDeployment(ctx)
 			if err != nil {
 				logger.Get(ctx).Errorw("error getting deployment", zap.Error(err))
-			} else {
-				client.SetDeployment(dep.ToAnalytics())
+			}
+			if err == nil && dep != nil {
+				client.SetDeploymentID(dep.ID)
 			}
 
 			defer client.Close()

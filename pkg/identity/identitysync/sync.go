@@ -105,7 +105,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	log.Infow("fetched users and groups from IDP", "users.count", len(idpUsers), "groups.count", len(idpGroups))
 
-	s.syncEvent(ctx, log, idpInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups)})
+	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups)})
 
 	uq := &storage.ListUsers{}
 	_, err = s.db.Query(ctx, uq)
@@ -131,26 +131,16 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	return s.db.PutBatch(ctx, items...)
 }
 
-type idpInfo struct {
-	UserCount  int
-	GroupCount int
-}
-
 // analytics event
-func (s *IdentitySyncer) syncEvent(ctx context.Context, log *zap.SugaredLogger, info idpInfo) {
+func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.SugaredLogger, info depid.UserInfo) {
 	ac := analytics.New(analytics.Env())
-	dep, err := depid.New(s.db, log).GetDeployment(ctx)
+	dep, err := depid.New(s.db, log).SetUserInfo(ctx, info)
 	if err != nil {
 		log.Errorw("error setting deployment info", zap.Error(err))
-	} else {
-		ac.SetDeployment(dep.ToAnalytics())
 	}
-
-	ac.Track(&analytics.IDPSynced{
-		UserCount:  info.UserCount,
-		GroupCount: info.GroupCount,
-		IDP:        s.idp.Name(),
-	})
+	if dep != nil {
+		ac.Track(dep.ToAnalytics())
+	}
 }
 
 // processUsersAndGroups contains all the logic for create/update/archive for users and groups
