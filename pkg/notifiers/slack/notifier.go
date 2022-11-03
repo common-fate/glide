@@ -11,9 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// DE = we initialise the slack notifier, which may have config for slack DMS and or config for webhooks
-// DE = it sends messages to whatever is configured
-// Notifier provides handler methods for sending notifications to slack based on events
+// SlackNotifier provides handler methods for sending notifications to Slack based on events.
+// It has config for sending Slack DMs and/or messaging via Incoming Webhooks.
 type SlackNotifier struct {
 	DB                  ddb.Storage
 	FrontendURL         string

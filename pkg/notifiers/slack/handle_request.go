@@ -153,12 +153,12 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			}
 		} else {
 			//Review not required
-			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved. Hang tight - we're provisioning the role now and will let you know when it's ready.", requestedRule.Name)
+			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
 			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
 		}
 	case gevent.RequestApprovedType:
-		msg := fmt.Sprintf("Your request to access *%s* has been approved. Hang tight - we're provisioning the access now and will let you know when it's ready.", requestedRule.Name)
+		msg := fmt.Sprintf("Your request to access *%s* has been approved.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", requestedRule.Name)
 		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
