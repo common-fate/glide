@@ -81,6 +81,7 @@ func (l *Loader) getOrCreateDeployment(ctx context.Context) (*Deployment, error)
 type UserInfo struct {
 	UserCount  int
 	GroupCount int
+	IDP        string
 }
 
 func (l *Loader) SetUserInfo(ctx context.Context, ui UserInfo) (*Deployment, error) {
@@ -90,6 +91,7 @@ func (l *Loader) SetUserInfo(ctx context.Context, ui UserInfo) (*Deployment, err
 	}
 	d.UserCount = ui.UserCount
 	d.GroupCount = ui.GroupCount
+	d.IDP = ui.IDP
 
 	l.log.Infow("set deployment user info", "deployment.id", d.ID, "deployment.users", d.UserCount, "deployment.groups", d.GroupCount)
 

@@ -105,7 +105,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	log.Infow("fetched users and groups from IDP", "users.count", len(idpUsers), "groups.count", len(idpGroups))
 
-	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups)})
+	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups), IDP: s.idp.Name()})
 
 	uq := &storage.ListUsers{}
 	_, err = s.db.Query(ctx, uq)
