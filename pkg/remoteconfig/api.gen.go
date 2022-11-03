@@ -33,7 +33,8 @@ type DeploymentConfiguration struct {
 // Notifications configuration for the deployment.
 type NotificationsConfiguration struct {
 	// The Slack notification configuration.
-	Slack *SlackConfiguration `json:"slack,omitempty"`
+	Slack                 *SlackConfiguration           `json:"slack,omitempty"`
+	SlackIncomingWebhooks *map[string]map[string]string `json:"slackIncomingWebhooks,omitempty"`
 }
 
 // Configuration settings for an individual Access Provider.
@@ -650,24 +651,24 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7xX3W7jNhN9lQG/D+iN13KyyWaju7SLLoKiaZDdohfZAEuLI4sJRTIkZa8T+N2LoeRE",
-	"P5bjokBzE0kcDs85c4akn1lmSms06uBZ+swcPlbow89GSIwf/rSCB7x2ZikFOn9Tj9NIZnRAHR+5tUpm",
-	"PEijk3tvNH3zWYElpyfrjEUXmoS2SfWL0blcVC7OooH/O8xZyv6XvCJK6iQ+2a7/O7dss5lEmNKhYOnt",
-	"SMK7CQtriyxlZn6PWWAb+qOZ3hrtayyf0CqzLlGHevJNM/gv6IleygMJfhqZ1ic7lv4ukhPoMydtvSD7",
-	"WiBk7SgwOYRCevjsuA4o4MKSeFx5eM07jWs2uHaJ1GL01nq5ccDfWG3SE1CbIPNGbf+PNLwan7mZ/Fe+",
-	"m+wjQKaUQZErx1Tt23bCfrzzwVglF0U0oxQsZfIoLO37H2JZPGQiIrvaK1u3UJ3YHSULBe4tkVc8e3hL",
-	"ui8UNDTzlv8evIdJ4DRfnT/N5k9PxydlTH09VuEu+84weAxB6oWvvapBaiGXUlRcwUWWofewTTvUoWq2",
-	"kQauD07qBXltJUPRGmjxWJh3zceS29t6xt12Ys9gMX2TrOWc6xHfHSLa46lxD2dna3P2KE46opHDaasT",
-	"QlI+rq47VA9pkkHL7dPd5MDVQGNPIveJErTD6J2b7Ni7cH/08fRpHuntcOHOfSvGQbt1u30xLD638qt5",
-	"wL35Lq4vIVDQFL4UplIC5ggcHOboUGcIwYDHzGEAqeE7X3nvyzRJvpMbSx5br2eunkdeULQMsoPzYfLh",
-	"4+LYPn08eX96PuOsPi+lzs32OORZjNW8xFjPsjQafuUB2YRVTrGUFSFYnybkktLonAecSjO0woWO0lDL",
-	"KcOF1IvWftMVfgK+ygrgHqT2gStFB0nPNMC16NTOv7R120/bc+gGSxMQ+got0fka3tF0RpiNRc2tZCl7",
-	"P51NZ+QAHopY/IRbmSyPkhoqfVlgGDrhM4ZRYoSM/BRfLkUdXWNivWvK8Ww21oMvccnoXSYe51VZcrdu",
-	"IL2GwnCD7lJLtqdcfXerdpD8y8mAvl+U3rESTDxVXC39nGcPqMX0m/6mr0zAFFb4k4u3B0+TyRAUuqSH",
-	"eGMhu6AW1kgde4VDXoXKITRVg3d1nPSQVc6hDmpNcZVHmGPG6T8BaN1BuC/mhjsBDUUPHBaVFCjIPZWF",
-	"XJlV3aH0Ntip4LK5TbWi6a2QObksGOAgZB5bPYBHt5QZTnooiNdKKgXagDJ6gQ5WpOcbcpKAPU2HAaTw",
-	"wGTd+3y/B16v/+txx7V+ISQjPw82ux3cNc4fv/W8WSfbT53FXYnUjJ68fW7tPGmSKJNxVRgf0g+nH07Z",
-	"5m7zdwAAAP//OYGaQ+IMAAA=",
+	"H4sIAAAAAAAC/7xX3W7bOBN9lQG/D9gb13L+mkZ32S22CBabDdIuepEGKC2OJMYShyEpu07gd1+QkhP9",
+	"WI6LBdY3lsThcM6ZM+TwmSVUalKonGXxMzP4WKF1v5KQGD78rQV3eGNoKQUae1uP+5GElEMVHrnWhUy4",
+	"k6SiB0vKf7NJjiX3T9qQRuMah7px9RupVGaVCbP8wP8Npixm/4teI4pqJzbarv8n12yzmYQwpUHB4rsR",
+	"h/cT5tYaWcxo/oCJYxv/8zOtJmXrWD6iLmhdonL15Ntm8F/AEz2XBwL8ODKtD3bM/X0AJ9AmRup6QfYl",
+	"R0jaVkApuFxa+GS4cijgUnvyeGHh1e80rNnEtYukFqK31kvJAH9jtUmPQEVOpg3b9qc4vB6fuZn8V7qb",
+	"7APgRSld4VU5xmpfthP24511pAuZ5UGMUrCYySO31Cc/xDJfJCJEdr2Xtm6iOrY7UuZy3JsiW/Bk8RZ1",
+	"n73RIAth6pVKqJQq+4rznGgRfA5RZ/Su+VhyfWedkSq7bz3WfwH8ltQ9JBzGq1F8dfE0mz89HZ+WwfXN",
+	"mGy6lHaGwaJzUmW2LgAFUgm5lKLiBVwmCVoLW7dDcqtmb2rC3aKcsJV0+U8w1aKnrdrgvnHWkuPNiJgP",
+	"Ie3xjMzi/HxN54/itEOaLxu/fwohvT9e3HSgHlJ5AwXt451S4MWAY+tJ7gP1oR0G74KSY2vcw9GHs6d5",
+	"gLdD2js3w2AH7f2gW2zD5HMtv9AC9/q7vLkC542m8DmnqhAwR+BgMEWDKkFwBBYTgw6kgu98Za0t4yj6",
+	"7tVY8lDPPXH1NPISRUsgOzAfRh8+Zsf66cPpydnFjLP6EJYqpe0Zy5Ngq3iJIZ9lSQp+5w7ZhFWmYDHL",
+	"ndM2jrxKSlIpdziVNJTCpQrU+JIriAupstYm1iV+ArZKcuAWpLKOF4U/nXqiAa5EJ3f2pazbetoebrdY",
+	"kkPoM7REY+vwjqYzHzNpVFxLFrOT6Ww68wrgLg/Jj7iW0fIoqkP1XzJ0QyV8QjcKzEfm9RRerkRtXcfE",
+	"er3P8Ww2VoMvdtFogxR6hKosuVk3Ib2awrCF6UKLtkdn3RBWO0B+NdKh7Seld1Y5CkeVqamf82SBSky/",
+	"qW/qmhzGsMJfTGhJrJ/sBeFNl/4htEFeLqiEJqlCrXBIK1cZhCZr8K62kxaSyhhUrlh7u8oizDHh/t8H",
+	"0GpsuM3nxI2ABqIFDlklBQqvnkpDWtCqrlD/Ntip4Kpp0VrW/i2XqVeZI+AgZBpK3YFFs5QJTnpReFwr",
+	"WRSgCApSGRpYeT7foNMT2ON0aOAZHoise0no18DrnWI9rrjWtSMauXNsdiu4K5y//uhps3a2HzoLu5Jn",
+	"M2jy7rm188RRVFDCi5ysi9+fvT9jm/vNPwEAAP//+ZlSVTcNAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
