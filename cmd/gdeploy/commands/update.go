@@ -3,7 +3,7 @@ package commands
 import (
 	"os"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -22,8 +22,8 @@ var UpdateCommand = cli.Command{
 			return err
 		}
 
-		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
-		clio.Info("Using template: %s", dc.CfnTemplateURL())
+		clio.Infof("Deploying Granted Approvals %s", dc.Deployment.Release)
+		clio.Infof("Using template: %s", dc.CfnTemplateURL())
 		confirm := c.Bool("confirm")
 
 		if os.Getenv("CI") == "true" {
@@ -49,7 +49,7 @@ var UpdateCommand = cli.Command{
 			return nil
 
 		} else {
-			clio.Warn("Your Granted deployment update ended in status %s", status)
+			clio.Warnf("Your Granted deployment update ended in status %s", status)
 		}
 
 		return nil

@@ -10,8 +10,8 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { formatDistanceToNowStrict } from "date-fns";
-import React from "react";
+import { differenceInSeconds, formatDistanceToNowStrict } from "date-fns";
+import React, { useEffect, useState } from "react";
 
 interface Props {
   header: React.ReactNode;
@@ -38,7 +38,19 @@ export const CFTimelineRow = ({
   arrLength,
 }: Props) => {
   const textColor = useColorModeValue("gray.700", "white.300");
-
+  const [timeSince, setTimeSince] = useState("");
+  const renderTimeSince = () => {
+    if (differenceInSeconds(new Date(), timestamp) < 60) {
+      setTimeSince("a few seconds ago");
+    } else {
+      setTimeSince(formatDistanceToNowStrict(timestamp, { addSuffix: true }));
+    }
+  };
+  useEffect(() => {
+    renderTimeSince();
+    const interval = setInterval(renderTimeSince, 60000);
+    return () => clearInterval(interval);
+  }, [timestamp]);
   return (
     <Flex>
       <Flex
@@ -88,7 +100,7 @@ export const CFTimelineRow = ({
                 color="gray.400"
                 fontWeight="normal"
               >
-                {formatDistanceToNowStrict(timestamp, { addSuffix: true })}
+                {timeSince}
               </Text>
             </PopoverTrigger>
             <PopoverContent>

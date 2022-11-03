@@ -508,7 +508,9 @@ export const RequestRequestor: React.FC = () => {
               mr={2}
               size="xs"
             />
-            <Text textStyle="Body/Small">{userName(requestor)}</Text>
+            <Text textStyle="Body/Small" mr={2}>
+              {userName(requestor)}
+            </Text>
             <Text
               color="neutrals.600"
               textStyle="Body/Small"

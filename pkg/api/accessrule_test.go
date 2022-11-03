@@ -74,6 +74,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -158,6 +159,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -266,6 +268,7 @@ func TestAdminListAccessRules(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListCurrentAccessRules{Result: tc.rules}, tc.mockListErr)
 
@@ -358,6 +361,7 @@ func TestUserListAccessRules(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListAccessRulesForGroupsAndStatus{Result: tc.rules}, tc.mockRulesErr)
@@ -436,6 +440,7 @@ func TestUserGetAccessRule(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -523,6 +528,7 @@ func TestUserGetAccessRuleApprovers(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -663,6 +669,7 @@ func TestLookupAccessRules(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 

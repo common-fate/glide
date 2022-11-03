@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
 	github.com/aws/aws-sdk-go v1.44.71
-	github.com/aws/aws-sdk-go-v2 v1.16.16
+	github.com/aws/aws-sdk-go-v2 v1.17.1
 	github.com/aws/aws-sdk-go-v2/config v1.15.16
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eks v1.21.8
 	github.com/aws/aws-sdk-go-v2/service/iam v1.18.13
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
-	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.6
+	github.com/aws/aws-sdk-go-v2/service/organizations v1.16.15
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0
@@ -37,8 +37,8 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-retry v0.2.3
-	go.uber.org/zap v1.22.0
-	golang.org/x/oauth2 v0.0.0-20220808172628-8227340efae7
+	go.uber.org/zap v1.23.0
+	golang.org/x/oauth2 v0.1.0
 	google.golang.org/api v0.91.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.22.1
@@ -118,10 +118,10 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20220809012201-f428fae20770 // indirect
-	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664 // indirect
-	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/term v0.1.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -140,15 +140,15 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.11 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.10 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.17 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.25 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.19 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.11
-	github.com/aws/smithy-go v1.13.3
+	github.com/aws/smithy-go v1.13.4
 	github.com/benbjohnson/clock v1.3.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -183,9 +183,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.18.15
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.13.19
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.18.1
+	github.com/common-fate/clio v1.0.0
 	github.com/common-fate/ddb v0.13.1-0.20220930114850-2dfab8086fc6
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0

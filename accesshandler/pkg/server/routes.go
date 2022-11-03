@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/openapi"
@@ -21,7 +20,6 @@ func (s *Server) Routes() http.Handler {
 	r.Use(chiMiddleware.RequestID)
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
-	r.Use(chiMiddleware.Timeout(30 * time.Second))
 	r.Use(logger.Middleware(s.rawLog.Desugar()))
 	r.Use(openapi.Validator(s.swagger))
 

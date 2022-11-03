@@ -47,6 +47,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
+import { Helmet } from "react-helmet";
 import { Controller, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import ReactMarkdown from "react-markdown";
@@ -207,9 +208,18 @@ const Page = () => {
           to="/admin/providers"
         />
         <Text as="h4" textStyle="Heading/H4">
-          {registeredProvider !== undefined &&
+          {registeredProvider !== undefined && (
+              <Helmet>
+                <title>{registeredProvider.name} provider</title>
+              </Helmet>
+            ) &&
             `Setting up the ${registeredProvider.name} provider`}
         </Text>
+        {registeredProvider !== undefined && (
+          <Helmet>
+            <title>{registeredProvider.name} Setup</title>
+          </Helmet>
+        )}
         {data && (
           <HStack
             spacing={3}

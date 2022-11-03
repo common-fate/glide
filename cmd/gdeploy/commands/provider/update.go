@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/urfave/cli/v2"
@@ -53,9 +54,7 @@ var updateCommand = cli.Command{
 		}
 
 		if _, ok := dc.Deployment.Parameters.ProviderConfiguration[chosen]; !ok {
-			clio.Error("Provider configuration doesn't exist. Unable to remove provider '%s'", chosen)
-			clio.Log("Try using 'gdeploy providers add' to add a new provider.")
-			return nil
+			return clierr.New(fmt.Sprintf("Provider configuration doesn't exist. Unable to remove provider '%s'", chosen), clierr.Info("Try using 'gdeploy providers add' to add a new provider."))
 		}
 
 		with := map[string]string{}
@@ -70,7 +69,6 @@ var updateCommand = cli.Command{
 		uses = currentConfig.Uses
 		providerType, version, err := providerregistry.ParseUses(uses)
 		if err != nil {
-			fmt.Println(err)
 			return err
 		}
 
@@ -143,7 +141,7 @@ var updateCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("wrote config to %s", f)
+		clio.Successf("wrote config to %s", f)
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 	},

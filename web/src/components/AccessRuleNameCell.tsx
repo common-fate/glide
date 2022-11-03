@@ -1,4 +1,4 @@
-import { Box, BoxProps, HStack, Text } from "@chakra-ui/react";
+import { Box, BoxProps, Flex, HStack, Text } from "@chakra-ui/react";
 import React from "react";
 import { Link } from "react-location";
 import { useAdminGetAccessRule } from "../utils/backend-client/admin/admin";
@@ -26,10 +26,12 @@ export const RuleNameCell: React.FC<Props> = ({
 
   return (
     <Link to={isAdmin ? "/admin/access-rules/" + accessRuleId : "#"}>
-      <Box
+      <Flex
+        direction="column"
         className="group"
         textStyle="Body/Small"
         minW="200px"
+        maxW="600px"
         as="a"
         {...rest}
       >
@@ -46,7 +48,7 @@ export const RuleNameCell: React.FC<Props> = ({
           </Text>
         </HStack>
         {reason && <Text color="neutrals.500">{reason}</Text>}
-      </Box>
+      </Flex>
     </Link>
   );
 };

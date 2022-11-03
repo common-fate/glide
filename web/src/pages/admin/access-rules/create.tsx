@@ -1,10 +1,14 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
+import { Helmet } from "react-helmet";
 import CreateAccessRuleForm from "../../../components/forms/access-rule/CreateForm";
 
 import { AdminLayout } from "../../../components/Layout";
 const Index = () => {
   return (
     <AdminLayout>
+      <Helmet>
+        <title>New Access Rule</title>
+      </Helmet>
       <Box minH="90vh" pb={12}>
         <Flex
           h={20}

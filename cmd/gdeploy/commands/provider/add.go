@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
-	"github.com/common-fate/granted-approvals/pkg/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/urfave/cli/v2"
@@ -49,7 +49,7 @@ var addCommand = cli.Command{
 			if err != nil {
 				return err
 			}
-			clio.Info("Follow the documentation for setting up the %s provider here: https://docs.commonfate.io/granted-approvals/providers/%s", provider.Description, provider.DefaultID)
+			clio.Infof("Follow the documentation for setting up the %s provider here: https://docs.commonfate.io/granted-approvals/providers/%s", provider.Description, provider.DefaultID)
 		} else {
 			p, err := r.LookupByUses(uses)
 			if err != nil {
@@ -135,7 +135,7 @@ var addCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("wrote config to %s", f)
+		clio.Successf("wrote config to %s", f)
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 		return nil
 	},

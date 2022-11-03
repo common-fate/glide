@@ -3,7 +3,7 @@ package commands
 import (
 	"os"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -23,8 +23,8 @@ var CreateCommand = cli.Command{
 			return err
 		}
 
-		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
-		clio.Info("Using template: %s", dc.CfnTemplateURL())
+		clio.Infof("Deploying Granted Approvals %s", dc.Deployment.Release)
+		clio.Infof("Using template: %s", dc.CfnTemplateURL())
 		clio.Warn("Your initial deployment will take approximately 5 minutes while CloudFront resources are created. (At worst this can take up to 25 minutes)\nSubsequent updates should take less time.")
 		confirm := c.Bool("confirm")
 
@@ -57,7 +57,7 @@ var CreateCommand = cli.Command{
 Check out the next steps in our getting started guide for more information: https://docs.commonfate.io/granted-approvals/getting-started/deploying
 `)
 		} else {
-			clio.Warn("Creating your Granted deployment failed with a final status: %s", status)
+			clio.Warnf("Creating your Granted deployment failed with a final status: %s", status)
 			return nil
 		}
 

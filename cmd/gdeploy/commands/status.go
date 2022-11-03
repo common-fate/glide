@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
@@ -30,7 +30,7 @@ var StatusCommand = cli.Command{
 			return err
 		}
 
-		clio.Info("Cloudformation stack status: %s", ss)
+		clio.Infof("Cloudformation stack status: %s", ss)
 
 		return nil
 	},
