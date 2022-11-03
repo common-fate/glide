@@ -59,7 +59,7 @@ var SyncCommand = cli.Command{
 		}
 		clio.Debugf("cache sync lamda invoke response: %s", string(b))
 		if res.FunctionError != nil {
-			return fmt.Errorf("user and group sync failed with lambda execution error: %s", *res.FunctionError)
+			return fmt.Errorf("cache sync failed with lambda execution error: %s", *res.FunctionError)
 		} else if res.StatusCode == 200 {
 
 			clio.Successf("Successfully synced the cache")
