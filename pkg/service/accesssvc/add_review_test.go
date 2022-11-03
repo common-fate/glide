@@ -304,7 +304,7 @@ func TestAddReview(t *testing.T) {
 			ep.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 			c := ddbmock.New(t)
-			c.MockQuery(&storage.ListRequestsForUserAndRuleAndRequestend{})
+			c.MockQuery(&storage.ListRequestsForUserAndRequestend{})
 
 			// called by dbupdate.GetUpdateRequestItems
 			c.MockQuery(&storage.ListRequestReviewers{})
