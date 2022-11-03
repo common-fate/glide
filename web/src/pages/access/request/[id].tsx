@@ -596,7 +596,7 @@ export const AccessRuleArguments: React.FC<{
   }
   const subRequests = watch("with");
   return (
-    <Flex direction={"column"} justify={"left"}>
+    <VStack align={"left"}>
       <VStack w="100%" spacing={4}>
         {subRequests?.map((_, subRequestIndex) => (
           <VStack
@@ -606,29 +606,33 @@ export const AccessRuleArguments: React.FC<{
             borderColor="gray.300"
             rounded="md"
             px={4}
-            pb={4}
+            py={4}
             spacing={4}
             align={"left"}
           >
-            <Wrap>
-              {Object.entries(target.arguments)
-                .filter(([k, v]) => {
-                  return !v.requiresSelection;
-                })
-                .map(([k, argument]) => {
-                  return (
-                    <WrapItem>
-                      <VStack align={"left"}>
-                        <Text>{argument.title}</Text>
-                        <InfoOption
-                          label={argument.options[0].label}
-                          value={argument.options[0].value}
-                        />
-                      </VStack>
-                    </WrapItem>
-                  );
-                })}
-            </Wrap>
+            {Object.entries(target.arguments).filter(([k, v]) => {
+              return !v.requiresSelection;
+            }).length > 0 && (
+              <Wrap spacing={4}>
+                {Object.entries(target.arguments)
+                  .filter(([k, v]) => {
+                    return !v.requiresSelection;
+                  })
+                  .map(([k, argument]) => {
+                    return (
+                      <WrapItem>
+                        <VStack align={"left"}>
+                          <Text>{argument.title}</Text>
+                          <InfoOption
+                            label={argument.options[0].label}
+                            value={argument.options[0].value}
+                          />
+                        </VStack>
+                      </WrapItem>
+                    );
+                  })}
+              </Wrap>
+            )}
             {Object.entries(target.arguments)
               .filter(([k, v]) => {
                 return v.requiresSelection;
@@ -686,6 +690,7 @@ export const AccessRuleArguments: React.FC<{
       ) !== undefined && (
         <ButtonGroup>
           <Button
+            pl={0}
             type="button"
             size="sm"
             variant="ghost"
@@ -699,7 +704,7 @@ export const AccessRuleArguments: React.FC<{
           </Button>
         </ButtonGroup>
       )}
-    </Flex>
+    </VStack>
   );
 };
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {

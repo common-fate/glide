@@ -95,7 +95,7 @@ const Home = () => {
               justifyContent="center"
               spacing={12}
             >
-              <VStack>
+              <VStack spacing={8}>
                 <Favorites />
                 <Flex flexDirection="column" w="100%">
                   <Flex>
@@ -117,7 +117,7 @@ const Home = () => {
                     </Button>
                   </Flex>
                   <Grid
-                    mt={8}
+                    mt={4}
                     templateColumns={{
                       base: "repeat(20, 1fr)",
                       lg: "repeat(1, 1fr)",
@@ -462,7 +462,7 @@ const UserAccessCard: React.FC<
 };
 
 const Favorites: React.FC = () => {
-  const { data: favorites, isValidating } = useUserListFavorites();
+  const { data: favorites } = useUserListFavorites();
 
   if (favorites?.favorites.length === 0) {
     return null;
@@ -480,7 +480,7 @@ const Favorites: React.FC = () => {
         </Text>
       </Flex>
       <Grid
-        mt={8}
+        mt={4}
         templateColumns={{
           base: "repeat(20, 1fr)",
           lg: "repeat(1, 1fr)",
