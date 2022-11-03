@@ -74,12 +74,14 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			if err != nil {
 				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
 			}
+			// for webhooks
 			reviewerSummary, reviewerMsg := BuildRequestMessage(RequestMessageOpts{
 				Request:          request,
 				RequestArguments: requestArguments,
 				Rule:             requestedRule,
 				RequestorEmail:   requestingUserQuery.Result.Email,
 				ReviewURLs:       reviewURL,
+				IsWebhook:        true,
 			})
 
 			// log for testing purposes
@@ -111,6 +113,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					RequestorSlackID: slackUserID,
 					RequestorEmail:   requestingUserQuery.Result.Email,
 					ReviewURLs:       reviewURL,
+					IsWebhook:        false,
 				})
 
 				var wg sync.WaitGroup
@@ -212,8 +215,9 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 			RequestorSlackID: slackUserID,
 			RequestorEmail:   requestingUser.Email,
 			ReviewURLs:       reviewURL,
-			WasReviewed:      true,
+			WasReviewed:      false,
 			RequestReviewer:  reqReviewer.Result,
+			IsWebhook:        false,
 		})
 		for _, usr := range reviewers.Result {
 			err = n.UpdateMessageBlockForReviewer(ctx, usr, msg)
@@ -238,6 +242,7 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 			ReviewURLs:       reviewURL,
 			WasReviewed:      true,
 			RequestReviewer:  reqReviewer.Result,
+			IsWebhook:        true,
 		})
 		err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
 		if err != nil {
@@ -255,6 +260,7 @@ type RequestMessageOpts struct {
 	RequestorEmail   string
 	WasReviewed      bool
 	RequestReviewer  *identity.User
+	IsWebhook        bool
 }
 
 func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
@@ -263,16 +269,20 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
 	}
 
-	summary = fmt.Sprintf("New request for %s from %s", o.Rule.Name, o.RequestorEmail)
+	statusLower := strings.ToLower(string(o.Request.Status))
+	status := strings.ToUpper(string(statusLower[0])) + statusLower[1:]
+
+	if o.IsWebhook && o.WasReviewed && o.Request.Status != access.PENDING {
+		summary = fmt.Sprintf("%s %s %s's request", o.RequestReviewer.Email, statusLower, o.RequestorEmail)
+	} else {
+		summary = fmt.Sprintf("New request for %s from %s", o.Rule.Name, o.RequestorEmail)
+	}
 
 	when := "ASAP"
 	if o.Request.RequestedTiming.StartTime != nil {
 		t := o.Request.RequestedTiming.StartTime
 		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
 	}
-
-	status := strings.ToLower(string(o.Request.Status))
-	status = strings.ToUpper(string(status[0])) + status[1:]
 
 	requestDetails := []*slack.TextBlockObject{
 		{
@@ -304,12 +314,20 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 		})
 	}
 
+	var richTextSummary string
+
+	if o.IsWebhook && o.WasReviewed && o.Request.Status != access.PENDING {
+		richTextSummary = fmt.Sprintf("*%s %s %s's request*", o.RequestReviewer.Email, statusLower, o.RequestorEmail)
+	} else {
+		richTextSummary = fmt.Sprintf("*<%s|New request for %s> from %s*", o.ReviewURLs.Review, o.Rule.Name, requestor)
+	}
+
 	msg = slack.NewBlockMessage(
 		slack.SectionBlock{
 			Type: slack.MBTSection,
 			Text: &slack.TextBlockObject{
 				Type: slack.MarkdownType,
-				Text: fmt.Sprintf("*<%s|New request for %s> from %s*", o.ReviewURLs.Review, o.Rule.Name, requestor),
+				Text: richTextSummary,
 			},
 		},
 		slack.SectionBlock{
