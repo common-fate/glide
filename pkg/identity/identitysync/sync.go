@@ -5,16 +5,20 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/pkg/depid"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"go.uber.org/zap"
 )
 
 type IdentityProvider interface {
+	Name() string
 	ListUsers(ctx context.Context) ([]identity.IDPUser, error)
 	ListGroups(ctx context.Context) ([]identity.IDPGroup, error)
 	gconfig.Configer
@@ -101,6 +105,8 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	log.Infow("fetched users and groups from IDP", "users.count", len(idpUsers), "groups.count", len(idpGroups))
 
+	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups), IDP: s.idp.Name()})
+
 	uq := &storage.ListUsers{}
 	_, err = s.db.Query(ctx, uq)
 	if err != nil {
@@ -125,7 +131,19 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	return s.db.PutBatch(ctx, items...)
 }
 
-// processUsersAndGroups conatins all the logic for create/update/archive for users and groups
+// analytics event
+func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.SugaredLogger, info depid.UserInfo) {
+	ac := analytics.New(analytics.Env())
+	dep, err := depid.New(s.db, log).SetUserInfo(ctx, info)
+	if err != nil {
+		log.Errorw("error setting deployment info", zap.Error(err))
+	}
+	if dep != nil {
+		ac.Track(dep.ToAnalytics())
+	}
+}
+
+// processUsersAndGroups contains all the logic for create/update/archive for users and groups
 //
 // It returns a map of users and groups ready to be inserted to the database
 func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group) (map[string]identity.User, map[string]identity.Group) {

@@ -11,6 +11,7 @@ import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
+
 interface Props extends cdk.StackProps {
   stage: string;
   cognitoDomainPrefix: string;
@@ -26,7 +27,12 @@ interface Props extends cdk.StackProps {
   adminGroupId: string;
   cloudfrontWafAclArn: string;
   apiGatewayWafAclArn: string;
+  analyticsDisabled: string;
+  analyticsUrl: string;
+  analyticsLogLevel: string;
+  analyticsDeploymentStage: string;
 }
+
 export class DevGrantedStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id, props);
@@ -45,6 +51,10 @@ export class DevGrantedStack extends cdk.Stack {
       remoteConfigHeaders,
       cloudfrontWafAclArn,
       apiGatewayWafAclArn,
+      analyticsDisabled,
+      analyticsUrl,
+      analyticsLogLevel,
+      analyticsDeploymentStage,
     } = props;
     const appName = `granted-approvals-${stage}`;
 
@@ -98,6 +108,10 @@ export class DevGrantedStack extends cdk.Stack {
       remoteConfigUrl,
       remoteConfigHeaders,
       apiGatewayWafAclArn,
+      analyticsDisabled,
+      analyticsUrl,
+      analyticsLogLevel,
+      analyticsDeploymentStage,
     });
     /* Outputs */
     generateOutputs(this, {

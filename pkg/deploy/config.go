@@ -158,21 +158,25 @@ func (f FeatureMap) Remove(id string) {
 }
 
 type Parameters struct {
-	CognitoDomainPrefix             string         `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID            string         `yaml:"AdministratorGroupID"`
-	DeploymentSuffix                string         `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType            string         `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata                 string         `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL              string         `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain                  string         `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN          string         `yaml:"FrontendCertificateARN,omitempty"`
-	CloudfrontWAFACLARN             string         `yaml:"CloudfrontWAFACLARN,omitempty"`
-	APIGatewayWAFACLARN             string         `yaml:"APIGatewayWAFACLARN,omitempty"`
-	ExperimentalRemoteConfigURL     string         `yaml:"ExperimentalRemoteConfigURL,omitempty"`
-	ExperimentalRemoteConfigHeaders string         `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
-	ProviderConfiguration           ProviderMap    `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration           FeatureMap     `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration      *Notifications `yaml:"NotificationsConfiguration,omitempty"`
+	CognitoDomainPrefix             string      `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID            string      `yaml:"AdministratorGroupID"`
+	DeploymentSuffix                string      `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType            string      `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata                 string      `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL              string      `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain                  string      `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN          string      `yaml:"FrontendCertificateARN,omitempty"`
+	CloudfrontWAFACLARN             string      `yaml:"CloudfrontWAFACLARN,omitempty"`
+	APIGatewayWAFACLARN             string      `yaml:"APIGatewayWAFACLARN,omitempty"`
+	ExperimentalRemoteConfigURL     string      `yaml:"ExperimentalRemoteConfigURL,omitempty"`
+	ExperimentalRemoteConfigHeaders string      `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
+	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration           FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration      *Notifications  `yaml:"NotificationsConfiguration,omitempty"`
+	AnalyticsDisabled               string      `yaml:"AnalyticsDisabled,omitempty"`
+	AnalyticsURL                    string      `yaml:"AnalyticsURL,omitempty"`
+	AnalyticsLogLevel               string      `yaml:"AnalyticsLogLevel,omitempty"`
+	AnalyticsDeploymentStage        string      `yaml:"AnalyticsDeploymentStage,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -450,6 +454,31 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		})
 	}
 
+	if c.Deployment.Parameters.AnalyticsDisabled != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsDisabled"),
+			ParameterValue: &p.AnalyticsDisabled,
+		})
+	}
+	if c.Deployment.Parameters.AnalyticsURL != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsURL"),
+			ParameterValue: &p.AnalyticsURL,
+		})
+	}
+	if c.Deployment.Parameters.AnalyticsLogLevel != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsLogLevel"),
+			ParameterValue: &p.AnalyticsLogLevel,
+		})
+	}
+	if c.Deployment.Parameters.AnalyticsDeploymentStage != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("AnalyticsDeploymentStage"),
+			ParameterValue: &p.AnalyticsDeploymentStage,
+		})
+	}
+
 	return res, nil
 }
 
@@ -563,6 +592,7 @@ func SetupDevConfig() (*Config, error) {
 			Dev:       &dev,
 			Parameters: Parameters{
 				AdministratorGroupID: "granted_administrators",
+				AnalyticsDisabled:    "true",
 			},
 		},
 	}

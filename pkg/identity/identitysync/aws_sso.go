@@ -22,6 +22,8 @@ type AWSSSO struct {
 	region gconfig.StringValue
 }
 
+func (s *AWSSSO) Name() string { return "aws-sso" }
+
 func (s *AWSSSO) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("identityStoreRoleArn", &s.identityStoreRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),

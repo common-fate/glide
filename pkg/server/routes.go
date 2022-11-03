@@ -18,6 +18,7 @@ func (c *Server) Handler() http.Handler {
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
 	r.Use(logger.Middleware(c.log.Desugar()))
+	r.Use(analyticsMiddleware(c.db, c.log))
 	r.Use(sentryMiddleware)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{c.cfg.FrontendURL},

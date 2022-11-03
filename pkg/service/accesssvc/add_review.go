@@ -3,6 +3,7 @@ package accesssvc
 import (
 	"context"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/rule"
@@ -119,6 +120,26 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	res := AddReviewResult{
 		Request: request,
 	}
+
+	// analytics event
+
+	var ot *analytics.Timing
+	if r.OverrideTimings != nil {
+		t := r.OverrideTimings.ToAnalytics()
+		ot = &t
+	}
+
+	analytics.FromContext(ctx).Track(&analytics.RequestReviewed{
+		RequestedBy:            request.RequestedBy,
+		ReviewedBy:             r.ReviewerID,
+		PendingDurationSeconds: s.Clock.Since(request.CreatedAt).Seconds(),
+		Review:                 string(r.Decision),
+		OverrideTiming:         ot,
+		Provider:               opts.AccessRule.Target.ProviderType,
+		RuleID:                 request.Rule,
+		Timing:                 request.RequestedTiming.ToAnalytics(),
+		HasReason:              request.HasReason(),
+	})
 
 	return &res, nil
 }

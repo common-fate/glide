@@ -185,8 +185,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.18.1
+	github.com/common-fate/analytics-go v0.0.0-20221103150131-462978118bbf
 	github.com/common-fate/clio v1.0.0
-	github.com/common-fate/ddb v0.13.1-0.20220930114850-2dfab8086fc6
+	github.com/common-fate/ddb v0.15.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
@@ -195,7 +196,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/slack-go/slack v0.11.2
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.11.1
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
