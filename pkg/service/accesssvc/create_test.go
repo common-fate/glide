@@ -38,6 +38,7 @@ func TestNewRequest(t *testing.T) {
 		withGetGroupResponse         *storage.GetGroup
 		withRequestArgumentsResponse map[string]types.RequestArgument
 		wantValidationError          error
+		currentRequestsForGrant      []access.Request
 	}
 
 	clk := clock.NewMock()
@@ -74,6 +75,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "fails because requested duration is greater than max duration",
@@ -100,6 +102,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "user not in correct group",
@@ -107,13 +110,15 @@ func TestNewRequest(t *testing.T) {
 			rule: &rule.AccessRule{
 				Groups: []string{"b"},
 			},
-			wantErr: ErrNoMatchingGroup,
+			wantErr:                 ErrNoMatchingGroup,
+			currentRequestsForGrant: []access.Request{},
 		},
 		{
-			name:     "rule not found",
-			giveUser: identity.User{Groups: []string{"a"}},
-			ruleErr:  ddb.ErrNoItems,
-			wantErr:  ErrRuleNotFound,
+			name:                    "rule not found",
+			giveUser:                identity.User{Groups: []string{"a"}},
+			ruleErr:                 ddb.ErrNoItems,
+			wantErr:                 ErrRuleNotFound,
+			currentRequestsForGrant: []access.Request{},
 		},
 		{
 			name:     "with reviewers",
@@ -148,6 +153,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "requestor is approver on access rule",
@@ -186,6 +192,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name:     "requestor is in approver group on access rule",
@@ -230,6 +237,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 		{
 			name: "failed validation should not create request",
@@ -253,6 +261,7 @@ func TestNewRequest(t *testing.T) {
 			wantValidationError:          fmt.Errorf("unexpected response while validating grant"),
 			wantErr:                      fmt.Errorf("unexpected response while validating grant"),
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
+			currentRequestsForGrant:      []access.Request{},
 		},
 	}
 
@@ -262,7 +271,7 @@ func TestNewRequest(t *testing.T) {
 			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: tc.rule}, tc.ruleErr)
 			db.MockQuery(tc.withGetGroupResponse)
 			db.MockQuery(&storage.ListRequestReviewers{})
-			db.MockQuery(&storage.ListRequestsForUserAndRuleAndRequestend{})
+			db.MockQuery(&storage.ListRequestsForUserAndRequestend{Result: tc.currentRequestsForGrant})
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()

@@ -16,61 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOverlapsExistingGrant(t *testing.T) {
-	type testcase struct {
-		name           string
-		grant          access.Grant
-		existingGrants []access.Request
-		want           bool
-	}
-	clk := clock.NewMock()
-	a := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(-time.Minute + time.Second)}
-	b := access.Grant{Start: clk.Now(), End: clk.Now().Add(time.Minute)}
-	c := access.Grant{Start: clk.Now().Add(-time.Minute), End: clk.Now().Add(time.Minute)}
-	d := access.Grant{Start: clk.Now().Add(time.Second * 30), End: clk.Now().Add(time.Minute)}
-
-	testcases := []testcase{
-		{
-			name:           "no existing grants",
-			grant:          a,
-			existingGrants: []access.Request{},
-			want:           false,
-		},
-		{
-			name:           "no overlap before",
-			grant:          a,
-			existingGrants: []access.Request{{Grant: &b}},
-			want:           false,
-		},
-		{
-			name:           "overlap",
-			grant:          a,
-			existingGrants: []access.Request{{Grant: &a}},
-			want:           true,
-		},
-		{
-			name:           "partial overlap",
-			grant:          c,
-			existingGrants: []access.Request{{Grant: &b}},
-			want:           true,
-		},
-		{
-			name:           "partial overlap",
-			grant:          d,
-			existingGrants: []access.Request{{Grant: &b}},
-			want:           true,
-		},
-	}
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := overlapsExistingGrant(tc.grant.Start, tc.grant.End, tc.existingGrants)
-			assert.Equal(t, tc.want, got)
-		})
-
-	}
-
-}
-
 func TestAddReview(t *testing.T) {
 	type createGrantResponse struct {
 		request *access.Request
@@ -264,7 +209,7 @@ func TestAddReview(t *testing.T) {
 			ep.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 			c := ddbmock.New(t)
-			c.MockQuery(&storage.ListRequestsForUserAndRuleAndRequestend{})
+			c.MockQuery(&storage.ListRequestsForUserAndRequestend{})
 
 			// called by dbupdate.GetUpdateRequestItems
 			c.MockQuery(&storage.ListRequestReviewers{})
