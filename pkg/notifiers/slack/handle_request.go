@@ -19,7 +19,6 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
@@ -153,30 +152,22 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			//Review not required
 			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
-			reviewURL, err := notifiers.ReviewURL(n.FrontendURL, request.ID)
 			if err != nil {
 				return errors.Wrap(err, "building review URL")
 			}
-			accessory := &slack.Accessory{
-				ButtonElement: &slack.ButtonBlockElement{
-					Type: slack.PlainTextType,
-					Text: slack.NewTextBlockObject(slack.PlainTextType, "Access Instructions", true, false),
-					URL:  reviewURL.AccessInstructions,
-				},
-			}
-			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback, accessory)
+			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
 		}
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been approved.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", requestedRule.Name)
-		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback, nil)
+		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	case gevent.RequestCancelledType:
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	case gevent.RequestDeclinedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been declined.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been declined.", requestedRule.Name)
-		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback, nil)
+		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	}
 	return nil
