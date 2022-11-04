@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
+	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/cache"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
@@ -15,6 +16,7 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
 	mw "github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
+	"github.com/common-fate/granted-approvals/internal"
 	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
@@ -57,6 +59,7 @@ func main() {
 			mw.WithBeforeFuncs(&provider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&notifications.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&dashboard.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&cache.Command, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&commands.InitCommand, mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&release.Command, mw.RequireDeploymentConfig()),
 		},
@@ -73,7 +76,12 @@ func main() {
 
 	zap.ReplaceGlobals(log)
 
-	err := app.Run(os.Args)
+	err := internal.PrintAnalyticsNotice(false)
+	if err != nil {
+		clio.Debugf("error printing analytics notice: %s", err)
+	}
+
+	err = app.Run(os.Args)
 	if err != nil {
 		// if the error is an instance of clio.PrintCLIErrorer then print the error accordingly
 		if cliError, ok := err.(clierr.PrintCLIErrorer); ok {

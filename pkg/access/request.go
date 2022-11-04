@@ -3,6 +3,7 @@ package access
 import (
 	"time"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/ddb"
 	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/rule"
@@ -93,6 +94,7 @@ type Request struct {
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 }
+
 type GetIntervalOpts struct {
 	Now time.Time
 }
@@ -100,6 +102,11 @@ type GetIntervalOpts struct {
 // WithNow allows you to override the now time used by getInterval
 func WithNow(t time.Time) func(o *GetIntervalOpts) {
 	return func(o *GetIntervalOpts) { o.Now = t }
+}
+
+// HasReason returns true if the request has a non-empty reason associated with it.
+func (r *Request) HasReason() bool {
+	return r.Data.Reason != nil && *r.Data.Reason != ""
 }
 
 // GetInterval will return the interval for either the requested timing or for the override timing if it is present
@@ -252,6 +259,18 @@ type Timing struct {
 	Duration time.Duration `json:"duration" dynamodbav:"duration"`
 	// If the start time is not nil, this request is for scheduled access, if it is nil, then the request is for asap access
 	StartTime *time.Time `json:"start,omitempty" dynamodbav:"start,omitempty"`
+}
+
+func (t Timing) ToAnalytics() analytics.Timing {
+	mode := analytics.TimingModeASAP
+	if t.IsScheduled() {
+		mode = analytics.TimingModeScheduled
+	}
+
+	return analytics.Timing{
+		Mode:            mode,
+		DurationSeconds: t.Duration.Seconds(),
+	}
 }
 
 // TimingFromRequestTiming converts from the api type to the internal type

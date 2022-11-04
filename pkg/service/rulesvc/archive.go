@@ -3,6 +3,7 @@ package rulesvc
 import (
 	"context"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -66,5 +67,12 @@ func (s *Service) ArchiveAccessRule(ctx context.Context, user *identity.User, in
 	if err != nil {
 		return nil, err
 	}
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RuleArchived{
+		ArchivedBy: user.ID,
+		RuleID:     in.ID,
+	})
+
 	return &newVersion, nil
 }

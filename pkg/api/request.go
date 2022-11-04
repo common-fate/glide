@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -232,6 +233,8 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 		err = apio.NewRequestError(err, http.StatusUnauthorized)
 	} else if err == accesssvc.ErrRuleNotFound {
 		err = apio.NewRequestError(fmt.Errorf("access rule %s not found", incomingRequest.AccessRuleId), http.StatusNotFound)
+	} else if err == accesssvc.ErrRequestOverlapsExistingGrant {
+		err = apio.NewRequestError(err, http.StatusBadRequest)
 	}
 	if err != nil {
 		apio.Error(ctx, w, err)
@@ -324,6 +327,16 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 		apio.Error(ctx, w, err)
 		return
 	}
+
+	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
+		RequestedBy: req.RequestedBy,
+		RevokedBy:   uid,
+		Provider:    req.Grant.Provider,
+		RuleID:      req.Rule,
+		Timing:      req.RequestedTiming.ToAnalytics(),
+		HasReason:   req.HasReason(),
+	})
+
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 

@@ -48,6 +48,7 @@ func TestListGroups(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.ListGroupsForStatus{Result: tc.idpGroups})
 
@@ -109,6 +110,7 @@ func TestGetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetGroup{Result: tc.idpGroup}, tc.idpErr)
 
@@ -177,6 +179,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
 			a := API{AdminGroup: adminGroup}
 			if !tc.notEnabled {

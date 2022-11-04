@@ -189,6 +189,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 
 	// This fails for AWS SSO because the users credentials may not be able to assume the sso role because of a restrictive trust relationship
 	// fall back to manual for these instances
+
 	grps, err := idp.IdentityProvider.ListGroups(ctx)
 	if err != nil {
 		clio.Debugf("could not list groups for IDP due to the following error %s", err)
@@ -215,15 +216,33 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		// sort groupNames alphabetically
 		sort.Strings(groupNames)
 
-		err = survey.AskOne(&survey.Select{
-			Message: "The ID of the Granted Administrators group in your identity provider:",
-			Options: groupNames,
-		}, &chosenKey)
+		if len(groupNames) == 0 {
+			clio.Error("no groups found please make at least 1 group in your identity provider")
+			//if there are no groups found, let the user know and make them create a group
+			//halt the cli to not end by asking for them for a bool input when they have created the group and then we will try and pull again
 
-		if err != nil {
-			return err
+			var groupID string
+			err = survey.AskOne(&survey.Input{
+				Message: "The ID of the Granted Administrators group in your identity provider:",
+			}, &groupID, survey.WithValidator(survey.MinLength(1)))
+			if err != nil {
+				return err
+			}
+			dc.Deployment.Parameters.AdministratorGroupID = groupID
+
+		} else {
+			err = survey.AskOne(&survey.Select{
+				Message: "The ID of the Granted Administrators group in your identity provider:",
+				Options: groupNames,
+			}, &chosenKey)
+
+			if err != nil {
+				return err
+			}
+			dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
+
 		}
-		dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
+
 	}
 
 	clio.Info("Updating your deployment config")

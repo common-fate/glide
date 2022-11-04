@@ -77,6 +77,7 @@ export const ManagementGroupsTable = () => {
             {cell.value == "INTERNAL" && <ApprovalsLogo h="20px" w="auto" />}
             {cell.value == "AZURE" && <AzureIcon h="20px" w="auto" />}
             {cell.value == "ONELOGIN" && <OktaIcon h="20px" w="auto" />}
+            {cell.value == "COGNITO" && "Cognito"}
           </Box>
         ),
       },

@@ -138,6 +138,35 @@ export class CustomerGrantedStack extends cdk.Stack {
       default: "",
     });
 
+    const analyticsUrl = new CfnParameter(this, "AnalyticsURL", {
+      type: "String",
+      description: "A custom URL to send anonymous analytics to.",
+      default: "",
+    });
+
+    const analyticsDisabled = new CfnParameter(this, "AnalyticsDisabled", {
+      type: "String",
+      description: "Disable anonymous analytics",
+      default: "false",
+      allowedValues: ["", "true", "false"],
+    });
+
+    const analyticsLogLevel = new CfnParameter(this, "AnalyticsLogLevel", {
+      type: "String",
+      description: "Analytics logging level",
+      default: "",
+    });
+
+    const analyticsDeploymentStage = new CfnParameter(
+      this,
+      "AnalyticsDeploymentStage",
+      {
+        type: "String",
+        description: "A label for the deployment stage (dev, uat)",
+        default: "",
+      }
+    );
+
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -196,6 +225,10 @@ export class CustomerGrantedStack extends cdk.Stack {
       remoteConfigUrl: remoteConfigUrl.valueAsString,
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
       apiGatewayWafAclArn: apiGatewayWafAclArn.valueAsString,
+      analyticsDisabled: analyticsDisabled.valueAsString,
+      analyticsUrl: analyticsUrl.valueAsString,
+      analyticsLogLevel: analyticsLogLevel.valueAsString,
+      analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -243,6 +276,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
+      CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
     });
   }
 }

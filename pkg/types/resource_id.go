@@ -39,3 +39,7 @@ func NewHistoryID() string {
 func NewProviderSetupID() string {
 	return newResourceID("pse")
 }
+
+func NewDeploymentID() string {
+	return newResourceID("dep")
+}
