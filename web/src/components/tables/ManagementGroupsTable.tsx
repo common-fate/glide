@@ -3,21 +3,25 @@ import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { Column } from "react-table";
 import {
-  useGetGroups,
-  useIdentityConfiguration,
-} from "../../utils/backend-client/admin/admin";
+  getGroupBySource,
+  useGetGroupBySource,
+} from "../../utils/backend-client/default/default";
+import { useIdentityConfiguration } from "../../utils/backend-client/admin/admin";
 
-import { Group, IdpStatus } from "../../utils/backend-client/types";
+import { Group, GroupSource } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
 import { TableRenderer } from "./TableRenderer";
 
 export const ManagementGroupsTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
-  const paginator = usePaginatorApi<typeof useGetGroups>({
-    swrHook: useGetGroups,
-    hookProps: { status: IdpStatus.INTERNAL },
-  });
+  // const paginator = usePaginatorApi<typeof useGetGroupBySource>({
+  //   swrHook: useGetGroupBySource,
+  //   hookProps: "INTERNAL",
+  //   swrProps: {},
+  // });
+
+  const { data: groupData } = useGetGroupBySource(GroupSource.INTERNAL);
 
   const cols: Column<Group>[] = useMemo(
     () => [
@@ -72,16 +76,16 @@ export const ManagementGroupsTable = () => {
       </Flex>
       {TableRenderer<Group>({
         columns: cols,
-        data: paginator?.data?.groups,
+        data: groupData?.groups,
         emptyText: "No groups",
-        apiPaginator: paginator,
+        // apiPaginator: paginator,
         linkTo: true,
       })}
 
       <CreateGroupModal
         isOpen={isOpen}
         onClose={() => {
-          void paginator.mutate();
+          // void groupData.mutate();
           onClose();
         }}
       />

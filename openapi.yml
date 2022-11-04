@@ -676,11 +676,6 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
-        - schema:
-            type: string
-          in: query
-          name: status
-          description: get group by status type
     parameters: []
     post:
       summary: Create Group
@@ -703,6 +698,27 @@ paths:
         $ref: '#/components/requestBodies/CreateGroupRequest'
       tags:
         - Admin
+  '/api/v1/admin/groups/{source}':
+    parameters:
+      - schema:
+          type: string
+        name: source
+        in: path
+        required: true
+        description: idp source of the group
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ListGroupsResponse'
+      operationId: get-group-by-source
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
   '/api/v1/admin/groups/{groupId}':
     parameters:
       - schema:
@@ -1438,7 +1454,18 @@ components:
       enum:
         - ARCHIVED
         - ACTIVE
+    GroupSource:
+      type: string
+      title: GroupSource
+      x-stoplight:
+        id: a3fdr17gch04a
+      description: enum types for source of a groups origin
+      enum:
         - INTERNAL
+        - AZURE
+        - GOOGLE
+        - ONELOGIN
+        - AWS
     ReviewDecision:
       type: string
       title: ReviewDecision

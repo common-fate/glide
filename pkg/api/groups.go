@@ -14,7 +14,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// Your GET endpoint
+// Gets all active groups
 // (GET /api/v1/groups/)
 func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.GetGroupsParams) {
 	ctx := r.Context()
@@ -24,36 +24,51 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	var status string
+	var groups []identity.Group
+	var nextToken string
 
-	if params.Status != nil {
-		status = *params.Status
+	q := storage.ListActiveGroups{}
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	groups = q.Result
+	nextToken = qr.NextPage
+
+	res := types.ListGroupsResponse{
+		Groups: make([]types.Group, len(groups)),
+		Next:   &nextToken,
+	}
+
+	for i, g := range groups {
+		res.Groups[i] = g.ToAPI()
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, source string, params types.GetGroupBySourceParams) {
+	ctx := r.Context()
+
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
 	var groups []identity.Group
 	var nextToken string
-	if status != "" {
-		q := storage.ListGroupsForStatus{
-			Status: types.IdpStatus(status),
-		}
-		qr, err := a.DB.Query(ctx, &q, queryOpts...)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		groups = q.Result
-		nextToken = qr.NextPage
-	} else {
-		q := storage.ListActiveGroups{}
-		qr, err := a.DB.Query(ctx, &q, queryOpts...)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		groups = q.Result
-		nextToken = qr.NextPage
 
+	q := storage.ListGroupsForSource{
+		Source: source,
 	}
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	groups = q.Result
+	nextToken = qr.NextPage
 
 	res := types.ListGroupsResponse{
 		Groups: make([]types.Group, len(groups)),
@@ -118,7 +133,8 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 			IdpID:       createGroupRequest.Name,
 			Name:        createGroupRequest.Name,
 			Description: *createGroupRequest.Description,
-			Status:      types.IdpStatusINTERNAL,
+			Status:      types.IdpStatusACTIVE,
+			Source:      types.INTERNAL,
 			Users:       *createGroupRequest.Members,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),

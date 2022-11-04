@@ -29,13 +29,13 @@ func (g IDPGroup) ToInternalGroup() Group {
 
 type Group struct {
 	// external id of the group
-	ID          string          `json:"id" dynamodbav:"id"`
-	IdpID       string          `json:"idpId" dynamodbav:"idpId"`
-	Name        string          `json:"name" dynamodbav:"name"`
-	Description string          `json:"description" dynamodbav:"description"`
-	Status      types.IdpStatus `json:"status" dynamodbav:"status"`
-	Users       []string        `json:"users" dynamodbav:"users"`
-
+	ID          string            `json:"id" dynamodbav:"id"`
+	IdpID       string            `json:"idpId" dynamodbav:"idpId"`
+	Name        string            `json:"name" dynamodbav:"name"`
+	Description string            `json:"description" dynamodbav:"description"`
+	Status      types.IdpStatus   `json:"status" dynamodbav:"status"`
+	Users       []string          `json:"users" dynamodbav:"users"`
+	Source      types.GroupSource `json:"source" dynamodbav:"source"`
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`

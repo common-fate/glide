@@ -17,7 +17,7 @@ export const GroupsTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
   const paginator = usePaginatorApi<typeof useGetGroups>({
     swrHook: useGetGroups,
-    hookProps: { status: IdpStatus.ACTIVE },
+    hookProps: {},
   });
 
   const cols: Column<Group>[] = useMemo(
