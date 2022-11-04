@@ -108,6 +108,11 @@ import { durationString } from "../../../utils/durationString";
 import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
+/**
+ * The reason I added this type was because I was having trouble being able to remove an array element in the context of the form.
+ * Instead, elements are marked as hidden when the remove button is pressed.
+ * So when processing the form values, be sure to filter out the hidden elements  first.
+ */
 interface FormCreateRequestWith {
   hidden?: boolean;
   data: CreateRequestWith;
@@ -791,19 +796,7 @@ const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
     </Text>
   );
 };
-const CustomOption = ({
-  children,
-  ...innerProps
-}: OptionProps<WithOption, false, GroupBase<WithOption>>) => (
-  <div data-testid={innerProps.data.value}>
-    <components.Option {...innerProps}>
-      <>
-        {children}
-        {<Text>{innerProps.data.value}</Text>}
-      </>
-    </components.Option>
-  </div>
-);
+
 export default AccessRequestForm;
 
 interface FavoriteRequestButtonProps {
