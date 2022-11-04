@@ -77,10 +77,10 @@ func (cro CreateRequestsOpts) argumentCombinations() (types.RequestArgumentCombi
 			if err != nil {
 				return nil, err
 			}
-			if combinations.HasDuplicates() {
-				return nil, apio.NewRequestError(errors.New("request contains duplicate subrequest values"), http.StatusBadRequest)
-			}
 			combinationsToCreate = append(combinationsToCreate, combinations...)
+		}
+		if combinationsToCreate.HasDuplicates() {
+			return nil, apio.NewRequestError(errors.New("request contains duplicate subrequest value combinations"), http.StatusBadRequest)
 		}
 	} else {
 		// only one combination with no values

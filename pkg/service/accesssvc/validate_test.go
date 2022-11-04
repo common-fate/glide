@@ -120,3 +120,123 @@ func TestValidateFavorite(t *testing.T) {
 	}
 
 }
+
+func TestValidateCreate(t *testing.T) {
+	type testcase struct {
+		name      string
+		giveInput CreateRequestsOpts
+		wantErr   error
+		want      *validateCreateRequestsResponse
+	}
+
+	clk := clock.NewMock()
+
+	accessRule := rule.AccessRule{
+		Groups: []string{"goodgroup"},
+		TimeConstraints: types.TimeConstraints{
+			MaxDurationSeconds: 3600,
+		},
+		Target: rule.Target{
+			WithSelectable: map[string][]string{
+				"accountId": {"a", "b"},
+			},
+		},
+	}
+	requestArguments := map[string]types.RequestArgument{
+		"accountId": {
+			RequiresSelection: true,
+			Options: []types.WithOption{
+				{
+					Value: "a",
+					Valid: true,
+				},
+				{
+					Value: "b",
+					Valid: true,
+				},
+			}},
+	}
+
+	testcases := []testcase{
+		{
+			name: "ok",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{
+								"accountId": {"a", "b"},
+							},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			want: &validateCreateRequestsResponse{
+				argumentCombinations: types.RequestArgumentCombinations{map[string]string{"accountId": "a"}, map[string]string{"accountId": "b"}},
+				rule:                 accessRule,
+				requestArguments:     requestArguments,
+			},
+		},
+		{
+			name: "bad",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{
+								"accountId": {"a", "b"},
+							},
+						},
+						{
+							AdditionalProperties: map[string][]string{
+								"accountId": {},
+							},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			wantErr: types.ArgumentHasNoValuesError{
+				Argument: "accountId",
+			},
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: &accessRule}, nil)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			rs := accessMocks.NewMockAccessRuleService(ctrl)
+			rs.EXPECT().RequestArguments(gomock.Any(), accessRule.Target).AnyTimes().Return(requestArguments, nil)
+			s := Service{
+				Clock: clk,
+				DB:    db,
+				Rules: rs,
+			}
+			got, err := s.validateCreateRequests(context.Background(), tc.giveInput)
+			assert.Equal(t, tc.want, got)
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+			}
+
+		})
+	}
+
+}
