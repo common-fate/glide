@@ -15,13 +15,11 @@ import { TableRenderer } from "./TableRenderer";
 
 export const ManagementGroupsTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
-  // const paginator = usePaginatorApi<typeof useGetGroupBySource>({
-  //   swrHook: useGetGroupBySource,
-  //   hookProps: "INTERNAL",
-  //   swrProps: {},
-  // });
-
-  const { data: groupData } = useGetGroupBySource(GroupSource.INTERNAL);
+  const paginator = usePaginatorApi<typeof useGetGroupBySource>({
+    swrHook: useGetGroupBySource,
+    hookProps: { source: GroupSource.INTERNAL },
+    swrProps: {},
+  });
 
   const cols: Column<Group>[] = useMemo(
     () => [
@@ -76,16 +74,16 @@ export const ManagementGroupsTable = () => {
       </Flex>
       {TableRenderer<Group>({
         columns: cols,
-        data: groupData?.groups,
+        data: paginator?.data?.groups,
         emptyText: "No groups",
-        // apiPaginator: paginator,
+        apiPaginator: paginator,
         linkTo: true,
       })}
 
       <CreateGroupModal
         isOpen={isOpen}
         onClose={() => {
-          // void groupData.mutate();
+          void paginator.mutate();
           onClose();
         }}
       />

@@ -136,35 +136,32 @@ export const adminArchiveAccessRule = (
  * @summary Your GET endpoint
  */
 export const getGroupBySource = (
-    source: string,
     params?: GetGroupBySourceParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListGroupsResponseResponse>(
-      {url: `/api/v1/admin/groups/${source}`, method: 'get',
+      {url: `/api/v1/admin/groups/source`, method: 'get',
         params
     },
       options);
     }
   
 
-export const getGetGroupBySourceKey = (source: string,
-    params?: GetGroupBySourceParams,) => [`/api/v1/admin/groups/${source}`, ...(params ? [params]: [])];
+export const getGetGroupBySourceKey = (params?: GetGroupBySourceParams,) => [`/api/v1/admin/groups/source`, ...(params ? [params]: [])];
 
     
 export type GetGroupBySourceQueryResult = NonNullable<Awaited<ReturnType<typeof getGroupBySource>>>
 export type GetGroupBySourceQueryError = ErrorType<unknown>
 
 export const useGetGroupBySource = <TError = ErrorType<unknown>>(
- source: string,
-    params?: GetGroupBySourceParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupBySource>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+ params?: GetGroupBySourceParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupBySource>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && !!(source)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupBySourceKey(source,params) : null);
-  const swrFn = () => getGroupBySource(source,params, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupBySourceKey(params) : null);
+  const swrFn = () => getGroupBySource(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

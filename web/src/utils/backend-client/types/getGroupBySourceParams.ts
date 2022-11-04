@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type GetGroupBySourceParams = { nextToken?: string };
+export type GetGroupBySourceParams = { nextToken?: string; source?: string };
