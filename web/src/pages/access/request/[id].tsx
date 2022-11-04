@@ -976,8 +976,8 @@ So I have just submitted the form directly using the submit button*/}
                     res.push(
                       "Invalid characters (only letters, numbers, and punctuation allowed)"
                     );
-                  if (value && value.length > 2048) {
-                    res.push("Maximum length is 2048 characters");
+                  if (value && value.length > 128) {
+                    res.push("Maximum length is 128 characters");
                   }
                   return res.length > 0 ? res.join(", ") : undefined;
                 },
