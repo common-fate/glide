@@ -16,6 +16,7 @@ import (
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
 	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
 	mw "github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
+	"github.com/common-fate/granted-approvals/internal"
 	"github.com/common-fate/granted-approvals/internal/build"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
@@ -75,7 +76,12 @@ func main() {
 
 	zap.ReplaceGlobals(log)
 
-	err := app.Run(os.Args)
+	err := internal.PrintAnalyticsNotice(false)
+	if err != nil {
+		clio.Debugf("error printing analytics notice: %s", err)
+	}
+
+	err = app.Run(os.Args)
 	if err != nil {
 		// if the error is an instance of clio.PrintCLIErrorer then print the error accordingly
 		if cliError, ok := err.(clierr.PrintCLIErrorer); ok {

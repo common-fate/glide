@@ -11,7 +11,7 @@ import (
 // including provider and notification information.
 type DeployConfigReader interface {
 	ReadProviders(ctx context.Context) (ProviderMap, error)
-	ReadNotifications(ctx context.Context) (FeatureMap, error)
+	ReadNotifications(ctx context.Context) (*Notifications, error)
 }
 
 type ProviderWriter interface {

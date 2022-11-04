@@ -2,14 +2,12 @@ package accesssvc
 
 import (
 	"context"
-	"time"
 
-	"github.com/common-fate/ddb"
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/granted-approvals/pkg/access"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -61,21 +59,11 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	case access.DecisionApproved:
 		request.Status = access.APPROVED
 		request.OverrideTiming = opts.OverrideTiming
-		start, end := request.GetInterval(access.WithNow(s.Clock.Now()))
-		// this request must not overlap an existing grant for the user and rule
-		// This fetches all grants which end in the future, these may or may not have a grant associated yet.
-		rq := storage.ListRequestsForUserAndRuleAndRequestend{
-			UserID:               request.RequestedBy,
-			RuleID:               request.Rule,
-			RequestEndComparator: storage.GreaterThanEqual,
-			CompareTo:            end,
-		}
-		_, err := s.DB.Query(ctx, &rq)
-		if err != nil && err != ddb.ErrNoItems {
+		// This will check against the requests which do have grants already
+		overlaps, err := s.overlapsExistingGrant(ctx, request)
+		if err != nil {
 			return nil, err
 		}
-		// This will check against the requests which do have grants already
-		overlaps := overlapsExistingGrant(start, end, rq.Result)
 		if overlaps {
 			return nil, ErrRequestOverlapsExistingGrant
 		}
@@ -133,23 +121,27 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		Request: request,
 	}
 
+	// analytics event
+
+	var ot *analytics.Timing
+	if r.OverrideTimings != nil {
+		t := r.OverrideTimings.ToAnalytics()
+		ot = &t
+	}
+
+	analytics.FromContext(ctx).Track(&analytics.RequestReviewed{
+		RequestedBy:            request.RequestedBy,
+		ReviewedBy:             r.ReviewerID,
+		PendingDurationSeconds: s.Clock.Since(request.CreatedAt).Seconds(),
+		Review:                 string(r.Decision),
+		OverrideTiming:         ot,
+		Provider:               opts.AccessRule.Target.ProviderType,
+		RuleID:                 request.Rule,
+		Timing:                 request.RequestedTiming.ToAnalytics(),
+		HasReason:              request.HasReason(),
+	})
+
 	return &res, nil
-}
-
-func overlapsExistingGrant(start, end time.Time, upcomingRequests []access.Request) bool {
-	if len(upcomingRequests) == 0 {
-		return false
-	}
-	// maybe we need to add a buffer here to prevent edge cases where a race condition occurs in the step functions and access is provisioned for a new grant and cancelled for an old one leaving no access.
-	for _, r := range upcomingRequests {
-		if r.Grant != nil {
-			if (start.Before(r.Grant.End) || start.Equal(r.Grant.End)) && (end.After(r.Grant.Start) || end.Equal(r.Grant.Start)) {
-				return true
-			}
-		}
-
-	}
-	return false
 }
 
 // users can review requests if they are a Granted administrator,

@@ -54,7 +54,7 @@ func New(ctx context.Context, cfg Config, opts ...func(*Server)) (*Server, error
 	}
 
 	if cfg.Authenticator == nil {
-		return nil, errors.New("Authenticator must be provided")
+		return nil, errors.New("authenticator must be provided")
 	}
 	if cfg.IdentitySyncer == nil {
 		return nil, errors.New("IdentitySyncer must be provided")

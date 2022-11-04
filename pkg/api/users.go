@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/auth"
@@ -77,6 +78,11 @@ func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
 		User:    u.ToAPI(),
 		IsAdmin: admin,
 	}
+	analytics.FromContext(ctx).Track(&analytics.UserInfo{
+		ID:         u.ID,
+		GroupCount: len(u.Groups),
+		IsAdmin:    admin,
+	})
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 

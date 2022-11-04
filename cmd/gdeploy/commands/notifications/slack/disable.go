@@ -3,7 +3,6 @@ package slack
 import (
 	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,7 +18,7 @@ var disableSlackCommand = cli.Command{
 			return err
 		}
 
-		dc.Deployment.Parameters.NotificationsConfiguration.Remove(slacknotifier.NotificationsTypeSlack)
+		dc.Deployment.Parameters.NotificationsConfiguration.Slack = nil
 		err = dc.Save(f)
 		if err != nil {
 			return err

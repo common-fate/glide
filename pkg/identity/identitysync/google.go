@@ -26,6 +26,8 @@ func (s *GoogleSync) Config() gconfig.Config {
 	}
 }
 
+func (s *GoogleSync) Name() string { return "google-workspace" }
+
 func (s *GoogleSync) Init(ctx context.Context) error {
 	config, err := google.JWTConfigFromJSON([]byte(s.apiToken.Get()), admin.AdminDirectoryUserReadonlyScope, admin.AdminDirectoryGroupReadonlyScope)
 	if err != nil {

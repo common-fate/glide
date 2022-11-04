@@ -6,37 +6,47 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
-const NotificationsTypeSlack = "slack"
-
-// Notifier provides handler methods for sending notifications to slack based on events
+// SlackNotifier provides handler methods for sending notifications to Slack based on events.
+// It has config for sending Slack DMs and/or messaging via Incoming Webhooks.
 type SlackNotifier struct {
-	DB          ddb.Storage
-	FrontendURL string
-	client      *slack.Client
-	apiToken    gconfig.SecretStringValue
+	DB                  ddb.Storage
+	FrontendURL         string
+	webhooks            []*SlackIncomingWebhook
+	directMessageClient *SlackDirectMessage
 }
 
-func (s *SlackNotifier) Config() gconfig.Config {
-	return gconfig.Config{
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Slack API token", gconfig.WithNoArgs("/granted/secrets/notifications/slack/token")),
+func (n *SlackNotifier) Init(ctx context.Context, config *deploy.Notifications) error {
+	if config.Slack != nil {
+		slackDMClient := &SlackDirectMessage{}
+		err := slackDMClient.Config().Load(ctx, &gconfig.MapLoader{Values: config.Slack})
+		if err != nil {
+			return err
+		}
+		err = slackDMClient.Init(ctx)
+		if err != nil {
+			return err
+		}
+		n.directMessageClient = slackDMClient
 	}
-}
+	if config.SlackIncomingWebhooks != nil {
+		log := zap.S()
+		log.Info("initialising slack incoming webhooks", "webhooks", config.SlackIncomingWebhooks)
 
-func (s *SlackNotifier) Init(ctx context.Context) error {
-	s.client = slack.New(s.apiToken.Get())
-	return nil
-}
-
-func (s *SlackNotifier) TestConfig(ctx context.Context) error {
-	_, err := s.client.GetUsersContext(ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to list users while testing slack configuration")
+		for _, webhook := range config.SlackIncomingWebhooks {
+			sw := SlackIncomingWebhook{
+				webhookURL: gconfig.SecretStringValue{Value: webhook["webhookUrl"]},
+			}
+			err := sw.Config().Load(ctx, &gconfig.MapLoader{Values: webhook})
+			if err != nil {
+				return err
+			}
+			n.webhooks = append(n.webhooks, &sw)
+		}
 	}
 	return nil
 }

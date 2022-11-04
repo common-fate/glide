@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
@@ -173,6 +174,17 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 	if err != nil {
 		return nil, err
 	}
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
+		CreatedBy:             user.ID,
+		RuleID:                rul.ID,
+		Provider:              rul.Target.ProviderType,
+		MaxDurationSeconds:    in.TimeConstraints.MaxDurationSeconds,
+		UsesSelectableOptions: rul.Target.UsesSelectableOptions(),
+		UsesDynamicOptions:    rul.Target.UsesDynamicOptions(),
+		RequiresApproval:      rul.Approval.IsRequired(),
+	})
 
 	return &rul, nil
 }

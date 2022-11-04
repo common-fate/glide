@@ -33,6 +33,12 @@ const remoteConfigHeaders = app.node.tryGetContext(
 );
 const apiGatewayWafAclArn = app.node.tryGetContext("apiGatewayWafAclArn");
 const cloudfrontWafAclArn = app.node.tryGetContext("cloudfrontWafAclArn");
+const analyticsDisabled = app.node.tryGetContext("analyticsDisabled");
+const analyticsUrl = app.node.tryGetContext("analyticsUrl");
+const analyticsLogLevel = app.node.tryGetContext("analyticsLogLevel");
+const analyticsDeploymentStage = app.node.tryGetContext(
+  "analyticsDeploymentStage"
+);
 
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one
@@ -72,6 +78,10 @@ if (stackTarget === "dev") {
     remoteConfigHeaders: remoteConfigHeaders || "",
     apiGatewayWafAclArn: apiGatewayWafAclArn,
     cloudfrontWafAclArn: cloudfrontWafAclArn,
+    analyticsDisabled: analyticsDisabled || "",
+    analyticsUrl: analyticsUrl || "",
+    analyticsLogLevel: analyticsLogLevel || "",
+    analyticsDeploymentStage: analyticsDeploymentStage || "",
   });
 } else if (stackTarget === "prod") {
   new CustomerGrantedStack(app, "Granted", {
