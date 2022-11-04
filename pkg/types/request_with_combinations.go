@@ -1,5 +1,28 @@
 package types
 
+type RequestArgumentCombinations []map[string]string
+
+// HasDuplicates compares all the combinations in the array
+// O = n*n*arguments
+func (c RequestArgumentCombinations) HasDuplicates() bool {
+	for i, combination := range c {
+	Filterloop:
+		for i2, combination2 := range c {
+			if i != i2 {
+				for k, v := range combination {
+					// if any fields dont match then this is a mismatching combination so go to the next combination
+					// in this context, all combinations should have the same keys so we don't check wether there are missing keys etc
+					if combination2[k] != v {
+						continue Filterloop
+					}
+				}
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // ArgumentCombinations returns a slice of all combinations of arguments
 //
 // Example
@@ -7,7 +30,7 @@ package types
 //	{"a":[1,2],"b":[3]} -> [{"a":1,"b":3},{"a":2,"b":3}]
 //
 // This method uses recursion to build a slice of possible combinations of arguments
-func (requestWith CreateRequestWith) ArgumentCombinations() []map[string]string {
+func (requestWith CreateRequestWith) ArgumentCombinations() RequestArgumentCombinations {
 
 	if requestWith.AdditionalProperties == nil {
 		return nil

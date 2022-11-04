@@ -87,7 +87,7 @@ func TestUserCreateRequest(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
-			mockAccess.EXPECT().CreateRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
+			mockAccess.EXPECT().CreateRequests(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
 			a := API{Access: mockAccess}
 			handler := newTestServer(t, &a)
 
