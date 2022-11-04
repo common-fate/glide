@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
+	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/access"
@@ -26,9 +26,9 @@ import (
 
 func TestUserCreateRequest(t *testing.T) {
 	type testcase struct {
-		name          string
-		give          string
-		mockCreate    *accesssvc.CreateRequestResult
+		name string
+		give string
+		// mockCreate    []accesssvc.CreateRequestResult
 		mockCreateErr error
 		wantCode      int
 		wantBody      string
@@ -36,22 +36,9 @@ func TestUserCreateRequest(t *testing.T) {
 
 	testcases := []testcase{
 		{
-			name: "ok",
-			give: `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
-			mockCreate: &accesssvc.CreateRequestResult{
-				Request: access.Request{
-					ID:          "123",
-					RequestedBy: "testuser",
-					Rule:        "rul_123",
-					RuleVersion: "0001-01-01T00:00:00Z",
-
-					Status: access.PENDING,
-					RequestedTiming: access.Timing{
-						Duration: time.Second * 10,
-					},
-				},
-			},
-			wantCode: http.StatusCreated,
+			name:     "ok",
+			give:     `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
+			wantCode: http.StatusOK,
 			wantBody: `null`,
 		},
 		{
@@ -69,15 +56,15 @@ func TestUserCreateRequest(t *testing.T) {
 		{
 			name:          "rule not found",
 			give:          `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
-			mockCreateErr: accesssvc.ErrRuleNotFound,
-			wantCode:      http.StatusNotFound,
-			wantBody:      `{"error":"access rule rul_123 not found"}`,
+			mockCreateErr: apio.NewRequestError(accesssvc.ErrRuleNotFound, http.StatusBadRequest),
+			wantCode:      http.StatusBadRequest,
+			wantBody:      `{"error":"access rule not found"}`,
 		},
 		{
 			name:          "no matching group",
 			give:          `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
-			mockCreateErr: accesssvc.ErrNoMatchingGroup,
-			wantCode:      http.StatusUnauthorized,
+			mockCreateErr: apio.NewRequestError(accesssvc.ErrNoMatchingGroup, http.StatusBadRequest),
+			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"user was not in a matching group for the access rule"}`,
 		},
 	}
@@ -87,7 +74,7 @@ func TestUserCreateRequest(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
-			mockAccess.EXPECT().CreateRequests(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
+			mockAccess.EXPECT().CreateRequests(gomock.Any(), gomock.Any()).Return(nil, tc.mockCreateErr).AnyTimes()
 			a := API{Access: mockAccess}
 			handler := newTestServer(t, &a)
 
