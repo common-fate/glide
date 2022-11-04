@@ -1,6 +1,7 @@
 import {
   ArrowBackIcon,
   CheckIcon,
+  DeleteIcon,
   InfoIcon,
   LinkIcon,
   SmallAddIcon,
@@ -107,14 +108,14 @@ import { durationString } from "../../../utils/durationString";
 import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
-interface NewRequestFormData extends CreateRequestRequestBody {
+interface FormCreateRequestWith {
+  hidden?: boolean;
+  data: CreateRequestWith;
+}
+interface NewRequestFormData extends Omit<CreateRequestRequestBody, "with"> {
   startDateTime: string;
   when: When;
-}
-
-interface FieldError {
-  error: string;
-  field: string;
+  with: FormCreateRequestWith[];
 }
 
 /**
@@ -150,7 +151,12 @@ const AccessRequestForm = () => {
   } = useMatch();
   // prevent the form resetting unexpectedly
   const { data: rule } = useUserGetAccessRule(ruleId, {
-    swr: { refreshInterval: 0 },
+    swr: {
+      refreshInterval: 0,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   });
 
   const navigate = useNavigate();
@@ -193,7 +199,13 @@ const AccessRequestForm = () => {
       }
     }
     fields.reason && setValue("reason", fields.reason);
-    fields.with && setValue("with", fields.with);
+    fields.with &&
+      setValue(
+        "with",
+        fields.with.map((w) => {
+          return { data: w };
+        })
+      );
   };
   // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
   // it does then when the rule loads for the first time
@@ -288,7 +300,7 @@ const AccessRequestForm = () => {
         durationSeconds: data.timing.durationSeconds,
       },
       reason: data.reason ? data.reason : "",
-      with: data.with,
+      with: data.with.filter((fw) => !fw.hidden).map((fw) => fw.data),
     };
     if (data.when === "scheduled") {
       r.timing.startTime = new Date(data.startDateTime).toISOString();
@@ -331,7 +343,9 @@ const AccessRequestForm = () => {
     const a: MyLocationGenerics = {
       Search: {
         reason: getValues("reason"),
-        with: getValues("with"),
+        with: (getValues("with") || [])
+          .filter((fw) => !fw.hidden)
+          .map((fw) => fw.data),
       },
     };
     const timing: RequestTiming = {
@@ -605,94 +619,121 @@ export const AccessRuleArguments: React.FC<{
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
   const subRequests = watch("with");
+  console.log({ subRequests });
   return (
     <VStack align={"left"}>
       <VStack w="100%" spacing={4}>
-        {subRequests?.map((_, subRequestIndex) => (
-          <VStack
-            w="100%"
-            key={`subrequest-${subRequestIndex}`}
-            border="1px solid"
-            borderColor="gray.300"
-            rounded="md"
-            px={4}
-            py={4}
-            spacing={4}
-            align={"left"}
-          >
-            {Object.entries(target.arguments).filter(([k, v]) => {
-              return !v.requiresSelection;
-            }).length > 0 && (
-              <Wrap spacing={4}>
+        {subRequests?.map((sr, subRequestIndex) => {
+          if (sr.hidden) {
+            return null;
+          }
+          return (
+            <Box position="relative" w="100%">
+              <IconButton
+                top={0}
+                right={0}
+                position={"absolute"}
+                type="button"
+                size="sm"
+                variant="ghost"
+                aria-label="remove"
+                icon={<DeleteIcon />}
+                onClick={() => {
+                  const newSr = [...subRequests];
+                  sr.hidden = true;
+                  newSr[subRequestIndex] = sr;
+                  setValue("with", newSr);
+                }}
+              />
+              <VStack
+                w="100%"
+                key={`subrequest-${subRequestIndex}`}
+                border="1px solid"
+                borderColor="gray.300"
+                rounded="md"
+                px={4}
+                py={4}
+                spacing={4}
+                align={"left"}
+              >
+                {Object.entries(target.arguments).filter(([k, v]) => {
+                  return !v.requiresSelection;
+                }).length > 0 && (
+                  <Wrap spacing={4}>
+                    {Object.entries(target.arguments)
+                      .filter(([k, v]) => {
+                        return !v.requiresSelection;
+                      })
+                      .map(([k, argument]) => {
+                        return (
+                          <WrapItem>
+                            <VStack align={"left"}>
+                              <Text>{argument.title}</Text>
+                              <InfoOption
+                                label={argument.options[0].label}
+                                value={argument.options[0].value}
+                              />
+                            </VStack>
+                          </WrapItem>
+                        );
+                      })}
+                  </Wrap>
+                )}
                 {Object.entries(target.arguments)
                   .filter(([k, v]) => {
-                    return !v.requiresSelection;
+                    return v.requiresSelection;
                   })
-                  .map(([k, argument]) => {
+                  .map(([k, v], i) => {
+                    const name = `with.${subRequestIndex}.data.${k}`;
                     return (
-                      <WrapItem>
-                        <VStack align={"left"}>
-                          <Text>{argument.title}</Text>
-                          <InfoOption
-                            label={argument.options[0].label}
-                            value={argument.options[0].value}
+                      <FormControl
+                        key={"selectable-" + k}
+                        pos="relative"
+                        id={name}
+                        isInvalid={
+                          errors.with &&
+                          errors.with?.[subRequestIndex]?.data?.[k] !==
+                            undefined
+                        }
+                      >
+                        <FormLabel
+                          textStyle="Body/Medium"
+                          color="neutrals.600"
+                          fontWeight="normal"
+                        >
+                          {v.title}
+                        </FormLabel>
+                        {v.formElement === RequestArgumentFormElement.SELECT ? (
+                          <SelectWithArrayAsValue
+                            fieldName={`with.${subRequestIndex}.data.${k}`}
+                            options={v.options
+                              // exclude invalid options
+                              .filter((op) => op.valid)
+                              .map((op) => {
+                                return op;
+                              })}
                           />
-                        </VStack>
-                      </WrapItem>
+                        ) : (
+                          <MultiSelect
+                            fieldName={`with.${subRequestIndex}.data.${k}`}
+                            options={v.options
+                              // exclude invalid options
+                              .filter((op) => op.valid)
+                              .map((op) => {
+                                return op;
+                              })}
+                          />
+                        )}
+                        <FormErrorMessage>
+                          This field is required
+                        </FormErrorMessage>
+                      </FormControl>
                     );
                   })}
-              </Wrap>
-            )}
-            {Object.entries(target.arguments)
-              .filter(([k, v]) => {
-                return v.requiresSelection;
-              })
-              .map(([k, v], i) => {
-                const name = `with.${subRequestIndex}.${k}`;
-                return (
-                  <FormControl
-                    key={"selectable-" + k}
-                    pos="relative"
-                    id={name}
-                    isInvalid={
-                      errors.with &&
-                      errors.with?.[subRequestIndex]?.[k] !== undefined
-                    }
-                  >
-                    <FormLabel
-                      textStyle="Body/Medium"
-                      color="neutrals.600"
-                      fontWeight="normal"
-                    >
-                      {v.title}
-                    </FormLabel>
-                    {v.formElement === RequestArgumentFormElement.SELECT ? (
-                      <SelectWithArrayAsValue
-                        fieldName={`with.${subRequestIndex}.${k}`}
-                        options={v.options
-                          // exclude invalid options
-                          .filter((op) => op.valid)
-                          .map((op) => {
-                            return op;
-                          })}
-                      />
-                    ) : (
-                      <MultiSelect
-                        fieldName={`with.${subRequestIndex}.${k}`}
-                        options={v.options
-                          // exclude invalid options
-                          .filter((op) => op.valid)
-                          .map((op) => {
-                            return op;
-                          })}
-                      />
-                    )}
-                    <FormErrorMessage>This field is required</FormErrorMessage>
-                  </FormControl>
-                );
-              })}
-          </VStack>
-        ))}
+              </VStack>
+            </Box>
+          );
+        })}
       </VStack>
       {/* Only render the add permissions button if the rule has fields which require selection */}
       {Object.entries(target.arguments).find(
@@ -707,7 +748,7 @@ export const AccessRuleArguments: React.FC<{
             aria-label="add"
             leftIcon={<SmallAddIcon />}
             onClick={() => {
-              setValue("with", [...(subRequests || []), {}]);
+              setValue("with", [...(subRequests || []), { data: {} }]);
             }}
           >
             Add permissions
@@ -798,11 +839,12 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
         durationSeconds: parentFormData.timing.durationSeconds,
       },
       reason: parentFormData.reason ? parentFormData.reason : "",
-      with: parentFormData.with,
+      with: parentFormData.with.filter((fw) => !fw.hidden).map((fw) => fw.data),
     };
     if (parentFormData.when === "scheduled") {
       r.timing.startTime = new Date(parentFormData.startDateTime).toISOString();
     }
+    console.log(r, parentFormData);
     setIsSubmitting(true);
 
     if (favorite) {
