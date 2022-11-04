@@ -633,22 +633,24 @@ export const AccessRuleArguments: React.FC<{
           }
           return (
             <Box position="relative" w="100%">
-              <IconButton
-                top={0}
-                right={0}
-                position={"absolute"}
-                type="button"
-                size="sm"
-                variant="ghost"
-                aria-label="remove"
-                icon={<DeleteIcon />}
-                onClick={() => {
-                  const newSr = [...subRequests];
-                  sr.hidden = true;
-                  newSr[subRequestIndex] = sr;
-                  setValue("with", newSr);
-                }}
-              />
+              {subRequests?.filter((sr) => !sr.hidden).length > 1 && (
+                <IconButton
+                  top={0}
+                  right={0}
+                  position={"absolute"}
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  aria-label="remove"
+                  icon={<DeleteIcon />}
+                  onClick={() => {
+                    const newSr = [...subRequests];
+                    sr.hidden = true;
+                    newSr[subRequestIndex] = sr;
+                    setValue("with", newSr);
+                  }}
+                />
+              )}
               <VStack
                 w="100%"
                 key={`subrequest-${subRequestIndex}`}
