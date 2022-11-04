@@ -103,7 +103,7 @@ const Index = () => {
           icon={<ArrowBackIcon />}
           rounded="full"
           variant="ghost"
-          to={"/admin/users"}
+          to={"/admin/groups"}
         />
 
         <Text as="h4" textStyle="Heading/H4">

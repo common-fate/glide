@@ -16,9 +16,9 @@ const Index = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
-        Identity Provider Groups
-        <GroupsTable />
-        Management Groups
+        Groups
+        {/* <GroupsTable />
+        Management Groups */}
         <ManagementGroupsTable />
       </Container>
     </AdminLayout>

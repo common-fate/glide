@@ -59,16 +59,27 @@ func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, params ty
 	var groups []identity.Group
 	var nextToken string
 
-	q := storage.ListGroupsForSource{
-		Source: *params.Source,
+	if params.Source == nil {
+		q := storage.ListActiveGroups{}
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		groups = q.Result
+		nextToken = qr.NextPage
+	} else {
+		q := storage.ListGroupsForSource{
+			Source: *params.Source,
+		}
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		groups = q.Result
+		nextToken = qr.NextPage
 	}
-	qr, err := a.DB.Query(ctx, &q, queryOpts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	groups = q.Result
-	nextToken = qr.NextPage
 
 	res := types.ListGroupsResponse{
 		Groups: make([]types.Group, len(groups)),

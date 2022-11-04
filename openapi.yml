@@ -1438,12 +1438,15 @@ components:
           type: array
           items:
             type: string
+        source:
+          type: string
       required:
         - name
         - description
         - id
         - memberCount
         - members
+        - source
     IdpStatus:
       type: string
       title: IdpStatus

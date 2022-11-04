@@ -12,4 +12,5 @@ export interface Group {
   id: string;
   memberCount: number;
   members: string[];
+  source: string;
 }
