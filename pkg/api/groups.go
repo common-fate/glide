@@ -48,7 +48,7 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
-func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, source string, params types.GetGroupBySourceParams) {
+func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, params types.GetGroupBySourceParams) {
 	ctx := r.Context()
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
@@ -60,7 +60,7 @@ func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, source st
 	var nextToken string
 
 	q := storage.ListGroupsForSource{
-		Source: source,
+		Source: *params.Source,
 	}
 	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil {

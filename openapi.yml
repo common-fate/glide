@@ -698,14 +698,8 @@ paths:
         $ref: '#/components/requestBodies/CreateGroupRequest'
       tags:
         - Admin
-  '/api/v1/admin/groups/{source}':
-    parameters:
-      - schema:
-          type: string
-        name: source
-        in: path
-        required: true
-        description: idp source of the group
+  /api/v1/admin/groups/source:
+    parameters: []
     get:
       summary: Your GET endpoint
       tags: []
@@ -719,6 +713,10 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
+        - schema:
+            type: string
+          in: query
+          name: source
   '/api/v1/admin/groups/{groupId}':
     parameters:
       - schema:
