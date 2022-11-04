@@ -91,7 +91,8 @@ type AccessService interface {
 	CreateRequest(ctx context.Context, user *identity.User, in accesssvc.CreateRequest) (*accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
-	CreateFavorite(ctx context.Context, user *identity.User, in types.CreateFavoriteRequest) (*access.Favorite, error)
+	CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
+	UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_accessrule_service.go -package=mocks . AccessRuleService

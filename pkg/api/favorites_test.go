@@ -50,7 +50,7 @@ func TestUserCreateFavorite(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
-			mockAccess.EXPECT().CreateFavorite(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
+			mockAccess.EXPECT().CreateFavorite(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
 			a := API{Access: mockAccess}
 			handler := newTestServer(t, &a)
 

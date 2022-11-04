@@ -81,6 +81,8 @@ import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
+  deleteFavorite,
+  updateFavorite,
   userCreateFavorite,
   userGetFavorite,
 } from "../../../utils/backend-client/default/default";
@@ -95,12 +97,14 @@ import {
   CreateRequestRequestBody,
   CreateRequestWith,
   CreateRequestWithSubRequest,
+  FavoriteDetail,
   RequestAccessRuleTarget,
   RequestArgumentFormElement,
   RequestTiming,
   WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
+import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
 interface NewRequestFormData extends CreateRequestRequestBody {
@@ -178,6 +182,19 @@ const AccessRequestForm = () => {
 
   const toast = useToast();
   const search = useSearch<MyLocationGenerics>();
+
+  const [favorite, setFavorite] = useState<FavoriteDetail>();
+  const resetForm = (fields: Fields) => {
+    if (fields.timing) {
+      setValue("timing.durationSeconds", fields.timing.durationSeconds);
+      if (fields.timing.startTime) {
+        setValue("startDateTime", fields.timing.startTime);
+        setValue("when", "scheduled");
+      }
+    }
+    fields.reason && setValue("reason", fields.reason);
+    fields.with && setValue("with", fields.with);
+  };
   // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
   // it does then when the rule loads for the first time
   useEffect(() => {
@@ -188,21 +205,12 @@ const AccessRequestForm = () => {
           ? 3600
           : rule.timeConstraints.maxDurationSeconds
       );
-      const resetForm = (fields: Fields) => {
-        if (fields.timing) {
-          setValue("timing.durationSeconds", fields.timing.durationSeconds);
-          if (fields.timing.startTime) {
-            setValue("startDateTime", fields.timing.startTime);
-            setValue("when", "scheduled");
-          }
-        }
-        fields.reason && setValue("reason", fields.reason);
-        fields.with && setValue("with", fields.with);
-      };
+
       if (search.favorite) {
         userGetFavorite(search.favorite)
           .then((favorite) => {
             resetForm(favorite);
+            setFavorite(favorite);
           })
           .catch((e) => {
             let description: string | undefined;
@@ -254,7 +262,7 @@ const AccessRequestForm = () => {
         resetForm(fields);
       }
     }
-  }, [rule]);
+  }, [rule, search]);
 
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
@@ -377,8 +385,10 @@ const AccessRequestForm = () => {
 
                 <ButtonGroup>
                   <FavoriteRequestButton
+                    favorite={favorite}
                     ruleId={ruleId}
                     parentFormData={getValues()}
+                    onUpdate={(f) => setFavorite(f)}
                   />
                   <Tooltip label="Copy a shareable link for this request">
                     <IconButton
@@ -758,17 +768,27 @@ export default AccessRequestForm;
 interface FavoriteRequestButtonProps {
   ruleId: string;
   parentFormData: NewRequestFormData;
-  containerRef?: React.RefObject<HTMLElement | null>;
+  // if the page is currently loaded with a favorite
+  favorite?: FavoriteDetail;
+  onUpdate?: (favorite?: FavoriteDetail) => void;
 }
 const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
   ruleId,
   parentFormData,
-  containerRef,
+  favorite,
+  onUpdate,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const methods = useForm<{ name: string }>();
+  const methods = useForm<{ name: string }>({
+    defaultValues: { name: favorite?.name },
+  });
+  useEffect(() => {
+    if (favorite) {
+      methods.reset({ name: favorite.name });
+    }
+  }, [favorite]);
   // the state of the parent form
-  const { onOpen, onClose, isOpen } = useDisclosure();
+  const popoverDisclosure = useDisclosure();
   const toast = useToast();
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
     const r: CreateFavoriteRequestBody = {
@@ -785,53 +805,136 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
     }
     setIsSubmitting(true);
 
-    userCreateFavorite(r)
-      .then(() => {
-        toast({
-          title: "Favorite created",
-          status: "success",
-          duration: 2200,
-          isClosable: true,
+    if (favorite) {
+      updateFavorite(favorite.id, r)
+        .then((favorite) => {
+          toast({
+            title: "Favorite updated",
+            status: "success",
+            duration: 2200,
+            isClosable: true,
+          });
+          popoverDisclosure.onClose();
+          methods.reset();
+          onUpdate?.(favorite);
+        })
+        .catch((e: any) => {
+          let description: string | undefined;
+          if (axios.isAxiosError(e)) {
+            description = (e as AxiosError<{ error: string }>)?.response?.data
+              .error;
+          }
+          toast({
+            title: "Favorite failed to update",
+            status: "error",
+            duration: 5000,
+            description: (
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+            ),
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
         });
-        onClose();
-        methods.reset();
-      })
-      .catch((e: any) => {
-        let description: string | undefined;
-        if (axios.isAxiosError(e)) {
-          description = (e as AxiosError<{ error: string }>)?.response?.data
-            .error;
-        }
-        toast({
-          title: "Favorite failed",
-          status: "error",
-          duration: 5000,
-          description: (
-            <Text color={"white"} whiteSpace={"pre"}>
-              {description}
-            </Text>
-          ),
-          isClosable: true,
+    } else {
+      userCreateFavorite(r)
+        .then((favorite) => {
+          toast({
+            title: "Favorite created",
+            status: "success",
+            duration: 2200,
+            isClosable: true,
+          });
+          popoverDisclosure.onClose();
+          methods.reset();
+          onUpdate?.(favorite);
+        })
+        .catch((e: any) => {
+          let description: string | undefined;
+          if (axios.isAxiosError(e)) {
+            description = (e as AxiosError<{ error: string }>)?.response?.data
+              .error;
+          }
+          toast({
+            title: "Favorite failed",
+            status: "error",
+            duration: 5000,
+            description: (
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+            ),
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
         });
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+    }
+  };
+
+  const handleDeleteFavorite = () => {
+    if (favorite) {
+      setIsSubmitting(true);
+      deleteFavorite(favorite?.id)
+        .then(() => {
+          toast({
+            title: "Favorite removed",
+            status: "success",
+            duration: 2200,
+            isClosable: true,
+          });
+          popoverDisclosure.onClose();
+          methods.reset();
+          onUpdate?.();
+        })
+        .catch((e: any) => {
+          let description: string | undefined;
+          if (axios.isAxiosError(e)) {
+            description = (e as AxiosError<{ error: string }>)?.response?.data
+              .error;
+          }
+          toast({
+            title: "Failed to remove favorite",
+            status: "error",
+            duration: 5000,
+            description: (
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+            ),
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
+    }
   };
 
   return (
     <Popover
       closeOnBlur={false}
-      isOpen={isOpen}
-      onOpen={onOpen}
-      onClose={onClose}
+      isOpen={popoverDisclosure.isOpen}
+      onOpen={popoverDisclosure.onOpen}
+      onClose={popoverDisclosure.onClose}
     >
-      <Tooltip label="Add this request to your favorites">
+      <Tooltip
+        label={
+          favorite
+            ? "Update or remove this favorite"
+            : "Add this request to your favorites"
+        }
+      >
         {/* additional element */}
         <Box display="inline-block">
           <PopoverTrigger>
             <IconButton
-              onClick={onOpen}
+              color={favorite ? colors.actionWarning[200] : undefined}
+              onClick={popoverDisclosure.onOpen}
               variant={"ghost"}
               aria-label="Favorite"
               icon={<StarIcon />}
@@ -842,7 +945,9 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
       <PopoverContent>
         <PopoverArrow />
         <PopoverCloseButton />
-        <PopoverHeader>Add to Favorites</PopoverHeader>
+        <PopoverHeader>
+          {favorite ? "Update Favorite" : "Add to Favorites"}
+        </PopoverHeader>
 
         {/* I have chosen not to use a native form element wrapper because it can't be easily nested in this popover inside the base request form
 
@@ -897,8 +1002,19 @@ So I have just submitted the form directly using the submit button*/}
               mr={3}
               isLoading={isSubmitting}
             >
-              Save
+              {favorite ? "Update" : "Save"}
             </Button>
+            {favorite && (
+              <Button
+                variant={"danger"}
+                size={"sm"}
+                onClick={handleDeleteFavorite}
+                mr={3}
+                isLoading={isSubmitting}
+              >
+                Remove
+              </Button>
+            )}
           </Flex>
         </PopoverFooter>
       </PopoverContent>

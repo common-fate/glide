@@ -21,9 +21,8 @@ import type {
   LookupAccessRule,
   AccessRuleLookupParams,
   ListFavoritesResponseResponse,
-  Favorite,
-  CreateFavoriteRequestBody,
-  FavoriteDetail
+  FavoriteDetail,
+  CreateFavoriteRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -250,7 +249,7 @@ export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
 export const userCreateFavorite = (
     createFavoriteRequestBody: CreateFavoriteRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Favorite>(
+      return customInstance<FavoriteDetail>(
       {url: `/api/v1/favorites`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createFavoriteRequestBody
@@ -296,4 +295,27 @@ export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
     ...query
   }
 }
+
+export const deleteFavorite = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/favorites/${id}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+export const updateFavorite = (
+    id: string,
+    createFavoriteRequestBody: CreateFavoriteRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites/${id}`, method: 'put',
+      headers: {'Content-Type': 'application/json', },
+      data: createFavoriteRequestBody
+    },
+      options);
+    }
+  
 

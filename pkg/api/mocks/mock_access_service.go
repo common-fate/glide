@@ -11,7 +11,6 @@ import (
 	access "github.com/common-fate/granted-approvals/pkg/access"
 	identity "github.com/common-fate/granted-approvals/pkg/identity"
 	accesssvc "github.com/common-fate/granted-approvals/pkg/service/accesssvc"
-	types "github.com/common-fate/granted-approvals/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -68,18 +67,18 @@ func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *
 }
 
 // CreateFavorite mocks base method.
-func (m *MockAccessService) CreateFavorite(arg0 context.Context, arg1 *identity.User, arg2 types.CreateFavoriteRequest) (*access.Favorite, error) {
+func (m *MockAccessService) CreateFavorite(arg0 context.Context, arg1 accesssvc.CreateFavoriteOpts) (*access.Favorite, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateFavorite", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "CreateFavorite", arg0, arg1)
 	ret0, _ := ret[0].(*access.Favorite)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateFavorite indicates an expected call of CreateFavorite.
-func (mr *MockAccessServiceMockRecorder) CreateFavorite(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockAccessServiceMockRecorder) CreateFavorite(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFavorite", reflect.TypeOf((*MockAccessService)(nil).CreateFavorite), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFavorite", reflect.TypeOf((*MockAccessService)(nil).CreateFavorite), arg0, arg1)
 }
 
 // CreateRequest mocks base method.
@@ -95,4 +94,19 @@ func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 *identity.U
 func (mr *MockAccessServiceMockRecorder) CreateRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequest", reflect.TypeOf((*MockAccessService)(nil).CreateRequest), arg0, arg1, arg2)
+}
+
+// UpdateFavorite mocks base method.
+func (m *MockAccessService) UpdateFavorite(arg0 context.Context, arg1 accesssvc.UpdateFavoriteOpts) (*access.Favorite, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFavorite", arg0, arg1)
+	ret0, _ := ret[0].(*access.Favorite)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateFavorite indicates an expected call of UpdateFavorite.
+func (mr *MockAccessServiceMockRecorder) UpdateFavorite(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFavorite", reflect.TypeOf((*MockAccessService)(nil).UpdateFavorite), arg0, arg1)
 }

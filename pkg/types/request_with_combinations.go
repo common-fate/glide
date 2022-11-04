@@ -22,7 +22,11 @@ func (requestWith CreateRequestWith) ArgumentCombinations() []map[string]string 
 	var combinations []map[string]string
 	if len(keys) > 0 {
 		for _, value := range requestWith.AdditionalProperties[keys[0]] {
-			combinations = append(combinations, branch(requestWith.AdditionalProperties, keys, map[string]string{keys[0]: value}, 1)...)
+			if len(keys) > 1 {
+				combinations = append(combinations, branch(requestWith.AdditionalProperties, keys, map[string]string{keys[0]: value}, 1)...)
+			} else {
+				combinations = append(combinations, map[string]string{keys[0]: value})
+			}
 		}
 	}
 	return combinations
