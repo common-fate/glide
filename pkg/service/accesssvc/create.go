@@ -75,8 +75,10 @@ func (s *Service) CreateRequests(ctx context.Context, in CreateRequestsOpts) ([]
 		}(combinationToCreate)
 	}
 	wg.Wait()
-
-	return nil, nil
+	if createError.Errors == nil {
+		return results, nil
+	}
+	return results, &createError
 }
 
 type CreateRequest struct {

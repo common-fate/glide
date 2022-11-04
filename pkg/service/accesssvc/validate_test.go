@@ -2,6 +2,7 @@ package accesssvc
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -186,7 +187,7 @@ func TestValidateCreate(t *testing.T) {
 			},
 		},
 		{
-			name: "bad",
+			name: "missing values in request arguments",
 			giveInput: CreateRequestsOpts{
 				Create: CreateRequests{
 					AccessRuleId: "abcd",
@@ -214,6 +215,34 @@ func TestValidateCreate(t *testing.T) {
 			wantErr: types.ArgumentHasNoValuesError{
 				Argument: "accountId",
 			},
+		},
+		{
+			name: "overlapping arguments",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{
+								"accountId": {"a", "b"},
+							},
+						},
+						{
+							AdditionalProperties: map[string][]string{
+								"accountId": {"a", "b"},
+							},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			wantErr: errors.New("request contains duplicate subrequest value combinations"),
 		},
 	}
 

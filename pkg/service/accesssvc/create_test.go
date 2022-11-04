@@ -32,7 +32,7 @@ func TestNewRequest(t *testing.T) {
 		rule                         *rule.AccessRule
 		ruleErr                      error
 		wantErr                      error
-		want                         *CreateRequestResult
+		want                         []CreateRequestResult
 		withCreateGrantResponse      createGrantResponse
 		withGetGroupResponse         *storage.GetGroup
 		withRequestArgumentsResponse map[string]types.RequestArgument
@@ -51,8 +51,8 @@ func TestNewRequest(t *testing.T) {
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 			},
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					Status:         access.APPROVED,
 					CreatedAt:      clk.Now(),
@@ -60,7 +60,7 @@ func TestNewRequest(t *testing.T) {
 					Grant:          &access.Grant{},
 					ApprovalMethod: &autoApproval,
 					SelectedWith:   make(map[string]access.Option),
-				},
+				}},
 			},
 			withCreateGrantResponse: createGrantResponse{
 				request: &access.Request{
@@ -127,8 +127,8 @@ func TestNewRequest(t *testing.T) {
 					Users: []string{"b"},
 				},
 			},
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					Status:         access.PENDING,
 					CreatedAt:      clk.Now(),
@@ -136,19 +136,19 @@ func TestNewRequest(t *testing.T) {
 					ApprovalMethod: &reviewed,
 					SelectedWith:   make(map[string]access.Option),
 				},
-				Reviewers: []access.Reviewer{
-					{
-						ReviewerID: "b",
-						Request: access.Request{
-							ID:             "-",
-							Status:         access.PENDING,
-							CreatedAt:      clk.Now(),
-							UpdatedAt:      clk.Now(),
-							ApprovalMethod: &reviewed,
-							SelectedWith:   make(map[string]access.Option),
+					Reviewers: []access.Reviewer{
+						{
+							ReviewerID: "b",
+							Request: access.Request{
+								ID:             "-",
+								Status:         access.PENDING,
+								CreatedAt:      clk.Now(),
+								UpdatedAt:      clk.Now(),
+								ApprovalMethod: &reviewed,
+								SelectedWith:   make(map[string]access.Option),
+							},
 						},
-					},
-				},
+					}},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
@@ -164,8 +164,8 @@ func TestNewRequest(t *testing.T) {
 			},
 			// user 'a' should not be included as an approver of this request,
 			// as they made the request.
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					RequestedBy:    "a",
 					Status:         access.PENDING,
@@ -174,20 +174,20 @@ func TestNewRequest(t *testing.T) {
 					ApprovalMethod: &reviewed,
 					SelectedWith:   make(map[string]access.Option),
 				},
-				Reviewers: []access.Reviewer{
-					{
-						ReviewerID: "b",
-						Request: access.Request{
-							ID:             "-",
-							RequestedBy:    "a",
-							Status:         access.PENDING,
-							CreatedAt:      clk.Now(),
-							UpdatedAt:      clk.Now(),
-							ApprovalMethod: &reviewed,
-							SelectedWith:   make(map[string]access.Option),
+					Reviewers: []access.Reviewer{
+						{
+							ReviewerID: "b",
+							Request: access.Request{
+								ID:             "-",
+								RequestedBy:    "a",
+								Status:         access.PENDING,
+								CreatedAt:      clk.Now(),
+								UpdatedAt:      clk.Now(),
+								ApprovalMethod: &reviewed,
+								SelectedWith:   make(map[string]access.Option),
+							},
 						},
-					},
-				},
+					}},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
@@ -209,8 +209,8 @@ func TestNewRequest(t *testing.T) {
 			},
 			// user 'a' should not be included as an approver of this request,
 			// as they made the request.
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					RequestedBy:    "a",
 					Status:         access.PENDING,
@@ -219,20 +219,20 @@ func TestNewRequest(t *testing.T) {
 					ApprovalMethod: &reviewed,
 					SelectedWith:   make(map[string]access.Option),
 				},
-				Reviewers: []access.Reviewer{
-					{
-						ReviewerID: "c",
-						Request: access.Request{
-							ID:             "-",
-							RequestedBy:    "a",
-							Status:         access.PENDING,
-							CreatedAt:      clk.Now(),
-							UpdatedAt:      clk.Now(),
-							ApprovalMethod: &reviewed,
-							SelectedWith:   make(map[string]access.Option),
+					Reviewers: []access.Reviewer{
+						{
+							ReviewerID: "c",
+							Request: access.Request{
+								ID:             "-",
+								RequestedBy:    "a",
+								Status:         access.PENDING,
+								CreatedAt:      clk.Now(),
+								UpdatedAt:      clk.Now(),
+								ApprovalMethod: &reviewed,
+								SelectedWith:   make(map[string]access.Option),
+							},
 						},
-					},
-				},
+					}},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
@@ -257,7 +257,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			wantValidationError:          fmt.Errorf("unexpected response while validating grant"),
-			wantErr:                      fmt.Errorf("unexpected response while validating grant"),
+			wantErr:                      fmt.Errorf("1 error occurred:\n\t* unexpected response while validating grant\n\n"),
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
 		},
@@ -307,8 +307,10 @@ func TestNewRequest(t *testing.T) {
 				gotWithoutIDs = append(gotWithoutIDs, res)
 			}
 
-			assert.Equal(t, tc.wantErr, err)
 			assert.Equal(t, tc.want, gotWithoutIDs)
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+			}
 		})
 	}
 
