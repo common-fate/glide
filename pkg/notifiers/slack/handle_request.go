@@ -19,6 +19,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/pkg/errors"
+	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
@@ -47,7 +48,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s requires approval.", requestedRule.Name)
 			if n.directMessageClient != nil {
-				_, err = SendMessage(ctx, n.directMessageClient.client, requestingUserQuery.Result.Email, msg, fallback)
+				_, err = SendMessage(ctx, n.directMessageClient.client, requestingUserQuery.Result.Email, msg, fallback, nil)
 				if err != nil {
 					log.Errorw("Failed to send direct message", "email", requestingUserQuery.Result.Email, "msg", msg, "error", err)
 				}
@@ -152,19 +153,30 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			//Review not required
 			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
-			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
+			reviewURL, err := notifiers.ReviewURL(n.FrontendURL, request.ID)
+			if err != nil {
+				return errors.Wrap(err, "building review URL")
+			}
+			accessory := &slack.Accessory{
+				ButtonElement: &slack.ButtonBlockElement{
+					Type: slack.PlainTextType,
+					Text: slack.NewTextBlockObject(slack.PlainTextType, "Access Instructions", true, false),
+					URL:  reviewURL.AccessInstructions,
+				},
+			}
+			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback, accessory)
 		}
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been approved.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been approved.", requestedRule.Name)
-		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
+		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback, nil)
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	case gevent.RequestCancelledType:
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	case gevent.RequestDeclinedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been declined.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been declined.", requestedRule.Name)
-		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
+		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback, nil)
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	}
 	return nil

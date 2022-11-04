@@ -312,7 +312,9 @@ export const RequestAccessInstructions: React.FC = () => {
   if (reqData?.grant?.status === "PENDING") {
     return (
       <Stack>
-        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Box textStyle="Body/Medium" id="access_instructions">
+          Access Instructions
+        </Box>
         <Text textStyle="Body/small" color="neutrals.600">
           Provisioning access
         </Text>
