@@ -129,6 +129,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 				ID:          "larrysGroupId",
 				Name:        "larrysGroupNewName",
 				Description: "a different description",
+				Source:      "OKTA",
 			}},
 			giveInternalUsers: []identity.User{
 				{
@@ -162,6 +163,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Users:       []string{"abcd", "efgh"},
 					CreatedAt:   now,
 					UpdatedAt:   now,
+					Source:      "OKTA",
 				},
 				{
 					ID:          "5678",
@@ -172,6 +174,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Users:       []string{"efgh"},
 					CreatedAt:   now,
 					UpdatedAt:   now,
+					Source:      "OKTA",
 				},
 			},
 			wantUserMap: map[string]identity.User{
@@ -202,6 +205,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Status:      types.IdpStatusARCHIVED,
 					Users:       []string{},
 					CreatedAt:   now,
+					Source:      "OKTA",
 				},
 				"larrysGroupId": {
 					ID:          "5678",
@@ -211,6 +215,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Status:      types.IdpStatusACTIVE,
 					Users:       []string{"efgh"},
 					CreatedAt:   now,
+					Source:      "OKTA",
 				},
 			},
 		},

@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
 	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
@@ -32,17 +32,19 @@ func TestListGroups(t *testing.T) {
 			wantCode: http.StatusOK,
 			idpGroups: []identity.Group{
 				{
-					ID:    "123",
-					Name:  "test",
-					Users: nil,
+					ID:     "123",
+					Name:   "test",
+					Users:  nil,
+					Source: "test",
 				},
 				{
-					ID:    "1234",
-					Name:  "test",
-					Users: []string{"1", "2"},
+					ID:     "1234",
+					Name:   "test",
+					Users:  []string{"1", "2"},
+					Source: "test",
 				},
 			},
-			wantBody: `{"groups":[{"description":"","id":"123","memberCount":0,"name":"test"},{"description":"","id":"1234","memberCount":2,"name":"test"}],"next":null}`,
+			wantBody: `{"groups":[{"description":"","id":"123","memberCount":0,"members":null,"name":"test","source":"test"},{"description":"","id":"1234","memberCount":2,"members":["1","2"],"name":"test","source":"test"}],"next":""}`,
 		},
 	}
 
@@ -50,7 +52,7 @@ func TestListGroups(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQuery(&storage.ListGroupsForStatus{Result: tc.idpGroups})
+			db.MockQuery(&storage.ListActiveGroups{Result: tc.idpGroups})
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
@@ -146,7 +148,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 		wantCode               int
 		wantBody               string
 		notEnabled             bool
-		expectCreateGroupOpts  *cognitosvc.CreateGroupOpts
+		expectCreateGroupOpts  *types.CreateGroupRequest
 		withCreatedGroup       *identity.Group
 		expectCreateGroupError error
 	}
@@ -157,7 +159,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 		{name: "ok",
 			body:                  `{"name":"test","description":"user"}`,
 			wantCode:              http.StatusCreated,
-			expectCreateGroupOpts: &cognitosvc.CreateGroupOpts{Name: "test", Description: "user"},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",
 				IdpID:       "1234",
@@ -165,13 +167,14 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 				Description: "user",
 				Users:       []string{},
 				Status:      types.IdpStatusACTIVE,
+				Source:      "test",
 			},
 			wantBody: `{"description":"user","id":"1234","memberCount":0,"name":"test"}`,
 		},
 		{name: "error from create user",
 			body:                   `{"name":"test","description":"user"}`,
 			wantCode:               http.StatusInternalServerError,
-			expectCreateGroupOpts:  &cognitosvc.CreateGroupOpts{Name: "test", Description: "user"},
+			expectCreateGroupOpts:  &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
 			expectCreateGroupError: errors.New("random error"),
 			wantBody:               `{"error":"Internal Server Error"}`,
 		},

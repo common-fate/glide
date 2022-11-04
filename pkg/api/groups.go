@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -123,28 +124,16 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	// if a.Cognito == nil {
-	// 	//create cognito group
 
-	// 	group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
-	// 		Name:        createGroupRequest.Name,
-	// 		Description: aws.ToString(createGroupRequest.Description),
-	// 	})
-	// 	if err != nil {
-	// 		apio.Error(ctx, w, err)
-	// 		return
-	// 	}
-	// 	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
-	// } else {
 	// Create internal group
 	group := identity.Group{
 		ID:          createGroupRequest.Name,
 		IdpID:       createGroupRequest.Name,
 		Name:        createGroupRequest.Name,
-		Description: *createGroupRequest.Description,
+		Description: aws.ToString(createGroupRequest.Description),
 		Status:      types.IdpStatusACTIVE,
 		Source:      types.INTERNAL,
-		Users:       *createGroupRequest.Members,
+		Users:       createGroupRequest.Members,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -168,7 +157,5 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-
-	// }
 
 }

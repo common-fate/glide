@@ -77,6 +77,7 @@ func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IDPGroup {
 		ID:          oktaGroup.Id,
 		Name:        oktaGroup.Profile.Name,
 		Description: oktaGroup.Profile.Description,
+		Source:      "OKTA",
 	}
 }
 

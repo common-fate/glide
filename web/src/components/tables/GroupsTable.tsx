@@ -2,22 +2,43 @@ import { SmallAddIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { Column } from "react-table";
-import {
-  useGetGroups,
-  useIdentityConfiguration,
-} from "../../utils/backend-client/admin/admin";
+import { useGetGroupBySource } from "../../utils/backend-client/default/default";
+import { useIdentityConfiguration } from "../../utils/backend-client/admin/admin";
 
-import { Group, IdpStatus } from "../../utils/backend-client/types";
+import {
+  Group,
+  GroupSource,
+  RequestStatus,
+} from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
-import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 import { TableRenderer } from "./TableRenderer";
+import { MakeGenerics, useSearch, useNavigate } from "react-location";
+import { GroupsFilterMenu } from "./GroupsFilterMenu";
+import { ApprovalsLogo } from "../icons/Logos";
+import { AzureIcon, OktaIcon } from "../icons/Icons";
+import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
+
+type MyLocationGenerics = MakeGenerics<{
+  Search: {
+    source?: Lowercase<GroupSource>;
+  };
+}>;
 
 export const GroupsTable = () => {
+  const search = useSearch<MyLocationGenerics>();
+  const navigate = useNavigate<MyLocationGenerics>();
+  const { source } = search;
+
+  console.log(source);
+
   const { onOpen, isOpen, onClose } = useDisclosure();
-  const paginator = usePaginatorApi<typeof useGetGroups>({
-    swrHook: useGetGroups,
-    hookProps: {},
+  const paginator = usePaginatorApi<typeof useGetGroupBySource>({
+    swrHook: useGetGroupBySource,
+    hookProps: {
+      source: source ? (source.toUpperCase() as GroupSource) : undefined,
+    },
+    swrProps: {},
   });
 
   const cols: Column<Group>[] = useMemo(
@@ -49,14 +70,23 @@ export const GroupsTable = () => {
           </Box>
         ),
       },
+      {
+        accessor: "source",
+        Header: "",
+        Cell: ({ cell }) => (
+          <Box>
+            {cell.value == "INTERNAL" && <ApprovalsLogo h="20px" w="auto" />}
+            {/* {cell.value == "AZURE" && <AzureIcon h="20px" w="auto" />}
+            {cell.value == "ONELOGIN" && <OktaIcon h="20px" w="auto" />}
+            {cell.value == "COGNITO" && "Cognito"} */}
+          </Box>
+        ),
+      },
     ],
     []
   );
   const { data } = useIdentityConfiguration();
   const AddGroupButton = () => {
-    if (data?.identityProvider !== "cognito") {
-      return <div />;
-    }
     return (
       <Button
         isLoading={data?.identityProvider === undefined}
@@ -65,7 +95,7 @@ export const GroupsTable = () => {
         leftIcon={<SmallAddIcon />}
         onClick={onOpen}
       >
-        Add Group
+        Add Internal Group
       </Button>
     );
   };
@@ -78,12 +108,24 @@ export const GroupsTable = () => {
             void paginator.mutate();
           }}
         />
+        <GroupsFilterMenu
+          onChange={(s) =>
+            navigate({
+              search: (old) => ({
+                ...old,
+                source: s?.toLowerCase() as Lowercase<GroupSource>,
+              }),
+            })
+          }
+          source={source?.toUpperCase() as GroupSource}
+        />
       </Flex>
       {TableRenderer<Group>({
         columns: cols,
         data: paginator?.data?.groups,
         emptyText: "No groups",
         apiPaginator: paginator,
+        linkTo: true,
       })}
 
       <CreateGroupModal

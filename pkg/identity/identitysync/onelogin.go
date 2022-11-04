@@ -96,8 +96,9 @@ func (s *OneLoginSync) idpUserFromOneLoginUser(ctx context.Context, oneLoginUser
 
 func (s *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) identity.IDPGroup {
 	return identity.IDPGroup{
-		ID:   strconv.Itoa(oneLoginGroup.ID),
-		Name: oneLoginGroup.Name,
+		ID:     strconv.Itoa(oneLoginGroup.ID),
+		Name:   oneLoginGroup.Name,
+		Source: "ONELOGIN",
 	}
 
 }

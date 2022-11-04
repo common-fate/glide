@@ -1,8 +1,7 @@
 import { Container, Stack } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
-import { ManagementGroupsTable } from "../../../components/tables/ManagementGroupsTable";
-import { AdminLayout } from "../../../components/Layout";
 import { GroupsTable } from "../../../components/tables/GroupsTable";
+import { AdminLayout } from "../../../components/Layout";
 
 const Index = () => {
   return (
@@ -17,9 +16,7 @@ const Index = () => {
         overflowX="auto"
       >
         Groups
-        {/* <GroupsTable />
-        Management Groups */}
-        <ManagementGroupsTable />
+        <GroupsTable />
       </Container>
     </AdminLayout>
   );

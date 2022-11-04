@@ -269,6 +269,7 @@ func idpGroupFromAzureGroup(azureGroup AzureGroup) identity.IDPGroup {
 		ID:          azureGroup.ID,
 		Name:        azureGroup.DisplayName,
 		Description: string(azureGroup.Description),
+		Source:      "AZURE",
 	}
 }
 func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {

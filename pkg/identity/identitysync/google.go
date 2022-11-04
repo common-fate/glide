@@ -130,5 +130,6 @@ func idpGroupFromGoogleGroup(googleGroup *admin.Group) identity.IDPGroup {
 		ID:          googleGroup.Id,
 		Name:        googleGroup.Name,
 		Description: googleGroup.Description,
+		Source:      "GOOGLE",
 	}
 }

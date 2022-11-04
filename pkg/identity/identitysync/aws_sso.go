@@ -77,6 +77,7 @@ func groupFromAWSSSOGroup(ssoGroup types.Group) identity.IDPGroup {
 		ID:          aws.ToString(ssoGroup.GroupId),
 		Name:        aws.ToString(ssoGroup.DisplayName),
 		Description: aws.ToString(ssoGroup.Description),
+		Source:      "AWS-SSO",
 	}
 }
 

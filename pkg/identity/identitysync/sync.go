@@ -230,13 +230,7 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 		for k := range internalGroupIds {
 			keys = append(keys, k)
 		}
-		//add the groups that the user that is apart of that are not from idp
-		for _, k := range internalUser.Groups {
-			if _, ok := internalGroupIds[k]; !ok {
-				keys = append(keys, k)
-			}
 
-		}
 		internalUser.Groups = keys
 		ddbUserMap[idpUser.Email] = internalUser
 	}
