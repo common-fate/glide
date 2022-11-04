@@ -17,6 +17,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 )
 
@@ -228,6 +229,12 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 			With:         incomingRequest.With,
 		},
 	})
+	var me *multierror.Error
+	// multipart error will contain
+	if errors.As(err, &me) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
