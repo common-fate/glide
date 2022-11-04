@@ -183,6 +183,7 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 			existing.Description = g.Description
 			existing.Name = g.Name
 			existing.Status = types.IdpStatusACTIVE
+			existing.Source = types.GroupSource(g.Source)
 			ddbGroupMap[g.ID] = existing
 		} else { // create
 			newGroup := g.ToInternalGroup()
@@ -194,6 +195,7 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 	// archive deleted users
 	for k, u := range ddbUserMap {
 		if _, ok := idpUserMap[k]; !ok {
+
 			u.Status = types.IdpStatusARCHIVED
 			// Remove all group associations from archived users
 			u.Groups = []string{}
@@ -203,10 +205,12 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 	// archive deleted groups
 	for k, g := range ddbGroupMap {
 		if _, ok := idpGroupMap[k]; !ok {
-			g.Status = types.IdpStatusARCHIVED
-			// Remove all user associations from archived groups
-			g.Users = []string{}
-			ddbGroupMap[k] = g
+			if g.Source != "INTERNAL" {
+				g.Status = types.IdpStatusARCHIVED
+				// Remove all user associations from archived groups
+				g.Users = []string{}
+				ddbGroupMap[k] = g
+			}
 
 		}
 	}
@@ -239,13 +243,16 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 
 	// Updates the internal groups with new user mappings
 	for k, v := range ddbGroupMap {
-		um := internalGroupUsers[v.ID]
-		keys := make([]string, 0, len(um))
-		for k2 := range um {
-			keys = append(keys, k2)
+		if v.Source != "INTERNAL" {
+			um := internalGroupUsers[v.ID]
+			keys := make([]string, 0, len(um))
+			for k2 := range um {
+				keys = append(keys, k2)
+			}
+			v.Users = keys
+			ddbGroupMap[k] = v
 		}
-		v.Users = keys
-		ddbGroupMap[k] = v
+
 	}
 
 	return ddbUserMap, ddbGroupMap

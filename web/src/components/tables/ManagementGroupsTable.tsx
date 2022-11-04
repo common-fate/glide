@@ -17,6 +17,7 @@ import { MakeGenerics, useSearch, useNavigate } from "react-location";
 import { GroupsFilterMenu } from "./GroupsFilterMenu";
 import { ApprovalsLogo } from "../../components/icons/Logos";
 import { AzureIcon, OktaIcon } from "../icons/Icons";
+import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -75,9 +76,9 @@ export const ManagementGroupsTable = () => {
         Cell: ({ cell }) => (
           <Box>
             {cell.value == "INTERNAL" && <ApprovalsLogo h="20px" w="auto" />}
-            {cell.value == "AZURE" && <AzureIcon h="20px" w="auto" />}
+            {/* {cell.value == "AZURE" && <AzureIcon h="20px" w="auto" />}
             {cell.value == "ONELOGIN" && <OktaIcon h="20px" w="auto" />}
-            {cell.value == "COGNITO" && "Cognito"}
+            {cell.value == "COGNITO" && "Cognito"} */}
           </Box>
         ),
       },
@@ -94,7 +95,7 @@ export const ManagementGroupsTable = () => {
         leftIcon={<SmallAddIcon />}
         onClick={onOpen}
       >
-        Add Group
+        Add Internal Group
       </Button>
     );
   };
@@ -102,6 +103,11 @@ export const ManagementGroupsTable = () => {
     <>
       <Flex justify="space-between" my={5}>
         <AddGroupButton />
+        <SyncUsersAndGroupsButton
+          onSync={() => {
+            void paginator.mutate();
+          }}
+        />
         <GroupsFilterMenu
           onChange={(s) =>
             navigate({

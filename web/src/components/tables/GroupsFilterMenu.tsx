@@ -23,14 +23,14 @@ export const GroupsFilterMenu: React.FC<{
         size="sm"
       >
         {source === "INTERNAL"
-          ? "Internal Group"
-          : source === "AZURE"
-          ? "Azure only"
-          : source === "GOOGLE"
-          ? "Google only"
-          : source === "AWS"
-          ? "AWS only"
-          : "All"}
+          ? "Internal Only"
+          : // : source === "AZURE"
+            // ? "Azure only"
+            // : source === "GOOGLE"
+            // ? "Google only"
+            // : source === "AWS"
+            // ? "AWS only"
+            "All"}
       </MenuButton>
       <MenuList>
         <MenuOptionGroup
@@ -42,15 +42,15 @@ export const GroupsFilterMenu: React.FC<{
               case "int":
                 onChange(GroupSource.INTERNAL);
                 break;
-              case "az":
-                onChange(GroupSource.AZURE);
-                break;
-              case "go":
-                onChange(GroupSource.GOOGLE);
-                break;
-              case "aws":
-                onChange(GroupSource.AWS);
-                break;
+              // case "az":
+              //   onChange(GroupSource.AZURE);
+              //   break;
+              // case "go":
+              //   onChange(GroupSource.GOOGLE);
+              //   break;
+              // case "aws":
+              //   onChange(GroupSource.AWS);
+              //   break;
               default:
                 onChange(undefined);
             }
@@ -58,9 +58,9 @@ export const GroupsFilterMenu: React.FC<{
         >
           <MenuItemOption value="all">All</MenuItemOption>
           <MenuItemOption value="int">Internal Only</MenuItemOption>
-          <MenuItemOption value="az">Azure only</MenuItemOption>
+          {/* <MenuItemOption value="az">Azure only</MenuItemOption>
           <MenuItemOption value="go">Google only</MenuItemOption>
-          <MenuItemOption value="aws">AWS only</MenuItemOption>
+          <MenuItemOption value="aws">AWS only</MenuItemOption> */}
         </MenuOptionGroup>
       </MenuList>
     </Menu>

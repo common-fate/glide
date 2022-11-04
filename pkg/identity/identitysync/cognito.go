@@ -67,6 +67,7 @@ func groupFromCognitoGroup(cognitoGroup types.GroupType) identity.IDPGroup {
 		ID:          aws.ToString(cognitoGroup.GroupName),
 		Name:        aws.ToString(cognitoGroup.GroupName),
 		Description: aws.ToString(cognitoGroup.Description),
+		Source:      "COGNITO",
 	}
 }
 

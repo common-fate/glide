@@ -12,6 +12,7 @@ type IDPGroup struct {
 	ID          string
 	Name        string
 	Description string
+	Source      string
 }
 
 func (g IDPGroup) ToInternalGroup() Group {
@@ -24,6 +25,7 @@ func (g IDPGroup) ToInternalGroup() Group {
 		Status:      types.IdpStatusACTIVE,
 		CreatedAt:   now,
 		UpdatedAt:   now,
+		Source:      types.GroupSource(g.Source),
 	}
 }
 

@@ -5,11 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -125,52 +123,52 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	if a.Cognito == nil {
-		//create cognito group
+	// if a.Cognito == nil {
+	// 	//create cognito group
 
-		group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
-			Name:        createGroupRequest.Name,
-			Description: aws.ToString(createGroupRequest.Description),
-		})
+	// 	group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
+	// 		Name:        createGroupRequest.Name,
+	// 		Description: aws.ToString(createGroupRequest.Description),
+	// 	})
+	// 	if err != nil {
+	// 		apio.Error(ctx, w, err)
+	// 		return
+	// 	}
+	// 	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
+	// } else {
+	// Create internal group
+	group := identity.Group{
+		ID:          createGroupRequest.Name,
+		IdpID:       createGroupRequest.Name,
+		Name:        createGroupRequest.Name,
+		Description: *createGroupRequest.Description,
+		Status:      types.IdpStatusACTIVE,
+		Source:      types.INTERNAL,
+		Users:       *createGroupRequest.Members,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	//update which groups users are apart of
+	items := []ddb.Keyer{&group}
+
+	for _, u := range group.Users {
+		u := storage.GetUser{ID: u}
+		_, err = a.DB.Query(ctx, &u)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-		apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
-	} else {
-		// Create internal group
-		group := identity.Group{
-			ID:          createGroupRequest.Name,
-			IdpID:       createGroupRequest.Name,
-			Name:        createGroupRequest.Name,
-			Description: *createGroupRequest.Description,
-			Status:      types.IdpStatusACTIVE,
-			Source:      types.INTERNAL,
-			Users:       *createGroupRequest.Members,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		}
-
-		//update which groups users are apart of
-		items := []ddb.Keyer{&group}
-
-		for _, u := range group.Users {
-			u := storage.GetUser{ID: u}
-			_, err = a.DB.Query(ctx, &u)
-			if err != nil {
-				apio.Error(ctx, w, err)
-				return
-			}
-			u.Result.Groups = append(u.Result.Groups, group.ID)
-			items = append(items, u.Result)
-		}
-
-		err = a.DB.PutBatch(ctx, items...)
-		if err != nil {
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-			return
-		}
-
+		u.Result.Groups = append(u.Result.Groups, group.ID)
+		items = append(items, u.Result)
 	}
+
+	err = a.DB.PutBatch(ctx, items...)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+
+	// }
 
 }

@@ -18,7 +18,6 @@ func (l *ListGroups) BuildQuery() (*dynamodb.QueryInput, error) {
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1": &types.AttributeValueMemberS{Value: keys.Groups.PK1},
 		},
-		ExpressionAttributeNames: make(map[string]string),
 	}
 
 	return &qi, nil
