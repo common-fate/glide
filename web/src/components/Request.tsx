@@ -325,7 +325,9 @@ export const RequestAccessInstructions: React.FC = () => {
   if (reqData?.grant?.status === "ACTIVE") {
     return (
       <Stack>
-        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Box textStyle="Body/Medium" id="access_instructions">
+          Access Instructions
+        </Box>
         <ReactMarkdown
           components={{
             a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
