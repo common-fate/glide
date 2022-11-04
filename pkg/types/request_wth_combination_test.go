@@ -8,9 +8,10 @@ import (
 
 func TestRequestWithCombination(t *testing.T) {
 	type testcase struct {
-		name string
-		crw  CreateRequestWith
-		want RequestArgumentCombinations
+		name    string
+		crw     CreateRequestWith
+		want    RequestArgumentCombinations
+		wantErr error
 	}
 
 	testcases := []testcase{
@@ -33,12 +34,23 @@ func TestRequestWithCombination(t *testing.T) {
 			},
 			want: []map[string]string{{"accountId": "a", "permissionSetArn": "c"}, {"accountId": "a", "permissionSetArn": "d"}, {"accountId": "b", "permissionSetArn": "c"}, {"accountId": "b", "permissionSetArn": "d"}},
 		},
+		{
+			name: "invalid if one of the arguments has no values",
+			crw: CreateRequestWith{
+				AdditionalProperties: map[string][]string{
+					"accountId":        {},
+					"permissionSetArn": {"c", "d"},
+				},
+			},
+			wantErr: ArgumentHasNoValuesError{Argument: "accountId"},
+		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := tc.crw.ArgumentCombinations()
+			got, err := tc.crw.ArgumentCombinations()
 			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.wantErr, err)
 		})
 	}
 }

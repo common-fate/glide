@@ -1,5 +1,9 @@
 package types
 
+import (
+	"fmt"
+)
+
 type RequestArgumentCombinations []map[string]string
 
 // HasDuplicates compares all the combinations in the array
@@ -23,6 +27,15 @@ func (c RequestArgumentCombinations) HasDuplicates() bool {
 	return false
 }
 
+// ArgumentHasNoValuesError is returned if any of the arguments in the createRequestWith have no values
+type ArgumentHasNoValuesError struct {
+	Argument string
+}
+
+func (e ArgumentHasNoValuesError) Error() string {
+	return fmt.Sprintf("argument %s has no values", e.Argument)
+}
+
 // ArgumentCombinations returns a slice of all combinations of arguments
 //
 // Example
@@ -30,13 +43,16 @@ func (c RequestArgumentCombinations) HasDuplicates() bool {
 //	{"a":[1,2],"b":[3]} -> [{"a":1,"b":3},{"a":2,"b":3}]
 //
 // This method uses recursion to build a slice of possible combinations of arguments
-func (requestWith CreateRequestWith) ArgumentCombinations() RequestArgumentCombinations {
+func (requestWith CreateRequestWith) ArgumentCombinations() (RequestArgumentCombinations, error) {
 
 	if requestWith.AdditionalProperties == nil {
-		return nil
+		return nil, nil
 	}
 	keys := make([]string, 0, len(requestWith.AdditionalProperties))
-	for k := range requestWith.AdditionalProperties {
+	for k, v := range requestWith.AdditionalProperties {
+		if len(v) == 0 {
+			return nil, ArgumentHasNoValuesError{Argument: k}
+		}
 		keys = append(keys, k)
 	}
 
@@ -52,7 +68,7 @@ func (requestWith CreateRequestWith) ArgumentCombinations() RequestArgumentCombi
 			}
 		}
 	}
-	return combinations
+	return combinations, nil
 }
 
 func branch(subRequest map[string][]string, keys []string, combination map[string]string, keyIndex int) []map[string]string {

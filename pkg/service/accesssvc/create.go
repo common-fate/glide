@@ -74,6 +74,7 @@ func (s *Service) CreateRequests(ctx context.Context, in CreateRequestsOpts) ([]
 			mu.Unlock()
 		}(combinationToCreate)
 	}
+	wg.Wait()
 
 	return nil, nil
 }
