@@ -389,12 +389,12 @@ const Home = () => {
                       {...register("reason", {
                         validate: (value) => {
                           const res: string[] = [];
-                          [
-                            /[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/,
-                          ].every((pattern) => pattern.test(value as string)) &&
-                            res.push(
-                              "Invalid characters (only letters, numbers, and punctuation allowed)"
-                            );
+                          // [/.*[^ ].*/].every((pattern) =>
+                          //   pattern.test(value as string)
+                          // ) &&
+                          //   res.push(
+                          //     "Invalid characters can not only be spaces"
+                          //   );
                           if (value && value.length > 2048) {
                             res.push("Maximum length is 2048 characters");
                           }
