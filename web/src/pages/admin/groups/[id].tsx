@@ -135,15 +135,17 @@ const Index = () => {
                 isEditing={isEditable}
               />
             </VStack>
-            <Button
-              variant="brandSecondary"
-              size="sm"
-              onClick={() => {
-                setIsEditable(true);
-              }}
-            >
-              Edit
-            </Button>
+            {group.source == "INTERNAL" && (
+              <Button
+                variant="brandSecondary"
+                size="sm"
+                onClick={() => {
+                  setIsEditable(true);
+                }}
+              >
+                Edit
+              </Button>
+            )}
           </FormProvider>
         </Flex>
         {isEditable && <Button>Save</Button>}
