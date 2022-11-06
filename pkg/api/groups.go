@@ -115,7 +115,7 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 
 // Create Group
 // (POST /api/v1/admin/groups)
-// Creates a group in cognito if cognito is the selected idp, otherwise will create an Internal Granted group
+// Creates an internal group not connected to any identiy provider in dynamodb
 func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var createGroupRequest types.CreateGroupJSONRequestBody
@@ -157,5 +157,7 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
+
+	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
 
 }
