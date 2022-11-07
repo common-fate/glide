@@ -124,10 +124,12 @@ func TestValidateFavorite(t *testing.T) {
 
 func TestValidateCreate(t *testing.T) {
 	type testcase struct {
-		name      string
-		giveInput CreateRequestsOpts
-		wantErr   error
-		want      *validateCreateRequestsResponse
+		name                 string
+		giveInput            CreateRequestsOpts
+		wantErr              error
+		want                 *validateCreateRequestsResponse
+		withAccessRule       *rule.AccessRule
+		withRequestArguments map[string]types.RequestArgument
 	}
 
 	clk := clock.NewMock()
@@ -158,6 +160,29 @@ func TestValidateCreate(t *testing.T) {
 			}},
 	}
 
+	accessRuleNonSelectable := rule.AccessRule{
+		Groups: []string{"goodgroup"},
+		TimeConstraints: types.TimeConstraints{
+			MaxDurationSeconds: 3600,
+		},
+		Target: rule.Target{
+			With: map[string]string{
+				"vault": "test",
+			},
+		},
+	}
+	requestArgumentsNonSelectable := map[string]types.RequestArgument{
+		"vault": {
+			RequiresSelection: false,
+			Options: []types.WithOption{
+				{
+					Valid: true,
+					Value: "test",
+				},
+			},
+		},
+	}
+
 	testcases := []testcase{
 		{
 			name: "ok",
@@ -180,6 +205,8 @@ func TestValidateCreate(t *testing.T) {
 					Groups: []string{"goodgroup"},
 				},
 			},
+			withAccessRule:       &accessRule,
+			withRequestArguments: requestArguments,
 			want: &validateCreateRequestsResponse{
 				argumentCombinations: types.RequestArgumentCombinations{map[string]string{"accountId": "a"}, map[string]string{"accountId": "b"}},
 				rule:                 accessRule,
@@ -212,6 +239,8 @@ func TestValidateCreate(t *testing.T) {
 					Groups: []string{"goodgroup"},
 				},
 			},
+			withAccessRule:       &accessRule,
+			withRequestArguments: requestArguments,
 			wantErr: types.ArgumentHasNoValuesError{
 				Argument: "accountId",
 			},
@@ -242,18 +271,154 @@ func TestValidateCreate(t *testing.T) {
 					Groups: []string{"goodgroup"},
 				},
 			},
-			wantErr: errors.New("request contains duplicate subrequest value combinations"),
+			withAccessRule:       &accessRule,
+			withRequestArguments: requestArguments,
+			wantErr:              errors.New("request contains duplicate subrequest value combinations"),
+		},
+		{
+			name: "ok rule does not have selectable arguments, single empty with is provided",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			withAccessRule:       &accessRuleNonSelectable,
+			withRequestArguments: requestArgumentsNonSelectable,
+			want: &validateCreateRequestsResponse{
+				argumentCombinations: types.RequestArgumentCombinations{map[string]string{}},
+				rule:                 accessRuleNonSelectable,
+				requestArguments:     requestArgumentsNonSelectable,
+			},
+		},
+		{
+			name: "rule does not have selectable arguments, arguments provided",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{"vault": {"values"}},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			withAccessRule:       &accessRuleNonSelectable,
+			withRequestArguments: requestArgumentsNonSelectable,
+			wantErr:              errors.New("request validation failed"),
+		},
+		{
+			name: "rule has selectable arguments, but an empty subrequest was provided",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{
+								"accountId": {"a", "b"},
+							},
+						},
+						{
+							AdditionalProperties: map[string][]string{},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			withAccessRule:       &accessRule,
+			withRequestArguments: requestArguments,
+			wantErr:              errors.New("request contains subrequest with no arguments"),
+		},
+		{
+			name: "rule has selectable arguments, but an unexpected argument id was provided",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{
+								"wrong": {"a", "b"},
+							},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			withAccessRule:       &accessRule,
+			withRequestArguments: requestArguments,
+			wantErr:              errors.New("request validation failed"),
+		},
+		{
+			name: "rule has selectable arguments, but an unexpected argument value was provided",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{
+								"wrong": {"a", "wrong"},
+							},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			withAccessRule:       &accessRule,
+			withRequestArguments: requestArguments,
+			wantErr:              errors.New("request validation failed"),
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: &accessRule}, nil)
+			if tc.withAccessRule != nil {
+				db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: tc.withAccessRule}, nil)
+			}
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			rs := accessMocks.NewMockAccessRuleService(ctrl)
-			rs.EXPECT().RequestArguments(gomock.Any(), accessRule.Target).AnyTimes().Return(requestArguments, nil)
+			if tc.withRequestArguments != nil {
+				rs.EXPECT().RequestArguments(gomock.Any(), tc.withAccessRule.Target).AnyTimes().Return(tc.withRequestArguments, nil)
+			}
+
 			s := Service{
 				Clock: clk,
 				DB:    db,

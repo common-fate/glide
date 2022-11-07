@@ -21,6 +21,8 @@ type validateCreateRequestsResponse struct {
 
 // validateCreateRequests returns APIO errors for bad request errors relating to the whole request
 func (s *Service) validateCreateRequests(ctx context.Context, in CreateRequestsOpts) (*validateCreateRequestsResponse, error) {
+	// If a request was not submitted with any arguments, then combinations to create will return a single empty map
+	// this will be validated against the rule later to ensure that it is expected
 	combinationsToCreate, err := in.argumentCombinations()
 	if err != nil {
 		return nil, err
@@ -68,24 +70,39 @@ func (cro CreateRequestsOpts) argumentCombinations() (types.RequestArgumentCombi
 	// create the request. The RequestCreator handles the validation
 	// and saving the request to the database.
 	var combinationsToCreate types.RequestArgumentCombinations
-	if cro.Create.With != nil {
-		for _, v := range *cro.Create.With {
-			combinations, err := v.ArgumentCombinations()
-			if errors.As(err, &types.ArgumentHasNoValuesError{}) {
-				return nil, apio.NewRequestError(err, http.StatusBadRequest)
-			}
-			if err != nil {
-				return nil, err
-			}
-			combinationsToCreate = append(combinationsToCreate, combinations...)
-		}
-		if combinationsToCreate.HasDuplicates() {
-			return nil, apio.NewRequestError(errors.New("request contains duplicate subrequest value combinations"), http.StatusBadRequest)
-		}
-	} else {
-		// only one combination with no values
+
+	// A request which contains no sub requests or a requst which contains one empty sub request is treated as having no arguments.
+	// return a single empty combination.
+	// this is to support requests for a rule where no arguments are selectable by the user
+	if cro.Create.With == nil {
 		combinationsToCreate = append(combinationsToCreate, make(map[string]string))
+		return combinationsToCreate, nil
+	} else {
+		arr := *cro.Create.With
+		if len(arr) == 0 || (len(arr) == 1 && len(arr[0].AdditionalProperties) == 0) {
+			combinationsToCreate = append(combinationsToCreate, make(map[string]string))
+			return combinationsToCreate, nil
+		}
 	}
+
+	for _, v := range *cro.Create.With {
+		// a request which contains subrequests with no arguments is invalid
+		if len(v.AdditionalProperties) == 0 {
+			return nil, apio.NewRequestError(errors.New("request contains subrequest with no arguments"), http.StatusBadRequest)
+		}
+		combinations, err := v.ArgumentCombinations()
+		if errors.As(err, &types.ArgumentHasNoValuesError{}) {
+			return nil, apio.NewRequestError(err, http.StatusBadRequest)
+		}
+		if err != nil {
+			return nil, err
+		}
+		combinationsToCreate = append(combinationsToCreate, combinations...)
+	}
+	if combinationsToCreate.HasDuplicates() {
+		return nil, apio.NewRequestError(errors.New("request contains duplicate subrequest value combinations"), http.StatusBadRequest)
+	}
+
 	return combinationsToCreate, nil
 }
 
