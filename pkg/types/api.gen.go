@@ -758,18 +758,15 @@ type AdminListAccessRulesParams struct {
 // AdminListAccessRulesParamsStatus defines parameters for AdminListAccessRules.
 type AdminListAccessRulesParamsStatus string
 
-// GetGroupsParams defines parameters for GetGroups.
-type GetGroupsParams struct {
+// ListGroupsParams defines parameters for ListGroups.
+type ListGroupsParams struct {
 	// encrypted token containing pagination info
-	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+	NextToken *string                 `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+	Source    *ListGroupsParamsSource `form:"source,omitempty" json:"source,omitempty"`
 }
 
-// GetGroupBySourceParams defines parameters for GetGroupBySource.
-type GetGroupBySourceParams struct {
-	// encrypted token containing pagination info
-	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
-	Source    *string `form:"source,omitempty" json:"source,omitempty"`
-}
+// ListGroupsParamsSource defines parameters for ListGroups.
+type ListGroupsParamsSource string
 
 // ListProviderArgOptionsParams defines parameters for ListProviderArgOptions.
 type ListProviderArgOptionsParams struct {
@@ -1265,13 +1262,10 @@ type ServerInterface interface {
 	AdminGetDeploymentVersion(w http.ResponseWriter, r *http.Request)
 	// List groups
 	// (GET /api/v1/admin/groups)
-	GetGroups(w http.ResponseWriter, r *http.Request, params GetGroupsParams)
+	ListGroups(w http.ResponseWriter, r *http.Request, params ListGroupsParams)
 	// Create Group
 	// (POST /api/v1/admin/groups)
 	CreateGroup(w http.ResponseWriter, r *http.Request)
-	// Your GET endpoint
-	// (GET /api/v1/admin/groups/source)
-	GetGroupBySource(w http.ResponseWriter, r *http.Request, params GetGroupBySourceParams)
 	// Get Group Details
 	// (GET /api/v1/admin/groups/{groupId})
 	GetGroup(w http.ResponseWriter, r *http.Request, groupId string)
@@ -1713,60 +1707,14 @@ func (siw *ServerInterfaceWrapper) AdminGetDeploymentVersion(w http.ResponseWrit
 	handler(w, r.WithContext(ctx))
 }
 
-// GetGroups operation middleware
-func (siw *ServerInterfaceWrapper) GetGroups(w http.ResponseWriter, r *http.Request) {
+// ListGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetGroupsParams
-
-	// ------------- Optional query parameter "nextToken" -------------
-	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "nextToken", r.URL.Query(), &params.NextToken)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "nextToken", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetGroups(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// CreateGroup operation middleware
-func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CreateGroup(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// GetGroupBySource operation middleware
-func (siw *ServerInterfaceWrapper) GetGroupBySource(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetGroupBySourceParams
+	var params ListGroupsParams
 
 	// ------------- Optional query parameter "nextToken" -------------
 	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
@@ -1791,7 +1739,22 @@ func (siw *ServerInterfaceWrapper) GetGroupBySource(w http.ResponseWriter, r *ht
 	}
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetGroupBySource(w, r, params)
+		siw.Handler.ListGroups(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// CreateGroup operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGroup(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2811,13 +2774,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/deployment/version", wrapper.AdminGetDeploymentVersion)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/groups", wrapper.GetGroups)
+		r.Get(options.BaseURL+"/api/v1/admin/groups", wrapper.ListGroups)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/admin/groups", wrapper.CreateGroup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/groups/source", wrapper.GetGroupBySource)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/groups/{groupId}", wrapper.GetGroup)
@@ -3025,43 +2985,43 @@ var swaggerSpec = []string{
 	"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",
-	"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",
+	"tY0+L+7jax10pj102So+b1Tt3hC9MX9qdMwfyQs2bFR16k2bKdept5pXHf9D/+hx6zd2rysvQHl86hy3",
+	"a3rTwuJWwTrdyeCQTFPMiYqxzQmJATZPl6IUjr2WjfUi/ub2eOlB/Yd0svWzVk/Es96CPaRJmbdqa3du",
+	"e5+m6onB1VrSKY5SLOMywhvECy54IDVYSz6h+xwJJ0eDo1qh1kYTaTzdU4GYZxgbQx7rvODoYN/7CuZG",
+	"OqT5Pc3Px+kSRXXIWMn35sseW6ah9De9kvE8S8tYF8NBjmoglWQC06iWABdifj/et2eu3RuZAkpgQG6D",
+	"v7x1UXNMvhjm0/Rn1l8f/srbbqnf9qr7sxDDwVx7avQ+FQ2lmwOqeYbIeKkSFhzpbXXNezABbhXh/cFo",
+	"0EZZlJp730df+Onbg3Raf/6miOv0Xzq9kGsBNWAs6yDUH6wIllX2WMsKAzplW2KHdbuUDcwunhyrlE4T",
+	"pFOg9/p0eab3CdKp+I9VX7rSe9Vja0NfZxYKZNmW7HKXf5bApYqJhjPZAI8AiiYUMdUxT/66I/tAqh5q",
+	"+o+/Aul4gRxv3UZFMqDT07x0tNF9xKnph1KsL183s6EyePvK9MasveTVX/lcyaJlTbPL1/ZAFExZ7PYJ",
+	"mGMlgSmPQVHE+4jnwB/2key+rfOUvwvcwuzRtWiQIsA4juMVXSSbuVuvvGngoOalZA8Z3Y6JsrmheXR4",
+	"jcjC92iKtfwoNcU0+1fCJC3SiezuR77AQgkXmwcYKm+1NgYamjHrf/V1w7BBiRQSd27Xx3qcBXcrmLbQ",
+	"BPL/2kSMkL8z1zlKyEJd2dovTle69wmZqWZQ8b0Iclgqt8RcppPZqkSNj0r9EMvEPpIjXGKvy/c11Cnh",
+	"Wa3VvE1ZctSUcaeQYTdzq1we1DO2ZV897EZ1HkXDLu8nqjVTbVXOuizbs3vJPTBwdWJtOAHnWSrfAimF",
+	"RazIqG4CL++CbyjWdkbVVtLlyOXaQMYJhVNljshwubBSMJcJj7XLRpjZ6+blCRFBDKRE9qrwCFWNy/sz",
+	"YHWmJkY0Y6tvVa/l6taxR7VB42Md20qPywd3md3Gmm3joGtt/I8hE2RD3N4n8c8wjdBto5Tw1X4jgYwI",
+	"3YoTqUoj9cGUs6hTKevDdemsZ8v54m02a5XZPojYymre6dFln9WG2A53X2TjBJcZ/IKjjSwupw+nOf4r",
+	"cq3ur/AuVxDSkj9WQ9OtSCHjXX5GJWW6TbL6zqPl6oC50/Q6m0vb7YNQYipJXufS7/X74PRHYMghG2/o",
+	"VH6KpLtjNUCVefZMhQPUzyCEKRgjMCFZKp8EwCmbo5CbyJT1cZR3/CwarFf7XP+qHybww7rf7xeA4sqz",
+	"YSFMU8IFLHl/VPC1QIsudO44L2Uwt6m82C9OjcT5xj1NhhSPY+e9L0U23LYDBdO31rom4W1FpMiqJYGS",
+	"DPqr2kz882JEo5AmCeY6TCmG5UUoahWWxZxtkH7vafxQ7uRh+nv8GdLyDaprmOY/SUbBm+NRbjmuwxa9",
+	"T3kblxZ5VkWWZdGMw58FUzR7euiitNVpVPufK7Zc6qy3YSWO1WTnPnZY/uasl8CvEQ9nlXIy5rObL/Uf",
+	"nkKCz8bnSWyihmrn3sq6DTNyTEPB+yXk6IYeG4bL1F4fPh1HQvnny8Yx3VRWiVPJJb1P4h8tSFcfbTV4",
+	"Oxajtpeh4bkwzmS6u0oK009DzvDcLZOUH/p5rDVj3PdJ7EqHD6upTeUF5ruHLO6oY+FSQccfg3s1O6zm",
+	"3pXWobxVMKO6V+lItgPVnT+tGz7VoIqBJcmEiTeRCiUvtlB3KeJvwn1Q3/tLdv9kpiWbkZsCDXwGefG8",
+	"brmL6oTQDqBQv6gB07qvZpCp5mh8hhKG4gVitTebaurmq80/mzUsGTZZ2h6M3/SqqSYqdYj3dA2Wrqo0",
+	"g0CSMa4rD5aVYgPVYjmB16UGy11wmZflW9Xsbmd6u7RevnBoKvE1J9grUTRBFKUhYl1wKtjnBjNkKufB",
+	"fn+/cKFNeVNz1Xzp3fPNLQ89wWMYH/kaDfaHT7uvsM89crI3h4ptvMIywmwewyWQpz6vIesAdDvH8rVK",
+	"laawINeysWkuVFdKwjOoerL/ka3utb1YL/6zeUhMn81GGjgFf/JORrVGiCrCVT5hpxq3xktT50CoTAeK",
+	"slgd0bG81BVyQD0lj1MwyXhG0WpFdmmA/kLCdSMOef+PahzQqFDzbm3ew1q9S2uUnxTXUmCD1QEQ07tE",
+	"DMC6B1VuVVTT53MWEhCYVvLcagEsIfw6JRwdmM77XhPAdIUrLftNbUeTL5GVpxJZ8bGQKWpsfZdpWrw6",
+	"93m50WDnYNhMSFIg9Exho8hjQGIpuihShU7e209lPjzAtefaqaEuIG2vQrUJVH2f8CnyghTmbZhASf3H",
+	"ob5REw9c6KqWeYoiRDOQwcPT4hxlPLbsprAZCLWhJOmiCD9dAeFG/XMltgQzuDCdPyLh5cdIBzV12FP7",
+	"yqodvifCKVfYkkZzgkXbDeR8FkY91CRY31GxuUk+rsAexdjypsHaDwFsngVbmuWp5E2bI4HM3p6WHKH5",
+	"6z6PLkdU932P9MifXVK9hkERUswfGJKRlTFyGgk6kRSdBKA+F6yJKSA3RfCsY+c36CaHK5oTOhysNnKP",
+	"eEh5go1yZswUNZdWCtObCwmsWIVco7VYBW+JVVTPX9tD1xpIwVRkuaAFJhkTPrp25LvgeDJBymHHSYIi",
+	"DDmKl8BHRHKNmjXNH15bnGt0pSaG0ZYh1PWVekihdQ15UdlcxE5iMp2qTtn+PuJvEH+HNtIAg4zPyhe3",
+	"rbrleJplFL2Fq956SzzZ13wrFKrx7Wuxkd+8faZLrYdoNwQbkNl5oItRCYVsdaamLfryH/R6MQlhPCOM",
+	"H7zsv+wHQhBp0PKu/jmId538d+q+7O7nu/8JAAD//ztmBIRFxQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -12,41 +12,9 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// Gets all active groups
+// Lists all active groups
 // (GET /api/v1/groups/)
-func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.GetGroupsParams) {
-	ctx := r.Context()
-
-	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
-	if params.NextToken != nil {
-		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
-	}
-
-	var groups []identity.Group
-	var nextToken string
-
-	q := storage.ListActiveGroups{}
-	qr, err := a.DB.Query(ctx, &q, queryOpts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	groups = q.Result
-	nextToken = qr.NextPage
-
-	res := types.ListGroupsResponse{
-		Groups: make([]types.Group, len(groups)),
-		Next:   &nextToken,
-	}
-
-	for i, g := range groups {
-		res.Groups[i] = g.ToAPI()
-	}
-
-	apio.JSON(ctx, w, res, http.StatusOK)
-}
-
-func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, params types.GetGroupBySourceParams) {
+func (a *API) ListGroups(w http.ResponseWriter, r *http.Request, params types.ListGroupsParams) {
 	ctx := r.Context()
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
@@ -58,7 +26,9 @@ func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, params ty
 	var nextToken string
 
 	if params.Source == nil {
-		q := storage.ListActiveGroups{}
+		q := storage.ListGroupsForStatus{
+			Status: types.IdpStatusACTIVE,
+		}
 		qr, err := a.DB.Query(ctx, &q, queryOpts...)
 		if err != nil {
 			apio.Error(ctx, w, err)
@@ -67,8 +37,13 @@ func (a *API) GetGroupBySource(w http.ResponseWriter, r *http.Request, params ty
 		groups = q.Result
 		nextToken = qr.NextPage
 	} else {
-		q := storage.ListGroupsForSource{
-			Source: *params.Source,
+		source := identity.INTERNAL
+		if *params.Source != types.ListGroupsParamsSource("INTERNAL") {
+			source = a.IdentityProvider
+		}
+		q := storage.ListGroupsForSourceAndStatus{
+			Source: source,
+			Status: types.IdpStatusACTIVE,
 		}
 		qr, err := a.DB.Query(ctx, &q, queryOpts...)
 		if err != nil {

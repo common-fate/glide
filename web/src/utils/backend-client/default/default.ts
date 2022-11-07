@@ -16,8 +16,6 @@ import type {
   UserListRequestsPastParams,
   AccessRuleDetail,
   ErrorResponseResponse,
-  ListGroupsResponseResponse,
-  GetGroupBySourceParams,
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody,
   LookupAccessRule,
@@ -131,45 +129,6 @@ export const adminArchiveAccessRule = (
       options);
     }
   
-
-/**
- * @summary Your GET endpoint
- */
-export const getGroupBySource = (
-    params?: GetGroupBySourceParams,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListGroupsResponseResponse>(
-      {url: `/api/v1/admin/groups/source`, method: 'get',
-        params
-    },
-      options);
-    }
-  
-
-export const getGetGroupBySourceKey = (params?: GetGroupBySourceParams,) => [`/api/v1/admin/groups/source`, ...(params ? [params]: [])];
-
-    
-export type GetGroupBySourceQueryResult = NonNullable<Awaited<ReturnType<typeof getGroupBySource>>>
-export type GetGroupBySourceQueryError = ErrorType<unknown>
-
-export const useGetGroupBySource = <TError = ErrorType<unknown>>(
- params?: GetGroupBySourceParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroupBySource>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupBySourceKey(params) : null);
-  const swrFn = () => getGroupBySource(params, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 
 /**
  * Begins the guided setup process for a new Access Provider.

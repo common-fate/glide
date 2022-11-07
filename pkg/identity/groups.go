@@ -8,6 +8,8 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
+const INTERNAL = "internal"
+
 type IDPGroup struct {
 	ID          string
 	Name        string
@@ -63,7 +65,7 @@ func (g *Group) DDBKeys() (ddb.Keys, error) {
 		GSI1PK: keys.Groups.GSI1PK,
 		GSI1SK: keys.Groups.GSI1SK(string(g.Status), g.Name),
 		GSI2PK: keys.Groups.GSI2PK,
-		GSI2SK: keys.Groups.GSI2SK(string(g.Source)),
+		GSI2SK: keys.Groups.GSI2SK(string(g.Source), string(g.Status), g.Name),
 	}
 
 	return keys, nil
