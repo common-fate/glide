@@ -15,19 +15,21 @@ type ListGroupsForSource struct {
 
 func (l *ListGroupsForSource) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
-		KeyConditionExpression: aws.String("PK = :pk1"),
+		IndexName: aws.String(keys.IndexNames.GSI2),
+
+		KeyConditionExpression: aws.String("GSI2PK = :pk1 and GSI2SK = :sk1"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk1": &types.AttributeValueMemberS{Value: keys.Groups.PK1},
+			":pk1": &types.AttributeValueMemberS{Value: keys.Groups.GSI2PK},
+			":sk1": &types.AttributeValueMemberS{Value: l.Source},
 		},
-		ExpressionAttributeNames: make(map[string]string),
 	}
 
-	var expr string
+	// var expr string
 
-	expr += "#group_source = :key"
+	// expr += "#group_source = :key"
 
-	qi.ExpressionAttributeValues[":key"] = &types.AttributeValueMemberS{Value: l.Source}
-	qi.ExpressionAttributeNames["#group_source"] = "source"
-	qi.FilterExpression = &expr
+	// qi.ExpressionAttributeValues[":key"] = &types.AttributeValueMemberS{Value: l.Source}
+	// qi.ExpressionAttributeNames["#group_source"] = "source"
+	// qi.FilterExpression = &expr
 	return &qi, nil
 }

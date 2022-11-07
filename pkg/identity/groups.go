@@ -63,7 +63,7 @@ func (g *Group) DDBKeys() (ddb.Keys, error) {
 		GSI1PK: keys.Groups.GSI1PK,
 		GSI1SK: keys.Groups.GSI1SK(string(g.Status), g.Name),
 		GSI2PK: keys.Groups.GSI2PK,
-		GSI2SK: keys.Groups.GSI2SK(g.IdpID),
+		GSI2SK: keys.Groups.GSI2SK(string(g.Source)),
 	}
 
 	return keys, nil

@@ -9,7 +9,7 @@ type groupKeys struct {
 	GSI1SK       func(status string, id string) string
 	GSI1SKStatus func(status string) string
 	GSI2PK       string
-	GSI2SK       func(idpID string) string
+	GSI2SK       func(source string) string
 }
 
 var Groups = groupKeys{
@@ -19,5 +19,5 @@ var Groups = groupKeys{
 	GSI1SK:       func(status string, id string) string { return status + "#" + id },
 	GSI1SKStatus: func(status string) string { return status + "#" },
 	GSI2PK:       GroupKey,
-	GSI2SK:       func(idpID string) string { return idpID },
+	GSI2SK:       func(source string) string { return source },
 }
