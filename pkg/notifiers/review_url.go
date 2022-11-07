@@ -6,9 +6,10 @@ import (
 )
 
 type ReviewURLs struct {
-	Review  string
-	Approve string
-	Deny    string
+	Review             string
+	Approve            string
+	Deny               string
+	AccessInstructions string
 }
 
 func ReviewURL(frontendURL, requestID string) (ReviewURLs, error) {
@@ -19,9 +20,10 @@ func ReviewURL(frontendURL, requestID string) (ReviewURLs, error) {
 	u.Path = path.Join(u.Path, "requests", requestID)
 
 	r := ReviewURLs{
-		Review:  u.String(),
-		Approve: u.String() + "?action=approve",
-		Deny:    u.String() + "?action=deny",
+		Review:             u.String(),
+		Approve:            u.String() + "?action=approve",
+		Deny:               u.String() + "?action=deny",
+		AccessInstructions: u.String() + "#access_instructions",
 	}
 	return r, nil
 }

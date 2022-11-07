@@ -330,7 +330,6 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
 		RequestedBy: req.RequestedBy,
 		RevokedBy:   uid,
-		Provider:    req.Grant.Provider,
 		RuleID:      req.Rule,
 		Timing:      req.RequestedTiming.ToAnalytics(),
 		HasReason:   req.HasReason(),

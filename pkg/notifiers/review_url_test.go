@@ -20,9 +20,10 @@ func TestReviewURL(t *testing.T) {
 			giveURL: "https://grantedtest.com",
 			giveID:  "req_123",
 			want: ReviewURLs{
-				Review:  "https://grantedtest.com/requests/req_123",
-				Approve: "https://grantedtest.com/requests/req_123?action=approve",
-				Deny:    "https://grantedtest.com/requests/req_123?action=deny",
+				Review:             "https://grantedtest.com/requests/req_123",
+				Approve:            "https://grantedtest.com/requests/req_123?action=approve",
+				Deny:               "https://grantedtest.com/requests/req_123?action=deny",
+				AccessInstructions: "https://grantedtest.com/requests/req_123#access_instructions",
 			},
 		},
 		{
@@ -30,9 +31,10 @@ func TestReviewURL(t *testing.T) {
 			giveURL: "https://grantedtest.com/prod",
 			giveID:  "req_123",
 			want: ReviewURLs{
-				Review:  "https://grantedtest.com/prod/requests/req_123",
-				Approve: "https://grantedtest.com/prod/requests/req_123?action=approve",
-				Deny:    "https://grantedtest.com/prod/requests/req_123?action=deny",
+				Review:             "https://grantedtest.com/prod/requests/req_123",
+				Approve:            "https://grantedtest.com/prod/requests/req_123?action=approve",
+				Deny:               "https://grantedtest.com/prod/requests/req_123?action=deny",
+				AccessInstructions: "https://grantedtest.com/prod/requests/req_123#access_instructions",
 			},
 		},
 	}
