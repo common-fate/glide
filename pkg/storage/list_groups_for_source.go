@@ -19,7 +19,7 @@ func (l *ListGroupsForSourceAndStatus) BuildQuery() (*dynamodb.QueryInput, error
 	qi := dynamodb.QueryInput{
 		IndexName: aws.String(keys.IndexNames.GSI2),
 
-		KeyConditionExpression: aws.String("GSI2PK = :pk1 and GSI2SK = :sk1"),
+		KeyConditionExpression: aws.String("GSI2PK = :pk1 and begins_with(GSI2SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1": &types.AttributeValueMemberS{Value: keys.Groups.GSI2PK},
 			":sk1": &types.AttributeValueMemberS{Value: keys.Groups.GSI2SKSourceStatus(l.Source, string(l.Status))},

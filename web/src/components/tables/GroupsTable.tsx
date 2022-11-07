@@ -2,12 +2,14 @@ import { SmallAddIcon } from "@chakra-ui/icons";
 import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { Column } from "react-table";
-import { useGetGroupBySource } from "../../utils/backend-client/default/default";
-import { useIdentityConfiguration } from "../../utils/backend-client/admin/admin";
+import {
+  useIdentityConfiguration,
+  useListGroups,
+} from "../../utils/backend-client/admin/admin";
 
 import {
   Group,
-  GroupSource,
+  ListGroupsSource,
   RequestStatus,
 } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
@@ -16,12 +18,11 @@ import { TableRenderer } from "./TableRenderer";
 import { MakeGenerics, useSearch, useNavigate } from "react-location";
 import { GroupsFilterMenu } from "./GroupsFilterMenu";
 import { ApprovalsLogo } from "../icons/Logos";
-import { AzureIcon, OktaIcon } from "../icons/Icons";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
-    source?: Lowercase<GroupSource>;
+    source?: Lowercase<ListGroupsSource>;
   };
 }>;
 
@@ -33,10 +34,10 @@ export const GroupsTable = () => {
   console.log(source);
 
   const { onOpen, isOpen, onClose } = useDisclosure();
-  const paginator = usePaginatorApi<typeof useGetGroupBySource>({
-    swrHook: useGetGroupBySource,
+  const paginator = usePaginatorApi<typeof useListGroups>({
+    swrHook: useListGroups,
     hookProps: {
-      source: source ? (source.toUpperCase() as GroupSource) : undefined,
+      source: source ? (source.toUpperCase() as ListGroupsSource) : undefined,
     },
     swrProps: {},
   });
@@ -75,7 +76,7 @@ export const GroupsTable = () => {
         Header: "",
         Cell: ({ cell }) => (
           <Box>
-            {cell.value == "INTERNAL" && <ApprovalsLogo h="20px" w="auto" />}
+            {cell.value == "internal" && <ApprovalsLogo h="20px" w="auto" />}
             {/* {cell.value == "AZURE" && <AzureIcon h="20px" w="auto" />}
             {cell.value == "ONELOGIN" && <OktaIcon h="20px" w="auto" />}
             {cell.value == "COGNITO" && "Cognito"} */}
@@ -95,7 +96,7 @@ export const GroupsTable = () => {
         leftIcon={<SmallAddIcon />}
         onClick={onOpen}
       >
-        Add Internal Group
+        Add Group
       </Button>
     );
   };
@@ -113,11 +114,11 @@ export const GroupsTable = () => {
             navigate({
               search: (old) => ({
                 ...old,
-                source: s?.toLowerCase() as Lowercase<GroupSource>,
+                source: s?.toLowerCase() as Lowercase<ListGroupsSource>,
               }),
             })
           }
-          source={source?.toUpperCase() as GroupSource}
+          source={source?.toUpperCase() as ListGroupsSource}
         />
       </Flex>
       {TableRenderer<Group>({

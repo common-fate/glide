@@ -3,7 +3,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import Select, { components, OptionProps } from "react-select";
 import { Text } from "@chakra-ui/react";
 import {
-  useGetGroups,
+  useListGroups,
   useGetUsers,
 } from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
@@ -36,7 +36,7 @@ export const UserSelect: React.FC<SelectProps> = (props) => {
 
 export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const { shouldShowGroupMembers = false } = props;
-  const { data } = useGetGroups();
+  const { data } = useListGroups();
   const options = useMemo(() => {
     return (
       data?.groups

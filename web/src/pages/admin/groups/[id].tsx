@@ -135,7 +135,7 @@ const Index = () => {
                 isEditing={isEditable}
               />
             </VStack>
-            {group.source == "INTERNAL" && (
+            {group.source == "internal" && (
               <Button
                 variant="brandSecondary"
                 size="sm"

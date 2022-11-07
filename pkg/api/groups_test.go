@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
@@ -102,8 +103,9 @@ func TestGetGroup(t *testing.T) {
 		{
 			name:     "group not found",
 			wantCode: http.StatusNotFound,
-			idpErr:   identity.UserNotFoundError{User: "123"},
-			wantBody: `{"error":"user 123 not found"}`,
+			idpErr:   ddb.ErrNoItems,
+
+			wantBody: `{"error":"item query returned no items"}`,
 		},
 	}
 
@@ -166,7 +168,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 				Status:      types.IdpStatusACTIVE,
 				Source:      "test",
 			},
-			wantBody: `{"description":"user","id":"test","memberCount":0,"members":[],"name":"test","source":"INTERNAL"}`,
+			wantBody: `{"description":"user","id":"test","memberCount":0,"members":[],"name":"test","source":"internal"}`,
 		},
 		{name: "users added to group",
 			body:                  `{"name":"test","description":"user","members": ["user_1"]}`,
@@ -181,7 +183,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 				Status:      types.IdpStatusACTIVE,
 				Source:      "test",
 			},
-			wantBody: `{"description":"user","id":"test","memberCount":1,"members":["user_1"],"name":"test","source":"INTERNAL"}`,
+			wantBody: `{"description":"user","id":"test","memberCount":1,"members":["user_1"],"name":"test","source":"internal"}`,
 		},
 	}
 

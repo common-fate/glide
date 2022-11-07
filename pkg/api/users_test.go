@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
 	"github.com/common-fate/granted-approvals/pkg/identity"
@@ -105,8 +106,9 @@ func TestGetUser(t *testing.T) {
 		{
 			name:     "user not found",
 			wantCode: http.StatusNotFound,
-			idpErr:   identity.UserNotFoundError{User: "123"},
-			wantBody: `{"error":"user 123 not found"}`,
+			idpErr:   ddb.ErrNoItems,
+
+			wantBody: `{"error":"item query returned no items"}`,
 		},
 	}
 

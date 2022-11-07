@@ -8,11 +8,11 @@ import {
   MenuItemOption,
 } from "@chakra-ui/react";
 import React from "react";
-import { GroupSource } from "../../utils/backend-client/types";
+import { ListGroupsSource } from "../../utils/backend-client/types";
 
 export const GroupsFilterMenu: React.FC<{
-  source: GroupSource | undefined;
-  onChange: (source: GroupSource | undefined) => void;
+  source: ListGroupsSource | undefined;
+  onChange: (source: ListGroupsSource | undefined) => void;
 }> = ({ source, onChange }) => {
   return (
     <Menu>
@@ -24,13 +24,9 @@ export const GroupsFilterMenu: React.FC<{
       >
         {source === "INTERNAL"
           ? "Internal Only"
-          : // : source === "AZURE"
-            // ? "Azure only"
-            // : source === "GOOGLE"
-            // ? "Google only"
-            // : source === "AWS"
-            // ? "AWS only"
-            "All"}
+          : source === "EXTERNAL"
+          ? "External Only"
+          : "All"}
       </MenuButton>
       <MenuList>
         <MenuOptionGroup
@@ -40,17 +36,12 @@ export const GroupsFilterMenu: React.FC<{
           onChange={(e) => {
             switch (e) {
               case "int":
-                onChange(GroupSource.INTERNAL);
+                onChange(ListGroupsSource.INTERNAL);
                 break;
-              // case "az":
-              //   onChange(GroupSource.AZURE);
-              //   break;
-              // case "go":
-              //   onChange(GroupSource.GOOGLE);
-              //   break;
-              // case "aws":
-              //   onChange(GroupSource.AWS);
-              //   break;
+              case "ext":
+                onChange(ListGroupsSource.EXTERNAL);
+                break;
+
               default:
                 onChange(undefined);
             }
@@ -58,9 +49,7 @@ export const GroupsFilterMenu: React.FC<{
         >
           <MenuItemOption value="all">All</MenuItemOption>
           <MenuItemOption value="int">Internal Only</MenuItemOption>
-          {/* <MenuItemOption value="az">Azure only</MenuItemOption>
-          <MenuItemOption value="go">Google only</MenuItemOption>
-          <MenuItemOption value="aws">AWS only</MenuItemOption> */}
+          <MenuItemOption value="ext">External Only</MenuItemOption>
         </MenuOptionGroup>
       </MenuList>
     </Menu>
