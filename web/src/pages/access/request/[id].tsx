@@ -552,21 +552,7 @@ const AccessRequestForm = () => {
                       bg="white"
                       id="reasonField"
                       placeholder="Deploying initial Terraform infrastructure for CF-123"
-                      {...register("reason", {
-                        validate: (value) => {
-                          const res: string[] = [];
-                          // [/.*[^ ].*/].every((pattern) =>
-                          //   pattern.test(value as string)
-                          // ) &&
-                          //   res.push(
-                          //     "Invalid characters can not only be spaces"
-                          //   );
-                          if (value && value.length > 2048) {
-                            res.push("Maximum length is 2048 characters");
-                          }
-                          return res.length > 0 ? res.join(", ") : undefined;
-                        },
-                      })}
+                      {...register("reason")}
                     />
                     {errors?.reason && (
                       <FormErrorMessage>
