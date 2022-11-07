@@ -195,7 +195,7 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
 		RequestedBy:      req.RequestedBy,
-		Provider:         rule.Target.ProviderID,
+		Provider:         rule.Target.ProviderType,
 		RuleID:           req.Rule,
 		Timing:           req.RequestedTiming.ToAnalytics(),
 		HasReason:        req.HasReason(),
