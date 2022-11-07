@@ -18,7 +18,6 @@ import (
 )
 
 type IdentityProvider interface {
-	Name() string
 	ListUsers(ctx context.Context) ([]identity.IDPUser, error)
 	ListGroups(ctx context.Context) ([]identity.IDPGroup, error)
 	gconfig.Configer
@@ -26,8 +25,9 @@ type IdentityProvider interface {
 }
 
 type IdentitySyncer struct {
-	db  ddb.Storage
-	idp IdentityProvider
+	db      ddb.Storage
+	idp     IdentityProvider
+	idpType string
 	// used to prevent concurrent calls to sync
 	// prevents unexpected duplication of users and groups when used asyncronously
 	syncMutex sync.Mutex
@@ -80,8 +80,9 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		return nil, err
 	}
 	return &IdentitySyncer{
-		db:  db,
-		idp: idp.IdentityProvider,
+		db:      db,
+		idp:     idp.IdentityProvider,
+		idpType: opts.IdpType,
 	}, nil
 }
 
@@ -105,7 +106,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	log.Infow("fetched users and groups from IDP", "users.count", len(idpUsers), "groups.count", len(idpGroups))
 
-	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups), IDP: s.idp.Name()})
+	s.setDeploymentInfo(ctx, log, depid.UserInfo{UserCount: len(idpUsers), GroupCount: len(idpGroups), IDP: s.idpType})
 
 	uq := &storage.ListUsers{}
 	_, err = s.db.Query(ctx, uq)
@@ -117,7 +118,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	usersMap, groupsMap := processUsersAndGroups(idpUsers, idpGroups, uq.Result, gq.Result)
+	usersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, uq.Result, gq.Result)
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
 		vi := v
@@ -146,7 +147,7 @@ func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.Sugared
 // processUsersAndGroups contains all the logic for create/update/archive for users and groups
 //
 // It returns a map of users and groups ready to be inserted to the database
-func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group) (map[string]identity.User, map[string]identity.Group) {
+func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group) (map[string]identity.User, map[string]identity.Group) {
 	idpUserMap := make(map[string]identity.IDPUser)
 	for _, u := range idpUsers {
 		idpUserMap[u.Email] = u
@@ -183,10 +184,10 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 			existing.Description = g.Description
 			existing.Name = g.Name
 			existing.Status = types.IdpStatusACTIVE
-			existing.Source = types.GroupSource(g.Source)
+			existing.Source = idpType
 			ddbGroupMap[g.ID] = existing
 		} else { // create
-			newGroup := g.ToInternalGroup()
+			newGroup := g.ToInternalGroup(idpType)
 			ddbGroupMap[g.ID] = newGroup
 			internalGroupUsers[newGroup.ID] = make(map[string]string)
 		}
@@ -205,7 +206,7 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 	// archive deleted groups
 	for k, g := range ddbGroupMap {
 		if _, ok := idpGroupMap[k]; !ok {
-			if g.Source != "INTERNAL" {
+			if g.Source == idpType {
 				g.Status = types.IdpStatusARCHIVED
 				// Remove all user associations from archived groups
 				g.Users = []string{}
@@ -237,7 +238,7 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 
 	// Updates the internal groups with new user mappings
 	for k, v := range ddbGroupMap {
-		if v.Source != "INTERNAL" {
+		if v.Source == idpType {
 			um := internalGroupUsers[v.ID]
 			keys := make([]string, 0, len(um))
 			for k2 := range um {
@@ -246,7 +247,6 @@ func processUsersAndGroups(idpUsers []identity.IDPUser, idpGroups []identity.IDP
 			v.Users = keys
 			ddbGroupMap[k] = v
 		}
-
 	}
 
 	return ddbUserMap, ddbGroupMap

@@ -32,8 +32,6 @@ func (s *OneLoginSync) Config() gconfig.Config {
 	}
 }
 
-func (s *OneLoginSync) Name() string { return "onelogin" }
-
 func (s *OneLoginSync) Init(ctx context.Context) error {
 
 	url := s.baseURL.Get() + "/auth/oauth2/v2/token"
@@ -96,9 +94,8 @@ func (s *OneLoginSync) idpUserFromOneLoginUser(ctx context.Context, oneLoginUser
 
 func (s *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) identity.IDPGroup {
 	return identity.IDPGroup{
-		ID:     strconv.Itoa(oneLoginGroup.ID),
-		Name:   oneLoginGroup.Name,
-		Source: "ONELOGIN",
+		ID:   strconv.Itoa(oneLoginGroup.ID),
+		Name: oneLoginGroup.Name,
 	}
 
 }

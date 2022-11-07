@@ -35,8 +35,6 @@ func (s *AzureSync) Config() gconfig.Config {
 	}
 }
 
-func (s *AzureSync) Name() string { return "azure-ad" }
-
 func (s *AzureSync) Init(ctx context.Context) error {
 	cred, err := confidential.NewCredFromSecret(s.clientSecret.Get())
 	if err != nil {
@@ -269,7 +267,6 @@ func idpGroupFromAzureGroup(azureGroup AzureGroup) identity.IDPGroup {
 		ID:          azureGroup.ID,
 		Name:        azureGroup.DisplayName,
 		Description: string(azureGroup.Description),
-		Source:      "AZURE",
 	}
 }
 func (a *AzureSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {

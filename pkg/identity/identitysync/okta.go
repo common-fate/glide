@@ -23,8 +23,6 @@ func (s *OktaSync) Config() gconfig.Config {
 	}
 }
 
-func (s *OktaSync) Name() string { return "okta" }
-
 func (s *OktaSync) Init(ctx context.Context) error {
 	_, client, err := okta.NewClient(
 		ctx,
@@ -77,7 +75,6 @@ func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IDPGroup {
 		ID:          oktaGroup.Id,
 		Name:        oktaGroup.Profile.Name,
 		Description: oktaGroup.Profile.Description,
-		Source:      "OKTA",
 	}
 }
 

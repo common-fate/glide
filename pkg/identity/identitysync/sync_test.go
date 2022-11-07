@@ -20,6 +20,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 		giveInternalGroups []identity.Group
 		wantUserMap        map[string]identity.User
 		wantGroupMap       map[string]identity.Group
+		withIdpType        string
 	}
 	now := time.Now()
 	testcases := []testcase{
@@ -129,7 +130,6 @@ func TestIdentitySyncProcessor(t *testing.T) {
 				ID:          "larrysGroupId",
 				Name:        "larrysGroupNewName",
 				Description: "a different description",
-				Source:      "OKTA",
 			}},
 			giveInternalUsers: []identity.User{
 				{
@@ -218,6 +218,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Source:      "OKTA",
 				},
 			},
+			withIdpType: "OKTA",
 		},
 		{
 			// a group should be dearchived if it exists again
@@ -258,7 +259,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			gotUsers, gotGroups := processUsersAndGroups(tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups)
+			gotUsers, gotGroups := processUsersAndGroups(tc.withIdpType, tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups)
 			for k, u := range tc.wantUserMap {
 				got := gotUsers[k]
 				u.ID = got.ID

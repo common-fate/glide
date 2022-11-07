@@ -105,7 +105,7 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		Name:        createGroupRequest.Name,
 		Description: aws.ToString(createGroupRequest.Description),
 		Status:      types.IdpStatusACTIVE,
-		Source:      types.INTERNAL,
+		Source:      identity.INTERNAL,
 		Users:       createGroupRequest.Members,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),

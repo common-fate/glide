@@ -33,8 +33,6 @@ func (s *CognitoSync) Init(ctx context.Context) error {
 	return nil
 }
 
-func (s *CognitoSync) Name() string { return "cognito" }
-
 // idpUserFromCognitoUser converts a cognito user to an idp user after fetching the users groups
 func (c *CognitoSync) idpUserFromCognitoUser(ctx context.Context, cognitoUser types.UserType) (identity.IDPUser, error) {
 
@@ -67,7 +65,6 @@ func groupFromCognitoGroup(cognitoGroup types.GroupType) identity.IDPGroup {
 		ID:          aws.ToString(cognitoGroup.GroupName),
 		Name:        aws.ToString(cognitoGroup.GroupName),
 		Description: aws.ToString(cognitoGroup.Description),
-		Source:      "COGNITO",
 	}
 }
 

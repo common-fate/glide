@@ -14,10 +14,9 @@ type IDPGroup struct {
 	ID          string
 	Name        string
 	Description string
-	Source      string
 }
 
-func (g IDPGroup) ToInternalGroup() Group {
+func (g IDPGroup) ToInternalGroup(source string) Group {
 	now := time.Now()
 	return Group{
 		ID:          g.ID,
@@ -27,19 +26,19 @@ func (g IDPGroup) ToInternalGroup() Group {
 		Status:      types.IdpStatusACTIVE,
 		CreatedAt:   now,
 		UpdatedAt:   now,
-		Source:      types.GroupSource(g.Source),
+		Source:      source,
 	}
 }
 
 type Group struct {
 	// external id of the group
-	ID          string            `json:"id" dynamodbav:"id"`
-	IdpID       string            `json:"idpId" dynamodbav:"idpId"`
-	Name        string            `json:"name" dynamodbav:"name"`
-	Description string            `json:"description" dynamodbav:"description"`
-	Status      types.IdpStatus   `json:"status" dynamodbav:"status"`
-	Users       []string          `json:"users" dynamodbav:"users"`
-	Source      types.GroupSource `json:"source" dynamodbav:"source"`
+	ID          string          `json:"id" dynamodbav:"id"`
+	IdpID       string          `json:"idpId" dynamodbav:"idpId"`
+	Name        string          `json:"name" dynamodbav:"name"`
+	Description string          `json:"description" dynamodbav:"description"`
+	Status      types.IdpStatus `json:"status" dynamodbav:"status"`
+	Users       []string        `json:"users" dynamodbav:"users"`
+	Source      string          `json:"source" dynamodbav:"source"`
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
@@ -52,7 +51,7 @@ func (g *Group) ToAPI() types.Group {
 		Id:          g.ID,
 		MemberCount: len(g.Users),
 		Members:     g.Users,
-		Source:      string(g.Source),
+		Source:      g.Source,
 	}
 
 	return req
@@ -65,7 +64,7 @@ func (g *Group) DDBKeys() (ddb.Keys, error) {
 		GSI1PK: keys.Groups.GSI1PK,
 		GSI1SK: keys.Groups.GSI1SK(string(g.Status), g.Name),
 		GSI2PK: keys.Groups.GSI2PK,
-		GSI2SK: keys.Groups.GSI2SK(string(g.Source), string(g.Status), g.Name),
+		GSI2SK: keys.Groups.GSI2SK(g.Source, string(g.Status), g.Name),
 	}
 
 	return keys, nil
