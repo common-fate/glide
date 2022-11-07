@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
@@ -101,7 +100,7 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 
 	_, err := a.DB.Query(ctx, &q)
 	// return a 404 if the user was not found.
-	if errors.As(err, &identity.UserNotFoundError{}) {
+	if err == ddb.ErrNoItems {
 		err = apio.NewRequestError(err, http.StatusNotFound)
 	}
 
@@ -109,7 +108,6 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 		apio.Error(ctx, w, err)
 		return
 	}
-
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 

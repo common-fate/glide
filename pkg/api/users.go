@@ -1,14 +1,12 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
@@ -56,10 +54,9 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
 
 	_, err := a.DB.Query(ctx, &q)
 	// return a 404 if the user was not found.
-	if errors.As(err, &identity.UserNotFoundError{}) {
+	if err == ddb.ErrNoItems {
 		err = apio.NewRequestError(err, http.StatusNotFound)
 	}
-
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
