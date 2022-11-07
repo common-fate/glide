@@ -17,8 +17,15 @@ import CreateGroupModal from "../modals/CreateGroupModal";
 import { TableRenderer } from "./TableRenderer";
 import { MakeGenerics, useSearch, useNavigate } from "react-location";
 import { GroupsFilterMenu } from "./GroupsFilterMenu";
-import { ApprovalsLogo } from "../icons/Logos";
+import {
+  ApprovalsLogo,
+  CognitoLogo,
+  GoogleLogo,
+  OneLoginLogo,
+} from "../icons/Logos";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
+import { AWSIcon, AzureIcon, GrantedKeysIcon, OktaIcon } from "../icons/Icons";
+import { GetIDPLogo } from "../../utils/idp-logo";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -75,12 +82,7 @@ export const GroupsTable = () => {
         accessor: "source",
         Header: "",
         Cell: ({ cell }) => (
-          <Box>
-            {cell.value == "internal" && <ApprovalsLogo h="20px" w="auto" />}
-            {/* {cell.value == "AZURE" && <AzureIcon h="20px" w="auto" />}
-            {cell.value == "ONELOGIN" && <OktaIcon h="20px" w="auto" />}
-            {cell.value == "COGNITO" && "Cognito"} */}
-          </Box>
+          <Box>{GetIDPLogo({ idpType: cell.value, size: 30 })}</Box>
         ),
       },
     ],

@@ -44,9 +44,18 @@ import {
   CreateGroupRequestBody,
   Group,
 } from "../../../utils/backend-client/types";
+import {
+  GrantedKeysIcon,
+  AzureIcon,
+  OktaIcon,
+  AWSIcon,
+} from "../../../components/icons/Icons";
+import { CognitoLogo, GoogleLogo } from "../../../components/icons/Logos";
+import { GetIDPLogo } from "../../../utils/idp-logo";
 
 const Index = () => {
   const methods = useForm<CreateGroupRequestBody>({});
+  const [loading, setLoading] = useState(false);
 
   const {
     params: { id: groupId },
@@ -69,6 +78,8 @@ const Index = () => {
   const [isEditable, setIsEditable] = useState(false);
 
   const handleSubmit = async (data: CreateGroupRequestBody) => {
+    setLoading(true);
+
     await createGroup(data)
       .then(() => {
         toast({
@@ -79,8 +90,11 @@ const Index = () => {
           isClosable: true,
         });
         setIsEditable(false);
+        setLoading(false);
       })
       .catch(() => {
+        setLoading(false);
+
         toast({
           title: "Error updating group",
           status: "error",
@@ -129,13 +143,7 @@ const Index = () => {
             </Button>
           )}
 
-          {/* <Avatar
-            src={user.picture}
-            name={
-              user.firstName ? `${user.firstName} ${user.lastName}` : user.email
-            }
-            boxSize="200px"
-          /> */}
+          {GetIDPLogo({ idpType: group.source, size: 200 })}
         </>
       );
     }
@@ -146,13 +154,12 @@ const Index = () => {
           <FormProvider {...methods}>
             <VStack
               align={"left"}
-              spacing={1}
+              spacing={5}
               flex={1}
-              mr={4}
               as="form"
               onSubmit={methods.handleSubmit(handleSubmit)}
             >
-              <VStack align={"left"} w="100%">
+              <VStack spacing={5} flex={1} align={"left"} w="100%">
                 <FormControl>
                   <VStack align={"left"}>
                     <FormLabel display="inline">
@@ -173,7 +180,6 @@ const Index = () => {
                     <FormLabel display="inline">
                       <Text textStyle="Body/Medium">Description</Text>
                     </FormLabel>
-
                     <Input
                       w="100%"
                       textStyle="Body/Medium"
@@ -189,7 +195,25 @@ const Index = () => {
 
               <Members group={group} isEditing={isEditable} methods={methods} />
 
-              {isEditable && <Button type="submit">Save</Button>}
+              {isEditable && (
+                <HStack>
+                  <Button w="20%" mr={3} type="submit" isLoading={loading}>
+                    Save
+                  </Button>
+                  <Button
+                    variant="brandSecondary"
+                    w="20%"
+                    mr={3}
+                    onClick={() => {
+                      setIsEditable(false);
+                      setLoading(false);
+                    }}
+                    isLoading={loading}
+                  >
+                    Cancel
+                  </Button>
+                </HStack>
+              )}
             </VStack>
           </FormProvider>
         </Flex>
