@@ -116,9 +116,9 @@ func (p *Provider) RequiresAccessToken() bool {
 func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"taskDefinitionFamily": {
-			Id:          "taskDefinitionFamily",
-			Title:       "Task Definition Family",
-			FormElement: types.MULTISELECT,
+			Id:              "taskDefinitionFamily",
+			Title:           "Task Definition Family",
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
 		},
 	}
 	return arg

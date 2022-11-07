@@ -6,4 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface CreateRequestWith {[key: string]: string[]}
+export interface Favorite {
+  id: string;
+  name: string;
+  ruleId: string;
+}

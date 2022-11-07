@@ -5,5 +5,6 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
+import type { CreateRequestWith } from './createRequestWith';
 
-export interface CreateRequestWith {[key: string]: string[]}
+export type CreateRequestWithSubRequest = CreateRequestWith[];
