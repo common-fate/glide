@@ -403,6 +403,32 @@ func TestValidateCreate(t *testing.T) {
 			withRequestArguments: requestArguments,
 			wantErr:              errors.New("request validation failed"),
 		},
+		{
+			name: "rule does not have selectable arguments, multiple sub requests provided",
+			giveInput: CreateRequestsOpts{
+				Create: CreateRequests{
+					AccessRuleId: "abcd",
+					Timing: types.RequestTiming{
+						DurationSeconds: 3600,
+					},
+					With: &[]types.CreateRequestWith{
+						{
+							AdditionalProperties: map[string][]string{},
+						},
+						{
+							AdditionalProperties: map[string][]string{},
+						},
+					},
+				},
+				User: identity.User{
+					ID:     "test",
+					Groups: []string{"goodgroup"},
+				},
+			},
+			withAccessRule:       &accessRuleNonSelectable,
+			withRequestArguments: requestArgumentsNonSelectable,
+			wantErr:              errors.New("request contains subrequest with no arguments"),
+		},
 	}
 
 	for _, tc := range testcases {
