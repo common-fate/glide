@@ -3,8 +3,8 @@ package accesssvc
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
@@ -16,9 +16,9 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/hashicorp/go-multierror"
 )
 
 type CreateRequestResult struct {
@@ -26,56 +26,96 @@ type CreateRequestResult struct {
 	Reviewers []access.Reviewer
 }
 
-// CreateRequest creates a new request and saves it in the database.
-// Returns an error if the request is invalid.
-func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in types.CreateRequestRequest) (*CreateRequestResult, error) {
-	log := logger.Get(ctx).With("user.id", user.ID)
-	q := storage.GetAccessRuleCurrent{ID: in.AccessRuleId}
-	_, err := s.DB.Query(ctx, &q)
-	if err == ddb.ErrNoItems {
-		return nil, ErrRuleNotFound
-	}
+type CreateRequests struct {
+	AccessRuleId string
+	Reason       *string
+	Timing       types.RequestTiming
+	With         *types.CreateRequestWithSubRequest
+}
+
+type CreateRequestsOpts struct {
+	User   identity.User
+	Create CreateRequests
+}
+
+// CreateRequests splits the multi request into invividual request after checking for some basic validation errors
+// individual requests may fail, these will be returned via a multi error and any requests which were successful will be returned as well
+// so be sure to check both teh error and the response
+func (s *Service) CreateRequests(ctx context.Context, in CreateRequestsOpts) ([]CreateRequestResult, error) {
+	validated, err := s.validateCreateRequests(ctx, in)
 	if err != nil {
-		// we don't know how to handle the error from the rule getter, so just return it to the caller.
 		return nil, err
 	}
-	rule := q.Result
-
-	log.Debugw("verifying user belongs to access rule groups", "rule.groups", rule.Groups, "user.groups", user.Groups)
-	err = groupMatches(rule.Groups, user.Groups)
-	if err != nil {
-		return nil, err
+	var createError multierror.Error
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var results []CreateRequestResult
+	for _, combinationToCreate := range validated.argumentCombinations {
+		wg.Add(1)
+		go func(c map[string]string) {
+			defer wg.Done()
+			res, err := s.createRequest(ctx, createRequestOpts{
+				User: in.User,
+				Request: CreateRequest{
+					AccessRuleId: in.Create.AccessRuleId,
+					Reason:       in.Create.Reason,
+					Timing:       in.Create.Timing,
+					With:         c,
+				},
+				Rule:             validated.rule,
+				RequestArguments: validated.requestArguments,
+			})
+			mu.Lock()
+			if err != nil {
+				createError.Errors = append(createError.Errors, err)
+			} else {
+				results = append(results, res)
+			}
+			mu.Unlock()
+		}(combinationToCreate)
 	}
+	wg.Wait()
+	if createError.Errors == nil {
+		return results, nil
+	}
+	return results, &createError
+}
 
+type CreateRequest struct {
+	AccessRuleId string
+	Reason       *string
+	Timing       types.RequestTiming
+	With         map[string]string
+}
+type createRequestOpts struct {
+	User             identity.User
+	Request          CreateRequest
+	Rule             rule.AccessRule
+	RequestArguments map[string]types.RequestArgument
+}
+
+// createRequest creates a new request and saves it in the database.
+func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (CreateRequestResult, error) {
 	now := s.Clock.Now()
-
-	requestArguments, err := s.Rules.RequestArguments(ctx, rule.Target)
-	if err != nil {
-		return nil, err
-	}
-	err = validateRequest(in, rule, requestArguments)
-	if err != nil {
-		return nil, err
-	}
-
+	log := logger.Get(ctx).With("user.id", in.User.ID)
 	// the request is valid, so create it.
 	req := access.Request{
 		ID:          types.NewRequestID(),
-		RequestedBy: user.ID,
+		RequestedBy: in.User.ID,
 		Data: access.RequestData{
-			Reason: in.Reason,
+			Reason: in.Request.Reason,
 		},
 		CreatedAt:       now,
 		UpdatedAt:       now,
 		Status:          access.PENDING,
-		RequestedTiming: access.TimingFromRequestTiming(in.Timing),
-		Rule:            rule.ID,
-		RuleVersion:     rule.Version,
+		RequestedTiming: access.TimingFromRequestTiming(in.Request.Timing),
+		Rule:            in.Rule.ID,
+		RuleVersion:     in.Rule.Version,
 		SelectedWith:    make(map[string]access.Option),
 	}
-	if in.With != nil && in.With.AdditionalProperties != nil {
-		for k, v := range in.With.AdditionalProperties {
-			argument := requestArguments[k]
+	if in.Request.With != nil {
+		for k, v := range in.Request.With {
+			argument := in.RequestArguments[k]
 			found := false
 			for _, option := range argument.Options {
 				// because validation has passed, we can have certainty that the matching value will be found here
@@ -92,32 +132,32 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 			}
 			if !found {
 				// this should never happen but here just in case
-				return nil, errors.New("unexpected error, failed to find a matching option for a with argument when creating a new access request")
+				return CreateRequestResult{}, errors.New("unexpected error, failed to find a matching option for a with argument when creating a new access request")
 			}
 		}
 	}
 
 	//validate the request against the access handler - make sure that access will be able to be provisioned
 	//validating the grant before the request was made so that the request object does not get created.
-	err = s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
+	err := s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: in.Rule})
 	if err != nil {
-		return nil, err
+		return CreateRequestResult{}, err
 	}
 
 	// If the approval is not required, auto-approve the request
 	auto := types.AUTOMATIC
 	revd := types.REVIEWED
 
-	if !rule.Approval.IsRequired() {
+	if !in.Rule.Approval.IsRequired() {
 		req.Status = access.APPROVED
 		req.ApprovalMethod = &auto
 	} else {
 		req.ApprovalMethod = &revd
 	}
 
-	approvers, err := rulesvc.GetApprovers(ctx, s.DB, *rule)
+	approvers, err := rulesvc.GetApprovers(ctx, s.DB, in.Rule)
 	if err != nil {
-		return nil, err
+		return CreateRequestResult{}, err
 	}
 
 	// track items to insert in the database.
@@ -147,15 +187,15 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy)
 
 	//before saving the request check to see if there already is a active approved rule
-	if !rule.Approval.IsRequired() {
+	if !in.Rule.Approval.IsRequired() {
 
 		// This will check against the requests which do have grants already
 		overlaps, err := s.overlapsExistingGrant(ctx, req)
 		if err != nil {
-			return nil, err
+			return CreateRequestResult{}, err
 		}
 		if overlaps {
-			return nil, ErrRequestOverlapsExistingGrant
+			return CreateRequestResult{}, ErrRequestOverlapsExistingGrant
 		}
 
 	}
@@ -164,50 +204,48 @@ func (s *Service) CreateRequest(ctx context.Context, user *identity.User, in typ
 	// save the request.
 	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {
-		return nil, err
+		return CreateRequestResult{}, err
 	}
 
 	err = s.EventPutter.Put(ctx, gevent.RequestCreated{Request: req})
 	// in a future PR we will shift these events out to be triggered by dynamo db streams
 	// This will currently put the app in a strange state if this fails
 	if err != nil {
-		return nil, err
+		return CreateRequestResult{}, err
 	}
 
 	// check to see if it valid for instant approval
-	if !rule.Approval.IsRequired() {
+	if !in.Rule.Approval.IsRequired() {
 		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
-		updatedReq, err := s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: *rule})
+		updatedReq, err := s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: in.Rule})
 		if err != nil {
-			return nil, err
+			return CreateRequestResult{}, err
 		}
 		req = *updatedReq
 		items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, req, dbupdate.WithReviewers(reviewers))
 		if err != nil {
-			return nil, err
+			return CreateRequestResult{}, err
 		}
 		err = s.DB.PutBatch(ctx, items...)
 		if err != nil {
-			return nil, err
+			return CreateRequestResult{}, err
 		}
 	}
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
 		RequestedBy:      req.RequestedBy,
-		Provider:         rule.Target.ProviderID,
+		Provider:         rule.Target.ProviderType,
 		RuleID:           req.Rule,
 		Timing:           req.RequestedTiming.ToAnalytics(),
 		HasReason:        req.HasReason(),
-		RequiresApproval: rule.Approval.IsRequired(),
+		RequiresApproval: in.Rule.Approval.IsRequired(),
 	})
 
-	res := CreateRequestResult{
+	return CreateRequestResult{
 		Request:   req,
 		Reviewers: reviewers,
-	}
-
-	return &res, nil
+	}, nil
 }
 
 func groupMatches(ruleGroups []string, userGroups []string) error {
@@ -218,80 +256,5 @@ func groupMatches(ruleGroups []string, userGroups []string) error {
 			}
 		}
 	}
-	return ErrNoMatchingGroup
-}
-
-// requestIsValid checks that the request meets the constraints of the rule
-// Add additional constraint checks here in this method.
-func validateRequest(request types.CreateRequestRequest, rule *rule.AccessRule, requestArguments map[string]types.RequestArgument) error {
-	if request.Timing.DurationSeconds > rule.TimeConstraints.MaxDurationSeconds {
-		return &apio.APIError{
-			Err:    errors.New("request validation failed"),
-			Status: http.StatusBadRequest,
-			Fields: []apio.FieldError{
-				{
-					Field: "timing.durationSeconds",
-					Error: fmt.Sprintf("durationSeconds: %d exceeds the maximum duration seconds: %d", request.Timing.DurationSeconds, rule.TimeConstraints.MaxDurationSeconds),
-				},
-			},
-		}
-	}
-
-	given := make(map[string]string)
-	expected := make(map[string][]string)
-	if request.With != nil && request.With.AdditionalProperties != nil {
-		given = request.With.AdditionalProperties
-	}
-	for k, v := range requestArguments {
-		if v.RequiresSelection {
-			options := make([]string, len(v.Options))
-			for _, o := range v.Options {
-				if o.Valid {
-					options = append(options, o.Value)
-				}
-			}
-			expected[k] = options
-		}
-	}
-
-	// assert they are the same length.
-	// the user provided the expected number of values based on the requestArguments
-	if len(given) != len(expected) {
-		return &apio.APIError{
-			Err:    errors.New("request validation failed"),
-			Status: http.StatusBadRequest,
-			Fields: []apio.FieldError{
-				{
-					Field: "with",
-					Error: "unexpected number of arguments in 'with' field",
-				},
-			},
-		}
-	}
-	// assert that the given argument ids are expected and the the value is an allowed value
-	for argumentId, allowedValues := range expected {
-		givenArgumentValue, ok := given[argumentId]
-		if !ok || !contains(allowedValues, givenArgumentValue) {
-			return &apio.APIError{
-				Err:    errors.New("request validation failed"),
-				Status: http.StatusBadRequest,
-				Fields: []apio.FieldError{
-					{
-						Field: "with",
-						Error: fmt.Sprintf("unexpected value given for argument %s in with field", argumentId),
-					},
-				},
-			}
-		}
-	}
-	return nil
-}
-
-func contains(set []string, str string) bool {
-	for _, s := range set {
-		if s == str {
-			return true
-		}
-	}
-	return false
+	return apio.NewRequestError(ErrNoMatchingGroup, http.StatusBadRequest)
 }

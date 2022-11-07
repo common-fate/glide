@@ -1,7 +1,16 @@
-import { ArrowBackIcon, InfoIcon } from "@chakra-ui/icons";
+import {
+  ArrowBackIcon,
+  CheckIcon,
+  DeleteIcon,
+  InfoIcon,
+  LinkIcon,
+  SmallAddIcon,
+  StarIcon,
+} from "@chakra-ui/icons";
 import {
   Box,
   Button,
+  ButtonGroup,
   Center,
   Collapse,
   Container,
@@ -13,12 +22,24 @@ import {
   HStack,
   IconButton,
   Input,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverFooter,
+  PopoverHeader,
+  PopoverTrigger,
+  Portal,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
   Stack,
   Text,
   Textarea,
+  Tooltip,
+  useClipboard,
+  useDisclosure,
   useRadioGroup,
   UseRadioGroupProps,
   useToast,
@@ -37,18 +58,35 @@ import {
   useForm,
   useFormContext,
 } from "react-hook-form";
-import { Link, useMatch, useNavigate } from "react-location";
-import Select, { components, GroupBase, OptionProps } from "react-select";
+import {
+  Link,
+  MakeGenerics,
+  useLocation,
+  useMatch,
+  useNavigate,
+  useSearch,
+} from "react-location";
+import { components, GroupBase, OptionProps } from "react-select";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
   Hours,
   Minutes,
 } from "../../../components/DurationInput";
+import {
+  MultiSelect,
+  SelectWithArrayAsValue,
+} from "../../../components/forms/access-rule/components/Select";
 import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
+import {
+  deleteFavorite,
+  updateFavorite,
+  userCreateFavorite,
+  userGetFavorite,
+} from "../../../utils/backend-client/default/default";
 import {
   getUserGetAccessRuleApproversKey,
   userCreateRequest,
@@ -56,23 +94,33 @@ import {
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";
 import {
+  CreateFavoriteRequestBody,
   CreateRequestRequestBody,
   CreateRequestWith,
+  CreateRequestWithSubRequest,
+  FavoriteDetail,
   RequestAccessRuleTarget,
+  RequestArgumentFormElement,
+  RequestTiming,
   WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
 import { colors } from "../../../utils/theme/colors";
 export type When = "asap" | "scheduled";
 
-interface NewRequestFormData extends CreateRequestRequestBody {
+/**
+ * The reason I added this type was because I was having trouble being able to remove an array element in the context of the form.
+ * Instead, elements are marked as hidden when the remove button is pressed.
+ * So when processing the form values, be sure to filter out the hidden elements  first.
+ */
+interface FormCreateRequestWith {
+  hidden?: boolean;
+  data: CreateRequestWith;
+}
+interface NewRequestFormData extends Omit<CreateRequestRequestBody, "with"> {
   startDateTime: string;
   when: When;
-}
-
-interface FieldError {
-  error: string;
-  field: string;
+  with: FormCreateRequestWith[];
 }
 
 /**
@@ -90,12 +138,32 @@ export const getWhenHelperText = (
   return "Choose a time in future for the access to be activated";
 };
 
-const Home = () => {
+type Fields = {
+  with?: CreateRequestWithSubRequest;
+  timing?: RequestTiming;
+  reason?: string;
+};
+
+type MyLocationGenerics = MakeGenerics<{
+  Search: {
+    favorite?: string;
+  } & Fields;
+}>;
+const AccessRequestForm = () => {
   const [loading, setLoading] = useState(false);
   const {
     params: { id: ruleId },
   } = useMatch();
-  const { data: rule } = useUserGetAccessRule(ruleId);
+  // prevent the form resetting unexpectedly
+  const { data: rule } = useUserGetAccessRule(ruleId, {
+    swr: {
+      refreshInterval: 0,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
+  });
+
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
@@ -104,8 +172,6 @@ const Home = () => {
   }, []);
 
   const methods = useForm<NewRequestFormData>({
-    shouldUnregister: true,
-
     defaultValues: {
       when: "asap",
       startDateTime: now,
@@ -124,10 +190,28 @@ const Home = () => {
     reset,
     getValues,
   } = methods;
+
   const toast = useToast();
+  const search = useSearch<MyLocationGenerics>();
 
-  const [validationErrors, setValidationErrors] = useState<FieldError[]>();
-
+  const [favorite, setFavorite] = useState<FavoriteDetail>();
+  const resetForm = (fields: Fields) => {
+    if (fields.timing) {
+      setValue("timing.durationSeconds", fields.timing.durationSeconds);
+      if (fields.timing.startTime) {
+        setValue("startDateTime", fields.timing.startTime);
+        setValue("when", "scheduled");
+      }
+    }
+    fields.reason && setValue("reason", fields.reason);
+    fields.with &&
+      setValue(
+        "with",
+        fields.with.map((w) => {
+          return { data: w };
+        })
+      );
+  };
   // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
   // it does then when the rule loads for the first time
   useEffect(() => {
@@ -138,25 +222,64 @@ const Home = () => {
           ? 3600
           : rule.timeConstraints.maxDurationSeconds
       );
-      // The following will attempt to match any query params to withSelectable fields for this rule.
-      // If the field matches and the value is a valid option, it will be set in the form values.
-      // if it is not a valid value it is ignored.
-      // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
-      Object.entries(rule.target.arguments).map(([k, v]) => {
-        const queryParamValue = new URLSearchParams(
-          location.search.substring(1)
-        ).get(k);
-        if (
-          queryParamValue !== null &&
-          v.options.find((s) => {
-            return s.value === queryParamValue;
-          }) !== undefined
-        ) {
-          setValue(`with.${k}`, queryParamValue);
-        }
-      });
+
+      if (search.favorite) {
+        userGetFavorite(search.favorite)
+          .then((favorite) => {
+            resetForm(favorite);
+            setFavorite(favorite);
+          })
+          .catch((e) => {
+            let description: string | undefined;
+            if (axios.isAxiosError(e)) {
+              description = (e as AxiosError<{ error: string }>)?.response?.data
+                .error;
+            }
+            toast({
+              title: "Failed to load favorite",
+              status: "error",
+              duration: 5000,
+              description: (
+                <Text color={"white"} whiteSpace={"pre"}>
+                  {description}
+                </Text>
+              ),
+              isClosable: true,
+            });
+          });
+      } else {
+        // The following will attempt to match any query params to withSelectable fields for this rule.
+        // If the field matches and the value is a valid option, it will be set in the form values.
+        // if it is not a valid value it is ignored.
+        // this prevents being able to submit the form with bad options, or being able to submit arbitrary values for the with fields via the UI
+        // resetForm(favorite);
+        const filteredSearchWith = search.with?.map((w) => {
+          const filteredWith: CreateRequestWith = {};
+          Object.entries(w).map(([k, v]) => {
+            if (rule.target.arguments[k]) {
+              filteredWith[k] = v.filter((element) => {
+                return !!rule.target.arguments[k].options.find(
+                  (s) => s.value === element
+                );
+              });
+            }
+          });
+          return filteredWith;
+        });
+        // default value if there is no favorite is an empty selection
+        const fields: Fields = {
+          with:
+            filteredSearchWith === undefined || filteredSearchWith?.length == 0
+              ? [{}]
+              : filteredSearchWith,
+          reason: search.reason,
+          timing: search.timing,
+        };
+
+        resetForm(fields);
+      }
     }
-  }, [rule, location.search]);
+  }, [rule, search]);
 
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
@@ -182,7 +305,7 @@ const Home = () => {
         durationSeconds: data.timing.durationSeconds,
       },
       reason: data.reason ? data.reason : "",
-      with: data.with,
+      with: data.with.filter((fw) => !fw.hidden).map((fw) => fw.data),
     };
     if (data.when === "scheduled") {
       r.timing.startTime = new Date(data.startDateTime).toISOString();
@@ -217,6 +340,30 @@ const Home = () => {
         });
       });
   };
+  const [urlClipboardValue, setUrlClipboardValue] = useState("");
+  const clipboard = useClipboard(urlClipboardValue);
+  const location = useLocation();
+  const fd = methods.watch();
+  useEffect(() => {
+    const a: MyLocationGenerics = {
+      Search: {
+        reason: getValues("reason"),
+        with: (getValues("with") || [])
+          .filter((fw) => !fw.hidden)
+          .map((fw) => fw.data),
+      },
+    };
+    const timing: RequestTiming = {
+      durationSeconds: getValues("timing.durationSeconds"),
+    };
+    if (getValues("when") === "scheduled") {
+      timing.startTime = new Date(getValues("startDateTime")).toISOString();
+    }
+    a.Search.timing = timing;
+    const u = new URL(window.location.href);
+    u.search = location.stringifySearch(a.Search);
+    setUrlClipboardValue(u.toString());
+  }, [fd]);
 
   return (
     <>
@@ -250,9 +397,28 @@ const Home = () => {
               as="form"
               onSubmit={handleSubmit(onSubmit)}
             >
-              <Text as="h3" textStyle="Heading/H3">
-                You are requesting access to
-              </Text>
+              <Flex justify={"space-between"}>
+                <Text as="h3" textStyle="Heading/H3">
+                  You are requesting access to
+                </Text>
+
+                <ButtonGroup>
+                  <FavoriteRequestButton
+                    favorite={favorite}
+                    ruleId={ruleId}
+                    parentFormData={getValues()}
+                    onUpdate={(f) => setFavorite(f)}
+                  />
+                  <Tooltip label="Copy a shareable link for this request">
+                    <IconButton
+                      variant={"ghost"}
+                      aria-label="Copy link"
+                      onClick={clipboard.onCopy}
+                      icon={clipboard.hasCopied ? <CheckIcon /> : <LinkIcon />}
+                    />
+                  </Tooltip>
+                </ButtonGroup>
+              </Flex>
 
               <Stack
                 spacing={2}
@@ -450,108 +616,167 @@ export const AccessRuleArguments: React.FC<{
     control,
     getValues,
     formState: { errors },
+    watch,
+    setValue,
   } = useFormContext<NewRequestFormData>();
 
   if (target === undefined) {
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
+  const subRequests = watch("with");
   return (
-    <>
-      <Wrap>
-        {Object.entries(target.arguments)
-          .filter(([k, v]) => {
-            return !v.requiresSelection;
-          })
-          .map(([k, argument]) => {
-            return (
-              <WrapItem>
-                <VStack align={"left"}>
-                  <Text>{argument.title}</Text>
-                  <InfoOption
-                    label={argument.options[0].label}
-                    value={argument.options[0].value}
-                  />
-                </VStack>
-              </WrapItem>
-            );
-          })}
-      </Wrap>
-      {Object.entries(target.arguments)
-        .filter(([k, v]) => {
-          return v.requiresSelection;
-        })
-        .map(([k, v], i) => {
-          const name = `with.${k}`;
+    <VStack align={"left"}>
+      <VStack w="100%" spacing={4}>
+        {subRequests?.map((sr, subRequestIndex) => {
+          if (sr.hidden) {
+            return null;
+          }
           return (
-            <FormControl
-              key={"selectable-" + k}
-              pos="relative"
-              id={name}
-              isInvalid={errors.with && errors.with[k] !== undefined}
-            >
-              <FormLabel
-                textStyle="Body/Medium"
-                color="neutrals.600"
-                fontWeight="normal"
+            <Box position="relative" w="100%">
+              {subRequests?.filter((sr) => !sr.hidden).length > 1 && (
+                <IconButton
+                  top={0}
+                  right={0}
+                  position={"absolute"}
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  aria-label="remove"
+                  icon={<DeleteIcon />}
+                  onClick={() => {
+                    const newSr = [...subRequests];
+                    sr.hidden = true;
+                    newSr[subRequestIndex] = sr;
+                    setValue("with", newSr);
+                  }}
+                />
+              )}
+              <VStack
+                w="100%"
+                key={`subrequest-${subRequestIndex}`}
+                border="1px solid"
+                borderColor="gray.300"
+                rounded="md"
+                px={4}
+                py={4}
+                spacing={4}
+                align={"left"}
               >
-                {v.title}
-              </FormLabel>
-
-              <Controller
-                name={`with.${k}`}
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <>
-                    <Select
-                      components={{
-                        Option: CustomOption,
-                      }}
-                      styles={{
-                        option: (provided, state) => {
-                          return {
-                            ...provided,
-                            background: state.isSelected
-                              ? colors.blue[200]
-                              : provided.background,
-                            color: state.isSelected
-                              ? colors.neutrals[800]
-                              : provided.color,
-                          };
-                        },
-                      }}
-                      isMulti={false}
-                      options={v.options
-                        // exclude invalid options
-                        .filter((op) => op.valid)
-                        .map((op) => {
-                          return op;
-                        })
-                        .sort((a, b) => {
-                          return a.label < b.label
-                            ? -1
-                            : a.label === b.label
-                            ? 0
-                            : 1;
-                        })}
-                      value={v.options.find((op) => value === op.value)}
-                      onChange={(val) => {
-                        onChange(val?.value);
-                      }}
-                      {...rest}
-                    />
-                    <Text textStyle={"Body/Small"} color="neutrals.600">
-                      {value}
-                    </Text>
-                  </>
+                {Object.entries(target.arguments).filter(([k, v]) => {
+                  return !v.requiresSelection;
+                }).length > 0 && (
+                  <Wrap spacing={4}>
+                    {Object.entries(target.arguments)
+                      .filter(([k, v]) => {
+                        return !v.requiresSelection;
+                      })
+                      .map(([k, argument]) => {
+                        return (
+                          <WrapItem>
+                            <VStack align={"left"}>
+                              <Text>{argument.title}</Text>
+                              <InfoOption
+                                label={argument.options[0].label}
+                                value={argument.options[0].value}
+                              />
+                            </VStack>
+                          </WrapItem>
+                        );
+                      })}
+                  </Wrap>
                 )}
-              />
-
-              <FormErrorMessage>This field is required</FormErrorMessage>
-            </FormControl>
+                {Object.entries(target.arguments)
+                  .filter(([k, v]) => {
+                    return v.requiresSelection;
+                  })
+                  .map(([k, v], i) => {
+                    const name = `with.${subRequestIndex}.data.${k}`;
+                    return (
+                      <FormControl
+                        key={"selectable-" + k}
+                        pos="relative"
+                        id={name}
+                        isInvalid={
+                          errors.with &&
+                          errors.with?.[subRequestIndex]?.data?.[k] !==
+                            undefined
+                        }
+                      >
+                        <FormLabel
+                          textStyle="Body/Medium"
+                          color="neutrals.600"
+                          fontWeight="normal"
+                        >
+                          {v.title}
+                        </FormLabel>
+                        {v.formElement === RequestArgumentFormElement.SELECT ? (
+                          <SelectWithArrayAsValue
+                            fieldName={`with.${subRequestIndex}.data.${k}`}
+                            options={v.options
+                              // exclude invalid options
+                              .filter((op) => op.valid)
+                              .map((op) => {
+                                return op;
+                              })}
+                            rules={{
+                              required: true,
+                              validate: (value) => {
+                                // @TODO validate that there is no overlap with other fields
+                                return undefined;
+                              },
+                            }}
+                          />
+                        ) : (
+                          <MultiSelect
+                            fieldName={`with.${subRequestIndex}.data.${k}`}
+                            options={v.options
+                              // exclude invalid options
+                              .filter((op) => op.valid)
+                              .map((op) => {
+                                return op;
+                              })}
+                            rules={{
+                              required: true,
+                              minLength: 1,
+                              validate: (value) => {
+                                // @TODO validate that there is no overlap with other fields
+                                return undefined;
+                              },
+                            }}
+                          />
+                        )}
+                        <FormErrorMessage>
+                          This field is required
+                        </FormErrorMessage>
+                      </FormControl>
+                    );
+                  })}
+              </VStack>
+            </Box>
           );
         })}
-    </>
+      </VStack>
+      {/* Only render the add permissions button if the rule has fields which require selection */}
+      {Object.entries(target.arguments).find(
+        ([k, v]) => v.requiresSelection
+      ) !== undefined && (
+        <ButtonGroup>
+          <Button
+            pl={0}
+            type="button"
+            size="sm"
+            variant="ghost"
+            aria-label="add"
+            leftIcon={<SmallAddIcon />}
+            onClick={() => {
+              setValue("with", [...(subRequests || []), { data: {} }]);
+            }}
+          >
+            Add permissions
+          </Button>
+        </ButtonGroup>
+      )}
+    </VStack>
   );
 };
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
@@ -587,17 +812,262 @@ const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
     </Text>
   );
 };
-const CustomOption = ({
-  children,
-  ...innerProps
-}: OptionProps<WithOption, false, GroupBase<WithOption>>) => (
-  <div data-testid={innerProps.data.value}>
-    <components.Option {...innerProps}>
-      <>
-        {children}
-        {<Text>{innerProps.data.value}</Text>}
-      </>
-    </components.Option>
-  </div>
-);
-export default Home;
+
+export default AccessRequestForm;
+
+interface FavoriteRequestButtonProps {
+  ruleId: string;
+  parentFormData: NewRequestFormData;
+  // if the page is currently loaded with a favorite
+  favorite?: FavoriteDetail;
+  onUpdate?: (favorite?: FavoriteDetail) => void;
+}
+const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
+  ruleId,
+  parentFormData,
+  favorite,
+  onUpdate,
+}) => {
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const methods = useForm<{ name: string }>({
+    defaultValues: { name: favorite?.name },
+  });
+  useEffect(() => {
+    if (favorite) {
+      methods.reset({ name: favorite.name });
+    }
+  }, [favorite]);
+  // the state of the parent form
+  const popoverDisclosure = useDisclosure();
+  const toast = useToast();
+  const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
+    const r: CreateFavoriteRequestBody = {
+      name: data.name,
+      accessRuleId: ruleId,
+      timing: {
+        durationSeconds: parentFormData.timing.durationSeconds,
+      },
+      reason: parentFormData.reason ? parentFormData.reason : "",
+      with: parentFormData.with.filter((fw) => !fw.hidden).map((fw) => fw.data),
+    };
+    if (parentFormData.when === "scheduled") {
+      r.timing.startTime = new Date(parentFormData.startDateTime).toISOString();
+    }
+    setIsSubmitting(true);
+
+    if (favorite) {
+      updateFavorite(favorite.id, r)
+        .then((favorite) => {
+          toast({
+            title: "Favorite updated",
+            status: "success",
+            duration: 2200,
+            isClosable: true,
+          });
+          popoverDisclosure.onClose();
+          methods.reset();
+          onUpdate?.(favorite);
+        })
+        .catch((e: any) => {
+          let description: string | undefined;
+          if (axios.isAxiosError(e)) {
+            description = (e as AxiosError<{ error: string }>)?.response?.data
+              .error;
+          }
+          toast({
+            title: "Favorite failed to update",
+            status: "error",
+            duration: 5000,
+            description: (
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+            ),
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
+    } else {
+      userCreateFavorite(r)
+        .then((favorite) => {
+          toast({
+            title: "Favorite created",
+            status: "success",
+            duration: 2200,
+            isClosable: true,
+          });
+          popoverDisclosure.onClose();
+          methods.reset();
+          onUpdate?.(favorite);
+        })
+        .catch((e: any) => {
+          let description: string | undefined;
+          if (axios.isAxiosError(e)) {
+            description = (e as AxiosError<{ error: string }>)?.response?.data
+              .error;
+          }
+          toast({
+            title: "Favorite failed",
+            status: "error",
+            duration: 5000,
+            description: (
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+            ),
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
+    }
+  };
+
+  const handleDeleteFavorite = () => {
+    if (favorite) {
+      setIsSubmitting(true);
+      deleteFavorite(favorite?.id)
+        .then(() => {
+          toast({
+            title: "Favorite removed",
+            status: "success",
+            duration: 2200,
+            isClosable: true,
+          });
+          popoverDisclosure.onClose();
+          methods.reset();
+          onUpdate?.();
+        })
+        .catch((e: any) => {
+          let description: string | undefined;
+          if (axios.isAxiosError(e)) {
+            description = (e as AxiosError<{ error: string }>)?.response?.data
+              .error;
+          }
+          toast({
+            title: "Failed to remove favorite",
+            status: "error",
+            duration: 5000,
+            description: (
+              <Text color={"white"} whiteSpace={"pre"}>
+                {description}
+              </Text>
+            ),
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
+    }
+  };
+
+  return (
+    <Popover
+      closeOnBlur={false}
+      isOpen={popoverDisclosure.isOpen}
+      onOpen={popoverDisclosure.onOpen}
+      onClose={popoverDisclosure.onClose}
+    >
+      <Tooltip
+        label={
+          favorite
+            ? "Update or remove this favorite"
+            : "Add this request to your favorites"
+        }
+      >
+        {/* additional element */}
+        <Box display="inline-block">
+          <PopoverTrigger>
+            <IconButton
+              color={favorite ? colors.actionWarning[200] : undefined}
+              onClick={popoverDisclosure.onOpen}
+              variant={"ghost"}
+              aria-label="Favorite"
+              icon={<StarIcon />}
+            />
+          </PopoverTrigger>
+        </Box>
+      </Tooltip>
+      <PopoverContent>
+        <PopoverArrow />
+        <PopoverCloseButton />
+        <PopoverHeader>
+          {favorite ? "Update Favorite" : "Add to Favorites"}
+        </PopoverHeader>
+
+        {/* I have chosen not to use a native form element wrapper because it can't be easily nested in this popover inside the base request form
+
+I experimented with using a <Portal/> to wrap the popover however this form submitting still triggered the parent form to submit
+
+So I have just submitted the form directly using the submit button*/}
+        <PopoverBody>
+          <FormControl isInvalid={!!methods.formState.errors?.name}>
+            <FormLabel textStyle="Body/Medium" fontWeight="normal">
+              Name
+            </FormLabel>
+
+            <Input
+              bg="white"
+              id="nameField"
+              placeholder="Daily Development Access"
+              {...methods.register("name", {
+                required: true,
+                minLength: 1,
+                maxLength: 128,
+                validate: (value) => {
+                  const res: string[] = [];
+                  [/[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/].every((pattern) =>
+                    pattern.test(value as string)
+                  ) &&
+                    res.push(
+                      "Invalid characters (only letters, numbers, and punctuation allowed)"
+                    );
+                  if (value && value.length > 128) {
+                    res.push("Maximum length is 128 characters");
+                  }
+                  return res.length > 0 ? res.join(", ") : undefined;
+                },
+              })}
+              onBlur={() => methods.trigger("name")}
+            />
+            <FormHelperText>
+              Access favorites from your dashboard
+            </FormHelperText>
+            {methods.formState.errors?.name && (
+              <FormErrorMessage>
+                {methods.formState.errors?.name.message}
+              </FormErrorMessage>
+            )}
+          </FormControl>
+        </PopoverBody>
+        <PopoverFooter>
+          <Flex justify={"right"}>
+            <Button
+              size={"sm"}
+              onClick={methods.handleSubmit(onSubmit)}
+              mr={3}
+              isLoading={isSubmitting}
+            >
+              {favorite ? "Update" : "Save"}
+            </Button>
+            {favorite && (
+              <Button
+                variant={"danger"}
+                size={"sm"}
+                onClick={handleDeleteFavorite}
+                mr={3}
+                isLoading={isSubmitting}
+              >
+                Remove
+              </Button>
+            )}
+          </Flex>
+        </PopoverFooter>
+      </PopoverContent>
+    </Popover>
+  );
+};

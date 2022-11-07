@@ -21,9 +21,9 @@ func (p *Provider) Configure(ctx context.Context, jsonConfig []byte) error {
 func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"group": {
-			Id:          "group",
-			Title:       "Group",
-			FormElement: types.INPUT,
+			Id:              "group",
+			Title:           "Group",
+			RuleFormElement: types.ArgumentRuleFormElementINPUT,
 		},
 	}
 

@@ -28,12 +28,11 @@ func TestNewRequest(t *testing.T) {
 	}
 	type testcase struct {
 		name                         string
-		giveInput                    types.CreateRequestRequest
-		giveUser                     identity.User
+		in                           CreateRequestsOpts
 		rule                         *rule.AccessRule
 		ruleErr                      error
 		wantErr                      error
-		want                         *CreateRequestResult
+		want                         []CreateRequestResult
 		withCreateGrantResponse      createGrantResponse
 		withGetGroupResponse         *storage.GetGroup
 		withRequestArgumentsResponse map[string]types.RequestArgument
@@ -48,12 +47,12 @@ func TestNewRequest(t *testing.T) {
 		{
 			name: "ok, no approvers so should auto approve",
 			//just passing the group here, technically a user isnt an approver
-			giveUser: identity.User{Groups: []string{"a"}},
+			in: CreateRequestsOpts{User: identity.User{Groups: []string{"a"}}},
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 			},
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					Status:         access.APPROVED,
 					CreatedAt:      clk.Now(),
@@ -61,7 +60,7 @@ func TestNewRequest(t *testing.T) {
 					Grant:          &access.Grant{},
 					ApprovalMethod: &autoApproval,
 					SelectedWith:   make(map[string]access.Option),
-				},
+				}},
 			},
 			withCreateGrantResponse: createGrantResponse{
 				request: &access.Request{
@@ -78,13 +77,12 @@ func TestNewRequest(t *testing.T) {
 			currentRequestsForGrant:      []access.Request{},
 		},
 		{
-			name:     "fails because requested duration is greater than max duration",
-			giveUser: identity.User{Groups: []string{"a"}},
-			giveInput: types.CreateRequestRequest{
+			name: "fails because requested duration is greater than max duration",
+			in: CreateRequestsOpts{User: identity.User{Groups: []string{"a"}}, Create: CreateRequests{
 				Timing: types.RequestTiming{
 					DurationSeconds: 20,
 				},
-			},
+			}},
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 				TimeConstraints: types.TimeConstraints{
@@ -105,8 +103,8 @@ func TestNewRequest(t *testing.T) {
 			currentRequestsForGrant:      []access.Request{},
 		},
 		{
-			name:     "user not in correct group",
-			giveUser: identity.User{Groups: []string{"a"}},
+			name: "user not in correct group",
+			in:   CreateRequestsOpts{User: identity.User{Groups: []string{"a"}}},
 			rule: &rule.AccessRule{
 				Groups: []string{"b"},
 			},
@@ -115,22 +113,22 @@ func TestNewRequest(t *testing.T) {
 		},
 		{
 			name:                    "rule not found",
-			giveUser:                identity.User{Groups: []string{"a"}},
+			in:                      CreateRequestsOpts{User: identity.User{Groups: []string{"a"}}},
 			ruleErr:                 ddb.ErrNoItems,
 			wantErr:                 ErrRuleNotFound,
 			currentRequestsForGrant: []access.Request{},
 		},
 		{
-			name:     "with reviewers",
-			giveUser: identity.User{Groups: []string{"a"}},
+			name: "with reviewers",
+			in:   CreateRequestsOpts{User: identity.User{Groups: []string{"a"}}},
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 				Approval: rule.Approval{
 					Users: []string{"b"},
 				},
 			},
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					Status:         access.PENDING,
 					CreatedAt:      clk.Now(),
@@ -138,26 +136,26 @@ func TestNewRequest(t *testing.T) {
 					ApprovalMethod: &reviewed,
 					SelectedWith:   make(map[string]access.Option),
 				},
-				Reviewers: []access.Reviewer{
-					{
-						ReviewerID: "b",
-						Request: access.Request{
-							ID:             "-",
-							Status:         access.PENDING,
-							CreatedAt:      clk.Now(),
-							UpdatedAt:      clk.Now(),
-							ApprovalMethod: &reviewed,
-							SelectedWith:   make(map[string]access.Option),
+					Reviewers: []access.Reviewer{
+						{
+							ReviewerID: "b",
+							Request: access.Request{
+								ID:             "-",
+								Status:         access.PENDING,
+								CreatedAt:      clk.Now(),
+								UpdatedAt:      clk.Now(),
+								ApprovalMethod: &reviewed,
+								SelectedWith:   make(map[string]access.Option),
+							},
 						},
-					},
-				},
+					}},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
 		},
 		{
-			name:     "requestor is approver on access rule",
-			giveUser: identity.User{ID: "a", Groups: []string{"a"}},
+			name: "requestor is approver on access rule",
+			in:   CreateRequestsOpts{User: identity.User{ID: "a", Groups: []string{"a"}}},
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 				Approval: rule.Approval{
@@ -166,8 +164,8 @@ func TestNewRequest(t *testing.T) {
 			},
 			// user 'a' should not be included as an approver of this request,
 			// as they made the request.
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					RequestedBy:    "a",
 					Status:         access.PENDING,
@@ -176,27 +174,27 @@ func TestNewRequest(t *testing.T) {
 					ApprovalMethod: &reviewed,
 					SelectedWith:   make(map[string]access.Option),
 				},
-				Reviewers: []access.Reviewer{
-					{
-						ReviewerID: "b",
-						Request: access.Request{
-							ID:             "-",
-							RequestedBy:    "a",
-							Status:         access.PENDING,
-							CreatedAt:      clk.Now(),
-							UpdatedAt:      clk.Now(),
-							ApprovalMethod: &reviewed,
-							SelectedWith:   make(map[string]access.Option),
+					Reviewers: []access.Reviewer{
+						{
+							ReviewerID: "b",
+							Request: access.Request{
+								ID:             "-",
+								RequestedBy:    "a",
+								Status:         access.PENDING,
+								CreatedAt:      clk.Now(),
+								UpdatedAt:      clk.Now(),
+								ApprovalMethod: &reviewed,
+								SelectedWith:   make(map[string]access.Option),
+							},
 						},
-					},
-				},
+					}},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
 		},
 		{
-			name:     "requestor is in approver group on access rule",
-			giveUser: identity.User{ID: "a", Groups: []string{"a", "b"}},
+			name: "requestor is in approver group on access rule",
+			in:   CreateRequestsOpts{User: identity.User{ID: "a", Groups: []string{"a"}}},
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 				Approval: rule.Approval{
@@ -211,8 +209,8 @@ func TestNewRequest(t *testing.T) {
 			},
 			// user 'a' should not be included as an approver of this request,
 			// as they made the request.
-			want: &CreateRequestResult{
-				Request: access.Request{
+			want: []CreateRequestResult{
+				{Request: access.Request{
 					ID:             "-",
 					RequestedBy:    "a",
 					Status:         access.PENDING,
@@ -221,20 +219,20 @@ func TestNewRequest(t *testing.T) {
 					ApprovalMethod: &reviewed,
 					SelectedWith:   make(map[string]access.Option),
 				},
-				Reviewers: []access.Reviewer{
-					{
-						ReviewerID: "c",
-						Request: access.Request{
-							ID:             "-",
-							RequestedBy:    "a",
-							Status:         access.PENDING,
-							CreatedAt:      clk.Now(),
-							UpdatedAt:      clk.Now(),
-							ApprovalMethod: &reviewed,
-							SelectedWith:   make(map[string]access.Option),
+					Reviewers: []access.Reviewer{
+						{
+							ReviewerID: "c",
+							Request: access.Request{
+								ID:             "-",
+								RequestedBy:    "a",
+								Status:         access.PENDING,
+								CreatedAt:      clk.Now(),
+								UpdatedAt:      clk.Now(),
+								ApprovalMethod: &reviewed,
+								SelectedWith:   make(map[string]access.Option),
+							},
 						},
-					},
-				},
+					}},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
@@ -242,7 +240,7 @@ func TestNewRequest(t *testing.T) {
 		{
 			name: "failed validation should not create request",
 			//just passing the group here, technically a user isnt an approver
-			giveUser: identity.User{Groups: []string{"a"}},
+			in: CreateRequestsOpts{User: identity.User{ID: "a", Groups: []string{"a"}}},
 			rule: &rule.AccessRule{
 				Groups: []string{"a"},
 			},
@@ -259,7 +257,7 @@ func TestNewRequest(t *testing.T) {
 				},
 			},
 			wantValidationError:          fmt.Errorf("unexpected response while validating grant"),
-			wantErr:                      fmt.Errorf("unexpected response while validating grant"),
+			wantErr:                      fmt.Errorf("1 error occurred:\n\t* unexpected response while validating grant\n\n"),
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
 		},
@@ -298,18 +296,21 @@ func TestNewRequest(t *testing.T) {
 				Cache:       ca,
 				Rules:       rs,
 			}
-			got, err := s.CreateRequest(context.Background(), &tc.giveUser, tc.giveInput)
-			if got != nil {
-				// ignore the autogenerated ID for testing.
-				got.Request.ID = "-"
-
-				for i := range got.Reviewers {
-					got.Reviewers[i].Request.ID = "-"
+			got, err := s.CreateRequests(context.Background(), tc.in)
+			var gotWithoutIDs []CreateRequestResult
+			// ignore the autogenerated ID for testing.
+			for _, res := range got {
+				res.Request.ID = "-"
+				for i := range res.Reviewers {
+					res.Reviewers[i].Request.ID = "-"
 				}
+				gotWithoutIDs = append(gotWithoutIDs, res)
 			}
 
-			assert.Equal(t, tc.wantErr, err)
-			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.want, gotWithoutIDs)
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+			}
 		})
 	}
 

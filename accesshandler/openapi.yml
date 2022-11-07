@@ -530,11 +530,17 @@ components:
           type: string
         description:
           type: string
-        formElement:
+        ruleFormElement:
           type: string
           enum:
             - INPUT
             - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: "Optional form element for the request form, if not provided, defaults to multiselect"
         groups:
           type: object
           additionalProperties:
@@ -542,7 +548,7 @@ components:
       required:
         - id
         - title
-        - formElement
+        - ruleFormElement
     Groups:
       title: Groups
       x-stoplight:

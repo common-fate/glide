@@ -42,10 +42,10 @@ func (p *Provider) Init(ctx context.Context) error {
 func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"vault": {
-			Id:          "vault",
-			Title:       "Vault",
-			Description: aws.String("The name of an example vault to grant access to (can be any string)"),
-			FormElement: types.INPUT,
+			Id:              "vault",
+			Title:           "Vault",
+			Description:     aws.String("The name of an example vault to grant access to (can be any string)"),
+			RuleFormElement: types.ArgumentRuleFormElementINPUT,
 		},
 	}
 

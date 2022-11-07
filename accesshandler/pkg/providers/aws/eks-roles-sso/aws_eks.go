@@ -137,9 +137,9 @@ func (p *Provider) Init(ctx context.Context) error {
 func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"role": {
-			Id:          "role",
-			Title:       "Role",
-			FormElement: types.MULTISELECT,
+			Id:              "role",
+			Title:           "Role",
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
 		},
 	}
 	return arg

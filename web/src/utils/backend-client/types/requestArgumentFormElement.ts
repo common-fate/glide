@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type ArgumentFormElement = typeof ArgumentFormElement[keyof typeof ArgumentFormElement];
+export type RequestArgumentFormElement = typeof RequestArgumentFormElement[keyof typeof RequestArgumentFormElement];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ArgumentFormElement = {
-  INPUT: 'INPUT',
-  MULTISELECT: 'MULTISELECT',
+export const RequestArgumentFormElement = {
+  SELECT: 'SELECT',
 } as const;

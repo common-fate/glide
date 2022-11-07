@@ -16,7 +16,7 @@ import { useFormContext } from "react-hook-form";
 import { useListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
-  ArgumentFormElement,
+  ArgumentRuleFormElement,
   GroupOption,
   Option,
 } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
@@ -35,15 +35,15 @@ const ProviderArgumentField: React.FC<ProviderArgumentFieldProps> = ({
   argument,
   providerId,
 }) => {
-  switch (argument.formElement) {
-    case ArgumentFormElement.MULTISELECT:
+  switch (argument.ruleFormElement) {
+    case ArgumentRuleFormElement.MULTISELECT:
       return (
         <ProviderFormElementMultiSelect
           argument={argument}
           providerId={providerId}
         />
       );
-    case ArgumentFormElement.INPUT:
+    case ArgumentRuleFormElement.INPUT:
       return (
         <ProviderFormElementInput argument={argument} providerId={providerId} />
       );

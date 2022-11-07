@@ -131,7 +131,7 @@ func (p *Provider) ArgSchema() providers.ArgSchema {
 		"groupId": {
 			Id:          "groupId",
 			Title:       "Group",
-			FormElement: types.MULTISELECT,
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
 		},
 	}
 

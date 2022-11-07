@@ -47,7 +47,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s requires approval.", requestedRule.Name)
 			if n.directMessageClient != nil {
-				_, err = SendMessage(ctx, n.directMessageClient.client, requestingUserQuery.Result.Email, msg, fallback)
+				_, err = SendMessage(ctx, n.directMessageClient.client, requestingUserQuery.Result.Email, msg, fallback, nil)
 				if err != nil {
 					log.Errorw("Failed to send direct message", "email", requestingUserQuery.Result.Email, "msg", msg, "error", err)
 				}
@@ -152,6 +152,9 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			//Review not required
 			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
+			if err != nil {
+				return errors.Wrap(err, "building review URL")
+			}
 			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
 		}
 	case gevent.RequestApprovedType:

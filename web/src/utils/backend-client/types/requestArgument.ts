@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { WithOption } from './withOption';
+import type { RequestArgumentFormElement } from './requestArgumentFormElement';
 
 export interface RequestArgument {
   title: string;
@@ -13,4 +14,5 @@ export interface RequestArgument {
   description?: string;
   /** This will be true if a selection is require when creating a request */
   requiresSelection: boolean;
+  formElement?: RequestArgumentFormElement;
 }
