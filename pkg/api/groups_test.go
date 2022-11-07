@@ -49,7 +49,7 @@ func TestListGroups(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQuery(&storage.ListActiveGroups{Result: tc.idpGroups})
+			db.MockQuery(&storage.ListGroupsForStatus{Result: tc.idpGroups})
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
