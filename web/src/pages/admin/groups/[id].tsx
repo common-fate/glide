@@ -27,13 +27,11 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-import axios from "axios";
-import { groupCollapsed } from "console";
-import { data } from "msw/lib/types/context";
-import { type } from "os";
+
 import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { Link, useMatch } from "react-location";
+import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
 import { UserSelect } from "../../../components/forms/access-rule/components/Select";
 
 import { AdminLayout } from "../../../components/Layout";
@@ -53,7 +51,20 @@ const Index = () => {
   const {
     params: { id: groupId },
   } = useMatch();
-  const { data: group, mutate } = useGetGroup(groupId);
+  const { data: group } = useGetGroup(groupId);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (group) {
+      const formValues: CreateGroupRequestBody = {
+        id: group.id,
+        name: group?.name ? group.name : "",
+        description: group?.description,
+        members: group?.members ? group.members : [],
+      };
+      methods.reset(formValues);
+    }
+  }, [group]);
 
   const [isEditable, setIsEditable] = useState(false);
 
@@ -61,16 +72,17 @@ const Index = () => {
     await createGroup(data)
       .then(() => {
         toast({
-          title: "Updated Groups",
+          title: "Updated Group",
           status: "success",
           variant: "subtle",
           duration: 2200,
           isClosable: true,
         });
+        setIsEditable(false);
       })
       .catch(() => {
         toast({
-          title: "Error Updating Group",
+          title: "Error updating group",
           status: "error",
           variant: "subtle",
           duration: 2200,
@@ -95,6 +107,39 @@ const Index = () => {
       );
     }
 
+    if (!isEditable) {
+      return (
+        <>
+          <VStack align={"left"} spacing={1} flex={1} mr={4}>
+            <Text textStyle="Body/Medium">Name</Text>
+            <Text textStyle="Body/Small">{group.name}</Text>
+            <Text textStyle="Body/Medium">Description</Text>
+            <Text textStyle="Body/Small">{group.description}</Text>
+            <Members group={group} isEditing={isEditable} methods={methods} />
+          </VStack>
+          {group.source == "internal" && (
+            <Button
+              variant="brandSecondary"
+              size="sm"
+              onClick={() => {
+                setIsEditable(true);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+
+          {/* <Avatar
+            src={user.picture}
+            name={
+              user.firstName ? `${user.firstName} ${user.lastName}` : user.email
+            }
+            boxSize="200px"
+          /> */}
+        </>
+      );
+    }
+
     return (
       <VStack w="100%">
         <Flex w="100%">
@@ -104,51 +149,50 @@ const Index = () => {
               spacing={1}
               flex={1}
               mr={4}
+              as="form"
               onSubmit={methods.handleSubmit(handleSubmit)}
             >
-              <InputGroup size="lg" bg="white" maxW="700px">
-                <VStack align={"left"} w="100%">
+              <VStack align={"left"} w="100%">
+                <FormControl>
                   <VStack align={"left"}>
-                    <Text textStyle="Body/Medium">Name</Text>
+                    <FormLabel display="inline">
+                      <Text textStyle="Body/Medium">Name</Text>
+                    </FormLabel>
                     <Input
                       textStyle="Body/Medium"
-                      value={group.name}
                       readOnly={!isEditable}
+                      {...methods.register("name", {
+                        required: true,
+                        minLength: 1,
+                      })}
                     />
                   </VStack>
-
+                </FormControl>
+                <FormControl>
                   <VStack align={"left"}>
-                    <Text textStyle="Body/Medium">Description</Text>
+                    <FormLabel display="inline">
+                      <Text textStyle="Body/Medium">Description</Text>
+                    </FormLabel>
+
                     <Input
                       w="100%"
                       textStyle="Body/Medium"
-                      value={group.description}
                       readOnly={!isEditable}
+                      {...methods.register("description", {
+                        required: true,
+                        minLength: 1,
+                      })}
                     />
                   </VStack>
-                </VStack>
-              </InputGroup>
+                </FormControl>
+              </VStack>
 
-              <Members
-                group={group}
-                onSubmit={(u) => mutate(u)}
-                isEditing={isEditable}
-              />
+              <Members group={group} isEditing={isEditable} methods={methods} />
+
+              {isEditable && <Button type="submit">Save</Button>}
             </VStack>
-            {group.source == "internal" && (
-              <Button
-                variant="brandSecondary"
-                size="sm"
-                onClick={() => {
-                  setIsEditable(true);
-                }}
-              >
-                Edit
-              </Button>
-            )}
           </FormProvider>
         </Flex>
-        {isEditable && <Button>Save</Button>}
       </VStack>
     );
   };
@@ -192,52 +236,64 @@ export default Index;
 
 interface MemberProps {
   group: Group;
-  onSubmit?: (u: Group) => void;
+
   isEditing: boolean;
+  methods: UseFormReturn<CreateGroupRequestBody>;
 }
 
-type GroupForm = {
-  members: string[];
-};
-
-const Members: React.FC<MemberProps> = ({ group, isEditing }) => {
-  const methods = useForm<GroupForm>({});
-
-  useEffect(() => {
-    methods.reset({ members: group.members });
-  }, []);
+const Members: React.FC<MemberProps> = ({ isEditing, methods, group }) => {
+  if (isEditing) {
+    return (
+      <FormProvider {...methods}>
+        <VStack as="form" align={"left"} spacing={1}>
+          <FormControl id="members">
+            <FormLabel>
+              <HStack>
+                <Text textStyle="Body/Medium">Members</Text>
+              </HStack>
+            </FormLabel>
+            <Flex flex={1}>
+              <UserSelect
+                fieldName="members"
+                isDisabled={methods.formState.isSubmitting || !isEditing}
+              />
+            </Flex>
+          </FormControl>
+        </VStack>
+      </FormProvider>
+    );
+  }
 
   return (
-    <FormProvider {...methods}>
-      <VStack
-        as="form"
-        // onSubmit={methods.handleSubmit(handleSubmit)}
-        align={"left"}
-        spacing={1}
-      >
-        <FormControl id="members">
-          <FormLabel>
-            <HStack>
-              <Text textStyle="Body/Medium">Members</Text>
-            </HStack>
-          </FormLabel>
-          <Flex flex={1}>
-            <UserSelect
-              fieldName="members"
-              isDisabled={methods.formState.isSubmitting || !isEditing}
-            />
-          </Flex>
-        </FormControl>
-      </VStack>
-    </FormProvider>
+    <VStack align={"left"} spacing={1}>
+      <HStack>
+        <Text textStyle="Body/Medium">Members</Text>
+      </HStack>
+      <Wrap>
+        {group.members.map((g) => {
+          return (
+            <WrapItem key={g}>
+              <UserDisplay userId={g} />
+            </WrapItem>
+          );
+        })}
+      </Wrap>
+    </VStack>
   );
 };
-function toast(arg0: {
-  title: string;
-  status: string;
-  variant: string;
-  duration: number;
-  isClosable: boolean;
-}) {
-  throw new Error("Function not implemented.");
-}
+
+const UserDisplay: React.FC<{ userId: string }> = ({ userId }) => {
+  const { data } = useGetUser(encodeURIComponent(userId));
+  return (
+    <Flex
+      cursor="help"
+      textStyle={"Body/Small"}
+      rounded="full"
+      bg="neutrals.300"
+      py={1}
+      px={4}
+    >
+      {data?.email}
+    </Flex>
+  );
+};

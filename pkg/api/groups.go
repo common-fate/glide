@@ -98,17 +98,32 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create internal group
-	group := identity.Group{
-		ID:          createGroupRequest.Name,
-		IdpID:       createGroupRequest.Name,
-		Name:        createGroupRequest.Name,
-		Description: aws.ToString(createGroupRequest.Description),
-		Status:      types.IdpStatusACTIVE,
-		Source:      identity.INTERNAL,
-		Users:       createGroupRequest.Members,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	group := identity.Group{}
+	if createGroupRequest.Id != nil {
+		//update existing group
+		group = identity.Group{
+			ID:          *createGroupRequest.Id,
+			IdpID:       createGroupRequest.Name,
+			Name:        createGroupRequest.Name,
+			Description: aws.ToString(createGroupRequest.Description),
+			Status:      types.IdpStatusACTIVE,
+			Source:      identity.INTERNAL,
+			Users:       createGroupRequest.Members,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+	} else {
+		group = identity.Group{
+			ID:          types.NewGroupID(),
+			IdpID:       createGroupRequest.Name,
+			Name:        createGroupRequest.Name,
+			Description: aws.ToString(createGroupRequest.Description),
+			Status:      types.IdpStatusACTIVE,
+			Source:      identity.INTERNAL,
+			Users:       createGroupRequest.Members,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
 	}
 
 	//update which groups users are apart of
