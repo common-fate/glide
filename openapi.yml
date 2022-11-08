@@ -2312,7 +2312,6 @@ components:
                 maxLength: 400
               reason:
                 type: string
-                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]|^$'
                 minLength: 0
                 maxLength: 2048
               timing:
@@ -2332,7 +2331,6 @@ components:
                 $ref: "#/components/schemas/ReviewDecision"
               comment:
                 type: string
-                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]|^$'
                 minLength: 0
                 maxLength: 2048
               overrideTiming:
@@ -2389,7 +2387,6 @@ components:
                 maxLength: 2048
               description:
                 type: string
-                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]|^$'
                 minLength: 0
                 maxLength: 2048
             required:

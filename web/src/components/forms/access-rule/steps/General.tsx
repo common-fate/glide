@@ -77,23 +77,9 @@ export const GeneralStep: React.FC = () => {
           <Textarea
             bg="neutrals.0"
             {...methods.register("description", {
-              // required: true,
-              validate: (value) => {
-                const res: string[] = [];
-                if (!value || value.length == 0) {
-                  res.push("Field is required");
-                }
-                [/[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/].every((pattern) =>
-                  pattern.test(value as string)
-                ) &&
-                  res.push(
-                    "Invalid characters (only letters, numbers, and punctuation allowed)"
-                  );
-                if (value && value.length > 2048) {
-                  res.push("Maximum length is 2048 characters");
-                }
-                return res.length > 0 ? res.join(", ") : undefined;
-              },
+              required: true,
+              minLength: 1,
+              maxLength: 2048,
             })}
             onBlur={() => void methods.trigger("description")}
           />
