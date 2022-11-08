@@ -2,7 +2,9 @@ package slackwebhook
 
 import (
 	"fmt"
+	"regexp"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
@@ -11,7 +13,7 @@ import (
 )
 
 var add = cli.Command{
-	Name: "add",
+	Name: "configure",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "channel-alias", Aliases: []string{"c"}},
 	},
@@ -23,9 +25,36 @@ var add = cli.Command{
 			return err
 		}
 
+		channelExists := func(channel string) bool {
+			if dc.Deployment.Parameters.NotificationsConfiguration != nil {
+				if _, exists := dc.Deployment.Parameters.NotificationsConfiguration.SlackIncomingWebhooks[channel]; exists {
+					return true
+				}
+			}
+			return false
+		}
+
 		channel := c.String("channel-alias")
 		if channel == "" {
-			return fmt.Errorf("channel-alias is required")
+			p := survey.Input{
+				Message: "Enter a name for this notifcation channel",
+			}
+			err = survey.AskOne(&p, &channel, survey.WithValidator(survey.ComposeValidators(survey.MinLength(1), func(ans interface{}) error {
+				a := ans.(string)
+				if channelExists(a) {
+					return fmt.Errorf("notification channel with id %s already exists", a)
+				}
+				return nil
+			})))
+			if err != nil {
+				return err
+			}
+		}
+		// clean the channel ID
+		r := regexp.MustCompile(`[^a-zA-Z0-9_.-]`)
+		channel = r.ReplaceAllString(channel, "-")
+		if channelExists(channel) {
+			return fmt.Errorf("notification channel with id %s already exists", channel)
 		}
 
 		var slack slacknotifier.SlackIncomingWebhook
@@ -55,7 +84,6 @@ var add = cli.Command{
 
 		clio.Success("Successfully configured Slack Webhooks")
 		clio.Warn("Your changes won't be applied until you redeploy. Run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
-		// clio.Warn("Run: `gdeploy notifications slack test --email=<your_slack_email>` to send a test DM")
 
 		return nil
 	},

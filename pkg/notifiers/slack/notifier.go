@@ -35,7 +35,7 @@ func (n *SlackNotifier) Init(ctx context.Context, config *deploy.Notifications) 
 	}
 	if config.SlackIncomingWebhooks != nil {
 		log := zap.S()
-		log.Info("initialising slack incoming webhooks", "webhooks", config.SlackIncomingWebhooks)
+		log.Infow("initialising slack incoming webhooks", "webhooks", config.SlackIncomingWebhooks)
 
 		for _, webhook := range config.SlackIncomingWebhooks {
 			sw := SlackIncomingWebhook{
