@@ -164,7 +164,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	// This map ensures we have a distinct list of ids
 	internalGroupUsers := make(map[string]map[string]string)
 	for _, g := range internalGroups {
-		ddbGroupMap[g.IdpID] = g
+		ddbGroupMap[g.ID] = g
 		internalGroupUsers[g.ID] = make(map[string]string)
 	}
 
@@ -226,7 +226,19 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 			uid := ddbUserMap[idpUser.Email].ID
 			internalGroupUsers[gid][uid] = uid
 		}
+
 		internalUser := ddbUserMap[idpUser.Email]
+
+		//make sure we are saving the internal groups that the user is apart of
+		for _, internalGroupId := range internalUser.Groups {
+			source := ddbGroupMap[internalGroupId].Source
+			if source == identity.INTERNAL {
+				gid := ddbGroupMap[internalGroupId].ID
+				internalGroupIds[gid] = gid
+			}
+
+		}
+
 		keys := make([]string, 0, len(internalGroupIds))
 		for k := range internalGroupIds {
 			keys = append(keys, k)
