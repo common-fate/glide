@@ -30,27 +30,12 @@ export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
 
-  const { data: provider } = useGetProvider(target?.providerId);
-  const { data: providerArgs } = useGetProviderArgs(target?.providerId ?? "");
-
-  // trigger a refresh of all provider arg options in the background when the provider is selected.
-  // this helps to keep the cached options fresh.
-  useEffect(() => {
-    if (providerArgs != null) {
-      const args = Object.values(providerArgs);
-
-      // TODO: Currenly, we have only multi-select and input form element defined.
-      // If in future, we have other form element that doesn't have options then we need to change
-      // the if condition here.
-      args.forEach((arg) => {
-        if (arg.ruleFormElement != ArgumentRuleFormElement.INPUT) {
-          void listProviderArgOptions(target.providerId, arg.id, {
-            refresh: true,
-          });
-        }
-      });
-    }
-  }, [providerArgs, target?.providerId]);
+  const { data: provider, isValidating: ivp } = useGetProvider(
+    target?.providerId
+  );
+  const { data: providerArgs, isValidating: ivpa } = useGetProviderArgs(
+    target?.providerId ?? ""
+  );
 
   const Preview = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
@@ -58,6 +43,7 @@ export const ProviderStep: React.FC = () => {
     }
     return <ProviderPreview provider={provider} />;
   };
+  const isFieldLoading = (!provider && ivp) || (!providerArgs && ivpa);
 
   return (
     <FormStep
@@ -65,6 +51,7 @@ export const ProviderStep: React.FC = () => {
       subHeading="The permissions that the rule gives access to"
       fields={["target", "target.providerId"]}
       preview={<Preview />}
+      isFieldLoading={isFieldLoading}
     >
       <>
         <FormControl isInvalid={!!methods.formState.errors.target?.providerId}>
@@ -113,14 +100,18 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   ...props
 }) => {
   const [loading, setLoading] = useState(false);
-  const { mutate } = useListProviderArgOptions(providerId, argId);
+  const { data, mutate, isValidating } = useListProviderArgOptions(
+    providerId,
+    argId
+  );
 
   const onClick = async () => {
     setLoading(true);
-    const res = await listProviderArgOptions(providerId, argId, {
-      refresh: true,
-    });
-    await mutate(res);
+    await mutate(
+      listProviderArgOptions(providerId, argId, {
+        refresh: true,
+      })
+    );
     setLoading(false);
   };
 
@@ -129,7 +120,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       <IconButton
         {...props}
         onClick={onClick}
-        isLoading={loading}
+        isLoading={(!data && isValidating) || loading}
         icon={<RefreshIcon boxSize="24px" />}
         aria-label="Refresh"
         variant={"ghost"}

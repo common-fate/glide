@@ -9,6 +9,8 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
 	"github.com/common-fate/granted-approvals/pkg/storage"
@@ -18,22 +20,54 @@ import (
 // If cached options aren't present it falls back to refetching options from the Access Handler.
 // If options are refetched, the cache is updated.
 func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
+	providerConfigs, err := s.ProviderConfigReader.ReadProviders(ctx)
+	if err != nil {
+		return false, nil, nil, err
+	}
+
+	providerConfig, ok := providerConfigs[providerId]
+	if !ok {
+		return false, nil, nil, apio.NewRequestError(errors.New("provider not found"), http.StatusNotFound)
+	}
+	registeredProvider, err := providerregistry.Registry().LookupByUses(providerConfig.Uses)
+	if err != nil {
+		return false, nil, nil, apio.NewRequestError(errors.New("provider not found"), http.StatusNotFound)
+	}
+	argSchemarer, ok := registeredProvider.Provider.(providers.ArgSchemarer)
+	if !ok {
+		return false, nil, nil, apio.NewRequestError(errors.New("provider does not implement schemarer"), http.StatusBadRequest)
+	}
+	_, ok = registeredProvider.Provider.(providers.ArgOptioner)
+	if !ok {
+		return false, nil, nil, apio.NewRequestError(errors.New("provider does not implement argument options"), http.StatusBadRequest)
+	}
+	argSchema := argSchemarer.ArgSchema()
+	argument, ok := argSchema[argId]
+	if !ok {
+		return false, nil, nil, apio.NewRequestError(errors.New("invalid argument for provider"), http.StatusBadRequest)
+	}
+
 	q := storage.ListCachedProviderOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
-	_, err := s.DB.Query(ctx, &q)
+	_, err = s.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		return false, nil, nil, err
 	}
-
-	q2 := storage.ListCachedProviderArgGroupOptionsForArg{
-		ProviderID: providerId,
-		ArgID:      argId,
-	}
-	_, err2 := s.DB.Query(ctx, &q2)
-	if err2 != nil && err2 != ddb.ErrNoItems {
-		return false, nil, nil, err2
+	var err2 error
+	var q2 storage.ListCachedProviderArgGroupOptionsForArg
+	// Here we only fetch the groups cache for a provider argument if groups are enabled in the schema
+	// this avoids refetching the cache everytime for arguments which do not have any groups
+	if argument.Groups != nil && len(argument.Groups.AdditionalProperties) > 0 {
+		q2 = storage.ListCachedProviderArgGroupOptionsForArg{
+			ProviderID: providerId,
+			ArgID:      argId,
+		}
+		_, err2 = s.DB.Query(ctx, &q2)
+		if err2 != nil && err2 != ddb.ErrNoItems {
+			return false, nil, nil, err2
+		}
 	}
 
 	if err == ddb.ErrNoItems || err2 == ddb.ErrNoItems {

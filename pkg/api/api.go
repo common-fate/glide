@@ -167,31 +167,35 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Granter:     granter,
 			EventPutter: opts.EventSender,
 			Cache: &cachesvc.Service{
-				DB:                  db,
-				AccessHandlerClient: opts.AccessHandlerClient,
+				ProviderConfigReader: opts.DeploymentConfig,
+				DB:                   db,
+				AccessHandlerClient:  opts.AccessHandlerClient,
 			},
 			Rules: &rulesvc.Service{
 				Clock:    clk,
 				DB:       db,
 				AHClient: opts.AccessHandlerClient,
 				Cache: &cachesvc.Service{
-					DB:                  db,
-					AccessHandlerClient: opts.AccessHandlerClient,
+					ProviderConfigReader: opts.DeploymentConfig,
+					DB:                   db,
+					AccessHandlerClient:  opts.AccessHandlerClient,
 				},
 			},
 			AHClient: opts.AccessHandlerClient,
 		},
 		Cache: &cachesvc.Service{
-			DB:                  db,
-			AccessHandlerClient: opts.AccessHandlerClient,
+			ProviderConfigReader: opts.DeploymentConfig,
+			DB:                   db,
+			AccessHandlerClient:  opts.AccessHandlerClient,
 		},
 		Rules: &rulesvc.Service{
 			Clock:    clk,
 			DB:       db,
 			AHClient: opts.AccessHandlerClient,
 			Cache: &cachesvc.Service{
-				DB:                  db,
-				AccessHandlerClient: opts.AccessHandlerClient,
+				ProviderConfigReader: opts.DeploymentConfig,
+				DB:                   db,
+				AccessHandlerClient:  opts.AccessHandlerClient,
 			},
 		},
 		ProviderSetup: &psetupsvc.Service{
