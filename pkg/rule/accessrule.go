@@ -199,7 +199,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
 				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
 					argument.FormElement = types.INPUT
@@ -216,7 +216,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
 				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
 					argument.FormElement = types.INPUT
@@ -238,7 +238,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
 				schema := s.ArgSchema()
 				if arg, ok := schema[k]; ok {
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.FormElement)
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
 					argument.FormElement = types.INPUT

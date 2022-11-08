@@ -24,10 +24,16 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 	// add the arguments from the schema
 	requestArguments := make(map[string]types.RequestArgument)
 	for k, v := range providerSchema.AdditionalProperties {
+		var requestFormElement *types.RequestArgumentFormElement
+		if v.RequestFormElement != nil {
+			requestFormElement = (*types.RequestArgumentFormElement)(v.RequestFormElement)
+		}
 		requestArguments[k] = types.RequestArgument{
 			Description: v.Description,
 			Title:       v.Title,
+			FormElement: requestFormElement,
 		}
+
 	}
 	// fetch the options from the cache
 	argOptionsQuery := &storage.ListCachedProviderOptions{ProviderID: accessRuleTarget.ProviderID}
@@ -97,7 +103,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 					Label: argValue,
 					// If the field is an input, it won't match any options, but its still valid for selection!
 					// the label and value are the same for an input field
-					Valid: providerSchema.AdditionalProperties[argId].FormElement == ahtypes.INPUT,
+					Valid: providerSchema.AdditionalProperties[argId].RuleFormElement == ahtypes.ArgumentRuleFormElementINPUT,
 					Value: argValue,
 				}
 

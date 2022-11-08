@@ -1,13 +1,14 @@
 import React, { useMemo } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import Select, { components, OptionProps } from "react-select";
+import { Controller, useFormContext, Validate } from "react-hook-form";
+import ReactSelect, { ActionMeta, components, OptionProps } from "react-select";
 import { Text } from "@chakra-ui/react";
 import {
   useListGroups,
   useGetUsers,
 } from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
-interface SelectProps {
+import { Option } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+interface BaseSelectProps {
   fieldName: string;
   rules?: MultiSelectRules;
   isDisabled?: boolean;
@@ -15,12 +16,12 @@ interface SelectProps {
   onBlurSecondaryAction?: () => void;
 }
 
-interface GroupSelectProps extends SelectProps {
+interface GroupSelectProps extends BaseSelectProps {
   shouldShowGroupMembers?: boolean;
 }
 
 // UserSelect required defaults to true
-export const UserSelect: React.FC<SelectProps> = (props) => {
+export const UserSelect: React.FC<BaseSelectProps> = (props) => {
   const { data } = useGetUsers();
   const options = useMemo(() => {
     return (
@@ -62,13 +63,11 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
 type MultiSelectRules = Partial<{
   required: boolean;
   minLength: number;
+  validate: Validate<any> | Record<string, Validate<any>> | undefined;
 }>;
-interface MultiSelectProps extends SelectProps {
-  options: {
-    value: string;
-    label: string;
-    description?: string;
-  }[];
+
+interface MultiSelectProps extends BaseSelectProps {
+  options: Option[];
   id?: string;
   shouldAddSelectAllOption?: boolean;
 }
@@ -130,7 +129,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       name={fieldName}
       render={({ field: { onChange, ref, value, onBlur } }) => {
         return (
-          <Select
+          <ReactSelect
             id={id}
             isDisabled={isDisabled}
             //getOptionLabel={(option) => `${option.label}  (${option.value})`}
@@ -143,7 +142,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             isMulti
             onMenuClose={onBlur}
             styles={{
-              multiValue: (provided, state) => {
+              multiValue: (provided: any, state: any) => {
                 return {
                   ...provided,
                   borderRadius: "20px",
@@ -153,7 +152,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                   maxWidth: "400px",
                 };
               },
-              container: (provided, state) => {
+              container: (provided: any, state: any) => {
                 return {
                   ...provided,
                   // @TODO Hack: I couldn't work out why the layout was overflowing the step container so I added this as a workaround to fix it
@@ -164,13 +163,13 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             }}
             // ref={ref}
             value={sortedOptions.filter((c) => value.includes(c.value))}
-            onChange={(val) => {
+            onChange={(val: any) => {
               // for MultiSelect with 'Select All' option
               // we check if the selected value is 'select all'
               // if true then add all options as value.
               if (shouldAddSelectAllOption) {
                 const isAllOptionSelected = val.find(
-                  (c) => c.label === SELECT_ALL_LABEL
+                  (c: any) => c.label === SELECT_ALL_LABEL
                 );
 
                 if (isAllOptionSelected) {
@@ -179,7 +178,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                   return;
                 }
               }
-              onChange(val.map((c) => c.value));
+              onChange(val.map((c: any) => c.value));
             }}
             onBlur={() => {
               void trigger(fieldName);
@@ -193,8 +192,17 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     />
   );
 };
-// MultiSelectOptions is the same as MultiSelect except that it sets the field value to the array of options rather than an array of values
-export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
+interface SelectProps extends BaseSelectProps {
+  options: {
+    value: string;
+    label: string;
+    description?: string;
+  }[];
+  id?: string;
+}
+
+// single select but uses an array as the underlying data type
+export const SelectWithArrayAsValue: React.FC<SelectProps> = ({
   options,
   fieldName,
   rules,
@@ -208,40 +216,66 @@ export const MultiSelectOptions: React.FC<MultiSelectProps> = ({
     () => options.sort((a, b) => a.label.localeCompare(b.label)),
     [options]
   );
+
   return (
     <Controller
       control={control}
       rules={{ ...rules }}
-      defaultValue={[]}
       name={fieldName}
-      render={({ field: { onChange, ref, value } }) => {
+      render={({ field: { onChange, ref, value, onBlur } }) => {
+        const onChangeHandler = (
+          option: Option | null,
+          actionMeta: ActionMeta<Option>
+        ) => {
+          onChange(option?.value ? [option?.value] : []);
+        };
         return (
-          <Select
+          <ReactSelect
             id={id}
             isDisabled={isDisabled}
+            //getOptionLabel={(option) => `${option.label}  (${option.value})`}
             options={sortedOptions}
             components={{ Option: CustomOption }}
-            isMulti
+            onMenuClose={onBlur}
             styles={{
-              multiValue: (provided, state) => {
+              singleValue: (provided: any, state: any) => {
                 return {
                   ...provided,
                   borderRadius: "20px",
                   background: colors.neutrals[100],
+                  // @TODO Hack: I couldn't work out why the layout was overflowing the step container so I added this as a workaround to fix it
+                  // this doesn't work on small screens like mobile
+                  maxWidth: "400px",
                 };
               },
-              container: (provided, state) => {
+              container: (provided: any, state: any) => {
                 return {
                   ...provided,
-                  minWidth: "100%",
+                  // @TODO Hack: I couldn't work out why the layout was overflowing the step container so I added this as a workaround to fix it
+                  // this doesn't work on small screens like mobile
+                  minWidth: "calc(-20px + 100%)",
+                };
+              },
+              option: (provided: any, state: any) => {
+                return {
+                  ...provided,
+                  background: state.isSelected
+                    ? colors.blue[200]
+                    : provided.background,
+                  color: state.isSelected
+                    ? colors.neutrals[800]
+                    : provided.color,
                 };
               },
             }}
-            ref={ref}
-            value={value ?? []}
-            onChange={(val) => {
-              onChange(val);
-            }}
+            // ref={ref}
+            value={
+              value?.length === 1
+                ? sortedOptions.find((c) => value[0] === c.value)
+                : undefined
+            }
+            // @ts-ignore
+            onChange={onChangeHandler}
             onBlur={() => {
               void trigger(fieldName);
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();

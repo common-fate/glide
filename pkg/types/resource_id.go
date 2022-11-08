@@ -21,6 +21,9 @@ func NewGroupID() string {
 	return newResourceID("grp")
 }
 
+func NewRequestFavoriteID() string {
+	return newResourceID("rqf")
+}
 func NewAccessRuleID() string {
 	return newResourceID("rul")
 }

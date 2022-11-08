@@ -226,6 +226,28 @@ const two: ThemeOverride = {
         secondary: {
           bg: "white",
         },
+        danger: (props) => ({
+          px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
+          py: props.size == "sm" ? "10px" : "13px",
+          color: "white",
+          rounded: "full",
+          bg: "actionDanger.200",
+          _hover: {
+            bg: "actionDanger.200",
+            _disabled: {
+              // nested _disabled is needed here to override base style
+              bg: "actionDanger.200",
+            },
+          },
+          _active: {
+            bg: "actionDanger.200",
+          },
+          _disabled: {
+            opacity: 0.2,
+            bg: "actionDanger.200",
+          },
+          variant: "solid",
+        }),
       },
     },
     Breadcrumb: {

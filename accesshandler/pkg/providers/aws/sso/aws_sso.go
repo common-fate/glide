@@ -62,15 +62,15 @@ func (p *Provider) Init(ctx context.Context) error {
 func (p *Provider) ArgSchema() providers.ArgSchema {
 	arg := providers.ArgSchema{
 		"permissionSetArn": {
-			Id:          "permissionSetArn",
-			Title:       "Permission Set",
-			Description: aws.String("The Permission Set field lists all the SSO Permission Sets which have a resource tag with key 'commonfate.io/managed-by-granted'. Granted Approvals can only manage SSO Permission Sets which have been created in the delegated SSO management account. See our documentation for more information. https://docs.commonfate.io/granted-approvals/providers/aws-sso"),
-			FormElement: types.MULTISELECT,
+			Id:              "permissionSetArn",
+			Title:           "Permission Set",
+			Description:     aws.String("The Permission Set field lists all the SSO Permission Sets which have a resource tag with key 'commonfate.io/managed-by-granted'. Granted Approvals can only manage SSO Permission Sets which have been created in the delegated SSO management account. See our documentation for more information. https://docs.commonfate.io/granted-approvals/providers/aws-sso"),
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
 		},
 		"accountId": {
-			Id:          "accountId",
-			Title:       "Account",
-			FormElement: types.MULTISELECT,
+			Id:              "accountId",
+			Title:           "Account",
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
 			Groups: &types.Argument_Groups{
 				AdditionalProperties: map[string]types.Group{
 					"organizationalUnit": {

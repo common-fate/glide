@@ -17,6 +17,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 )
 
@@ -219,29 +220,27 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 
 	log := zap.S()
 	log.Infow("validating and creating grant")
-
-	// create the request. The RequestCreator handles the validation
-	// and saving the request to the database.
-	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
-	var grantValidationError *grantsvc.GrantValidationError
-	if errors.As(err, &grantValidationError) {
-		apio.Error(ctx, w, apio.NewRequestError(grantValidationError, http.StatusBadRequest))
+	_, err = a.Access.CreateRequests(ctx, accesssvc.CreateRequestsOpts{
+		User: *u,
+		Create: accesssvc.CreateRequests{
+			AccessRuleId: incomingRequest.AccessRuleId,
+			Reason:       incomingRequest.Reason,
+			Timing:       incomingRequest.Timing,
+			With:         incomingRequest.With,
+		},
+	})
+	var me *multierror.Error
+	// multipart error will contain
+	if errors.As(err, &me) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
-	}
-	if err == accesssvc.ErrNoMatchingGroup {
-		// the user isn't authorized to make requests on this rule.
-		err = apio.NewRequestError(err, http.StatusUnauthorized)
-	} else if err == accesssvc.ErrRuleNotFound {
-		err = apio.NewRequestError(fmt.Errorf("access rule %s not found", incomingRequest.AccessRuleId), http.StatusNotFound)
-	} else if err == accesssvc.ErrRequestOverlapsExistingGrant {
-		err = apio.NewRequestError(err, http.StatusBadRequest)
 	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	apio.JSON(ctx, w, result.Request.ToAPI(), http.StatusCreated)
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
 func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
@@ -331,7 +330,6 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
 		RequestedBy: req.RequestedBy,
 		RevokedBy:   uid,
-		Provider:    req.Grant.Provider,
 		RuleID:      req.Rule,
 		Timing:      req.RequestedTiming.ToAnalytics(),
 		HasReason:   req.HasReason(),

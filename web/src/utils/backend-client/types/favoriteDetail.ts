@@ -5,12 +5,13 @@
  * Granted Approvals API
  * OpenAPI spec version: 1.0
  */
-import type { RequestTiming } from './requestTiming';
 import type { CreateRequestWithSubRequest } from './createRequestWithSubRequest';
+import type { RequestTiming } from './requestTiming';
 
-export type CreateRequestRequestBody = {
-  accessRuleId: string;
+export interface FavoriteDetail {
+  id: string;
+  name: string;
+  with: CreateRequestWithSubRequest;
   reason?: string;
   timing: RequestTiming;
-  with?: CreateRequestWithSubRequest;
-};
+}

@@ -7,7 +7,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/granted-approvals/pkg/gevent"
+	"github.com/common-fate/granted-approvals/pkg/notifiers"
 	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
@@ -31,10 +33,25 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 	}
 	var msg string
 	var fallback string
+	var accessory *slack.Accessory
+
+	reviewURL, err := notifiers.ReviewURL(n.FrontendURL, gq.Result.ID)
+
+	if err != nil {
+		return err
+	}
+
 	// get the message text based on the event type
 	switch event.DetailType {
 	case gevent.GrantActivatedType:
 		msg = fmt.Sprintf("Your access to *%s* is now active.", rq.Result.Name)
+		accessory = &slack.Accessory{
+			ButtonElement: &slack.ButtonBlockElement{
+				Type: slack.PlainTextType,
+				Text: slack.NewTextBlockObject(slack.PlainTextType, "Access Instructions", true, false),
+				URL:  reviewURL.AccessInstructions,
+			},
+		}
 		fallback = fmt.Sprintf("Your access to %s is now active.", rq.Result.Name)
 	case gevent.GrantExpiredType:
 		msg = fmt.Sprintf("Your access to *%s* has now expired. If you still need access you can send another request using Granted Approvals.", rq.Result.Name)
@@ -49,7 +66,7 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 		zap.S().Infow("unhandled grant event", "detailType", event.DetailType)
 	}
 	if msg != "" {
-		_, err = SendMessage(ctx, n.directMessageClient.client, gq.Result.Grant.Subject, msg, fallback)
+		_, err = SendMessage(ctx, n.directMessageClient.client, gq.Result.Grant.Subject, msg, fallback, accessory)
 		return err
 	}
 	return nil

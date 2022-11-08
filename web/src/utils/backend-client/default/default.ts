@@ -19,7 +19,10 @@ import type {
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody,
   LookupAccessRule,
-  AccessRuleLookupParams
+  AccessRuleLookupParams,
+  ListFavoritesResponseResponse,
+  FavoriteDetail,
+  CreateFavoriteRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -201,4 +204,118 @@ export const useAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse>>(
     ...query
   }
 }
+
+/**
+ * @summary ListFavorites
+ */
+export const userListFavorites = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListFavoritesResponseResponse>(
+      {url: `/api/v1/favorites`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListFavoritesKey = () => [`/api/v1/favorites`];
+
+    
+export type UserListFavoritesQueryResult = NonNullable<Awaited<ReturnType<typeof userListFavorites>>>
+export type UserListFavoritesQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListFavorites>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListFavoritesKey() : null);
+  const swrFn = () => userListFavorites(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Create Favorite
+ */
+export const userCreateFavorite = (
+    createFavoriteRequestBody: CreateFavoriteRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createFavoriteRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Get Favorite
+ */
+export const userGetFavorite = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites/${id}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetFavoriteKey = (id: string,) => [`/api/v1/favorites/${id}`];
+
+    
+export type UserGetFavoriteQueryResult = NonNullable<Awaited<ReturnType<typeof userGetFavorite>>>
+export type UserGetFavoriteQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetFavorite>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetFavoriteKey(id) : null);
+  const swrFn = () => userGetFavorite(id, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+export const deleteFavorite = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/favorites/${id}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+export const updateFavorite = (
+    id: string,
+    createFavoriteRequestBody: CreateFavoriteRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites/${id}`, method: 'put',
+      headers: {'Content-Type': 'application/json', },
+      data: createFavoriteRequestBody
+    },
+      options);
+    }
+  
 

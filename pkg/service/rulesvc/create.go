@@ -49,7 +49,7 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 // returns apio.APIError so it will bubble up as a 400 error from api usage
 func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
 	for argumentID, argument := range in.With.AdditionalProperties {
-		if providerArgSchema.AdditionalProperties[argumentID].FormElement != ahTypes.INPUT {
+		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != ahTypes.ArgumentRuleFormElementINPUT {
 			_, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
 			if err != nil {
 				return err
