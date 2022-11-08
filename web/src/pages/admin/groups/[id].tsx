@@ -168,7 +168,7 @@ const Index = () => {
                       textStyle="Body/Medium"
                       readOnly={!isEditable}
                       {...methods.register("name", {
-                        required: true,
+                        required: "Name is required",
                         minLength: 1,
                       })}
                     />
@@ -184,7 +184,7 @@ const Index = () => {
                       textStyle="Body/Medium"
                       readOnly={!isEditable}
                       {...methods.register("description", {
-                        required: true,
+                        required: "Description is required",
                         minLength: 1,
                       })}
                     />
