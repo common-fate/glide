@@ -18,20 +18,20 @@ type IdpLogoProps = {
 export const GetIDPLogo = (Props: IdpLogoProps) => {
   switch (Props.idpType) {
     case "internal":
-      return <GrantedKeysIcon h={Props.size} w="auto" />;
+      return <GrantedKeysIcon boxSize={Props.size} />;
     case "cognito":
-      return <CognitoLogo h={Props.size} w="auto" />;
+      return <CognitoLogo boxSize={Props.size} />;
     case "azure":
-      return <AzureIcon h={Props.size} w="auto" />;
+      return <AzureIcon boxSize={Props.size} />;
     case "okta":
-      return <OktaIcon h={Props.size} w="auto" />;
+      return <OktaIcon boxSize={Props.size} />;
     case "aws-sso":
-      return <AWSIcon h={Props.size} w="auto" />;
+      return <AWSIcon boxSize={Props.size} />;
     case "google":
-      return <GoogleLogo h={Props.size} w="auto" />;
+      return <GoogleLogo boxSize={Props.size} />;
     case "one-login":
       //wide rectangular logos require being halfed to fit the page better
-      return <OneLoginLogo h={Props.size / 2} w="auto" />;
+      return <OneLoginLogo boxSize={Props.size / 2} />;
 
     default:
       break;

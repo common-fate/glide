@@ -495,6 +495,23 @@ export const useGetGroup = <TError = ErrorType<unknown>>(
 }
 
 /**
+ * Update a group
+ * @summary Update Group
+ */
+export const adminUpdateGroup = (
+    groupId: string,
+    createGroupRequestBody: CreateGroupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Group>(
+      {url: `/api/v1/admin/groups/${groupId}`, method: 'put',
+      headers: {'Content-Type': 'application/json', },
+      data: createGroupRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * List providers
  * @summary List providers
  */

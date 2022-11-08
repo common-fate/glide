@@ -25,6 +25,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
 	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
 	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
+	"github.com/common-fate/granted-approvals/pkg/service/internalidentitysvc"
 	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
 
@@ -66,13 +67,13 @@ type API struct {
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito CognitoService
+	Cognito          CognitoService
+	InternalIdentity InternalIdentity
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
 type CognitoService interface {
 	CreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
-	CreateGroup(ctx context.Context, in cognitosvc.CreateGroupOpts) (*identity.Group, error)
 	UpdateUserGroups(ctx context.Context, in cognitosvc.UpdateUserGroupsOpts) (*identity.User, error)
 }
 
@@ -109,6 +110,11 @@ type AccessRuleService interface {
 type CacheService interface {
 	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
 	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+}
+
+type InternalIdentity interface {
+	UpdateGroup(ctx context.Context, group identity.Group, in types.CreateGroupRequest) (*identity.Group, error)
+	CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error)
 }
 
 // API must meet the generated REST API interface.
@@ -161,6 +167,11 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
+		InternalIdentity: &internalidentitysvc.Service{
+			DB:             db,
+			IdentitySyncer: opts.IdentitySyncer,
+			Clock:          clk,
+		},
 		Access: &accesssvc.Service{
 			Clock:       clk,
 			DB:          db,

@@ -1,13 +1,13 @@
 package api
 
 import (
+	"errors"
 	"net/http"
-	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/service/internalidentitysvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -91,61 +91,61 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 // Creates an internal group not connected to any identiy provider in dynamodb
 func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var createGroupRequest types.CreateGroupJSONRequestBody
+	var createGroupRequest types.CreateGroupRequest
 	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-
-	group := identity.Group{}
-	if createGroupRequest.Id != nil {
-		//update existing group
-		group = identity.Group{
-			ID:          *createGroupRequest.Id,
-			IdpID:       createGroupRequest.Name,
-			Name:        createGroupRequest.Name,
-			Description: aws.ToString(createGroupRequest.Description),
-			Status:      types.IdpStatusACTIVE,
-			Source:      identity.INTERNAL,
-			Users:       createGroupRequest.Members,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		}
-	} else {
-		group = identity.Group{
-			ID:          types.NewGroupID(),
-			IdpID:       createGroupRequest.Name,
-			Name:        createGroupRequest.Name,
-			Description: aws.ToString(createGroupRequest.Description),
-			Status:      types.IdpStatusACTIVE,
-			Source:      identity.INTERNAL,
-			Users:       createGroupRequest.Members,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		}
+	group, err := a.InternalIdentity.CreateGroup(ctx, createGroupRequest)
+	if errors.As(err, &internalidentitysvc.UserNotFoundError{}) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
 	}
-
-	//update which groups users are apart of
-	items := []ddb.Keyer{&group}
-
-	for _, u := range group.Users {
-		u := storage.GetUser{ID: u}
-		_, err = a.DB.Query(ctx, &u)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		u.Result.Groups = append(u.Result.Groups, group.ID)
-		items = append(items, u.Result)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
 	}
+	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
+}
 
-	err = a.DB.PutBatch(ctx, items...)
+// Update Group
+// (POST /api/v1/admin/groups/{id})
+// Updates an internal group not connected to any identiy provider in dynamodb
+func (a *API) AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId string) {
+	ctx := r.Context()
+	var createGroupRequest types.CreateGroupRequest
+	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
+	gq := storage.GetGroup{
+		ID: groupId,
+	}
+	_, err = a.DB.Query(ctx, &gq)
+	if err != nil && err == ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
+		return
+	}
 
-	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
+	group, err := a.InternalIdentity.UpdateGroup(ctx, *gq.Result, createGroupRequest)
+	if err == internalidentitysvc.ErrNotInternal {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if errors.As(err, &internalidentitysvc.UserNotFoundError{}) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, group.ToAPI(), http.StatusOK)
 
 }

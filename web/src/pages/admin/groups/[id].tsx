@@ -1,27 +1,17 @@
+import { ArrowBackIcon } from "@chakra-ui/icons";
 import {
-  ArrowBackIcon,
-  CheckIcon,
-  CloseIcon,
-  EditIcon,
-} from "@chakra-ui/icons";
-import {
-  Avatar,
   Button,
   Center,
   Container,
   Flex,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   HStack,
   IconButton,
   Input,
-  InputGroup,
-  InputRightElement,
   SkeletonText,
-  Spacer,
   Text,
-  Tooltip,
-  useDisclosure,
   useToast,
   VStack,
   Wrap,
@@ -29,28 +19,18 @@ import {
 } from "@chakra-ui/react";
 
 import { useEffect, useState } from "react";
-import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { Link, useMatch } from "react-location";
-import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
 import { UserSelect } from "../../../components/forms/access-rule/components/Select";
+import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
 
 import { AdminLayout } from "../../../components/Layout";
-import {
-  createGroup,
-  useGetGroup,
-} from "../../../utils/backend-client/admin/admin";
 
 import {
-  CreateGroupRequestBody,
-  Group,
-} from "../../../utils/backend-client/types";
-import {
-  GrantedKeysIcon,
-  AzureIcon,
-  OktaIcon,
-  AWSIcon,
-} from "../../../components/icons/Icons";
-import { CognitoLogo, GoogleLogo } from "../../../components/icons/Logos";
+  adminUpdateGroup,
+  useGetGroup,
+} from "../../../utils/backend-client/admin/admin";
+import { CreateGroupRequestBody } from "../../../utils/backend-client/types";
 import { GetIDPLogo } from "../../../utils/idp-logo";
 
 const Index = () => {
@@ -60,7 +40,7 @@ const Index = () => {
   const {
     params: { id: groupId },
   } = useMatch();
-  const { data: group } = useGetGroup(groupId);
+  const { data: group, mutate } = useGetGroup(groupId);
   const toast = useToast();
   const [isEditable, setIsEditable] = useState(false);
 
@@ -76,10 +56,9 @@ const Index = () => {
     }
   }, [group]);
 
-  const handleSubmit = async (data: CreateGroupRequestBody) => {
+  const handleSubmit = (data: CreateGroupRequestBody) => {
     setLoading(true);
-
-    await createGroup(data)
+    mutate(adminUpdateGroup(groupId, data))
       .then(() => {
         toast({
           title: "Updated Group",
@@ -93,7 +72,6 @@ const Index = () => {
       })
       .catch(() => {
         setLoading(false);
-
         toast({
           title: "Error updating group",
           status: "error",
@@ -123,12 +101,28 @@ const Index = () => {
     if (!isEditable) {
       return (
         <>
+          {GetIDPLogo({ idpType: group.source, size: 150 })}
           <VStack align={"left"} spacing={1} flex={1} mr={4}>
             <Text textStyle="Body/Medium">Name</Text>
             <Text textStyle="Body/Small">{group.name}</Text>
             <Text textStyle="Body/Medium">Description</Text>
             <Text textStyle="Body/Small">{group.description}</Text>
-            <Members group={group} isEditing={isEditable} methods={methods} />
+            <Text textStyle="Body/Medium">Members</Text>
+            <Wrap>
+              {group.members.length === 0 ? (
+                <WrapItem>
+                  <Text textStyle="Body/Small">No members</Text>
+                </WrapItem>
+              ) : (
+                group.members.map((g) => {
+                  return (
+                    <WrapItem key={g}>
+                      <UserDisplay userId={g} />
+                    </WrapItem>
+                  );
+                })
+              )}
+            </Wrap>
           </VStack>
           {group.source == "internal" && (
             <Button
@@ -141,81 +135,77 @@ const Index = () => {
               Edit
             </Button>
           )}
-
-          {GetIDPLogo({ idpType: "one-login", size: 150 })}
         </>
       );
     }
 
     return (
-      <VStack w="100%">
-        <Flex w="100%">
+      <VStack
+        spacing={6}
+        align={"left"}
+        w="100%"
+        as="form"
+        onSubmit={methods.handleSubmit(handleSubmit)}
+      >
+        <VStack>
           <FormProvider {...methods}>
-            <VStack
-              align={"left"}
-              spacing={5}
-              flex={1}
-              as="form"
-              onSubmit={methods.handleSubmit(handleSubmit)}
-            >
-              <VStack spacing={5} flex={1} align={"left"} w="100%">
-                <FormControl>
-                  <VStack align={"left"}>
-                    <FormLabel display="inline">
-                      <Text textStyle="Body/Medium">Name</Text>
-                    </FormLabel>
-                    <Input
-                      textStyle="Body/Medium"
-                      readOnly={!isEditable}
-                      {...methods.register("name", {
-                        required: "Name is required",
-                        minLength: 1,
-                      })}
-                    />
-                  </VStack>
-                </FormControl>
-                <FormControl>
-                  <VStack align={"left"}>
-                    <FormLabel display="inline">
-                      <Text textStyle="Body/Medium">Description</Text>
-                    </FormLabel>
-                    <Input
-                      w="100%"
-                      textStyle="Body/Medium"
-                      readOnly={!isEditable}
-                      {...methods.register("description", {
-                        required: "Description is required",
-                        minLength: 1,
-                      })}
-                    />
-                  </VStack>
-                </FormControl>
-              </VStack>
+            <FormControl isInvalid={!!methods.formState.errors.name}>
+              <FormLabel fontWeight={"normal"}>Name</FormLabel>
+              <Input
+                background={"white"}
+                {...methods.register("name", {
+                  required: true,
+                  minLength: 1,
+                })}
+                onBlur={() => {
+                  methods.trigger("name");
+                }}
+              />
+              <FormErrorMessage>Name is required</FormErrorMessage>
+            </FormControl>
+            <FormControl isInvalid={!!methods.formState.errors.description}>
+              <FormLabel fontWeight={"normal"}>Description</FormLabel>
+              <Input
+                background={"white"}
+                {...methods.register("description", {
+                  required: "Description is required",
+                  minLength: 1,
+                })}
+                onBlur={() => {
+                  methods.trigger("description");
+                }}
+              />
+              <FormErrorMessage>Description is required</FormErrorMessage>
+            </FormControl>
 
-              <Members group={group} isEditing={isEditable} methods={methods} />
-
-              {isEditable && (
+            <FormControl id="members">
+              <FormLabel>
                 <HStack>
-                  <Button w="20%" mr={3} type="submit" isLoading={loading}>
-                    Save
-                  </Button>
-                  <Button
-                    variant="brandSecondary"
-                    w="20%"
-                    mr={3}
-                    onClick={() => {
-                      setIsEditable(false);
-                      setLoading(false);
-                    }}
-                    isLoading={loading}
-                  >
-                    Cancel
-                  </Button>
+                  <Text textStyle="Body/Medium">Members</Text>
                 </HStack>
-              )}
-            </VStack>
+              </FormLabel>
+              <UserSelect
+                fieldName="members"
+                isDisabled={methods.formState.isSubmitting}
+              />
+            </FormControl>
           </FormProvider>
-        </Flex>
+        </VStack>
+        <HStack justify={"right"}>
+          <Button type="submit" isLoading={loading}>
+            Save
+          </Button>
+          <Button
+            variant="brandSecondary"
+            onClick={() => {
+              setIsEditable(false);
+              setLoading(false);
+            }}
+            isDisabled={loading}
+          >
+            Cancel
+          </Button>
+        </HStack>
       </VStack>
     );
   };
@@ -256,54 +246,6 @@ const Index = () => {
 };
 
 export default Index;
-
-interface MemberProps {
-  group: Group;
-
-  isEditing: boolean;
-  methods: UseFormReturn<CreateGroupRequestBody>;
-}
-
-const Members: React.FC<MemberProps> = ({ isEditing, methods, group }) => {
-  if (isEditing) {
-    return (
-      <FormProvider {...methods}>
-        <VStack as="form" align={"left"} spacing={1}>
-          <FormControl id="members">
-            <FormLabel>
-              <HStack>
-                <Text textStyle="Body/Medium">Members</Text>
-              </HStack>
-            </FormLabel>
-            <Flex flex={1}>
-              <UserSelect
-                fieldName="members"
-                isDisabled={methods.formState.isSubmitting || !isEditing}
-              />
-            </Flex>
-          </FormControl>
-        </VStack>
-      </FormProvider>
-    );
-  }
-
-  return (
-    <VStack align={"left"} spacing={1}>
-      <HStack>
-        <Text textStyle="Body/Medium">Members</Text>
-      </HStack>
-      <Wrap>
-        {group.members.map((g) => {
-          return (
-            <WrapItem key={g}>
-              <UserDisplay userId={g} />
-            </WrapItem>
-          );
-        })}
-      </Wrap>
-    </VStack>
-  );
-};
 
 const UserDisplay: React.FC<{ userId: string }> = ({ userId }) => {
   const { data } = useGetUser(encodeURIComponent(userId));

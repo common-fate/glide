@@ -38,8 +38,6 @@ export const GroupsTable = () => {
   const navigate = useNavigate<MyLocationGenerics>();
   const { source } = search;
 
-  console.log(source);
-
   const { onOpen, isOpen, onClose } = useDisclosure();
   const paginator = usePaginatorApi<typeof useListGroups>({
     swrHook: useListGroups,
