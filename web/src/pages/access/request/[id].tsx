@@ -552,7 +552,7 @@ const AccessRequestForm = () => {
                       bg="white"
                       id="reasonField"
                       placeholder="Deploying initial Terraform infrastructure for CF-123"
-                      {...register("reason")}
+                      {...register("reason", { maxLength: 2048 })}
                     />
                     {errors?.reason && (
                       <FormErrorMessage>

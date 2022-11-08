@@ -113,7 +113,7 @@ const CreateGroupModal = (props: Props) => {
                     bg="white"
                     maxW={{ md: "3xl" }}
                     placeholder="Developers group"
-                    {...methods.register("description")}
+                    {...methods.register("description", { maxLength: 2048 })}
                   />
                 </Stack>
               </FormControl>
