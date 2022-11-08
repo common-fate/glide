@@ -62,6 +62,7 @@ const Index = () => {
   } = useMatch();
   const { data: group } = useGetGroup(groupId);
   const toast = useToast();
+  const [isEditable, setIsEditable] = useState(false);
 
   useEffect(() => {
     if (group) {
@@ -73,9 +74,7 @@ const Index = () => {
       };
       methods.reset(formValues);
     }
-  }, [group]);
-
-  const [isEditable, setIsEditable] = useState(false);
+  }, [group, isEditable]);
 
   const handleSubmit = async (data: CreateGroupRequestBody) => {
     setLoading(true);
