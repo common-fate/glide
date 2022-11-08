@@ -74,7 +74,7 @@ const Index = () => {
       };
       methods.reset(formValues);
     }
-  }, [group, isEditable]);
+  }, [group]);
 
   const handleSubmit = async (data: CreateGroupRequestBody) => {
     setLoading(true);
