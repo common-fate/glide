@@ -142,7 +142,7 @@ const Index = () => {
             </Button>
           )}
 
-          {GetIDPLogo({ idpType: group.source, size: 200 })}
+          {GetIDPLogo({ idpType: "one-login", size: 150 })}
         </>
       );
     }

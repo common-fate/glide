@@ -30,7 +30,8 @@ export const GetIDPLogo = (Props: IdpLogoProps) => {
     case "google":
       return <GoogleLogo h={Props.size} w="auto" />;
     case "one-login":
-      return <OneLoginLogo h={Props.size} w="auto" />;
+      //wide rectangular logos require being halfed to fit the page better
+      return <OneLoginLogo h={Props.size / 2} w="auto" />;
 
     default:
       break;
