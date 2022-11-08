@@ -155,10 +155,10 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 	adminGroup := "test_admins"
 	testcases := []testcase{
 		{name: "ok",
-			body:     `{"name":"test","description":"user","members": []}`,
+			body:     `{"id": "1234", "name":"test","description":"user","members": []}`,
 			wantCode: http.StatusCreated,
 
-			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "test", Description: aws.String("user"), Members: []string{}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",
 				IdpID:       "1234",
@@ -168,12 +168,12 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 				Status:      types.IdpStatusACTIVE,
 				Source:      "test",
 			},
-			wantBody: `{"description":"user","id":"test","memberCount":0,"members":[],"name":"test","source":"internal"}`,
+			wantBody: `{"description":"user","id":"1234","memberCount":0,"members":[],"name":"test","source":"internal"}`,
 		},
 		{name: "users added to group",
-			body:                  `{"name":"test","description":"user","members": ["user_1"]}`,
+			body:                  `{"id": "1234", "name":"test","description":"user","members": ["user_1"]}`,
 			wantCode:              http.StatusCreated,
-			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{"user_1"}},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "test", Description: aws.String("user"), Members: []string{"user_1"}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",
 				IdpID:       "1234",
@@ -183,7 +183,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 				Status:      types.IdpStatusACTIVE,
 				Source:      "test",
 			},
-			wantBody: `{"description":"user","id":"test","memberCount":1,"members":["user_1"],"name":"test","source":"internal"}`,
+			wantBody: `{"description":"user","id":"1234","memberCount":1,"members":["user_1"],"name":"test","source":"internal"}`,
 		},
 	}
 
