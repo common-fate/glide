@@ -30,8 +30,12 @@ export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
 
-  const { data: provider } = useGetProvider(target?.providerId);
-  const { data: providerArgs } = useGetProviderArgs(target?.providerId ?? "");
+  const { data: provider, isValidating: ivp } = useGetProvider(
+    target?.providerId
+  );
+  const { data: providerArgs, isValidating: ivpa } = useGetProviderArgs(
+    target?.providerId ?? ""
+  );
 
   const Preview = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
@@ -39,6 +43,7 @@ export const ProviderStep: React.FC = () => {
     }
     return <ProviderPreview provider={provider} />;
   };
+  const isFieldLoading = (!provider && ivp) || (!providerArgs && ivpa);
 
   return (
     <FormStep
@@ -46,6 +51,7 @@ export const ProviderStep: React.FC = () => {
       subHeading="The permissions that the rule gives access to"
       fields={["target", "target.providerId"]}
       preview={<Preview />}
+      isFieldLoading={isFieldLoading}
     >
       <>
         <FormControl isInvalid={!!methods.formState.errors.target?.providerId}>

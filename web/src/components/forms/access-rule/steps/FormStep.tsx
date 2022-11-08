@@ -18,6 +18,7 @@ interface FormStepProps {
   // the fields that this form component contains, used for validating the step before enabling next
   fields: string[];
   hideNext?: boolean;
+  isFieldLoading?: boolean;
   preview?: React.ReactElement;
   children?: React.ReactElement;
 }
@@ -28,6 +29,7 @@ export const FormStep: React.FC<FormStepProps> = ({
   subHeading,
   fields,
   preview,
+  isFieldLoading,
 }) => {
   const { trigger, getFieldState } = useFormContext();
   const { active } = useFormStep();
@@ -65,7 +67,7 @@ export const FormStep: React.FC<FormStepProps> = ({
             </VStack>
             <BottomActionButtons
               validate={runValidation}
-              hasErrors={hasFieldErrors}
+              hasErrors={hasFieldErrors || !!isFieldLoading}
             />
           </VStack>
         </Collapse>
