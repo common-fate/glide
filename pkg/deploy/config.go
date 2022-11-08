@@ -130,8 +130,8 @@ type Provider struct {
 }
 
 type Notifications struct {
-	Slack                 map[string]string `yaml:"slack" json:"slack"`
-	SlackIncomingWebhooks FeatureMap        `yaml:"slackIncomingWebhooks" json:"slackIncomingWebhooks"`
+	Slack                 map[string]string `yaml:"slack,omitempty" json:"slack,omitempty"`
+	SlackIncomingWebhooks FeatureMap        `yaml:"slackIncomingWebhooks,omitempty" json:"slackIncomingWebhooks,omitempty"`
 }
 
 // Feature map represents the type used for features like identity and notifications
@@ -158,25 +158,25 @@ func (f FeatureMap) Remove(id string) {
 }
 
 type Parameters struct {
-	CognitoDomainPrefix             string      `yaml:"CognitoDomainPrefix"`
-	AdministratorGroupID            string      `yaml:"AdministratorGroupID"`
-	DeploymentSuffix                string      `yaml:"DeploymentSuffix,omitempty"`
-	IdentityProviderType            string      `yaml:"IdentityProviderType,omitempty"`
-	SamlSSOMetadata                 string      `yaml:"SamlSSOMetadata,omitempty"`
-	SamlSSOMetadataURL              string      `yaml:"SamlSSOMetadataURL,omitempty"`
-	FrontendDomain                  string      `yaml:"FrontendDomain,omitempty"`
-	FrontendCertificateARN          string      `yaml:"FrontendCertificateARN,omitempty"`
-	CloudfrontWAFACLARN             string      `yaml:"CloudfrontWAFACLARN,omitempty"`
-	APIGatewayWAFACLARN             string      `yaml:"APIGatewayWAFACLARN,omitempty"`
-	ExperimentalRemoteConfigURL     string      `yaml:"ExperimentalRemoteConfigURL,omitempty"`
-	ExperimentalRemoteConfigHeaders string      `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
-	ProviderConfiguration           ProviderMap `yaml:"ProviderConfiguration,omitempty"`
-	IdentityConfiguration           FeatureMap  `yaml:"IdentityConfiguration,omitempty"`
-	NotificationsConfiguration      *Notifications  `yaml:"NotificationsConfiguration,omitempty"`
-	AnalyticsDisabled               string      `yaml:"AnalyticsDisabled,omitempty"`
-	AnalyticsURL                    string      `yaml:"AnalyticsURL,omitempty"`
-	AnalyticsLogLevel               string      `yaml:"AnalyticsLogLevel,omitempty"`
-	AnalyticsDeploymentStage        string      `yaml:"AnalyticsDeploymentStage,omitempty"`
+	CognitoDomainPrefix             string         `yaml:"CognitoDomainPrefix"`
+	AdministratorGroupID            string         `yaml:"AdministratorGroupID"`
+	DeploymentSuffix                string         `yaml:"DeploymentSuffix,omitempty"`
+	IdentityProviderType            string         `yaml:"IdentityProviderType,omitempty"`
+	SamlSSOMetadata                 string         `yaml:"SamlSSOMetadata,omitempty"`
+	SamlSSOMetadataURL              string         `yaml:"SamlSSOMetadataURL,omitempty"`
+	FrontendDomain                  string         `yaml:"FrontendDomain,omitempty"`
+	FrontendCertificateARN          string         `yaml:"FrontendCertificateARN,omitempty"`
+	CloudfrontWAFACLARN             string         `yaml:"CloudfrontWAFACLARN,omitempty"`
+	APIGatewayWAFACLARN             string         `yaml:"APIGatewayWAFACLARN,omitempty"`
+	ExperimentalRemoteConfigURL     string         `yaml:"ExperimentalRemoteConfigURL,omitempty"`
+	ExperimentalRemoteConfigHeaders string         `yaml:"ExperimentalRemoteConfigHeaders,omitempty"`
+	ProviderConfiguration           ProviderMap    `yaml:"ProviderConfiguration,omitempty"`
+	IdentityConfiguration           FeatureMap     `yaml:"IdentityConfiguration,omitempty"`
+	NotificationsConfiguration      *Notifications `yaml:"NotificationsConfiguration,omitempty"`
+	AnalyticsDisabled               string         `yaml:"AnalyticsDisabled,omitempty"`
+	AnalyticsURL                    string         `yaml:"AnalyticsURL,omitempty"`
+	AnalyticsLogLevel               string         `yaml:"AnalyticsLogLevel,omitempty"`
+	AnalyticsDeploymentStage        string         `yaml:"AnalyticsDeploymentStage,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns

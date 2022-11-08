@@ -2,15 +2,42 @@ import { InfoIcon } from "@chakra-ui/icons";
 import { Box, Center, Flex, Spinner, Text, useToast } from "@chakra-ui/react";
 import axios, { Axios, AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
+import {
+  BuildNextOptions,
+  Link,
+  MakeGenerics,
+  useNavigate,
+  useSearch,
+} from "react-location";
 import { CFCodeMultiline } from "../../components/CodeInstruction";
 import { UserLayout } from "../../components/Layout";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
 import { useAccessRuleLookup } from "../../utils/backend-client/default/default";
-import { LookupAccessRule } from "../../utils/backend-client/types";
+import {
+  CreateRequestWith,
+  LookupAccessRule,
+} from "../../utils/backend-client/types";
 import { AccessRuleLookupParams } from "../../utils/backend-client/types/accessRuleLookupParams";
-
+import { RequestFormQueryParameters } from "./request/[id]";
+// const a: RequestFormQueryParameters = {
+//   Search: {
+//     reason: getValues("reason"),
+//     with: (getValues("with") || [])
+//       .filter((fw) => !fw.hidden)
+//       .map((fw) => fw.data),
+//   },
+// };
+// const timing: RequestTiming = {
+//   durationSeconds: getValues("timing.durationSeconds"),
+// };
+// if (getValues("when") === "scheduled") {
+//   timing.startTime = new Date(getValues("startDateTime")).toISOString();
+// }
+// a.Search.timing = timing;
+// const u = new URL(window.location.href);
+// u.search = location.stringifySearch(a.Search);
+// setUrlClipboardValue(u.toString());
 /**
  * makeLookupAccessRuleRequestLink adds request parameters to the URLso that forms can be prepopulated when there are multiple options for a user
  * @param lookupResult
@@ -18,13 +45,20 @@ import { AccessRuleLookupParams } from "../../utils/backend-client/types/accessR
  */
 export const makeLookupAccessRuleRequestLink = (
   lookupResult: LookupAccessRule
-) => {
-  const query = lookupResult.selectableWithOptionValues
-    ?.map((o) => `${o.key}=${o.value}`)
-    .join("&");
-  return `/access/request/${lookupResult.accessRule.id}${
-    query ? `?${query}` : ""
-  }`;
+): BuildNextOptions<RequestFormQueryParameters> => {
+  const w: CreateRequestWith = {};
+  lookupResult.selectableWithOptionValues?.forEach(
+    (o) => (w[o.key] = [o.value])
+  );
+  const a: RequestFormQueryParameters = {
+    Search: {
+      with: [w],
+    },
+  };
+  return {
+    to: `/access/request/${lookupResult.accessRule.id}`,
+    search: a.Search,
+  };
 };
 const Access = () => {
   type MyLocationGenerics = MakeGenerics<{
@@ -40,9 +74,7 @@ const Access = () => {
   const toast = useToast();
   useEffect(() => {
     if (data?.length == 1) {
-      navigate({
-        to: makeLookupAccessRuleRequestLink(data[0]),
-      });
+      navigate(makeLookupAccessRuleRequestLink(data[0]));
     }
   }, [search, data]);
 

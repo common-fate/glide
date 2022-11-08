@@ -3,10 +3,12 @@ package slacknotifier
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
@@ -26,19 +28,29 @@ func (n *SlackIncomingWebhook) SendWebhookMessage(ctx context.Context, blocks sl
 
 	// construct json payload for slack webhook
 	type slackStruct struct {
-		Blocks slack.Blocks `json:"blocks"`
-		Text   string       `json:"text"`
+		Blocks []slack.Block `json:"blocks"`
+		Text   string        `json:"text"`
 	}
 	slackPayload, err := json.Marshal(slackStruct{
-		Blocks: blocks,
+		Blocks: blocks.BlockSet,
 		Text:   summary,
 	})
 	if err != nil {
 		return err
 	}
-	log.Infow("sending webhook message", "blocks", string(slackPayload))
+	log.Infow("sending webhook message", "requestBody", string(slackPayload))
 
-	_, err = http.Post(n.webhookURL.Get(), "application/json", strings.NewReader(string(slackPayload)))
-
-	return err
+	res, err := http.Post("https://hooks.slack.com/services/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", "application/json", strings.NewReader(string(slackPayload)))
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return errors.Wrap(err, "failed to decode body of failed post request to slack webhook")
+		}
+		log.Errorw("failed to post slack webhook message", "statusCode", res.StatusCode, "responseBody", string(body))
+		return errors.New("failed to post slack webhook message")
+	}
+	return nil
 }

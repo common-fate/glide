@@ -138,16 +138,16 @@ export const getWhenHelperText = (
   return "Choose a time in future for the access to be activated";
 };
 
-type Fields = {
+type RequestFormFields = {
   with?: CreateRequestWithSubRequest;
   timing?: RequestTiming;
   reason?: string;
 };
 
-type MyLocationGenerics = MakeGenerics<{
+export type RequestFormQueryParameters = MakeGenerics<{
   Search: {
     favorite?: string;
-  } & Fields;
+  } & RequestFormFields;
 }>;
 const AccessRequestForm = () => {
   const [loading, setLoading] = useState(false);
@@ -192,10 +192,10 @@ const AccessRequestForm = () => {
   } = methods;
 
   const toast = useToast();
-  const search = useSearch<MyLocationGenerics>();
+  const search = useSearch<RequestFormQueryParameters>();
 
   const [favorite, setFavorite] = useState<FavoriteDetail>();
-  const resetForm = (fields: Fields) => {
+  const resetForm = (fields: RequestFormFields) => {
     if (fields.timing) {
       setValue("timing.durationSeconds", fields.timing.durationSeconds);
       if (fields.timing.startTime) {
@@ -267,7 +267,7 @@ const AccessRequestForm = () => {
           return filteredWith;
         });
         // default value if there is no favorite is an empty selection
-        const fields: Fields = {
+        const fields: RequestFormFields = {
           with:
             filteredSearchWith === undefined || filteredSearchWith?.length == 0
               ? [{}]
@@ -345,7 +345,7 @@ const AccessRequestForm = () => {
   const location = useLocation();
   const fd = methods.watch();
   useEffect(() => {
-    const a: MyLocationGenerics = {
+    const a: RequestFormQueryParameters = {
       Search: {
         reason: getValues("reason"),
         with: (getValues("with") || [])
@@ -552,21 +552,7 @@ const AccessRequestForm = () => {
                       bg="white"
                       id="reasonField"
                       placeholder="Deploying initial Terraform infrastructure for CF-123"
-                      {...register("reason", {
-                        validate: (value) => {
-                          const res: string[] = [];
-                          [
-                            /[^a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]/,
-                          ].every((pattern) => pattern.test(value as string)) &&
-                            res.push(
-                              "Invalid characters (only letters, numbers, and punctuation allowed)"
-                            );
-                          if (value && value.length > 2048) {
-                            res.push("Maximum length is 2048 characters");
-                          }
-                          return res.length > 0 ? res.join(", ") : undefined;
-                        },
-                      })}
+                      {...register("reason", { maxLength: 2048 })}
                     />
                     {errors?.reason && (
                       <FormErrorMessage>

@@ -15,15 +15,15 @@ var Command = cli.Command{
 // These output names are defined in the CDK stack
 // the services names are defined here for this CLI command, and may be different in other usages
 var ServiceLogGroupNameMap = map[string]string{
-	"api":           "APILogGroupName",
-	"idp-sync":      "IDPSyncLogGroupName",
-	"accesshandler": "AccessHandlerLogGroupName",
-	"events":        "EventBusLogGroupName",
-	"event-handler": "EventsHandlerLogGroupName",
-	"granter":       "GranterLogGroupName",
-	"slack-notifer": "SlackNotifierLogGroupName",
-	"webhook":       "WebhookLogGroupName",
-	"cache-sync":    "CacheSyncLogGroupName",
+	"api":            "APILogGroupName",
+	"idp-sync":       "IDPSyncLogGroupName",
+	"accesshandler":  "AccessHandlerLogGroupName",
+	"events":         "EventBusLogGroupName",
+	"event-handler":  "EventsHandlerLogGroupName",
+	"granter":        "GranterLogGroupName",
+	"slack-notifier": "SlackNotifierLogGroupName",
+	"webhook":        "WebhookLogGroupName",
+	"cache-sync":     "CacheSyncLogGroupName",
 }
 
 // the services names are defined here for this CLI command, and may be different in other usages
@@ -34,7 +34,7 @@ var ServiceNames = []string{
 	"events",
 	"event-handler",
 	"granter",
-	"slack-notifer",
+	"slack-notifier",
 	"webhook",
 	"cache-sync",
 }

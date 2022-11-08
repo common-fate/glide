@@ -47,7 +47,7 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 		msg = fmt.Sprintf("Your access to *%s* is now active.", rq.Result.Name)
 		accessory = &slack.Accessory{
 			ButtonElement: &slack.ButtonBlockElement{
-				Type: slack.PlainTextType,
+				Type: slack.METButton,
 				Text: slack.NewTextBlockObject(slack.PlainTextType, "Access Instructions", true, false),
 				URL:  reviewURL.AccessInstructions,
 			},

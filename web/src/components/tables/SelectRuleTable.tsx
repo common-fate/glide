@@ -25,28 +25,13 @@ import { durationString } from "../../utils/durationString";
 import { ProviderIcon } from "../icons/providerIcon";
 import { TableRenderer } from "./TableRenderer";
 
-type MyLocationGenerics = MakeGenerics<{
-  Search: {
-    status?: Lowercase<AccessRuleStatus>;
-  };
-}>;
-
 // Note: I made this type because the table column types don't seem to work with complex data
 // We need access to the selectabeloptions when redirecting to the request page
 interface ExtendedAR extends AccessRule {
   selectableWithOptionValues?: KeyValue[];
 }
 export const SelectRuleTable = ({ rules }: { rules: LookupAccessRule[] }) => {
-  const search = useSearch<MyLocationGenerics>();
-  const navigate = useNavigate<MyLocationGenerics>();
-
-  const status = useMemo(
-    () =>
-      search.status !== undefined
-        ? (search.status.toUpperCase() as AccessRuleStatus)
-        : AccessRuleStatus.ACTIVE,
-    [search]
-  );
+  const navigate = useNavigate();
 
   const cols = useMemo<Column<ExtendedAR>[]>(
     () => [
@@ -186,12 +171,12 @@ export const SelectRuleTable = ({ rules }: { rules: LookupAccessRule[] }) => {
           onClick: (e) => {
             const { selectableWithOptionValues, ...accessRule } = rule.original;
             e.preventDefault();
-            navigate({
-              to: makeLookupAccessRuleRequestLink({
+            navigate(
+              makeLookupAccessRuleRequestLink({
                 accessRule,
                 selectableWithOptionValues,
-              }),
-            });
+              })
+            );
           },
         }),
       })}

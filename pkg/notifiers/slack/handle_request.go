@@ -231,19 +231,18 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 	if len(n.webhooks) > 0 {
 		log.Infow("webhooks found", "webhooks", n.webhooks)
 	}
-
+	// this does not include the slackUserID because we don't have access to look it up
+	summary, msg := BuildRequestMessage(RequestMessageOpts{
+		Request:          request,
+		RequestArguments: requestArguments,
+		Rule:             rule,
+		RequestorEmail:   requestingUser.Email,
+		ReviewURLs:       reviewURL,
+		WasReviewed:      true,
+		RequestReviewer:  reqReviewer.Result,
+		IsWebhook:        true,
+	})
 	for _, webhook := range n.webhooks {
-		// this does not include the slackUserID because we don't have access to look it up
-		summary, msg := BuildRequestMessage(RequestMessageOpts{
-			Request:          request,
-			RequestArguments: requestArguments,
-			Rule:             rule,
-			RequestorEmail:   requestingUser.Email,
-			ReviewURLs:       reviewURL,
-			WasReviewed:      true,
-			RequestReviewer:  reqReviewer.Result,
-			IsWebhook:        true,
-		})
 		err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
 		if err != nil {
 			log.Errorw("failed to send review message to incomingWebhook channel", "error", err)

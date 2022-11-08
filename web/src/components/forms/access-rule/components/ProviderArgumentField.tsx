@@ -192,7 +192,23 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
     argOptions?.options.filter((option) => {
       return effectiveAccountIds.includes(option.value);
     }) || [];
-  const required = effectiveOptions.length === 0;
+
+  // Will be true if no groups have been selected
+  const argumentSelectionRequired =
+    Object.entries(argumentGroups || {}).find(([k, v]) => v.length > 0) ===
+    undefined;
+
+  // true if no argument values have been selected
+  const groupSelectionRequired =
+    multiSelects === undefined || multiSelects.length === 0;
+  console.log({
+    id: argument.id,
+    argumentSelectionRequired,
+    groupSelectionRequired,
+    argumentGroups,
+    multiSelects,
+    watch: watch(),
+  });
 
   return (
     <VStack
@@ -222,7 +238,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
         </FormLabel>
         <HStack w="90%">
           <MultiSelect
-            rules={{ required: required, minLength: 1 }}
+            rules={{ required: argumentSelectionRequired, minLength: 1 }}
             fieldName={`target.multiSelects.${argument.id}`}
             options={argOptions?.options || []}
             shouldAddSelectAllOption={true}
@@ -283,7 +299,10 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                     </FormLabel>
                     <HStack w="90%">
                       <MultiSelect
-                        rules={{ required: required, minLength: 1 }}
+                        rules={{
+                          required: groupSelectionRequired,
+                          minLength: 1,
+                        }}
                         fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
                         options={argOptions.groups[group.id] || []}
                         shouldAddSelectAllOption={true}
