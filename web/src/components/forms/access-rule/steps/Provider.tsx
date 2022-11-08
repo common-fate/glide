@@ -33,25 +33,6 @@ export const ProviderStep: React.FC = () => {
   const { data: provider } = useGetProvider(target?.providerId);
   const { data: providerArgs } = useGetProviderArgs(target?.providerId ?? "");
 
-  // trigger a refresh of all provider arg options in the background when the provider is selected.
-  // this helps to keep the cached options fresh.
-  useEffect(() => {
-    if (providerArgs != null) {
-      const args = Object.values(providerArgs);
-
-      // TODO: Currenly, we have only multi-select and input form element defined.
-      // If in future, we have other form element that doesn't have options then we need to change
-      // the if condition here.
-      args.forEach((arg) => {
-        if (arg.ruleFormElement != ArgumentRuleFormElement.INPUT) {
-          void listProviderArgOptions(target.providerId, arg.id, {
-            refresh: true,
-          });
-        }
-      });
-    }
-  }, [providerArgs, target?.providerId]);
-
   const Preview = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
       return null;
