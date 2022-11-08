@@ -98,6 +98,7 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 // (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
 func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.ListProviderArgOptionsParams) {
 	ctx := r.Context()
+
 	res := ahTypes.ArgOptionsResponse{
 		Options: []ahTypes.Option{},
 		Groups:  &ahTypes.Groups{AdditionalProperties: make(map[string][]ahTypes.GroupOption)},

@@ -94,14 +94,15 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   ...props
 }) => {
   const [loading, setLoading] = useState(false);
-  const { mutate } = useListProviderArgOptions(providerId, argId);
+  const { mutate, isValidating } = useListProviderArgOptions(providerId, argId);
 
   const onClick = async () => {
     setLoading(true);
-    const res = await listProviderArgOptions(providerId, argId, {
-      refresh: true,
-    });
-    await mutate(res);
+    await mutate(
+      listProviderArgOptions(providerId, argId, {
+        refresh: true,
+      })
+    );
     setLoading(false);
   };
 
@@ -110,7 +111,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       <IconButton
         {...props}
         onClick={onClick}
-        isLoading={loading}
+        isLoading={isValidating || loading}
         icon={<RefreshIcon boxSize="24px" />}
         aria-label="Refresh"
         variant={"ghost"}
