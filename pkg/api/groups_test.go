@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/granted-approvals/pkg/api/mocks"
 	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/granted-approvals/pkg/service/internalidentitysvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
@@ -172,13 +173,30 @@ func TestCreateGroup(t *testing.T) {
 			},
 			wantBody: `{"description":"user","id":"1234","memberCount":0,"members":[],"name":"test","source":"internal"}`,
 		},
+		{name: "create internal group user no exist error",
+			body:     `{"name":"test","description":"user","members": ["123"]}`,
+			wantCode: http.StatusBadRequest,
+
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{"123"}},
+			withCreatedGroup: &identity.Group{
+				ID:          "1234",
+				IdpID:       "1234",
+				Name:        "test",
+				Description: "user",
+				Users:       []string{},
+				Status:      types.IdpStatusACTIVE,
+				Source:      "internal",
+			},
+			wantBody:               `{"error":"user  does not exist"}`,
+			expectCreateGroupError: internalidentitysvc.UserNotFoundError{},
+		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQuery(&storage.GetUser{ID: tc.withUser, Result: &identity.User{Groups: []string{}}})
+			db.MockQuery(&storage.GetUser{ID: tc.withUser, Result: &identity.User{}})
 			ctrl := gomock.NewController(t)
 
 			mockIdentity := mocks.NewMockInternalIdentityService(ctrl)
@@ -251,6 +269,32 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			wantBody: `{"description":"user","id":"1234","memberCount":0,"members":[],"name":"updated name","source":"internal"}`,
 		},
+		{name: "update group with no user existing",
+			body:     `{"name":"updated name","description":"user","members": []}`,
+			wantCode: http.StatusBadRequest,
+
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "updated name", Description: aws.String("user"), Members: []string{}},
+			existingGroupId:       "1234",
+			withExistingGroup: identity.Group{
+				ID:          "1234",
+				IdpID:       "1234",
+				Name:        "test",
+				Description: "user",
+				Users:       []string{},
+				Status:      types.IdpStatusACTIVE,
+				Source:      "internal",
+			},
+			withUpdatedGroup: &identity.Group{
+				ID:          "1234",
+				IdpID:       "1234",
+				Name:        "updated name",
+				Description: "user",
+				Users:       []string{},
+				Status:      types.IdpStatusACTIVE,
+				Source:      "internal",
+			},
+			wantBody:               `{"error":"user  does not exist"}`,
+			expectCreateGroupError: internalidentitysvc.UserNotFoundError{}},
 	}
 
 	for _, tc := range testcases {
