@@ -332,3 +332,73 @@ func TestUpdateGroup(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteGroup(t *testing.T) {
+	type testcase struct {
+		name            string
+		id              string
+		wantCode        int
+		wantBody        string
+		withGroup       identity.Group
+		withGroupError  error
+		withDeleteError error
+	}
+
+	testcases := []testcase{
+		{
+			name:     "ok",
+			wantCode: http.StatusOK,
+			id:       "groupid",
+			wantBody: `null`,
+		},
+		{
+			name:           "group not found",
+			wantCode:       http.StatusNotFound,
+			id:             "groupid",
+			withGroupError: ddb.ErrNoItems,
+			wantBody:       `{"error":"group not found"}`,
+		},
+		{
+			name:            "group not found",
+			wantCode:        http.StatusBadRequest,
+			id:              "groupid",
+			withDeleteError: internalidentitysvc.ErrNotInternal,
+			wantBody:        `{"error":"cannot update group because it is not an internal group"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetGroup{Result: &tc.withGroup}, tc.withGroupError)
+
+			ctrl := gomock.NewController(t)
+
+			mockIdentity := mocks.NewMockInternalIdentityService(ctrl)
+			mockIdentity.EXPECT().DeleteGroup(gomock.Any(), tc.withGroup).AnyTimes().Return(tc.withDeleteError)
+
+			a := API{DB: db, InternalIdentity: mockIdentity}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("DELETE", "/api/v1/admin/groups/"+tc.id, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.wantBody, string(data))
+		})
+	}
+}
