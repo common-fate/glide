@@ -3,6 +3,7 @@ import {
   Circle,
   FormControl,
   FormErrorMessage,
+  FormHelperText,
   FormLabel,
   HStack,
   Input,
@@ -84,6 +85,7 @@ const ProviderFormElementInput: React.FC<ProviderArgumentFieldProps> = ({
         }}
         {...rest}
       />
+      <FormHelperText>{argument.description}</FormHelperText>
       <FormErrorMessage> {argument.title} is required </FormErrorMessage>
     </FormControl>
   );

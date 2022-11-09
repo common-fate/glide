@@ -1,8 +1,15 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
-import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Center,
+  Container,
+  IconButton,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import { MakeGenerics, useMatch, useSearch, Link } from "react-location";
-import { AuditLog } from "../../components/AuditLog";
-import { UserLayout } from "../../components/Layout";
+import { AuditLog } from "../../../components/AuditLog";
+import { UserLayout } from "../../../components/Layout";
 import {
   RequestAccessInstructions,
   RequestAccessToken,
@@ -14,10 +21,10 @@ import {
   RequestReview,
   RequestRevoke,
   RequestTime,
-} from "../../components/Request";
-import { useUser } from "../../utils/context/userContext";
+} from "../../../components/Request";
+import { useUser } from "../../../utils/context/userContext";
 
-import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
+import { useUserGetRequest } from "../../../utils/backend-client/end-user/end-user";
 import { Helmet } from "react-helmet";
 
 type MyLocationGenerics = MakeGenerics<{
@@ -64,6 +71,11 @@ const Home = () => {
           )}
           <RequestCancelButton />
           <RequestRevoke onSubmitRevoke={mutate} />
+          {data?.accessRule.target.provider.type === "shell" && (
+            <Button as={Link} to={"shell"}>
+              Open Shell
+            </Button>
+          )}
         </RequestDetails>
       </RequestDisplay>
     );

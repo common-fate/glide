@@ -13,6 +13,7 @@ import (
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/shell"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-version"
@@ -85,6 +86,13 @@ func Registry() ProviderRegistry {
 					Provider:    &testvault.Provider{},
 					DefaultID:   "testvault",
 					Description: "TestVault - a provider for testing out Granted Approvals",
+				},
+			},
+			"commonfate/shell": {
+				"v1-alpha1": {
+					Provider:    &shell.Provider{},
+					DefaultID:   "shell",
+					Description: "Web-based shell access",
 				},
 			},
 		},
