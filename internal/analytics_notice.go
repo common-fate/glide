@@ -11,7 +11,7 @@ import (
 const notice = `Attention: Common Fate collects anonymous product analytics about Granted Approvals deployments.
 This information is used to shape Common Fate's roadmap and prioritize features.
 You can learn more, including how to opt-out and how to provide feedback via our RFD process, by visiting the following URL:
-https://commonfate.io/telemetry`
+https://docs.commonfate.io/telemetry`
 
 // PrintAnalyticsNotice prints an analytics notice to the user.
 // If 'always' is true, it will always print the notice. Otherwise,
