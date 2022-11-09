@@ -160,7 +160,7 @@ func TestCreateGroup(t *testing.T) {
 			body:     `{"id": "1234", "name":"test","description":"user","members": []}`,
 			wantCode: http.StatusCreated,
 
-			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "test", Description: aws.String("user"), Members: []string{}},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",
 				IdpID:       "1234",

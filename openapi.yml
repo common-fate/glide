@@ -2423,8 +2423,6 @@ components:
                 type: array
                 items:
                   type: string
-              id:
-                type: string
             required:
               - name
               - members
