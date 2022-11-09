@@ -157,7 +157,7 @@ const Index = () => {
                   minLength: 1,
                 })}
                 onBlur={() => {
-                  methods.trigger("name");
+                  void methods.trigger("name");
                 }}
               />
               <FormErrorMessage>Name is required</FormErrorMessage>
@@ -171,7 +171,7 @@ const Index = () => {
                   minLength: 1,
                 })}
                 onBlur={() => {
-                  methods.trigger("description");
+                  void methods.trigger("description");
                 }}
               />
               <FormErrorMessage>Description is required</FormErrorMessage>
