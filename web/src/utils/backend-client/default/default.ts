@@ -134,6 +134,20 @@ export const adminArchiveAccessRule = (
   
 
 /**
+ * Delete an internal group
+ * @summary Delete Group
+ */
+export const adminDeleteGroup = (
+    groupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/groups/${groupId}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
  * Begins the guided setup process for a new Access Provider.
  * @summary Begin the setup process for a new Access Provider
  */

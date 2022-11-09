@@ -123,3 +123,43 @@ func (s *Service) UpdateGroup(ctx context.Context, group identity.Group, in type
 	}
 	return &group, nil
 }
+
+func (s *Service) DeleteGroup(ctx context.Context, group identity.Group) error {
+	if group.Source != identity.INTERNAL {
+		return ErrNotInternal
+	}
+
+	users := make(map[string]identity.User)
+	hasMore := true
+	var nextToken *string
+	for hasMore {
+		uq := storage.ListUsers{}
+		r, err := s.DB.Query(ctx, &uq)
+		if err != nil {
+			return err
+		}
+		if r.NextPage != "" {
+			nextToken = &r.NextPage
+		}
+		hasMore = nextToken != nil
+		for _, u := range uq.Result {
+			users[u.ID] = u
+		}
+	}
+
+	var itemsToUpdate []ddb.Keyer
+
+	// remove group from users
+	for _, u := range group.Users {
+		user := users[u]
+		user.RemoveGroup(group.ID)
+		itemsToUpdate = append(itemsToUpdate, &user)
+	}
+
+	group.UpdatedAt = s.Clock.Now()
+	group.Users = []string{}
+	group.Status = types.IdpStatusARCHIVED
+
+	itemsToUpdate = append(itemsToUpdate, &group)
+	return s.DB.PutBatch(ctx, itemsToUpdate...)
+}

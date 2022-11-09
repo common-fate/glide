@@ -51,6 +51,20 @@ func (mr *MockInternalIdentityServiceMockRecorder) CreateGroup(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGroup", reflect.TypeOf((*MockInternalIdentityService)(nil).CreateGroup), arg0, arg1)
 }
 
+// DeleteGroup mocks base method.
+func (m *MockInternalIdentityService) DeleteGroup(arg0 context.Context, arg1 identity.Group) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockInternalIdentityServiceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockInternalIdentityService)(nil).DeleteGroup), arg0, arg1)
+}
+
 // UpdateGroup mocks base method.
 func (m *MockInternalIdentityService) UpdateGroup(arg0 context.Context, arg1 identity.Group, arg2 types.CreateGroupRequest) (*identity.Group, error) {
 	m.ctrl.T.Helper()

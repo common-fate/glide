@@ -124,12 +124,12 @@ func (a *API) AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId s
 		ID: groupId,
 	}
 	_, err = a.DB.Query(ctx, &gq)
-	if err != nil && err == ddb.ErrNoItems {
-		apio.Error(ctx, w, err)
-		return
-	}
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
 		return
 	}
 
@@ -148,4 +148,32 @@ func (a *API) AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId s
 	}
 	apio.JSON(ctx, w, group.ToAPI(), http.StatusOK)
 
+}
+
+// Delete Group
+// (DELETE /api/v1/admin/groups/{groupId})
+func (a *API) AdminDeleteGroup(w http.ResponseWriter, r *http.Request, groupId string) {
+	ctx := r.Context()
+	gq := storage.GetGroup{
+		ID: groupId,
+	}
+	_, err := a.DB.Query(ctx, &gq)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	err = a.InternalIdentity.DeleteGroup(ctx, *gq.Result)
+	if err == internalidentitysvc.ErrNotInternal {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }

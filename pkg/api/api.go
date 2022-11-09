@@ -118,6 +118,7 @@ type InternalIdentityService interface {
 	UpdateGroup(ctx context.Context, group identity.Group, in types.CreateGroupRequest) (*identity.Group, error)
 	CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error)
 	UpdateUserGroups(ctx context.Context, user identity.User, groups []string) (*identity.User, error)
+	DeleteGroup(ctx context.Context, group identity.Group) error
 }
 
 // API must meet the generated REST API interface.
