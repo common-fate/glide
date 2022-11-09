@@ -32,13 +32,14 @@ func (s *Service) UpdateUserGroups(ctx context.Context, user identity.User, grou
 
 	// Append the user to all the groups that the
 	var itemsToUpdate []ddb.Keyer
-
+	now := s.Clock.Now()
 	// add user to all these groups
 	for _, g := range groups {
 		if ig, ok := internalGroups[g]; !ok {
 			return nil, ErrGroupNotFoundOrNotInternal
 		} else if !contains(ig.Users, user.ID) {
 			ig.Users = append(ig.Users, user.ID)
+			ig.UpdatedAt = now
 			itemsToUpdate = append(itemsToUpdate, &ig)
 		}
 	}
@@ -55,6 +56,7 @@ func (s *Service) UpdateUserGroups(ctx context.Context, user identity.User, grou
 					}
 				}
 				ig.Users = newUsers
+				ig.UpdatedAt = now
 				itemsToUpdate = append(itemsToUpdate, &ig)
 			}
 		}
@@ -67,11 +69,13 @@ func (s *Service) UpdateUserGroups(ctx context.Context, user identity.User, grou
 		}
 	}
 	user.Groups = updatedUserGroups
+	user.UpdatedAt = s.Clock.Now()
 	itemsToUpdate = append(itemsToUpdate, &user)
 	err := s.DB.PutBatch(ctx, itemsToUpdate...)
 	if err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 func contains(set []string, str string) bool {

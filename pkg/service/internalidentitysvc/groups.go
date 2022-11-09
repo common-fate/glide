@@ -10,9 +10,10 @@ import (
 )
 
 func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error) {
+	id := types.NewGroupID()
 	group := identity.Group{
-		ID:        types.NewGroupID(),
-		IdpID:     in.Name,
+		ID:        id,
+		IdpID:     id,
 		Name:      in.Name,
 		Status:    types.IdpStatusACTIVE,
 		Source:    identity.INTERNAL,
