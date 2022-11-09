@@ -10,9 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
+	"github.com/common-fate/granted-approvals/pkg/api/mocks"
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -140,21 +142,21 @@ func TestGetGroup(t *testing.T) {
 	}
 }
 
-func TestPostApiV1AdminGroups(t *testing.T) {
+func TestCreateGroup(t *testing.T) {
 	type testcase struct {
-		name                  string
-		body                  string
-		wantCode              int
-		wantBody              string
-		withUser              string
-		expectCreateGroupOpts *types.CreateGroupRequest
-		withCreatedGroup      *identity.Group
-		// expectCreateGroupError error
+		name                   string
+		body                   string
+		wantCode               int
+		wantBody               string
+		withUser               string
+		expectCreateGroupOpts  *types.CreateGroupRequest
+		withCreatedGroup       *identity.Group
+		expectCreateGroupError error
 	}
 
 	adminGroup := "test_admins"
 	testcases := []testcase{
-		{name: "ok",
+		{name: "create internal group ok",
 			body:     `{"id": "1234", "name":"test","description":"user","members": []}`,
 			wantCode: http.StatusCreated,
 
@@ -166,24 +168,9 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 				Description: "user",
 				Users:       []string{},
 				Status:      types.IdpStatusACTIVE,
-				Source:      "test",
+				Source:      "internal",
 			},
 			wantBody: `{"description":"user","id":"1234","memberCount":0,"members":[],"name":"test","source":"internal"}`,
-		},
-		{name: "users added to group",
-			body:                  `{"id": "1234", "name":"test","description":"user","members": ["user_1"]}`,
-			wantCode:              http.StatusCreated,
-			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "test", Description: aws.String("user"), Members: []string{"user_1"}},
-			withCreatedGroup: &identity.Group{
-				ID:          "1234",
-				IdpID:       "1234",
-				Name:        "test",
-				Description: "user",
-				Users:       []string{"user_1"},
-				Status:      types.IdpStatusACTIVE,
-				Source:      "test",
-			},
-			wantBody: `{"description":"user","id":"1234","memberCount":1,"members":["user_1"],"name":"test","source":"internal"}`,
 		},
 	}
 
@@ -192,11 +179,95 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.GetUser{ID: tc.withUser, Result: &identity.User{Groups: []string{}}})
-			a := API{AdminGroup: adminGroup, DB: db}
+			ctrl := gomock.NewController(t)
 
+			mockIdentity := mocks.NewMockInternalIdentityService(ctrl)
+			mockIdentity.EXPECT().CreateGroup(gomock.Any(), gomock.Eq(*tc.expectCreateGroupOpts)).Return(tc.withCreatedGroup, tc.expectCreateGroupError)
+
+			a := API{AdminGroup: adminGroup, DB: db, InternalIdentity: mockIdentity}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", "/api/v1/admin/groups", strings.NewReader(tc.body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.wantBody, string(data))
+		})
+	}
+}
+
+func TestUpdateGroup(t *testing.T) {
+	type testcase struct {
+		name                   string
+		body                   string
+		wantCode               int
+		wantBody               string
+		withUser               string
+		expectCreateGroupOpts  *types.CreateGroupRequest
+		withExistingGroup      identity.Group
+		withUpdatedGroup       *identity.Group
+		existingGroupId        string
+		expectCreateGroupError error
+	}
+
+	adminGroup := "test_admins"
+	testcases := []testcase{
+		{name: "update existing group ok",
+			body:     `{"id": "1234", "name":"updated name","description":"user","members": []}`,
+			wantCode: http.StatusOK,
+
+			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "updated name", Description: aws.String("user"), Members: []string{}},
+			existingGroupId:       "1234",
+			withExistingGroup: identity.Group{
+				ID:          "1234",
+				IdpID:       "1234",
+				Name:        "test",
+				Description: "user",
+				Users:       []string{},
+				Status:      types.IdpStatusACTIVE,
+				Source:      "internal",
+			},
+			withUpdatedGroup: &identity.Group{
+				ID:          "1234",
+				IdpID:       "1234",
+				Name:        "updated name",
+				Description: "user",
+				Users:       []string{},
+				Status:      types.IdpStatusACTIVE,
+				Source:      "internal",
+			},
+			wantBody: `{"description":"user","id":"1234","memberCount":0,"members":[],"name":"updated name","source":"internal"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQuery(&storage.GetUser{ID: tc.withUser, Result: &identity.User{Groups: []string{}}})
+			db.MockQuery(&storage.GetGroup{ID: tc.existingGroupId, Result: &tc.withExistingGroup})
+			ctrl := gomock.NewController(t)
+
+			mockIdentity := mocks.NewMockInternalIdentityService(ctrl)
+			mockIdentity.EXPECT().UpdateGroup(gomock.Any(), tc.withExistingGroup, *tc.expectCreateGroupOpts).Return(tc.withUpdatedGroup, tc.expectCreateGroupError)
+
+			a := API{AdminGroup: adminGroup, DB: db, InternalIdentity: mockIdentity}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("PUT", "/api/v1/admin/groups/"+tc.existingGroupId, strings.NewReader(tc.body))
 			if err != nil {
 				t.Fatal(err)
 			}

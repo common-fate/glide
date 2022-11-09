@@ -68,7 +68,7 @@ type API struct {
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito          CognitoService
-	InternalIdentity InternalIdentity
+	InternalIdentity InternalIdentityService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -112,7 +112,9 @@ type CacheService interface {
 	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
 }
 
-type InternalIdentity interface {
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_internalidentity_service.go -package=mocks . InternalIdentityService
+
+type InternalIdentityService interface {
 	UpdateGroup(ctx context.Context, group identity.Group, in types.CreateGroupRequest) (*identity.Group, error)
 	CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error)
 	UpdateUserGroups(ctx context.Context, user identity.User, groups []string) (*identity.User, error)
