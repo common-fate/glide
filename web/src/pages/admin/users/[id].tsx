@@ -32,6 +32,7 @@ import { AdminLayout } from "../../../components/Layout";
 import {
   getGroup,
   updateUser,
+  useIdentityConfiguration,
 } from "../../../utils/backend-client/admin/admin";
 
 import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
@@ -41,6 +42,7 @@ import {
   UpdateUserBody,
   User,
 } from "../../../utils/backend-client/types";
+import { GetIDPName } from "../../../utils/idp-logo";
 
 const GroupDisplay: React.FC<{ group: Group }> = ({ group }) => {
   return (
@@ -320,14 +322,17 @@ const ExternalGroups: React.FC<ExternalGroupsProps> = ({ userGroups }) => {
 const InternalGroupsLabel = () => {
   return (
     <Tooltip label="Internal groups are managed by Granted Approvals, use them when you need more granular access control than you have defined by groups in your external identity provider.">
-      <Text textStyle="Body/Medium">Internal Groups</Text>
+      <Text textStyle="Body/Medium">Groups</Text>
     </Tooltip>
   );
 };
 const ExternalGroupsLabel = () => {
+  const { data } = useIdentityConfiguration();
   return (
     <Tooltip label="External groups are managed by your identity provider. You can use your identity providers management console to update group memberships. These groups are synced automatically every 5 minutes.">
-      <Text textStyle="Body/Medium">External Groups</Text>
+      <Text textStyle="Body/Medium" textTransform={"capitalize"}>
+        {GetIDPName(data?.identityProvider || "")} Groups
+      </Text>
     </Tooltip>
   );
 };

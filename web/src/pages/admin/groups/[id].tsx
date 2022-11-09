@@ -1,4 +1,4 @@
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Button,
   Center,
@@ -124,15 +124,13 @@ const Index = () => {
             </Wrap>
           </VStack>
           {group.source == "internal" && (
-            <Button
-              variant="brandSecondary"
+            <IconButton
               size="sm"
-              onClick={() => {
-                setIsEditable(true);
-              }}
-            >
-              Edit
-            </Button>
+              variant="ghost"
+              icon={<EditIcon />}
+              aria-label={"edit group"}
+              onClick={() => setIsEditable(true)}
+            />
           )}
         </HStack>
       );
@@ -248,6 +246,7 @@ export default Index;
 
 const UserDisplay: React.FC<{ userId: string }> = ({ userId }) => {
   const { data } = useGetUser(encodeURIComponent(userId));
+
   return (
     <Flex
       cursor="help"

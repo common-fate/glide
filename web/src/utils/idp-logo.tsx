@@ -36,3 +36,24 @@ export const GetIDPLogo = (Props: IdpLogoProps) => {
       break;
   }
 };
+
+export const GetIDPName = (idpType: string): string => {
+  switch (idpType) {
+    case "internal":
+      return "Internal";
+    case "cognito":
+      return "Cognito";
+    case "azure":
+      return "Azure AD";
+    case "okta":
+      return "Okta";
+    case "aws-sso":
+      return "AWS SSO";
+    case "google":
+      return "Google Workspace";
+    case "one-login":
+      return "One Login";
+    default:
+      return idpType;
+  }
+};
