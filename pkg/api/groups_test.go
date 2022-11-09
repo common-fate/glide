@@ -45,7 +45,7 @@ func TestListGroups(t *testing.T) {
 					Source: "test",
 				},
 			},
-			wantBody: `{"groups":[{"description":"","id":"123","memberCount":0,"members":null,"name":"test","source":"test"},{"description":"","id":"1234","memberCount":2,"members":["1","2"],"name":"test","source":"test"}],"next":""}`,
+			wantBody: `{"groups":[{"description":"","id":"123","memberCount":0,"members":[],"name":"test","source":"test"},{"description":"","id":"1234","memberCount":2,"members":["1","2"],"name":"test","source":"test"}],"next":""}`,
 		},
 	}
 
