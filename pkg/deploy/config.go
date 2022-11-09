@@ -296,27 +296,27 @@ func CLIPrompt(f *gconfig.Field) error {
 	// if you choose to set, it should use a default if it exists
 	// By design, we can't have an optional secret as they are mutually exclusive.
 	var p survey.Prompt
-	// if this value is a secret, use a password prompt to key the secret out of the terminal history
-	if f.IsSecret() {
-		if f.Get() != "" {
-			confMsg := msg + " would you like to update this secret?"
-			p = &survey.Confirm{
-				Message: confMsg,
-			}
-			var doUpdate bool
-			err := survey.AskOne(p, &doUpdate)
-			if err != nil {
-				return err
-			}
-			if !doUpdate {
+	if f.IsSecret() && f.Get() != "" {
+		confMsg := msg + " would you like to update this secret?"
+		p = &survey.Confirm{
+			Message: confMsg,
+		}
+		var doUpdate bool
+		err := survey.AskOne(p, &doUpdate)
+		if err != nil {
+			return err
+		}
+		if !doUpdate {
 
-				return nil
-			}
+			return nil
 		}
-		p = &survey.Password{
-			Message: msg,
-		}
-	} else {
+
+	}
+
+	//Handle different methods of cli prompt inputs.
+	var val string
+	switch f.CLIPrompt() {
+	case gconfig.CLIPromptTypeString:
 		defaultValue := f.Get()
 		if defaultValue == "" {
 			defaultValue = f.Default()
@@ -325,12 +325,49 @@ func CLIPrompt(f *gconfig.Field) error {
 			Message: msg,
 			Default: defaultValue,
 		}
+
+		err := survey.AskOne(p, &val)
+		if err != nil {
+			return err
+		}
+
+	case gconfig.CLIPromptTypePassword:
+		p = &survey.Password{
+			Message: msg,
+		}
+		err := survey.AskOne(p, &val)
+		if err != nil {
+			return err
+		}
+
+	case gconfig.CLIPromptTypeFile:
+		p5 := &survey.Input{Message: "the file path to " + msg}
+		var res string
+		err := survey.AskOne(p5, &res, func(options *survey.AskOptions) error {
+			options.Validators = append(options.Validators, func(ans interface{}) error {
+				p := ans.(string)
+				fileInfo, err := os.Stat(p)
+				if err != nil {
+					return err
+				}
+				if fileInfo.IsDir() {
+					return fmt.Errorf("path is a directory, must be a file")
+				}
+				return nil
+			})
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+		b, err := os.ReadFile(res)
+		if err != nil {
+			return err
+		}
+		val = string(b)
+
 	}
-	var val string
-	err := survey.AskOne(p, &val)
-	if err != nil {
-		return err
-	}
+
 	// set the value.
 	return f.Set(val)
 }

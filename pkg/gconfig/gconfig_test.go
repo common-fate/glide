@@ -76,7 +76,7 @@ func TestGeneralUsage(t *testing.T) {
 	fn := WithNoArgs("granted/path")
 	// The following tests ensure that secrets stay secret in logs and prints
 	testcases := []testcase{
-		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", fn), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: fn, hasChanged: true}},
+		{name: "secretString", giveField: SecretStringField("test", &secret, "testing", fn), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &secretAfterSetting, secret: true, optional: false, secretPathFunc: fn, hasChanged: true, cliPrompt: CLIPromptTypePassword}},
 		{name: "string", giveField: StringField("test", &value, "testing"), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &valueSetting, secret: false, optional: false, hasChanged: true}},
 		{name: "optionalString", giveField: OptionalStringField("test", &optionalValue, "testing"), giveValue: "some value", wantField: &Field{key: "test", description: "testing", value: &optionalValueSetting, secret: false, optional: true, hasChanged: true}},
 	}
