@@ -75,10 +75,7 @@ const CreateGroupModal = (props: Props) => {
           </ModalHeader>
 
           <ModalBody>
-            <Stack
-              spacing="5"
-              //   divider={<StackDivider />}
-            >
+            <Stack spacing="5">
               <FormControl id="name">
                 <Stack>
                   <FormLabel

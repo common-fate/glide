@@ -47,6 +47,24 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
+// RemoveGroup removes the group from the list in memory, it does not update the database
+func (u *User) RemoveGroup(group string) {
+	var newGroups []string
+	for _, g := range u.Groups {
+		if g != group {
+			newGroups = append(newGroups, g)
+		}
+	}
+	u.Groups = newGroups
+}
+
+// AddGroup adds the group to the list in memory if it is not already there, it does not update the database
+func (u *User) AddGroup(group string) {
+	if !u.BelongsToGroup(group) {
+		u.Groups = append(u.Groups, group)
+	}
+}
+
 // contains is a helper function to check if a string slice
 // contains a particular string.
 func contains(s []string, e string) bool {

@@ -100,7 +100,7 @@ const Index = () => {
 
     if (!isEditable) {
       return (
-        <>
+        <HStack align={"flex-start"} w="100%">
           {GetIDPLogo({ idpType: group.source, size: 150 })}
           <VStack align={"left"} spacing={1} flex={1} mr={4}>
             <Text textStyle="Body/Medium">Name</Text>
@@ -135,7 +135,7 @@ const Index = () => {
               Edit
             </Button>
           )}
-        </>
+        </HStack>
       );
     }
 

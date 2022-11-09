@@ -1,5 +1,12 @@
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  Tooltip,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { useMemo } from "react";
 import { Column } from "react-table";
 import {
@@ -7,25 +14,14 @@ import {
   useListGroups,
 } from "../../utils/backend-client/admin/admin";
 
-import {
-  Group,
-  ListGroupsSource,
-  RequestStatus,
-} from "../../utils/backend-client/types";
+import { MakeGenerics, useNavigate, useSearch } from "react-location";
+import { Group, ListGroupsSource } from "../../utils/backend-client/types";
+import { GetIDPLogo } from "../../utils/idp-logo";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
-import { TableRenderer } from "./TableRenderer";
-import { MakeGenerics, useSearch, useNavigate } from "react-location";
-import { GroupsFilterMenu } from "./GroupsFilterMenu";
-import {
-  ApprovalsLogo,
-  CognitoLogo,
-  GoogleLogo,
-  OneLoginLogo,
-} from "../icons/Logos";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
-import { AWSIcon, AzureIcon, GrantedKeysIcon, OktaIcon } from "../icons/Icons";
-import { GetIDPLogo } from "../../utils/idp-logo";
+import { GroupsFilterMenu } from "./GroupsFilterMenu";
+import { TableRenderer } from "./TableRenderer";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -89,15 +85,21 @@ export const GroupsTable = () => {
   const { data } = useIdentityConfiguration();
   const AddGroupButton = () => {
     return (
-      <Button
-        isLoading={data?.identityProvider === undefined}
-        size="sm"
-        variant="ghost"
-        leftIcon={<SmallAddIcon />}
-        onClick={onOpen}
+      <Tooltip
+        label={
+          "Internal groups allows you to configure more granular access policies that may not be possible with your existing identity provider groups."
+        }
       >
-        Add Group
-      </Button>
+        <Button
+          isLoading={data?.identityProvider === undefined}
+          size="sm"
+          variant="ghost"
+          leftIcon={<SmallAddIcon />}
+          onClick={onOpen}
+        >
+          Add Internal Group
+        </Button>
+      </Tooltip>
     );
   };
   return (

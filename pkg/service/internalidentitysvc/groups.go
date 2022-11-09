@@ -10,9 +10,28 @@ import (
 )
 
 func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error) {
-	err := s.validateMembers(ctx, in.Members)
-	if err != nil {
-		return nil, err
+	users := make(map[string]identity.User)
+	hasMore := true
+	var nextToken *string
+	for hasMore {
+		uq := storage.ListUsers{}
+		r, err := s.DB.Query(ctx, &uq)
+		if err != nil {
+			return nil, err
+		}
+		if r.NextPage != "" {
+			nextToken = &r.NextPage
+		}
+		hasMore = nextToken != nil
+		for _, u := range uq.Result {
+			users[u.ID] = u
+		}
+	}
+	// validate that the members exist
+	for _, newMemberID := range in.Members {
+		if _, ok := users[newMemberID]; !ok {
+			return nil, UserNotFoundError{UserID: newMemberID}
+		}
 	}
 	group := identity.Group{
 		ID:        types.NewGroupID(),
@@ -27,14 +46,13 @@ func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) 
 	if in.Description != nil {
 		group.Description = *in.Description
 	}
-	err = s.DB.Put(ctx, &group)
+
+	// @TODO need to assign group to users as well
+	err := s.DB.Put(ctx, &group)
 	if err != nil {
 		return nil, err
 	}
-	err = s.IdentitySyncer.Sync(ctx)
-	if err != nil {
-		return nil, err
-	}
+
 	return &group, nil
 }
 
@@ -42,10 +60,48 @@ func (s *Service) UpdateGroup(ctx context.Context, group identity.Group, in type
 	if group.Source != identity.INTERNAL {
 		return nil, ErrNotInternal
 	}
-	err := s.validateMembers(ctx, in.Members)
-	if err != nil {
-		return nil, err
+
+	users := make(map[string]identity.User)
+	hasMore := true
+	var nextToken *string
+	for hasMore {
+		uq := storage.ListUsers{}
+		r, err := s.DB.Query(ctx, &uq)
+		if err != nil {
+			return nil, err
+		}
+		if r.NextPage != "" {
+			nextToken = &r.NextPage
+		}
+		hasMore = nextToken != nil
+		for _, u := range uq.Result {
+			users[u.ID] = u
+		}
 	}
+	// validate that the members exist
+	for _, newMemberID := range in.Members {
+		if _, ok := users[newMemberID]; !ok {
+			return nil, UserNotFoundError{UserID: newMemberID}
+		}
+	}
+
+	var itemsToUpdate []ddb.Keyer
+
+	for _, u := range group.Users {
+		if !contains(in.Members, u) {
+			user := users[u]
+			user.RemoveGroup(group.ID)
+			itemsToUpdate = append(itemsToUpdate, &user)
+		}
+	}
+	for _, u := range in.Members {
+		if !contains(group.Users, u) {
+			user := users[u]
+			user.AddGroup(group.ID)
+			itemsToUpdate = append(itemsToUpdate, &user)
+		}
+	}
+
 	group.UpdatedAt = s.Clock.Now()
 	if in.Description == nil {
 		group.Description = ""
@@ -55,27 +111,10 @@ func (s *Service) UpdateGroup(ctx context.Context, group identity.Group, in type
 	group.Name = in.Name
 	group.Users = in.Members
 
-	err = s.DB.Put(ctx, &group)
-	if err != nil {
-		return nil, err
-	}
-	err = s.IdentitySyncer.Sync(ctx)
+	itemsToUpdate = append(itemsToUpdate, &group)
+	err := s.DB.PutBatch(ctx, itemsToUpdate...)
 	if err != nil {
 		return nil, err
 	}
 	return &group, nil
-}
-func (s *Service) validateMembers(ctx context.Context, members []string) error {
-	// validate that the members exist
-	for _, newMemberID := range members {
-		u := storage.GetUser{ID: newMemberID}
-		_, err := s.DB.Query(ctx, &u)
-		if err == ddb.ErrNoItems {
-			return UserNotFoundError{UserID: newMemberID}
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

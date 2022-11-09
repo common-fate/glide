@@ -115,6 +115,7 @@ type CacheService interface {
 type InternalIdentity interface {
 	UpdateGroup(ctx context.Context, group identity.Group, in types.CreateGroupRequest) (*identity.Group, error)
 	CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error)
+	UpdateUserGroups(ctx context.Context, user identity.User, groups []string) (*identity.User, error)
 }
 
 // API must meet the generated REST API interface.
@@ -168,9 +169,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
 		InternalIdentity: &internalidentitysvc.Service{
-			DB:             db,
-			IdentitySyncer: opts.IdentitySyncer,
-			Clock:          clk,
+			DB:    db,
+			Clock: clk,
 		},
 		Access: &accesssvc.Service{
 			Clock:       clk,
