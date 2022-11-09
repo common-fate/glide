@@ -157,7 +157,7 @@ func TestCreateGroup(t *testing.T) {
 	adminGroup := "test_admins"
 	testcases := []testcase{
 		{name: "create internal group ok",
-			body:     `{"id": "1234", "name":"test","description":"user","members": []}`,
+			body:     `{"name":"test","description":"user","members": []}`,
 			wantCode: http.StatusCreated,
 
 			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
@@ -226,10 +226,10 @@ func TestUpdateGroup(t *testing.T) {
 	adminGroup := "test_admins"
 	testcases := []testcase{
 		{name: "update existing group ok",
-			body:     `{"id": "1234", "name":"updated name","description":"user","members": []}`,
+			body:     `{"name":"updated name","description":"user","members": []}`,
 			wantCode: http.StatusOK,
 
-			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "updated name", Description: aws.String("user"), Members: []string{}},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "updated name", Description: aws.String("user"), Members: []string{}},
 			existingGroupId:       "1234",
 			withExistingGroup: identity.Group{
 				ID:          "1234",
