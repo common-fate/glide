@@ -25,7 +25,7 @@ import type {
   GetUsersParams,
   CreateUserRequestBody,
   ListGroupsResponseResponse,
-  GetGroupsParams,
+  ListGroupsParams,
   Group,
   CreateGroupRequestBody,
   Provider,
@@ -400,11 +400,11 @@ export const createUser = (
   
 
 /**
- * Gets all groups
+ * Lists all active groups
  * @summary List groups
  */
-export const getGroups = (
-    params?: GetGroupsParams,
+export const listGroups = (
+    params?: ListGroupsParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListGroupsResponseResponse>(
       {url: `/api/v1/admin/groups`, method: 'get',
@@ -414,22 +414,22 @@ export const getGroups = (
     }
   
 
-export const getGetGroupsKey = (params?: GetGroupsParams,) => [`/api/v1/admin/groups`, ...(params ? [params]: [])];
+export const getListGroupsKey = (params?: ListGroupsParams,) => [`/api/v1/admin/groups`, ...(params ? [params]: [])];
 
     
-export type GetGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof getGroups>>>
-export type GetGroupsQueryError = ErrorType<unknown>
+export type ListGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof listGroups>>>
+export type ListGroupsQueryError = ErrorType<unknown>
 
-export const useGetGroups = <TError = ErrorType<unknown>>(
- params?: GetGroupsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getGroups>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useListGroups = <TError = ErrorType<unknown>>(
+ params?: ListGroupsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listGroups>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetGroupsKey(params) : null);
-  const swrFn = () => getGroups(params, requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListGroupsKey(params) : null);
+  const swrFn = () => listGroups(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -493,6 +493,23 @@ export const useGetGroup = <TError = ErrorType<unknown>>(
     ...query
   }
 }
+
+/**
+ * Update a group
+ * @summary Update Group
+ */
+export const adminUpdateGroup = (
+    groupId: string,
+    createGroupRequestBody: CreateGroupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Group>(
+      {url: `/api/v1/admin/groups/${groupId}`, method: 'put',
+      headers: {'Content-Type': 'application/json', },
+      data: createGroupRequestBody
+    },
+      options);
+    }
+  
 
 /**
  * List providers

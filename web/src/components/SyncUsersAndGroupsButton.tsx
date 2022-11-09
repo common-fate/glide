@@ -24,6 +24,7 @@ export const SyncUsersAndGroupsButton: React.FC<Props> = ({ onSync }) => {
       variant="ghost"
       onClick={sync}
       isLoading={isSyncing}
+      ml="60%"
     >
       Sync Users and Groups
     </Button>

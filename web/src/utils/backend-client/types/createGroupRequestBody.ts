@@ -9,4 +9,5 @@
 export type CreateGroupRequestBody = {
   name: string;
   description?: string;
+  members: string[];
 };

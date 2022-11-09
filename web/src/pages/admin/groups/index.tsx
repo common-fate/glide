@@ -1,7 +1,7 @@
 import { Container, Stack } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
-import { AdminLayout } from "../../../components/Layout";
 import { GroupsTable } from "../../../components/tables/GroupsTable";
+import { AdminLayout } from "../../../components/Layout";
 
 const Index = () => {
   return (
@@ -15,6 +15,7 @@ const Index = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
+        Groups
         <GroupsTable />
       </Container>
     </AdminLayout>

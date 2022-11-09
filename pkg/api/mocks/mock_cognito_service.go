@@ -36,21 +36,6 @@ func (m *MockCognitoService) EXPECT() *MockCognitoServiceMockRecorder {
 	return m.recorder
 }
 
-// CreateGroup mocks base method.
-func (m *MockCognitoService) CreateGroup(arg0 context.Context, arg1 cognitosvc.CreateGroupOpts) (*identity.Group, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateGroup", arg0, arg1)
-	ret0, _ := ret[0].(*identity.Group)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateGroup indicates an expected call of CreateGroup.
-func (mr *MockCognitoServiceMockRecorder) CreateGroup(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGroup", reflect.TypeOf((*MockCognitoService)(nil).CreateGroup), arg0, arg1)
-}
-
 // CreateUser mocks base method.
 func (m *MockCognitoService) CreateUser(arg0 context.Context, arg1 cognitosvc.CreateUserOpts) (*identity.User, error) {
 	m.ctrl.T.Helper()

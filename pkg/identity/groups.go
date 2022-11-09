@@ -8,13 +8,15 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
+const INTERNAL = "internal"
+
 type IDPGroup struct {
 	ID          string
 	Name        string
 	Description string
 }
 
-func (g IDPGroup) ToInternalGroup() Group {
+func (g IDPGroup) ToInternalGroup(source string) Group {
 	now := time.Now()
 	return Group{
 		ID:          g.ID,
@@ -24,6 +26,7 @@ func (g IDPGroup) ToInternalGroup() Group {
 		Status:      types.IdpStatusACTIVE,
 		CreatedAt:   now,
 		UpdatedAt:   now,
+		Source:      source,
 	}
 }
 
@@ -35,7 +38,7 @@ type Group struct {
 	Description string          `json:"description" dynamodbav:"description"`
 	Status      types.IdpStatus `json:"status" dynamodbav:"status"`
 	Users       []string        `json:"users" dynamodbav:"users"`
-
+	Source      string          `json:"source" dynamodbav:"source"`
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
@@ -47,6 +50,8 @@ func (g *Group) ToAPI() types.Group {
 		Description: g.Description,
 		Id:          g.ID,
 		MemberCount: len(g.Users),
+		Members:     g.Users,
+		Source:      g.Source,
 	}
 
 	return req
@@ -59,7 +64,7 @@ func (g *Group) DDBKeys() (ddb.Keys, error) {
 		GSI1PK: keys.Groups.GSI1PK,
 		GSI1SK: keys.Groups.GSI1SK(string(g.Status), g.Name),
 		GSI2PK: keys.Groups.GSI2PK,
-		GSI2SK: keys.Groups.GSI2SK(g.IdpID),
+		GSI2SK: keys.Groups.GSI2SK(g.Source, string(g.Status), g.Name),
 	}
 
 	return keys, nil

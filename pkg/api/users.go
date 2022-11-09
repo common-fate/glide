@@ -8,8 +8,8 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
+	"github.com/common-fate/granted-approvals/pkg/service/internalidentitysvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
@@ -56,10 +56,9 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
 
 	_, err := a.DB.Query(ctx, &q)
 	// return a 404 if the user was not found.
-	if errors.As(err, &identity.UserNotFoundError{}) {
+	if err == ddb.ErrNoItems {
 		err = apio.NewRequestError(err, http.StatusNotFound)
 	}
-
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -119,20 +118,29 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/admin/users/{userId})
 func (a *API) UpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
 	ctx := r.Context()
-	if a.Cognito == nil {
-		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
-		return
-	}
-	var updateUserRequest types.UpdateUserJSONRequestBody
+	var updateUserRequest types.UpdateUserJSONBody
 	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	user, err := a.Cognito.UpdateUserGroups(ctx, cognitosvc.UpdateUserGroupsOpts{
-		Groups: updateUserRequest.Groups,
-		UserID: userId,
-	})
+	q := storage.GetUser{
+		ID: userId,
+	}
+	_, err = a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("user not found"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	user, err := a.InternalIdentity.UpdateUserGroups(ctx, *q.Result, updateUserRequest.Groups)
+	if err == internalidentitysvc.ErrGroupNotFoundOrNotInternal {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

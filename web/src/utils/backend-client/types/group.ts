@@ -11,4 +11,6 @@ export interface Group {
   description: string;
   id: string;
   memberCount: number;
+  members: string[];
+  source: string;
 }

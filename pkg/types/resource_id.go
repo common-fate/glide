@@ -17,6 +17,10 @@ func newResourceID(prefix string) string {
 func NewUserID() string {
 	return newResourceID("usr")
 }
+func NewGroupID() string {
+	return newResourceID("grp")
+}
+
 func NewRequestFavoriteID() string {
 	return newResourceID("rqf")
 }

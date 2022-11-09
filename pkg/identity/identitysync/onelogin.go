@@ -32,8 +32,6 @@ func (s *OneLoginSync) Config() gconfig.Config {
 	}
 }
 
-func (s *OneLoginSync) Name() string { return "onelogin" }
-
 func (s *OneLoginSync) Init(ctx context.Context) error {
 
 	url := s.baseURL.Get() + "/auth/oauth2/v2/token"

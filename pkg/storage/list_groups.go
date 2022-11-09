@@ -19,5 +19,6 @@ func (l *ListGroups) BuildQuery() (*dynamodb.QueryInput, error) {
 			":pk1": &types.AttributeValueMemberS{Value: keys.Groups.PK1},
 		},
 	}
+
 	return &qi, nil
 }

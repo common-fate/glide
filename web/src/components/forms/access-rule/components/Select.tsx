@@ -3,11 +3,12 @@ import { Controller, useFormContext, Validate } from "react-hook-form";
 import ReactSelect, { ActionMeta, components, OptionProps } from "react-select";
 import { Text } from "@chakra-ui/react";
 import {
-  useGetGroups,
+  useListGroups,
   useGetUsers,
 } from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
 import { Option } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+import { ListGroupsSource } from "../../../../utils/backend-client/types";
 interface BaseSelectProps {
   fieldName: string;
   rules?: MultiSelectRules;
@@ -18,6 +19,7 @@ interface BaseSelectProps {
 
 interface GroupSelectProps extends BaseSelectProps {
   shouldShowGroupMembers?: boolean;
+  source?: ListGroupsSource;
 }
 
 // UserSelect required defaults to true
@@ -37,7 +39,7 @@ export const UserSelect: React.FC<BaseSelectProps> = (props) => {
 
 export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const { shouldShowGroupMembers = false } = props;
-  const { data } = useGetGroups();
+  const { data } = useListGroups({ source: props.source });
   const options = useMemo(() => {
     return (
       data?.groups

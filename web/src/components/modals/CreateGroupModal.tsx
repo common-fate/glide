@@ -23,6 +23,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { createGroup } from "../../utils/backend-client/admin/admin";
 
 import { CreateGroupRequestBody } from "../../utils/backend-client/types";
+import { UserSelect } from "../forms/access-rule/components/Select";
 type Props = Omit<ModalProps, "children">;
 
 const CreateGroupModal = (props: Props) => {
@@ -74,10 +75,7 @@ const CreateGroupModal = (props: Props) => {
           </ModalHeader>
 
           <ModalBody>
-            <Stack
-              spacing="5"
-              //   divider={<StackDivider />}
-            >
+            <Stack spacing="5">
               <FormControl id="name">
                 <Stack>
                   <FormLabel
@@ -115,6 +113,18 @@ const CreateGroupModal = (props: Props) => {
                     placeholder="Developers group"
                     {...methods.register("description", { maxLength: 2048 })}
                   />
+                </Stack>
+              </FormControl>
+              <FormControl id="description">
+                <Stack>
+                  <FormLabel
+                    textStyle="Body/Medium"
+                    fontWeight="normal"
+                    mb={-1}
+                  >
+                    Members
+                  </FormLabel>
+                  <UserSelect fieldName="members" />
                 </Stack>
               </FormControl>
             </Stack>

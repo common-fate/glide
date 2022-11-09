@@ -35,8 +35,6 @@ func (s *AzureSync) Config() gconfig.Config {
 	}
 }
 
-func (s *AzureSync) Name() string { return "azure-ad" }
-
 func (s *AzureSync) Init(ctx context.Context) error {
 	cred, err := confidential.NewCredFromSecret(s.clientSecret.Get())
 	if err != nil {

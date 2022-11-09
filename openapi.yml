@@ -661,8 +661,8 @@ paths:
       summary: List groups
       tags:
         - Admin
-      operationId: get-groups
-      description: Gets all groups
+      operationId: list-groups
+      description: Lists all active groups
       responses:
         "200":
           $ref: "#/components/responses/ListGroupsResponse"
@@ -672,6 +672,13 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
+        - schema:
+            type: string
+            enum:
+              - INTERNAL
+              - EXTERNAL
+          in: query
+          name: source
     parameters: []
     post:
       summary: Create Group
@@ -714,6 +721,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Group"
+    put:
+      summary: Update Group
+      operationId: admin-update-group
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/CreateGroupRequest"
+      description: Update a group
+      tags:
+        - Admin
+    delete:
+      summary: Delete Group
+      operationId: admin-delete-group
+      responses:
+        "200":
+          description: OK
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Delete an internal group
   /api/v1/admin/providers:
     get:
       summary: List providers
@@ -1480,16 +1517,24 @@ components:
           type: string
         memberCount:
           type: integer
+        members:
+          type: array
+          items:
+            type: string
+        source:
+          type: string
       required:
         - name
         - description
         - id
         - memberCount
+        - members
+        - source
     IdpStatus:
+      type: string
       title: IdpStatus
       x-stoplight:
         id: a3fdr17gch04a
-      type: string
       enum:
         - ARCHIVED
         - ACTIVE
@@ -2389,8 +2434,13 @@ components:
                 type: string
                 minLength: 0
                 maxLength: 2048
+              members:
+                type: array
+                items:
+                  type: string
             required:
               - name
+              - members
     CreateFavoriteRequest:
       content:
         application/json:
