@@ -312,6 +312,8 @@ func CLIPrompt(f *gconfig.Field) error {
 		}
 
 	}
+
+	//Handle different methods of cli prompt inputs.
 	var val string
 	switch f.CLIPrompt() {
 	case gconfig.CLIPromptTypeString:

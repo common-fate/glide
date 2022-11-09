@@ -319,6 +319,7 @@ func WithDefaultFunc(df func() string) FieldOptFunc {
 	}
 }
 
+// WithCLIPrompt allows to override the type of cli prompt asked when setting up an IDP
 func WithCLIPrompt(prompt cliPromptType) FieldOptFunc {
 	return func(f *Field) {
 		f.cliPrompt = prompt
