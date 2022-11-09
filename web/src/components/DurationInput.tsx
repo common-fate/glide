@@ -6,6 +6,7 @@ import {
   NumberIncrementStepper,
   NumberInput,
   NumberInputField,
+  NumberInputProps,
   NumberInputStepper,
 } from "@chakra-ui/react";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -22,14 +23,23 @@ interface DurationInputProps {
   children?: React.ReactNode;
 }
 
-type DurationInterval = "MINUTE" | "HOUR";
+type DurationInterval = "MINUTE" | "HOUR" | "DAY" | "WEEK" | "MONTH";
 interface DurationInputContext {
   maxHours?: number;
   maxMinutes?: number;
+  maxDays?: number;
+  maxWeeks?: number;
+  maxMonths?: number;
   minHours: number;
   minMinutes: number;
-  hours: number;
+  minDays: number;
+  minWeeks: number;
+  minMonths: number;
   minutes: number;
+  hours: number;
+  days: number;
+  weeks: number;
+  months: number;
   setValue: (d: DurationInterval, v: number) => void;
   // Register should be called once on mount of the child duration intervals hours or minutes etc
   register: (d: DurationInterval) => void;
@@ -42,17 +52,27 @@ const Context = createContext<DurationInputContext>({
   register: (d) => {
     undefined;
   },
-  minHours: 0,
   minMinutes: 0,
+  minHours: 0,
+  minDays: 0,
+  minWeeks: 0,
+  minMonths: 0,
   hours: 0,
   minutes: 0,
+  days: 0,
+  weeks: 0,
+  months: 0,
 });
-const HOUR = 3600;
 const MINUTE = 60;
+const HOUR = 3600;
+const DAY = 86400;
+const WEEK = 7 * DAY;
+const MONTH = 30 * DAY;
 
 const maxMinutesFn = (
   hasHours: boolean,
   hours: number,
+  days: number,
   maxDurationSeconds?: number
 ) => {
   if (hasHours) {
@@ -64,7 +84,9 @@ const maxMinutesFn = (
       return maxDurationSeconds < HOUR
         ? Math.floor(maxDurationSeconds / MINUTE)
         : Math.min(
-            Math.floor((maxDurationSeconds - hours * HOUR) / MINUTE),
+            Math.floor(
+              (maxDurationSeconds - hours * HOUR - days * DAY) / MINUTE
+            ),
             59
           );
     }
@@ -102,14 +124,20 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const defaultValue = dv ?? minv ?? 0;
   const value = v ?? defaultValue;
   const min = minv || 0;
-  const [hours, setHours] = useState<number>(Math.floor(value / HOUR));
   const [minutes, setMinutes] = useState<number>(
     Math.floor((value % HOUR) / MINUTE)
   );
+  const [hours, setHours] = useState<number>(Math.floor(value / HOUR));
+  const [days, setDays] = useState<number>(Math.floor(value / DAY));
+  const [weeks, setWeeks] = useState<number>(Math.floor(value / WEEK));
+  const [months, setMonths] = useState<number>(Math.floor(value / MONTH));
 
   // The children components can register which means you can use this duration input with hours, minutes or both
-  const [hasHours, setHasHours] = useState(false);
   const [hasMinutes, setHasMinutes] = useState(false);
+  const [hasHours, setHasHours] = useState(false);
+  const [hasDays, setHasDays] = useState(false);
+  const [hasWeeks, setHasWeeks] = useState(false);
+  const [hasMonths, setHasMonths] = useState(false);
 
   // on first load, if v is undefined, call onChange with the default value to update the form
   useEffect(() => {
@@ -120,8 +148,19 @@ export const DurationInput: React.FC<DurationInputProps> = ({
 
   useEffect(() => {
     // The following effect updates the hours and minutes values when the external value changes after a call to onChange
-    // it supports having eitehr hours and minutes or just hours or just minutes component
-    if (hasHours) {
+    // it supports having eitehr hours and minutes or just hours or just minutes components,
+    // we prioritise the larger units (months, weeks, days, hours) and then the smaller units (minutes)
+    // if (hasWeeks) {
+    //   setWeeks(Math.floor(value / WEEK));
+    if (hasDays) {
+      setDays(Math.floor(value / DAY));
+      if (hasHours) {
+        setHours(Math.floor((value % DAY) / HOUR));
+      }
+      if (hasMinutes) {
+        setMinutes(Math.floor((value % HOUR) / MINUTE));
+      }
+    } else if (hasHours) {
       setHours(Math.floor(value / HOUR));
       if (hasMinutes) {
         setMinutes(Math.floor((value % HOUR) / MINUTE));
@@ -131,8 +170,10 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     } else if (hasMinutes) {
       setHours(0);
       setMinutes(Math.floor(value / MINUTE));
+      // }
     }
-  }, [value, hasHours]);
+    // todo
+  }, [value, hasHours, hasDays]);
 
   // setValue checks whether the change to one field needs to affect the other field
   // e.g if reducing an hour to 0 does the minute field need to be increased
@@ -140,62 +181,142 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   // however they are not aware of each other, so edge cases are handled in here
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
+      case "MINUTE": {
+        const newTime = days * DAY + hours * HOUR + v * MINUTE;
+        // should also do min/max handling  here.....
+        if (max && newTime > max) {
+          onChange(max);
+        } else if (min && newTime < min) {
+          onChange(days * DAY + hours * HOUR + v * MINUTE);
+        } else {
+          onChange(newTime);
+        }
+        break;
+      }
       case "HOUR": {
-        const newTime = v * HOUR + minutes * MINUTE;
+        const newTime = days * DAY + v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(
-            v * HOUR +
-              Math.min(Math.floor((max - v * HOUR) / MINUTE), 59) * MINUTE
+            days * DAY +
+              v * HOUR +
+              Math.min(
+                Math.floor((max - (days * DAY + v * HOUR)) / MINUTE),
+                59
+              ) *
+                MINUTE
           );
         } else if (newTime < min) {
-          onChange(v * HOUR + minMinutesFn(newTime, min) * MINUTE);
+          onChange(days * DAY + v * HOUR + minMinutesFn(newTime, min) * MINUTE);
         } else {
-          onChange(v * HOUR + minutes * MINUTE);
+          onChange(days * DAY + v * HOUR + minutes * MINUTE);
         }
 
         break;
       }
-      case "MINUTE": {
-        onChange(hours * HOUR + v * MINUTE);
+      case "DAY": {
+        const newTime = v * DAY + hours * HOUR + minutes * MINUTE;
+        if (max && newTime > max) {
+          onChange(max);
+        } else if (newTime < min) {
+          onChange(v * DAY + minMinutesFn(newTime, min) * MINUTE);
+        } else {
+          onChange(v * DAY + hours * HOUR + minutes * MINUTE);
+        }
         break;
       }
+      // case "WEEK": {
+      //   onChange(v * WEEK + hours * HOUR + minutes * MINUTE);
+      //   break;
+      // }
     }
   };
 
   // Register is meant to register capability of the component, there may be a better way to work out if the minutes or hours components are present
   const register = (d: DurationInterval) => {
     switch (d) {
+      case "MINUTE":
+        setHasMinutes(true);
+        break;
       case "HOUR":
         setHasHours(true);
         break;
-      case "MINUTE":
-        setHasMinutes(true);
+      case "DAY":
+        setHasDays(true);
+        break;
+      case "WEEK":
+        setHasWeeks(true);
+        break;
+      case "MONTH":
+        setHasMonths(true);
         break;
     }
   };
 
-  const maxHours =
-    hasHours && max != undefined ? Math.floor(max / HOUR) : undefined;
+  // max constraints
   const maxMinutes = hasMinutes
-    ? maxMinutesFn(hasHours, hours, max)
+    ? maxMinutesFn(hasHours, hours, days, max)
     : undefined;
+
+  const maxHoursFn = (
+    hasDays: boolean,
+    hours: number,
+    maxDurationSeconds?: number
+  ) => {
+    if (hasDays) {
+      if (maxDurationSeconds == undefined) {
+        // if the hours component is available, but no max is set, then 23 hours is the maximum
+        return 23;
+      } else {
+        // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
+        return maxDurationSeconds < DAY
+          ? Math.floor(maxDurationSeconds / HOUR)
+          : Math.min(Math.floor((maxDurationSeconds - days * DAY) / HOUR), 23);
+      }
+    } else if (maxDurationSeconds != undefined) {
+      // if there is no hours component, and max is defined, then get the minutes component of the max
+      return Math.floor(maxDurationSeconds / MINUTE);
+    }
+    return undefined;
+  };
+
+  const maxHours = hasHours ? maxHoursFn(hasDays, hours, max) : undefined;
+  // todo: this should work, but we may want to be careful with handling cross over UX for incrementing superior units
+  const maxDays =
+    hasDays && max != undefined ? Math.floor(max / DAY) : undefined;
+  const maxWeeks =
+    hasWeeks && max != undefined ? Math.floor(max / WEEK) : undefined;
+  const maxMonths =
+    hasMonths && max != undefined ? Math.floor(max / MONTH) : undefined;
+  // min constraints
+  const minMinutes = minMinutesFn(value, min);
   const minHours = hasMinutes
     ? Math.floor(min / HOUR)
     : min < HOUR
     ? 1
     : Math.floor(min / HOUR);
-  const minMinutes = minMinutesFn(value, min);
+  const minDays = 0;
+  const minWeeks = 0;
+  const minMonths = 0;
   return (
     <Context.Provider
       value={{
         setValue,
         register,
-        minHours,
         minMinutes,
-        maxHours,
+        minHours,
+        minDays,
+        minWeeks,
+        minMonths,
         maxMinutes,
-        hours,
+        maxHours,
+        maxDays,
+        maxWeeks,
+        maxMonths,
         minutes,
+        hours,
+        days,
+        weeks,
+        months,
       }}
     >
       <HStack>{children}</HStack>
@@ -203,6 +324,25 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   );
 };
 
+export const Days: React.FC = () => {
+  const { maxDays, minDays, days, setValue, register } = useContext(Context);
+  const [defaultValue] = useState(days);
+  useEffect(() => {
+    register("DAY");
+  });
+  return (
+    <InputElement
+      inputId="day-duration-input"
+      defaultValue={defaultValue}
+      onChange={(n: number) => setValue("DAY", n)}
+      value={days}
+      max={maxDays}
+      min={minDays}
+      rightElement="days"
+      // w="112px"
+    />
+  );
+};
 export const Hours: React.FC = () => {
   const { maxHours, minHours, hours, setValue, register } = useContext(Context);
   const [defaultValue] = useState(hours);
@@ -260,6 +400,7 @@ const InputElement: React.FC<InputElementProps> = ({
   max,
   min,
   rightElement,
+  ...inputProps
 }) => {
   const [v, setV] = useState<string | number>(value);
   useEffect(() => {
@@ -299,6 +440,7 @@ const InputElement: React.FC<InputElementProps> = ({
           }
         }}
         className="peer"
+        // {...inputProps}
       >
         <NumberInputField bg="white" id={inputId} />
         <InputRightElement
