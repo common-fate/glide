@@ -53,6 +53,9 @@ func (g *Group) ToAPI() types.Group {
 		Members:     g.Users,
 		Source:      g.Source,
 	}
+	if req.Members == nil {
+		req.Members = []string{}
+	}
 
 	return req
 }

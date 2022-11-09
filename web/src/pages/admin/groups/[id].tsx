@@ -44,7 +44,7 @@ import {
   CreateGroupRequestBody,
   Group,
 } from "../../../utils/backend-client/types";
-import { GetIDPLogo } from "../../../utils/idp-logo";
+import { IDPLogo, GetIDPName } from "../../../utils/idp-logo";
 import { adminDeleteGroup } from "../../../utils/backend-client/default/default";
 import axios, { AxiosError } from "axios";
 
@@ -101,6 +101,8 @@ const Index = () => {
       return (
         <>
           <VStack>
+            <Text>Source</Text>
+            <SkeletonText noOfLines={1} />
             <Text>Name</Text>
             <SkeletonText noOfLines={1} />
             <Text>Description</Text>
@@ -115,8 +117,12 @@ const Index = () => {
     if (!isEditable) {
       return (
         <HStack align={"flex-start"} w="100%">
-          {GetIDPLogo({ idpType: group.source, size: 150 })}
           <VStack align={"left"} spacing={1} flex={1} mr={4}>
+            <Text textStyle="Body/Medium">Source</Text>
+            <Text textStyle="Body/Small">
+              <IDPLogo idpType={group.source} h={4} mr={2} />
+              {GetIDPName(group.source)}
+            </Text>
             <Text textStyle="Body/Medium">Name</Text>
             <Text textStyle="Body/Small">{group.name}</Text>
             <Text textStyle="Body/Medium">Description</Text>
@@ -353,7 +359,7 @@ So I have just submitted the form directly using the submit button*/}
                 size={"sm"}
                 onClick={popoverDisclosure.onClose}
                 mr={3}
-                isLoading={isSubmitting}
+                isDisabled={isSubmitting}
               >
                 Cancel
               </Button>

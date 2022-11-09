@@ -1,3 +1,4 @@
+import { IconProps } from "@chakra-ui/icons";
 import {
   GrantedKeysIcon,
   AzureIcon,
@@ -12,28 +13,26 @@ import {
 
 type IdpLogoProps = {
   idpType: string;
-  size: number;
-};
+} & IconProps;
 
-export const GetIDPLogo = (Props: IdpLogoProps) => {
-  switch (Props.idpType) {
+export const IDPLogo: React.FC<IdpLogoProps> = ({ idpType, ...rest }) => {
+  switch (idpType) {
     case "internal":
-      return <GrantedKeysIcon boxSize={Props.size} />;
+      return <GrantedKeysIcon {...rest} />;
     case "cognito":
-      return <CognitoLogo boxSize={Props.size} />;
+      return <CognitoLogo {...rest} />;
     case "azure":
-      return <AzureIcon boxSize={Props.size} />;
+      return <AzureIcon {...rest} />;
     case "okta":
-      return <OktaIcon boxSize={Props.size} />;
+      return <OktaIcon {...rest} />;
     case "aws-sso":
-      return <AWSIcon boxSize={Props.size} />;
+      return <AWSIcon {...rest} />;
     case "google":
-      return <GoogleLogo boxSize={Props.size} />;
+      return <GoogleLogo {...rest} />;
     case "one-login":
-      return <OneLoginLogo boxSize={Props.size} />;
-
+      return <OneLoginLogo {...rest} />;
     default:
-      break;
+      return null;
   }
 };
 

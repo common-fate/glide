@@ -16,7 +16,7 @@ import {
 
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Group, ListGroupsSource } from "../../utils/backend-client/types";
-import { GetIDPLogo } from "../../utils/idp-logo";
+import { IDPLogo } from "../../utils/idp-logo";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
@@ -75,9 +75,7 @@ export const GroupsTable = () => {
       {
         accessor: "source",
         Header: "",
-        Cell: ({ cell }) => (
-          <Box>{GetIDPLogo({ idpType: cell.value, size: 30 })}</Box>
-        ),
+        Cell: ({ cell }) => <IDPLogo idpType={cell.value} boxSize={30} />,
       },
     ],
     []
