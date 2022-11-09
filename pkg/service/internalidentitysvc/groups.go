@@ -10,6 +10,20 @@ import (
 )
 
 func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error) {
+	group := identity.Group{
+		ID:        types.NewGroupID(),
+		IdpID:     in.Name,
+		Name:      in.Name,
+		Status:    types.IdpStatusACTIVE,
+		Source:    identity.INTERNAL,
+		Users:     in.Members,
+		CreatedAt: s.Clock.Now(),
+		UpdatedAt: s.Clock.Now(),
+	}
+	if in.Description != nil {
+		group.Description = *in.Description
+	}
+
 	users := make(map[string]identity.User)
 	hasMore := true
 	var nextToken *string
@@ -27,28 +41,18 @@ func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) 
 			users[u.ID] = u
 		}
 	}
+
+	itemsToUpdate := []ddb.Keyer{&group}
 	// validate that the members exist
 	for _, newMemberID := range in.Members {
-		if _, ok := users[newMemberID]; !ok {
+		if user, ok := users[newMemberID]; !ok {
 			return nil, UserNotFoundError{UserID: newMemberID}
+		} else {
+			user.AddGroup(group.ID)
+			itemsToUpdate = append(itemsToUpdate, &user)
 		}
 	}
-	group := identity.Group{
-		ID:        types.NewGroupID(),
-		IdpID:     in.Name,
-		Name:      in.Name,
-		Status:    types.IdpStatusACTIVE,
-		Source:    identity.INTERNAL,
-		Users:     in.Members,
-		CreatedAt: s.Clock.Now(),
-		UpdatedAt: s.Clock.Now(),
-	}
-	if in.Description != nil {
-		group.Description = *in.Description
-	}
-
-	// @TODO need to assign group to users as well
-	err := s.DB.Put(ctx, &group)
+	err := s.DB.PutBatch(ctx, itemsToUpdate...)
 	if err != nil {
 		return nil, err
 	}

@@ -158,7 +158,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 			body:     `{"id": "1234", "name":"test","description":"user","members": []}`,
 			wantCode: http.StatusCreated,
 
-			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "test", Description: aws.String("user"), Members: []string{}},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",
 				IdpID:       "1234",
@@ -173,7 +173,7 @@ func TestPostApiV1AdminGroups(t *testing.T) {
 		{name: "users added to group",
 			body:                  `{"id": "1234", "name":"test","description":"user","members": ["user_1"]}`,
 			wantCode:              http.StatusCreated,
-			expectCreateGroupOpts: &types.CreateGroupRequest{Id: aws.String("1234"), Name: "test", Description: aws.String("user"), Members: []string{"user_1"}},
+			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{"user_1"}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",
 				IdpID:       "1234",

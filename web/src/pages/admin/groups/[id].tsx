@@ -47,7 +47,6 @@ const Index = () => {
   useEffect(() => {
     if (group) {
       const formValues: CreateGroupRequestBody = {
-        id: group.id,
         name: group?.name ? group.name : "",
         description: group?.description,
         members: group?.members ? group.members : [],
