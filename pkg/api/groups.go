@@ -110,7 +110,7 @@ func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update Group
-// (POST /api/v1/admin/groups/{id})
+// (PUT /api/v1/admin/groups/{id})
 // Updates an internal group not connected to any identiy provider in dynamodb
 func (a *API) AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 	ctx := r.Context()
