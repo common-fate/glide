@@ -1,7 +1,14 @@
 import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { Days, DurationInput, Hours, Minutes } from "../../../DurationInput";
+import {
+  Days,
+  DurationInput,
+  Hours,
+  Minutes,
+  Months,
+  Weeks,
+} from "../../../DurationInput";
 import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 
@@ -18,7 +25,7 @@ export const TimeStep: React.FC = () => {
       preview={
         <VStack width={"100%"} align="flex-start">
           <Text textStyle={"Body/Medium"} color="neutrals.600">
-            Max duration:{" "}
+            Max duration: {/* @TODO turn me into a date-fn format */}
             {time?.maxDurationSeconds
               ? Math.floor(time.maxDurationSeconds / 60 / 60) +
                 " hours " +
@@ -41,8 +48,8 @@ export const TimeStep: React.FC = () => {
           control={methods.control}
           rules={{
             required: "Duration is required.",
-            // 6 months in milliseconds
-            max: true ? 15778476000 : maxDurationSeconds,
+            // 6 months in seconds
+            max: true ? 6 * 4 * 7 * 24 * 3600 : maxDurationSeconds,
             min: 60,
           }}
           name="timeConstraints.maxDurationSeconds"
@@ -53,19 +60,19 @@ export const TimeStep: React.FC = () => {
                   {...rest}
                   // @TODO: UNDO ME
                   // max={maxDurationSeconds}
-                  max={3600 * 36}
+                  max={6 * 4 * 7 * 24 * 3600}
                   min={60}
                   defaultValue={3600}
                 >
-                  <Months />
                   <Weeks />
                   <Days />
                   <Hours />
                   <Minutes />
                 </DurationInput>
+                <br />
                 curr: {rest.value}
                 <br />
-                max: {3600 * 36}
+                max: {6 * 4 * 7 * 24 * 3600}
               </>
             );
           }}

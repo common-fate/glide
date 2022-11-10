@@ -73,6 +73,7 @@ import {
   Hours,
   Minutes,
   Days,
+  Weeks,
 } from "../../../components/DurationInput";
 import {
   MultiSelect,
@@ -520,8 +521,10 @@ const AccessRequestForm = () => {
                             min={60}
                           >
                             {/* {maxDurationSeconds > 3600 * 24 * 31 && <Months />}
-  {maxDurationSeconds > 3600 * 24 * 7 && <Weeks />}
-  */}
+                             */}
+                            {rule &&
+                              rule.timeConstraints.maxDurationSeconds >
+                                3600 * 24 * 7 && <Weeks />}
                             {rule &&
                               rule.timeConstraints.maxDurationSeconds >=
                                 3600 * 24 && <Days />}

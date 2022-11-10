@@ -69,33 +69,6 @@ const DAY = 86400;
 const WEEK = 7 * DAY;
 const MONTH = 30 * DAY;
 
-const maxMinutesFn = (
-  hasHours: boolean,
-  hours: number,
-  days: number,
-  maxDurationSeconds?: number
-) => {
-  if (hasHours) {
-    if (maxDurationSeconds == undefined) {
-      // if the hours component is available, but no max is set, then 59 minutes is the maximum
-      return 59;
-    } else {
-      // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
-      return maxDurationSeconds < HOUR
-        ? Math.floor(maxDurationSeconds / MINUTE)
-        : Math.min(
-            Math.floor(
-              (maxDurationSeconds - hours * HOUR - days * DAY) / MINUTE
-            ),
-            59
-          );
-    }
-  } else if (maxDurationSeconds != undefined) {
-    // if there is no hours component, and max is defined, then get the minutes component of the max
-    return Math.floor(maxDurationSeconds / MINUTE);
-  }
-  return undefined;
-};
 const minMinutesFn = (duration: number, minDurationSeconds: number) =>
   duration < HOUR ? Math.floor((minDurationSeconds % HOUR) / MINUTE) : 0;
 
@@ -150,30 +123,29 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     // The following effect updates the hours and minutes values when the external value changes after a call to onChange
     // it supports having eitehr hours and minutes or just hours or just minutes components,
     // we prioritise the larger units (months, weeks, days, hours) and then the smaller units (minutes)
-    // if (hasWeeks) {
-    //   setWeeks(Math.floor(value / WEEK));
-    if (hasDays) {
-      setDays(Math.floor(value / DAY));
-      if (hasHours) {
-        setHours(Math.floor((value % DAY) / HOUR));
+    if (hasWeeks) {
+      setWeeks(Math.floor(value / WEEK));
+      if (hasDays) {
+        setDays(Math.floor((value % WEEK) / DAY));
+        if (hasHours) {
+          setHours(Math.floor(((value % WEEK) % DAY) / HOUR));
+        }
+        if (hasMinutes) {
+          setMinutes(Math.floor((((value % WEEK) % DAY) % HOUR) / MINUTE));
+        }
+      } else if (hasHours) {
+        setHours(Math.floor(value / HOUR));
+        if (hasMinutes) {
+          setMinutes(Math.floor((value % HOUR) / MINUTE));
+        } else {
+          setMinutes(0);
+        }
+      } else if (hasMinutes) {
+        setHours(0);
+        setMinutes(Math.floor(value / MINUTE));
       }
-      if (hasMinutes) {
-        setMinutes(Math.floor((value % HOUR) / MINUTE));
-      }
-    } else if (hasHours) {
-      setHours(Math.floor(value / HOUR));
-      if (hasMinutes) {
-        setMinutes(Math.floor((value % HOUR) / MINUTE));
-      } else {
-        setMinutes(0);
-      }
-    } else if (hasMinutes) {
-      setHours(0);
-      setMinutes(Math.floor(value / MINUTE));
-      // }
     }
-    // todo
-  }, [value, hasHours, hasDays]);
+  }, [value, hasHours, hasDays, hasWeeks]);
 
   // setValue checks whether the change to one field needs to affect the other field
   // e.g if reducing an hour to 0 does the minute field need to be increased
@@ -182,52 +154,72 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const setValue = (d: DurationInterval, v: number) => {
     switch (d) {
       case "MINUTE": {
-        const newTime = days * DAY + hours * HOUR + v * MINUTE;
+        const newTime = weeks * WEEK + days * DAY + hours * HOUR + v * MINUTE;
         // should also do min/max handling  here.....
         if (max && newTime > max) {
           onChange(max);
         } else if (min && newTime < min) {
-          onChange(days * DAY + hours * HOUR + v * MINUTE);
+          onChange(min);
         } else {
           onChange(newTime);
         }
         break;
       }
       case "HOUR": {
-        const newTime = days * DAY + v * HOUR + minutes * MINUTE;
+        const newTime = weeks * WEEK + days * DAY + v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
-          onChange(
-            days * DAY +
-              v * HOUR +
-              Math.min(
-                Math.floor((max - (days * DAY + v * HOUR)) / MINUTE),
-                59
-              ) *
-                MINUTE
-          );
+          onChange(max);
+          // onChange(
+          //   weeks * WEEK +
+          //     days * DAY +
+          //     v * HOUR +
+          //     Math.min(
+          //       Math.floor((max - (days * DAY + v * HOUR)) / MINUTE),
+          //       59
+          //     ) *
+          //       MINUTE
+          // );
         } else if (newTime < min) {
-          onChange(days * DAY + v * HOUR + minMinutesFn(newTime, min) * MINUTE);
+          onChange(
+            weeks * WEEK +
+              days * DAY +
+              v * HOUR +
+              minMinutesFn(newTime, min) * MINUTE
+          );
         } else {
-          onChange(days * DAY + v * HOUR + minutes * MINUTE);
+          // onChange(weeks * WEEK + days * DAY + v * HOUR + minutes * MINUTE);
+          onChange(newTime);
         }
 
         break;
       }
       case "DAY": {
-        const newTime = v * DAY + hours * HOUR + minutes * MINUTE;
+        const newTime =
+          weeks * WEEK + v * DAY + hours * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(max);
         } else if (newTime < min) {
-          onChange(v * DAY + minMinutesFn(newTime, min) * MINUTE);
+          // onChange(
+          //   weeks * WEEK + v * DAY + minMinutesFn(newTime, min) * MINUTE
+          // );
+          onChange(min);
         } else {
-          onChange(v * DAY + hours * HOUR + minutes * MINUTE);
+          // onChange(weeks * WEEK + v * DAY + hours * HOUR + minutes * MINUTE);
+          onChange(newTime);
         }
         break;
       }
-      // case "WEEK": {
-      //   onChange(v * WEEK + hours * HOUR + minutes * MINUTE);
-      //   break;
-      // }
+      case "WEEK": {
+        const newTime = v * WEEK + days * DAY + hours * HOUR + minutes * MINUTE;
+        if (max && newTime > max) {
+          onChange(max);
+        } else if (newTime < min) {
+          onChange(v * WEEK + days * DAY + minMinutesFn(newTime, min) * MINUTE);
+        } else {
+          onChange(newTime);
+        }
+        break;
+      }
     }
   };
 
@@ -252,6 +244,39 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     }
   };
 
+  const maxMinutesFn = (
+    hasHours: boolean,
+    hours: number,
+    days: number,
+    maxDurationSeconds?: number
+  ) => {
+    if (hasHours) {
+      if (maxDurationSeconds == undefined) {
+        // if the hours component is available, but no max is set, then 59 minutes is the maximum
+        return 59;
+      } else {
+        // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
+        return maxDurationSeconds < HOUR
+          ? Math.floor(maxDurationSeconds / MINUTE)
+          : Math.min(
+              Math.floor(
+                (maxDurationSeconds -
+                  weeks * WEEK -
+                  days * DAY -
+                  hours * HOUR -
+                  days * DAY) /
+                  MINUTE
+              ),
+              59
+            );
+      }
+    } else if (maxDurationSeconds != undefined) {
+      // if there is no hours component, and max is defined, then get the minutes component of the max
+      return Math.floor(maxDurationSeconds / MINUTE);
+    }
+    return undefined;
+  };
+
   // max constraints
   const maxMinutes = hasMinutes
     ? maxMinutesFn(hasHours, hours, days, max)
@@ -270,19 +295,44 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
         return maxDurationSeconds < DAY
           ? Math.floor(maxDurationSeconds / HOUR)
-          : Math.min(Math.floor((maxDurationSeconds - days * DAY) / HOUR), 23);
+          : Math.min(
+              Math.floor(
+                (maxDurationSeconds - weeks * WEEK - days * DAY) / HOUR
+              ),
+              23
+            );
       }
     } else if (maxDurationSeconds != undefined) {
       // if there is no hours component, and max is defined, then get the minutes component of the max
-      return Math.floor(maxDurationSeconds / MINUTE);
+      return Math.floor(maxDurationSeconds / HOUR);
+    }
+    return undefined;
+  };
+  const maxDaysFn = (
+    hasWeeks: boolean,
+    days: number,
+    maxDurationSeconds?: number
+  ) => {
+    if (hasWeeks) {
+      if (maxDurationSeconds == undefined) {
+        // if the hours component is available, but no max is set, then 23 hours is the maximum
+        return 6;
+      } else {
+        // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
+        return maxDurationSeconds < WEEK
+          ? Math.floor(maxDurationSeconds / DAY)
+          : Math.min(Math.floor((maxDurationSeconds - weeks * WEEK) / DAY), 7);
+      }
+    } else if (maxDurationSeconds != undefined) {
+      // if there is no hours component, and max is defined, then get the minutes component of the max
+      return Math.floor(maxDurationSeconds / DAY);
     }
     return undefined;
   };
 
   const maxHours = hasHours ? maxHoursFn(hasDays, hours, max) : undefined;
   // todo: this should work, but we may want to be careful with handling cross over UX for incrementing superior units
-  const maxDays =
-    hasDays && max != undefined ? Math.floor(max / DAY) : undefined;
+  const maxDays = hasDays ? maxDaysFn(hasWeeks, days, max) : undefined;
   const maxWeeks =
     hasWeeks && max != undefined ? Math.floor(max / WEEK) : undefined;
   const maxMonths =
@@ -324,12 +374,54 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   );
 };
 
+export const Months: React.FC = () => {
+  const { maxMonths, minMonths, months, setValue, register } = useContext(
+    Context
+  );
+  const [defaultValue] = useState(months);
+  useEffect(() => {
+    register("MONTH");
+  });
+  return (
+    <InputElement
+      inputId="month-duration-input"
+      defaultValue={defaultValue}
+      onChange={(n: number) => setValue("MONTH", n)}
+      value={months}
+      min={minMonths}
+      max={maxMonths}
+      rightElement="months"
+    />
+  );
+};
+
+export const Weeks: React.FC = () => {
+  const { maxWeeks, minWeeks, weeks, setValue, register } = useContext(Context);
+  const [defaultValue] = useState(weeks);
+  useEffect(() => {
+    register("WEEK");
+  });
+  return (
+    <InputElement
+      inputId="week-duration-input"
+      defaultValue={defaultValue}
+      onChange={(n: number) => setValue("WEEK", n)}
+      value={weeks}
+      min={minWeeks}
+      max={maxWeeks}
+      rightElement="weeks"
+      w="122px"
+    />
+  );
+};
+
 export const Days: React.FC = () => {
   const { maxDays, minDays, days, setValue, register } = useContext(Context);
   const [defaultValue] = useState(days);
   useEffect(() => {
     register("DAY");
   });
+  console.log({ maxDays });
   return (
     <InputElement
       inputId="day-duration-input"
@@ -391,6 +483,7 @@ interface InputElementProps {
   value: number;
   onChange: (n: number) => void;
   rightElement?: React.ReactNode;
+  w?: string;
 }
 const InputElement: React.FC<InputElementProps> = ({
   inputId,
@@ -400,7 +493,7 @@ const InputElement: React.FC<InputElementProps> = ({
   max,
   min,
   rightElement,
-  ...inputProps
+  w,
 }) => {
   const [v, setV] = useState<string | number>(value);
   useEffect(() => {
@@ -419,7 +512,7 @@ const InputElement: React.FC<InputElementProps> = ({
         min={min}
         step={1}
         role="group"
-        w="100px"
+        width={w ?? "100px"}
         value={v}
         // if you backspace the value then click out, this resets the value to the current value
         onBlur={() => {
@@ -440,12 +533,12 @@ const InputElement: React.FC<InputElementProps> = ({
           }
         }}
         className="peer"
-        // {...inputProps}
+        pos="relative"
       >
         <NumberInputField bg="white" id={inputId} />
         <InputRightElement
           pos="absolute"
-          right={10}
+          right={"40%"}
           w="8px"
           color="neutrals.500"
           userSelect="none"
