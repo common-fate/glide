@@ -24,6 +24,9 @@ var addCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
+
+		DeprecatedWarn(c)
+
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)
 		if err != nil {

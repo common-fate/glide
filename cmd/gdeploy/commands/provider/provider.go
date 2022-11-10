@@ -1,6 +1,10 @@
 package provider
 
-import "github.com/urfave/cli/v2"
+import (
+	"github.com/common-fate/clio"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/urfave/cli/v2"
+)
 
 var Command = cli.Command{
 	Name:        "providers",
@@ -10,5 +14,35 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&addCommand, &removeCommand, &updateCommand,
 	},
-	Action: cli.ShowSubcommandHelp,
+	Action: cli.ActionFunc(func(ctx *cli.Context) error {
+		cli.ShowSubcommandHelp(ctx)
+		DeprecatedWarn(ctx)
+		return nil
+	}),
+}
+
+func DeprecatedWarn(c *cli.Context) error {
+	// add a deprecated warning here
+	clio.Warn("Warning: this command is deprecated and no longer supported")
+	clio.Warn("Providers can now be setup using the deployed frontend found below:")
+
+	// attempt to fetch the CloudFrontDomain from the context
+	// if it's not there, then we can't do anything
+	ctx := c.Context
+	dc, err := deploy.ConfigFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	o, err := dc.LoadOutput(ctx)
+	if err != nil {
+		return err
+	}
+	// If we do find it, then we can prompt the user
+	feDomain := o.FrontendDomainOutput
+	if feDomain != "" {
+		url := "https://" + feDomain + "/admin/providers/setup"
+		clio.Warn("Docs: https://docs.commonfate.io/granted-approvals/providers/access-providers")
+		clio.Warn("Provider Setup Page: " + url)
+	}
+	return nil
 }
