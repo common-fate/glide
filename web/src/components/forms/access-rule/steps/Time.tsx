@@ -1,6 +1,7 @@
 import { FormControl, FormLabel, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import { durationString } from "../../../../utils/durationString";
 import {
   Days,
   DurationInput,
@@ -15,7 +16,7 @@ import { FormStep } from "./FormStep";
 export const TimeStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const time = methods.watch("timeConstraints");
-  const maxDurationSeconds = 24 * 3600;
+  const maxDurationSeconds = 6 * 4 * 7 * 24 * 3600; // 6 months in seconds
 
   return (
     <FormStep
@@ -25,13 +26,8 @@ export const TimeStep: React.FC = () => {
       preview={
         <VStack width={"100%"} align="flex-start">
           <Text textStyle={"Body/Medium"} color="neutrals.600">
-            Max duration: {/* @TODO turn me into a date-fn format */}
-            {time?.maxDurationSeconds
-              ? Math.floor(time.maxDurationSeconds / 60 / 60) +
-                " hours " +
-                ((time.maxDurationSeconds / 60) % 60) +
-                " minutes"
-              : ""}
+            Max duration:{"  "}
+            {time && durationString(time?.maxDurationSeconds)}
           </Text>
         </VStack>
       }
@@ -48,8 +44,7 @@ export const TimeStep: React.FC = () => {
           control={methods.control}
           rules={{
             required: "Duration is required.",
-            // 6 months in seconds
-            max: true ? 6 * 4 * 7 * 24 * 3600 : maxDurationSeconds,
+            max: maxDurationSeconds,
             min: 60,
           }}
           name="timeConstraints.maxDurationSeconds"
@@ -58,9 +53,7 @@ export const TimeStep: React.FC = () => {
               <>
                 <DurationInput
                   {...rest}
-                  // @TODO: UNDO ME
-                  // max={maxDurationSeconds}
-                  max={6 * 4 * 7 * 24 * 3600}
+                  max={maxDurationSeconds}
                   min={60}
                   defaultValue={3600}
                 >
@@ -69,10 +62,6 @@ export const TimeStep: React.FC = () => {
                   <Hours />
                   <Minutes />
                 </DurationInput>
-                <br />
-                curr: {rest.value}
-                <br />
-                max: {6 * 4 * 7 * 24 * 3600}
               </>
             );
           }}

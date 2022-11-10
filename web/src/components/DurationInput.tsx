@@ -78,6 +78,8 @@ const minMinutesFn = (duration: number, minDurationSeconds: number) =>
 
 usage example 
   <DurationInput>
+    <Weeks />
+    <Days />
     <Hour>
     <Minute>
     <Text>

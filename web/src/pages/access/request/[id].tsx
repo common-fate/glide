@@ -520,8 +520,6 @@ const AccessRequestForm = () => {
                             max={rule?.timeConstraints.maxDurationSeconds}
                             min={60}
                           >
-                            {/* {maxDurationSeconds > 3600 * 24 * 31 && <Months />}
-                             */}
                             {rule &&
                               rule.timeConstraints.maxDurationSeconds >
                                 3600 * 24 * 7 && <Weeks />}
