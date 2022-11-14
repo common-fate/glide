@@ -60,7 +60,7 @@ const one: ThemeOverride = {
       },
       variants: {
         // this adds the default border style (::before is needed)
-        withBorder: (props) => ({
+        withBorder: (props: StyleFunctionProps) => ({
           container: {
             "pos": "relative",
             "&::after": {
