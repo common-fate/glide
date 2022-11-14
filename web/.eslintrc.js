@@ -25,6 +25,9 @@ module.exports = {
     "vite.config.ts",
     "tests/**",
     "**/client.d.ts",
+    "*.spec.tsx",
+    "playwright-ct.config.ts",
+    "playwright/**"
   ],
   plugins: ["@typescript-eslint"],
   rules: {

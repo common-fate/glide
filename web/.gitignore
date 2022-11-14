@@ -61,3 +61,6 @@ amplifytools.xcconfig
 utils/aws-exports.js
 # Sentry
 .sentryclirc
+/test-results/
+/playwright-report/
+/playwright/.cache/
