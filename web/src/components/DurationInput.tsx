@@ -9,7 +9,13 @@ import {
   NumberInputProps,
   NumberInputStepper,
 } from "@chakra-ui/react";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 interface DurationInputProps {
   onChange: (n: number) => void;
@@ -125,27 +131,25 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     // The following effect updates the hours and minutes values when the external value changes after a call to onChange
     // it supports having eitehr hours and minutes or just hours or just minutes components,
     // we prioritise the larger units (months, weeks, days, hours) and then the smaller units (minutes)
-    if (hasWeeks) {
-      setWeeks(Math.floor(value / WEEK));
-      if (hasDays) {
-        setDays(Math.floor((value % WEEK) / DAY));
-        if (hasHours) {
-          setHours(Math.floor(((value % WEEK) % DAY) / HOUR));
-        }
-        if (hasMinutes) {
-          setMinutes(Math.floor((((value % WEEK) % DAY) % HOUR) / MINUTE));
-        }
-      } else if (hasHours) {
-        setHours(Math.floor(value / HOUR));
-        if (hasMinutes) {
-          setMinutes(Math.floor((value % HOUR) / MINUTE));
-        } else {
-          setMinutes(0);
-        }
-      } else if (hasMinutes) {
-        setHours(0);
-        setMinutes(Math.floor(value / MINUTE));
+    setWeeks(Math.floor(value / WEEK));
+    if (hasDays) {
+      setDays(Math.floor((value % WEEK) / DAY));
+      if (hasHours) {
+        setHours(Math.floor(((value % WEEK) % DAY) / HOUR));
       }
+      if (hasMinutes) {
+        setMinutes(Math.floor((((value % WEEK) % DAY) % HOUR) / MINUTE));
+      }
+    } else if (hasHours) {
+      setHours(Math.floor(value / HOUR));
+      if (hasMinutes) {
+        setMinutes(Math.floor((value % HOUR) / MINUTE));
+      } else {
+        setMinutes(0);
+      }
+    } else if (hasMinutes) {
+      setHours(0);
+      setMinutes(Math.floor(value / MINUTE));
     }
   }, [value, hasHours, hasDays, hasWeeks]);
 
@@ -171,16 +175,6 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         const newTime = weeks * WEEK + days * DAY + v * HOUR + minutes * MINUTE;
         if (max && newTime > max) {
           onChange(max);
-          // onChange(
-          //   weeks * WEEK +
-          //     days * DAY +
-          //     v * HOUR +
-          //     Math.min(
-          //       Math.floor((max - (days * DAY + v * HOUR)) / MINUTE),
-          //       59
-          //     ) *
-          //       MINUTE
-          // );
         } else if (newTime < min) {
           onChange(
             weeks * WEEK +
@@ -189,7 +183,6 @@ export const DurationInput: React.FC<DurationInputProps> = ({
               minMinutesFn(newTime, min) * MINUTE
           );
         } else {
-          // onChange(weeks * WEEK + days * DAY + v * HOUR + minutes * MINUTE);
           onChange(newTime);
         }
 
@@ -201,12 +194,8 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         if (max && newTime > max) {
           onChange(max);
         } else if (newTime < min) {
-          // onChange(
-          //   weeks * WEEK + v * DAY + minMinutesFn(newTime, min) * MINUTE
-          // );
           onChange(min);
         } else {
-          // onChange(weeks * WEEK + v * DAY + hours * HOUR + minutes * MINUTE);
           onChange(newTime);
         }
         break;
@@ -252,37 +241,29 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     days: number,
     maxDurationSeconds?: number
   ) => {
-    if (hasHours) {
-      if (maxDurationSeconds == undefined) {
-        // if the hours component is available, but no max is set, then 59 minutes is the maximum
-        return 59;
-      } else {
-        // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
-        return maxDurationSeconds < HOUR
-          ? Math.floor(maxDurationSeconds / MINUTE)
-          : Math.min(
-              Math.floor(
-                (maxDurationSeconds -
-                  weeks * WEEK -
-                  days * DAY -
-                  hours * HOUR -
-                  days * DAY) /
-                  MINUTE
-              ),
-              59
-            );
-      }
-    } else if (maxDurationSeconds != undefined) {
-      // if there is no hours component, and max is defined, then get the minutes component of the max
-      return Math.floor(maxDurationSeconds / MINUTE);
+    if (maxDurationSeconds == undefined) {
+      // if the hours component is available, but no max is set, then 59 minutes is the maximum
+      return 59;
+    } else {
+      // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
+      return maxDurationSeconds < HOUR
+        ? Math.floor(maxDurationSeconds / MINUTE)
+        : Math.min(
+            Math.floor(
+              (maxDurationSeconds - weeks * WEEK - days * DAY - hours * HOUR) /
+                MINUTE
+            ),
+            59
+          );
     }
-    return undefined;
+    // return undefined;
   };
 
   // max constraints
-  const maxMinutes = hasMinutes
-    ? maxMinutesFn(hasHours, hours, days, max)
-    : undefined;
+  const maxMinutes = useMemo(
+    () => (hasMinutes ? maxMinutesFn(hasHours, hours, days, max) : undefined),
+    [hasHours, hours, days, minutes, max, hasMinutes]
+  );
 
   const maxHoursFn = (
     hasDays: boolean,
@@ -310,6 +291,7 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     }
     return undefined;
   };
+
   const maxDaysFn = (
     hasWeeks: boolean,
     days: number,
