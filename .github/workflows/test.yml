@@ -107,6 +107,10 @@ jobs:
       - name: Run Tests
         run: pnpm run -r test
 
+      - name: Run Component Tests
+        run: pnpm test-ct
+        working-directory: web
+
       - name: Build
         run: pnpm run build
         working-directory: web
