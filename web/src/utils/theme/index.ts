@@ -1,5 +1,10 @@
 // theme/index.js
-import { extendTheme, ThemeOverride, withDefaultProps } from "@chakra-ui/react";
+import {
+  extendTheme,
+  StyleFunctionProps,
+  ThemeOverride,
+  withDefaultProps,
+} from "@chakra-ui/react";
 import { colors } from "./colors";
 
 const progressBaseStyle = () => ({
@@ -177,7 +182,7 @@ const two: ThemeOverride = {
   components: {
     Button: {
       variants: {
-        brandPrimary: (props) => ({
+        brandPrimary: (props: StyleFunctionProps) => ({
           px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
           py: props.size == "sm" ? "10px" : "13px",
           color: "white",
@@ -199,7 +204,7 @@ const two: ThemeOverride = {
           },
           variant: "solid",
         }),
-        brandSecondary: (props) => ({
+        brandSecondary: (props: StyleFunctionProps) => ({
           px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
           py: props.size == "sm" ? "10px" : "13px",
           color: "neutrals.700",
@@ -226,7 +231,7 @@ const two: ThemeOverride = {
         secondary: {
           bg: "white",
         },
-        danger: (props) => ({
+        danger: (props: StyleFunctionProps) => ({
           px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
           py: props.size == "sm" ? "10px" : "13px",
           color: "white",
