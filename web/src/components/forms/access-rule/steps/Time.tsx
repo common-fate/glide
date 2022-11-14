@@ -7,7 +7,6 @@ import {
   DurationInput,
   Hours,
   Minutes,
-  Months,
   Weeks,
 } from "../../../DurationInput";
 import { AccessRuleFormData } from "../CreateForm";
@@ -16,7 +15,11 @@ import { FormStep } from "./FormStep";
 export const TimeStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const time = methods.watch("timeConstraints");
-  const maxDurationSeconds = 6 * 4 * 7 * 24 * 3600; // 6 months in seconds
+  const sixMonthsMaxInSeconds =
+    26 * // number of weeks in 6 months
+    7 * // number of days in a week
+    24 * // hours
+    3600; // seconds in an hour
 
   return (
     <FormStep
@@ -44,16 +47,17 @@ export const TimeStep: React.FC = () => {
           control={methods.control}
           rules={{
             required: "Duration is required.",
-            max: maxDurationSeconds,
+            max: sixMonthsMaxInSeconds,
             min: 60,
           }}
           name="timeConstraints.maxDurationSeconds"
           render={({ field: { ref, ...rest } }) => {
+            console.log(sixMonthsMaxInSeconds, "maxDurationSeconds");
             return (
               <>
                 <DurationInput
                   {...rest}
-                  max={maxDurationSeconds}
+                  max={sixMonthsMaxInSeconds}
                   min={60}
                   defaultValue={3600}
                 >

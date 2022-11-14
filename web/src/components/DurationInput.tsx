@@ -29,23 +29,20 @@ interface DurationInputProps {
   children?: React.ReactNode;
 }
 
-type DurationInterval = "MINUTE" | "HOUR" | "DAY" | "WEEK" | "MONTH";
+type DurationInterval = "MINUTE" | "HOUR" | "DAY" | "WEEK";
 interface DurationInputContext {
   maxHours?: number;
   maxMinutes?: number;
   maxDays?: number;
   maxWeeks?: number;
-  maxMonths?: number;
   minHours: number;
   minMinutes: number;
   minDays: number;
   minWeeks: number;
-  minMonths: number;
   minutes: number;
   hours: number;
   days: number;
   weeks: number;
-  months: number;
   setValue: (d: DurationInterval, v: number) => void;
   // Register should be called once on mount of the child duration intervals hours or minutes etc
   register: (d: DurationInterval) => void;
@@ -62,18 +59,15 @@ const Context = createContext<DurationInputContext>({
   minHours: 0,
   minDays: 0,
   minWeeks: 0,
-  minMonths: 0,
   hours: 0,
   minutes: 0,
   days: 0,
   weeks: 0,
-  months: 0,
 });
 const MINUTE = 60;
 const HOUR = 3600;
 const DAY = 86400;
 const WEEK = 7 * DAY;
-const MONTH = 30 * DAY;
 
 const minMinutesFn = (duration: number, minDurationSeconds: number) =>
   duration < HOUR ? Math.floor((minDurationSeconds % HOUR) / MINUTE) : 0;
@@ -111,14 +105,12 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const [hours, setHours] = useState<number>(Math.floor(value / HOUR));
   const [days, setDays] = useState<number>(Math.floor(value / DAY));
   const [weeks, setWeeks] = useState<number>(Math.floor(value / WEEK));
-  const [months, setMonths] = useState<number>(Math.floor(value / MONTH));
 
   // The children components can register which means you can use this duration input with hours, minutes or both
   const [hasMinutes, setHasMinutes] = useState(false);
   const [hasHours, setHasHours] = useState(false);
   const [hasDays, setHasDays] = useState(false);
   const [hasWeeks, setHasWeeks] = useState(false);
-  const [hasMonths, setHasMonths] = useState(false);
 
   // on first load, if v is undefined, call onChange with the default value to update the form
   useEffect(() => {
@@ -161,7 +153,6 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     switch (d) {
       case "MINUTE": {
         const newTime = weeks * WEEK + days * DAY + hours * HOUR + v * MINUTE;
-        // should also do min/max handling  here.....
         if (max && newTime > max) {
           onChange(max);
         } else if (min && newTime < min) {
@@ -228,9 +219,6 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         break;
       case "WEEK":
         setHasWeeks(true);
-        break;
-      case "MONTH":
-        setHasMonths(true);
         break;
     }
   };
@@ -319,14 +307,12 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   const maxDays = hasDays ? maxDaysFn(hasWeeks, days, max) : undefined;
   const maxWeeks =
     hasWeeks && max != undefined ? Math.floor(max / WEEK) : undefined;
-  const maxMonths =
-    hasMonths && max != undefined ? Math.floor(max / MONTH) : undefined;
   // min constraints
   const minMinutes = minMinutesFn(value, min);
   const minHours = value < DAY ? Math.floor((min % DAY) / HOUR) : 0;
   const minDays = value < WEEK ? Math.floor((min % WEEK) / DAY) : 0;
   const minWeeks = Math.floor(min / WEEK);
-  const minMonths = 0;
+
   return (
     <Context.Provider
       value={{
@@ -336,42 +322,18 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         minHours,
         minDays,
         minWeeks,
-        minMonths,
         maxMinutes,
         maxHours,
         maxDays,
         maxWeeks,
-        maxMonths,
         minutes,
         hours,
         days,
         weeks,
-        months,
       }}
     >
       <HStack>{children}</HStack>
     </Context.Provider>
-  );
-};
-
-export const Months: React.FC = () => {
-  const { maxMonths, minMonths, months, setValue, register } = useContext(
-    Context
-  );
-  const [defaultValue] = useState(months);
-  useEffect(() => {
-    register("MONTH");
-  });
-  return (
-    <InputElement
-      inputId="month-duration-input"
-      defaultValue={defaultValue}
-      onChange={(n: number) => setValue("MONTH", n)}
-      value={months}
-      min={minMonths}
-      max={maxMonths}
-      rightElement="months"
-    />
   );
 };
 

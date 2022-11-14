@@ -131,6 +131,7 @@ test("duration with max of 3weeks, 3days, 2hours, 1min works as expected", async
 });
 
 test("actions work as expected", async ({ mount }) => {
+  // FYI: this is a quirk where React.useState will not import correctly, using let instead
   let val = time;
   const component = await mount(
     <DurationInput
