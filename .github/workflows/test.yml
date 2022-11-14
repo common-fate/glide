@@ -107,13 +107,48 @@ jobs:
       - name: Run Tests
         run: pnpm run -r test
 
+      - name: Build
+        run: pnpm run build
+        working-directory: web
+
+  playwright-component-tests:
+    needs: [deploy]
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+      - uses: actions/checkout@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: cache-playwright
+      - name: Install Deps
+        run: pnpm i
+        working-directory: web
+      - name: Install Playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm run e2e-install
+        working-directory: web
       - name: Run Component Tests
         run: pnpm test-ct
         working-directory: web
 
-      - name: Build
-        run: pnpm run build
-        working-directory: web
+      # - uses: actions/upload-artifact@v3
+      #   if: failure()
+      #   with:
+      #     name: playwright-traces
+      #     path: web/test-results/
+
   test-accesshandler:
     name: Test Access Handler
     runs-on: ubuntu-latest
