@@ -14,16 +14,11 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&addCommand, &removeCommand, &updateCommand,
 	},
-	Action: cli.ActionFunc(func(ctx *cli.Context) error {
-		cli.ShowSubcommandHelp(ctx)
-		DeprecatedWarn(ctx)
-		return nil
-	}),
 }
 
 func DeprecatedWarn(c *cli.Context) error {
 	// add a deprecated warning here
-	clio.Warn("Warning: this command is deprecated and no longer supported")
+	clio.Warn("Warning: Configuring access providers via gdeploy has been deprecated in favour of an interactive setup flow in your admin dashboard. Head there now get started setting up your provider.")
 	clio.Warn("Providers can now be setup using the deployed frontend found below:")
 
 	// attempt to fetch the CloudFrontDomain from the context
