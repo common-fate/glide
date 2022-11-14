@@ -323,13 +323,9 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     hasMonths && max != undefined ? Math.floor(max / MONTH) : undefined;
   // min constraints
   const minMinutes = minMinutesFn(value, min);
-  const minHours = hasMinutes
-    ? Math.floor(min / HOUR)
-    : min < HOUR
-    ? 1
-    : Math.floor(min / HOUR);
-  const minDays = 0;
-  const minWeeks = 0;
+  const minHours = value < DAY ? Math.floor((min % DAY) / HOUR) : 0;
+  const minDays = value < WEEK ? Math.floor((min % WEEK) / DAY) : 0;
+  const minWeeks = Math.floor(min / WEEK);
   const minMonths = 0;
   return (
     <Context.Provider
@@ -490,7 +486,6 @@ const InputElement: React.FC<InputElementProps> = ({
       <NumberInput
         // variant="reveal"
         precision={0}
-        id="minute-duration-input"
         defaultValue={defaultValue}
         max={max}
         min={min}
