@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/experimental-ct-react";
-import * as React from "react";
+import React, { useState } from "react";
 import { Days, DurationInput, Hours, Minutes, Weeks } from "./DurationInput";
 
 test("minutes renders", async ({ mount }) => {
@@ -131,13 +131,16 @@ test("duration with max of 3weeks, 3days, 2hours, 1min works as expected", async
 });
 
 test("actions work as expected", async ({ mount }) => {
+  let val = time;
   const component = await mount(
     <DurationInput
       min={60}
       max={time}
-      defaultValue={time}
-      value={time}
-      onChange={(v) => {}}
+      defaultValue={val}
+      value={val}
+      onChange={(v) => {
+        val = v;
+      }}
     >
       <Weeks />
       <Days />
@@ -195,4 +198,6 @@ test("actions work as expected", async ({ mount }) => {
   await expect(component.locator("#day-duration-input")).toHaveValue("3");
   await expect(component.locator("#hour-duration-input")).toHaveValue("2");
   await expect(component.locator("#minute-duration-input")).toHaveValue("1");
+  // Now test the resulting value in seconds to match the initial time input
+  await expect(val).toBe(time);
 });
