@@ -110,10 +110,7 @@ jobs:
       - name: Build
         run: pnpm run build
         working-directory: web
-
   playwright-component-tests:
-    needs: [deploy]
-    timeout-minutes: 10
     runs-on: ubuntu-latest
       - uses: actions/checkout@v2
       - name: Setup pnpm
@@ -142,13 +139,6 @@ jobs:
       - name: Run Component Tests
         run: pnpm test-ct
         working-directory: web
-
-      # - uses: actions/upload-artifact@v3
-      #   if: failure()
-      #   with:
-      #     name: playwright-traces
-      #     path: web/test-results/
-
   test-accesshandler:
     name: Test Access Handler
     runs-on: ubuntu-latest
