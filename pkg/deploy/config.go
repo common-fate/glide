@@ -587,6 +587,12 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 							"uniqueId": ksuid.New().String(),
 						},
 					},
+					"testgroups": {
+						Uses: "commonfate/testgroups@v1",
+						With: map[string]string{
+							"groups": "a,b,c,d,e,f,g",
+						},
+					},
 				},
 			},
 		},
