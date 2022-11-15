@@ -43,6 +43,18 @@ export const registeredProviders: RegisteredProvider[] = [
     shortType: "testvault",
     name: "TestVault",
   },
+  {
+    type: "commonfate/shell",
+    shortType: "shell",
+    name: "Shell",
+    alpha: true,
+  },
+  {
+    type: "commonfate/actions",
+    shortType: "actions",
+    name: "Actions",
+    alpha: true,
+  },
 ];
 
 /**
