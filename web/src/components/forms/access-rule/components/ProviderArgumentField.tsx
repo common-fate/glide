@@ -208,6 +208,8 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
     argumentGroups,
     multiSelects,
     watch: watch(),
+    argument,
+    argOptions,
   });
 
   return (

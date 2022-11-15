@@ -13,6 +13,7 @@ import (
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testgroups"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-version"
@@ -87,6 +88,14 @@ func Registry() ProviderRegistry {
 					Description: "TestVault - a provider for testing out Granted Approvals",
 				},
 			},
+			"commonfate/testgroups": {
+				"v1": {
+					Provider:    &testgroups.Provider{},
+					DefaultID:   "testgroups",
+					Description: "TestGroups - a provider for integration testing Granted Approvals",
+					Hidden:      true,
+				},
+			},
 		},
 	}
 }
@@ -158,10 +167,13 @@ func ParseUses(uses string) (providerType string, version string, err error) {
 func (r ProviderRegistry) CLIOptions() []string {
 	var opts []string
 	for k, v := range r.All() {
-		grey := color.New(color.FgHiBlack).SprintFunc()
-		id := "(" + k + ")"
-		opt := fmt.Sprintf("%s %s", v.Description, grey(id))
-		opts = append(opts, opt)
+		if !v.Hidden {
+			grey := color.New(color.FgHiBlack).SprintFunc()
+			id := "(" + k + ")"
+			opt := fmt.Sprintf("%s %s", v.Description, grey(id))
+			opts = append(opts, opt)
+		}
+
 	}
 	sort.Strings(opts)
 	return opts
@@ -192,4 +204,6 @@ type RegisteredProvider struct {
 	Provider    providers.Accessor
 	DefaultID   string
 	Description string
+	// Hidden providers can be used in testing but should be hidden from cli and setup docs
+	Hidden bool
 }
