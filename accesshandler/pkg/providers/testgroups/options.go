@@ -12,7 +12,7 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 	switch arg {
 	case "group":
 		var opts types.ArgOptionsResponse
-		for _, g := range p.Groups {
+		for _, g := range p.groups {
 			opts.Options = append(opts.Options, types.Option{
 				Label: g, Value: g,
 			})
@@ -22,7 +22,7 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 			AdditionalProperties: make(map[string][]types.GroupOption),
 		}
 		opts.Groups.AdditionalProperties["category"] = []types.GroupOption{
-			{Label: "all", Children: p.Groups, Description: &description, Value: "all"},
+			{Label: "all", Children: p.groups, Description: &description, Value: "all"},
 		}
 
 		return &opts, nil
@@ -34,7 +34,7 @@ func (p *Provider) ArgOptionGroupValues(ctx context.Context, argId string, group
 	case "group":
 		switch groupID {
 		case "category":
-			return p.Groups, nil
+			return p.groups, nil
 		default:
 			return nil, &providers.InvalidGroupIDError{GroupID: groupID}
 		}

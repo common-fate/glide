@@ -13,7 +13,7 @@ func (p *Provider) Validate(ctx context.Context, subject string, args []byte) er
 		return err
 	}
 
-	foundGroup := stringContains(p.Groups, a.Group)
+	foundGroup := stringContains(p.groups, a.Group)
 
 	if !foundGroup {
 		return &GroupNotFoundError{Group: a.Group}

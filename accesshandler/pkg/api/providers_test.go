@@ -181,9 +181,8 @@ func TestListProviderArgOptions(t *testing.T) {
 	invalidArgErr := &providers.InvalidArgumentError{Arg: "notexist"}
 
 	options := []types.Option{{Label: "group1", Value: "group1"}}
-	tg := &testgroups.Provider{
-		Groups: []string{"group1"},
-	}
+	tg := &testgroups.Provider{}
+	tg.SetGroups([]string{"group1"})
 	config.ConfigureTestProviders([]config.Provider{
 		{
 			ID:       "test",

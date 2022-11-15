@@ -9,9 +9,15 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 )
 
+// Provider TestGroups is a provider designed for integration testing only
 type Provider struct {
-	Groups []string `json:"groups"`
+	groups []string
 	g      gconfig.StringValue
+}
+
+// SetGroups is a convenient method to setup the provider for testing without using gconfig
+func (p *Provider) SetGroups(groups []string) {
+	p.groups = groups
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -20,7 +26,7 @@ func (p *Provider) Config() gconfig.Config {
 	}
 }
 func (p *Provider) Init(ctx context.Context) error {
-	p.Groups = strings.Split(p.g.Get(), ",")
+	p.groups = strings.Split(p.g.Get(), ",")
 	return nil
 }
 func (p *Provider) ArgSchema() providers.ArgSchema {
