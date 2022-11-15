@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/action"
 	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
 	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
@@ -93,6 +94,13 @@ func Registry() ProviderRegistry {
 					Provider:    &shell.Provider{},
 					DefaultID:   "shell",
 					Description: "Web-based shell access",
+				},
+			},
+			"commonfate/action": {
+				"v1-alpha1": {
+					Provider:    &action.Provider{},
+					DefaultID:   "action",
+					Description: "Trigger actions in your services",
 				},
 			},
 		},
