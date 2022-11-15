@@ -238,9 +238,35 @@ type HealthResponse struct {
 	Health *ProviderHealth `json:"health,omitempty"`
 }
 
+// OperationResponse defines model for OperationResponse.
+type OperationResponse struct {
+	Data map[string]interface{} `json:"data"`
+}
+
 // ValidateResponse defines model for ValidateResponse.
 type ValidateResponse struct {
 	Validations []ProviderConfigValidation `json:"validations"`
+}
+
+// OperationRequest defines model for OperationRequest.
+type OperationRequest struct {
+	// The ID of the operation to execute.
+	Operation string `json:"operation"`
+
+	// Operation-specific arguments.
+	OperationArgs *map[string]any `json:"operationArgs,omitempty"`
+
+	// The ID of the provider to grant access to.
+	Provider string `json:"provider"`
+
+	// The Access Request ID.
+	RequestId string `json:"requestId"`
+
+	// The email address of the user to grant access to.
+	Subject openapi_types.Email `json:"subject"`
+
+	// Provider-specific grant data. Must match the provider's schema.
+	With map[string]string `json:"with"`
 }
 
 // ValidateRequest defines model for ValidateRequest.
@@ -281,6 +307,9 @@ type PostGrantsJSONRequestBody = PostGrantsJSONBody
 
 // ValidateGrantJSONRequestBody defines body for ValidateGrant for application/json ContentType.
 type ValidateGrantJSONRequestBody = ValidateGrantJSONBody
+
+// CallOperationJSONRequestBody defines body for CallOperation for application/json ContentType.
+type CallOperationJSONRequestBody OperationRequest
 
 // PostGrantsRevokeJSONRequestBody defines body for PostGrantsRevoke for application/json ContentType.
 type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
@@ -639,6 +668,11 @@ type ClientInterface interface {
 
 	ValidateGrant(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// CallOperation request with any body
+	CallOperationWithBody(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CallOperation(ctx context.Context, grantId string, body CallOperationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PostGrantsRevoke request with any body
 	PostGrantsRevokeWithBody(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -721,6 +755,30 @@ func (c *Client) ValidateGrantWithBody(ctx context.Context, contentType string, 
 
 func (c *Client) ValidateGrant(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewValidateGrantRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CallOperationWithBody(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCallOperationRequestWithBody(c.Server, grantId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CallOperation(ctx context.Context, grantId string, body CallOperationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCallOperationRequest(c.Server, grantId, body)
 	if err != nil {
 		return nil, err
 	}
@@ -951,6 +1009,53 @@ func NewValidateGrantRequestWithBody(server string, contentType string, body io.
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/grants/validate")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCallOperationRequest calls the generic CallOperation builder with application/json body
+func NewCallOperationRequest(server string, grantId string, body CallOperationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCallOperationRequestWithBody(server, grantId, "application/json", bodyReader)
+}
+
+// NewCallOperationRequestWithBody generates requests for CallOperation with any type of body
+func NewCallOperationRequestWithBody(server string, grantId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "grantId", runtime.ParamLocationPath, grantId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/grants/%s/operation", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1377,6 +1482,11 @@ type ClientWithResponsesInterface interface {
 
 	ValidateGrantWithResponse(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*ValidateGrantResponse, error)
 
+	// CallOperation request with any body
+	CallOperationWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallOperationResponse, error)
+
+	CallOperationWithResponse(ctx context.Context, grantId string, body CallOperationJSONRequestBody, reqEditors ...RequestEditorFn) (*CallOperationResponse, error)
+
 	// PostGrantsRevoke request with any body
 	PostGrantsRevokeWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error)
 
@@ -1488,6 +1598,33 @@ func (r ValidateGrantResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ValidateGrantResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CallOperationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	JSON400 *struct {
+		Error *string `json:"error,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r CallOperationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CallOperationResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1786,6 +1923,23 @@ func (c *ClientWithResponses) ValidateGrantWithResponse(ctx context.Context, bod
 	return ParseValidateGrantResponse(rsp)
 }
 
+// CallOperationWithBodyWithResponse request with arbitrary body returning *CallOperationResponse
+func (c *ClientWithResponses) CallOperationWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CallOperationResponse, error) {
+	rsp, err := c.CallOperationWithBody(ctx, grantId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCallOperationResponse(rsp)
+}
+
+func (c *ClientWithResponses) CallOperationWithResponse(ctx context.Context, grantId string, body CallOperationJSONRequestBody, reqEditors ...RequestEditorFn) (*CallOperationResponse, error) {
+	rsp, err := c.CallOperation(ctx, grantId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCallOperationResponse(rsp)
+}
+
 // PostGrantsRevokeWithBodyWithResponse request with arbitrary body returning *PostGrantsRevokeResponse
 func (c *ClientWithResponses) PostGrantsRevokeWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error) {
 	rsp, err := c.PostGrantsRevokeWithBody(ctx, grantId, contentType, body, reqEditors...)
@@ -1998,6 +2152,43 @@ func ParseValidateGrantResponse(rsp *http.Response) (*ValidateGrantResponse, err
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCallOperationResponse parses an HTTP response from a CallOperationWithResponse call
+func ParseCallOperationResponse(rsp *http.Response) (*CallOperationResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CallOperationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Data map[string]interface{} `json:"data"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	}
 
@@ -2378,6 +2569,9 @@ type ServerInterface interface {
 	// ValidateGrant
 	// (POST /api/v1/grants/validate)
 	ValidateGrant(w http.ResponseWriter, r *http.Request)
+	// Call an RPC operation
+	// (POST /api/v1/grants/{grantId}/operation)
+	CallOperation(w http.ResponseWriter, r *http.Request, grantId string)
 	// Revoke grant
 	// (POST /api/v1/grants/{grantId}/revoke)
 	PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId string)
@@ -2452,6 +2646,32 @@ func (siw *ServerInterfaceWrapper) ValidateGrant(w http.ResponseWriter, r *http.
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ValidateGrant(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// CallOperation operation middleware
+func (siw *ServerInterfaceWrapper) CallOperation(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "grantId" -------------
+	var grantId string
+
+	err = runtime.BindStyledParameter("simple", false, "grantId", chi.URLParam(r, "grantId"), &grantId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "grantId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CallOperation(w, r, grantId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2828,6 +3048,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/grants/validate", wrapper.ValidateGrant)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/grants/{grantId}/operation", wrapper.CallOperation)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/grants/{grantId}/revoke", wrapper.PostGrantsRevoke)
 	})
 	r.Group(func(r chi.Router) {
@@ -2861,56 +3084,60 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

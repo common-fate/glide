@@ -113,6 +113,24 @@ paths:
         in: path
         required: true
         description: The grant ID
+  "/api/v1/grants/{grantId}/operation":
+    parameters:
+      - schema:
+          type: string
+        name: grantId
+        in: path
+        required: true
+    post:
+      summary: Call an RPC operation
+      operationId: call-operation
+      responses:
+        "200":
+          $ref: "#/components/responses/OperationResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+      description: "RPC operations are specific to particular Access Providers, and can only be called when an Access Request is active."
+      requestBody:
+        $ref: "#/components/requestBodies/OperationRequest"
   /api/v1/providers:
     get:
       summary: List providers
@@ -614,6 +632,46 @@ components:
             required:
               - uses
               - with
+    OperationRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              subject:
+                type: string
+                minLength: 1
+                description: The email address of the user to grant access to.
+                format: email
+              provider:
+                type: string
+                minLength: 1
+                description: The ID of the provider to grant access to.
+                example: okta
+              with:
+                type: object
+                x-go-type: "map[string]string"
+                additionalProperties:
+                  type: string
+                description: Provider-specific grant data. Must match the provider's schema.
+              operation:
+                type: string
+                description: The ID of the operation to execute.
+              operationArgs:
+                type: object
+                x-go-type: "map[string]any"
+                additionalProperties:
+                  type: string
+                description: Operation-specific arguments.
+              requestId:
+                type: string
+                description: The Access Request ID.
+            required:
+              - subject
+              - provider
+              - with
+              - operation
+              - requestId
   responses:
     HealthResponse:
       description: Healthcheck response body.
@@ -646,6 +704,22 @@ components:
                 $ref: "#/components/schemas/Grant"
             required:
               - grant
+    OperationResponse:
+      description: |-
+        A response from an operation RPC call on an Access Provider.
+
+        Operations can only be called when an Access Request is active.
+
+        If the operation fails an error response is returned.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+            required:
+              - data
     ArgOptionsResponse:
       description: Options for an Grant argument.
       content:

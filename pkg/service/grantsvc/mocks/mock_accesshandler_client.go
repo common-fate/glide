@@ -36,6 +36,46 @@ func (m *MockAHClient) EXPECT() *MockAHClientMockRecorder {
 	return m.recorder
 }
 
+// CallOperationWithBodyWithResponse mocks base method.
+func (m *MockAHClient) CallOperationWithBodyWithResponse(arg0 context.Context, arg1, arg2 string, arg3 io.Reader, arg4 ...types.RequestEditorFn) (*types.CallOperationResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2, arg3}
+	for _, a := range arg4 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CallOperationWithBodyWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.CallOperationResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CallOperationWithBodyWithResponse indicates an expected call of CallOperationWithBodyWithResponse.
+func (mr *MockAHClientMockRecorder) CallOperationWithBodyWithResponse(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallOperationWithBodyWithResponse", reflect.TypeOf((*MockAHClient)(nil).CallOperationWithBodyWithResponse), varargs...)
+}
+
+// CallOperationWithResponse mocks base method.
+func (m *MockAHClient) CallOperationWithResponse(arg0 context.Context, arg1 string, arg2 types.CallOperationJSONRequestBody, arg3 ...types.RequestEditorFn) (*types.CallOperationResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CallOperationWithResponse", varargs...)
+	ret0, _ := ret[0].(*types.CallOperationResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CallOperationWithResponse indicates an expected call of CallOperationWithResponse.
+func (mr *MockAHClientMockRecorder) CallOperationWithResponse(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallOperationWithResponse", reflect.TypeOf((*MockAHClient)(nil).CallOperationWithResponse), varargs...)
+}
+
 // GetAccessInstructionsWithResponse mocks base method.
 func (m *MockAHClient) GetAccessInstructionsWithResponse(arg0 context.Context, arg1 string, arg2 *types.GetAccessInstructionsParams, arg3 ...types.RequestEditorFn) (*types.GetAccessInstructionsResponse, error) {
 	m.ctrl.T.Helper()

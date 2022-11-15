@@ -21,6 +21,8 @@ import type {
   CreateRequestRequestBody,
   RequestDetail,
   ListRequestEventsResponseResponse,
+  OperationResponseResponse,
+  OperationRequestBody,
   ReviewResponseResponse,
   ReviewRequestBody,
   CancelRequest200,
@@ -306,6 +308,24 @@ export const useListRequestEvents = <TError = ErrorType<ErrorResponseResponse>>(
     ...query
   }
 }
+
+/**
+ * RPC operations are specific to particular Access Providers, and can only be called when an Access Request is active.
+
+ * @summary Call an RPC operation associated with an Access Request
+ */
+export const callRequestOperation = (
+    requestId: string,
+    operationRequestBody: OperationRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<OperationResponseResponse>(
+      {url: `/api/v1/requests/${requestId}/operation`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: operationRequestBody
+    },
+      options);
+    }
+  
 
 /**
  * Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.

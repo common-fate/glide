@@ -72,6 +72,25 @@ type ArgOptioner interface {
 	Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error)
 }
 
+type OperationOpts struct {
+	Subject string
+	// GrantArgs are the arguments that the grant was created with.
+	GrantArgs []byte
+	GrantID   string
+	// OperationArgs are RPC arguments provided to the operation itself.
+	OperationArgs []byte
+}
+
+type Operation struct {
+	Execute func(ctx context.Context, opts OperationOpts) (map[string]interface{}, error)
+}
+
+// Operationer provide custom operations which are available when an Access Request is active.
+// They allow Access Providers to be extended with frontend UI elements.
+type Operationer interface {
+	Operations() map[string]Operation
+}
+
 // Instructioners provide instructions on how a user can access a role or
 // resource that we've granted access to
 type Instructioner interface {

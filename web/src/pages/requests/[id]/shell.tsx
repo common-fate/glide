@@ -10,12 +10,13 @@ import {
 import { Link, MakeGenerics, useMatch, useSearch } from "react-location";
 import { UserLayout } from "../../../components/Layout";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import useWebSocket from "react-use-websocket";
 import { Terminal } from "xterm";
-import "./xterm.css";
+import { callRequestOperation } from "../../../utils/backend-client/end-user/end-user";
 import { useUser } from "../../../utils/context/userContext";
+import "./xterm.css";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -45,27 +46,33 @@ const Home = () => {
   } = useMatch();
   const user = useUser();
   const search = useSearch<MyLocationGenerics>();
-  const { sendMessage, getWebSocket } = useWebSocket(
-    `ws://localhost:8702/requests/${requestId}/session`,
-    {
-      queryParams: {
-        user: user.user?.email ?? "",
-      },
-      onOpen: () => console.log("opened"),
-      //Will attempt to reconnect on all close events, such as server shutting down
-      shouldReconnect: (closeEvent) => true,
-      onMessage: (event) => {
-        const msg = JSON.parse(event.data) as Message;
-        if (msg.t === "session_updated") {
-          xtermRef.current?.writeln(`session is now ${msg.c.status}`);
-        }
-        if (msg.t === "tty_output") {
-          xtermRef.current?.writeln(msg.c.data);
-          xtermRef.current?.write("> ");
-        }
-      },
-    }
-  );
+  useEffect(() => {}, []);
+
+  const getSocketUrl = useCallback(() => {
+    return new Promise<string>(async (resolve) => {
+      const res = await callRequestOperation(requestId, {
+        operation: "get-socket",
+      });
+      const url = res.data.url as string;
+      resolve(url);
+    });
+  }, [requestId]);
+
+  const { sendMessage, getWebSocket } = useWebSocket(getSocketUrl, {
+    onOpen: () => console.log("opened"),
+    //Will attempt to reconnect on all close events, such as server shutting down
+    shouldReconnect: (closeEvent) => true,
+    onMessage: (event) => {
+      const msg = JSON.parse(event.data) as Message;
+      if (msg.t === "session_updated") {
+        xtermRef.current?.writeln(`session is now ${msg.c.status}`);
+      }
+      if (msg.t === "tty_output") {
+        xtermRef.current?.writeln(msg.c.data);
+        xtermRef.current?.write("> ");
+      }
+    },
+  });
 
   const ws = getWebSocket();
 
@@ -135,7 +142,7 @@ const Home = () => {
       });
       return () => token.dispose();
     }
-  }, [input, xtermRef.current]);
+  }, [input, xtermRef.current, xtermRef, ws]);
 
   return (
     <div>

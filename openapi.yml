@@ -204,6 +204,30 @@ paths:
       tags:
         - End User
       parameters: []
+  "/api/v1/requests/{requestId}/operation":
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    post:
+      summary: Call an RPC operation associated with an Access Request
+      responses:
+        "200":
+          $ref: "#/components/responses/OperationResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: call-request-operation
+      description: |
+        RPC operations are specific to particular Access Providers, and can only be called when an Access Request is active.
+      tags:
+        - End User
+      parameters: []
+      requestBody:
+        $ref: "#/components/requestBodies/OperationRequest"
   "/api/v1/requests/{requestId}/review":
     parameters:
       - schema:
@@ -1399,7 +1423,6 @@ components:
           type: string
         type:
           type: string
-
       required:
         - id
         - type
@@ -2099,6 +2122,22 @@ components:
                 description: 'The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.'
             required:
               - version
+    OperationResponse:
+      description: |-
+        A response from an operation RPC call on an Access Provider.
+
+        Operations can only be called when an Access Request is active.
+
+        If the operation fails an error response is returned.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+            required:
+              - data
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2263,6 +2302,22 @@ components:
                 maxLength: 2048
             required:
               - name
+    OperationRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              operation:
+                type: string
+                description: The ID of the operation to execute
+              args:
+                x-go-type: "map[string]any"
+                type: object
+                description: Arguments specific to the operation.
+            required:
+              - operation
+      description: An RPC request specific to an Access Provider. Operations are only available when an Access Request is active.
 tags:
   - name: End User
   - name: Admin
