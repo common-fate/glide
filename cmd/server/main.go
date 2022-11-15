@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
+	"os"
 
 	ahConfig "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
@@ -42,7 +44,20 @@ func run() error {
 	ctx := context.Background()
 	_ = godotenv.Load()
 
-	err := envconfig.Process(ctx, &cfg)
+	// override the PROVIDER_CONFIG env var with the contents from granted-deployment.yml.
+	// This saves having to round-trip a full cloud redeploy with `mage deploy:dev` just to
+	// update local env vars.
+	localDC, err := deploy.LoadConfig("granted-deployment.yml")
+	if err != nil {
+		return err
+	}
+	providerConf, err := json.Marshal(localDC.Deployment.Parameters.ProviderConfiguration)
+	if err != nil {
+		return err
+	}
+	os.Setenv("PROVIDER_CONFIG", string(providerConf))
+
+	err = envconfig.Process(ctx, &cfg)
 	if err != nil {
 		return err
 	}
