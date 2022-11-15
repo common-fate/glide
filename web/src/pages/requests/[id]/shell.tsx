@@ -15,6 +15,7 @@ import { Helmet } from "react-helmet";
 import useWebSocket from "react-use-websocket";
 import { Terminal } from "xterm";
 import "./xterm.css";
+import { useUser } from "../../../utils/context/userContext";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -22,21 +23,46 @@ type MyLocationGenerics = MakeGenerics<{
   };
 }>;
 
+interface TtyOutputMessage {
+  t: "tty_output";
+  c: {
+    data: string;
+  };
+}
+
+interface SessionUpdatedMessage {
+  t: "session_updated";
+  c: {
+    status: string;
+  };
+}
+
+type Message = TtyOutputMessage | SessionUpdatedMessage;
+
 const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
+  const user = useUser();
   const search = useSearch<MyLocationGenerics>();
   const { sendMessage, getWebSocket } = useWebSocket(
-    "ws://localhost:8765/admin",
+    `ws://localhost:8702/requests/${requestId}/session`,
     {
+      queryParams: {
+        user: user.user?.email ?? "",
+      },
       onOpen: () => console.log("opened"),
       //Will attempt to reconnect on all close events, such as server shutting down
       shouldReconnect: (closeEvent) => true,
       onMessage: (event) => {
-        console.log(event.data);
-        xtermRef.current?.writeln(event.data);
-        xtermRef.current?.write("> ");
+        const msg = JSON.parse(event.data) as Message;
+        if (msg.t === "session_updated") {
+          xtermRef.current?.writeln(`session is now ${msg.c.status}`);
+        }
+        if (msg.t === "tty_output") {
+          xtermRef.current?.writeln(msg.c.data);
+          xtermRef.current?.write("> ");
+        }
       },
     }
   );
@@ -59,7 +85,7 @@ const Home = () => {
           },
         });
         xtermRef.current.open(el);
-        xtermRef.current.write("> ");
+        xtermRef.current.writeln("opening a session...");
       } else {
         console.error("no xterm id found");
       }
@@ -74,7 +100,14 @@ const Home = () => {
       );
       xtermRef.current?.write("> ");
     } else {
-      sendMessage(inputToSend);
+      const command = {
+        t: "command",
+        c: {
+          command: inputToSend,
+        },
+      };
+      const commandString = JSON.stringify(command);
+      sendMessage(commandString);
       xtermRef.current?.writeln("");
     }
   };
@@ -83,7 +116,6 @@ const Home = () => {
     if (xtermRef.current) {
       const token = xtermRef.current.onData((data: string) => {
         const code = data.charCodeAt(0);
-        console.log({ data, xtermRef, input, code });
         // If the user hits empty and there is something typed echo it.
         if (code === 13 && input.length > 0) {
           handleMessage(input);
