@@ -1,8 +1,6 @@
 package provider
 
-import (
-	"github.com/urfave/cli/v2"
-)
+import "github.com/urfave/cli/v2"
 
 var Command = cli.Command{
 	Name:        "providers",
@@ -12,4 +10,5 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&addCommand, &removeCommand, &updateCommand,
 	},
+	Action: cli.ShowSubcommandHelp,
 }

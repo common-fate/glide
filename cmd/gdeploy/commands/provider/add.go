@@ -13,11 +13,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func PromoteInteractiveSetup(c *cli.Context) error {
-
-	return nil
-}
-
 var addCommand = cli.Command{
 	Name:        "add",
 	Description: "Add an access provider",
