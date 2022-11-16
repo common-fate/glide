@@ -135,7 +135,7 @@ jobs:
   #         state: "failure"
   #         deployment-id: ${{ steps.deployment.outputs.deployment_id }}
   playwright-tests:
-    needs: [deploy]
+    # needs: [deploy]
     timeout-minutes: 10
     runs-on: ubuntu-latest
     # if: github.event.deployment_status.state == 'success'
