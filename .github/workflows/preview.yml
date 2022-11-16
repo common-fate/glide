@@ -136,7 +136,7 @@ jobs:
   #         deployment-id: ${{ steps.deployment.outputs.deployment_id }}
   playwright-tests:
     # needs: [deploy]
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     # if: github.event.deployment_status.state == 'success'
     steps:
@@ -156,13 +156,13 @@ jobs:
         with:
           node-version: "16"
           cache: "pnpm"
-      # - name: Cache playwright binaries
-      #   uses: actions/cache@v2
-      #   id: playwright-cache
-      #   with:
-      #     path: |
-      #       ~/.cache/ms-playwright
-      #     key: cache-playwright
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: cache-playwright
       - name: Install Deps
         run: pnpm i
         working-directory: web
