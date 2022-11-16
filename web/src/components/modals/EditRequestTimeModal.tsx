@@ -105,9 +105,10 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                         max={maxDurationSeconds}
                         min={60}
                         defaultValue={request.timing.durationSeconds}
+                        hideUnusedElements
                       >
-                        {maxDurationSeconds >= 3600 * 24 * 7 && <Weeks />}
-                        {maxDurationSeconds >= 3600 * 24 && <Days />}
+                        <Weeks />
+                        <Days />
                         <Hours />
                         <Minutes />
                         {maxDurationSeconds !== undefined && (

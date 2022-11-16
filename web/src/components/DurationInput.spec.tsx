@@ -19,7 +19,9 @@ test("hours renders", async ({ mount }) => {
   );
   await expect(component).toContainText("hrs");
 });
-test("hours and minutes renders", async ({ mount }) => {
+test("all elements render when hideUnusedElements={false}", async ({
+  mount,
+}) => {
   const component = await mount(
     <DurationInput onChange={(v) => {}}>
       <Minutes />
@@ -33,7 +35,22 @@ test("hours and minutes renders", async ({ mount }) => {
   await expect(component).toContainText("days");
   await expect(component).toContainText("weeks");
 });
-
+test("only required elements render when hideUnusedElements={true}", async ({
+  mount,
+}) => {
+  const component = await mount(
+    <DurationInput onChange={(v) => {}} hideUnusedElements={true} max={HOUR}>
+      <Minutes />
+      <Hours />
+      <Days />
+      <Weeks />
+    </DurationInput>
+  );
+  await expect(component).toContainText("mins");
+  await expect(component).toContainText("hrs");
+  await expect(component).not.toContainText("days");
+  await expect(component).not.toContainText("weeks");
+});
 test("minutes increment decrement", async ({ mount }) => {
   const component = await mount(
     <DurationInput onChange={(v) => {}}>

@@ -519,13 +519,10 @@ const AccessRequestForm = () => {
                             {...rest}
                             max={rule?.timeConstraints.maxDurationSeconds}
                             min={60}
+                            hideUnusedElements
                           >
-                            {rule &&
-                              rule.timeConstraints.maxDurationSeconds >
-                                3600 * 24 * 7 && <Weeks />}
-                            {rule &&
-                              rule.timeConstraints.maxDurationSeconds >=
-                                3600 * 24 && <Days />}
+                            <Weeks />
+                            <Days />
                             <Hours />
                             <Minutes />
                             {

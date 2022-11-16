@@ -6,7 +6,6 @@ import {
   NumberIncrementStepper,
   NumberInput,
   NumberInputField,
-  NumberInputProps,
   NumberInputStepper,
 } from "@chakra-ui/react";
 import React, {
@@ -27,6 +26,8 @@ interface DurationInputProps {
   value?: number;
   defaultValue?: number;
   children?: React.ReactNode;
+  /** set this to true to omit rendering input elements which are outside the range of the max value */
+  hideUnusedElements?: boolean;
 }
 
 type DurationInterval = "MINUTE" | "HOUR" | "DAY" | "WEEK";
@@ -43,6 +44,14 @@ interface DurationInputContext {
   hours: number;
   days: number;
   weeks: number;
+  /** true if the component should render */
+  shouldRenderMinutesInput: boolean;
+  /** true if the component should render */
+  shouldRenderHoursInput: boolean;
+  /** true if the component should render */
+  shouldRenderDaysInput: boolean;
+  /** true if the component should render */
+  shouldRenderWeeksInput: boolean;
   setValue: (d: DurationInterval, v: number) => void;
   // Register should be called once on mount of the child duration intervals hours or minutes etc
   register: (d: DurationInterval) => void;
@@ -63,6 +72,10 @@ const Context = createContext<DurationInputContext>({
   minutes: 0,
   days: 0,
   weeks: 0,
+  shouldRenderWeeksInput: false,
+  shouldRenderDaysInput: false,
+  shouldRenderHoursInput: false,
+  shouldRenderMinutesInput: true,
 });
 const MINUTE = 60;
 const HOUR = 3600;
@@ -72,6 +85,83 @@ const WEEK = 7 * DAY;
 const minMinutesFn = (duration: number, minDurationSeconds: number) =>
   duration < HOUR ? Math.floor((minDurationSeconds % HOUR) / MINUTE) : 0;
 
+const maxMinutesFn = (
+  hasHours: boolean,
+  days: number,
+  hours: number,
+  weeks: number,
+  maxDurationSeconds?: number
+) => {
+  if (maxDurationSeconds == undefined) {
+    // if the hours component is available, but no max is set, then 59 minutes is the maximum
+    return 59;
+  } else {
+    // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
+    return maxDurationSeconds < HOUR
+      ? Math.floor(maxDurationSeconds / MINUTE)
+      : Math.min(
+          Math.floor(
+            (maxDurationSeconds - weeks * WEEK - days * DAY - hours * HOUR) /
+              MINUTE
+          ),
+          59
+        );
+  }
+  // return undefined;
+};
+
+// max constraints
+
+const maxHoursFn = (
+  hasDays: boolean,
+  days: number,
+  hours: number,
+  weeks: number,
+  maxDurationSeconds?: number
+) => {
+  if (hasDays) {
+    if (maxDurationSeconds == undefined) {
+      // if the hours component is available, but no max is set, then 23 hours is the maximum
+      return 23;
+    } else {
+      // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
+      return maxDurationSeconds < DAY
+        ? Math.floor(maxDurationSeconds / HOUR)
+        : Math.min(
+            Math.floor((maxDurationSeconds - weeks * WEEK - days * DAY) / HOUR),
+            23
+          );
+    }
+  } else if (maxDurationSeconds != undefined) {
+    // if there is no hours component, and max is defined, then get the minutes component of the max
+    return Math.floor(maxDurationSeconds / HOUR);
+  }
+  return undefined;
+};
+
+const maxDaysFn = (
+  hasWeeks: boolean,
+  days: number,
+  hours: number,
+  weeks: number,
+  maxDurationSeconds?: number
+) => {
+  if (hasWeeks) {
+    if (maxDurationSeconds == undefined) {
+      // if the hours component is available, but no max is set, then 23 hours is the maximum
+      return 6;
+    } else {
+      // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
+      return maxDurationSeconds < WEEK
+        ? Math.floor(maxDurationSeconds / DAY)
+        : Math.min(Math.floor((maxDurationSeconds - weeks * WEEK) / DAY), 7);
+    }
+  } else if (maxDurationSeconds != undefined) {
+    // if there is no hours component, and max is defined, then get the minutes component of the max
+    return Math.floor(maxDurationSeconds / DAY);
+  }
+  return undefined;
+};
 /*
   DurationInput is intended to be a composable duration input element, it can be used with either hour minute or both hours and minutes.
   In future we may wish to add Days as well.
@@ -95,6 +185,7 @@ export const DurationInput: React.FC<DurationInputProps> = ({
   defaultValue: dv,
   max,
   min: minv,
+  hideUnusedElements,
 }) => {
   const defaultValue = dv ?? minv ?? 0;
   const value = v ?? defaultValue;
@@ -223,90 +314,22 @@ export const DurationInput: React.FC<DurationInputProps> = ({
     }
   };
 
-  const maxMinutesFn = (
-    hasHours: boolean,
-    hours: number,
-    days: number,
-    maxDurationSeconds?: number
-  ) => {
-    if (maxDurationSeconds == undefined) {
-      // if the hours component is available, but no max is set, then 59 minutes is the maximum
-      return 59;
-    } else {
-      // if a max is set and the hours component available, then get the minimum of 59 or the remainder of minutes from (the max - the current value) after removing hours
-      return maxDurationSeconds < HOUR
-        ? Math.floor(maxDurationSeconds / MINUTE)
-        : Math.min(
-            Math.floor(
-              (maxDurationSeconds - weeks * WEEK - days * DAY - hours * HOUR) /
-                MINUTE
-            ),
-            59
-          );
-    }
-    // return undefined;
-  };
-
-  // max constraints
   const maxMinutes = useMemo(
-    () => (hasMinutes ? maxMinutesFn(hasHours, hours, days, max) : undefined),
-    [hasHours, hours, days, minutes, max, hasMinutes]
+    () =>
+      hasMinutes ? maxMinutesFn(hasHours, days, hours, weeks, max) : undefined,
+    [hasMinutes, hasHours, days, hours, weeks, minutes, max]
   );
-
-  const maxHoursFn = (
-    hasDays: boolean,
-    hours: number,
-    maxDurationSeconds?: number
-  ) => {
-    if (hasDays) {
-      if (maxDurationSeconds == undefined) {
-        // if the hours component is available, but no max is set, then 23 hours is the maximum
-        return 23;
-      } else {
-        // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
-        return maxDurationSeconds < DAY
-          ? Math.floor(maxDurationSeconds / HOUR)
-          : Math.min(
-              Math.floor(
-                (maxDurationSeconds - weeks * WEEK - days * DAY) / HOUR
-              ),
-              23
-            );
-      }
-    } else if (maxDurationSeconds != undefined) {
-      // if there is no hours component, and max is defined, then get the minutes component of the max
-      return Math.floor(maxDurationSeconds / HOUR);
-    }
-    return undefined;
-  };
-
-  const maxDaysFn = (
-    hasWeeks: boolean,
-    days: number,
-    maxDurationSeconds?: number
-  ) => {
-    if (hasWeeks) {
-      if (maxDurationSeconds == undefined) {
-        // if the hours component is available, but no max is set, then 23 hours is the maximum
-        return 6;
-      } else {
-        // if a max is set and the hours component available, then get the minimum of 23 or the remainder of hours from (the max - the current value) after removing days
-        return maxDurationSeconds < WEEK
-          ? Math.floor(maxDurationSeconds / DAY)
-          : Math.min(Math.floor((maxDurationSeconds - weeks * WEEK) / DAY), 7);
-      }
-    } else if (maxDurationSeconds != undefined) {
-      // if there is no hours component, and max is defined, then get the minutes component of the max
-      return Math.floor(maxDurationSeconds / DAY);
-    }
-    return undefined;
-  };
-
-  const maxHours = hasHours ? maxHoursFn(hasDays, hours, max) : undefined;
-  // todo: this should work, but we may want to be careful with handling cross over UX for incrementing superior units
-  const maxDays = hasDays ? maxDaysFn(hasWeeks, days, max) : undefined;
+  const maxHours = useMemo(
+    () => (hasHours ? maxHoursFn(hasDays, days, hours, weeks, max) : undefined),
+    [hasHours, hasDays, days, hours, weeks, minutes, max]
+  );
+  const maxDays = useMemo(
+    () => (hasDays ? maxDaysFn(hasWeeks, days, hours, weeks, max) : undefined),
+    [hasDays, hasWeeks, days, hours, weeks, max]
+  );
   const maxWeeks =
     hasWeeks && max != undefined ? Math.floor(max / WEEK) : undefined;
+
   // min constraints
   const minMinutes = minMinutesFn(value, min);
   const minHours = value < DAY ? Math.floor((min % DAY) / HOUR) : 0;
@@ -330,6 +353,16 @@ export const DurationInput: React.FC<DurationInputProps> = ({
         hours,
         days,
         weeks,
+        shouldRenderDaysInput: hideUnusedElements
+          ? !!(max && max >= DAY)
+          : true,
+        shouldRenderHoursInput: hideUnusedElements
+          ? !!(max && max >= HOUR)
+          : true,
+        shouldRenderMinutesInput: true,
+        shouldRenderWeeksInput: hideUnusedElements
+          ? !!(max && max >= WEEK)
+          : true,
       }}
     >
       <HStack>{children}</HStack>
@@ -338,11 +371,21 @@ export const DurationInput: React.FC<DurationInputProps> = ({
 };
 
 export const Weeks: React.FC = () => {
-  const { maxWeeks, minWeeks, weeks, setValue, register } = useContext(Context);
+  const {
+    maxWeeks,
+    minWeeks,
+    weeks,
+    setValue,
+    register,
+    shouldRenderWeeksInput,
+  } = useContext(Context);
   const [defaultValue] = useState(weeks);
   useEffect(() => {
-    register("WEEK");
-  });
+    shouldRenderWeeksInput && register("WEEK");
+  }, [shouldRenderWeeksInput]);
+  if (!shouldRenderWeeksInput) {
+    return null;
+  }
   return (
     <InputElement
       inputId="week-duration-input"
@@ -358,12 +401,22 @@ export const Weeks: React.FC = () => {
 };
 
 export const Days: React.FC = () => {
-  const { maxDays, minDays, days, setValue, register } = useContext(Context);
+  const {
+    maxDays,
+    minDays,
+    days,
+    setValue,
+    register,
+    shouldRenderDaysInput,
+  } = useContext(Context);
   const [defaultValue] = useState(days);
+
   useEffect(() => {
-    register("DAY");
-  });
-  console.log({ maxDays });
+    shouldRenderDaysInput && register("DAY");
+  }, [shouldRenderDaysInput]);
+  if (!shouldRenderDaysInput) {
+    return null;
+  }
   return (
     <InputElement
       inputId="day-duration-input"
@@ -378,11 +431,21 @@ export const Days: React.FC = () => {
   );
 };
 export const Hours: React.FC = () => {
-  const { maxHours, minHours, hours, setValue, register } = useContext(Context);
+  const {
+    maxHours,
+    minHours,
+    hours,
+    setValue,
+    register,
+    shouldRenderHoursInput,
+  } = useContext(Context);
   const [defaultValue] = useState(hours);
   useEffect(() => {
-    register("HOUR");
-  });
+    shouldRenderHoursInput && register("HOUR");
+  }, [shouldRenderHoursInput]);
+  if (!shouldRenderHoursInput) {
+    return null;
+  }
   return (
     <InputElement
       inputId="hour-duration-input"
