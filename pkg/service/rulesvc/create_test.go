@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/ddb/ddbmock"
 	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
@@ -17,6 +18,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,6 +67,9 @@ func TestCreateAccessRule(t *testing.T) {
 	cacheArgOptionsResponse := []cache.ProviderOption{}
 	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
 
+	mockRuleLongerThan6months := in
+	mockRuleLongerThan6months.TimeConstraints = types.TimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
+
 	/**
 	There are two test cases here:
 	- Create a valid rule
@@ -79,6 +84,16 @@ func TestCreateAccessRule(t *testing.T) {
 				Id:   in.Target.ProviderId,
 				Type: "okta",
 			},
+		},
+		{
+			name:        "max duration seconds > 6 months",
+			givenUserID: identity.User{ID: userID},
+			give:        mockRuleLongerThan6months,
+			withProviderResponse: ahTypes.Provider{
+				Id:   in.Target.ProviderId,
+				Type: "okta",
+			},
+			wantErr: apio.NewRequestError(errors.New("access rule cannot be longer than 6 months"), http.StatusBadRequest),
 		},
 	}
 
@@ -116,7 +131,9 @@ func TestCreateAccessRule(t *testing.T) {
 				got.Version = versionID
 			}
 
-			assert.Equal(t, tc.wantErr, err)
+			if err != nil {
+				assert.Equal(t, tc.wantErr.Error(), err.Error())
+			}
 			assert.Equal(t, tc.want, got)
 
 		})

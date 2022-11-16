@@ -1,6 +1,7 @@
 import { type PlaywrightTestConfig, devices } from '@playwright/test';
 // Read from default ".env" file.
 const config: PlaywrightTestConfig = {
+  testDir: "./tests",
   forbidOnly: !!process.env.CI,
   
  

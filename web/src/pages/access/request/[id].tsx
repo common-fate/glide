@@ -72,6 +72,8 @@ import {
   DurationInput,
   Hours,
   Minutes,
+  Days,
+  Weeks,
 } from "../../../components/DurationInput";
 import {
   MultiSelect,
@@ -512,28 +514,29 @@ const AccessRequestForm = () => {
                           max: rule?.timeConstraints.maxDurationSeconds,
                           min: 60,
                         }}
-                        render={({ field: { ref, ...rest } }) => {
-                          return (
-                            <DurationInput
-                              {...rest}
-                              max={rule?.timeConstraints.maxDurationSeconds}
-                              min={60}
-                            >
-                              <Hours />
-                              <Minutes />
-                              {
-                                <Text textStyle={"Body/ExtraSmall"}>
-                                  Max{" "}
-                                  {durationString(
-                                    rule?.timeConstraints.maxDurationSeconds
-                                  )}
-                                  <br />
-                                  Min 1 minute
-                                </Text>
-                              }
-                            </DurationInput>
-                          );
-                        }}
+                        render={({ field: { ref, ...rest } }) => (
+                          <DurationInput
+                            {...rest}
+                            max={rule?.timeConstraints.maxDurationSeconds}
+                            min={60}
+                            hideUnusedElements
+                          >
+                            <Weeks />
+                            <Days />
+                            <Hours />
+                            <Minutes />
+                            {
+                              <Text textStyle={"Body/ExtraSmall"}>
+                                Max{" "}
+                                {durationString(
+                                  rule?.timeConstraints.maxDurationSeconds
+                                )}
+                                <br />
+                                Min 1 minute
+                              </Text>
+                            }
+                          </DurationInput>
+                        )}
                       />
 
                       {errors.timing?.durationSeconds !== undefined && (

@@ -1481,6 +1481,7 @@ components:
           description: The maximum duration in seconds the access is allowed for.
           minimum: 60
           exclusiveMinimum: false
+          maximum: 15724800
       required:
         - maxDurationSeconds
     Provider:

@@ -23,7 +23,7 @@ import { When, WhenRadioGroup } from "../../pages/access/request/[id]";
 import { RequestDetail } from "../../utils/backend-client/types";
 import { RequestTiming } from "../../utils/backend-client/types/requestTiming";
 import { durationString } from "../../utils/durationString";
-import { DurationInput, Hours, Minutes } from "../DurationInput";
+import { Days, DurationInput, Hours, Minutes, Weeks } from "../DurationInput";
 type Props = {
   request: RequestDetail;
   handleSubmit: (timing: RequestTiming) => void;
@@ -78,7 +78,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   const maxDurationSeconds =
     request.accessRule.timeConstraints.maxDurationSeconds;
   return (
-    <Modal {...props}>
+    <Modal {...props} size={maxDurationSeconds >= 3600 * 24 ? "xl" : "md"}>
       <form onSubmit={methods.handleSubmit(handleSubmit)}>
         <ModalOverlay />
         <ModalContent>
@@ -105,7 +105,10 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                         max={maxDurationSeconds}
                         min={60}
                         defaultValue={request.timing.durationSeconds}
+                        hideUnusedElements
                       >
+                        <Weeks />
+                        <Days />
                         <Hours />
                         <Minutes />
                         {maxDurationSeconds !== undefined && (
