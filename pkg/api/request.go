@@ -271,49 +271,39 @@ func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId st
 
 func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
-
 	isAdmin := auth.IsAdmin(ctx)
 	uid := auth.UserIDFromContext(ctx)
 	var req access.Request
-	if isAdmin {
-		q := storage.GetRequest{ID: requestID}
-		_, err := a.DB.Query(ctx, &q)
-		if err == ddb.ErrNoItems {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		if q.Result == nil {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
-			return
-		}
+	q := storage.GetRequest{ID: requestID}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		//grant not found return 404
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	// user can revoke their own request and admins can revoke any request
+	if q.Result.RequestedBy == uid || isAdmin {
 		req = *q.Result
-	} else {
+	} else { // reviewers can revoke reviewable requests
 		q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: uid}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
 			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
 			return
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
-			return
-		}
-		if q.Result == nil {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
 			return
 		}
 		req = q.Result.Request
 	}
 
-	_, err := a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
+	_, err = a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
 	if err == grantsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
