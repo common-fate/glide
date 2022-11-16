@@ -17,7 +17,6 @@ var removeCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-
 		dc, err := deploy.ConfigFromContext(ctx)
 		if err != nil {
 			return err
