@@ -136,7 +136,7 @@ jobs:
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
   playwright-tests:
     needs: [deploy]
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - uses: common-fate/branch-name@v1.1.2
