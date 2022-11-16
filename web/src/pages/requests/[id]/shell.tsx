@@ -46,15 +46,15 @@ const Home = () => {
   } = useMatch();
   const user = useUser();
   const search = useSearch<MyLocationGenerics>();
-  useEffect(() => {}, []);
 
   const getSocketUrl = useCallback(() => {
-    return new Promise<string>(async (resolve) => {
-      const res = await callRequestOperation(requestId, {
+    return new Promise<string>((resolve) => {
+      callRequestOperation(requestId, {
         operation: "get-socket",
+      }).then((res) => {
+        const url = res.data.url as string;
+        resolve(url);
       });
-      const url = res.data.url as string;
-      resolve(url);
     });
   }, [requestId]);
 
