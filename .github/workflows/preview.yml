@@ -4,141 +4,141 @@ on:
   pull_request:
 
 jobs:
-  # release:
-  #   name: Release
-  #   runs-on: ubuntu-20.04
-  #   permissions:
-  #     id-token: write
-  #     contents: write
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v1
+  release:
+    name: Release
+    runs-on: ubuntu-20.04
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
 
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 7.1.5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
 
-  #     - name: Setup NodeJS
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: "16"
-  #         cache: "pnpm"
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
 
-  #     - name: Setup Go
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: "1.19.0"
-  #         cache: true
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19.0"
+          cache: true
 
-  #     - name: Install NodeJS dependencies
-  #       run: pnpm install
+      - name: Install NodeJS dependencies
+        run: pnpm install
 
-  #     - name: Create empty aws-exports.js
-  #       run: echo 'export default {};' > ./web/src/utils/aws-exports.js
+      - name: Create empty aws-exports.js
+        run: echo 'export default {};' > ./web/src/utils/aws-exports.js
 
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-region: us-west-2
-  #         role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-west-2
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
-  #     - name: Release CloudFormation
-  #       run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
-  #       env:
-  #         COMMONFATE_RELEASE: dev-${{ github.sha }}
+      - name: Release CloudFormation
+        run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
+        env:
+          COMMONFATE_RELEASE: dev-${{ github.sha }}
 
-  # deploy:
-  #   name: Deploy
-  #   runs-on: ubuntu-20.04
-  #   concurrency: deploy-preview
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-20.04
+    concurrency: deploy-preview
 
-  #   outputs:
-  #     vaultID: ${{ steps.deploy_preview.outputs.vaultID}}
+    outputs:
+      vaultID: ${{ steps.deploy_preview.outputs.vaultID}}
 
-  #   permissions:
-  #     id-token: write
-  #     contents: write
-  #     deployments: write
+    permissions:
+      id-token: write
+      contents: write
+      deployments: write
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
 
-  #     - uses: common-fate/branch-name@v1.1.2
-  #       name: Get branch name
-  #       id: branch
-  #       with:
-  #         max-length: 32
+      - uses: common-fate/branch-name@v1.1.2
+        name: Get branch name
+        id: branch
+        with:
+          max-length: 32
 
-  #     - uses: chrnorm/deployment-action@v2.0.2
-  #       name: Create GitHub deployment
-  #       id: deployment
-  #       with:
-  #         token: "${{ github.token }}"
-  #         environment-url: https://${{ steps.branch.outputs.name }}.test.granted.run
-  #         environment: ${{ steps.branch.outputs.name }}
-  #         transient-environment: true
+      - uses: chrnorm/deployment-action@v2.0.2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: "${{ github.token }}"
+          environment-url: https://${{ steps.branch.outputs.name }}.test.granted.run
+          environment: ${{ steps.branch.outputs.name }}
+          transient-environment: true
 
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v2
-  #       with:
-  #         version: 7.1.5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
 
-  #     - name: Setup NodeJS
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: "16"
-  #         cache: "pnpm"
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
 
-  #     - name: Setup Go
-  #       uses: actions/setup-go@v3
-  #       with:
-  #         go-version: "1.19.0"
-  #         cache: true
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19.0"
+          cache: true
 
-  #     - name: Install NodeJS dependencies
-  #       run: pnpm install
+      - name: Install NodeJS dependencies
+        run: pnpm install
 
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-region: us-east-1
-  #         role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-1
+          role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
-  #     - name: Create empty aws-exports.js
-  #       run: echo 'export default {};' > ./web/src/utils/aws-exports.js
+      - name: Create empty aws-exports.js
+        run: echo 'export default {};' > ./web/src/utils/aws-exports.js
 
-  #     - name: Deploy preview environment
-  #       id: "deploy_preview"
-  #       run: go run mage.go -v deploy:staging test ${{ steps.branch.outputs.name }}
-  #       env:
-  #         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  #         USE_SENTRY: true
+      - name: Deploy preview environment
+        id: "deploy_preview"
+        run: go run mage.go -v deploy:staging test ${{ steps.branch.outputs.name }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          USE_SENTRY: true
 
-  #     - name: Update deployment status (success)
-  #       if: success()
-  #       uses: chrnorm/deployment-status@v2.0.0
-  #       with:
-  #         token: "${{ github.token }}"
-  #         environment-url: ${{ steps.deployment.outputs.environment_url }}
-  #         state: "success"
-  #         auto-inactive: true
-  #         deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2.0.0
+        with:
+          token: "${{ github.token }}"
+          environment-url: ${{ steps.deployment.outputs.environment_url }}
+          state: "success"
+          auto-inactive: true
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
 
-  #     - name: Update deployment status (failure)
-  #       if: failure()
-  #       uses: chrnorm/deployment-status@v2.0.0
-  #       with:
-  #         token: "${{ github.token }}"
-  #         environment-url: ${{ steps.deployment.outputs.environment_url }}
-  #         state: "failure"
-  #         deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2.0.0
+        with:
+          token: "${{ github.token }}"
+          environment-url: ${{ steps.deployment.outputs.environment_url }}
+          state: "failure"
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
   playwright-tests:
-    # needs: [deploy]
-    timeout-minutes: 20
+    needs: [deploy]
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-    # if: github.event.deployment_status.state == 'success'
+    if: github.event.deployment_status.state == 'success'
     steps:
       - uses: common-fate/branch-name@v1.1.2
         name: Get branch name
@@ -167,7 +167,7 @@ jobs:
         run: pnpm i
         working-directory: web
       - name: Install Playwright
-        # if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm run e2e-install
         working-directory: web
       - name: Run Playwright tests
