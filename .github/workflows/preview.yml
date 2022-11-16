@@ -138,7 +138,6 @@ jobs:
     needs: [deploy]
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    if: github.event.deployment_status.state == 'success'
     steps:
       - uses: common-fate/branch-name@v1.1.2
         name: Get branch name
