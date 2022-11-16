@@ -18,6 +18,8 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/rule"
 	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
+	ahMocks "github.com/common-fate/granted-approvals/pkg/service/accesssvc/mocks"
+	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
@@ -462,33 +464,77 @@ func TestUserListRequests(t *testing.T) {
 }
 func TestRevokeRequest(t *testing.T) {
 	type testcase struct {
-		request  access.Request
-		name     string
-		give     string
-		wantCode int
-		wantErr  error
+		request              access.Request
+		name                 string
+		give                 string
+		withUID              string
+		withRevokeGrantErr   error
+		wantCode             int
+		withGetRequestError  error
+		withGetReviewerError error
+		wantBody             string
+		withIsAdmin          bool
 	}
 
 	testcases := []testcase{
 
 		{
-			request:  access.Request{},
-			name:     "grant not found",
-			wantCode: http.StatusNotFound,
-			wantErr:  ddb.ErrNoItems,
+			name:                "grant not found",
+			request:             access.Request{},
+			wantCode:            http.StatusNotFound,
+			withGetRequestError: ddb.ErrNoItems,
+			wantBody:            `{"error":"request not found or you don't have access to it"}`,
+		},
+		{
+			name: "user can revoke their own grant",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:  "user1",
+			wantCode: http.StatusOK,
+		},
+		{
+			name: "admin can revoke any request",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:     "admin",
+			withIsAdmin: true,
+			wantCode:    http.StatusOK,
+		},
+		{
+			name: "user cant revoke other users request",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:              "user2",
+			withGetReviewerError: ddb.ErrNoItems,
+			wantCode:             http.StatusNotFound,
+			wantBody:             `{"error":"request not found or you don't have access to it"}`,
+		},
+		{
+			name: "reviewer can revoke request",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:  "user2",
+			wantCode: http.StatusOK,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.wantErr)
-			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{Request: tc.request}}, tc.wantErr)
+			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.withGetRequestError)
+			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{Request: tc.request}}, tc.withGetReviewerError)
+			ctrl := gomock.NewController(t)
+			rs := ahMocks.NewMockGranter(ctrl)
 
-			a := API{DB: db}
-			handler := newTestServer(t, &a, withIsAdmin(true))
+			rs.EXPECT().RevokeGrant(gomock.Any(), grantsvc.RevokeGrantOpts{Request: tc.request, RevokerID: tc.withUID}).AnyTimes().Return(nil, tc.withRevokeGrantErr)
+
+			a := API{DB: db, Granter: rs}
+			handler := newTestServer(t, &a, withIsAdmin(tc.withIsAdmin), withRequestUser(identity.User{ID: tc.withUID}))
 
 			req, err := http.NewRequest("POST", "/api/v1/requests/123/revoke", strings.NewReader(tc.give))
 			if err != nil {
@@ -498,9 +544,16 @@ func TestRevokeRequest(t *testing.T) {
 			rr := httptest.NewRecorder()
 
 			handler.ServeHTTP(rr, req)
-
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			} else {
+				fmt.Print((data))
+			}
 			assert.Equal(t, tc.wantCode, rr.Code)
-
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
 		})
 	}
 }
