@@ -86,7 +86,7 @@ export const CustomOption = ({
   },
   true
 >) => {
-  console.log({ children, innerProps });
+  console.debug({ children, innerProps });
   return (
     // @ts-ignore
     <div data-testid={innerProps.value}>
