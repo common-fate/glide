@@ -33,7 +33,10 @@ export class ProductionFrontendDeployer extends Construct {
     );
     this._lambda = new lambda.Function(this, "Function", {
       code,
-      timeout: Duration.seconds(60),
+      // The frontend deployer has a 7 minute timeout
+      // internally, the deployer has a 5 minute retry backoff around the invalidation cloudfront method
+      // at worst execution would take around 5 mins 30s
+      timeout: Duration.seconds(60 * 7),
       environment: {
         CF_RELEASES_BUCKET: props.cfReleaseBucket,
         CF_RELEASES_FRONTEND_ASSET_OBJECT_PREFIX:
