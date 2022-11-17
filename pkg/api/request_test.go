@@ -691,3 +691,82 @@ func TestUserListRequestEvents(t *testing.T) {
 	}
 
 }
+
+func TestGetAccessToken(t *testing.T) {
+	type testcase struct {
+		name               string
+		withUID            string
+		withRequest        *access.Request
+		withGetRequestErr  error
+		withAccessToken    *access.AccessToken
+		withAccessTokenErr error
+		wantBody           string
+		wantCode           int
+	}
+
+	testcases := []testcase{
+		{
+			name:            "ok",
+			withUID:         "a",
+			withRequest:     &access.Request{RequestedBy: "a"},
+			withAccessToken: &access.AccessToken{Token: "token"},
+			wantBody:        `{"hasToken":true,"token":"token"}`,
+			wantCode:        http.StatusOK,
+		},
+		{
+			name:            "wrong user unauthorised",
+			withUID:         "b",
+			withRequest:     &access.Request{RequestedBy: "a"},
+			withAccessToken: &access.AccessToken{Token: "token"},
+			wantBody:        `{"error":"not authorised"}`,
+			wantCode:        http.StatusUnauthorized,
+		},
+		{
+			name:              "request not found",
+			withUID:           "b",
+			withGetRequestErr: ddb.ErrNoItems,
+			withAccessToken:   &access.AccessToken{Token: "token"},
+			wantBody:          `{"error":"request not found"}`,
+			wantCode:          http.StatusNotFound,
+		},
+		{
+			name:               "request has no token",
+			withUID:            "a",
+			withRequest:        &access.Request{RequestedBy: "a"},
+			withAccessTokenErr: ddb.ErrNoItems,
+			wantBody:           `{"hasToken":false}`,
+			wantCode:           http.StatusOK,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetRequest{Result: tc.withRequest}, tc.withGetRequestErr)
+			db.MockQueryWithErr(&storage.GetAccessToken{Result: tc.withAccessToken}, tc.withAccessTokenErr)
+
+			a := API{DB: db}
+			handler := newTestServer(t, &a, withRequestUser(identity.User{ID: tc.withUID}))
+
+			req, err := http.NewRequest("GET", "/api/v1/requests/123/access-token", strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			} else {
+				fmt.Print((data))
+			}
+			assert.Equal(t, tc.wantCode, rr.Code)
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
+		})
+	}
+}

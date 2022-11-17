@@ -6,7 +6,6 @@ import (
 
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 type AccessToken struct {
@@ -37,8 +36,4 @@ func (r *AccessToken) DDBKeys() (ddb.Keys, error) {
 	}
 
 	return keys, nil
-}
-
-func (r *AccessToken) ToAPI() types.AccessToken {
-	return r.Token
 }
