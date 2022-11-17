@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	ssofv2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2/fixtures"
-	ssof "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso/fixtures"
 	adf "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad/fixtures"
 	oktaf "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
 )
@@ -19,7 +18,6 @@ type GeneratorDestroyer interface {
 }
 
 var FixtureRegistry = map[string]GeneratorDestroyer{
-	"aws_sso":    &ssof.Generator{},
 	"aws_sso_v2": &ssofv2.Generator{},
 	"okta":       &oktaf.Generator{},
 	"azure":      &adf.Generator{},
