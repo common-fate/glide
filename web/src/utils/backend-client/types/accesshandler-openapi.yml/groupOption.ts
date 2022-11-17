@@ -11,4 +11,6 @@ export interface GroupOption {
   description?: string;
   value: string;
   children: string[];
+  /** A label prefix allows additional context to be prefixed to the label when displayed in a form */
+  labelPrefix?: string;
 }

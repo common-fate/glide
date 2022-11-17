@@ -589,6 +589,9 @@ components:
           type: array
           items:
             type: string
+        labelPrefix:
+          type: string
+          description: A label prefix allows additional context to be prefixed to the label when displayed in a form
       required:
         - label
         - value

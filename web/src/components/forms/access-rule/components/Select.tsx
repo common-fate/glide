@@ -82,15 +82,24 @@ export const CustomOption = ({
     value: string;
     label: string;
     description?: string;
+    labelPrefix?: string;
   },
   true
 >) => {
+  console.log({ children, innerProps });
   return (
     // @ts-ignore
     <div data-testid={innerProps.value}>
       <components.Option {...innerProps}>
         <>
-          {children}
+          <Text textStyle={"Body/Medium"}>
+            {innerProps?.data.labelPrefix !== undefined && (
+              <Text textStyle={"Body/Small"} color="neutrals.500" as={"span"}>
+                {innerProps?.data.labelPrefix}
+              </Text>
+            )}
+            {children}
+          </Text>
           {innerProps?.data.description && (
             <Text>{innerProps.data.description}</Text>
           )}
