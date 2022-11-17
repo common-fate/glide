@@ -3,6 +3,7 @@ package ssov2
 import (
 	"context"
 	"errors"
+	"path"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -134,7 +135,8 @@ func (g *OrganizationGraph) generateOuGroupOptions(ctx context.Context) ([]types
 		{Label: aws.ToString(g.Root.Root.Name), Value: aws.ToString(g.Root.Root.Id), Children: g.Root.DescendantAccountIDs()},
 	}
 	for _, orgUnit := range g.Root.DescendantOrganizationalUnits() {
-		option := types.GroupOption{Label: aws.ToString(orgUnit.OrganizationalUnit.Name), Value: aws.ToString(orgUnit.OrganizationalUnit.Id), Children: orgUnit.DescendantAccountIDs()}
+		description := path.Join(orgUnit.Ancestors.Path(), aws.ToString(orgUnit.OrganizationalUnit.Name))
+		option := types.GroupOption{Label: aws.ToString(orgUnit.OrganizationalUnit.Name), Value: aws.ToString(orgUnit.OrganizationalUnit.Id), Children: orgUnit.DescendantAccountIDs(), Description: &description}
 		groupOptions = append(groupOptions, option)
 	}
 	return groupOptions, nil
