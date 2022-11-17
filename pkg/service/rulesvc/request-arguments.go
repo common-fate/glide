@@ -3,6 +3,7 @@ package rulesvc
 import (
 	"context"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
 	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
 	"github.com/common-fate/granted-approvals/pkg/cache"
@@ -16,11 +17,38 @@ import (
 func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error) {
 	// prepare request arguments for an access rule
 	// fetch the schema for the provider
-
 	providerSchema, err := s.getProviderArgSchemaByID(ctx, accessRuleTarget.ProviderID)
 	if err != nil {
-		return nil, err
+		if err == ErrProviderNotFound {
+			logger.Get(ctx).Infow("failed to fetch provider while building request args because the provider no longer exists, falling back to basic request arguments")
+		} else {
+			logger.Get(ctx).Errorw("failed to fetch provider while building request args, falling back to basic request arguments", "error", err)
+		}
+
+		// Fall back to using keys as labels
+		requestArguments := make(map[string]types.RequestArgument)
+		for k, v := range accessRuleTarget.With {
+			a := requestArguments[k]
+			a.Title = k
+			a.Options = append(a.Options, types.WithOption{Label: v, Value: v})
+			requestArguments[k] = a
+		}
+		for k, v := range accessRuleTarget.WithSelectable {
+			a := requestArguments[k]
+			a.Title = k
+			for _, o := range v {
+				a.Options = append(a.Options, types.WithOption{Label: o, Value: o})
+			}
+			requestArguments[k] = a
+		}
+		for k := range accessRuleTarget.WithArgumentGroupOptions {
+			a := requestArguments[k]
+			a.Title = k
+			requestArguments[k] = a
+		}
+		return requestArguments, nil
 	}
+
 	// add the arguments from the schema
 	requestArguments := make(map[string]types.RequestArgument)
 	for k, v := range providerSchema.AdditionalProperties {
