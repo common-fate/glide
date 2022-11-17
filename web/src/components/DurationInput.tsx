@@ -401,8 +401,14 @@ export const Weeks: React.FC = () => {
 };
 
 export const Days: React.FC = () => {
-  const { maxDays, minDays, days, setValue, register, shouldRenderDaysInput } =
-    useContext(Context);
+  const {
+    maxDays,
+    minDays,
+    days,
+    setValue,
+    register,
+    shouldRenderDaysInput,
+  } = useContext(Context);
   const [defaultValue] = useState(days);
 
   useEffect(() => {
@@ -453,8 +459,9 @@ export const Hours: React.FC = () => {
   );
 };
 export const Minutes: React.FC = () => {
-  const { maxMinutes, minMinutes, minutes, setValue, register } =
-    useContext(Context);
+  const { maxMinutes, minMinutes, minutes, setValue, register } = useContext(
+    Context
+  );
   const [defaultValue] = useState(minutes);
   useEffect(() => {
     register("MINUTE");
