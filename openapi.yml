@@ -303,11 +303,7 @@ paths:
         - End User
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessToken"
+          $ref: "#/components/responses/AccessTokenResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1668,11 +1664,6 @@ components:
       enum:
         - AUTOMATIC
         - REVIEWED
-    AccessToken:
-      title: AccessToken
-      x-stoplight:
-        id: yxma8dkhj406q
-      type: string
     RequestArgument:
       title: RequestArgument
       x-stoplight:
@@ -2276,6 +2267,19 @@ components:
             required:
               - next
               - favorites
+    AccessTokenResponse:
+      description: "If the request has an access token, hasToken will be true"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              hasToken:
+                type: boolean
+              token:
+                type: string
+            required:
+              - hasToken
   examples: {}
   securitySchemes: {}
   requestBodies:
