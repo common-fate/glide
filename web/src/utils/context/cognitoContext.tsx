@@ -1,8 +1,5 @@
 import { Auth } from "@aws-amplify/auth";
-import {
-  CognitoHostedUIIdentityProvider,
-  FederatedSignInOptions,
-} from "@aws-amplify/auth/lib-esm/types";
+import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth/lib-esm/types";
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
 import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
@@ -27,8 +24,10 @@ interface Props {
 const CognitoProvider: React.FC<Props> = ({ children }) => {
   const [amplifyInitialising, setAmplifyInitializing] = useState(true);
   const [loadingCurrentUser, setLoadingCurrentUser] = useState(true);
-  const [cognitoAuthenticatedUserEmail, setCognitoAuthenticatedUserEmail] =
-    useState<string>();
+  const [
+    cognitoAuthenticatedUserEmail,
+    setCognitoAuthenticatedUserEmail,
+  ] = useState<string>();
   const loading = amplifyInitialising || loadingCurrentUser;
   const navigate = useNavigate();
   // this can be improved in future with a more graceful error page if the AWS config doesn't load.
