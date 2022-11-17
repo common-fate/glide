@@ -3,6 +3,7 @@ package ssov2
 import (
 	"context"
 	"fmt"
+	"path"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -28,7 +29,10 @@ type Node struct {
 	OrganizationalUnit *organizationTypes.OrganizationalUnit
 	Account            *organizationTypes.Account
 	Root               *organizationTypes.Root
+	Ancestors          Ancestors
 }
+
+type Ancestors []*Node
 
 func (p *Provider) buildOrganizationGraph(ctx context.Context) (*OrganizationGraph, error) {
 	roots, err := p.orgClient.ListRoots(ctx, &organizations.ListRootsInput{})
@@ -44,6 +48,8 @@ func (p *Provider) buildOrganizationGraph(ctx context.Context) (*OrganizationGra
 		Root: &Node{
 			ID:   aws.ToString(root.Id),
 			Root: &root,
+			// the root has no ancestors
+			Ancestors: Ancestors{},
 		},
 	}
 
@@ -57,6 +63,20 @@ func (p *Provider) buildOrganizationGraph(ctx context.Context) (*OrganizationGra
 	return &graph, nil
 }
 
+// Path returns a string fomatted path of ancestors from the root to the node
+// ancestors can only be a root or an organizational unit
+// the root node has no ancestors
+func (a Ancestors) Path() (p string) {
+	for _, an := range a {
+		if an.IsRoot() {
+			p = path.Join(p, aws.ToString(an.Root.Name))
+		}
+		if an.IsOrganizationalUnit() {
+			p = path.Join(p, aws.ToString(an.OrganizationalUnit.Name))
+		}
+	}
+	return p
+}
 func (n *Node) IsRoot() bool {
 	return n.Root != nil
 }
@@ -126,6 +146,7 @@ func (n *Node) BuildGraph(ctx context.Context, provider *Provider) error {
 				OrganizationalUnit: &childOUs[i],
 				Parent:             n,
 				Graph:              n.Graph,
+				Ancestors:          append(n.Ancestors, n),
 			}
 
 			n.Children = append(n.Children, node)
@@ -135,7 +156,6 @@ func (n *Node) BuildGraph(ctx context.Context, provider *Provider) error {
 			g.Go(func() error {
 				return node.BuildGraph(gctx, provider)
 			})
-
 		}
 		g.Go(func() error {
 			childAccounts, err := provider.listChildAccountsForParent(ctx, n.ID)
@@ -144,10 +164,11 @@ func (n *Node) BuildGraph(ctx context.Context, provider *Provider) error {
 			}
 			for i := range childAccounts {
 				node := &Node{
-					ID:      aws.ToString(childAccounts[i].Id),
-					Account: &childAccounts[i],
-					Parent:  n,
-					Graph:   n.Graph,
+					ID:        aws.ToString(childAccounts[i].Id),
+					Account:   &childAccounts[i],
+					Parent:    n,
+					Graph:     n.Graph,
+					Ancestors: append(n.Ancestors, n),
 				}
 				n.Children = append(n.Children, node)
 				n.Graph.idMapMu.Lock()

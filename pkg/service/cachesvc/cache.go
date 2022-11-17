@@ -144,6 +144,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 					Label:       option.Label,
 					Children:    option.Children,
 					Description: option.Description,
+					LabelPrefix: option.LabelPrefix,
 				}
 				keyers = append(keyers, &op)
 				cachedGroups = append(cachedGroups, op)

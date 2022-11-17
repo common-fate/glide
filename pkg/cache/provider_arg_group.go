@@ -16,6 +16,7 @@ type ProviderArgGroupOption struct {
 	Arg         string   `json:"arg" dynamodbav:"arg"`
 	Group       string   `json:"group" dynamodbav:"group"`
 	Label       string   `json:"label" dynamodbav:"label"`
+	LabelPrefix *string  `json:"labelPrefix" dynamodbav:"labelPrefix"`
 	Value       string   `json:"value" dynamodbav:"value"`
 	Children    []string `json:"chidren" dynamodbav:"chidren"`
 	Description *string  `json:"description" dynamodbav:"description"`
