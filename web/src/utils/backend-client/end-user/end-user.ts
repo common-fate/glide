@@ -23,7 +23,7 @@ import type {
   ReviewResponseResponse,
   ReviewRequestBody,
   CancelRequest200,
-  AccessToken,
+  AccessTokenResponseResponse,
   User,
   AuthUserResponseResponse
 } from '.././types'
@@ -401,7 +401,7 @@ Returns information on how to access the role or resource.
 export const getAccessToken = (
     requestId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<AccessToken>(
+      return customInstance<AccessTokenResponseResponse>(
       {url: `/api/v1/requests/${requestId}/access-token`, method: 'get'
     },
       options);

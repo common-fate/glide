@@ -441,6 +441,10 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 	uid := auth.UserIDFromContext(ctx)
 	q := storage.GetRequest{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -449,18 +453,14 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 		q := storage.GetAccessToken{RequestID: requestId}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: false}, http.StatusOK)
 			return
 		}
-
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-
-		res := q.Result.ToAPI()
-
-		apio.JSON(ctx, w, res, http.StatusOK)
+		apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: true, Token: &q.Result.Token}, http.StatusOK)
 	} else {
 		// not authorised
 		apio.Error(ctx, w, apio.NewRequestError(errors.New("not authorised"), http.StatusUnauthorized))
