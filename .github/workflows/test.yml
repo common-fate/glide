@@ -175,6 +175,7 @@ jobs:
   test-identity-provider:
     permissions:
       id-token: write
+      contents: read
     name: Test Identity Provider
     runs-on: ubuntu-latest
     env:
