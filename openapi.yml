@@ -1122,7 +1122,7 @@ components:
           picture: "https://avatars.githubusercontent.com/u/17420369?v=4"
         Chris:
           id: string
-          email: chris@exponentlabs.io
+          email: chris@commonfate.io
           name: Chris Norman
           picture: "https://avatars.githubusercontent.com/u/14214200?v=4"
       properties:

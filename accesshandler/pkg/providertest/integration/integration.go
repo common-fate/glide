@@ -42,7 +42,7 @@ func ProviderWith(providerID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	o := pm["okta"]
+	o := pm[providerID]
 	return json.Marshal(o.With)
 }
 

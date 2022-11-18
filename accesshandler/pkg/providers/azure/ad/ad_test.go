@@ -2,7 +2,6 @@ package ad
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -15,13 +14,11 @@ import (
 )
 
 func TestIntegration(t *testing.T) {
+	ctx := context.Background()
+	_ = godotenv.Load("../../../../../.env")
 	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
 		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
 	}
-
-	ctx := context.Background()
-	_ = godotenv.Load("../../../../.env")
-
 	var f fixtures.Fixtures
 	err := providertest.LoadFixture(ctx, "azure", &f)
 	if err != nil {
@@ -54,11 +51,9 @@ func TestIntegration(t *testing.T) {
 			WantValidationErr: &multierror.Error{Errors: []error{&UserNotFoundError{User: "other"}, &GroupNotFoundError{Group: "non-existent"}}},
 		},
 	}
-	pc := os.Getenv("PROVIDER_CONFIG")
-	var configMap map[string]json.RawMessage
-	err = json.Unmarshal([]byte(pc), &configMap)
+	w, err := integration.ProviderWith("azure")
 	if err != nil {
 		t.Fatal(err)
 	}
-	integration.RunTests(t, ctx, "azure", &Provider{}, testcases, integration.WithProviderConfig(configMap["azure"]))
+	integration.RunTests(t, ctx, "azure", &Provider{}, testcases, integration.WithProviderConfig(w))
 }
