@@ -187,6 +187,10 @@ jobs:
         with:
           go-version: "1.19.0"
           cache: true
-
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ap-southeast-2
+          role-to-assume: "${{ secrets.AWS_SANDBOX_INTEGRATION_TESTING_ROLE_ARN }}"
       - name: test idp
         run: go test ./pkg/identity/identitysync
