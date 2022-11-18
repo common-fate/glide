@@ -46,10 +46,10 @@ func TestIntegration(t *testing.T) {
 			Name:    "Okta ok",
 			idpType: "okta",
 		},
-		{
-			Name:    "Gsuite ok",
-			idpType: "google",
-		},
+		// {
+		// 	Name:    "Gsuite ok",
+		// 	idpType: "google",
+		// },
 		{
 			Name:    "AWS SSO ok",
 			idpType: "aws-sso",
