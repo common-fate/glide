@@ -214,8 +214,10 @@ const AccessRequestForm = () => {
         })
       );
   };
-  // This use effect sets the duration to either 1 hour or max duration if it is less than one hour
-  // it does then when the rule loads for the first time
+  // When the rule loads for the first time, this use effect:
+  // 1: sets the duration to either 1 hour or max duration if it is less than one hour
+  // 2: handles favouriting when the search & rule queries load
+  // 3: hydrates the form with rule targets and arguments
   useEffect(() => {
     if (rule != undefined) {
       setValue(
@@ -278,6 +280,7 @@ const AccessRequestForm = () => {
           timing: search.timing,
         };
 
+        // This hydrates the form with fields
         resetForm(fields);
       }
     }
@@ -345,7 +348,27 @@ const AccessRequestForm = () => {
   const [urlClipboardValue, setUrlClipboardValue] = useState("");
   const clipboard = useClipboard(urlClipboardValue);
   const location = useLocation();
-  const fd = methods.watch();
+  const formData = methods.watch();
+
+
+  // case 0: rule is loading, disabled
+  // case 1: has with fields but they're invalid, not filled out, disabled
+  // case 1: no `with` fields, enabled
+  const isDisabled =
+    !rule ||
+    !!formData?.with
+      ?.filter((fw) => !fw.hidden)
+      .find(
+        (fw) =>
+          !!Object.entries(fw.data).find(
+            (o, k) => o[1] === undefined || o[1].length == 0
+          )
+      ) ||
+    false;
+
+  // !formData.with ? false : formData.with.find((f) => !f.hidden && !f.data);
+
+
   useEffect(() => {
     const a: RequestFormQueryParameters = {
       Search: {
@@ -365,7 +388,7 @@ const AccessRequestForm = () => {
     const u = new URL(window.location.href);
     u.search = location.stringifySearch(a.Search);
     setUrlClipboardValue(u.toString());
-  }, [fd]);
+  }, [formData]);
 
   return (
     <>
@@ -568,7 +591,12 @@ const AccessRequestForm = () => {
                   {/* Don't show approval section if approvers are still loading */}
                   <Approvers approvers={approvers?.users} />
                   <Box>
-                    <Button type="submit" isLoading={loading} mr={3}>
+                    <Button
+                      type="submit"
+                      disabled={isDisabled}
+                      isLoading={loading}
+                      mr={3}
+                    >
                       Submit
                     </Button>
                   </Box>
@@ -768,6 +796,7 @@ export const AccessRuleArguments: React.FC<{
     </VStack>
   );
 };
+
 const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
   if (approvers === undefined) {
     return <Skeleton w="50%" h={10} />;
@@ -829,6 +858,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
   // the state of the parent form
   const popoverDisclosure = useDisclosure();
   const toast = useToast();
+
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
     const r: CreateFavoriteRequestBody = {
       name: data.name,
