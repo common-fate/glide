@@ -92,6 +92,13 @@ export const UsersTable = () => {
         emptyText: "No users",
         apiPaginator: paginator,
         linkTo: true,
+        rowProps: (row) => ({
+          "_hover": { bg: "gray.50" },
+          "cursor": "pointer",
+          // in our test cases we use reason for the unique key
+          "data-testid": row.original.email,
+          "alignItems": "center",
+        }),
       })}
 
       <CreateUserModal

@@ -52,6 +52,7 @@ const GroupDisplay: React.FC<{ group: Group }> = ({ group }) => {
         rounded="full"
         bg="neutrals.300"
         py={1}
+        data-testid={group.name}
         px={4}
       >
         {group.name}
@@ -245,6 +246,7 @@ const InternalGroups: React.FC<InternalGroupsProps> = ({
                   size="sm"
                   variant="ghost"
                   icon={<CheckIcon />}
+                  data-testid="save-group-submit"
                   aria-label={"save groups"}
                   type="submit"
                 />
@@ -278,6 +280,7 @@ const InternalGroups: React.FC<InternalGroupsProps> = ({
           size="sm"
           variant="ghost"
           icon={<EditIcon />}
+          data-testid="edit-groups-icon"
           aria-label={"edit groups"}
           onClick={onOpen}
         />

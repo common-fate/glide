@@ -163,4 +163,34 @@ test.describe.serial("Internal Groups Workflows", () => {
     const locator5 = page.locator(testId("approve"));
     await expect(locator5).toBeVisible();
   });
+
+  test("test admin can update user groups", async ({ page }) => {
+    // This will log us in as an admin
+    await LoginAdmin(page);
+
+    await page.waitForLoadState("networkidle");
+
+    //   go to the admin page
+    await page.goto("/admin/users");
+
+    await page.waitForLoadState("networkidle");
+
+    //   find the group we want to update
+
+    await page.click(testId(process.env.TEST_USERNAME ?? ""));
+
+    // await page.waitForNavigation();
+
+    await page.waitForLoadState("networkidle");
+    await page.click(testId("edit-groups-icon"));
+
+    await fillFormElementById("react-select-3-input", "group_1_internal", page);
+    page.keyboard.press("Enter");
+    // page.keyboard.press("Escape");
+
+    // await page.click(testId("save-group-submit"));
+
+    const locator5 = page.locator(testId("group_1_internal_updated")).first();
+    await expect(locator5).toBeVisible();
+  });
 });
