@@ -9,16 +9,18 @@ import {
   RequestCancelButton,
   RequestDetails,
   RequestDisplay,
-  RequestOverridableTime,
+  _RequestOverridableTime,
   RequestRequestor,
   RequestReview,
   RequestRevoke,
+  _RequestTime,
   RequestTime,
 } from "../../components/Request";
 import { useUser } from "../../utils/context/userContext";
 
 import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
 import { Helmet } from "react-helmet";
+import { useEffect, useMemo, useState } from "react";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -30,17 +32,26 @@ const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
-  const { data, mutate } = useUserGetRequest(requestId, {
+  const { data, mutate, isValidating } = useUserGetRequest(requestId, {
     swr: { refreshInterval: 10000 },
   });
   const search = useSearch<MyLocationGenerics>();
   const { action } = search;
+
+  const [cachedReq, setCachedReq] = useState(data);
+  useEffect(() => {
+    if (data !== undefined) setCachedReq(data);
+    return () => {
+      setCachedReq(undefined);
+    };
+  }, [data]);
+
   const Content = () => {
     if (data?.canReview && data.status == "PENDING") {
       return (
-        <RequestDisplay request={data}>
+        <RequestDisplay request={data} isValidating={isValidating}>
           <RequestDetails>
-            {data?.canReview ? <RequestOverridableTime /> : <RequestTime />}
+            <RequestTime canReview={cachedReq?.canReview} />
             <RequestRequestor />
           </RequestDetails>
           <RequestReview
@@ -54,8 +65,9 @@ const Home = () => {
 
     const user = useUser();
     return (
-      <RequestDisplay request={data}>
+      <RequestDisplay request={data} isValidating={isValidating}>
         <RequestDetails>
+          {/* <_RequestTime /> */}
           <RequestTime />
 
           {user.user?.id === data?.requestor && <RequestAccessInstructions />}
