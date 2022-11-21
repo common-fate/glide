@@ -95,20 +95,6 @@ export const RequestDisplay: React.FC<RequestProps> = ({
 }) => {
   const [overrideTiming, setOverrideTiming] = useState<RequestTiming>();
 
-  useEffect(() => {
-    // If its a schedule request in the past, set override timing default
-    if (!overrideTiming) {
-      if (
-        request?.timing.startTime &&
-        new Date(request.timing.startTime) < new Date()
-      ) {
-        setOverrideTiming({
-          durationSeconds: request.timing.durationSeconds,
-          startTime: new Date().toISOString(),
-        });
-      }
-    }
-  }, [request]);
 
   return (
     <Context.Provider
@@ -485,7 +471,7 @@ export const _RequestOverridableTime: React.FC = () => {
 
   return (
     <>
-      <Flex textStyle="Body/Small" flexDir="column">
+      <Flex textStyle="Body/Small" flexDir="column" flexWrap="wrap">
         <Box textStyle="Body/Medium" mb={1} pos="relative">
           Timing
           <IconButton
@@ -513,7 +499,6 @@ export const _RequestOverridableTime: React.FC = () => {
           <Text
             color="neutrals.600"
             textStyle="Body/Small"
-            noOfLines={1}
             p={1}
             pl={0}
             fontStyle={"italic"}
@@ -651,53 +636,86 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
 
   const { onOpen, onClose, isOpen } = useDisclosure();
 
+  const reqStartsInPast =
+    request.timing.startTime && new Date() > new Date(request.timing.startTime);
+  const overrideStartsInPast =
+    overrideTiming?.startTime &&
+    new Date() > new Date(overrideTiming.startTime);
+
+  const startsAndEndsInPast =
+    !!request.timing.startTime &&
+    !!request.timing.durationSeconds &&
+    new Date().getTime() >
+      new Date(request.timing.startTime).getTime() +
+        request.timing.durationSeconds * 1000;
+
+  let warningTitle = "This request is scheduled to start in the past";
+  if (startsAndEndsInPast) {
+    warningTitle = "This request is scheduled in the past";
+  }
+  let warningDescription = (
+    <>
+      The scheduled start time for this request has already elapsed.{" "}
+      <strong>Approving</strong> this request will{" "}
+      <strong>activate access now</strong>
+    </>
+  );
+  if (startsAndEndsInPast) {
+    warningDescription = (
+      <>
+        The scheduled start and end times for this request have already elapsed.{" "}
+        <strong>Close the request</strong>, or <strong>edit</strong> the timing
+        to continue.
+      </>
+    );
+  }
+
   return (
     <Stack spacing={4}>
       <Text textStyle="Body/LargeBold">Review</Text>
       {
         // if the start time is in the past, show warning
-        request.timing.startTime &&
-          new Date() > new Date(request.timing.startTime) && (
-            <Alert
-              status="warning"
-              rounded="md"
-              borderColor={borderColor}
-              borderRadius={"md"}
-              borderWidth={"1px"}
-              bg="white"
-              alignItems="start"
-              pb={8}
-            >
-              <WarningIcon boxSize="24px" mr={4} mt={1} />
-              <Box>
-                <AlertTitle mr={2} color="neutrals.800" fontWeight="medium">
-                  This request is scheduled to start in the past
-                </AlertTitle>
-                <AlertDescription color="neutrals.600">
-                  The scheduled start time for this request has already elapsed.{" "}
-                  <strong style={{ fontWeight: "600" }}>Approving</strong> this
-                  request will{" "}
-                  <strong style={{ fontWeight: "600" }}>
-                    activate access now
-                  </strong>
-                </AlertDescription>
-                <Button
-                  onClick={onOpen}
-                  key={2}
-                  rounded="full"
-                  size="sm"
-                  variant="outline"
-                  position="absolute"
-                  right={4}
-                  bottom={4}
-                  zIndex={2}
-                  bg="white"
-                >
-                  Edit
-                </Button>
-              </Box>
-            </Alert>
-          )
+        ((reqStartsInPast && !overrideTiming) || overrideStartsInPast) && (
+          <Alert
+            status="warning"
+            rounded="md"
+            borderColor={borderColor}
+            borderRadius={"md"}
+            borderWidth={"1px"}
+            bg="white"
+            alignItems="start"
+            pb={8}
+          >
+            <WarningIcon boxSize="24px" mr={4} mt={1} />
+            <Box>
+              <AlertTitle mr={2} color="neutrals.800" fontWeight="medium">
+                {warningTitle}
+              </AlertTitle>
+              <AlertDescription
+                color="neutrals.600"
+                sx={{
+                  strong: { fontWeight: 600 },
+                }}
+              >
+                {warningDescription}
+              </AlertDescription>
+              <Button
+                onClick={onOpen}
+                key={2}
+                rounded="full"
+                size="sm"
+                variant="outline"
+                position="absolute"
+                right={4}
+                bottom={4}
+                zIndex={2}
+                bg="white"
+              >
+                Edit
+              </Button>
+            </Box>
+          </Alert>
+        )
       }
       <HStack spacing={3}>
         <Avatar
@@ -769,7 +787,11 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                   <Button
                     data-testid="approve"
                     isLoading={isSubmitting === "APPROVED"}
-                    isDisabled={isSubmitting === "DECLINED" || !canReview}
+                    isDisabled={
+                      isSubmitting === "DECLINED" ||
+                      !canReview ||
+                      (startsAndEndsInPast && !overrideTiming)
+                    }
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
                     key={1}
