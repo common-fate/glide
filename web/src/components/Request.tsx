@@ -95,7 +95,6 @@ export const RequestDisplay: React.FC<RequestProps> = ({
 }) => {
   const [overrideTiming, setOverrideTiming] = useState<RequestTiming>();
 
-
   return (
     <Context.Provider
       value={{ overrideTiming, setOverrideTiming, request, isValidating }}
