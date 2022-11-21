@@ -24,10 +24,8 @@ interface Props {
 const CognitoProvider: React.FC<Props> = ({ children }) => {
   const [amplifyInitialising, setAmplifyInitializing] = useState(true);
   const [loadingCurrentUser, setLoadingCurrentUser] = useState(true);
-  const [
-    cognitoAuthenticatedUserEmail,
-    setCognitoAuthenticatedUserEmail,
-  ] = useState<string>();
+  const [cognitoAuthenticatedUserEmail, setCognitoAuthenticatedUserEmail] =
+    useState<string>();
   const loading = amplifyInitialising || loadingCurrentUser;
   const navigate = useNavigate();
   // this can be improved in future with a more graceful error page if the AWS config doesn't load.
