@@ -95,7 +95,8 @@ export const CreateAccessRule = async (
     await page.keyboard.press("Escape");
   } else {
     await clickFormElementByID("group-select", page);
-    await page.locator(testId("everyone")).first().click();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Escape");
   }
   // page.keyboard.press("Escape");
 
