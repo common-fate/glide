@@ -19,7 +19,7 @@ type ListUsersResponse struct {
 
 type AzureUser struct {
 	GivenName string `json:"givenName"`
-	Mail      string `json:"mail"`
+	Mail      string `json:"userPrincipalName"`
 	Surname   string `json:"surname"`
 	ID        string `json:"id"`
 }
@@ -197,7 +197,7 @@ type AddUser struct {
 	Key string `json:"@odata.id"`
 }
 
-//GroupMember.ReadWrite.All
+// GroupMember.ReadWrite.All
 func (c *Provider) AddUserToGroup(ctx context.Context, userID string, groupID string) error {
 
 	url := MSGraphBaseURL + "/groups/" + groupID + "/members/$ref"
@@ -229,7 +229,7 @@ func (c *Provider) AddUserToGroup(ctx context.Context, userID string, groupID st
 	return nil
 }
 
-//GroupMember.ReadWrite.All
+// GroupMember.ReadWrite.All
 func (c *Provider) RemoveUserFromGroup(ctx context.Context, userID string, groupID string) error {
 
 	url := MSGraphBaseURL + "/groups/" + groupID + "/members/" + userID + "/$ref"
@@ -254,7 +254,7 @@ func (c *Provider) RemoveUserFromGroup(ctx context.Context, userID string, group
 	return nil
 }
 
-//GroupMember.Read.All
+// GroupMember.Read.All
 func (c *Provider) ListGroupUsers(ctx context.Context, groupID string) ([]AzureUser, error) {
 
 	var groupMembers []AzureUser
@@ -265,7 +265,7 @@ func (c *Provider) ListGroupUsers(ctx context.Context, groupID string) ([]AzureU
 
 	for hasMore {
 		var jsonStr = []byte(`{ "securityEnabledOnly": false}`)
-		req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+		req, _ := http.NewRequest("GET", url, bytes.NewBuffer(jsonStr))
 		req.Header.Add("Authorization", "Bearer "+c.token.Get())
 		req.Header.Set("Content-Type", "application/json")
 

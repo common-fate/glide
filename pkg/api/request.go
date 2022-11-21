@@ -334,7 +334,6 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 	ctx := r.Context()
 	q := storage.GetRequest{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
-
 	if err == ddb.ErrNoItems {
 		// we couldn't find the request
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
@@ -348,19 +347,16 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 		apio.ErrorString(ctx, w, "request has no grant", http.StatusBadRequest)
 		return
 	}
-	q.Result.Grant.With.AdditionalProperties["GrantId"] = q.ID
 
-	argsJSON, err := json.Marshal(q.Result.Grant.With)
+	args, err := json.Marshal(q.Result.Grant.With)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	args := string(argsJSON)
-
 	res, err := a.AccessHandlerClient.GetAccessInstructionsWithResponse(ctx, q.Result.Grant.Provider, &ahtypes.GetAccessInstructionsParams{
 		Subject: q.Result.Grant.Subject,
-		Args:    args,
+		Args:    string(args),
 		GrantId: q.ID,
 	})
 	if err != nil {
@@ -372,7 +368,8 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 	case http.StatusOK:
 		apio.JSON(ctx, w, res.JSON200, http.StatusOK)
 	case http.StatusNotFound:
-		apio.JSON(ctx, w, res.JSON404.Error, res.StatusCode())
+		// Not found error means that the provider does not exist, in this case, return an empty instructions response instead of 404
+		apio.JSON(ctx, w, ahtypes.AccessInstructions{}, http.StatusOK)
 	case http.StatusBadRequest:
 		apio.JSON(ctx, w, res.JSON400.Error, res.StatusCode())
 	default:
@@ -441,6 +438,10 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 	uid := auth.UserIDFromContext(ctx)
 	q := storage.GetRequest{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -449,18 +450,14 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 		q := storage.GetAccessToken{RequestID: requestId}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: false}, http.StatusOK)
 			return
 		}
-
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-
-		res := q.Result.ToAPI()
-
-		apio.JSON(ctx, w, res, http.StatusOK)
+		apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: true, Token: &q.Result.Token}, http.StatusOK)
 	} else {
 		// not authorised
 		apio.Error(ctx, w, apio.NewRequestError(errors.New("not authorised"), http.StatusUnauthorized))

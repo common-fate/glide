@@ -2,10 +2,13 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 	"github.com/sethvargo/go-retry"
@@ -25,6 +28,22 @@ func WithProviderConfig(config []byte) func(*IntegrationTests) {
 	return func(it *IntegrationTests) {
 		it.providerConfig = config
 	}
+}
+
+// ProviderWith fetches teh provider with config from the environment
+func ProviderWith(providerID string) ([]byte, error) {
+	pc := os.Getenv("PROVIDER_CONFIG")
+	var configMap map[string]json.RawMessage
+	err := json.Unmarshal([]byte(pc), &configMap)
+	if err != nil {
+		return nil, err
+	}
+	pm, err := deploy.UnmarshalProviderMap(string(pc))
+	if err != nil {
+		return nil, err
+	}
+	o := pm[providerID]
+	return json.Marshal(o.With)
 }
 
 // RunTests runs standardised integration tests to check the behaviour of a Granted Provider.
