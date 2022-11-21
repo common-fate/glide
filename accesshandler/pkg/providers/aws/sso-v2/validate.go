@@ -62,7 +62,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 					PermissionSetArn: &a.PermissionSetARN,
 				})
 				if err != nil {
-					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}))
+					return diagnostics.Error(fmt.Errorf("expected 1 permission set but found %v", &PermissionSetNotFoundErr{PermissionSet: a.PermissionSetARN, AWSErr: err}))
 				}
 				return diagnostics.Info("permission set exists")
 			},

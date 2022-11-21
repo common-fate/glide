@@ -18,7 +18,7 @@ type GeneratorDestroyer interface {
 }
 
 var FixtureRegistry = map[string]GeneratorDestroyer{
-	"aws_sso_v2": &ssofv2.Generator{},
+	"aws-sso-v2": &ssofv2.Generator{},
 	"okta":       &oktaf.Generator{},
 	"azure":      &adf.Generator{},
 }

@@ -12,8 +12,10 @@ import (
 )
 
 type Fixtures struct {
-	User    string
-	GroupID string
+	User             string
+	GroupID          string
+	PermissionSetARN string
+	AccountID        string
 }
 
 type Generator struct {
