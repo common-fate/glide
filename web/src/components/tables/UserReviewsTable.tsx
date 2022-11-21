@@ -128,7 +128,7 @@ export const UserReviewsTable = () => {
           "_hover": { bg: "gray.50" },
           "cursor": "pointer",
           // in our test cases we use reason for the unique key
-          "data-testid": row.original.reason,
+          "data-testid": "req_",
           "alignItems": "center",
           "onClick": () => {
             navigate({ to: "/requests/" + row.original.id });

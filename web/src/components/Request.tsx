@@ -798,6 +798,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
                 key={2}
                 rounded="full"
                 onClick={() => revokeConfirmationDisclosure.onOpen()}
+                data-testid="revoke-button"
               >
                 Revoke
               </Button>

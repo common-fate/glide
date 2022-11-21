@@ -97,7 +97,7 @@ test.describe.serial("Internal Groups Workflows", () => {
 
     await fillFormElementById(
       "react-select-3-input",
-      "jack@commonfate.io",
+      process.env.TEST_ADMIN_USERNAME ?? "",
       page
     );
     page.keyboard.press("Enter");
@@ -129,11 +129,38 @@ test.describe.serial("Internal Groups Workflows", () => {
     );
   });
 
-  test("test create access rule using internal group", async ({ page }) => {
+  test("test create access rule using internal group and request access", async ({
+    page,
+  }) => {
     // This will log us in as an admin
     await CreateAccessRule(page, RULE_NAME, "group_1_internal_updated");
 
     //check that we have access to the new rule
     await page.goto("/");
+    await page.click(testId("r_0"));
+    await page.waitForLoadState("networkidle");
+
+    await page.click(testId("request-submit-button"));
+
+    await page.waitForLoadState("networkidle");
+    const locator5 = page.locator(testId("req_")).first();
+    await expect(locator5).toBeVisible();
+  });
+
+  test("test review access rule", async ({ page }) => {
+    // This will log us in as an admin
+    await LoginUser(page);
+
+    await page.waitForLoadState("networkidle");
+    await page.goto("/reviews?status=pending");
+    await page.waitForLoadState("networkidle");
+    await page.locator(testId("req_")).first().click();
+    await page.waitForLoadState("networkidle");
+
+    await page.click(testId("approve"));
+    await page.waitForLoadState("networkidle");
+
+    const locator5 = page.locator(testId("revoke-button"));
+    await expect(locator5).toBeVisible();
   });
 });

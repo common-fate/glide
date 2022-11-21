@@ -286,16 +286,14 @@ const AccessRequestForm = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const {
-    data: approvers,
-    isValidating: isValidatingApprovers,
-  } = useUserGetAccessRuleApprovers(ruleId, {
-    swr: {
-      swrKey: getUserGetAccessRuleApproversKey(ruleId),
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: approvers, isValidating: isValidatingApprovers } =
+    useUserGetAccessRuleApprovers(ruleId, {
+      swr: {
+        swrKey: getUserGetAccessRuleApproversKey(ruleId),
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+      },
+    });
 
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
@@ -568,7 +566,12 @@ const AccessRequestForm = () => {
                   {/* Don't show approval section if approvers are still loading */}
                   <Approvers approvers={approvers?.users} />
                   <Box>
-                    <Button type="submit" isLoading={loading} mr={3}>
+                    <Button
+                      data-testid="request-submit-button"
+                      type="submit"
+                      isLoading={loading}
+                      mr={3}
+                    >
                       Submit
                     </Button>
                   </Box>
