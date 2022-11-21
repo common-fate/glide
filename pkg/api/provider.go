@@ -130,6 +130,7 @@ func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, pro
 			Label:       group.Label,
 			Value:       group.Value,
 			Description: group.Description,
+			LabelPrefix: group.LabelPrefix,
 		})
 	}
 

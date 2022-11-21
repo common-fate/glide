@@ -94,9 +94,7 @@ const Home = () => {
                   {user.user?.id === data?.requestor && (
                     <RequestAccessInstructions />
                   )}
-                  {user.user?.id === data?.requestor && (
-                    <RequestAccessToken reqId={data ? data.id : ""} />
-                  )}
+                  {user.user?.id === data?.requestor && <RequestAccessToken />}
                   <RequestCancelButton />
                   <RequestRevoke onSubmitRevoke={mutate} />
                 </RequestDetails>

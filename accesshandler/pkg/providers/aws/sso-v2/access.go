@@ -197,7 +197,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 			return false, err
 		}
 		for _, aa := range res.AccountAssignments {
-			if aa.PrincipalType == types.PrincipalTypeUser && aa.PrincipalId == user.UserId {
+			if aa.PrincipalType == types.PrincipalTypeUser && aws.ToString(aa.PrincipalId) == aws.ToString(user.UserId) {
 				// the permission set has been assigned to the user, so return true.
 				return true, nil
 			}

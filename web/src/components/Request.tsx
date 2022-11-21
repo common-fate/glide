@@ -362,21 +362,25 @@ export const RequestAccessInstructions: React.FC = () => {
   return null;
 };
 
-export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
-  const { data, error } = useGetAccessToken(reqId);
-
-  const { data: reqData } = useUserGetRequest(reqId);
+export const RequestAccessToken: React.FC = () => {
+  const { request } = useContext(Context);
+  const { data, error } = useGetAccessToken(request?.id ?? "", {
+    swr: {
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      refreshWhenHidden: false,
+    },
+  });
 
   const toast = useToast();
-  // The Access tokne API returns a 404 for anyone other than the requestor or if there is no access token.
-  // We treat the 404 as an indication tha there is no access token to display for this request
-  if (error?.response?.status == 404) {
-    return null;
-  }
+
+  if (error) return null;
+  if (!request) return <Spinner />;
   if (!data) return <Spinner />;
+  if (!data.hasToken) return null;
 
   const handleClick = async () => {
-    await navigator.clipboard.writeText(data);
+    await navigator.clipboard.writeText(data.token || "");
     toast({
       title: "Access token copied to clipboard",
       status: "success",
@@ -386,17 +390,17 @@ export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
     });
   };
 
-  if (reqData?.grant?.status === "ACTIVE") {
+  if (request.grant?.status === "ACTIVE") {
     return (
       <Stack>
         <Box textStyle="Body/Medium" mb={2}>
           Access Token
         </Box>
         <InputGroup size="md" bg="white" maxW="400px">
-          <Input pr="4.5rem" type={"password"} value={data} readOnly />
+          <Input pr="4.5rem" type={"password"} value={data.token} readOnly />
           <InputRightElement width="4.5rem" pr={1}>
             <Button h="1.75rem" size="sm" onClick={handleClick}>
-              {"Copy"}
+              Copy
             </Button>
           </InputRightElement>
         </InputGroup>

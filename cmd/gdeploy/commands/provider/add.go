@@ -17,13 +17,13 @@ var addCommand = cli.Command{
 	Name:        "add",
 	Description: "Add an access provider",
 	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "overwrite", Usage: "Force SSM parameters to be overwritten if they exist"},
 		&cli.StringFlag{Name: "id", Usage: "An identifier for the provider"},
 		&cli.StringFlag{Name: "uses", Usage: "The provider type and version"},
 		&cli.StringSliceFlag{Name: "with", Usage: "Configuration settings for the provider, in key=value pairs"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
+
 		f := c.Path("file")
 		dc, err := deploy.ConfigFromContext(ctx)
 		if err != nil {
@@ -36,6 +36,18 @@ var addCommand = cli.Command{
 		var provider providerregistry.RegisteredProvider
 
 		if uses == "" {
+			o, err := dc.LoadOutput(ctx)
+			if err != nil {
+				return err
+			}
+			setupURL := o.FrontendURL() + "/admin/providers/setup"
+			clio.Warn("Configuring access providers interactively via gdeploy has been deprecated.")
+			clio.Warn("For the best experience, we recommend using the interactive setup documentation available as part of your deployment of Granted Approvals.")
+			clio.Warnf("Open this link to the provider setup page then select the provider you want to configure: %s", setupURL)
+			clio.Warn("At the end of the interactive setup, your configuration will be tested with helpful validation errors should anything go wrong.")
+			clio.Warn("When everything is working, you will be given a gdeploy command to run to get everything setup.")
+			clio.Warn("If you want to read more about our providers and getting setup, checkout our documentation here: https://docs.commonfate.io/granted-approvals/providers/access-providers")
+			clio.NewLine()
 			p := survey.Select{
 				Message: "What are you trying to grant access to?",
 				Options: r.CLIOptions(),

@@ -136,9 +136,8 @@ jobs:
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
   playwright-tests:
     needs: [deploy]
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    # if: github.event.deployment_status.state == 'success'
     steps:
       - uses: common-fate/branch-name@v1.1.2
         name: Get branch name

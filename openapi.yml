@@ -303,11 +303,7 @@ paths:
         - End User
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessToken"
+          $ref: "#/components/responses/AccessTokenResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1126,7 +1122,7 @@ components:
           picture: "https://avatars.githubusercontent.com/u/17420369?v=4"
         Chris:
           id: string
-          email: chris@exponentlabs.io
+          email: chris@commonfate.io
           name: Chris Norman
           picture: "https://avatars.githubusercontent.com/u/14214200?v=4"
       properties:
@@ -1481,6 +1477,7 @@ components:
           description: The maximum duration in seconds the access is allowed for.
           minimum: 60
           exclusiveMinimum: false
+          maximum: 15724800
       required:
         - maxDurationSeconds
     Provider:
@@ -1667,11 +1664,6 @@ components:
       enum:
         - AUTOMATIC
         - REVIEWED
-    AccessToken:
-      title: AccessToken
-      x-stoplight:
-        id: yxma8dkhj406q
-      type: string
     RequestArgument:
       title: RequestArgument
       x-stoplight:
@@ -2275,6 +2267,19 @@ components:
             required:
               - next
               - favorites
+    AccessTokenResponse:
+      description: "If the request has an access token, hasToken will be true"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              hasToken:
+                type: boolean
+              token:
+                type: string
+            required:
+              - hasToken
   examples: {}
   securitySchemes: {}
   requestBodies:

@@ -536,7 +536,9 @@ func LoadConfig(f string) (Config, error) {
 	}
 	defer fileRead.Close()
 	var dc Config
-	err = yaml.NewDecoder(fileRead).Decode(&dc)
+	decoder := yaml.NewDecoder(fileRead)
+	decoder.KnownFields(true)
+	err = decoder.Decode(&dc)
 	if err != nil {
 		return Config{}, err
 	}
