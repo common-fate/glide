@@ -575,8 +575,8 @@ export const RequestRequestor: React.FC = () => {
     </Flex>
   ) : (
     <Flex flexDir="column">
-      <SkeletonText noOfLines={1} w="10ch" height="18px" />
-      <Flex alignItems="center">
+      <SkeletonText noOfLines={1} w="10ch" height="22px" />
+      <Flex alignItems="center" height="24px">
         <SkeletonCircle size="24px" mr={2} />
         <SkeletonText noOfLines={1} w="10ch" lineHeight="12px" />
       </Flex>
