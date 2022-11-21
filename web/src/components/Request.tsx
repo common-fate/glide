@@ -529,14 +529,12 @@ export const _RequestOverridableTime: React.FC = () => {
           </Text>
         )}
       </Flex>
-      {request && (
-        <EditRequestTimeModal
-          handleSubmit={onUpdate}
-          isOpen={isOpen}
-          onClose={onClose}
-          request={request}
-        />
-      )}
+      <EditRequestTimeModal
+        handleSubmit={onUpdate}
+        isOpen={isOpen}
+        onClose={onClose}
+        request={request}
+      />
     </>
   );
 };
@@ -797,14 +795,12 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
           </Tooltip>
         </Stack>
       </HStack>
-      {request && (
-        <EditRequestTimeModal
-          handleSubmit={onUpdate}
-          isOpen={isOpen}
-          onClose={onClose}
-          request={request}
-        />
-      )}
+      <EditRequestTimeModal
+        handleSubmit={onUpdate}
+        isOpen={isOpen}
+        onClose={onClose}
+        request={request}
+      />
     </Stack>
   );
 };

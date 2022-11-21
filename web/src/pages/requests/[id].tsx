@@ -46,40 +46,7 @@ const Home = () => {
     };
   }, [data]);
 
-  const Content = () => {
-    if (data?.canReview && data.status == "PENDING") {
-      return (
-        <RequestDisplay request={data} isValidating={isValidating}>
-          <RequestDetails>
-            <RequestTime canReview={cachedReq?.canReview} />
-            <RequestRequestor />
-          </RequestDetails>
-          <RequestReview
-            onSubmitReview={mutate}
-            focus={action}
-            canReview={!!data.canReview}
-          />
-        </RequestDisplay>
-      );
-    }
-
-    const user = useUser();
-    return (
-      <RequestDisplay request={data} isValidating={isValidating}>
-        <RequestDetails>
-          {/* <_RequestTime /> */}
-          <RequestTime />
-
-          {user.user?.id === data?.requestor && <RequestAccessInstructions />}
-          {user.user?.id === data?.requestor && (
-            <RequestAccessToken reqId={data ? data.id : ""} />
-          )}
-          <RequestCancelButton />
-          <RequestRevoke onSubmitRevoke={mutate} />
-        </RequestDetails>
-      </RequestDisplay>
-    );
-  };
+  const user = useUser();
 
   return (
     <div>
@@ -107,7 +74,34 @@ const Home = () => {
         {/* Main content */}
         <Container maxW="container.xl" py={16}>
           <Stack spacing={12} direction={{ base: "column", md: "row" }}>
-            <Content />
+            {data?.canReview && data.status == "PENDING" ? (
+              <RequestDisplay request={data} isValidating={isValidating}>
+                <RequestDetails>
+                  <RequestTime canReview={cachedReq?.canReview} />
+                  <RequestRequestor />
+                </RequestDetails>
+                <RequestReview
+                  onSubmitReview={mutate}
+                  focus={action}
+                  canReview={!!data.canReview}
+                />
+              </RequestDisplay>
+            ) : (
+              <RequestDisplay request={data} isValidating={isValidating}>
+                <RequestDetails>
+                  <RequestTime />
+
+                  {user.user?.id === data?.requestor && (
+                    <RequestAccessInstructions />
+                  )}
+                  {user.user?.id === data?.requestor && (
+                    <RequestAccessToken reqId={data ? data.id : ""} />
+                  )}
+                  <RequestCancelButton />
+                  <RequestRevoke onSubmitRevoke={mutate} />
+                </RequestDetails>
+              </RequestDisplay>
+            )}
             <AuditLog request={data} />
           </Stack>
         </Container>
