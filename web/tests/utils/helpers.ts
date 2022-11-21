@@ -24,7 +24,7 @@ export const LoginUser = async (page: Page) => {
   await page.waitForRequest(/me/);
 };
 
-export const LoginAdmin = async (page) => {
+export const LoginAdmin = async (page: Page) => {
   //  const page = await context.newPage();
   await page.goto("/", { timeout: 10000 });
   await fillFormElement(
@@ -51,7 +51,11 @@ export const Logout = async (page: Page) => {
   await page.goto("/logout", { waitUntil: "networkidle" });
 };
 
-export const CreateAccessRule = async (page: Page, ruleName: string) => {
+export const CreateAccessRule = async (
+  page: Page,
+  ruleName: string,
+  group: string
+) => {
   await Logout(page);
   await LoginAdmin(page);
   await page.waitForLoadState("networkidle");
@@ -84,8 +88,16 @@ export const CreateAccessRule = async (page: Page, ruleName: string) => {
   await clickFormElementByID("form-step-next-button", page);
 
   //click on group select, add both groups for approval
-  await clickFormElementByID("group-select", page);
-  await page.locator(testId("everyone")).first().click();
+  if (group != "") {
+    await clickFormElementByID("group-select", page);
+    await fillFormElementById("react-select-3-input", group, page);
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Escape");
+  } else {
+    await clickFormElementByID("group-select", page);
+    await page.locator(testId("everyone")).first().click();
+  }
+  // page.keyboard.press("Escape");
 
   //ensure granted_admins was added to selection box
   await clickFormElementByID("form-step-next-button", page);
@@ -126,6 +138,14 @@ export const fillFormElementById = async (
   page: Page
 ) => {
   await page.locator(`#${name} >> visible=true`).fill(value);
+};
+
+export const fillFormElementByTestId = async (
+  name: string,
+  value: string,
+  page: Page
+) => {
+  await page.locator(`${name} >> visible=true`).fill(value);
 };
 
 export const clickFormElementByText = async (

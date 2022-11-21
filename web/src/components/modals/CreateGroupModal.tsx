@@ -134,6 +134,7 @@ const CreateGroupModal = (props: Props) => {
               mr={3}
               isLoading={methods.formState.isSubmitting}
               type="submit"
+              data-testid={"save-group-button"}
             >
               Create group
             </Button>

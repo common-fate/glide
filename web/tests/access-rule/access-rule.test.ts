@@ -32,5 +32,5 @@ test("non admin cannot create access rule", async ({ page }) => {
 
 //test access rule create
 test("admin can create access rule", async ({ page }) => {
-  await CreateAccessRule(page,"test");
+  await CreateAccessRule(page, "test", "");
 });

@@ -17,7 +17,7 @@ test.describe.serial("Approval/Request Workflows", () => {
 
   test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
-    await CreateAccessRule(page, RULE_NAME);
+    await CreateAccessRule(page, RULE_NAME, "");
   });
 
   test("test request workflow", async ({ page }) => {

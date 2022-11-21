@@ -94,6 +94,7 @@ export const GroupsTable = () => {
           variant="ghost"
           leftIcon={<SmallAddIcon />}
           onClick={onOpen}
+          data-testid={"create-group-button"}
         >
           Add Internal Group
         </Button>
@@ -127,6 +128,13 @@ export const GroupsTable = () => {
         emptyText: "No groups",
         apiPaginator: paginator,
         linkTo: true,
+        rowProps: (row) => ({
+          "_hover": { bg: "gray.50" },
+          "cursor": "pointer",
+          // in our test cases we use reason for the unique key
+          "data-testid": row.original.name,
+          "alignItems": "center",
+        }),
       })}
 
       <CreateGroupModal
