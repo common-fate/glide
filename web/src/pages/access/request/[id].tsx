@@ -366,8 +366,6 @@ const AccessRequestForm = () => {
       ) ||
     false;
 
-  // !formData.with ? false : formData.with.find((f) => !f.hidden && !f.data);
-
 
   useEffect(() => {
     const a: RequestFormQueryParameters = {
