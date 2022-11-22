@@ -31,11 +31,15 @@ test.describe.serial("Running test sequentially", () => {
     await page.getByTestId("provider-selector-testgroups").click();
   
     await page.getByTestId("argumentField").click()
-    await page.getByText("first").click();
+    await page.getByText("First").click();
+
     await page.locator('internal:attr=[data-testid="argumentField"] >> text=Groups').click()
 
-    await page.getByTestId("argumentGroupMultiSelect").click()
-    await page.getByText("all").click();
+    // todo: Unable to select the dynamic group field.
+    await page.locator('.css-1kwwvb1-ValueContainer2 > .css-ujecln-Input2 >> nth=0').click()
+
+    // await page.getByTestId("argumentGroupMultiSelect").click()
+    await page.getByText("alla category containing all groupsall").click();
     await clickFormElementByText("button", "Next", page);
   
     await page.locator("#increment >> nth=0").click();
