@@ -21,7 +21,7 @@ test.describe.serial("Approval/Request Workflows", () => {
   });
 
   test("test request workflow", async ({ page }) => {
-    // This will log us in as an admin
+    // This will log us in as an user
     await LoginUser(page);
 
     await page.waitForLoadState("networkidle");
@@ -52,7 +52,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     // Click on the first request
-    await page.click(testId(uniqueReason), { force: true });
+    await page.click(testId("req_" + uniqueReason), { force: true });
 
     await page.waitForLoadState("networkidle");
 

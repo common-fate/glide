@@ -155,7 +155,7 @@ test.describe.serial("Internal Groups Workflows", () => {
 
   test("test review access rule", async ({ page }) => {
     // This will log us in as an admin
-    await LoginUser(page);
+    await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
     await page.goto("/reviews?status=pending");

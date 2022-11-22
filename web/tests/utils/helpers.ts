@@ -109,7 +109,7 @@ export const CreateAccessRule = async (
   //ensure granted_admins was added to selection box
   // await clickFormElementByID("approval-group-select", page);
   await page.locator("#user-select >> visible=true").click();
-  await page.keyboard.insertText(process.env.TEST_USERNAME ?? "");
+  await page.keyboard.insertText(process.env.TEST_ADMIN_USERNAME ?? "");
   await page.keyboard.press("Enter");
   await page.keyboard.press("Escape");
 
