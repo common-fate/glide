@@ -60,40 +60,40 @@ test.describe.serial("Approval/Request Workflows", () => {
     await expect(locator).toContainText(uniqueReason);
   });
 
-  // test("test approval workflow", async ({ page }) => {
-  //   // This will log us in as an admin
-  //   await LoginAdmin(page);
+  test("test approval workflow", async ({ page }) => {
+    // This will log us in as an admin
+    await LoginAdmin(page);
 
-  //   await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle");
 
-  //   await page.goto("/reviews");
+    await page.goto("/reviews");
 
-  //   await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle");
 
-  //   // Click on the specific request
-  //   await page.locator(testId(uniqueReason)).first().click();
+    // Click on the specific request
+    await page.locator(testId(uniqueReason)).first().click();
 
-  //   await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle");
 
-  //   // Click approve
-  //   await page.locator(testId("approve")).click();
+    // Click approve
+    await page.locator(testId("approve")).click();
 
-  //   // Ensure it loads
-  //   await page.waitForLoadState("networkidle");
+    // Ensure it loads
+    await page.waitForLoadState("networkidle");
 
-  //   // Validate its teh same request
-  //   let approvedText = await page.locator(testId("reason")).textContent();
-  //   await expect(approvedText).toBe(uniqueReason);
+    // Validate its teh same request
+    let approvedText = await page.locator(testId("reason")).textContent();
+    await expect(approvedText).toBe(uniqueReason);
 
-  //   // // Assign the accessInstructionLink for our next test
-  //   // accessInstructionLink =
-  //   //   (await page
-  //   //     .locator(testId("accessInstructionLink"))
-  //   //     .getAttribute("href")) ?? "error";
+    // // Assign the accessInstructionLink for our next test
+    // accessInstructionLink =
+    //   (await page
+    //     .locator(testId("accessInstructionLink"))
+    //     .getAttribute("href")) ?? "error";
 
-  //   // // a preliminary check to make sure the link is valid, tested in next test
-  //   // await expect(accessInstructionLink).toContain("https");
-  // });
+    // // a preliminary check to make sure the link is valid, tested in next test
+    // await expect(accessInstructionLink).toContain("https");
+  });
 
   // @NOTE: commented out for now, will not pass on the CI (unknown reason)
   // test("ensure access granted for matching user", async ({

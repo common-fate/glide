@@ -93,9 +93,7 @@ export const UsersTable = () => {
         apiPaginator: paginator,
         linkTo: true,
         rowProps: (row) => ({
-          "_hover": { bg: "gray.50" },
-          "cursor": "pointer",
-          // in our test cases we use reason for the unique key
+          // in our test cases we use the email for the unique key
           "data-testid": row.original.email,
           "alignItems": "center",
         }),

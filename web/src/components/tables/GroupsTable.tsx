@@ -129,9 +129,7 @@ export const GroupsTable = () => {
         apiPaginator: paginator,
         linkTo: true,
         rowProps: (row) => ({
-          "_hover": { bg: "gray.50" },
-          "cursor": "pointer",
-          // in our test cases we use reason for the unique key
+          // in our test cases we use the group name for the unique key
           "data-testid": row.original.name,
           "alignItems": "center",
         }),
