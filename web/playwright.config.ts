@@ -9,7 +9,7 @@ const config: PlaywrightTestConfig = {
   use: {
     trace: "on",
     baseURL: process.env.TESTING_DOMAIN,
-    headless: false,
+    // headless: false,
   },
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
   projects: [
