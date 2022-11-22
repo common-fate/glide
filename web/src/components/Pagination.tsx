@@ -45,7 +45,7 @@ export const PaginationButton = (props: ButtonProps) => {
   };
 
   const activeStyle: CSSObject = {
-    bg: "brandGreen.100",
+    bg: "brandBlue.100",
     color: "white",
   };
 

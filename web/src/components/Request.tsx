@@ -635,7 +635,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
     return null;
   }
 
-  const borderColor = focus !== undefined ? "brandGreen.300" : "neutrals.300";
+  const borderColor = focus !== undefined ? "brandBlue.300" : "neutrals.300";
 
   const { onOpen, onClose, isOpen } = useDisclosure();
 

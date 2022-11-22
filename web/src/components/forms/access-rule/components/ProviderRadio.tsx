@@ -38,7 +38,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
         m="1px"
         _checked={{
           m: "0px",
-          borderColor: "brandGreen.300",
+          borderColor: "brandBlue.300",
           borderWidth: "2px",
         }}
         _focus={{
@@ -57,7 +57,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
             right={2}
             h="12px"
             w="12px"
-            color={"brandGreen.300"}
+            color={"brandBlue.300"}
           />
         )}
         <HStack>
