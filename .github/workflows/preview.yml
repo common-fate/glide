@@ -166,7 +166,7 @@ jobs:
         run: pnpm i
         working-directory: web
       - name: Install Playwright
-        # if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm run e2e-install
         working-directory: web
       - name: Run Playwright tests
