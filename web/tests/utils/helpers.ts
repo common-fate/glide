@@ -94,11 +94,10 @@ export const CreateAccessRule = async (
     await page.keyboard.press("Enter");
     await page.keyboard.press("Escape");
   } else {
-    await page.locator("#approval-group-select >> visible=true").click();
+    await clickFormElementByID("group-select", page);
+    await fillFormElementById("react-select-3-input", "administrator", page);
     await page.keyboard.press("Enter");
-    // await clickFormElementByID("approval-group-select", page);
-    await page.locator("#approval-group-select").click();
-    await page.keyboard.press("Enter");
+    await page.keyboard.press("Escape");
   }
   // page.keyboard.press("Escape");
 
