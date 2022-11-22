@@ -94,9 +94,11 @@ export const CreateAccessRule = async (
     await page.keyboard.press("Enter");
     await page.keyboard.press("Escape");
   } else {
-    await clickFormElementByID("group-select", page);
+    await page.locator("#approval-group-select >> visible=true").click();
     await page.keyboard.press("Enter");
-    await page.keyboard.press("Escape");
+    // await clickFormElementByID("approval-group-select", page);
+    await page.locator("#approval-group-select").click();
+    await page.keyboard.press("Enter");
   }
   // page.keyboard.press("Escape");
 
