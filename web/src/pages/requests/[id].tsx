@@ -9,16 +9,18 @@ import {
   RequestCancelButton,
   RequestDetails,
   RequestDisplay,
-  RequestOverridableTime,
+  _RequestOverridableTime,
   RequestRequestor,
   RequestReview,
   RequestRevoke,
+  _RequestTime,
   RequestTime,
 } from "../../components/Request";
 import { useUser } from "../../utils/context/userContext";
 
 import { useUserGetRequest } from "../../utils/backend-client/end-user/end-user";
 import { Helmet } from "react-helmet";
+import { useEffect, useMemo, useState } from "react";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -30,42 +32,21 @@ const Home = () => {
   const {
     params: { id: requestId },
   } = useMatch();
-  const { data, mutate } = useUserGetRequest(requestId, {
+  const { data, mutate, isValidating } = useUserGetRequest(requestId, {
     swr: { refreshInterval: 10000 },
   });
   const search = useSearch<MyLocationGenerics>();
   const { action } = search;
-  const Content = () => {
-    if (data?.canReview && data.status == "PENDING") {
-      return (
-        <RequestDisplay request={data}>
-          <RequestDetails>
-            {data?.canReview ? <RequestOverridableTime /> : <RequestTime />}
-            <RequestRequestor />
-          </RequestDetails>
-          <RequestReview
-            onSubmitReview={mutate}
-            focus={action}
-            canReview={!!data.canReview}
-          />
-        </RequestDisplay>
-      );
-    }
 
-    const user = useUser();
-    return (
-      <RequestDisplay request={data}>
-        <RequestDetails>
-          <RequestTime />
+  const [cachedReq, setCachedReq] = useState(data);
+  useEffect(() => {
+    if (data !== undefined) setCachedReq(data);
+    return () => {
+      setCachedReq(undefined);
+    };
+  }, [data]);
 
-          {user.user?.id === data?.requestor && <RequestAccessInstructions />}
-          {user.user?.id === data?.requestor && <RequestAccessToken />}
-          <RequestCancelButton />
-          <RequestRevoke onSubmitRevoke={mutate} />
-        </RequestDetails>
-      </RequestDisplay>
-    );
-  };
+  const user = useUser();
 
   return (
     <div>
@@ -93,7 +74,32 @@ const Home = () => {
         {/* Main content */}
         <Container maxW="container.xl" py={16}>
           <Stack spacing={12} direction={{ base: "column", md: "row" }}>
-            <Content />
+            {data?.canReview && data.status == "PENDING" ? (
+              <RequestDisplay request={data} isValidating={isValidating}>
+                <RequestDetails>
+                  <RequestTime canReview={cachedReq?.canReview} />
+                  <RequestRequestor />
+                </RequestDetails>
+                <RequestReview
+                  onSubmitReview={mutate}
+                  focus={action}
+                  canReview={!!data.canReview}
+                />
+              </RequestDisplay>
+            ) : (
+              <RequestDisplay request={data} isValidating={isValidating}>
+                <RequestDetails>
+                  <RequestTime />
+
+                  {user.user?.id === data?.requestor && (
+                    <RequestAccessInstructions />
+                  )}
+                  {user.user?.id === data?.requestor && <RequestAccessToken />}
+                  <RequestCancelButton />
+                  <RequestRevoke onSubmitRevoke={mutate} />
+                </RequestDetails>
+              </RequestDisplay>
+            )}
             <AuditLog request={data} />
           </Stack>
         </Container>
