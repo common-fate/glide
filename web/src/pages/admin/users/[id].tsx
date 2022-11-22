@@ -321,7 +321,7 @@ const ExternalGroups: React.FC<ExternalGroupsProps> = ({ userGroups }) => {
 
 const InternalGroupsLabel = () => {
   return (
-    <Tooltip label="Internal groups are managed by Granted Approvals, use them when you need more granular access control than you have defined by groups in your external identity provider.">
+    <Tooltip label="Internal groups are managed by Common Fate, use them when you need more granular access control than you have defined by groups in your external identity provider.">
       <Text textStyle="Body/Medium">Groups</Text>
     </Tooltip>
   );

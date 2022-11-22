@@ -86,7 +86,7 @@ const Home = () => {
     <>
       <UserLayout>
         <Helmet>
-          <title>Granted</title>
+          <title>Common Fate</title>
         </Helmet>
         <Box overflow="auto">
           <Container maxW="container.xl" pt={{ base: 12, lg: 32 }}>
@@ -213,7 +213,7 @@ const Home = () => {
                                 Click here to create a new access rule.
                               </ChakraLink>
                             ) : (
-                              "Ask your Granted administrator to finish setting up Granted."
+                              "Ask your Common Fate administrator to finish setting up Common Fate."
                             )}
                           </Text>
                         </Center>

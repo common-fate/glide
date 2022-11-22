@@ -96,7 +96,7 @@ test.describe.serial("Approval/Request Workflows", () => {
   });
 
   // @NOTE: commented out for now, will not pass on the CI (unknown reason)
-  // test("ensure access granted for matching user", async ({
+  // test("ensure access Common Fate for matching user", async ({
   //   playwright,
   //   page,
   // }) => {
@@ -109,7 +109,7 @@ test.describe.serial("Approval/Request Workflows", () => {
   //   const res = await apiContext.get(accessInstructionLink);
   //   let stringSuccess = await res.text();
 
-  //   // ensure the vault has granted access
+  //   // ensure the vault has Common Fate access
   //   expect(stringSuccess).toContain(
   //     `{"message":"success! user ${user} is a member of vault`
   //   );

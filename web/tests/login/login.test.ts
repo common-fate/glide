@@ -2,14 +2,14 @@ import { test, expect } from "@playwright/test";
 
 import { Logout, LoginUser } from "../utils/helpers";
 
-test("test loging through form works and gets to granted page", async ({
+test("test loging through form works and gets to Common Fate page", async ({
   page,
 }) => {
   await Logout(page);
   await LoginUser(page);
 
   //verify login
-  //verify we are on the granted homepage
+  //verify we are on the Common Fate homepage
   await expect(page).toHaveTitle(/Granted/);
 });
 
