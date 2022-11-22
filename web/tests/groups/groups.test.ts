@@ -8,6 +8,7 @@ import {
   LoginUser,
   Logout,
   testId,
+  uniqueReason,
 } from "../utils/helpers";
 
 const RULE_NAME = "test";
@@ -129,6 +130,8 @@ test.describe.serial("Internal Groups Workflows", () => {
     );
   });
 
+  const uniqueReasonTemp = uniqueReason;
+
   test("test create access rule using internal group and request access", async ({
     page,
   }) => {
@@ -139,6 +142,9 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.goto("/");
     await page.click(testId("r_0"));
     await page.waitForLoadState("networkidle");
+
+    //add reason
+    await fillFormElementById("reasonField", uniqueReasonTemp, page);
 
     await page.click(testId("request-submit-button"));
 
@@ -154,14 +160,18 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.waitForLoadState("networkidle");
     await page.goto("/reviews?status=pending");
     await page.waitForLoadState("networkidle");
-    await page.locator(testId("req_")).first().click();
+    await page.click(testId(uniqueReason), { force: true });
+
     await page.waitForLoadState("networkidle");
 
-    await page.click(testId("approve"));
+    await page.locator(testId("approve")).click();
+
+    // Ensure it loads
     await page.waitForLoadState("networkidle");
 
-    const locator5 = page.locator(testId("approve"));
-    await expect(locator5).toBeVisible();
+    // Validate its teh same request
+    let approvedText = await page.locator(testId("reason")).textContent();
+    await expect(approvedText).toBe(uniqueReason);
   });
 
   test("test admin can update user groups", async ({ page }) => {

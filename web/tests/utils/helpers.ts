@@ -173,3 +173,5 @@ export const clickFormElementByClass = async (id: string, page: Page) => {
 export const testId = (id: string) => {
   return `[data-testid="${id}"]`;
 };
+
+export const uniqueReason = "test-" + Math.floor(Math.random() * 1000);

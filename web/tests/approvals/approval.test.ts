@@ -7,12 +7,12 @@ import {
   LoginUser,
   Logout,
   testId,
+  uniqueReason,
 } from "../utils/helpers";
 
 const RULE_NAME = "test";
 
 test.describe.serial("Approval/Request Workflows", () => {
-  const uniqueReason = "test-" + Math.floor(Math.random() * 1000);
   let accessInstructionLink: string;
 
   test("create an initial Access Rule", async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     // Click on the first request
-    await page.click(testId("req_" + uniqueReason), { force: true });
+    await page.click(testId(uniqueReason), { force: true });
 
     await page.waitForLoadState("networkidle");
 
