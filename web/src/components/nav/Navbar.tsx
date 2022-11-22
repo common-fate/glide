@@ -26,7 +26,7 @@ import { useUserListRequests } from "../../utils/backend-client/end-user/end-use
 import { useUser } from "../../utils/context/userContext";
 import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
-import { ApprovalsLogo } from "../icons/Logos";
+import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 import reactSelect from "react-select";
 
@@ -68,7 +68,7 @@ export const Navbar: React.FC = () => {
                 transition="all .2s ease"
                 rounded="sm"
               >
-                <ApprovalsLogo h="32px" w="auto" />
+                <CommonFateLogo h="32px" w="auto" />
               </ChakraLink>
               {isDesktop && (
                 <ButtonGroup
@@ -208,7 +208,7 @@ export const TabsStyledButton: React.FC<TabsStyledButtonProps> = ({
       _active={{
         fontWeight: "bold",
         opacity: 1,
-        borderColor: "#34B53A",
+        borderColor: "#2E7FFF",
         borderBottomWidth: "2px",
       }}
       sx={{
@@ -225,7 +225,7 @@ export const TabsStyledButton: React.FC<TabsStyledButtonProps> = ({
         // 'Current' state
         _selected: {
           fontWeight: 500,
-          borderColor: "#34B53A",
+          borderColor: "#2E7FFF",
         },
         // Disabled state
         _disabled: {

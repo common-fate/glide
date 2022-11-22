@@ -28,7 +28,7 @@ import { Link } from "react-location";
 import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
 import { DoorIcon } from "../icons/Icons";
-import { ApprovalsLogoAdmin } from "../icons/Logos";
+import { CommonFateAdminLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
 export const AdminNavbar: React.FC = () => {
@@ -74,7 +74,7 @@ export const AdminNavbar: React.FC = () => {
                   transition="all .2s ease"
                   rounded="sm"
                 >
-                  <ApprovalsLogoAdmin h="32px" w="auto" />
+                  <CommonFateAdminLogo h="32px" w="auto" />
                 </ChakraLink>
                 {isDesktop && (
                   <ButtonGroup variant="ghost" spacing="1">
