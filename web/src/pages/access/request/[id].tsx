@@ -350,7 +350,6 @@ const AccessRequestForm = () => {
   const location = useLocation();
   const formData = methods.watch();
 
-
   // case 0: rule is loading, disabled
   // case 1: has with fields but they're invalid, not filled out, disabled
   // case 1: no `with` fields, enabled
@@ -365,7 +364,6 @@ const AccessRequestForm = () => {
           )
       ) ||
     false;
-
 
   useEffect(() => {
     const a: RequestFormQueryParameters = {
