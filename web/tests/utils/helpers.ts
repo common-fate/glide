@@ -95,7 +95,7 @@ export const CreateAccessRule = async (
     await page.keyboard.press("Escape");
   } else {
     await clickFormElementByID("react-select-3-input", page);
-
+    await fillFormElementById("react-select-3-input", "everyone", page);
     await page.keyboard.press("Enter");
     await page.keyboard.press("Escape");
   }
