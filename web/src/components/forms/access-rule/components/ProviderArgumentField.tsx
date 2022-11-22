@@ -214,6 +214,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
 
   return (
     <VStack
+      data-testid="argumentField"
       border="1px solid"
       borderColor="gray.300"
       rounded="md"

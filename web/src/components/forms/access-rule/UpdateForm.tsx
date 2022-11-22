@@ -121,6 +121,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
     try {
       await adminUpdateAccessRule(ruleId, accessRuleFormDataToApi(data));
       toast({
+        id: "access-rule-updated",
         title: "Access rule updated",
         status: "success",
         variant: "subtle",
