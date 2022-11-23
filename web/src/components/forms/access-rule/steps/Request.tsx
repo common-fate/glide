@@ -48,7 +48,9 @@ export const RequestsStep: React.FC = () => {
           testId="group-select"
           fieldName="groups"
           rules={{ required: true, minLength: 1 }}
-          onBlurSecondaryAction={() => { methods.trigger("groups")}}
+          onBlurSecondaryAction={() => {
+            methods.trigger("groups");
+          }}
         />
         <FormErrorMessage>At least one group is required.</FormErrorMessage>
       </FormControl>
