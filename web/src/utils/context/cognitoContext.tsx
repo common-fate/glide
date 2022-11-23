@@ -32,10 +32,8 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
   const [amplifyInitialising, setAmplifyInitializing] = useState(true);
   const [loadingCurrentUser, setLoadingCurrentUser] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [
-    cognitoAuthenticatedUserEmail,
-    setCognitoAuthenticatedUserEmail,
-  ] = useState<string>();
+  const [cognitoAuthenticatedUserEmail, setCognitoAuthenticatedUserEmail] =
+    useState<string>();
   const loading = amplifyInitialising || loadingCurrentUser;
   const navigate = useNavigate();
   const search = useSearch<MyLocationGenerics>();
@@ -135,7 +133,7 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
       </Center>
     );
   }
-  console.log({ loggingOut, loading, cognitoAuthenticatedUserEmail });
+
   // force the ts type for cognitoAuthenticatedUserEmail to be a string in the context return by expricitly checking it
   if (!loading && cognitoAuthenticatedUserEmail === undefined) {
     if (!loggingOut) {
