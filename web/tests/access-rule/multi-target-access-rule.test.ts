@@ -31,8 +31,7 @@ test.describe.serial("Running test sequentially", () => {
     await page.getByTestId("provider-selector-testgroups").click();
   
     await page.getByTestId("argumentField").click()
-    await page.getByText("First").click();
-
+    await page.locator('text=fifth >> nth=1').click()
     await page.locator('internal:attr=[data-testid="argumentField"] >> text=Groups').click()
 
     // todo: Unable to select the dynamic group field.
@@ -50,8 +49,8 @@ test.describe.serial("Running test sequentially", () => {
     await clickFormElementByID("form-step-next-button", page);
   
     //click on group select, add both groups for approval
-    await page.locator('#group-select div:has-text("Select...") >> nth=1').click()  
-    await page.locator('p:has-text("granted_administrators")').click()
+    await page.locator('#group-select div:has-text("Select...") >> nth=1').click()
+    await page.locator('text=granted_administrators >> nth=1').click()
     await page.locator('text=Add or remove groups').click()
   
     await clickFormElementByID("form-step-next-button", page);
