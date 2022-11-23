@@ -1,11 +1,10 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   clickFormElementByText,
   CreateAccessRule,
   fillFormElementById,
   LoginAdmin,
   LoginUser,
-  Logout,
   testId,
   uniqueReason,
 } from "../utils/helpers";

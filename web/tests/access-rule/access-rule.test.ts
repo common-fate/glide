@@ -1,17 +1,6 @@
-import { test, expect, Page } from "@playwright/test";
-import config from "../../playwright.config";
+import { expect, test } from "@playwright/test";
 
-import {
-  clickFormElementByClass,
-  clickFormElementByID,
-  fillFormElement,
-  clickFormElementByText,
-  fillFormElementById,
-  Logout,
-  LoginUser,
-  LoginAdmin,
-  CreateAccessRule,
-} from "../utils/helpers";
+import { CreateAccessRule, LoginUser } from "../utils/helpers";
 
 //has to be admin to create access rule
 

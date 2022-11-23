@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Controller, useFormContext, Validate } from "react-hook-form";
 import ReactSelect, { ActionMeta, components, OptionProps } from "react-select";
-import { Text } from "@chakra-ui/react";
+import { Box, Text } from "@chakra-ui/react";
 import {
   useListGroups,
   useGetUsers,
@@ -150,7 +150,14 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 ? [SELECT_ALL_OPTION, ...sortedOptions]
                 : sortedOptions),
             ]}
-            components={{ Option: CustomOption }}
+            components={{
+              Option: CustomOption,
+              ClearIndicator: (props) => (
+                <Box data-testid="select-input-deselect-all">
+                  <components.ClearIndicator {...props} />
+                </Box>
+              ),
+            }}
             isMulti
             onMenuClose={onBlur}
             styles={{

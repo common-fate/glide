@@ -262,6 +262,7 @@ const InternalGroups: React.FC<InternalGroupsProps> = ({
             </FormLabel>
             <Flex flex={1}>
               <GroupSelect
+                testId="group-select"
                 fieldName="groups"
                 isDisabled={methods.formState.isSubmitting}
                 source={ListGroupsSource.INTERNAL}

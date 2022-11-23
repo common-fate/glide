@@ -6,12 +6,18 @@ import {
   fillFormElementByTestId,
   LoginAdmin,
   LoginUser,
+  selectOptionByID,
   testId,
   uniqueReason,
 } from "../utils/helpers";
 
+import { randomBytes } from "crypto";
 const RULE_NAME = "test";
-
+const username = process.env.TEST_USERNAME ?? "";
+var id = randomBytes(20).toString("hex");
+const groupName = "test-group-" + id;
+const groupNameUpdated = groupName + "-updated";
+const groupDescription = groupName + " description";
 test.describe.serial("Internal Groups Workflows", () => {
   test("test create internal group workflow", async ({ page }) => {
     // This will log us in as an admin
@@ -28,18 +34,14 @@ test.describe.serial("Internal Groups Workflows", () => {
     //   Click on the add internal group button
     await page.click(testId("create-group-button"));
 
-    await fillFormElementById("name", "group_1_internal", page);
-    await fillFormElementById(
-      "description",
-      "group_1_internal description",
-      page
-    );
-    await fillFormElementById("user-select-input", "jack@commonfate.io", page);
-    page.keyboard.press("Enter");
+    await fillFormElementById("name", groupName, page);
+    await fillFormElementById("description", groupDescription, page);
+
+    await selectOptionByID("user-select-input", username, page);
 
     await page.click(testId("save-group-button"));
 
-    await page.click(testId("group_1_internal"));
+    await page.click(testId(groupName));
 
     await page.waitForLoadState("networkidle");
 
@@ -50,7 +52,7 @@ test.describe.serial("Internal Groups Workflows", () => {
     await expect(locator1).toContainText("Internal");
 
     const locator2 = page.locator(testId("group-name"));
-    await expect(locator2).toContainText("group_1_internal");
+    await expect(locator2).toContainText(groupName);
   });
 
   test("test update internal group details", async ({ page }) => {
@@ -66,7 +68,7 @@ test.describe.serial("Internal Groups Workflows", () => {
 
     //   find the group we want to update
 
-    await page.click(testId("group_1_internal"));
+    await page.click(testId(groupName));
 
     // await page.waitForNavigation();
 
@@ -79,15 +81,15 @@ test.describe.serial("Internal Groups Workflows", () => {
     await expect(locator1).toContainText("Internal");
 
     const locator2 = page.locator(testId("group-name"));
-    await expect(locator2).toContainText("group_1_internal");
+    await expect(locator2).toContainText(groupName);
 
     const locator = page.locator(testId("group-description"));
-    await expect(locator).toContainText("group_1_internal description");
+    await expect(locator).toContainText(groupDescription);
 
     await page.click(testId("edit-group"));
     await page.waitForLoadState("networkidle");
 
-    await fillFormElementById("name", "group_1_internal_updated", page);
+    await fillFormElementById("name", groupNameUpdated, page);
     await page.waitForLoadState("networkidle");
 
     await fillFormElementById(
@@ -104,7 +106,7 @@ test.describe.serial("Internal Groups Workflows", () => {
 
     await fillFormElementByTestId(
       testId("description"),
-      "group_1_internal updated description",
+      groupDescription,
       page
     );
 
@@ -116,20 +118,17 @@ test.describe.serial("Internal Groups Workflows", () => {
     await expect(locator3).toContainText("Internal");
 
     const locator4 = page.locator(testId("group-name"));
-    await expect(locator4).toContainText("group_1_internal_updated");
+    await expect(locator4).toContainText(groupNameUpdated);
 
     const locator5 = page.locator(testId("group-description"));
-    await expect(locator5).toContainText(
-      "group_1_internal updated description"
-    );
+    await expect(locator5).toContainText(groupDescription);
   });
 
   test("test create access rule using internal group and request access", async ({
     page,
   }) => {
     // This will log us in as an admin and create an access rule
-    await CreateAccessRule(page, RULE_NAME, "group_1_internal_updated");
-
+    await CreateAccessRule(page, RULE_NAME, groupNameUpdated);
     await LoginUser(page);
 
     //check that we have access to the new rule
@@ -209,22 +208,11 @@ test.describe.serial("Internal Groups Workflows", () => {
 
     await page.waitForLoadState("networkidle");
     await page.click(testId("edit-groups-icon"));
-    await page.waitForLoadState("networkidle");
+    await page.click(testId("select-input-deselect-all"));
+    await selectOptionByID("group-select", groupNameUpdated, page);
+    await page.click(testId("save-group-submit"));
 
-    await fillFormElementById(
-      "group-select-input",
-      "group_1_internal_updated",
-      page
-    );
-    //wait for the dropdown to fillout
-    await new Promise((r) => setTimeout(r, 2000));
-
-    await page.keyboard.press("Enter");
-    await page.keyboard.press("Enter");
-
-    // await page.click(testId("save-group-submit"));
-
-    const locator5 = page.locator(testId("group_1_internal_updated")).first();
+    const locator5 = page.locator(testId(groupNameUpdated)).first();
     await expect(locator5).toBeVisible();
   });
 });

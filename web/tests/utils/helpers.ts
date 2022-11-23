@@ -5,7 +5,6 @@ import { expect, Page } from "@playwright/test";
 export const LoginUser = async (page: Page) => {
   //  const page = await context.newPage();
   await Logout(page);
-  await page.goto("/");
   await fillFormElement(
     "input",
     "username",
@@ -28,7 +27,6 @@ export const LoginUser = async (page: Page) => {
 export const LoginAdmin = async (page: Page) => {
   //  const page = await context.newPage();
   await Logout(page);
-  await page.goto("/", { timeout: 10000 });
   await fillFormElement(
     "input",
     "username",
@@ -145,6 +143,15 @@ export const fillFormElementById = async (
   page: Page
 ) => {
   await page.locator(`#${name} >> visible=true`).fill(value);
+};
+
+export const selectOptionByID = async (
+  name: string,
+  label: string,
+  page: Page
+) => {
+  await page.locator(`#${name} >> visible=true`).click();
+  await page.locator(`p:has-text("${label}")`).click();
 };
 
 export const fillFormElementByTestId = async (
