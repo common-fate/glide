@@ -587,6 +587,7 @@ const AccessRequestForm = () => {
                   <Approvers approvers={approvers?.users} />
                   <Box>
                     <Button
+                      data-testid="request-submit-button"
                       type="submit"
                       disabled={isDisabled}
                       isLoading={loading}

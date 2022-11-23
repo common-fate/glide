@@ -8,7 +8,7 @@ const awsmobile = {
       domain: "{{ .UserPoolDomain }}",
       scope: ["email", "profile", "openid"],
       redirectSignIn: "http://localhost:3000",
-      redirectSignOut: "http://localhost:3000",
+      redirectSignOut: "http://localhost:3000?state=loggedOut",
       responseType: "code",
     },
     cookieStorage: {

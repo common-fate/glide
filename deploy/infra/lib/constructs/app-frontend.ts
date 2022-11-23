@@ -205,14 +205,27 @@ export class AppFrontend extends Construct {
     return this;
   }
 
-  getDevCallbackUrls(): string[] {
+  getDevCallbackUrls(): CallBackUrls {
     /* Cognito web app client for Frontend */
-    return [`https://${this.getDomainName()}`, "http://localhost:3000"];
+
+    return {
+      callBackUrls: [
+        `https://${this.getDomainName()}`,
+        "http://localhost:3000",
+      ],
+      logoutUrls: [
+        `https://${this.getDomainName()}?state=loggedOut`,
+        "http://localhost:3000?state=loggedOut",
+      ],
+    };
   }
 
-  getProdCallbackUrls(): string[] {
+  getProdCallbackUrls(): CallBackUrls {
     /* Cognito web app client for Frontend */
-    return [`https://${this.getDomainName()}`];
+    return {
+      callBackUrls: [`https://${this.getDomainName()}`],
+      logoutUrls: [`https://${this.getDomainName()}?state=loggedOut`],
+    };
   }
 
   /**
@@ -252,3 +265,8 @@ export class AppFrontend extends Construct {
     return this._frontendS3Bucket;
   }
 }
+
+export type CallBackUrls = {
+  callBackUrls: string[];
+  logoutUrls: string[];
+};

@@ -1,3 +1,4 @@
+import Auth from "@aws-amplify/auth";
 import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Avatar,
@@ -110,6 +111,7 @@ export const AdminNavbar: React.FC = () => {
                   </Button>
                   <Menu>
                     <MenuButton
+                      data-testid="logout-icon"
                       as={Button}
                       variant="ghost"
                       rounded="full"
@@ -139,6 +141,7 @@ export const AdminNavbar: React.FC = () => {
                         {user.user?.email}
                       </MenuItem>
                       <MenuItem
+                        data-testid="logout-button"
                         icon={<DoorIcon color={"gray.400"} />}
                         onClick={auth.initiateSignOut}
                       >
