@@ -8,7 +8,7 @@
       "domain": "{{ .UserPoolDomain }}",
       "scope": ["email", "profile", "openid"],
       "redirectSignIn": "https://{{ .FrontendDomain }}",
-      "redirectSignOut": "https://{{ .FrontendDomain }}",
+      "redirectSignOut": "https://{{ .FrontendDomain }}?state=loggedOut",
       "responseType": "code"
     },
     "cookieStorage": {

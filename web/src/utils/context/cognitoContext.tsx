@@ -3,9 +3,10 @@ import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth/lib-esm/types
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
 import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-location";
+import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import CFSpinner from "../../components/CFSpinner";
 import awsExports from "../aws-exports";
+import { AccessRuleStatus } from "../backend-client/types";
 import { setAPIURL } from "../custom-instance";
 import { createCtx } from "./createCtx";
 
@@ -21,13 +22,21 @@ interface Props {
   children: React.ReactNode;
 }
 
+type MyLocationGenerics = MakeGenerics<{
+  Search: {
+    state?: string;
+  };
+}>;
+
 const CognitoProvider: React.FC<Props> = ({ children }) => {
   const [amplifyInitialising, setAmplifyInitializing] = useState(true);
   const [loadingCurrentUser, setLoadingCurrentUser] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [cognitoAuthenticatedUserEmail, setCognitoAuthenticatedUserEmail] =
     useState<string>();
   const loading = amplifyInitialising || loadingCurrentUser;
   const navigate = useNavigate();
+  const search = useSearch<MyLocationGenerics>();
   // this can be improved in future with a more graceful error page if the AWS config doesn't load.
   // The following effect will run on first load of the app, in production, this will fetch a config file from the server to hydrate the amplify configuration
   // in local dev, this is imported from a local file
@@ -71,18 +80,24 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
     setLoadingCurrentUser(true);
     Auth.currentAuthenticatedUser()
       .then((data) => {
+        console.log("got current authenticated user", data);
         setCognitoAuthenticatedUserEmail(data.username);
         setLoadingCurrentUser(false);
       })
       .catch(() => {
+        console.log("couldn't find current authenticated user");
+
         setCognitoAuthenticatedUserEmail(undefined);
         setLoadingCurrentUser(false);
       });
   };
 
   const amplifyListener: HubCallback = async ({ payload: { event, data } }) => {
-    console.debug("aws-amplify Hub recieved event", { event, data });
+    console.log("aws-amplify Hub recieved event", { event, data });
     switch (event) {
+      case "oAuthSignOut":
+        setCognitoAuthenticatedUserEmail(undefined);
+        break;
       case "signOut":
         setCognitoAuthenticatedUserEmail(undefined);
         break;
@@ -104,6 +119,12 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
     }
   }, [amplifyInitialising]);
 
+  useEffect(() => {
+    if (loggingOut && search.state === "loggedOut") {
+      setLoggingOut(false);
+    }
+  }, [search, loggingOut]);
+
   // spinner when amplify is initialising or when the current user is being fetched and the user is undefined
   if (loading && cognitoAuthenticatedUserEmail === undefined) {
     return (
@@ -112,14 +133,29 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
       </Center>
     );
   }
+  console.log({ loggingOut, loading, cognitoAuthenticatedUserEmail });
   // force the ts type for cognitoAuthenticatedUserEmail to be a string in the context return by expricitly checking it
   if (!loading && cognitoAuthenticatedUserEmail === undefined) {
-    initiateAuth().catch((e) => console.error(e));
+    if (!loggingOut) {
+      initiateAuth().catch((e) => console.error(e));
+    }
     return (
       <Center h="100vh">
         <CFSpinner />
       </Center>
     );
+  }
+
+  function initiateAuth() {
+    return Auth.federatedSignIn({
+      customState: location.pathname + location.search,
+      provider: CognitoHostedUIIdentityProvider.Cognito,
+    });
+  }
+
+  function initiateSignOut() {
+    setLoggingOut(true);
+    return Auth.signOut();
   }
 
   return (
@@ -134,16 +170,5 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
     </CognitoContextProvider>
   );
 };
-
-function initiateAuth() {
-  return Auth.federatedSignIn({
-    customState: location.pathname + location.search,
-    provider: CognitoHostedUIIdentityProvider.Cognito,
-  });
-}
-
-function initiateSignOut() {
-  return Auth.signOut();
-}
 
 export { useCognito, CognitoProvider };

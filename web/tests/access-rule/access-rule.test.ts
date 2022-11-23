@@ -17,7 +17,6 @@ import {
 
 //test user cannot create access rule
 test("non admin cannot create access rule", async ({ page }) => {
-  await Logout(page);
   await LoginUser(page);
   await page.waitForLoadState("networkidle");
   await expect(page).toHaveTitle(/Granted/);

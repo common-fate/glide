@@ -4,6 +4,7 @@ import { expect, Page } from "@playwright/test";
 
 export const LoginUser = async (page: Page) => {
   //  const page = await context.newPage();
+  await Logout(page);
   await page.goto("/");
   await fillFormElement(
     "input",
@@ -26,6 +27,7 @@ export const LoginUser = async (page: Page) => {
 
 export const LoginAdmin = async (page: Page) => {
   //  const page = await context.newPage();
+  await Logout(page);
   await page.goto("/", { timeout: 10000 });
   await fillFormElement(
     "input",
@@ -56,7 +58,7 @@ export const CreateAccessRule = async (
   ruleName: string,
   group: string
 ) => {
-  await Logout(page);
+  // await Logout(page);
   await LoginAdmin(page);
   await page.waitForLoadState("networkidle");
   await clickFormElementByID("admin-button", page);

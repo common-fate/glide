@@ -1,3 +1,4 @@
+import Auth from "@aws-amplify/auth";
 import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Avatar,
@@ -30,6 +31,19 @@ import { useUser } from "../../utils/context/userContext";
 import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogoAdmin } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
+
+const signOut = async (event: React.MouseEvent) => {
+  event.preventDefault();
+  setTimeout(async () => {
+    try {
+      await Auth.signOut();
+      window.location.href = "/admin";
+    } catch (error) {
+      console.log("error signing out: ", error);
+      event.preventDefault();
+    }
+  });
+};
 
 export const AdminNavbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
@@ -110,6 +124,7 @@ export const AdminNavbar: React.FC = () => {
                   </Button>
                   <Menu>
                     <MenuButton
+                      data-testid="logout-icon"
                       as={Button}
                       variant="ghost"
                       rounded="full"
@@ -139,8 +154,13 @@ export const AdminNavbar: React.FC = () => {
                         {user.user?.email}
                       </MenuItem>
                       <MenuItem
+                        data-testid="logout-button"
                         icon={<DoorIcon color={"gray.400"} />}
-                        onClick={auth.initiateSignOut}
+                        onClick={async () =>
+                          await auth
+                            .initiateSignOut()
+                            .then((e) => console.log(e))
+                        }
                       >
                         Sign out
                       </MenuItem>

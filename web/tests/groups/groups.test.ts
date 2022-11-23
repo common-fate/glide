@@ -6,7 +6,6 @@ import {
   fillFormElementByTestId,
   LoginAdmin,
   LoginUser,
-  Logout,
   testId,
   uniqueReason,
 } from "../utils/helpers";
@@ -16,6 +15,7 @@ const RULE_NAME = "test";
 test.describe.serial("Internal Groups Workflows", () => {
   test("test create internal group workflow", async ({ page }) => {
     // This will log us in as an admin
+
     await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
@@ -44,8 +44,6 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.click(testId("save-group-button"));
 
     await page.click(testId("group_1_internal"));
-
-    await page.waitForNavigation();
 
     await page.waitForLoadState("networkidle");
 
@@ -130,13 +128,13 @@ test.describe.serial("Internal Groups Workflows", () => {
     );
   });
 
-  const uniqueReasonTemp = uniqueReason;
-
   test("test create access rule using internal group and request access", async ({
     page,
   }) => {
-    // This will log us in as an admin
+    // This will log us in as an admin and create an access rule
     await CreateAccessRule(page, RULE_NAME, "group_1_internal_updated");
+
+    await LoginUser(page);
 
     //check that we have access to the new rule
     await page.goto("/");
@@ -144,7 +142,7 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     //add reason
-    await fillFormElementById("reasonField", uniqueReasonTemp, page);
+    await fillFormElementById("reasonField", uniqueReason, page);
 
     await page.click(testId("request-submit-button"));
 
@@ -155,12 +153,34 @@ test.describe.serial("Internal Groups Workflows", () => {
 
   test("test review access rule", async ({ page }) => {
     // This will log us in as an admin
+    const tempUniqueReason = uniqueReason;
+
+    //create a new request
+    await LoginUser(page);
+
+    //check that we have access to the new rule
+    await page.goto("/");
+    await page.click(testId("r_0"));
+    await page.waitForLoadState("networkidle");
+
+    //add reason
+    await fillFormElementById("reasonField", tempUniqueReason, page);
+
+    await page.click(testId("request-submit-button"));
+
+    await page.waitForLoadState("networkidle");
+    await expect(page).toHaveURL("/requests");
+
+    page.waitForNavigation();
+
+    //check that we are redirected
+
     await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
     await page.goto("/reviews?status=pending");
     await page.waitForLoadState("networkidle");
-    await page.click(testId(uniqueReason), { force: true });
+    await page.click(testId(tempUniqueReason), { force: true });
 
     await page.waitForLoadState("networkidle");
 
@@ -171,7 +191,7 @@ test.describe.serial("Internal Groups Workflows", () => {
 
     // Validate its teh same request
     let approvedText = await page.locator(testId("reason")).textContent();
-    await expect(approvedText).toBe(uniqueReason);
+    await expect(approvedText).toBe(tempUniqueReason);
   });
 
   test("test admin can update user groups", async ({ page }) => {
@@ -193,10 +213,18 @@ test.describe.serial("Internal Groups Workflows", () => {
 
     await page.waitForLoadState("networkidle");
     await page.click(testId("edit-groups-icon"));
+    await page.waitForLoadState("networkidle");
 
-    await fillFormElementById("react-select-3-input", "group_1_internal", page);
-    page.keyboard.press("Enter");
-    // page.keyboard.press("Escape");
+    await fillFormElementById(
+      "react-select-3-input",
+      "group_1_internal_updated",
+      page
+    );
+    //wait for the dropdown to fillout
+    await new Promise((r) => setTimeout(r, 2000));
+
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Enter");
 
     // await page.click(testId("save-group-submit"));
 
