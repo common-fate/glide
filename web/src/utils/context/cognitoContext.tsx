@@ -32,8 +32,10 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
   const [amplifyInitialising, setAmplifyInitializing] = useState(true);
   const [loadingCurrentUser, setLoadingCurrentUser] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [cognitoAuthenticatedUserEmail, setCognitoAuthenticatedUserEmail] =
-    useState<string>();
+  const [
+    cognitoAuthenticatedUserEmail,
+    setCognitoAuthenticatedUserEmail,
+  ] = useState<string>();
   const loading = amplifyInitialising || loadingCurrentUser;
   const navigate = useNavigate();
   const search = useSearch<MyLocationGenerics>();
@@ -147,8 +149,13 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
   }
 
   function initiateAuth() {
+    // prevent unexpected redirects back to login page when redirecting to signin page after logout
+    const customState =
+      location.pathname === "/logout"
+        ? undefined
+        : location.pathname + location.search;
     return Auth.federatedSignIn({
-      customState: location.pathname + location.search,
+      customState: customState,
       provider: CognitoHostedUIIdentityProvider.Cognito,
     });
   }
