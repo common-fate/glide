@@ -32,19 +32,6 @@ import { DoorIcon } from "../icons/Icons";
 import { ApprovalsLogoAdmin } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
-const signOut = async (event: React.MouseEvent) => {
-  event.preventDefault();
-  setTimeout(async () => {
-    try {
-      await Auth.signOut();
-      window.location.href = "/admin";
-    } catch (error) {
-      console.log("error signing out: ", error);
-      event.preventDefault();
-    }
-  });
-};
-
 export const AdminNavbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
@@ -156,11 +143,7 @@ export const AdminNavbar: React.FC = () => {
                       <MenuItem
                         data-testid="logout-button"
                         icon={<DoorIcon color={"gray.400"} />}
-                        onClick={async () =>
-                          await auth
-                            .initiateSignOut()
-                            .then((e) => console.log(e))
-                        }
+                        onClick={auth.initiateSignOut}
                       >
                         Sign out
                       </MenuItem>
