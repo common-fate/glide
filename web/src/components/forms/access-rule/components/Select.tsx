@@ -60,7 +60,14 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
         .sort((a, b) => a.label.localeCompare(b.label)) ?? []
     );
   }, [data, shouldShowGroupMembers]);
-  return <MultiSelect id={props.testId} options={options} {...props} onBlurSecondaryAction={props.onBlurSecondaryAction}/>;
+  return (
+    <MultiSelect
+      id={props.testId}
+      options={options}
+      {...props}
+      onBlurSecondaryAction={props.onBlurSecondaryAction}
+    />
+  );
 };
 
 type MultiSelectRules = Partial<{
