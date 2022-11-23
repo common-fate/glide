@@ -142,10 +142,9 @@ test.describe.serial("Internal Groups Workflows", () => {
     await fillFormElementById("reasonField", uniqueReason, page);
 
     await page.click(testId("request-submit-button"));
-
-    await page.waitForLoadState("networkidle");
-    // const locator5 = page.locator(testId("req_")).first();
-    // await expect(locator5).toBeVisible();
+    await page.waitForNavigation({ url: /requests/ });
+    const locator5 = page.locator(testId("req_" + uniqueReason));
+    await expect(locator5).toBeVisible();
   });
 
   test("test review access rule", async ({ page }) => {
