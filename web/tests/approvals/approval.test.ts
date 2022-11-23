@@ -6,17 +6,18 @@ import {
   LoginAdmin,
   LoginUser,
   testId,
-  uniqueReason,
 } from "../utils/helpers";
 
-const RULE_NAME = "test";
-
+import { randomBytes } from "crypto";
+var id = randomBytes(20).toString("hex");
+const ruleName = "test-rule-" + id;
+const uniqueReason = "test-reason-" + id;
 test.describe.serial("Approval/Request Workflows", () => {
   let accessInstructionLink: string;
 
   test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
-    await CreateAccessRule(page, RULE_NAME, "");
+    await CreateAccessRule(page, ruleName, "");
   });
 
   test("test request workflow", async ({ page }) => {
@@ -31,7 +32,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     //   Click on the first rule
-    await page.click(testId("r_0"));
+    await page.click(`text=${ruleName}`);
 
     await fillFormElementById("reasonField", uniqueReason, page);
     await page.waitForSelector(testId("rule-name"));

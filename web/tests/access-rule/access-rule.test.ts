@@ -17,8 +17,11 @@ test("non admin cannot create access rule", async ({ page }) => {
       )
     );
 });
+import { randomBytes } from "crypto";
 
+var id = randomBytes(20).toString("hex");
+const ruleName = "test-rule-" + id;
 //test access rule create
 test("admin can create access rule", async ({ page }) => {
-  await CreateAccessRule(page, "test", "");
+  await CreateAccessRule(page, ruleName, "");
 });

@@ -69,7 +69,7 @@ export const CreateAccessRule = async (
   await clickFormElementByID("new-access-rule-button", page);
 
   //enter a name for new rule
-  await fillFormElement("input", "name", "test-rule", page);
+  await fillFormElement("input", "name", ruleName, page);
   await fillFormElement(
     "textarea",
     "description",
@@ -183,5 +183,3 @@ export const clickFormElementByClass = async (id: string, page: Page) => {
 export const testId = (id: string) => {
   return `[data-testid="${id}"]`;
 };
-
-export const uniqueReason = "test-" + Math.floor(Math.random() * 1000);
