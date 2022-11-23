@@ -13,12 +13,13 @@ import {
   IdentityProviderRegistry,
   IdentityProviderTypes,
 } from "../helpers/registry";
+import { CallBackUrls } from "./app-frontend";
 
 interface Props {
   appName: string;
   domainPrefix: string;
   frontendUrl: string;
-  callbackUrls: string[];
+  callbackUrls: CallBackUrls;
   idpType: IdentityProviderTypes;
   // default should be an empty string is not in use
   samlMetadataUrl: string;
@@ -169,7 +170,7 @@ export class WebUserPool extends Construct {
 type SamlUserPoolClientProps = {
   userPool: cognito.IUserPool;
   appName: string;
-  callbackUrls: string[];
+  callbackUrls: CallBackUrls;
   idpType: string;
   samlMetadataUrl: string;
   samlMetadata: string;
@@ -234,8 +235,8 @@ export class SamlUserPoolClient extends Construct {
           cognito.OAuthScope.EMAIL,
           cognito.OAuthScope.PROFILE,
         ],
-        callbackUrls: props.callbackUrls,
-        logoutUrls: props.callbackUrls,
+        callbackUrls: props.callbackUrls.callBackUrls,
+        logoutUrls: props.callbackUrls.logoutUrls,
       },
     });
 
@@ -253,7 +254,7 @@ export class SamlUserPoolClient extends Construct {
 type CognitoUserPoolClientProps = {
   userPool: cognito.IUserPool;
   appName: string;
-  callbackUrls: string[];
+  callbackUrls: CallBackUrls;
   condition: cdk.CfnCondition;
 };
 export class CognitoUserPoolClient extends Construct {
@@ -285,8 +286,8 @@ export class CognitoUserPoolClient extends Construct {
           cognito.OAuthScope.EMAIL,
           cognito.OAuthScope.PROFILE,
         ],
-        callbackUrls: props.callbackUrls,
-        logoutUrls: props.callbackUrls,
+        callbackUrls: props.callbackUrls.callBackUrls,
+        logoutUrls: props.callbackUrls.logoutUrls,
       },
     });
     // have to drill down into the L1 construct to set the condition here

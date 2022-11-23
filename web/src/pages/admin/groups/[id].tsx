@@ -119,14 +119,18 @@ const Index = () => {
         <HStack align={"flex-start"} w="100%">
           <VStack align={"left"} spacing={1} flex={1} mr={4}>
             <Text textStyle="Body/Medium">Source</Text>
-            <Text textStyle="Body/Small">
+            <Text data-testid="group-source" textStyle="Body/Small">
               <IDPLogo idpType={group.source} h={4} mr={2} />
               {GetIDPName(group.source)}
             </Text>
             <Text textStyle="Body/Medium">Name</Text>
-            <Text textStyle="Body/Small">{group.name}</Text>
+            <Text data-testid="group-name" textStyle="Body/Small">
+              {group.name}
+            </Text>
             <Text textStyle="Body/Medium">Description</Text>
-            <Text textStyle="Body/Small">{group.description}</Text>
+            <Text data-testid="group-description" textStyle="Body/Small">
+              {group.description}
+            </Text>
             <Text textStyle="Body/Medium">Members</Text>
             <Wrap>
               {group.members.length === 0 ? (
@@ -149,6 +153,7 @@ const Index = () => {
               <IconButton
                 size="sm"
                 variant="ghost"
+                data-testid="edit-group"
                 icon={<EditIcon />}
                 aria-label={"edit group"}
                 onClick={() => setIsEditable(true)}
@@ -181,6 +186,7 @@ const Index = () => {
                 onBlur={() => {
                   void methods.trigger("name");
                 }}
+                id="name"
               />
               <FormErrorMessage>Name is required</FormErrorMessage>
             </FormControl>
@@ -195,6 +201,7 @@ const Index = () => {
                 onBlur={() => {
                   void methods.trigger("description");
                 }}
+                data-testid="description"
               />
               <FormErrorMessage>Description is required</FormErrorMessage>
             </FormControl>
@@ -213,7 +220,7 @@ const Index = () => {
           </FormProvider>
         </VStack>
         <HStack justify={"right"}>
-          <Button type="submit" isLoading={loading}>
+          <Button data-testid="save-group" type="submit" isLoading={loading}>
             Save
           </Button>
           <Button
