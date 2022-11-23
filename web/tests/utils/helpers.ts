@@ -92,12 +92,12 @@ export const CreateAccessRule = async (
   //click on group select, add both groups for approval
   if (group != "") {
     await clickFormElementByID("group-select", page);
-    await fillFormElementById("react-select-3-input", group, page);
+    await fillFormElementById("group-select-input", group, page);
     await page.keyboard.press("Enter");
     await page.keyboard.press("Escape");
   } else {
-    await clickFormElementByID("react-select-3-input", page);
-    await fillFormElementById("react-select-3-input", "everyone", page);
+    await clickFormElementByID("group-select", page);
+    await fillFormElementById("group-select-input", "everyone", page);
     await page.keyboard.press("Enter");
     await page.keyboard.press("Escape");
   }

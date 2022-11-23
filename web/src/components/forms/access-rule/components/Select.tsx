@@ -142,6 +142,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         return (
           <ReactSelect
             id={id}
+            inputId={id + "-input"}
             isDisabled={isDisabled}
             //getOptionLabel={(option) => `${option.label}  (${option.value})`}
             options={[
@@ -195,7 +196,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
               onBlur();
             }}
-            data-testid={rest.testId}
+            data-testid="select-input"
             {...rest}
           />
         );

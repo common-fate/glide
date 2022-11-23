@@ -34,11 +34,7 @@ test.describe.serial("Internal Groups Workflows", () => {
       "group_1_internal description",
       page
     );
-    await fillFormElementById(
-      "react-select-3-input",
-      "jack@commonfate.io",
-      page
-    );
+    await fillFormElementById("user-select-input", "jack@commonfate.io", page);
     page.keyboard.press("Enter");
 
     await page.click(testId("save-group-button"));
@@ -95,7 +91,7 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     await fillFormElementById(
-      "react-select-3-input",
+      "user-select-input",
       process.env.TEST_ADMIN_USERNAME ?? "",
       page
     );
@@ -216,7 +212,7 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     await fillFormElementById(
-      "react-select-3-input",
+      "group-select-input",
       "group_1_internal_updated",
       page
     );
