@@ -134,7 +134,8 @@ func (g *OrganizationGraph) generateOuGroupOptions(ctx context.Context) ([]types
 		{Label: aws.ToString(g.Root.Root.Name), Value: aws.ToString(g.Root.Root.Id), Children: g.Root.DescendantAccountIDs()},
 	}
 	for _, orgUnit := range g.Root.DescendantOrganizationalUnits() {
-		option := types.GroupOption{Label: aws.ToString(orgUnit.OrganizationalUnit.Name), Value: aws.ToString(orgUnit.OrganizationalUnit.Id), Children: orgUnit.DescendantAccountIDs()}
+		labelPrefix := orgUnit.Ancestors.Path() + "/"
+		option := types.GroupOption{Label: aws.ToString(orgUnit.OrganizationalUnit.Name), Value: aws.ToString(orgUnit.OrganizationalUnit.Id), Children: orgUnit.DescendantAccountIDs(), LabelPrefix: &labelPrefix}
 		groupOptions = append(groupOptions, option)
 	}
 	return groupOptions, nil

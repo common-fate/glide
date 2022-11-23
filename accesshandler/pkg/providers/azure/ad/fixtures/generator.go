@@ -30,7 +30,7 @@ func (a *Generator) Init(ctx context.Context) error {
 
 // Generate fixtures by calling the azure API.
 func (g *Generator) Generate(ctx context.Context) ([]byte, error) {
-	email := fmt.Sprintf("test_%s@exponentlabsio.onmicrosoft.com", ksuid.New().String())
+	email := fmt.Sprintf("test_%s@cfdemocompany.onmicrosoft.com", ksuid.New().String())
 
 	createUserRequest := ad.CreateADUser{
 		AccountEnabled:    true,

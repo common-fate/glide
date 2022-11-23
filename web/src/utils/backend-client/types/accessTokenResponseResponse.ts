@@ -6,4 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AccessToken = string;
+export type AccessTokenResponseResponse = {
+  hasToken: boolean;
+  token?: string;
+};
