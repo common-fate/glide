@@ -273,6 +273,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
               }
               return (
                 <FormControl
+                  data-testid="arg-group-view"
                   w="100%"
                   isInvalid={
                     multiSelectsError &&

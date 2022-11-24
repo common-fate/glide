@@ -34,10 +34,7 @@ test.describe.serial("Running test sequentially", () => {
     await page.locator('text=fifth >> nth=1').click()
     await page.locator('internal:attr=[data-testid="argumentField"] >> text=Groups').click()
 
-    // todo: Unable to select the dynamic group field.
-    await page.locator('.css-1kwwvb1-ValueContainer2 > .css-ujecln-Input2 >> nth=0').click()
-
-    // await page.getByTestId("argumentGroupMultiSelect").click()
+    await page.locator('internal:attr=[data-testid="arg-group-view"] >> div:has-text("Select...") >> nth=3').click()
     await page.getByText("alla category containing all groupsall").click();
     await clickFormElementByText("button", "Next", page);
 
