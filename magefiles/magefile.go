@@ -247,7 +247,7 @@ func (Deploy) CDK() error {
 	// infrastructure/cdk.json defines a build step within CDK which calls `go run mage.go build`,
 	// so we don't need to build or package the code before running cdk deploy.
 	args := []string{"--dir", "deploy/infra", "cdk", "deploy", "--outputs-file", "cdk-outputs.json"}
-	cfg, err := deploy.LoadConfig("deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func Dotenv() error {
 		return err
 	}
 
-	cfg, err := deploy.LoadConfig("deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -518,7 +518,7 @@ func Watch() error {
 	mg.Deps(Deps.NPM)
 	args := []string{"--dir", "deploy/infra", "cdk", "watch", "--outputs-file", "cdk-outputs.json"}
 
-	cfg, err := deploy.LoadConfig("deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -532,7 +532,7 @@ func Destroy() error {
 	mg.Deps(Deps.NPM)
 	args := []string{"--dir", "deploy/infra", "cdk", "destroy"}
 
-	cfg, err := deploy.LoadConfig("deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -549,7 +549,7 @@ func Clean() error {
 
 // DevConfig sets up the deployment.yml file
 func DevConfig() error {
-	_, err := deploy.LoadConfig("deployment.yml")
+	_, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil && err != deploy.ErrConfigNotExist {
 		return err
 	}
@@ -563,7 +563,7 @@ func DevConfig() error {
 		return err
 	}
 
-	err = c.Save("deployment.yml")
+	err = c.Save(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -576,7 +576,7 @@ func DevConfig() error {
 // If it doesn't exist yet it adds a dependency for the CDK deploy
 // task, which will create the output, and then tries to read it again.
 func ensureCDKOutput() (deploy.Output, error) {
-	dc, err := deploy.LoadConfig("deployment.yml")
+	dc, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return deploy.Output{}, err
 	}

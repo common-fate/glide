@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/fatih/color"
@@ -43,6 +44,8 @@ func SetConfigInContext(ctx context.Context, cfg Config) context.Context {
 
 const DeprecatedDefaultFilename = "granted-deployment.yml"
 const DefaultFilename = "deployment.yml"
+
+var DeprecatedDefaultFilenameWarning = clierr.Warn("Since v0.11.0 the default deployment config file name 'granted-deployment.yml' has been deprecated. We recommend renaming this file to 'deployment.yml' in a future version of gdeploy, support for 'granted-deployment.yml' as a default may be removed.")
 
 // AvailableRegions are the regions that we currently release CloudFormation templates to.
 var AvailableRegions = []string{

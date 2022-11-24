@@ -18,6 +18,7 @@ import (
 	mw "github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
 	"github.com/common-fate/granted-approvals/internal"
 	"github.com/common-fate/granted-approvals/internal/build"
+	"github.com/common-fate/granted-approvals/pkg/deploy"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
@@ -33,7 +34,7 @@ func main() {
 		Version:     build.Version,
 		HideVersion: false,
 		Flags: []cli.Flag{
-			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "deployment.yml", Usage: "The deployment configuration yml file path"},
+			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: deploy.DefaultFilename, Usage: "The deployment configuration yml file path"},
 			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "Ignore checking if this is a clean repository during create and update commands"},
 			&cli.BoolFlag{Name: "ignore-version-mismatch", EnvVars: []string{"GDEPLOY_IGNORE_VERSION_MISMATCH"}, Usage: "Ignore mismatches between 'gdeploy' and the Common Fate release version. Don't use this unless you know what you're doing."},
 			&cli.BoolFlag{Name: "verbose", Usage: "Enable verbose logging, effectively sets environment variable GRANTED_LOG=DEBUG"},

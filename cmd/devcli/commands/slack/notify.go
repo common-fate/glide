@@ -23,7 +23,7 @@ var SlackCommand = cli.Command{
 
 var requestMessageCommand = cli.Command{
 	Name: "request-message",
-	Flags: []cli.Flag{&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "deployment.yml", Usage: "The deployment configuration yml file path"},
+	Flags: []cli.Flag{&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: deploy.DefaultFilename, Usage: "The deployment configuration yml file path"},
 		&cli.StringFlag{Name: "request-id", Required: true},
 		&cli.StringFlag{Name: "reviewer-id"},
 	},

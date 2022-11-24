@@ -20,7 +20,7 @@ func RequireDeploymentConfig() cli.BeforeFunc {
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
 			return clierr.New(fmt.Sprintf("Tried to load Common Fate deployment configuration from %s but the file doesn't exist.", f),
-				clierr.Warn("Since v0.11.0 the default deployment config file name 'granted-deployment.yml' has been deprecated. We recommend renaming this file to 'deployment.yml' in a future version of gdeploy, support for 'granted-deployment.yml' as a default may be removed."),
+				deploy.DeprecatedDefaultFilenameWarning,
 				clierr.Info(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Common Fate deployment configuration file (like 'deployment.yml')
