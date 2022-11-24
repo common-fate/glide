@@ -289,16 +289,14 @@ const AccessRequestForm = () => {
   const when = watch("when");
   const startTimeDate = watch("startDateTime");
   // Don't refetch the approvers
-  const {
-    data: approvers,
-    isValidating: isValidatingApprovers,
-  } = useUserGetAccessRuleApprovers(ruleId, {
-    swr: {
-      swrKey: getUserGetAccessRuleApproversKey(ruleId),
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-    },
-  });
+  const { data: approvers, isValidating: isValidatingApprovers } =
+    useUserGetAccessRuleApprovers(ruleId, {
+      swr: {
+        swrKey: getUserGetAccessRuleApproversKey(ruleId),
+        refreshInterval: 0,
+        revalidateOnFocus: false,
+      },
+    });
 
   const requiresApproval = !!approvers && approvers.users.length > 0;
 
@@ -318,6 +316,7 @@ const AccessRequestForm = () => {
     await userCreateRequest(r)
       .then(() => {
         toast({
+          id: "user-request-created",
           title: "Request created",
           status: "success",
           duration: 2200,
@@ -588,6 +587,7 @@ const AccessRequestForm = () => {
                   <Approvers approvers={approvers?.users} />
                   <Box>
                     <Button
+                      data-testid="request-submit-button"
                       type="submit"
                       disabled={isDisabled}
                       isLoading={loading}
@@ -667,6 +667,7 @@ export const AccessRuleArguments: React.FC<{
               <VStack
                 w="100%"
                 key={`subrequest-${subRequestIndex}`}
+                id={`subrequest-${subRequestIndex}`}
                 border="1px solid"
                 borderColor="gray.300"
                 rounded="md"
@@ -756,6 +757,7 @@ export const AccessRuleArguments: React.FC<{
                                 return undefined;
                               },
                             }}
+                            id="user-request-access"
                           />
                         )}
                         <FormErrorMessage>

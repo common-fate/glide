@@ -132,7 +132,9 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
                   leftIcon={
                     <DoorIcon color={isAdmin ? "gray.400" : "gray.700"} />
                   }
-                  onClick={auth.initiateSignOut}
+                  onClick={async () =>
+                    await auth.initiateSignOut().then((e) => console.log(e))
+                  }
                   opacity=".8"
                 >
                   Log out

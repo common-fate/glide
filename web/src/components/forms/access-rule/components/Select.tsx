@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Controller, useFormContext, Validate } from "react-hook-form";
 import ReactSelect, { ActionMeta, components, OptionProps } from "react-select";
-import { Text } from "@chakra-ui/react";
+import { Box, Text } from "@chakra-ui/react";
 import {
   useListGroups,
   useGetUsers,
@@ -20,6 +20,7 @@ interface BaseSelectProps {
 interface GroupSelectProps extends BaseSelectProps {
   shouldShowGroupMembers?: boolean;
   source?: ListGroupsSource;
+  onBlurSecondaryAction?: () => void;
 }
 
 // UserSelect required defaults to true
@@ -59,7 +60,14 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
         .sort((a, b) => a.label.localeCompare(b.label)) ?? []
     );
   }, [data, shouldShowGroupMembers]);
-  return <MultiSelect id={props.testId} options={options} {...props} />;
+  return (
+    <MultiSelect
+      id={props.testId}
+      options={options}
+      {...props}
+      onBlurSecondaryAction={props.onBlurSecondaryAction}
+    />
+  );
 };
 
 type MultiSelectRules = Partial<{
@@ -142,6 +150,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         return (
           <ReactSelect
             id={id}
+            inputId={id + "-input"}
             isDisabled={isDisabled}
             //getOptionLabel={(option) => `${option.label}  (${option.value})`}
             options={[
@@ -149,7 +158,14 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                 ? [SELECT_ALL_OPTION, ...sortedOptions]
                 : sortedOptions),
             ]}
-            components={{ Option: CustomOption }}
+            components={{
+              Option: CustomOption,
+              ClearIndicator: (props) => (
+                <Box data-testid="select-input-deselect-all">
+                  <components.ClearIndicator {...props} />
+                </Box>
+              ),
+            }}
             isMulti
             onMenuClose={onBlur}
             styles={{
@@ -195,7 +211,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
               rest.onBlurSecondaryAction && rest.onBlurSecondaryAction();
               onBlur();
             }}
-            data-testid={rest.testId}
+            data-testid="select-input"
             {...rest}
           />
         );

@@ -14,10 +14,8 @@ export interface FormStepContextProps {
   edit: () => void;
 }
 
-const [
-  useFormStep,
-  FormStepContextProvider,
-] = createCtx<FormStepContextProps>();
+const [useFormStep, FormStepContextProvider] =
+  createCtx<FormStepContextProps>();
 
 // FormStepcontext is used to give the FormStep number to the formFormStep automatically
 const FormStepProvider: React.FC<{

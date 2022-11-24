@@ -83,6 +83,7 @@ export const ApprovalStep: React.FC = () => {
             </Text>
           </FormLabel>
           <UserSelect
+            testId="approval-user-select"
             fieldName="approval.users"
             isDisabled={!approval?.required}
             rules={{
