@@ -316,6 +316,7 @@ const AccessRequestForm = () => {
     await userCreateRequest(r)
       .then(() => {
         toast({
+          id: "user-request-created",
           title: "Request created",
           status: "success",
           duration: 2200,
@@ -666,6 +667,7 @@ export const AccessRuleArguments: React.FC<{
               <VStack
                 w="100%"
                 key={`subrequest-${subRequestIndex}`}
+                id={`subrequest-${subRequestIndex}`}
                 border="1px solid"
                 borderColor="gray.300"
                 rounded="md"
@@ -755,6 +757,7 @@ export const AccessRuleArguments: React.FC<{
                                 return undefined;
                               },
                             }}
+                            id="user-request-access"
                           />
                         )}
                         <FormErrorMessage>

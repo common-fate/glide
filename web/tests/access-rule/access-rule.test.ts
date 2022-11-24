@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { CreateAccessRule, LoginUser } from "../utils/helpers";
+import { CreateAccessRule, LoginUser, randomRuleName } from "../utils/helpers";
 
 //has to be admin to create access rule
 
@@ -17,11 +17,8 @@ test("non admin cannot create access rule", async ({ page }) => {
       )
     );
 });
-import { randomBytes } from "crypto";
 
-var id = randomBytes(20).toString("hex");
-const ruleName = "test-rule-" + id;
 //test access rule create
 test("admin can create access rule", async ({ page }) => {
-  await CreateAccessRule(page, ruleName, "");
+  await CreateAccessRule(page, randomRuleName(), "");
 });
