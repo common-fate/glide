@@ -27,6 +27,8 @@ type Provider struct {
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
 	region gconfig.OptionalStringValue
+	//custom sso portal URL
+	ssoSubdomain gconfig.OptionalStringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -35,6 +37,7 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
 		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
+		gconfig.OptionalStringField("ssoSubdomain", &p.ssoSubdomain, "the custom SSO subdomain configured (if applicable)"),
 	}
 }
 
