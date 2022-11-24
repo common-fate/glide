@@ -709,7 +709,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 		company = strings.ReplaceAll(company, " ", "")
 		company = strings.ToLower(company)
 
-		cognitoPrefix = fmt.Sprintf("granted-login-%s", company)
+		cognitoPrefix = fmt.Sprintf("common-fate-login-%s", company)
 		p = &survey.Input{Message: "The prefix for the Cognito Sign in URL", Default: cognitoPrefix}
 		err = survey.AskOne(p, &cognitoPrefix)
 		if err != nil {
