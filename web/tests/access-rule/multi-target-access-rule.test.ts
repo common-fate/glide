@@ -9,13 +9,17 @@ import {
   testId,
   fillFormElementById,
   LoginUser,
+  randomRuleName,
+  randomDescription,
+  selectOptionByID,
 } from "../utils/helpers";
-
+const ruleName = randomRuleName();
+const ruleDescription = randomDescription();
+const ruleNameUpdated = ruleName + "-updated";
 test.describe.serial("Running test sequentially", () => {
   let accessRuleId = "";
 
   test("admin can create multi target access rule", async ({ page }) => {
-    await Logout(page);
     await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
@@ -24,21 +28,18 @@ test.describe.serial("Running test sequentially", () => {
 
     await clickFormElementByID("new-access-rule-button", page);
 
-    await fillFormElement("input", "name", "new-access-rule", page);
-    await fillFormElement("textarea", "description", "test description", page);
+    await fillFormElement("input", "name", ruleName, page);
+    await fillFormElement("textarea", "description", ruleDescription, page);
 
     await clickFormElementByText("button", "Next", page);
     await page.getByTestId("provider-selector-testgroups").click();
 
-    await page.getByTestId("argumentField").click()
-    await page.locator('text=fifth >> nth=1').click()
-    await page.locator('internal:attr=[data-testid="argumentField"] >> text=Groups').click()
-
-    // todo: Unable to select the dynamic group field.
-    await page.locator('.css-1kwwvb1-ValueContainer2 > .css-ujecln-Input2 >> nth=0').click()
-
-    // await page.getByTestId("argumentGroupMultiSelect").click()
-    await page.getByText("alla category containing all groupsall").click();
+    await selectOptionByID("providerArgumentField", "fifth", page);
+    await selectOptionByID(
+      "providerArgumentGroupField-group-category",
+      "a category containing",
+      page
+    );
     await clickFormElementByText("button", "Next", page);
 
     await page.locator("#increment >> nth=0").click();
@@ -49,9 +50,11 @@ test.describe.serial("Running test sequentially", () => {
     await clickFormElementByID("form-step-next-button", page);
 
     //click on group select, add both groups for approval
-    await page.locator('#group-select div:has-text("Select...") >> nth=1').click()
-    await page.locator('text=granted_administrators >> nth=1').click()
-    await page.locator('text=Add or remove groups').click()
+    await page
+      .locator('#group-select div:has-text("Select...") >> nth=1')
+      .click();
+    await page.locator("text=granted_administrators >> nth=1").click();
+    await page.locator("text=Add or remove groups").click();
 
     await clickFormElementByID("form-step-next-button", page);
 
@@ -63,35 +66,43 @@ test.describe.serial("Running test sequentially", () => {
 
     await clickFormElementByID("rule-create-button", page);
 
-    const response = await page.waitForResponse(response =>  response.url().includes("/api/v1/admin/access-rules") && response.status() === 201 )
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/admin/access-rules") &&
+        response.status() === 201
+    );
 
     // console.log('the reponse method is', response.request().method() )
     // console.log('the response is', (await response.json()))
 
-    accessRuleId = (await response.json()).id
+    accessRuleId = (await response.json()).id;
 
-    await expect(page.locator("#toast-access-rule-created")).toHaveText("Access rule created")
+    await expect(page.locator("#toast-access-rule-created")).toHaveText(
+      "Access rule created"
+    );
   });
 
-  test("admin can update existing access rule", async({page }) => {
-    await Logout(page);
+  test("admin can update existing access rule", async ({ page }) => {
     await LoginAdmin(page);
-
     await expect(page).toHaveTitle(/Granted/);
     await page.goto(`/admin/access-rules/${accessRuleId}`);
-
-    await page.locator(`role=button[name="Edit"] >> nth=0`).click()
-    await fillFormElement("input", "name", "new-access-rule-updated", page);
-
-    await page.locator(`role=button[name="Update"]`).click()
-
-    await expect(page.locator("#toast-access-rule-updated")).toHaveText("Access rule updated")
-  })
+    await page.waitForLoadState("networkidle");
+    await page.locator(`role=button[name="Edit"] >> nth=0`).click();
+    await fillFormElement("input", "name", ruleNameUpdated, page);
+    await page.locator(`role=button[name="Update"]`).click();
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/admin/access-rules") &&
+        response.status() === 200
+    );
+    await expect(page.locator("#toast-access-rule-updated")).toHaveText(
+      "Access rule updated"
+    );
+  });
 
   test("user can request access to multiple options in one slot", async ({
     page,
   }) => {
-    await Logout(page);
     await LoginUser(page);
 
     await expect(page).toHaveTitle(/Granted/);
@@ -112,20 +123,21 @@ test.describe.serial("Running test sequentially", () => {
     await page.getByText("Group").click();
 
     // remove one select item
-    await page.locator('role=button[name="Remove second"]').click()
+    await page.locator('role=button[name="Remove second"]').click();
 
     await page.locator("#increment >> nth=0").click();
     await fillFormElement("textarea", "reason", "need access", page);
 
-    await page.locator('role=button[name="Submit"]').click()
+    await page.locator('role=button[name="Submit"]').click();
 
-    await expect(page.locator("#toast-user-request-created")).toHaveText("Request created")
+    await expect(page.locator("#toast-user-request-created")).toHaveText(
+      "Request created"
+    );
   });
 
   test("user can request access to multiple request slots", async ({
     page,
   }) => {
-    await Logout(page);
     await LoginUser(page);
 
     await expect(page).toHaveTitle(/Granted/);
@@ -140,22 +152,24 @@ test.describe.serial("Running test sequentially", () => {
 
     // add second request
     await page.locator('role=button[name="add"]').click();
-    await page.locator('#subrequest-1').click();
+    await page.locator("#subrequest-1").click();
     await page.locator("text=second >> nth=1").click();
 
     // add third request
     await page.locator('role=button[name="add"]').click();
-    await page.locator('#subrequest-2').click();
+    await page.locator("#subrequest-2").click();
     await page.locator("text=third >> nth=1").click();
 
-    // remove second request 
-    await page.locator('role=button[name="remove"] >> nth=1').click()
+    // remove second request
+    await page.locator('role=button[name="remove"] >> nth=1').click();
 
     await page.locator("#increment >> nth=0").click();
     await fillFormElement("textarea", "reason", "need access", page);
 
-    await page.locator('role=button[name="Submit"]').click()
+    await page.locator('role=button[name="Submit"]').click();
 
-    await expect(page.locator("#toast-user-request-created")).toHaveText("Request created")
+    await expect(page.locator("#toast-user-request-created")).toHaveText(
+      "Request created"
+    );
   });
 });

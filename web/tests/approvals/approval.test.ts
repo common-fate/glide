@@ -5,13 +5,13 @@ import {
   fillFormElementById,
   LoginAdmin,
   LoginUser,
+  randomReason,
+  randomRuleName,
   testId,
 } from "../utils/helpers";
 
-import { randomBytes } from "crypto";
-var id = randomBytes(20).toString("hex");
-const ruleName = "test-rule-" + id;
-const uniqueReason = "test-reason-" + id;
+const ruleName = randomRuleName();
+const uniqueReason = randomReason();
 test.describe.serial("Approval/Request Workflows", () => {
   let accessInstructionLink: string;
 

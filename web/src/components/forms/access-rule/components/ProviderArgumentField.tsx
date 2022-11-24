@@ -245,7 +245,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
             fieldName={`target.multiSelects.${argument.id}`}
             options={argOptions?.options || []}
             shouldAddSelectAllOption={true}
-            id="providedArgumentField"
+            id="providerArgumentField"
           />
           <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
         </HStack>
@@ -307,6 +307,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                           required: groupSelectionRequired,
                           minLength: 1,
                         }}
+                        id={`providerArgumentGroupField-${argument.id}-${group.id}`}
                         fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
                         options={argOptions.groups[group.id] || []}
                         shouldAddSelectAllOption={true}

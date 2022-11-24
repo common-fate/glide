@@ -125,7 +125,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
         title: "Access rule updated",
         status: "success",
         variant: "subtle",
-        duration: 2200,
+        duration: 3000,
         isClosable: true,
       });
       void mutate();

@@ -1,5 +1,5 @@
 import { expect, Page } from "@playwright/test";
-
+import { randomBytes } from "crypto";
 //login helper functions
 
 export const LoginUser = async (page: Page) => {
@@ -151,7 +151,7 @@ export const selectOptionByID = async (
   page: Page
 ) => {
   await page.locator(`#${name} >> visible=true`).click();
-  await page.locator(`p:has-text("${label}")`).click();
+  await page.locator(`p:has-text("${label}") >> nth=0`).click();
 };
 
 export const fillFormElementByTestId = async (
@@ -182,4 +182,22 @@ export const clickFormElementByClass = async (id: string, page: Page) => {
 
 export const testId = (id: string) => {
   return `[data-testid="${id}"]`;
+};
+
+export const randomId = (prefix: string): string => {
+  var id = randomBytes(20).toString("hex");
+  return prefix + id;
+};
+export const randomRuleName = (): string => {
+  return randomId("test-rule-");
+};
+
+export const randomDescription = (): string => {
+  return randomId("test-description-");
+};
+export const randomReason = (): string => {
+  return randomId("test-reason-");
+};
+export const randomGroupName = (): string => {
+  return randomId("test-group-");
 };

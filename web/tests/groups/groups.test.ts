@@ -5,19 +5,19 @@ import {
   fillFormElementByTestId,
   LoginAdmin,
   LoginUser,
+  randomDescription,
+  randomGroupName,
+  randomReason,
+  randomRuleName,
   selectOptionByID,
   testId,
 } from "../utils/helpers";
 
-import { randomBytes } from "crypto";
-
-var id = randomBytes(20).toString("hex");
-const ruleName = "test-rule-" + id;
-const groupName = "test-group-" + id;
-
+const ruleName = randomRuleName();
+const groupName = randomGroupName();
+const uniqueReason = randomReason();
+const groupDescription = randomDescription();
 const groupNameUpdated = groupName + "-updated";
-const groupDescription = groupName + " description";
-const uniqueReason = "test-reason-" + id;
 
 const username = process.env.TEST_USERNAME ?? "";
 test.describe.serial("Internal Groups Workflows", () => {
