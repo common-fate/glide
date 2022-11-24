@@ -51,7 +51,7 @@ It will create a CDK changeset and ask to continue with the provisioning, input 
 Once it has completed successfully you will receive the following success message in your console:
 
 ```
- ✅  GrantedDev (granted-approvals-dev-deployment)
+ ✅  GrantedDev (common-fate-dev-deployment)
 
 ✨  Deployment time: 749.51s
 ```

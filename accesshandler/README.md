@@ -65,5 +65,5 @@ To add a new endpoint, follow the below steps:
    ```
    or the vscode debug profile `run access handler create grant`
    While the server is running
-   - Note: Make sure you have the `GRANTED_RUNTIME` environment variable set to `lambda` if you want to run the access handler against the live version of the access handler step functions.
+   - Note: Make sure you have the `COMMON_FATE_ACCESS_HANDLER_RUNTIME` environment variable set to `lambda` if you want to run the access handler against the live version of the access handler step functions.
    - It will otherwise just run locally and do nothing.

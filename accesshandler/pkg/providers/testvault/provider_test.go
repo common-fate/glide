@@ -16,8 +16,8 @@ import (
 )
 
 func TestIntegration(t *testing.T) {
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMON_FATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMON_FATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
 
 	ctx := context.Background()

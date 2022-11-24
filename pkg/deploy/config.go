@@ -581,7 +581,7 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 	dev := true
 	conf := Config{
 		Deployment: Deployment{
-			StackName: "granted-approvals-" + stage,
+			StackName: "common-fate-" + stage,
 			Account:   acc,
 			Dev:       &dev,
 			Parameters: Parameters{
@@ -635,7 +635,7 @@ func SetupDevConfig() (*Config, error) {
 	c := Config{
 		Version: 2,
 		Deployment: Deployment{
-			StackName: fmt.Sprintf("granted-approvals-%s", stage),
+			StackName: fmt.Sprintf("common-fate-%s", stage),
 			Account:   account,
 			Region:    region,
 			Dev:       &dev,

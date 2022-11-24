@@ -315,7 +315,7 @@ func Dotenv() error {
 	myEnv["IDENTITY_PROVIDER"] = idpType
 	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
 	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
-	myEnv["GRANTED_RUNTIME"] = "lambda"
+	myEnv["COMMON_FATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
 	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
 	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 	myEnv["REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL

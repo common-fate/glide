@@ -94,7 +94,7 @@ export class AccessHandler extends Construct {
       code,
       timeout: Duration.seconds(60),
       environment: {
-        GRANTED_RUNTIME: "lambda",
+        COMMON_FATE_ACCESS_HANDLER_RUNTIME: "lambda",
         STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
         EVENT_BUS_ARN: props.eventBus.eventBusArn,
         EVENT_BUS_SOURCE: props.eventBusSourceName,
