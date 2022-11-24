@@ -8,7 +8,7 @@ import {
   FlaskIcon,
   OktaIcon,
 } from "./Icons";
-import { CommonFateLogo } from "./Logos";
+import { CommonFateIcon, CommonFateLogo } from "./Logos";
 
 interface Props extends IconProps {
   /**
@@ -62,5 +62,5 @@ export const ProviderIcon: React.FC<Props> = ({
     case "flask":
       return <FlaskIcon {...rest} />;
   }
-  return <CommonFateLogo {...rest} />;
+  return <CommonFateIcon {...rest} />;
 };

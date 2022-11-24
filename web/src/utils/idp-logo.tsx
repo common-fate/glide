@@ -2,6 +2,7 @@ import { IconProps } from "@chakra-ui/icons";
 import { AzureIcon, OktaIcon, AWSIcon } from "../components/icons/Icons";
 import {
   CognitoLogo,
+  CommonFateIcon,
   CommonFateLogo,
   GoogleLogo,
   OneLoginLogo,
@@ -14,7 +15,7 @@ type IdpLogoProps = {
 export const IDPLogo: React.FC<IdpLogoProps> = ({ idpType, ...rest }) => {
   switch (idpType) {
     case "internal":
-      return <CommonFateLogo {...rest} />;
+      return <CommonFateIcon {...rest} />;
     case "cognito":
       return <CognitoLogo {...rest} />;
     case "azure":

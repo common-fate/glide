@@ -123,3 +123,18 @@ export const OneLoginLogo: React.FC<IconProps> = ({ ...props }: IconProps) => (
     />
   </Icon>
 );
+
+export const CommonFateIcon: React.FC<IconProps> = ({
+  ...props
+}: IconProps) => (
+  <Icon viewBox="0 0 140 139" {...props}>
+    <path
+      d="M22 0.5H118C129.874 0.5 139.5 10.1259 139.5 22V117C139.5 128.874 129.874 138.5 118 138.5H22C10.1259 138.5 0.5 128.874 0.5 117V22C0.5 10.1259 10.1259 0.5 22 0.5Z"
+      fill="#2D2F30"
+      stroke="black"
+    />
+    <path d="M80.4242 40.0001H47V52.2127H80.4242V40.0001Z" fill="#ED77C0" />
+    <path d="M94.5651 87.5649H47V99.7776H94.5651V87.5649Z" fill="#30D15D" />
+    <path d="M106.778 63.783H47V75.9956H106.778V63.783Z" fill="#619EFF" />
+  </Icon>
+);
