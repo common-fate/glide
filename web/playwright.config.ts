@@ -11,6 +11,7 @@ const config: PlaywrightTestConfig = {
     baseURL: process.env.TESTING_DOMAIN,
   },
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
+  timeout: 60*1000,
   projects: [
     //     {
     //   name: 'firefox',

@@ -17,6 +17,7 @@ const ruleName = randomRuleName();
 const ruleDescription = randomDescription();
 const ruleNameUpdated = ruleName + "-updated";
 test.describe.serial("Running test sequentially", () => {
+  // test.
   let accessRuleId = "";
 
   test("admin can create multi target access rule", async ({ page }) => {
@@ -34,12 +35,12 @@ test.describe.serial("Running test sequentially", () => {
     await clickFormElementByText("button", "Next", page);
     await page.getByTestId("provider-selector-testgroups").click();
 
-    await page.getByTestId("argumentField").click()
-    await page.locator('text=fifth >> nth=1').click()
-    await page.locator('internal:attr=[data-testid="argumentField"] >> text=Groups').click()
-
-    await page.locator('internal:attr=[data-testid="arg-group-view"] >> div:has-text("Select...") >> nth=3').click()
-    await page.getByText("alla category containing all groupsall").click();
+    await selectOptionByID("providerArgumentField", "fifth", page);
+    await selectOptionByID(
+      "providerArgumentGroupField-group-category",
+      "a category containing",
+      page
+    );
     await clickFormElementByText("button", "Next", page);
 
     await page.locator("#increment >> nth=0").click();
@@ -53,7 +54,7 @@ test.describe.serial("Running test sequentially", () => {
     await page
       .locator('#group-select div:has-text("Select...") >> nth=1')
       .click();
-    await page.locator("text=granted_administrators >> nth=1").click();
+    await page.locator("text=everyone >> nth=1").click();
     await page.locator("text=Add or remove groups").click();
 
     await clickFormElementByID("form-step-next-button", page);
@@ -129,7 +130,10 @@ test.describe.serial("Running test sequentially", () => {
     await fillFormElement("textarea", "reason", "need access", page);
 
     await page.locator('role=button[name="Submit"]').click();
-
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/requests") && response.status() === 200
+    );
     await expect(page.locator("#toast-user-request-created")).toHaveText(
       "Request created"
     );
@@ -167,7 +171,10 @@ test.describe.serial("Running test sequentially", () => {
     await fillFormElement("textarea", "reason", "need access", page);
 
     await page.locator('role=button[name="Submit"]').click();
-
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/requests") && response.status() === 200
+    );
     await expect(page.locator("#toast-user-request-created")).toHaveText(
       "Request created"
     );
