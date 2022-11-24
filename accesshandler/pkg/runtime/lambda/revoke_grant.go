@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/granted-approvals/pkg/gevent"
+	"go.uber.org/zap"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/common-fate/apikit/logger"
@@ -56,6 +58,11 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 		return nil, err
 	}
 
+	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: r.EventBusArn})
+	if err != nil {
+		logger.Get(ctx).Errorw("Failed to instantiate eventBus", zap.Error(err))
+	}
+
 	//if the state function is in the active state then we will stop the execution
 	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
 	if err != nil {
@@ -66,13 +73,31 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
 		err = prov.Provider.Revoke(ctx, string(grant.Subject), args, grant.ID)
 		if err != nil {
+			// Regardless of whether the revoke was successful or not, we need to disable the execution
+			_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
+			if err != nil {
+				logger.Get(ctx).Errorw("Failed to stop step fn execuition", zap.Error(err))
+				return nil, err
+			}
+
+			// Add audit log entry and change grant status to revoked
+			grant.Status = types.GrantStatusREVOKED
+			eventErr := eventBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: "Something went wrong when revoking your Provider grant. We have ended the Step Function."})
+			if eventErr != nil {
+				logger.Get(ctx).Errorw("Failed to publish Grant Failure audit log", zap.Error(eventErr))
+			}
+
+			if err != nil {
+				return nil, err
+			}
+
 			return nil, err
 		}
 	}
 
 	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
-	//if stopping the execution failed we want return with an error and not continue with the flow
 	if err != nil {
+		logger.Get(ctx).Errorw("Failed to stop step fn execuition", zap.Error(err))
 		return nil, err
 	}
 
