@@ -41,8 +41,8 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
           borderColor: "brandBlue.300",
           borderWidth: "2px",
         }}
-        _focus={{
-          boxShadow: "outline",
+        _hover={{
+          boxShadow: `0px 0px 0px 1px #2e7fff`,
         }}
         px={6}
         py={5}

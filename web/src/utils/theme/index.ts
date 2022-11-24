@@ -292,7 +292,7 @@ const two: ThemeOverride = {
             // 'Current' state
             _selected: {
               fontWeight: 500,
-              borderColor: "#2E7FFF",
+              borderColor: "brandBlue.300",
               borderBottomWidth: "2px",
             },
             // Disabled state

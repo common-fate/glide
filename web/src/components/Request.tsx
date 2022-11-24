@@ -188,7 +188,7 @@ export const RequestArgumentsDisplay: React.FC<{
       <Wrap>
         {Object.entries(request.arguments).map(([k, v]) => {
           return (
-            <WrapItem>
+            <WrapItem key={"request-argument-" + k}>
               <VStack align={"left"}>
                 <Text>{v.title}</Text>
                 <InfoOption label={v.label} value={v.value} />
@@ -455,8 +455,12 @@ export const _RequestTime: React.FC = () => {
  * Similar to `<RequestTime />`, but allows the timing to be overridden during review.
  */
 export const _RequestOverridableTime: React.FC = () => {
-  const { request, setOverrideTiming, overrideTiming, isValidating } =
-    useContext(Context);
+  const {
+    request,
+    setOverrideTiming,
+    overrideTiming,
+    isValidating,
+  } = useContext(Context);
   const { onOpen, onClose, isOpen } = useDisclosure();
   const timing = request?.timing;
 
@@ -585,7 +589,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
   const toast = useToast();
   const auth = useUser();
   const [isSubmitting, setIsSubmitting] = useState<ReviewDecision>();
-
+  const { onOpen, onClose, isOpen } = useDisclosure();
   const onUpdate = (timing: RequestTiming) => {
     setOverrideTiming(timing);
   };
@@ -632,8 +636,6 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
   }
 
   const borderColor = focus !== undefined ? "brandBlue.300" : "neutrals.300";
-
-  const { onOpen, onClose, isOpen } = useDisclosure();
 
   const reqStartsInPast =
     request.timing.startTime && new Date() > new Date(request.timing.startTime);

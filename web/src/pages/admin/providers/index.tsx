@@ -95,12 +95,13 @@ const Providers = () => {
           New Access Provider
         </Button>
         <AdminProvidersTable />
-        <Center>
+        <HStack mt={2} spacing={1} w="100%" justify={"center"}>
           <Text textStyle={"Body/ExtraSmall"}>
             View the full configuration of each access provider in your{" "}
-            <Code fontSize={"12px"}>granted-deployment.yml</Code> file.
           </Text>
-        </Center>
+          <Code fontSize={"12px"}>granted-deployment.yml</Code>
+          <Text textStyle={"Body/ExtraSmall"}>file.</Text>
+        </HStack>
       </Container>
     </AdminLayout>
   );
