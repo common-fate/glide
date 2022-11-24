@@ -214,6 +214,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
 
   return (
     <VStack
+      data-testid="argumentField"
       border="1px solid"
       borderColor="gray.300"
       rounded="md"
@@ -244,6 +245,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
             fieldName={`target.multiSelects.${argument.id}`}
             options={argOptions?.options || []}
             shouldAddSelectAllOption={true}
+            id="providerArgumentField"
           />
           <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
         </HStack>
@@ -271,6 +273,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
               }
               return (
                 <FormControl
+                  data-testid="arg-group-view"
                   w="100%"
                   isInvalid={
                     multiSelectsError &&
@@ -305,6 +308,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                           required: groupSelectionRequired,
                           minLength: 1,
                         }}
+                        id={`providerArgumentGroupField-${argument.id}-${group.id}`}
                         fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
                         options={argOptions.groups[group.id] || []}
                         shouldAddSelectAllOption={true}

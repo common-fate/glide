@@ -592,7 +592,7 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 					"testgroups": {
 						Uses: "commonfate/testgroups@v1",
 						With: map[string]string{
-							"groups": "a,b,c,d,e,f,g",
+							"groups": "first, second, third, fourth, fifth",
 						},
 					},
 				},
