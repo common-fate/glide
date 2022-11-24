@@ -1,10 +1,9 @@
-import { type PlaywrightTestConfig, devices } from '@playwright/test';
+import { type PlaywrightTestConfig, devices } from "@playwright/test";
 // Read from default ".env" file.
 const config: PlaywrightTestConfig = {
   testDir: "./tests",
   forbidOnly: !!process.env.CI,
-  
- 
+
   retries: 0,
   globalSetup: "./globalSetup.ts",
   use: {
@@ -25,7 +24,6 @@ const config: PlaywrightTestConfig = {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-
   ],
 };
 export default config;

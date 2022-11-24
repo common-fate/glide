@@ -137,6 +137,7 @@ export const Navbar: React.FC = () => {
                 )}
                 <Menu>
                   <MenuButton
+                    data-testid="logout-icon"
                     as={Button}
                     variant="ghost"
                     rounded="full"
@@ -166,8 +167,11 @@ export const Navbar: React.FC = () => {
                       {user.user?.email}
                     </MenuItem>
                     <MenuItem
+                      data-testid="logout-button"
                       icon={<DoorIcon color={"gray.700"} />}
-                      onClick={auth.initiateSignOut}
+                      onClick={async () =>
+                        await auth.initiateSignOut().then((e) => console.log(e))
+                      }
                     >
                       Sign out
                     </MenuItem>

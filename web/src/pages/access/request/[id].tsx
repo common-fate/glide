@@ -316,7 +316,7 @@ const AccessRequestForm = () => {
     await userCreateRequest(r)
       .then(() => {
         toast({
-          id:"user-request-created",
+          id: "user-request-created",
           title: "Request created",
           status: "success",
           duration: 2200,
@@ -587,6 +587,7 @@ const AccessRequestForm = () => {
                   <Approvers approvers={approvers?.users} />
                   <Box>
                     <Button
+                      data-testid="request-submit-button"
                       type="submit"
                       disabled={isDisabled}
                       isLoading={loading}

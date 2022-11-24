@@ -134,8 +134,12 @@ func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, rule
 	var rule *rule.AccessRule
 	ruleq := storage.GetAccessRuleCurrent{ID: ruleId}
 	_, err = a.DB.Query(ctx, &ruleq)
-	if err != nil {
+	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
 		return
 	}
 	rule = ruleq.Result

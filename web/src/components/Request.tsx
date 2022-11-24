@@ -455,12 +455,8 @@ export const _RequestTime: React.FC = () => {
  * Similar to `<RequestTime />`, but allows the timing to be overridden during review.
  */
 export const _RequestOverridableTime: React.FC = () => {
-  const {
-    request,
-    setOverrideTiming,
-    overrideTiming,
-    isValidating,
-  } = useContext(Context);
+  const { request, setOverrideTiming, overrideTiming, isValidating } =
+    useContext(Context);
   const { onOpen, onClose, isOpen } = useDisclosure();
   const timing = request?.timing;
 
@@ -935,6 +931,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
                 key={2}
                 rounded="full"
                 onClick={() => revokeConfirmationDisclosure.onOpen()}
+                data-testid="revoke-button"
               >
                 Revoke
               </Button>

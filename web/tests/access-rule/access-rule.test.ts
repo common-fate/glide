@@ -1,23 +1,11 @@
-import { test, expect, Page } from "@playwright/test";
-import config from "../../playwright.config";
+import { expect, test } from "@playwright/test";
 
-import {
-  clickFormElementByClass,
-  clickFormElementByID,
-  fillFormElement,
-  clickFormElementByText,
-  fillFormElementById,
-  Logout,
-  LoginUser,
-  LoginAdmin,
-  CreateAccessRule,
-} from "../utils/helpers";
+import { CreateAccessRule, LoginUser, randomRuleName } from "../utils/helpers";
 
 //has to be admin to create access rule
 
 //test user cannot create access rule
 test("non admin cannot create access rule", async ({ page }) => {
-  await Logout(page);
   await LoginUser(page);
   await page.waitForLoadState("networkidle");
   await expect(page).toHaveTitle(/Granted/);
@@ -32,5 +20,5 @@ test("non admin cannot create access rule", async ({ page }) => {
 
 //test access rule create
 test("admin can create access rule", async ({ page }) => {
-  await CreateAccessRule(page,"test");
+  await CreateAccessRule(page, randomRuleName(), "");
 });
