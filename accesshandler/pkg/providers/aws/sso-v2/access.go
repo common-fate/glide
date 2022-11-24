@@ -250,7 +250,12 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	if err != nil {
 		return "", err
 	}
+
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
+
+	if p.ssoSubdomain.Get() != "" {
+		url = fmt.Sprintf("https://%s.awsapps.com/start", p.ssoSubdomain.Get())
+	}
 
 	i := "# Browser\n"
 	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s).\n\n", url)
