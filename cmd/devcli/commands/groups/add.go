@@ -37,7 +37,7 @@ var addCommand = cli.Command{
 		username := c.String("username")
 		group := c.String("group")
 
-		do, err := deploy.LoadConfig("granted-deployment.yml")
+		do, err := deploy.LoadConfig("deployment.yml")
 		if err != nil {
 			return err
 		}

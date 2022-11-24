@@ -477,7 +477,7 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 		InstanceArn: aws.String(p.instanceARN.Get()),
 		Name:        aws.String(permissionSetName),
 		Description: aws.String("Common Fate ECS Flask Access"),
-		Tags:        []types.Tag{{Key: aws.String("managed-by-common-fate-granted"), Value: aws.String("true")}},
+		Tags:        []types.Tag{{Key: aws.String("managed-by-common-fate"), Value: aws.String("true")}},
 	})
 	if err != nil {
 		return nil, err

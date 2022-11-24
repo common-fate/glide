@@ -116,7 +116,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	return i, nil
 }
 func objectKeyFromGrantID(grantID string) string {
-	return fmt.Sprintf("granted-approvals-%s", grantID)
+	return fmt.Sprintf("common-fate-%s", grantID)
 }
 
 // Permission set names have a maximum length of 32, in normal use a KSUID will be the grant ID so this should never get truncated

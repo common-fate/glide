@@ -41,7 +41,8 @@ func SetConfigInContext(ctx context.Context, cfg Config) context.Context {
 	return context.WithValue(ctx, DeploymentConfigContextKey, cfg)
 }
 
-const DefaultFilename = "granted-deployment.yml"
+const DeprecatedDefaultFilename = "granted-deployment.yml"
+const DefaultFilename = "deployment.yml"
 
 // AvailableRegions are the regions that we currently release CloudFormation templates to.
 var AvailableRegions = []string{

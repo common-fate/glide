@@ -7,6 +7,6 @@
  */
 
 export type CompleteProviderSetupResponseResponse = {
-  /** Whether a manual update is required to the Common Fate deployment configuration (`granted-deployment.yml`) to activate the provider. */
+  /** Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider. */
   deploymentConfigUpdateRequired: boolean;
 };

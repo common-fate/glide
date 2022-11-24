@@ -16,9 +16,8 @@ func main() {
 
 	app := &cli.App{
 		Flags:                flags,
-		Name:                 "granted",
-		Usage:                "https://granted.dev",
-		UsageText:            "granted [global options] command [command options] [arguments...]",
+		Name:                 "cli",
+		UsageText:            "cli [global options] command [command options] [arguments...]",
 		HideVersion:          false,
 		Commands:             []*cli.Command{&grants.Command},
 		EnableBashCompletion: true,

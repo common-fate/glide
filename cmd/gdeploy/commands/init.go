@@ -56,16 +56,28 @@ var InitCommand = cli.Command{
 func ensureConfigDoesntExist(c *cli.Context) error {
 	f := c.Path("file")
 	overwrite := c.Bool("overwrite")
+
 	_, err := deploy.LoadConfig(f)
 	if err != nil && err != deploy.ErrConfigNotExist {
 		// we don't know how to handle this, so return it.
 		return err
 	}
-	if err == deploy.ErrConfigNotExist {
+	var deprecatedErr error
+	if f == deploy.DefaultFilename {
+		_, deprecatedErr = deploy.LoadConfig(deploy.DeprecatedDefaultFilename)
+		if deprecatedErr != nil && deprecatedErr != deploy.ErrConfigNotExist {
+			// we don't know how to handle this, so return it.
+			return deprecatedErr
+		}
+	}
+
+	if err == deploy.ErrConfigNotExist && deprecatedErr == deploy.ErrConfigNotExist {
 		// no config file at risk of being overwritten, so return
 		return nil
 	}
-
+	if deprecatedErr != nil {
+		f = deploy.DeprecatedDefaultFilename
+	}
 	if overwrite {
 		clio.Warnf("--overwrite has been set, the config file %s will be overwritten", f)
 		return nil
@@ -73,6 +85,7 @@ func ensureConfigDoesntExist(c *cli.Context) error {
 
 	// if we get here, the config file exists and is at risk of being overwritten.
 	return clierr.New(fmt.Sprintf("A deployment config file %s already exists in this folder.\ngdeploy will exit to avoid overwriting this file, in case you've run this command by mistake.", f),
+		clierr.Warn("Since v0.11.0 the default deployment config file name 'granted-deployment.yml' has been deprecated. We recommend renaming this file to 'deployment.yml' in a future version of gdeploy, support for 'granted-deployment.yml' as a default may be removed."),
 		clierr.Info(`
 To fix this, take one of the following actions:
   a) run 'gdeploy init' from a different folder

@@ -1752,7 +1752,7 @@ components:
       properties:
         id:
           type: string
-          description: A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `granted-deployment.yml` file.
+          description: A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file.
         type:
           type: string
           description: The type of the Access Provider being set up.
@@ -2221,7 +2221,7 @@ components:
             properties:
               deploymentConfigUpdateRequired:
                 type: boolean
-                description: Whether a manual update is required to the Common Fate deployment configuration (`granted-deployment.yml`) to activate the provider.
+                description: Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
             required:
               - deploymentConfigUpdateRequired
     IdentityConfigurationResponse:

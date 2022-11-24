@@ -11,7 +11,7 @@ import (
 var CreateCommand = cli.Command{
 	Name:        "create",
 	Usage:       "Create a new Common Fate deployment by deploying CloudFormation",
-	Description: "Create a new Common Fate deployment based on a deployment configuration file (granted-deployment.yml by default). Deploys resources to AWS using CloudFormation.",
+	Description: "Create a new Common Fate deployment based on a deployment configuration file (deployment.yml by default). Deploys resources to AWS using CloudFormation.",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically deploy without asking for confirmation"},
 	},

@@ -99,7 +99,7 @@ const Providers = () => {
           <Text textStyle={"Body/ExtraSmall"}>
             View the full configuration of each access provider in your{" "}
           </Text>
-          <Code fontSize={"12px"}>granted-deployment.yml</Code>
+          <Code fontSize={"12px"}>deployment.yml</Code>
           <Text textStyle={"Body/ExtraSmall"}>file.</Text>
         </HStack>
       </Container>

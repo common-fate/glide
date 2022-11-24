@@ -11,7 +11,7 @@ import (
 var UpdateCommand = cli.Command{
 	Name:        "update",
 	Usage:       "Update a Common Fate deployment CloudFormation stack",
-	Description: "Update Common Fate deployment based on a deployment configuration file (granted-deployment.yml by default). Deploys resources to AWS using CloudFormation.",
+	Description: "Update Common Fate deployment based on a deployment configuration file (deployment.yml by default). Deploys resources to AWS using CloudFormation.",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically deploy without asking for confirmation"},
 	},

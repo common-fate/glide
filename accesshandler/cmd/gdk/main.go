@@ -12,7 +12,6 @@ import (
 func main() {
 	app := &cli.App{
 		Name:                 "gdk",
-		Usage:                "https://granted.dev",
 		Description:          "Common Fate Development Kit",
 		UsageText:            "gdk [global options] command [command options] [arguments...]",
 		HideVersion:          false,

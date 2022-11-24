@@ -153,7 +153,7 @@ const Page = () => {
             </ListItem>
             <ListItem>
               Open a terminal window in the folder containing your{" "}
-              <CFCode>granted-deployment.yml</CFCode> file.
+              <CFCode>deployment.yml</CFCode> file.
             </ListItem>
             <ListItem>
               <Stack>

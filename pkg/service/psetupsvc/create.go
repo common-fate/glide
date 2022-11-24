@@ -44,7 +44,7 @@ func (s *Service) Create(ctx context.Context, providerType string, existingProvi
 	// to avoid writing any secrets over the other instance.
 	//
 	// We derive IDs by building a map containing the following:
-	// 1. all of the providers that are registered in the granted-deployment.yml config file, noting their IDs and type.
+	// 1. all of the providers that are registered in the deployment.yml config file, noting their IDs and type.
 	// 2. all of the providers which are in the process of being set up through the guided setup UI (found by querying DynamoDB).
 	// we then call GetIDForNewProvider() on this map which will return the next available ID for us to use.
 	pmap := new(deploy.ProviderMap)

@@ -22,7 +22,7 @@ var requestCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		do, err := deploy.LoadConfig("granted-deployment.yml")
+		do, err := deploy.LoadConfig("deployment.yml")
 		if err != nil {
 			return err
 		}
