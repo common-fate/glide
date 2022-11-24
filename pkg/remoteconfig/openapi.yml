@@ -1,21 +1,21 @@
 openapi: 3.0.0
 info:
-  title: Granted Remote Configuration
-  version: '1.0'
+  title: Common Fate Remote Configuration
+  version: "1.0"
   contact:
     name: Common Fate
-    url: 'https://commonfate.io'
-  description: 'An API for loading deployment configuration, such as installed Access Providers and notifications settings.'
+    url: "https://commonfate.io"
+  description: "An API for loading deployment configuration, such as installed Access Providers and notifications settings."
 servers:
-  - url: 'http://localhost:6565'
+  - url: "http://localhost:6565"
 paths:
   /api/v1/config:
     get:
       summary: Get Deployment Configuration
       tags: []
       responses:
-        '200':
-          $ref: '#/components/responses/DeploymentConfigResponse'
+        "200":
+          $ref: "#/components/responses/DeploymentConfigResponse"
       operationId: get-config
       description: Get deployment configuration.
   /api/v1/config/providers:
@@ -23,14 +23,14 @@ paths:
       summary: Update Access Provider configuration
       operationId: update-provider-configuration
       responses:
-        '200':
+        "200":
           description: OK
       description: |-
         Writes Access Provider configuration to the remote backend.
 
         Note: we're considering removing this API endpoint in a future version - this is currently in use because the Approvals dashboard provides a guided setup flow to setup Access Providers. If this setup flow is shifted to a different service, the Approvals API will no longer write Access Provider configuration back to the remote configuration backend.
       requestBody:
-        $ref: '#/components/requestBodies/UpdateProvidersRequest'
+        $ref: "#/components/requestBodies/UpdateProvidersRequest"
 components:
   schemas:
     DeploymentConfiguration:
@@ -38,12 +38,12 @@ components:
       x-stoplight:
         id: i1tvp3xdvhkcd
       type: object
-      description: The configuration for a Granted Approvals deployment.
+      description: The configuration for a Common Fate deployment.
       properties:
         providerConfiguration:
-          $ref: '#/components/schemas/ProviderMap'
+          $ref: "#/components/schemas/ProviderMap"
         notificationsConfiguration:
-          $ref: '#/components/schemas/NotificationsConfiguration'
+          $ref: "#/components/schemas/NotificationsConfiguration"
       required:
         - providerConfiguration
         - notificationsConfiguration
@@ -57,7 +57,7 @@ components:
           type: string
         with:
           type: object
-          x-go-type: 'map[string]string'
+          x-go-type: "map[string]string"
       required:
         - uses
         - with
@@ -68,7 +68,7 @@ components:
         id: 9oc2srtj185zb
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/ProviderConfiguration'
+        $ref: "#/components/schemas/ProviderConfiguration"
       description: Configuration of all Access Providers.
     NotificationsConfiguration:
       title: NotificationsConfiguration
@@ -78,10 +78,10 @@ components:
       description: Notifications configuration for the deployment.
       properties:
         slack:
-          $ref: '#/components/schemas/SlackConfiguration'
+          $ref: "#/components/schemas/SlackConfiguration"
         slackIncomingWebhooks:
           type: object
-          x-go-type: 'map[string]map[string]string'
+          x-go-type: "map[string]map[string]string"
     SlackConfiguration:
       title: SlackConfiguration
       x-stoplight:
@@ -90,19 +90,19 @@ components:
       properties:
         apiToken:
           type: string
-          description: 'The Slack API token. Should be a reference to secret in `awsssm://` format.'
+          description: "The Slack API token. Should be a reference to secret in `awsssm://` format."
       required:
         - apiToken
       description: The Slack notification configuration.
   responses:
     DeploymentConfigResponse:
-      description: The configuration of this Granted Approvals deployment.
+      description: The configuration of this Common Fate deployment.
       content:
         application/json:
           schema:
             properties:
               deploymentConfiguration:
-                $ref: '#/components/schemas/DeploymentConfiguration'
+                $ref: "#/components/schemas/DeploymentConfiguration"
             required:
               - deploymentConfiguration
   requestBodies:
@@ -113,6 +113,6 @@ components:
             type: object
             properties:
               providerConfiguration:
-                $ref: '#/components/schemas/ProviderMap'
+                $ref: "#/components/schemas/ProviderMap"
             required:
               - providerConfiguration

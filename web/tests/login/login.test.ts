@@ -9,11 +9,11 @@ test("test loging through form works and gets to Common Fate page", async ({
 
   //verify login
   //verify we are on the Common Fate homepage
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Common Fate/);
 });
 
 test("test login bypass works gets to granted page", async ({ page }) => {
   await LoginUser(page);
   await page.goto("/");
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Common Fate/);
 });

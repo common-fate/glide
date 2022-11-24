@@ -52,7 +52,7 @@ func (GrantExpired) EventType() string {
 // time that the grant was supposed to end.
 //
 // The GrantRevoked event is only emitted if
-// Granted is used to revoke access. If you
+// Common Fate is used to revoke access. If you
 // manually remove the resource assignment
 // in the provider directly (such as removing
 // the user from the Okta group which they were granted

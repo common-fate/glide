@@ -46,7 +46,7 @@ func ProviderWith(providerID string) ([]byte, error) {
 	return json.Marshal(o.With)
 }
 
-// RunTests runs standardised integration tests to check the behaviour of a Granted Provider.
+// RunTests runs standardised integration tests to check the behaviour of a Common Fate Provider.
 // It tests validation, granting, and revoking of access.
 //
 // This should be used against the live version of any integration APIs - you shouldn't mock the API that you are

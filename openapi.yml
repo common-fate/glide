@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
-  title: Approvals
+  title: Common Fate
   version: "1.0"
   contact:
     name: Common Fate
     url: "https://commonfate.io"
-  description: Granted Approvals API
+  description: Common Fate API
 servers:
   - url: "http://localhost:8080"
 paths:
@@ -174,7 +174,7 @@ paths:
         Returns a HTTP401 response if the user is not the requestor or a reviewer.
 
 
-        Use /api/v1/admin/requests/{requestId} as an administrator to view information for requests not made by the current user (note: requires that the user is a Granted administrator).
+        Use /api/v1/admin/requests/{requestId} as an administrator to view information for requests not made by the current user (note: requires that the user is a Common Fate administrator).
       tags:
         - End User
       parameters: []
@@ -325,7 +325,7 @@ paths:
       tags:
         - End User
       operationId: get-user
-      description: Returns a Granted user.
+      description: Returns a Common Fate user.
       responses:
         "200":
           description: OK
@@ -1158,7 +1158,7 @@ components:
     Request:
       title: Request
       type: object
-      description: A request to access something made by an end user in Granted.
+      description: A request to access something made by an end user in Common Fate.
       properties:
         id:
           type: string
@@ -1199,7 +1199,7 @@ components:
     RequestDetail:
       title: Request
       type: object
-      description: A request to access something made by an end user in Granted.
+      description: A request to access something made by an end user in Common Fate.
       properties:
         id:
           type: string
@@ -1748,7 +1748,7 @@ components:
       x-stoplight:
         id: 1nm3rev9qez9b
       type: object
-      description: A provider in the process of being set up through the guided setup workflow in Granted. These providers are **not** yet active.
+      description: A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
       properties:
         id:
           type: string
@@ -2171,7 +2171,7 @@ components:
               user:
                 $ref: "#/components/schemas/User"
               isAdmin:
-                description: Whether the user is an administrator of Granted.
+                description: Whether the user is an administrator of Common Fate.
                 type: boolean
             required:
               - user
@@ -2200,7 +2200,7 @@ components:
           schema:
             $ref: "#/components/schemas/ProviderSetup"
     ListProviderSetupsResponse:
-      description: A list of in-progress Access Providers being set up by the Granted administrators.
+      description: A list of in-progress Access Providers being set up by the Common Fate administrators.
       content:
         application/json:
           schema:
@@ -2221,7 +2221,7 @@ components:
             properties:
               deploymentConfigUpdateRequired:
                 type: boolean
-                description: Whether a manual update is required to the Granted Approvals deployment configuration (`granted-deployment.yml`) to activate the provider.
+                description: Whether a manual update is required to the Common Fate deployment configuration (`granted-deployment.yml`) to activate the provider.
             required:
               - deploymentConfigUpdateRequired
     IdentityConfigurationResponse:

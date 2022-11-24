@@ -5,7 +5,7 @@ info:
   contact:
     name: Common Fate
     url: "https://commonfate.io"
-  description: Granted Access Handler API
+  description: Common Fate Access Handler API
 servers:
   - url: "http://localhost:9092"
 paths:

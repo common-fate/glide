@@ -69,7 +69,7 @@ export class CustomerGrantedStack extends cdk.Stack {
     const frontendDomain = new CfnParameter(this, "FrontendDomain", {
       type: "String",
       description:
-        "An optional custom domain name for the Granted web application. If not provided, an auto-generated CloudFront URL will be used.",
+        "An optional custom domain name for the Common Fate web application. If not provided, an auto-generated CloudFront URL will be used.",
       default: "",
     });
 
@@ -272,8 +272,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN:
-        accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

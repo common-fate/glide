@@ -7,7 +7,7 @@ import (
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_deploy_config_reader.go -package=mocks . DeployConfigReader
 
-// DeployConfigReader reads configuration about this Granted Approvals deployment,
+// DeployConfigReader reads configuration about this Common Fate deployment,
 // including provider and notification information.
 type DeployConfigReader interface {
 	ReadProviders(ctx context.Context) (ProviderMap, error)

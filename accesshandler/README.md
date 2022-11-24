@@ -1,6 +1,6 @@
 # access-handler
 
-Granted Access Handler.
+Common Fate Access Handler.
 
 ## Getting started
 

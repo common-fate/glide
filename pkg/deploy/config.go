@@ -754,7 +754,7 @@ func getVersion(c *cli.Context, region string) (string, error) {
 You can try and enter a deployment version manually now, but there's no guarantees we'll be able to deploy it.
 `, err)
 	}
-	p := &survey.Input{Message: "The version of Granted Approvals to deploy"}
+	p := &survey.Input{Message: "The version of Common Fate to deploy"}
 	err = survey.AskOne(p, &version, survey.WithValidator(survey.MinLength(1)))
 	return version, err
 }
@@ -783,7 +783,7 @@ func TryGetCurrentAccountID(ctx context.Context) (string, error) {
 }
 
 // getDefaultAvailableRegion tries to match the AWS_REGION env var with one of the
-// available regions for a Granted Approvals deployment.
+// available regions for a Common Fate deployment.
 // If the AWS_REGION env var doesn't match any of our available regions, the first
 // AvailableRegion is returned instead.
 func getDefaultAvailableRegion() string {

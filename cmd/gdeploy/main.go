@@ -28,14 +28,14 @@ import (
 func main() {
 	app := &cli.App{
 		Name:        "gdeploy",
-		Description: "Granted Approvals deployment administration utility",
-		Usage:       "Granted Approvals deployment administration utility",
+		Description: "Common Fate deployment administration utility",
+		Usage:       "Common Fate deployment administration utility",
 		Version:     build.Version,
 		HideVersion: false,
 		Flags: []cli.Flag{
 			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "The deployment configuration yml file path"},
 			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "Ignore checking if this is a clean repository during create and update commands"},
-			&cli.BoolFlag{Name: "ignore-version-mismatch", EnvVars: []string{"GDEPLOY_IGNORE_VERSION_MISMATCH"}, Usage: "Ignore mismatches between 'gdeploy' and the Granted Approvals release version. Don't use this unless you know what you're doing."},
+			&cli.BoolFlag{Name: "ignore-version-mismatch", EnvVars: []string{"GDEPLOY_IGNORE_VERSION_MISMATCH"}, Usage: "Ignore mismatches between 'gdeploy' and the Common Fate release version. Don't use this unless you know what you're doing."},
 			&cli.BoolFlag{Name: "verbose", Usage: "Enable verbose logging, effectively sets environment variable GRANTED_LOG=DEBUG"},
 		},
 		Writer: color.Output,

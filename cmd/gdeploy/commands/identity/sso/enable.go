@@ -177,8 +177,8 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 	clio.Warnf("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 
 	dc.Deployment.Parameters.IdentityProviderType = idpType
-	clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
-	Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
+	clio.Info(`When using SSO, administrators for Common Fate are managed in your identity provider.
+	Create a group called 'Common Fate Administrators' in your identity provider and copy the group's ID.
 	Users in this group will be able to manage Access Rules.
 	`)
 
@@ -196,7 +196,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		clio.Debug("Falling back to prompting user to enter a group ID manually")
 		var groupID string
 		err = survey.AskOne(&survey.Input{
-			Message: "The ID of the Granted Administrators group in your identity provider:",
+			Message: "The ID of the Common Fate Administrators group in your identity provider:",
 		}, &groupID, survey.WithValidator(survey.MinLength(1)))
 		if err != nil {
 			return err
@@ -223,7 +223,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 
 			var groupID string
 			err = survey.AskOne(&survey.Input{
-				Message: "The ID of the Granted Administrators group in your identity provider:",
+				Message: "The ID of the Common Fate Administrators group in your identity provider:",
 			}, &groupID, survey.WithValidator(survey.MinLength(1)))
 			if err != nil {
 				return err
@@ -232,7 +232,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 
 		} else {
 			err = survey.AskOne(&survey.Select{
-				Message: "The ID of the Granted Administrators group in your identity provider:",
+				Message: "The ID of the Common Fate Administrators group in your identity provider:",
 				Options: groupNames,
 			}, &chosenKey)
 

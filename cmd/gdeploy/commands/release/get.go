@@ -9,7 +9,7 @@ import (
 
 var getCommand = cli.Command{
 	Name:  "get",
-	Usage: "Get the release version specified in your Granted configuration file",
+	Usage: "Get the release version specified in your Common Fate configuration file",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 

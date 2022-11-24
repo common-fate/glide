@@ -12,8 +12,8 @@ import (
 var Output = cli.Command{
 	Name:        "output",
 	Aliases:     []string{"outputs"},
-	Description: "Get an output value from your Granted Approvals deployment",
-	Usage:       "Get an output value from your Granted Approvals deployment",
+	Description: "Get an output value from your Common Fate deployment",
+	Usage:       "Get an output value from your Common Fate deployment",
 	ArgsUsage:   "<key>",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context

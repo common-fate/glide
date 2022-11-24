@@ -78,7 +78,7 @@ export class WebUserPool extends Construct {
       this._userPool = new cognito.UserPool(this, "UserPool", {
         userPoolName: this._appName,
         userInvitation: {
-          emailSubject: "You've been invited to Common Fate Granted",
+          emailSubject: "You've been invited to Common Fate",
           emailBody: inviteEmailTemplate(props.frontendUrl),
         },
         standardAttributes: {
@@ -114,7 +114,7 @@ export class WebUserPool extends Construct {
           userPoolId: this._userPool.userPoolId,
           groupName: "granted_administrators",
           description:
-            "Administrators role for Granted Approvals Web Dashboard, all cognito users assigned to this group will have access to admin features",
+            "Administrators role for Common Fate Web Dashboard, all cognito users assigned to this group will have access to admin features",
           precedence: 0,
         }
       );

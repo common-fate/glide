@@ -13,7 +13,7 @@ type Dumper interface {
 	Dump(ctx context.Context, cfg Config) (map[string]string, error)
 }
 
-// Loader loads configuration for Granted providers.
+// Loader loads configuration for Common Fate providers.
 type Loader interface {
 	// Load configuration. Returns a map of config values.
 	// The keys of the map are the value names, and the values

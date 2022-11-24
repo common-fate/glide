@@ -9,7 +9,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 )
 
-// EventSender provides methods to submit events to a Granted EventBridge bus.
+// EventSender provides methods to submit events to a Common Fate EventBridge bus.
 type Sender struct {
 	client      *eventbridge.Client
 	eventBusArn string

@@ -31,7 +31,7 @@ export class AccessHandler extends Construct {
     this._executionRole = new iam.Role(this, "ExecutionRole", {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
       description:
-        "This role is assumed by the Granted Approvals access handler lambdas to grant and revoke access. It has permissions to assume any role depending on the equirements on individual providers.",
+        "This role is assumed by the Common Fate access handler lambdas to grant and revoke access. It has permissions to assume any role depending on the equirements on individual providers.",
       // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda.Function.html#role
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(

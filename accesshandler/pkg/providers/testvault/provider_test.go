@@ -56,6 +56,6 @@ func TestInstructions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](https://testvault.internal/vaults/1234_my-vault/members/testuser) to check that your access has been provisioned."
+	want := "This is just a test resource to show you how Common Fate works.\nVisit the [vault membership URL](https://testvault.internal/vaults/1234_my-vault/members/testuser) to check that your access has been provisioned."
 	assert.Equal(t, want, got)
 }

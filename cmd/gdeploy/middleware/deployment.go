@@ -19,10 +19,10 @@ func RequireDeploymentConfig() cli.BeforeFunc {
 		f := c.Path("file")
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
-			return clierr.New(fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
+			return clierr.New(fmt.Sprintf("Tried to load Common Fate deployment configuration from %s but the file doesn't exist.", f),
 				clierr.Info(`
 To fix this, take one of the following actions:
-  a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
+  a) run this command from a folder which contains a Common Fate deployment configuration file (like 'granted-deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
 `),
 			)

@@ -12,8 +12,8 @@ import (
 
 var InitCommand = cli.Command{
 	Name:        "init",
-	Description: "Set up a new Granted deployment configuration file",
-	Usage:       "Set up a new Granted deployment configuration file",
+	Description: "Set up a new Common Fate deployment configuration file",
+	Usage:       "Set up a new Common Fate deployment configuration file",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "overwrite", Usage: "Force an existing deployment configuration file to be overwritten"},
 		&cli.StringFlag{Name: "name", Usage: "The name of the CloudFormation stack to create"},
@@ -46,7 +46,7 @@ var InitCommand = cli.Command{
 		}
 
 		clio.Successf("Wrote config to %s", f)
-		clio.Warn("Nothing has been deployed yet. To finish deploying Granted Approvals, run 'gdeploy create' to create the CloudFormation stack in AWS.")
+		clio.Warn("Nothing has been deployed yet. To finish deploying Common Fate, run 'gdeploy create' to create the CloudFormation stack in AWS.")
 		return nil
 	},
 }

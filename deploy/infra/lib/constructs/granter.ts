@@ -119,7 +119,7 @@ export class Granter extends Construct {
           Type: "Fail",
         },
       },
-      Comment: "Granted Access Handler State Machine",
+      Comment: "Common Fate Access Handler State Machine",
     };
 
     this._stateMachine = new sfn.StateMachine(this, "StateMachine", {

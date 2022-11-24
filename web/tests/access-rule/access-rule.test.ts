@@ -8,7 +8,7 @@ import { CreateAccessRule, LoginUser, randomRuleName } from "../utils/helpers";
 test("non admin cannot create access rule", async ({ page }) => {
   await LoginUser(page);
   await page.waitForLoadState("networkidle");
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Common Fate/);
   await page
     .goto("/admin/access-rules")
     .then(() =>

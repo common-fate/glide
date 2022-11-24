@@ -46,7 +46,7 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Infof("Restoring Granted Approvals backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
+		clio.Infof("Restoring Common Fate backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
 		confirm := c.Bool("confirm")
 		if !confirm {
 			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}
