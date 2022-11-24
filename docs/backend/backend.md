@@ -52,3 +52,11 @@ We additionally have a webhook API for third party integrations like Slack. This
 | `/webhook/v1/{proxy+}` | Webhook API   | -              |
 
 _Note: `{proxy+}` refers to the [API Gateway Lambda Proxy integration](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html), where all subpaths still point to the same Lambda. So `/api/v1/grants/gra_123` will still be handled by the Approvals API._
+
+## Environment Variables
+
+Convention for environment variables is any variable directly related to the common fate application are prefixed with COMMONFATE\_
+
+Variables used by packages relating to global services at commonfate such as analytics will be prefixed with CF\_
+
+Variables that are directly derived from the runtime environment should not be prefixed, e.g AWS_REGION

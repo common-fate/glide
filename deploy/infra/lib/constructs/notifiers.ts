@@ -35,7 +35,7 @@ export class Notifiers extends Construct {
         COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
         COMMONFATE_FRONTEND_URL: props.frontendUrl,
         COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        NOTIFICATIONS_SETTINGS: props.notificationsConfig,
+        COMMONFATE_NOTIFICATIONS_SETTINGS: props.notificationsConfig,
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },

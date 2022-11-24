@@ -115,13 +115,13 @@ export class AppBackend extends Construct {
         COMMONFATE_MOCK_ACCESS_HANDLER: "false",
         COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
         COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
-        // SENTRY_DSN: can be added here
+        // COMMONFATE_SENTRY_DSN: can be added here
         COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
         COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
         COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
-        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,

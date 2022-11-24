@@ -18,9 +18,9 @@ func (el *EnvDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap, 
 }
 
 func (el *EnvDeploymentConfig) ReadNotifications(ctx context.Context) (*Notifications, error) {
-	env, ok := os.LookupEnv("NOTIFICATIONS_SETTINGS")
+	env, ok := os.LookupEnv("COMMONFATE_NOTIFICATIONS_SETTINGS")
 	if !ok {
-		return nil, errors.New("NOTIFICATIONS_SETTINGS env var not set")
+		return nil, errors.New("COMMONFATE_NOTIFICATIONS_SETTINGS env var not set")
 	}
 	return UnmarshalNotifications(env)
 }
