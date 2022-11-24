@@ -15,12 +15,15 @@ import (
 
 func RequireDeploymentConfig() cli.BeforeFunc {
 	return func(c *cli.Context) error {
-
 		f := c.Path("file")
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
+			_, err2 := deploy.LoadConfig(deploy.DeprecatedDefaultFilename)
+			if err2 == nil {
+				return clierr.New(fmt.Sprintf("Tried to load Common Fate deployment configuration from %s but the file doesn't exist.", f),
+					deploy.DeprecatedDefaultFilenameWarning)
+			}
 			return clierr.New(fmt.Sprintf("Tried to load Common Fate deployment configuration from %s but the file doesn't exist.", f),
-				deploy.DeprecatedDefaultFilenameWarning,
 				clierr.Info(`
 To fix this, take one of the following actions:
   a) run this command from a folder which contains a Common Fate deployment configuration file (like 'deployment.yml')

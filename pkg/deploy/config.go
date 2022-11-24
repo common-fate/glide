@@ -45,7 +45,7 @@ func SetConfigInContext(ctx context.Context, cfg Config) context.Context {
 const DeprecatedDefaultFilename = "granted-deployment.yml"
 const DefaultFilename = "deployment.yml"
 
-var DeprecatedDefaultFilenameWarning = clierr.Warn("Since v0.11.0 the default deployment config file name 'granted-deployment.yml' has been deprecated. We recommend renaming this file to 'deployment.yml' in a future version of gdeploy, support for 'granted-deployment.yml' as a default may be removed.")
+var DeprecatedDefaultFilenameWarning = clierr.Warn("Since v0.11.0 the default deployment config file has been renamed from 'granted-deployment.yml' to 'deployment.yml'. To update, rename the file now or run this command to rename via the cli `mv granted-deployment.yml deployment.yml`")
 
 const DefaultCommonFateAdministratorsGroup = "common_fate_administrators"
 
@@ -586,7 +586,9 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 			StackName: "common-fate-" + stage,
 			Account:   acc,
 			Dev:       &dev,
+
 			Parameters: Parameters{
+				AdministratorGroupID: "granted_administrators",
 				ProviderConfiguration: ProviderMap{
 					"test-vault": {
 						Uses: "commonfate/testvault@v1",
