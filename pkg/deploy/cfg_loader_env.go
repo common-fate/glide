@@ -10,9 +10,9 @@ import (
 type EnvDeploymentConfig struct{}
 
 func (el *EnvDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap, error) {
-	env, ok := os.LookupEnv("PROVIDER_CONFIG")
+	env, ok := os.LookupEnv("COMMONFATE_PROVIDER_CONFIG")
 	if !ok {
-		return nil, errors.New("PROVIDER_CONFIG env var not set")
+		return nil, errors.New("COMMONFATE_PROVIDER_CONFIG env var not set")
 	}
 	return UnmarshalProviderMap(env)
 }

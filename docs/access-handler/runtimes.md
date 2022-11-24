@@ -2,7 +2,7 @@
 
 The access handler has support for different runtimes, this may allow the access handle to run in different clouds eventually. For now, we have a local runtime and a lambda runtime.
 
-Switch between the runtimes by setting the `COMMON_FATE_ACCESS_HANDLER_RUNTIME` variable in your `.env` file. The options are `lambda` or `local`
+Switch between the runtimes by setting the `COMMONFATE_ACCESS_HANDLER_RUNTIME` variable in your `.env` file. The options are `lambda` or `local`
 
 ### Local
 

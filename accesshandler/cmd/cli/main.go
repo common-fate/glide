@@ -11,7 +11,7 @@ import (
 
 func main() {
 	flags := []cli.Flag{
-		&cli.StringFlag{Name: "api-url", Value: "http://localhost:9092", EnvVars: []string{"ACCESS_HANDLER_URL"}, Hidden: true},
+		&cli.StringFlag{Name: "api-url", Value: "http://localhost:9092", EnvVars: []string{"COMMONFATE_ACCESS_HANDLER_URL"}, Hidden: true},
 	}
 
 	app := &cli.App{

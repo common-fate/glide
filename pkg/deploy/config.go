@@ -47,6 +47,8 @@ const DefaultFilename = "deployment.yml"
 
 var DeprecatedDefaultFilenameWarning = clierr.Warn("Since v0.11.0 the default deployment config file name 'granted-deployment.yml' has been deprecated. We recommend renaming this file to 'deployment.yml' in a future version of gdeploy, support for 'granted-deployment.yml' as a default may be removed.")
 
+const DefaultCommonFateAdministratorsGroup = "common_fate_administrators"
+
 // AvailableRegions are the regions that we currently release CloudFormation templates to.
 var AvailableRegions = []string{
 	"ap-southeast-2",
@@ -273,7 +275,7 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 func (c *Config) ResetIdentityProviderToCognito(filepath string) error {
 
 	c.Deployment.Parameters.IdentityProviderType = ""
-	c.Deployment.Parameters.AdministratorGroupID = "granted_administrators"
+	c.Deployment.Parameters.AdministratorGroupID = "common_fate_administrators"
 	c.Deployment.Parameters.IdentityConfiguration = nil
 	c.Deployment.Parameters.SamlSSOMetadataURL = ""
 	c.Deployment.Parameters.SamlSSOMetadata = ""
@@ -640,7 +642,7 @@ func SetupDevConfig() (*Config, error) {
 			Region:    region,
 			Dev:       &dev,
 			Parameters: Parameters{
-				AdministratorGroupID: "granted_administrators",
+				AdministratorGroupID: "common_fate_administrators",
 				AnalyticsDisabled:    "true",
 			},
 		},
@@ -726,7 +728,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 			Release:   version,
 			Parameters: Parameters{
 				CognitoDomainPrefix:  cognitoPrefix,
-				AdministratorGroupID: "granted_administrators",
+				AdministratorGroupID: "common_fate_administrators",
 			},
 		},
 	}

@@ -140,7 +140,7 @@ func run() error {
 	return s.Start(ctx)
 }
 
-// runAccessHandler runs a version of the access handler locally if RUN_ACCESS_HANDLER env var is not false, if not set it defaults to true
+// runAccessHandler runs a version of the access handler locally if COMMONFATE_RUN_ACCESS_HANDLER env var is not false, if not set it defaults to true
 func runAccessHandler() error {
 	ctx := context.Background()
 	_ = godotenv.Load()
@@ -166,7 +166,7 @@ func runAccessHandler() error {
 		return s.Start(ctx)
 	}
 
-	zap.S().Info("Not starting access handler because RUN_ACCESS_HANDLER is set to false")
+	zap.S().Info("Not starting access handler because COMMONFATE_RUN_ACCESS_HANDLER is set to false")
 	return nil
 
 }

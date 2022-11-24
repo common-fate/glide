@@ -32,7 +32,7 @@ func WithProviderConfig(config []byte) func(*IntegrationTests) {
 
 // ProviderWith fetches teh provider with config from the environment
 func ProviderWith(providerID string) ([]byte, error) {
-	pc := os.Getenv("PROVIDER_CONFIG")
+	pc := os.Getenv("COMMONFATE_PROVIDER_CONFIG")
 	var configMap map[string]json.RawMessage
 	err := json.Unmarshal([]byte(pc), &configMap)
 	if err != nil {

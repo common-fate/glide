@@ -19,9 +19,9 @@ type ProviderWriter interface {
 }
 
 func GetDeploymentConfig() (DeployConfigReader, error) {
-	url := os.Getenv("REMOTE_CONFIG_URL")
+	url := os.Getenv("COMMONFATE_ACCESS_REMOTE_CONFIG_URL")
 	if url != "" {
-		headers := os.Getenv("REMOTE_CONFIG_HEADERS")
+		headers := os.Getenv("COMMONFATE_REMOTE_CONFIG_HEADERS")
 		return NewRemoteDeploymentConfig(url, headers)
 	}
 	return &EnvDeploymentConfig{}, nil

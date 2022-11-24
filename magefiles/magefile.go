@@ -304,22 +304,22 @@ func Dotenv() error {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
 	}
 
-	myEnv["APPROVALS_TABLE_NAME"] = o.DynamoDBTable
 	myEnv["AWS_REGION"] = o.Region
-	myEnv["APPROVALS_COGNITO_USER_POOL_ID"] = o.UserPoolID
-	myEnv["EVENT_BUS_ARN"] = o.EventBusArn
-	myEnv["EVENT_BUS_SOURCE"] = o.EventBusSource
-	myEnv["IDENTITY_SETTINGS"] = idConf
-	myEnv["PROVIDER_CONFIG"] = providerConf
-	myEnv["STATE_MACHINE_ARN"] = o.GranterStateMachineArn
-	myEnv["IDENTITY_PROVIDER"] = idpType
-	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
-	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
-	myEnv["COMMON_FATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
-	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
-	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
-	myEnv["REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
-	myEnv["REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
+	myEnv["COMMONFATE_TABLE_NAME"] = o.DynamoDBTable
+	myEnv["COMMONFATE_COGNITO_USER_POOL_ID"] = o.UserPoolID
+	myEnv["COMMONFATE_EVENT_BUS_ARN"] = o.EventBusArn
+	myEnv["COMMONFATE_EVENT_BUS_SOURCE"] = o.EventBusSource
+	myEnv["COMMONFATE_IDENTITY_SETTINGS"] = idConf
+	myEnv["COMMONFATE_PROVIDER_CONFIG"] = providerConf
+	myEnv["COMMONFATE_STATE_MACHINE_ARN"] = o.GranterStateMachineArn
+	myEnv["COMMONFATE_IDENTITY_PROVIDER"] = idpType
+	myEnv["COMMONFATE_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
+	myEnv["COMMONFATE_FRONTEND_URL"] = "http://localhost:3000"
+	myEnv["COMMONFATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
+	myEnv["COMMONFATE_PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
+	myEnv["COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
+	myEnv["COMMONFATE_ACCESS_REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
+	myEnv["COMMONFATE_REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
@@ -553,9 +553,17 @@ func DevConfig() error {
 	if err != nil && err != deploy.ErrConfigNotExist {
 		return err
 	}
+
 	if err == nil {
 		fmt.Println("deployment.yml already exists: skipping setup")
 		return nil
+	}
+	_, err = deploy.LoadConfig(deploy.DeprecatedDefaultFilename)
+	if err != nil && err != deploy.ErrConfigNotExist {
+		return err
+	}
+	if err == nil {
+		deploy.DeprecatedDefaultFilenameWarning.Print()
 	}
 
 	c, err := deploy.SetupDevConfig()

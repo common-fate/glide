@@ -28,7 +28,7 @@ var DeleteCommand = cli.Command{
 
 		// prevent the user deleting the administrators group
 		// it is created by the stack deployment automatically
-		if group == "granted_administrators" || group == dc.Deployment.Parameters.AdministratorGroupID {
+		if group == deploy.DefaultCommonFateAdministratorsGroup || group == dc.Deployment.Parameters.AdministratorGroupID {
 			return errors.New("you cannot delete the administrators group")
 		}
 

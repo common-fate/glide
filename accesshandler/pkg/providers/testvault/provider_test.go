@@ -16,8 +16,8 @@ import (
 )
 
 func TestIntegration(t *testing.T) {
-	if os.Getenv("COMMON_FATE_INTEGRATION_TEST") == "" {
-		t.Skip("COMMON_FATE_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
 
 	ctx := context.Background()
@@ -37,7 +37,7 @@ func TestIntegration(t *testing.T) {
 			WantValidationErr: nil,
 		},
 	}
-	pc := os.Getenv("PROVIDER_CONFIG")
+	pc := os.Getenv("COMMONFATE_PROVIDER_CONFIG")
 	var configMap map[string]json.RawMessage
 	err = json.Unmarshal([]byte(pc), &configMap)
 	if err != nil {

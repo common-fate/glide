@@ -70,7 +70,7 @@ if (stackTarget === "dev") {
     idpType: idpType || IdentityProviderRegistry.Cognito,
     samlMetadataUrl: samlMetadataUrl || "",
     devConfig,
-    adminGroupId: adminGroupId || "granted_administrators",
+    adminGroupId: adminGroupId || "common_fate_administrators",
     samlMetadata: samlMetadata || "",
     notificationsConfiguration: notificationsConfiguration || "{}",
     identityProviderSyncConfiguration: identityConfig || "{}",

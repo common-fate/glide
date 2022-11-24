@@ -56,7 +56,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       type: "String",
       description:
         "Required, if you are not using cognito for your users you will need to provide a group id from your IDP which will control who has access to the administrator functions.",
-      default: "granted_administrators",
+      default: "common_fate_administrators",
     });
 
     const suffix = new CfnParameter(this, "DeploymentSuffix", {

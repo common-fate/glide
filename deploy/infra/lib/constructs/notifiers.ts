@@ -32,12 +32,12 @@ export class Notifiers extends Construct {
       code,
       timeout: Duration.seconds(20),
       environment: {
-        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
-        APPROVALS_FRONTEND_URL: props.frontendUrl,
-        APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+        COMMONFATE_FRONTEND_URL: props.frontendUrl,
+        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
         NOTIFICATIONS_SETTINGS: props.notificationsConfig,
-        REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "slack-notifier",
@@ -45,9 +45,7 @@ export class Notifiers extends Construct {
 
     this._slackLambda.addToRolePolicy(
       new iam.PolicyStatement({
-        actions: [
-          "ssm:GetParameter",
-        ],
+        actions: ["ssm:GetParameter"],
         resources: [
           `arn:aws:ssm:${Stack.of(this).region}:${
             Stack.of(this).account

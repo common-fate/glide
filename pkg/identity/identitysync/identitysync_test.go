@@ -20,12 +20,12 @@ func TestIntegration(t *testing.T) {
 	ctx := context.Background()
 	_ = godotenv.Load("../../../.env")
 
-	if os.Getenv("COMMON_FATE_INTEGRATION_TEST") == "" {
-		t.Skip("COMMON_FATE_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
-	idpConfig := os.Getenv("IDENTITY_SETTINGS")
+	idpConfig := os.Getenv("COMMONFATE_IDENTITY_SETTINGS")
 	if idpConfig == "" {
-		t.Skip("IDENTITY_SETTINGS is not set, skipping integration testing")
+		t.Skip("COMMONFATE_IDENTITY_SETTINGS is not set, skipping integration testing")
 	}
 
 	ic, err := deploy.UnmarshalFeatureMap(idpConfig)

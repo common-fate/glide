@@ -112,7 +112,7 @@ export class WebUserPool extends Construct {
         "WebAppAdministratorsGroup",
         {
           userPoolId: this._userPool.userPoolId,
-          groupName: "granted_administrators",
+          groupName: "common_fate_administrators",
           description:
             "Administrators role for Common Fate Web Dashboard, all cognito users assigned to this group will have access to admin features",
           precedence: 0,
