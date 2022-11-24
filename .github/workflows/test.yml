@@ -157,8 +157,8 @@ jobs:
     name: Test Access Handler
     runs-on: ubuntu-latest
     env:
-      COMMON_FATE_INTEGRATION_TEST: true
-      PROVIDER_CONFIG: "${{ secrets.INTEGRATION_TESTING_PROVIDER_CONFIG }}"
+      COMMONFATE_INTEGRATION_TEST: true
+      COMMONFATE_PROVIDER_CONFIG: "${{ secrets.INTEGRATION_TESTING_PROVIDER_CONFIG }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -207,8 +207,8 @@ jobs:
     name: Test Identity Provider
     runs-on: ubuntu-latest
     env:
-      COMMON_FATE_INTEGRATION_TEST: true
-      IDENTITY_SETTINGS: "${{ secrets.IDENTITY_SETTINGS }}"
+      COMMONFATE_INTEGRATION_TEST: true
+      COMMONFATE_IDENTITY_SETTINGS: "${{ secrets.IDENTITY_SETTINGS }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
