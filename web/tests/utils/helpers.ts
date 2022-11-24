@@ -36,7 +36,7 @@ export const LoginAdmin = async (page: Page) => {
   await fillFormElement(
     "input",
     "password",
-    process.env.TEST_PASSWORD ?? "",
+    process.env.TEST_ADMIN_PASSWORD ?? "",
     page
   );
   await clickFormElementByText("input", "Sign in", page);
