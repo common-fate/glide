@@ -1078,6 +1078,7 @@ So I have just submitted the form directly using the submit button*/}
             </Button>
             {favorite && (
               <Button
+                data-testid="del-fav-btn"
                 variant={"danger"}
                 size={"sm"}
                 onClick={handleDeleteFavorite}
