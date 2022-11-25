@@ -70,4 +70,4 @@ jobs:
           role-to-assume: "${{ secrets.AWS_TESTING_ROLE_ARN }}"
 
       - name: Delete CloudFormation stack
-        run: aws cloudformation delete-stack --stack-name granted-approvals-${{ steps.branch.outputs.name }}
+        run: aws cloudformation delete-stack --stack-name common-fate-${{ steps.branch.outputs.name }}

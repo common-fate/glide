@@ -27,8 +27,8 @@ export class CacheSync extends Construct {
       code,
       timeout: Duration.seconds(60),
       environment: {
-        ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
+        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "cache-sync",

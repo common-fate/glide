@@ -9,7 +9,7 @@ import {
 import { Link, useNavigate } from "react-location";
 
 import React, { Component, ReactNode } from "react";
-import { ApprovalsLogo } from "../components/icons/Logos";
+import { CommonFateLogo } from "../components/icons/Logos";
 
 interface Props {
   error: Error;
@@ -49,7 +49,7 @@ export const UnhandledError = (props: Props) => {
               rounded="sm"
               pt="75px"
             >
-              <ApprovalsLogo h="42px" w="auto" />
+              <CommonFateLogo h="42px" w="auto" />
             </ChakraLink>
           </Flex>
         </Stack>

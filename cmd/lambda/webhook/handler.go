@@ -54,7 +54,7 @@ func buildHandler() (*Lambda, error) {
 
 type Config struct {
 	LogLevel    string `env:"LOG_LEVEL,default=info"`
-	DynamoTable string `env:"APPROVALS_TABLE_NAME,required"`
+	DynamoTable string `env:"COMMONFATE_TABLE_NAME,required"`
 }
 
 type Server struct {

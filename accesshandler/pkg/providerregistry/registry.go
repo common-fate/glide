@@ -85,14 +85,14 @@ func Registry() ProviderRegistry {
 				"v1": {
 					Provider:    &testvault.Provider{},
 					DefaultID:   "testvault",
-					Description: "TestVault - a provider for testing out Granted Approvals",
+					Description: "TestVault - a provider for testing out Common Fate",
 				},
 			},
 			"commonfate/testgroups": {
 				"v1": {
 					Provider:    &testgroups.Provider{},
 					DefaultID:   "testgroups",
-					Description: "TestGroups - a provider for integration testing Granted Approvals",
+					Description: "TestGroups - a provider for integration testing Common Fate",
 					Hidden:      true,
 				},
 			},

@@ -10,7 +10,7 @@ import (
 	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// AccessRule is a rule governing access to something in Granted.
+// AccessRule is a rule governing access to something in Common Fate.
 //
 // Access Rules have versions.
 // When updating an access rule, you need to update the current version with Current = false

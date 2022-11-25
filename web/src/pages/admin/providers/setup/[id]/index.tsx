@@ -59,7 +59,7 @@ import {
 } from "../../../../../components/CodeInstruction";
 import { ConnectorArrow } from "../../../../../components/ConnectorArrow";
 import { ExpandingImage } from "../../../../../components/ExpandingImage";
-import { ApprovalsLogo } from "../../../../../components/icons/Logos";
+import { CommonFateLogo } from "../../../../../components/icons/Logos";
 import { ProviderIcon } from "../../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../../components/Layout";
 import {
@@ -315,7 +315,7 @@ const Page = () => {
                     justifyContent={"center"}
                     alignItems={"center"}
                   >
-                    <ApprovalsLogo h="20px" w="auto" />
+                    <CommonFateLogo h="20px" w="auto" />
                     <ConnectorArrow animate={data.status === "VALIDATING"} />
                     <ProviderIcon type={data.type} h="24px" w="auto" />
                   </HStack>

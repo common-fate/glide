@@ -31,7 +31,7 @@ export class AccessHandler extends Construct {
     this._executionRole = new iam.Role(this, "ExecutionRole", {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
       description:
-        "This role is assumed by the Granted Approvals access handler lambdas to grant and revoke access. It has permissions to assume any role depending on the equirements on individual providers.",
+        "This role is assumed by the Common Fate access handler lambdas to grant and revoke access. It has permissions to assume any role depending on the equirements on individual providers.",
       // https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda.Function.html#role
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -94,13 +94,13 @@ export class AccessHandler extends Construct {
       code,
       timeout: Duration.seconds(60),
       environment: {
-        GRANTED_RUNTIME: "lambda",
-        STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
-        EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        EVENT_BUS_SOURCE: props.eventBusSourceName,
-        PROVIDER_CONFIG: props.providerConfig,
-        REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        COMMONFATE_ACCESS_HANDLER_RUNTIME: "lambda",
+        COMMONFATE_STATE_MACHINE_ARN: this._granter.getStateMachineARN(),
+        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "access-handler",

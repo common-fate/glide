@@ -36,7 +36,7 @@ export const LoginAdmin = async (page: Page) => {
   await fillFormElement(
     "input",
     "password",
-    process.env.TEST_ADMIN_PASSWORD || process.env.TEST_PASSWORD ||  "",
+    process.env.TEST_ADMIN_PASSWORD || process.env.TEST_PASSWORD || "",
     page
   );
   await clickFormElementByText("input", "Sign in", page);
@@ -60,7 +60,7 @@ export const CreateAccessRule = async (
   await LoginAdmin(page);
   await page.waitForLoadState("networkidle");
   await clickFormElementByID("admin-button", page);
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Common Fate/);
   await expect(
     page.locator(".chakra-container #new-access-rule-button")
   ).toHaveText("New Access Rule");

@@ -56,7 +56,7 @@ export class DevGrantedStack extends cdk.Stack {
       analyticsLogLevel,
       analyticsDeploymentStage,
     } = props;
-    const appName = `granted-approvals-${stage}`;
+    const appName = `common-fate-${stage}`;
 
     const db = new Database(this, "Database", {
       appName,

@@ -56,7 +56,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       type: "String",
       description:
         "Required, if you are not using cognito for your users you will need to provide a group id from your IDP which will control who has access to the administrator functions.",
-      default: "granted_administrators",
+      default: "common_fate_administrators",
     });
 
     const suffix = new CfnParameter(this, "DeploymentSuffix", {
@@ -69,7 +69,7 @@ export class CustomerGrantedStack extends cdk.Stack {
     const frontendDomain = new CfnParameter(this, "FrontendDomain", {
       type: "String",
       description:
-        "An optional custom domain name for the Granted web application. If not provided, an auto-generated CloudFront URL will be used.",
+        "An optional custom domain name for the Common Fate web application. If not provided, an auto-generated CloudFront URL will be used.",
       default: "",
     });
 
@@ -272,8 +272,7 @@ export class CustomerGrantedStack extends cdk.Stack {
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN:
-        accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

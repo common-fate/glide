@@ -9,7 +9,7 @@ import (
 )
 
 // Accessors know how to grant and revoke access to something.
-// Accessors are considered the 'bare minimum' Granted providers.
+// Accessors are considered the 'bare minimum' Common Fate providers.
 // When writing a provider you must implement this interface.
 type Accessor interface {
 	// Grant the access.

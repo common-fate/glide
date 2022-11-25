@@ -80,20 +80,19 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
     setLoadingCurrentUser(true);
     Auth.currentAuthenticatedUser()
       .then((data) => {
-        console.log("got current authenticated user", data);
+        console.debug("got current authenticated user", data);
         setCognitoAuthenticatedUserEmail(data.username);
         setLoadingCurrentUser(false);
       })
       .catch(() => {
-        console.log("couldn't find current authenticated user");
-
+        console.debug("couldn't find current authenticated user");
         setCognitoAuthenticatedUserEmail(undefined);
         setLoadingCurrentUser(false);
       });
   };
 
   const amplifyListener: HubCallback = async ({ payload: { event, data } }) => {
-    console.log("aws-amplify Hub recieved event", { event, data });
+    console.debug("aws-amplify Hub recieved event", { event, data });
     switch (event) {
       case "oAuthSignOut":
         setCognitoAuthenticatedUserEmail(undefined);
@@ -105,7 +104,7 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
         navigate({ to: data });
         break;
       default:
-        console.log("getting user in listener", { data });
+        console.debug("getting user in listener", { data });
         tryGetAuthenticatedUser();
     }
   };

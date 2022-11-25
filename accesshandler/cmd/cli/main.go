@@ -11,14 +11,13 @@ import (
 
 func main() {
 	flags := []cli.Flag{
-		&cli.StringFlag{Name: "api-url", Value: "http://localhost:9092", EnvVars: []string{"ACCESS_HANDLER_URL"}, Hidden: true},
+		&cli.StringFlag{Name: "api-url", Value: "http://localhost:9092", EnvVars: []string{"COMMONFATE_ACCESS_HANDLER_URL"}, Hidden: true},
 	}
 
 	app := &cli.App{
 		Flags:                flags,
-		Name:                 "granted",
-		Usage:                "https://granted.dev",
-		UsageText:            "granted [global options] command [command options] [arguments...]",
+		Name:                 "cli",
+		UsageText:            "cli [global options] command [command options] [arguments...]",
 		HideVersion:          false,
 		Commands:             []*cli.Command{&grants.Command},
 		EnableBashCompletion: true,

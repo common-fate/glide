@@ -247,7 +247,7 @@ func (Deploy) CDK() error {
 	// infrastructure/cdk.json defines a build step within CDK which calls `go run mage.go build`,
 	// so we don't need to build or package the code before running cdk deploy.
 	args := []string{"--dir", "deploy/infra", "cdk", "deploy", "--outputs-file", "cdk-outputs.json"}
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func Dotenv() error {
 		return err
 	}
 
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -304,22 +304,22 @@ func Dotenv() error {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
 	}
 
-	myEnv["APPROVALS_TABLE_NAME"] = o.DynamoDBTable
 	myEnv["AWS_REGION"] = o.Region
-	myEnv["APPROVALS_COGNITO_USER_POOL_ID"] = o.UserPoolID
-	myEnv["EVENT_BUS_ARN"] = o.EventBusArn
-	myEnv["EVENT_BUS_SOURCE"] = o.EventBusSource
-	myEnv["IDENTITY_SETTINGS"] = idConf
-	myEnv["PROVIDER_CONFIG"] = providerConf
-	myEnv["STATE_MACHINE_ARN"] = o.GranterStateMachineArn
-	myEnv["IDENTITY_PROVIDER"] = idpType
-	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
-	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
-	myEnv["GRANTED_RUNTIME"] = "lambda"
-	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
-	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
-	myEnv["REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
-	myEnv["REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
+	myEnv["COMMONFATE_TABLE_NAME"] = o.DynamoDBTable
+	myEnv["COMMONFATE_COGNITO_USER_POOL_ID"] = o.UserPoolID
+	myEnv["COMMONFATE_EVENT_BUS_ARN"] = o.EventBusArn
+	myEnv["COMMONFATE_EVENT_BUS_SOURCE"] = o.EventBusSource
+	myEnv["COMMONFATE_IDENTITY_SETTINGS"] = idConf
+	myEnv["COMMONFATE_PROVIDER_CONFIG"] = providerConf
+	myEnv["COMMONFATE_STATE_MACHINE_ARN"] = o.GranterStateMachineArn
+	myEnv["COMMONFATE_IDENTITY_PROVIDER"] = idpType
+	myEnv["COMMONFATE_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
+	myEnv["COMMONFATE_FRONTEND_URL"] = "http://localhost:3000"
+	myEnv["COMMONFATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
+	myEnv["COMMONFATE_PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
+	myEnv["COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
+	myEnv["COMMONFATE_ACCESS_REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
+	myEnv["COMMONFATE_REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
@@ -518,7 +518,7 @@ func Watch() error {
 	mg.Deps(Deps.NPM)
 	args := []string{"--dir", "deploy/infra", "cdk", "watch", "--outputs-file", "cdk-outputs.json"}
 
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -532,7 +532,7 @@ func Destroy() error {
 	mg.Deps(Deps.NPM)
 	args := []string{"--dir", "deploy/infra", "cdk", "destroy"}
 
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -547,15 +547,23 @@ func Clean() error {
 	return os.RemoveAll("next/out")
 }
 
-// DevConfig sets up the granted-deployment.yml file
+// DevConfig sets up the deployment.yml file
 func DevConfig() error {
-	_, err := deploy.LoadConfig("granted-deployment.yml")
+	_, err := deploy.LoadConfig(deploy.DefaultFilename)
+	if err != nil && err != deploy.ErrConfigNotExist {
+		return err
+	}
+
+	if err == nil {
+		fmt.Println("deployment.yml already exists: skipping setup")
+		return nil
+	}
+	_, err = deploy.LoadConfig(deploy.DeprecatedDefaultFilename)
 	if err != nil && err != deploy.ErrConfigNotExist {
 		return err
 	}
 	if err == nil {
-		fmt.Println("granted-deployment.yml already exists: skipping setup")
-		return nil
+		deploy.DeprecatedDefaultFilenameWarning.Print()
 	}
 
 	c, err := deploy.SetupDevConfig()
@@ -563,12 +571,12 @@ func DevConfig() error {
 		return err
 	}
 
-	err = c.Save("granted-deployment.yml")
+	err = c.Save(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("wrote granted-deployment.yml")
+	fmt.Println("wrote deployment.yml")
 	return nil
 }
 
@@ -576,7 +584,7 @@ func DevConfig() error {
 // If it doesn't exist yet it adds a dependency for the CDK deploy
 // task, which will create the output, and then tries to read it again.
 func ensureCDKOutput() (deploy.Output, error) {
-	dc, err := deploy.LoadConfig("granted-deployment.yml")
+	dc, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return deploy.Output{}, err
 	}

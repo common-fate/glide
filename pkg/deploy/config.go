@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/granted-approvals/pkg/cfaws"
 	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/fatih/color"
@@ -41,7 +42,12 @@ func SetConfigInContext(ctx context.Context, cfg Config) context.Context {
 	return context.WithValue(ctx, DeploymentConfigContextKey, cfg)
 }
 
-const DefaultFilename = "granted-deployment.yml"
+const DeprecatedDefaultFilename = "granted-deployment.yml"
+const DefaultFilename = "deployment.yml"
+
+var DeprecatedDefaultFilenameWarning = clierr.Warn("Since v0.11.0 the default deployment config file has been renamed from 'granted-deployment.yml' to 'deployment.yml'. To update, rename the file now or run this command to rename via the cli `mv granted-deployment.yml deployment.yml`")
+
+const DefaultCommonFateAdministratorsGroup = "common_fate_administrators"
 
 // AvailableRegions are the regions that we currently release CloudFormation templates to.
 var AvailableRegions = []string{
@@ -269,7 +275,7 @@ func RunConfigTest(ctx context.Context, testable interface{}) error {
 func (c *Config) ResetIdentityProviderToCognito(filepath string) error {
 
 	c.Deployment.Parameters.IdentityProviderType = ""
-	c.Deployment.Parameters.AdministratorGroupID = "granted_administrators"
+	c.Deployment.Parameters.AdministratorGroupID = "common_fate_administrators"
 	c.Deployment.Parameters.IdentityConfiguration = nil
 	c.Deployment.Parameters.SamlSSOMetadataURL = ""
 	c.Deployment.Parameters.SamlSSOMetadata = ""
@@ -577,10 +583,12 @@ func NewStagingConfig(ctx context.Context, stage string) *Config {
 	dev := true
 	conf := Config{
 		Deployment: Deployment{
-			StackName: "granted-approvals-" + stage,
+			StackName: "common-fate-" + stage,
 			Account:   acc,
 			Dev:       &dev,
+
 			Parameters: Parameters{
+				AdministratorGroupID: "granted_administrators",
 				ProviderConfiguration: ProviderMap{
 					"test-vault": {
 						Uses: "commonfate/testvault@v1",
@@ -631,12 +639,12 @@ func SetupDevConfig() (*Config, error) {
 	c := Config{
 		Version: 2,
 		Deployment: Deployment{
-			StackName: fmt.Sprintf("granted-approvals-%s", stage),
+			StackName: fmt.Sprintf("common-fate-%s", stage),
 			Account:   account,
 			Region:    region,
 			Dev:       &dev,
 			Parameters: Parameters{
-				AdministratorGroupID: "granted_administrators",
+				AdministratorGroupID: "common_fate_administrators",
 				AnalyticsDisabled:    "true",
 			},
 		},
@@ -705,7 +713,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 		company = strings.ReplaceAll(company, " ", "")
 		company = strings.ToLower(company)
 
-		cognitoPrefix = fmt.Sprintf("granted-login-%s", company)
+		cognitoPrefix = fmt.Sprintf("common-fate-login-%s", company)
 		p = &survey.Input{Message: "The prefix for the Cognito Sign in URL", Default: cognitoPrefix}
 		err = survey.AskOne(p, &cognitoPrefix)
 		if err != nil {
@@ -722,7 +730,7 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 			Release:   version,
 			Parameters: Parameters{
 				CognitoDomainPrefix:  cognitoPrefix,
-				AdministratorGroupID: "granted_administrators",
+				AdministratorGroupID: "common_fate_administrators",
 			},
 		},
 	}
@@ -754,7 +762,7 @@ func getVersion(c *cli.Context, region string) (string, error) {
 You can try and enter a deployment version manually now, but there's no guarantees we'll be able to deploy it.
 `, err)
 	}
-	p := &survey.Input{Message: "The version of Granted Approvals to deploy"}
+	p := &survey.Input{Message: "The version of Common Fate to deploy"}
 	err = survey.AskOne(p, &version, survey.WithValidator(survey.MinLength(1)))
 	return version, err
 }
@@ -783,7 +791,7 @@ func TryGetCurrentAccountID(ctx context.Context) (string, error) {
 }
 
 // getDefaultAvailableRegion tries to match the AWS_REGION env var with one of the
-// available regions for a Granted Approvals deployment.
+// available regions for a Common Fate deployment.
 // If the AWS_REGION env var doesn't match any of our available regions, the first
 // AvailableRegion is returned instead.
 func getDefaultAvailableRegion() string {

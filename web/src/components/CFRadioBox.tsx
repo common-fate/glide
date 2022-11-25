@@ -22,7 +22,7 @@ export const CFRadioBox: React.FC<RadioProps> = (props) => {
         borderWidth="1px"
         borderRadius="md"
         _checked={{
-          borderColor: "brandGreen.300",
+          borderColor: "brandBlue.300",
           borderWidth: "2px",
         }}
         _focus={{
@@ -39,7 +39,7 @@ export const CFRadioBox: React.FC<RadioProps> = (props) => {
             right={2}
             h="12px"
             w="12px"
-            color={"brandGreen.300"}
+            color={"brandBlue.300"}
           />
         )}
         <HStack>{props.children}</HStack>

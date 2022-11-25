@@ -9,7 +9,7 @@ import (
 
 var setCommand = cli.Command{
 	Name:      "set",
-	Usage:     "Set the release version in your Granted configuration file",
+	Usage:     "Set the release version in your Common Fate configuration file",
 	UsageText: "gdeploy release set <VERSION>",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context

@@ -32,7 +32,7 @@ func WithProviderConfig(config []byte) func(*IntegrationTests) {
 
 // ProviderWith fetches teh provider with config from the environment
 func ProviderWith(providerID string) ([]byte, error) {
-	pc := os.Getenv("PROVIDER_CONFIG")
+	pc := os.Getenv("COMMONFATE_PROVIDER_CONFIG")
 	var configMap map[string]json.RawMessage
 	err := json.Unmarshal([]byte(pc), &configMap)
 	if err != nil {
@@ -46,7 +46,7 @@ func ProviderWith(providerID string) ([]byte, error) {
 	return json.Marshal(o.With)
 }
 
-// RunTests runs standardised integration tests to check the behaviour of a Granted Provider.
+// RunTests runs standardised integration tests to check the behaviour of a Common Fate Provider.
 // It tests validation, granting, and revoking of access.
 //
 // This should be used against the live version of any integration APIs - you shouldn't mock the API that you are

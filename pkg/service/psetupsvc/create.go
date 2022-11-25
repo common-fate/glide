@@ -39,12 +39,12 @@ func (s *Service) Create(ctx context.Context, providerType string, existingProvi
 	// Provider IDs are short strings like 'aws-sso'.
 	// The ID is used as part of the namespace to write any secrets into.
 	// In most cases, people will only use a single instance of a provider.
-	// However, Granted also supports using multiple copies of one provider.
+	// However, Common Fate also supports using multiple copies of one provider.
 	// In this case, the ID needs to be incremented (e.g. 'aws-sso-2')
 	// to avoid writing any secrets over the other instance.
 	//
 	// We derive IDs by building a map containing the following:
-	// 1. all of the providers that are registered in the granted-deployment.yml config file, noting their IDs and type.
+	// 1. all of the providers that are registered in the deployment.yml config file, noting their IDs and type.
 	// 2. all of the providers which are in the process of being set up through the guided setup UI (found by querying DynamoDB).
 	// we then call GetIDForNewProvider() on this map which will return the next available ID for us to use.
 	pmap := new(deploy.ProviderMap)

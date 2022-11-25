@@ -49,7 +49,7 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 		},
 
 		{
-			name:     "gdeploy and granted-approval version match",
+			name:     "gdeploy and common-fate version match",
 			gVersion: "v1.02.02",
 			dConfig: deploy.Deployment{
 				Release: "v1.02.02",
@@ -57,7 +57,7 @@ func TestIsReleaseVersionDifferent(t *testing.T) {
 			want: false,
 		},
 		{
-			name:     "gdeploy and granted-approval version different",
+			name:     "gdeploy and common-fate version different",
 			gVersion: "v1.02.02",
 			dConfig: deploy.Deployment{
 				Release: "v1.02.022",

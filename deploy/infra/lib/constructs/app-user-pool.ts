@@ -78,7 +78,7 @@ export class WebUserPool extends Construct {
       this._userPool = new cognito.UserPool(this, "UserPool", {
         userPoolName: this._appName,
         userInvitation: {
-          emailSubject: "You've been invited to Common Fate Granted",
+          emailSubject: "You've been invited to Common Fate",
           emailBody: inviteEmailTemplate(props.frontendUrl),
         },
         standardAttributes: {
@@ -106,15 +106,26 @@ export class WebUserPool extends Construct {
           domainPrefix: props.domainPrefix,
         },
       });
-
-      const cfnAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
+      const cfnDeprecatedAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
         this,
         "WebAppAdministratorsGroup",
         {
           userPoolId: this._userPool.userPoolId,
           groupName: "granted_administrators",
           description:
-            "Administrators role for Granted Approvals Web Dashboard, all cognito users assigned to this group will have access to admin features",
+            "Deprecated: Auto generated administrators role for Common Fate Web Dashboard. This group has been deprecated in v0.11.0 and is here for backwards compatibility. It may be removed in a future release.",
+          precedence: 0,
+        }
+      );
+      cfnDeprecatedAdminUserPoolGroup.cfnOptions.condition = createCognitoResources;
+      const cfnAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
+        this,
+        "WebAppAdministratorsGroupCF",
+        {
+          userPoolId: this._userPool.userPoolId,
+          groupName: "common_fate_administrators",
+          description:
+            "Auto generated administrators role for Common Fate Web Dashboard",
           precedence: 0,
         }
       );

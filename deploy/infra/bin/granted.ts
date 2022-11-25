@@ -66,11 +66,11 @@ if (stackTarget === "dev") {
     stage,
     providerConfig: providerConfig || "{}",
     // We have inadvertently propagated this "granted-approvals-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
-    stackName: "granted-approvals-" + stage,
+    stackName: "common-fate-" + stage,
     idpType: idpType || IdentityProviderRegistry.Cognito,
     samlMetadataUrl: samlMetadataUrl || "",
     devConfig,
-    adminGroupId: adminGroupId || "granted_administrators",
+    adminGroupId: adminGroupId || "common_fate_administrators",
     samlMetadata: samlMetadata || "",
     notificationsConfiguration: notificationsConfiguration || "{}",
     identityProviderSyncConfiguration: identityConfig || "{}",

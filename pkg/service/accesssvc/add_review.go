@@ -144,7 +144,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	return &res, nil
 }
 
-// users can review requests if they are a Granted administrator,
+// users can review requests if they are a Common Fate administrator,
 // or if they are a Reviewer on the request.
 func canReview(opts AddReviewOpts) bool {
 	if opts.ReviewerID == opts.Request.RequestedBy {

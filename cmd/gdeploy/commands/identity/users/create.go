@@ -19,7 +19,7 @@ var CreateCommand = cli.Command{
 		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "The username of the user to create (should be an email address)", Required: true},
 		&cli.StringFlag{Name: "given-name", Usage: "The user's given name"},
 		&cli.StringFlag{Name: "family-name", Usage: "The user's family name"},
-		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "Whether to make the user a Granted Approvals administrator"},
+		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "Whether to make the user a Common Fate administrator"},
 	},
 	Description: "Create a Cognito user",
 	Action: func(c *cli.Context) error {
@@ -74,7 +74,7 @@ var CreateCommand = cli.Command{
 
 		if c.Bool("admin") {
 			if adminGroup == "" {
-				return clierr.New(fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy identity groups members add --username %s --group <the admin group ID>' to make the user a Granted administrator.", f, username))
+				return clierr.New(fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy identity groups members add --username %s --group <the admin group ID>' to make the user a Common Fate administrator.", f, username))
 			}
 
 			_, err = cog.AdminAddUserToGroup(ctx, &cognitoidentityprovider.AdminAddUserToGroupInput{

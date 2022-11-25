@@ -24,7 +24,7 @@ test.describe.serial("Running test sequentially", () => {
     await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
-    await expect(page).toHaveTitle(/Granted/);
+    await expect(page).toHaveTitle(/Common Fate/);
     await page.goto("/admin/access-rules");
 
     await clickFormElementByID("new-access-rule-button", page);
@@ -85,7 +85,7 @@ test.describe.serial("Running test sequentially", () => {
 
   test("admin can update existing access rule", async ({ page }) => {
     await LoginAdmin(page);
-    await expect(page).toHaveTitle(/Granted/);
+    await expect(page).toHaveTitle(/Common Fate/);
     await page.goto(`/admin/access-rules/${accessRuleId}`);
     await page.waitForLoadState("networkidle");
     await page.locator(`role=button[name="Edit"] >> nth=0`).click();
@@ -106,7 +106,7 @@ test.describe.serial("Running test sequentially", () => {
   }) => {
     await LoginUser(page);
 
-    await expect(page).toHaveTitle(/Granted/);
+    await expect(page).toHaveTitle(/Common Fate/);
 
     // make sure the access rule has permission for the user
     await page.goto(`/access/request/${accessRuleId}`);
@@ -144,7 +144,7 @@ test.describe.serial("Running test sequentially", () => {
   }) => {
     await LoginUser(page);
 
-    await expect(page).toHaveTitle(/Granted/);
+    await expect(page).toHaveTitle(/Common Fate/);
 
     // make sure the access rule has permission for the user
     await page.goto(`/access/request/${accessRuleId}`);
