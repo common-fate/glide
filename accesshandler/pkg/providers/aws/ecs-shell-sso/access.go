@@ -15,7 +15,7 @@ import (
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
-	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
+	"github.com/common-fate/common-fate/pkg/cfaws/policy"
 	"github.com/sethvargo/go-retry"
 	"go.uber.org/zap"
 )

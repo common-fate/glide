@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/providersetup"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/providersetup"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 type Service struct {

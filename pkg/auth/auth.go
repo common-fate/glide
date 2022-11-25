@@ -10,9 +10,9 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/userid"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"go.uber.org/zap"
 )
 

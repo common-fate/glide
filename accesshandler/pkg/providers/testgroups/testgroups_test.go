@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
 )
 
 func TestIntegration(t *testing.T) {

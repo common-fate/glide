@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"

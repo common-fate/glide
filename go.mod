@@ -1,4 +1,4 @@
-module github.com/common-fate/granted-approvals
+module github.com/common-fate/common-fate
 
 go 1.19
 

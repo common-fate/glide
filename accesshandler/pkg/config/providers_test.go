@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )

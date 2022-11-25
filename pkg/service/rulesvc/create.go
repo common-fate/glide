@@ -8,10 +8,10 @@ import (
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/pkg/errors"
 )
 

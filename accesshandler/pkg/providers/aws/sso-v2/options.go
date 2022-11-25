@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	ssoadmintypes "github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )

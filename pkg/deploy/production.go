@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/smithy-go"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 )
 
 func StackExists(ctx context.Context, stackName string) (bool, error) {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/common-fate/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
 

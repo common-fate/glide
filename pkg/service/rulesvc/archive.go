@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/common-fate/analytics-go"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 func (s *Service) ArchiveAccessRule(ctx context.Context, user *identity.User, in rule.AccessRule) (*rule.AccessRule, error) {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"embed"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // Accessors know how to grant and revoke access to something.

@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/cmd/gdeploy/middleware"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/stretchr/testify/assert"
 )
 

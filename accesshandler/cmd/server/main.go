@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/server"
+	"github.com/common-fate/common-fate/accesshandler/pkg/server"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )

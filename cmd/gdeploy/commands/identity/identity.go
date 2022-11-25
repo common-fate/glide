@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/common-fate/clio/clierr"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity/groups"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity/sso"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity/sync"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity/users"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity/groups"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity/sso"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity/sync"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity/users"
+	"github.com/common-fate/common-fate/cmd/gdeploy/middleware"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/urfave/cli/v2"
 )
 

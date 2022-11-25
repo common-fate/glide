@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testgroups"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testgroups"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 
 	"github.com/stretchr/testify/assert"
 )

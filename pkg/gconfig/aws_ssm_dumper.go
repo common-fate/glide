@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 )
 
 // SSMDumper will upload any secrets to SSM which have changed and then return the tokenised ssm path as the value

@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/identity"
 )
 
 // TestingSetUserID allows the user ID to be set in the context for testing purposes.

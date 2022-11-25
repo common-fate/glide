@@ -1,6 +1,6 @@
 package gevent
 
-import "github.com/common-fate/granted-approvals/pkg/access"
+import "github.com/common-fate/common-fate/pkg/access"
 
 const (
 	RequestCreatedType   = "request.created"

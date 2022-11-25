@@ -3,9 +3,9 @@ package dbupdate
 import (
 	"context"
 
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 )
 
 type UpdateRequestOpts struct {

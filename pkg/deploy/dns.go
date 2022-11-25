@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 	"go.uber.org/zap"
 )
 

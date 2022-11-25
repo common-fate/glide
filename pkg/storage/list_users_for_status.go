@@ -4,9 +4,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	gendTypes "github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	gendTypes "github.com/common-fate/common-fate/pkg/types"
 )
 
 type ListUsersForStatus struct {

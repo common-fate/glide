@@ -11,9 +11,9 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/urfave/cli/v2"
 )
 

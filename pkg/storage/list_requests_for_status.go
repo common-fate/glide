@@ -4,8 +4,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
 type ListRequestsForStatus struct {

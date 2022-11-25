@@ -8,12 +8,12 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 )
 
 // loadCachedProviderArgOptions handles the case where we fetch arg options from the DynamoDB cache.

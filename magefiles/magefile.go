@@ -12,8 +12,8 @@ import (
 	"path"
 
 	"github.com/bitfield/script"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/mg"
@@ -42,7 +42,7 @@ func ldFlags() string {
 		release = "dev"
 	}
 
-	return fmt.Sprintf(`-X 'github.com/common-fate/granted-approvals/internal/build.Version=%s'`, release)
+	return fmt.Sprintf(`-X 'github.com/common-fate/common-fate/internal/build.Version=%s'`, release)
 }
 
 type Deps mg.Namespace

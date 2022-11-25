@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/pkg/errors"
 )
 

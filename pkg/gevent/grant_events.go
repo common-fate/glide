@@ -1,6 +1,6 @@
 package gevent
 
-import "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+import "github.com/common-fate/common-fate/accesshandler/pkg/types"
 
 const (
 	GrantCreatedType   = "grant.created"

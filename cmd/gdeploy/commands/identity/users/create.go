@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 

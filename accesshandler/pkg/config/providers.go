@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/pkg/errors"
 )
 

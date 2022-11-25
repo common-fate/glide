@@ -5,8 +5,8 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/depid"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/depid"
 	"go.uber.org/zap"
 )
 

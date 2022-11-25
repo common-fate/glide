@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	externalRef0 "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	externalRef0 "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"

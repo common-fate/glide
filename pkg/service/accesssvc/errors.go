@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/common-fate/pkg/access"
 )
 
 var (

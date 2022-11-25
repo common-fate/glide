@@ -6,9 +6,9 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/openapi"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap/zaptest"
 )

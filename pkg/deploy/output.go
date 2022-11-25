@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go"
 	"github.com/common-fate/clio"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/mitchellh/mapstructure"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"

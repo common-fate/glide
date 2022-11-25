@@ -1,7 +1,7 @@
 package groups
 
 import (
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity/groups/members"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity/groups/members"
 	"github.com/urfave/cli/v2"
 )
 

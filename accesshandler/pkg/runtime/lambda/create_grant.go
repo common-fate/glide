@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/gevent"
 )
 
 // WorkflowInput is the input to the Step Functions workflow execution

@@ -7,13 +7,13 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/depid"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/depid"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"go.uber.org/zap"
 )
 

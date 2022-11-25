@@ -6,10 +6,10 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {

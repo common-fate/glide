@@ -3,10 +3,10 @@ package providersetup
 import (
 	"fmt"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // Step is an instruction step which is saved to DynamoDB. We cache these steps

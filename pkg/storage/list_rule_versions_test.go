@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/stretchr/testify/assert"
 )
 

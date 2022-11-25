@@ -3,7 +3,7 @@ package ad
 import (
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
+	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 )
 
 func TestSetup(t *testing.T) {

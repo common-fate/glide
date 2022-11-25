@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
