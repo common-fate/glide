@@ -505,6 +505,7 @@ const Favorites: React.FC = () => {
                   h="172px"
                   w="232px"
                   rounded="md"
+                  data-testid={`fav-request-item-${r.name}`}
                 >
                   <Text textStyle="Body/SmallBold" color="neutrals.700">
                     {r.name}
