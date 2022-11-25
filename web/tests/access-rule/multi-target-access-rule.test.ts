@@ -230,7 +230,7 @@ test.describe.serial("Running test sequentially", () => {
 
     await page.getByTestId("fav-icon-btn").click();
     // FIXME: playwright is re-rending the input field and unable to update the text value to smt else.¯\_(ツ)_/¯
-    await page.getByTestId("favourite-request-button").fill("text-fav-one")
+    await page.getByTestId("favourite-request-button").fill("test-fav-one")
     await page.getByRole("button", { name: "Update" }).click();
 
     const response = await page.waitForResponse(
