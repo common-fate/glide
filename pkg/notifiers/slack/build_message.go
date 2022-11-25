@@ -152,3 +152,72 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 
 	return summary, msg
 }
+
+type RequestDetailMessageOpts struct {
+	Request          access.Request
+	RequestArguments []types.With
+	Rule             rule.AccessRule
+	RequestorSlackID string
+	RequestorEmail   string
+	IsWebhook        bool
+	OriginalMessage  string
+}
+
+func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
+
+	status := titleCase(string(o.Request.Status))
+
+	summary = fmt.Sprintf("Request detail for %s", o.Rule.Name)
+
+	when := "ASAP"
+	if o.Request.RequestedTiming.StartTime != nil {
+		t := o.Request.RequestedTiming.StartTime
+		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
+	}
+
+	requestDetails := []*slack.TextBlockObject{
+		{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*When:*\n%s", when),
+		},
+		{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Duration:*\n%s", o.Request.RequestedTiming.Duration),
+		},
+		{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Status:*\n%s", status),
+		},
+	}
+
+	for _, v := range o.RequestArguments {
+		requestDetails = append(requestDetails, &slack.TextBlockObject{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+		})
+	}
+
+	// Only show the Request reason if it is not empty
+	if o.Request.Data.Reason != nil && len(*o.Request.Data.Reason) > 0 {
+		requestDetails = append(requestDetails, &slack.TextBlockObject{
+			Type: "mrkdwn",
+			Text: fmt.Sprintf("*Request Reason:*\n%s", *o.Request.Data.Reason),
+		})
+	}
+
+	msg = slack.NewBlockMessage(
+		slack.SectionBlock{
+			Type: slack.MBTSection,
+			Text: &slack.TextBlockObject{
+				Type: slack.MarkdownType,
+				Text: o.OriginalMessage,
+			},
+		},
+		slack.SectionBlock{
+			Type:   slack.MBTSection,
+			Fields: requestDetails,
+		},
+	)
+
+	return summary, msg
+}

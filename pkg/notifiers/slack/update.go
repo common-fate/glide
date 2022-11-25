@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/granted-approvals/pkg/identity"
 	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
@@ -26,6 +27,28 @@ func (n *SlackNotifier) UpdateMessageBlockForReviewer(ctx context.Context, revie
 		message.Timestamp = *reviewer.Notifications.SlackMessageID
 
 		u, err := n.directMessageClient.client.GetUserByEmailContext(ctx, q.Result.Email)
+		if err != nil {
+			return err
+		}
+		result, _, _, err := n.directMessageClient.client.OpenConversationContext(ctx, &slack.OpenConversationParameters{
+			Users: []string{u.ID},
+		})
+		if err != nil {
+			return err
+		}
+		_, _, _, err = n.directMessageClient.client.UpdateMessageContext(ctx, result.Conversation.ID, message.Timestamp, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (n *SlackNotifier) UpdateMessageBlockForRequester(ctx context.Context, requester *identity.User, message slack.Message) error {
+	if n.directMessageClient != nil {
+
+		u, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requester.Email)
 		if err != nil {
 			return err
 		}

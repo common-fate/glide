@@ -149,13 +149,52 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				wg.Wait()
 			}
 		} else {
+
 			//Review not required
-			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.", requestedRule.Name)
+			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* in account has been automatically approved.\n", requestedRule.Name)
+
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
 			if err != nil {
 				return errors.Wrap(err, "building review URL")
 			}
-			n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
+
+			ts := n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
+
+			requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
+			if err != nil {
+				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+			}
+
+			if n.directMessageClient != nil {
+				// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
+				var slackUserID string
+				requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestingUserQuery.Result.Email)
+				if err != nil {
+					// log this instead of returning
+					log.Errorw("failed to get slack user id, defaulting to email", "user", requestingUserQuery.Result.Email, zap.Error(err))
+				}
+				if requestor != nil {
+					slackUserID = requestor.ID
+				}
+				_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+					Request:          request,
+					RequestArguments: requestArguments,
+					Rule:             requestedRule,
+					RequestorSlackID: slackUserID,
+					RequestorEmail:   requestingUserQuery.Result.Email,
+					IsWebhook:        false,
+					OriginalMessage:  msg,
+				})
+
+				msg.Timestamp = ts
+
+				err = n.UpdateMessageBlockForRequester(ctx, requestingUserQuery.Result, msg)
+				if err != nil {
+					log.Errorw("failed to update slack message", "user", requestingUserQuery.Result, zap.Error(err))
+				}
+
+			}
+
 		}
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been approved.", requestedRule.Name)
