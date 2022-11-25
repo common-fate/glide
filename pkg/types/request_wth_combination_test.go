@@ -32,7 +32,7 @@ func TestRequestWithCombination(t *testing.T) {
 					"permissionSetArn": {"c", "d"},
 				},
 			},
-			want: []map[string]string{{"accountId": "a", "permissionSetArn": "c"}, {"accountId": "a", "permissionSetArn": "d"}, {"accountId": "b", "permissionSetArn": "c"}, {"accountId": "b", "permissionSetArn": "d"}},
+			want: []map[string]string{{"permissionSetArn": "d", "accountId": "a"}, {"accountId": "b", "permissionSetArn": "c"}, {"accountId": "b", "permissionSetArn": "d"}, {"accountId": "a", "permissionSetArn": "c"}},
 		},
 		{
 			name: "invalid if one of the arguments has no values",
@@ -49,7 +49,7 @@ func TestRequestWithCombination(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := tc.crw.ArgumentCombinations()
-			assert.Equal(t, tc.want, got)
+			assert.ElementsMatch(t, tc.want, got)
 			assert.Equal(t, tc.wantErr, err)
 		})
 	}
