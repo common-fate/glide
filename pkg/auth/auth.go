@@ -45,7 +45,7 @@ type IdentitySyncer interface {
 	Sync(ctx context.Context) error
 }
 
-// Middleware is authentication middleware for the Approvals API.
+// Middleware is authentication middleware for the Common Fate API.
 //
 // It takes an Authenticator which knows how to extract the user's identity from the incoming request.
 // If the user doesn't exist in the database the middleware will attempt to sync it from the

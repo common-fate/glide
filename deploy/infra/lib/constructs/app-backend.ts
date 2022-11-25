@@ -64,7 +64,7 @@ export class AppBackend extends Construct {
       pendingWindow: cdk.Duration.days(7),
       enableKeyRotation: true,
       description:
-        "used for encrypting and decrypting pagination tokens for granted approvals",
+        "Used for encrypting and decrypting pagination tokens for Common Fate",
     });
 
     // used to handle webhook events from third party integrations such as Slack
@@ -100,7 +100,7 @@ export class AppBackend extends Construct {
     this._webhook = webhookv1;
 
     const code = lambda.Code.fromAsset(
-      path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
+      path.join(__dirname, "..", "..", "..", "..", "bin", "commonfate.zip")
     );
 
     this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
@@ -130,7 +130,7 @@ export class AppBackend extends Construct {
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
-      handler: "approvals",
+      handler: "commonfate",
     });
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
@@ -165,7 +165,7 @@ export class AppBackend extends Construct {
       })
     );
 
-    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
+    // allow the Common Fate API to write SSM parameters as part of the guided setup workflow.
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ssm:PutParameter"],
@@ -266,7 +266,7 @@ export class AppBackend extends Construct {
 
     this._dynamoTable.grantReadWriteData(this._lambda);
 
-    // Grant the approvals app access to invoke the access handler api
+    // Grant the Common Fate app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
         resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],

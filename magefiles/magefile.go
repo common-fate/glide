@@ -70,7 +70,7 @@ func (Build) Backend() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/commonfate", "cmd/lambda/commonfate/handler.go")
 }
 
 func (Build) Granter() error {
@@ -181,7 +181,7 @@ func (Build) Frontend() error {
 // PackageBackend zips the Go API so that it can be deployed to Lambda.
 func PackageBackend() error {
 	mg.Deps(Build.Backend)
-	return sh.Run("zip", "--junk-paths", "bin/approvals.zip", "bin/approvals")
+	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate")
 }
 
 func Package() {

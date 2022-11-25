@@ -11,7 +11,7 @@ pnpm install
 ```
 
 Then you can get your environment ready to run tests locally
-Create a `.env` file within `granted-approvals/web` and copy in the following template
+Create a `.env` file within `common-fate/web` and copy in the following template
 
 ```
 TEST_USERNAME=""

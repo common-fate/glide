@@ -26,7 +26,7 @@ func (c *Config) SetDNSRecord(ctx context.Context) error {
 		return err
 	}
 
-	comment := fmt.Sprintf("approvals deployment %s", name)
+	comment := fmt.Sprintf("Common Fate deployment %s", name)
 
 	domain := fmt.Sprintf("%s.test.granted.run", name)
 

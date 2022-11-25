@@ -18,7 +18,7 @@
   "API": {
     "endpoints": [
       {
-        "name": "approvals",
+        "name": "common-fate",
         "endpoint": "https://test.execute-api.us-east-1.amazonaws.com/prod/",
         "region": "us-east-1"
       }

@@ -15,7 +15,7 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:        "approvals",
+		Name:        "commonfate",
 		Writer:      color.Output,
 		Version:     "v0.0.1",
 		HideVersion: false,

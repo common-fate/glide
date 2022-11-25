@@ -145,13 +145,13 @@ func runAccessHandler() error {
 	ctx := context.Background()
 	_ = godotenv.Load()
 
-	var approvalsCfg config.Config
-	err := envconfig.Process(ctx, &approvalsCfg)
+	var commonfateCfg config.Config
+	err := envconfig.Process(ctx, &commonfateCfg)
 	if err != nil {
 		return err
 	}
 
-	if approvalsCfg.RunAccessHandler {
+	if commonfateCfg.RunAccessHandler {
 		var cfg ahConfig.Config
 		err = envconfig.Process(ctx, &cfg)
 		if err != nil {

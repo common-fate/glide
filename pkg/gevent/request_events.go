@@ -10,7 +10,7 @@ const (
 )
 
 // RequestCreated is emitted when a user requests access
-// to something in the Approvals service.
+// to something in the Common Fate service.
 type RequestCreated struct {
 	Request access.Request `json:"request"`
 }
