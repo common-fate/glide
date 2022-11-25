@@ -24,7 +24,7 @@ test.describe.serial("Running test sequentially", () => {
     await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
-    await expect(page).toHaveTitle(/Common Fate/);
+    await expect(page).toHaveTitle(/Granted/);
     await page.goto("/admin/access-rules");
 
     await clickFormElementByID("new-access-rule-button", page);
@@ -85,7 +85,7 @@ test.describe.serial("Running test sequentially", () => {
 
   test("admin can update existing access rule", async ({ page }) => {
     await LoginAdmin(page);
-    await expect(page).toHaveTitle(/Common Fate/);
+    await expect(page).toHaveTitle(/Granted/);
     await page.goto(`/admin/access-rules/${accessRuleId}`);
     await page.waitForLoadState("networkidle");
     await page.locator(`role=button[name="Edit"] >> nth=0`).click();
@@ -106,7 +106,7 @@ test.describe.serial("Running test sequentially", () => {
   }) => {
     await LoginUser(page);
 
-    await expect(page).toHaveTitle(/Common Fate/);
+    await expect(page).toHaveTitle(/Granted/);
 
     // make sure the access rule has permission for the user
     await page.goto(`/access/request/${accessRuleId}`);
@@ -144,7 +144,7 @@ test.describe.serial("Running test sequentially", () => {
   }) => {
     await LoginUser(page);
 
-    await expect(page).toHaveTitle(/Common Fate/);
+    await expect(page).toHaveTitle(/Granted/);
 
     // make sure the access rule has permission for the user
     await page.goto(`/access/request/${accessRuleId}`);
@@ -181,8 +181,8 @@ test.describe.serial("Running test sequentially", () => {
   });
 
   test("user can favourite an access request", async ({ page }) => {
-    await LoginAdmin(page);
-    await expect(page).toHaveTitle(/Common Fate/);
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Granted/);
     await page.goto(`/access/request/${accessRuleId}`);
     await page.waitForLoadState("networkidle");
 
@@ -210,8 +210,8 @@ test.describe.serial("Running test sequentially", () => {
   });
 
   test("user can see access requests that are favourited", async ({ page }) => {
-    await LoginAdmin(page);
-    await expect(page).toHaveTitle(/Common Fate/);
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Granted/);
 
     await page.getByRole("heading", { name: "Favorites" }).click();
     await page.getByTestId("fav-request-item-test-fav-one").first().click()
@@ -221,8 +221,8 @@ test.describe.serial("Running test sequentially", () => {
   });
 
   test("user can update a favourite request", async ({ page }) => {
-    await LoginAdmin(page);
-    await expect(page).toHaveTitle(/Common Fate/);
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Granted/);
 
     // const requiredOptions = ["first", "second", "fifth"];
     await page.getByRole("heading", { name: "Favorites" }).click();
@@ -245,8 +245,8 @@ test.describe.serial("Running test sequentially", () => {
   });
 
   test("user can delete a favourite request", async ({ page }) => {
-    await LoginAdmin(page);
-    await expect(page).toHaveTitle(/Common Fate/);
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Granted/);
 
     // const requiredOptions = ["first", "second", "fifth"];
     await page.getByRole("heading", { name: "Favorites" }).click();
