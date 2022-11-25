@@ -163,6 +163,7 @@ type RequestDetailMessageOpts struct {
 	OriginalMessage  string
 }
 
+// Builds a generic rule detail table to be included in any message
 func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
 	status := titleCase(string(o.Request.Status))

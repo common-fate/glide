@@ -637,7 +637,6 @@ export const AccessRuleArguments: React.FC<{
     return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
   const subRequests = watch("with");
-  console.log(target);
   return (
     <VStack align={"left"}>
       <VStack w="100%" spacing={4}>

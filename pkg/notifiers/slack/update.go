@@ -45,6 +45,7 @@ func (n *SlackNotifier) UpdateMessageBlockForReviewer(ctx context.Context, revie
 	return nil
 }
 
+// updates a message given a provided user id
 func (n *SlackNotifier) UpdateMessageBlockForRequester(ctx context.Context, requester *identity.User, message slack.Message) error {
 	if n.directMessageClient != nil {
 

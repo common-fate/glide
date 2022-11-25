@@ -165,6 +165,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
 			}
 
+			//send message including
 			if n.directMessageClient != nil {
 				// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 				var slackUserID string
