@@ -80,7 +80,7 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
     setLoadingCurrentUser(true);
     Auth.currentAuthenticatedUser()
       .then((data) => {
-        console.log("got current authenticated user", data);
+        console.debug("got current authenticated user", data);
         setCognitoAuthenticatedUserEmail(data.username);
         setLoadingCurrentUser(false);
       })
