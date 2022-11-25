@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { App, DefaultStackSynthesizer } from "aws-cdk-lib";
 import "source-map-support/register";
-import { DevGrantedStack } from "../lib/granted-approvals-stack";
-import { CustomerGrantedStack } from "../lib/granted-approvals-stack-prod";
+import { CommonFateStackDev } from "../lib/common-fate-stack-dev";
+import { CommonFateStackProd } from "../lib/common-fate-stack-prod";
 import {
   DevEnvironmentConfig,
   DevEnvironments,
@@ -47,7 +47,7 @@ const stackTarget = process.env.STACK_TARGET || "dev";
 
 if (stackTarget === "dev") {
   // devEnvironment is used to set the environment for internal
-  // development deployments of the Approvals stack.
+  // development deployments of the Common Fate stack.
   const devEnvironmentName = app.node.tryGetContext("devEnvironment");
 
   let devConfig: DevEnvironmentConfig | null = null;
@@ -61,11 +61,13 @@ if (stackTarget === "dev") {
     devConfig = conf;
   }
 
-  new DevGrantedStack(app, "GrantedDev", {
+  // I don't think we can change the same of this stack without it completely disrupting existing deployments.
+  // So for now, we will stick with GrantedDev and Granted rather than CommonFate
+  new CommonFateStackDev(app, "GrantedDev", {
     cognitoDomainPrefix,
     stage,
     providerConfig: providerConfig || "{}",
-    // We have inadvertently propagated this "granted-approvals-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
+    // We have inadvertently propagated this "common-fate-" through our dev tooling, so if we want to change this then it needs to be changed everywhere
     stackName: "common-fate-" + stage,
     idpType: idpType || IdentityProviderRegistry.Cognito,
     samlMetadataUrl: samlMetadataUrl || "",
@@ -84,7 +86,7 @@ if (stackTarget === "dev") {
     analyticsDeploymentStage: analyticsDeploymentStage || "",
   });
 } else if (stackTarget === "prod") {
-  new CustomerGrantedStack(app, "Granted", {
+  new CommonFateStackProd(app, "Granted", {
     productionReleasesBucket: productionReleasesBucket,
     productionFrontendAssetObjectPrefix:
       productionReleaseBucketPrefix + "/frontend-assets",

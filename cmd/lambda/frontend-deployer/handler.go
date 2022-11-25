@@ -16,7 +16,7 @@ import (
 
 func main() {
 	lambda.Start(cfn.LambdaWrap(func(ctx context.Context, e cfn.Event) (physicalResourceID string, data map[string]interface{}, err error) {
-		physicalResourceID = "grantedFrontendConfigurer"
+		physicalResourceID = "CommonFateFrontendConfigurer"
 		var cfg config.FrontendDeployerConfig
 		_ = godotenv.Load()
 		err = envconfig.Process(ctx, &cfg)

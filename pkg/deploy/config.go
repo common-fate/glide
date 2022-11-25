@@ -657,7 +657,7 @@ func SetupDevConfig() (*Config, error) {
 func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	name := c.String("name")
 	if name == "" {
-		name = "Granted"
+		name = "Common Fate"
 		p := &survey.Input{Message: "The name of the CloudFormation stack to create", Default: name}
 		err := survey.AskOne(p, &name, survey.WithValidator(survey.MinLength(1)))
 		if err != nil {

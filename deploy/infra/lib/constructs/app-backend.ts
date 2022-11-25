@@ -337,7 +337,7 @@ export class AppBackend extends Construct {
     }
   }
 
-  getApprovalsApiURL(): string {
+  getRestApiURL(): string {
     return this._apigateway.url;
   }
 
