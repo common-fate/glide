@@ -7,10 +7,10 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"

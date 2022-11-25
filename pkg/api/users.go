@@ -6,12 +6,12 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
+	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
-	"github.com/common-fate/granted-approvals/pkg/service/internalidentitysvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // Returns a list of users

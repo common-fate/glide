@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/notifiers"
-	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/notifiers"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )

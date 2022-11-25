@@ -1,5 +1,5 @@
 module.exports = {
-  approvals: {
+  commonfate: {
     output: {
       clean: true,
       mode: "tags-split",

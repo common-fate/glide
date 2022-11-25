@@ -3,7 +3,7 @@ package eksrolessso
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

@@ -1,6 +1,6 @@
 # Sentry
 
-We use [Sentry](https://sentry.io) to track errors in our internal testing deployments of Approvals.
+We use [Sentry](https://sentry.io) to track errors in our internal testing deployments of Common Fate.
 
 If you wish to enable Sentry locally follow these steps:
 

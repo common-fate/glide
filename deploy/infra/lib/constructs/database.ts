@@ -15,7 +15,7 @@ export class Database extends Construct {
 
     this._appName = props.appName;
 
-    const approvals = new dynamodb.Table(this, "DBTable", {
+    const dbTable = new dynamodb.Table(this, "DBTable", {
       tableName: this._appName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       partitionKey: { name: "PK", type: dynamodb.AttributeType.STRING },
@@ -69,19 +69,19 @@ export class Database extends Construct {
       },
     };
 
-    approvals.addGlobalSecondaryIndex(gsi1);
-    approvals.addGlobalSecondaryIndex(gsi2);
-    approvals.addGlobalSecondaryIndex(gsi3);
-    approvals.addGlobalSecondaryIndex(gsi4);
+    dbTable.addGlobalSecondaryIndex(gsi1);
+    dbTable.addGlobalSecondaryIndex(gsi2);
+    dbTable.addGlobalSecondaryIndex(gsi3);
+    dbTable.addGlobalSecondaryIndex(gsi4);
 
-    const cfnTable = approvals.node.defaultChild as dynamodb.CfnTable;
+    const cfnTable = dbTable.node.defaultChild as dynamodb.CfnTable;
 
     // this table was previously part of the 'app-backend' construct.
     // to avoid recreating the table as part of a deployment, we force
     // the logical ID to be the same as the previous one.
     cfnTable.overrideLogicalId("APIDBTableA8FD77F9");
 
-    this._dynamoTable = approvals;
+    this._dynamoTable = dbTable;
   }
 
   getTable(): dynamodb.Table {

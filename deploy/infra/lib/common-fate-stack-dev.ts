@@ -33,7 +33,7 @@ interface Props extends cdk.StackProps {
   analyticsDeploymentStage: string;
 }
 
-export class DevGrantedStack extends cdk.Stack {
+export class CommonFateStackDev extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id, props);
 
@@ -92,7 +92,7 @@ export class DevGrantedStack extends cdk.Stack {
       remoteConfigHeaders,
     });
 
-    const approvals = new AppBackend(this, "API", {
+    const appBackend = new AppBackend(this, "API", {
       appName: appName,
       userPool: webUserPool,
       frontendUrl: "https://" + cdn.getDomainName(),
@@ -122,30 +122,30 @@ export class DevGrantedStack extends cdk.Stack {
       S3BucketName: cdn.getBucketName(),
       UserPoolID: webUserPool.getUserPoolId(),
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
-      APIURL: approvals.getApprovalsApiURL(),
-      WebhookURL: approvals.getWebhookApiURL(),
-      APILogGroupName: approvals.getLogGroupName(),
-      WebhookLogGroupName: approvals.getWebhookLogGroupName(),
-      IDPSyncLogGroupName: approvals.getIdpSync().getLogGroupName(),
+      APIURL: appBackend.getRestApiURL(),
+      WebhookURL: appBackend.getWebhookApiURL(),
+      APILogGroupName: appBackend.getLogGroupName(),
+      WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
+      IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
       AccessHandlerLogGroupName: accessHandler.getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
-      EventsHandlerLogGroupName: approvals.getEventHandler().getLogGroupName(),
+      EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
       GranterLogGroupName: accessHandler.getGranter().getLogGroupName(),
-      SlackNotifierLogGroupName: approvals
+      SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
-      DynamoDBTable: approvals.getDynamoTableName(),
+      DynamoDBTable: appBackend.getDynamoTableName(),
       GranterStateMachineArn: accessHandler.getGranter().getStateMachineARN(),
       EventBusArn: events.getEventBus().eventBusArn,
       EventBusSource: events.getEventBusSourceName(),
-      IdpSyncFunctionName: approvals.getIdpSync().getFunctionName(),
+      IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       Region: this.region,
-      PaginationKMSKeyARN: approvals.getKmsKeyArn(),
+      PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
-      CacheSyncLogGroupName: approvals.getCacheSync().getLogGroupName(),
-      IDPSyncExecutionRoleARN: approvals.getIdpSync().getExecutionRoleArn(),
-      RestAPIExecutionRoleARN: approvals.getExecutionRoleArn(),
-      CacheSyncFunctionName: approvals.getCacheSync().getFunctionName(),
+      CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
+      IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
+      RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
+      CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
     });
   }
 }

@@ -3,10 +3,10 @@ package storage
 import (
 	"testing"
 
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbtest"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/segmentio/ksuid"
 )
 

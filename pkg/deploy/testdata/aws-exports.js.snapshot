@@ -21,7 +21,7 @@ const awsmobile = {
   API: {
     endpoints: [
       {
-        name: "approvals",
+        name: "common-fate",
         endpoint: "http://localhost:8080/",
         region: "us-east-1",
       },

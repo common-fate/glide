@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )

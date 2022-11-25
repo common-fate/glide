@@ -3,7 +3,7 @@ package slacknotifier
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 )

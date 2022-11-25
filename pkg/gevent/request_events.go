@@ -1,6 +1,6 @@
 package gevent
 
-import "github.com/common-fate/granted-approvals/pkg/access"
+import "github.com/common-fate/common-fate/pkg/access"
 
 const (
 	RequestCreatedType   = "request.created"
@@ -10,7 +10,7 @@ const (
 )
 
 // RequestCreated is emitted when a user requests access
-// to something in the Approvals service.
+// to something in the Common Fate service.
 type RequestCreated struct {
 	Request access.Request `json:"request"`
 }

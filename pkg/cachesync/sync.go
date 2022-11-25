@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/common-fate/apikit/logger"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/ddb"
-	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
 )
 
 type CacheSyncer struct {

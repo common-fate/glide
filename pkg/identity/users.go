@@ -3,9 +3,9 @@ package identity
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // IDPUser is a generic user type which should be returned by our IDP implementations

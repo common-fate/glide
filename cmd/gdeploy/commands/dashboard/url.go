@@ -3,7 +3,7 @@ package dashboard
 import (
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 

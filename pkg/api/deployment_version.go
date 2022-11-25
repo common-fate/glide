@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/internal/build"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/internal/build"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 // Get deployment version details

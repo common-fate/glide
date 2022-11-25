@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/joho/godotenv"
 )
 

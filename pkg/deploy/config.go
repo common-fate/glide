@@ -16,8 +16,8 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
@@ -657,7 +657,7 @@ func SetupDevConfig() (*Config, error) {
 func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 	name := c.String("name")
 	if name == "" {
-		name = "Granted"
+		name = "Common Fate"
 		p := &survey.Input{Message: "The name of the CloudFormation stack to create", Default: name}
 		err := survey.AskOne(p, &name, survey.WithValidator(survey.MinLength(1)))
 		if err != nil {

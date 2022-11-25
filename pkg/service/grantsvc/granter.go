@@ -10,17 +10,17 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
@@ -112,7 +112,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 		}
 
 		// Emit an event for the grant revoke
-		// We have chosen to emit events from the approvals app for grant revocation rather than from the access handler because we are using a syncronous API.
+		// We have chosen to emit events from the Common Fate app for grant revocation rather than from the access handler because we are using a syncronous API.
 		// All effects from revoking will be implemented in this syncronous api rather than triggered from the events.
 		// So we update the grant status here and save the grant before emitting the event
 		err = g.EventBus.Put(ctx, gevent.GrantRevoked{Grant: opts.Request.Grant.ToAHGrant(opts.Request.ID)})
@@ -173,7 +173,7 @@ func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error
 	}
 }
 
-// CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.
+// CreateGrant creates a Grant in the Access Handler, it does not update the Common Fate app database.
 // the returned Request will contain the newly created grant
 func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*access.Request, error) {
 	req, err := g.prepareCreateGrantRequest(ctx, opts)

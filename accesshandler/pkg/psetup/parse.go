@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/frontmatter"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
 	"github.com/pkg/errors"
 )
 

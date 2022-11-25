@@ -3,7 +3,7 @@ package providers
 import (
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
 	"github.com/stretchr/testify/assert"
 )
 

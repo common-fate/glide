@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 	"go.uber.org/zap"
 )
 
@@ -26,7 +26,7 @@ func (c *Config) SetDNSRecord(ctx context.Context) error {
 		return err
 	}
 
-	comment := fmt.Sprintf("approvals deployment %s", name)
+	comment := fmt.Sprintf("Common Fate deployment %s", name)
 
 	domain := fmt.Sprintf("%s.test.granted.run", name)
 

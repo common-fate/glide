@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 	"github.com/sethvargo/go-retry"
 	"github.com/stretchr/testify/assert"

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"

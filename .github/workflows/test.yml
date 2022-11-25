@@ -43,13 +43,13 @@ jobs:
       - name: Provision test DynamoDB database
         run: |
           echo > .env
-          go run cmd/devcli/main.go db create -n approvals-test-$GITHUB_REF_NAME --wait
+          go run cmd/devcli/main.go db create -n commonfate-test-$GITHUB_REF_NAME --wait
 
       - name: Build Dev Server
         run: go build cmd/server/main.go
 
       - name: Build Deployable Lambda
-        run: go build cmd/lambda/approvals/handler.go
+        run: go build cmd/lambda/commonfate/handler.go
 
       - name: Lint
         run: go vet ./...

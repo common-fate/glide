@@ -10,9 +10,9 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/userid"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +45,7 @@ type IdentitySyncer interface {
 	Sync(ctx context.Context) error
 }
 
-// Middleware is authentication middleware for the Approvals API.
+// Middleware is authentication middleware for the Common Fate API.
 //
 // It takes an Authenticator which knows how to extract the user's identity from the incoming request.
 // If the user doesn't exist in the database the middleware will attempt to sync it from the

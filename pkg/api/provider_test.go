@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/golang/mock/gomock"

@@ -14,8 +14,8 @@ var testCDKOutput = Output{
 	CloudFrontDomain:     "aaaaaaaaaa.cloudfront.net",
 	FrontendDomainOutput: "example.granted.run",
 	UserPoolID:           "us-east-1_abcdefg",
-	S3BucketName:         "granted-approvals-test-us-east-1-12345567890",
-	DynamoDBTable:        "granted-approvals-test",
+	S3BucketName:         "common-fate-test-us-east-1-12345567890",
+	DynamoDBTable:        "common-fate-test",
 	Region:               "us-east-1",
 }
 

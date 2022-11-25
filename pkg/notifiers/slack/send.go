@@ -3,7 +3,7 @@ package slacknotifier
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )

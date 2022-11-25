@@ -7,12 +7,12 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // calls out to the provider to revoke access to the grant and disables execution to the granter state function

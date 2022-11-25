@@ -10,8 +10,8 @@ import (
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/openapi"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/runtime/local"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/runtime/local"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap/zaptest"
 )

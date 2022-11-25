@@ -6,5 +6,5 @@ generate:
 output-options:
   skip-prune: true
 import-mapping:
-  ./accesshandler/openapi.yml: github.com/common-fate/granted-approvals/accesshandler/pkg/types
+  ./accesshandler/openapi.yml: github.com/common-fate/common-fate/accesshandler/pkg/types
 output: pkg/types/api.gen.go

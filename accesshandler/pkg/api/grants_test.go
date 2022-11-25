@@ -11,9 +11,9 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
 	"github.com/common-fate/iso8601"
 
 	"github.com/stretchr/testify/assert"

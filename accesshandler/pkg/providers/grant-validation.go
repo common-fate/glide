@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
 )
 
 type GrantValidationResult struct {

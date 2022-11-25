@@ -7,10 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )

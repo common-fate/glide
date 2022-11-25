@@ -1,8 +1,8 @@
 package notifications
 
 import (
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications/slack"
-	slackwebhook "github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications/slack-webhook"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications/slack"
+	slackwebhook "github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications/slack-webhook"
 	"github.com/urfave/cli/v2"
 )
 

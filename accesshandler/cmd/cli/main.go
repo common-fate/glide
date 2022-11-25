@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/common-fate/granted-approvals/accesshandler/cmd/cli/commands/grants"
+	"github.com/common-fate/common-fate/accesshandler/cmd/cli/commands/grants"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )

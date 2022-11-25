@@ -5,7 +5,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/openapi"
-	"github.com/common-fate/granted-approvals/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/auth"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
