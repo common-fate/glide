@@ -158,8 +158,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				return errors.Wrap(err, "building review URL")
 			}
 
-			ts := n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
-
 			requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
 			if err != nil {
 				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
@@ -187,9 +185,9 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					OriginalMessage:  msg,
 				})
 
-				msg.Timestamp = ts
+				// err = n.UpdateMessageBlockForRequester(ctx, requestingUserQuery.Result, msg)
+				_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestingUserQuery.Result.ID, msg, fallback)
 
-				err = n.UpdateMessageBlockForRequester(ctx, requestingUserQuery.Result, msg)
 				if err != nil {
 					log.Errorw("failed to update slack message", "user", requestingUserQuery.Result, zap.Error(err))
 				}
