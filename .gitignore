@@ -19,6 +19,7 @@ node_modules
 
 granted-deployment.old.yml
 granted-deployment.yml
+deployment.yml
 granted-*.yml
 dist/
 

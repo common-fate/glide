@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/pkg/remoteconfig"
+	"github.com/common-fate/common-fate/pkg/remoteconfig"
 )
 
 // RemoteDeploymentConfig reads config values from an API.

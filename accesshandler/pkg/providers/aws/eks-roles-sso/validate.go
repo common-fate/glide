@@ -9,8 +9,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 )
 
 func (p *Provider) ValidateGrant() providers.GrantValidationSteps {

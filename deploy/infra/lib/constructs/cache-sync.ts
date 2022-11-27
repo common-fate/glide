@@ -27,8 +27,8 @@ export class CacheSync extends Construct {
       code,
       timeout: Duration.seconds(60),
       environment: {
-        ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
+        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "cache-sync",
@@ -47,7 +47,7 @@ export class CacheSync extends Construct {
     // allow the Event Rule to invoke the Lambda function
     targets.addLambdaPermission(this.eventRule, this._lambda);
 
-    // Grant the approvals app access to invoke the access handler api
+    // Grant the Common Fate app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
         resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],

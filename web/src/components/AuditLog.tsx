@@ -167,7 +167,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             arrLength={l}
             header={
               <Text>
-                {`Granted Approvals changed request status from
+                {`Common Fate changed the request status from
               ${e.fromStatus?.toLowerCase()} to ${e.toStatus?.toLowerCase()}`}
               </Text>
             }

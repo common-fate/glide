@@ -3,14 +3,14 @@ package rule
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// AccessRule is a rule governing access to something in Granted.
+// AccessRule is a rule governing access to something in Common Fate.
 //
 // Access Rules have versions.
 // When updating an access rule, you need to update the current version with Current = false

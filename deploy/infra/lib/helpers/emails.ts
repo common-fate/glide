@@ -438,7 +438,7 @@ export const inviteEmailTemplate = (frontendUrl: string) => {
       <![endif]-->
       </head>
       <body>
-        <span class="preheader">You've been invited to Common Fate Granted.</span>
+        <span class="preheader">You've been invited to Common Fate.</span>
         <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
           <tr>
             <td align="center">
@@ -458,7 +458,7 @@ export const inviteEmailTemplate = (frontendUrl: string) => {
                       <tr>
                         <td class="content-cell">
                           <div class="f-fallback">
-                            <p>You've been invited to Common Fate Granted. Granted helps automate permissions to access your cloud and critical applications. Visit the link below to set up your account and get started:</p>
+                            <p>You've been invited to Common Fate. Common Fate helps automate permissions to access your cloud and critical applications. Visit the link below to set up your account and get started:</p>
                             <p>Sign in URL: ${frontendUrl}</p>
                             <p>Username: {username}</p>
                             <p>Temporary password: {####}</p>

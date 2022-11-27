@@ -1,7 +1,7 @@
 package dashboard
 
 import (
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/pkg/browser"
 	"github.com/urfave/cli/v2"
 )

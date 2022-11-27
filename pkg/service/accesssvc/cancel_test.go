@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	accessMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	accessMocks "github.com/common-fate/granted-approvals/pkg/service/accesssvc/mocks"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

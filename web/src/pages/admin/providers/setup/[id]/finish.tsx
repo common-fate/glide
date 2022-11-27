@@ -143,8 +143,8 @@ const Page = () => {
           spacing={8}
         >
           <Text>
-            To finish setting up this provider, you need to update your Granted
-            deployment configuration.
+            To finish setting up this provider, you need to update your Common
+            Fate deployment configuration.
           </Text>
 
           <OrderedList color="#757575" spacing={5}>
@@ -153,7 +153,7 @@ const Page = () => {
             </ListItem>
             <ListItem>
               Open a terminal window in the folder containing your{" "}
-              <CFCode>granted-deployment.yml</CFCode> file.
+              <CFCode>deployment.yml</CFCode> file.
             </ListItem>
             <ListItem>
               <Stack>

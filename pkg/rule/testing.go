@@ -3,7 +3,7 @@ package rule
 import (
 	"time"
 
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 // TestAccessRule returns an AccessRule fixture to be used in tests.

@@ -187,20 +187,20 @@ const two: ThemeOverride = {
           py: props.size == "sm" ? "10px" : "13px",
           color: "white",
           rounded: "full",
-          bg: "brandGreen.300",
+          bg: "brandBlue.300",
           _hover: {
-            bg: "brandGreen.400",
+            bg: "brandBlue.400",
             _disabled: {
               // nested _disabled is needed here to override base style
-              bg: "brandGreen.300",
+              bg: "brandBlue.300",
             },
           },
           _active: {
-            bg: "brandGreen.400",
+            bg: "brandBlue.400",
           },
           _disabled: {
             opacity: 0.2,
-            bg: "brandGreen.300",
+            bg: "brandBlue.300",
           },
           variant: "solid",
         }),
@@ -292,7 +292,7 @@ const two: ThemeOverride = {
             // 'Current' state
             _selected: {
               fontWeight: 500,
-              borderColor: "#34B53A",
+              borderColor: "brandBlue.300",
               borderBottomWidth: "2px",
             },
             // Disabled state

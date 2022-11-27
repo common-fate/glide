@@ -17,7 +17,7 @@ import { useUser } from "../../utils/context/userContext";
 import { useInnerHeight } from "../../utils/hooks/useInnerHeight";
 import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
-import { ApprovalsLogo, ApprovalsLogoAdmin } from "../icons/Logos";
+import { CommonFateAdminLogo, CommonFateLogo } from "../icons/Logos";
 import { UserAvatarDetails } from "../UserAvatar";
 import { StyledNextButton } from "./AdminNavbar";
 import { StyledButton } from "./Navbar";
@@ -102,9 +102,9 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
         <DrawerContent h={innerHeight}>
           <DrawerBody mt={10} h="100%">
             {isAdmin ? (
-              <ApprovalsLogoAdmin h="32px" w="auto" />
+              <CommonFateAdminLogo h="32px" w="auto" />
             ) : (
-              <ApprovalsLogo h="32px" w="auto" />
+              <CommonFateLogo h="32px" w="auto" />
             )}
             <Stack spacing={1} mt={8}>
               {(isAdmin ? adminNavItems : navItems).map((el) => (

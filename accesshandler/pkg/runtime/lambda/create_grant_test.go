@@ -19,7 +19,7 @@ func TestCreateGrant(t *testing.T) {
 	// }
 
 	// r := Runtime{}
-	// os.Setenv("STATE_MACHINE_ARN", "test:arn")
+	// os.Setenv("COMMONFATE_STATE_MACHINE_ARN", "test:arn")
 
 	// err = r.Init(ctx)
 	// if err != nil {

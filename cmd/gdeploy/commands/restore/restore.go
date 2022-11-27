@@ -7,7 +7,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,7 +46,7 @@ var Command = cli.Command{
 			return err
 		}
 
-		clio.Infof("Restoring Granted Approvals backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
+		clio.Infof("Restoring Common Fate backup: %s to table: %s", aws.ToString(bs.BackupDetails.BackupName), tableName)
 		confirm := c.Bool("confirm")
 		if !confirm {
 			cp := &survey.Confirm{Message: "Do you wish to continue?", Default: true}

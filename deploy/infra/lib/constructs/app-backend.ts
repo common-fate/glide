@@ -64,7 +64,7 @@ export class AppBackend extends Construct {
       pendingWindow: cdk.Duration.days(7),
       enableKeyRotation: true,
       description:
-        "used for encrypting and decrypting pagination tokens for granted approvals",
+        "Used for encrypting and decrypting pagination tokens for Common Fate",
     });
 
     // used to handle webhook events from third party integrations such as Slack
@@ -76,7 +76,7 @@ export class AppBackend extends Construct {
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
       environment: {
-        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
+        COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
       },
     });
 
@@ -100,37 +100,37 @@ export class AppBackend extends Construct {
     this._webhook = webhookv1;
 
     const code = lambda.Code.fromAsset(
-      path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
+      path.join(__dirname, "..", "..", "..", "..", "bin", "commonfate.zip")
     );
 
     this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
       code,
       timeout: Duration.seconds(60),
       environment: {
-        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
-        APPROVALS_FRONTEND_URL: props.frontendUrl,
-        APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        IDENTITY_PROVIDER: props.userPool.getIdpType(),
-        APPROVALS_ADMIN_GROUP: props.adminGroupId,
-        MOCK_ACCESS_HANDLER: "false",
-        ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
-        PROVIDER_CONFIG: props.providerConfig,
-        // SENTRY_DSN: can be added here
-        EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        EVENT_BUS_SOURCE: props.eventBusSourceName,
-        IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
-        PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
-        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-        REMOTE_CONFIG_URL: props.remoteConfigUrl,
-        REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
+        COMMONFATE_FRONTEND_URL: props.frontendUrl,
+        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+        COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
+        COMMONFATE_ADMIN_GROUP: props.adminGroupId,
+        COMMONFATE_MOCK_ACCESS_HANDLER: "false",
+        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+        // COMMONFATE_SENTRY_DSN: can be added here
+        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+        COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,
         CF_ANALYTICS_URL: props.analyticsUrl,
         CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
-      handler: "approvals",
+      handler: "commonfate",
     });
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
@@ -165,7 +165,7 @@ export class AppBackend extends Construct {
       })
     );
 
-    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
+    // allow the Common Fate API to write SSM parameters as part of the guided setup workflow.
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ssm:PutParameter"],
@@ -266,7 +266,7 @@ export class AppBackend extends Construct {
 
     this._dynamoTable.grantReadWriteData(this._lambda);
 
-    // Grant the approvals app access to invoke the access handler api
+    // Grant the Common Fate app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
         resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
@@ -337,7 +337,7 @@ export class AppBackend extends Construct {
     }
   }
 
-  getApprovalsApiURL(): string {
+  getRestApiURL(): string {
     return this._apigateway.url;
   }
 

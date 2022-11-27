@@ -6,10 +6,10 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/common-fate/clio"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/cmd/gdeploy/middleware"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -42,7 +42,7 @@ var addCommand = cli.Command{
 			}
 			setupURL := o.FrontendURL() + "/admin/providers/setup"
 			clio.Warn("Configuring access providers interactively via gdeploy has been deprecated.")
-			clio.Warn("For the best experience, we recommend using the interactive setup documentation available as part of your deployment of Granted Approvals.")
+			clio.Warn("For the best experience, we recommend using the interactive setup documentation available as part of your deployment of Common Fate.")
 			clio.Warnf("Open this link to the provider setup page then select the provider you want to configure: %s", setupURL)
 			clio.Warn("At the end of the interactive setup, your configuration will be tested with helpful validation errors should anything go wrong.")
 			clio.Warn("When everything is working, you will be given a gdeploy command to run to get everything setup.")

@@ -15,7 +15,7 @@ import (
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
-	"github.com/common-fate/granted-approvals/pkg/cfaws/policy"
+	"github.com/common-fate/common-fate/pkg/cfaws/policy"
 	"github.com/sethvargo/go-retry"
 	"go.uber.org/zap"
 )
@@ -362,7 +362,7 @@ Start a new task in your ECS cluster then refresh this page to get access.
 		return "", err
 	}
 	if !ecsExecEnabled {
-		msg := fmt.Sprintf(`The specified task: %s does not have execute command enabled so Granted was unable to generate access instructions.
+		msg := fmt.Sprintf(`The specified task: %s does not have execute command enabled so Common Fate was unable to generate access instructions.
 Enable ECS Execute and then retry request the role.
 `, id)
 		return msg, nil
@@ -476,8 +476,8 @@ func (p *Provider) createPermissionSetAndAssignment(ctx context.Context, subject
 	permSet, err := p.ssoClient.CreatePermissionSet(ctx, &ssoadmin.CreatePermissionSetInput{
 		InstanceArn: aws.String(p.instanceARN.Get()),
 		Name:        aws.String(permissionSetName),
-		Description: aws.String("Granted Approvals ECS Flask Access"),
-		Tags:        []types.Tag{{Key: aws.String("managed-by-common-fate-granted"), Value: aws.String("true")}},
+		Description: aws.String("Common Fate ECS Flask Access"),
+		Tags:        []types.Tag{{Key: aws.String("managed-by-common-fate"), Value: aws.String("true")}},
 	})
 	if err != nil {
 		return nil, err

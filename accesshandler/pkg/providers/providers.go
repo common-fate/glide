@@ -4,12 +4,12 @@ import (
 	"context"
 	"embed"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // Accessors know how to grant and revoke access to something.
-// Accessors are considered the 'bare minimum' Granted providers.
+// Accessors are considered the 'bare minimum' Common Fate providers.
 // When writing a provider you must implement this interface.
 type Accessor interface {
 	// Grant the access.

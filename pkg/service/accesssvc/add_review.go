@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/common-fate/analytics-go"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 type AddReviewOpts struct {
@@ -144,7 +144,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	return &res, nil
 }
 
-// users can review requests if they are a Granted administrator,
+// users can review requests if they are a Common Fate administrator,
 // or if they are a Reviewer on the request.
 func canReview(opts AddReviewOpts) bool {
 	if opts.ReviewerID == opts.Request.RequestedBy {

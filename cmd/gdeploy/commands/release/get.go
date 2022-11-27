@@ -3,13 +3,13 @@ package release
 import (
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
 var getCommand = cli.Command{
 	Name:  "get",
-	Usage: "Get the release version specified in your Granted configuration file",
+	Usage: "Get the release version specified in your Common Fate configuration file",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 

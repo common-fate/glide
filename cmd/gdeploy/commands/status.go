@@ -2,14 +2,14 @@ package commands
 
 import (
 	"github.com/common-fate/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
 var StatusCommand = cli.Command{
 	Name:        "status",
-	Description: "Check the status of a Granted deployment",
-	Usage:       "Check the status of a Granted deployment",
+	Description: "Check the status of a Common Fate deployment",
+	Usage:       "Check the status of a Common Fate deployment",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 

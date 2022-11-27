@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )
@@ -23,7 +23,7 @@ var SlackCommand = cli.Command{
 
 var requestMessageCommand = cli.Command{
 	Name: "request-message",
-	Flags: []cli.Flag{&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "The deployment configuration yml file path"},
+	Flags: []cli.Flag{&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: deploy.DefaultFilename, Usage: "The deployment configuration yml file path"},
 		&cli.StringFlag{Name: "request-id", Required: true},
 		&cli.StringFlag{Name: "reviewer-id"},
 	},

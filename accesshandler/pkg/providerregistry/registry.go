@@ -7,14 +7,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
-	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
-	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testgroups"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	ecsshellsso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/ecs-shell-sso"
+	eksrolessso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/eks-roles-sso"
+	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testgroups"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-version"
 )
@@ -85,14 +85,14 @@ func Registry() ProviderRegistry {
 				"v1": {
 					Provider:    &testvault.Provider{},
 					DefaultID:   "testvault",
-					Description: "TestVault - a provider for testing out Granted Approvals",
+					Description: "TestVault - a provider for testing out Common Fate",
 				},
 			},
 			"commonfate/testgroups": {
 				"v1": {
 					Provider:    &testgroups.Provider{},
 					DefaultID:   "testgroups",
-					Description: "TestGroups - a provider for integration testing Granted Approvals",
+					Description: "TestGroups - a provider for integration testing Common Fate",
 					Hidden:      true,
 				},
 			},

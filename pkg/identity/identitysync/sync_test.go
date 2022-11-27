@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -225,16 +225,16 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			name:         "dearchive group when it exists again",
 			giveIdpUsers: []identity.IDPUser{},
 			giveIdpGroups: []identity.IDPGroup{{
-				ID:          "granted_administrators",
-				Name:        "granted_administrators",
+				ID:          "common_fate_administrators",
+				Name:        "common_fate_administrators",
 				Description: "admin group",
 			}},
 			giveInternalUsers: []identity.User{},
 			giveInternalGroups: []identity.Group{
 				{
 					ID:          "1234",
-					IdpID:       "granted_administrators",
-					Name:        "granted_administrators",
+					IdpID:       "common_fate_administrators",
+					Name:        "common_fate_administrators",
 					Description: "admin group",
 					Status:      types.IdpStatusARCHIVED,
 					Users:       []string{},
@@ -244,10 +244,10 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			},
 			wantUserMap: map[string]identity.User{},
 			wantGroupMap: map[string]identity.Group{
-				"granted_administrators": {
+				"common_fate_administrators": {
 					ID:          "1234",
-					IdpID:       "granted_administrators",
-					Name:        "granted_administrators",
+					IdpID:       "common_fate_administrators",
+					Name:        "common_fate_administrators",
 					Description: "admin group",
 					Status:      types.IdpStatusACTIVE,
 					Users:       []string{},

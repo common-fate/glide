@@ -25,7 +25,7 @@ export const NoUser = () => {
         <Text>
           This is likely because your user directory settings are misconfigured.
           Check that your configuration variables (including client IDs and
-          secrets) in your granted-deployment.yml file are correct.
+          secrets) in your deployment.yml file are correct.
         </Text>
 
         <Text>

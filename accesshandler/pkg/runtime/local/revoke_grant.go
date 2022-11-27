@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 func (r *Runtime) RevokeGrant(ctx context.Context, grant string, revoker string) (*types.Grant, error) {

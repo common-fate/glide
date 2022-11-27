@@ -3,10 +3,10 @@ package internalidentitysvc
 import (
 	"context"
 
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error) {

@@ -4,20 +4,20 @@ import (
 	"context"
 	"log"
 
-	ahConfig "github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
+	ahConfig "github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 
 	"github.com/common-fate/apikit/logger"
-	ahServer "github.com/common-fate/granted-approvals/accesshandler/pkg/server"
-	"github.com/common-fate/granted-approvals/internal"
-	"github.com/common-fate/granted-approvals/pkg/api"
-	"github.com/common-fate/granted-approvals/pkg/auth/localauth"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	ahServer "github.com/common-fate/common-fate/accesshandler/pkg/server"
+	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/pkg/api"
+	"github.com/common-fate/common-fate/pkg/auth/localauth"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 
-	"github.com/common-fate/granted-approvals/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/server"
+	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/server"
 	"github.com/getsentry/sentry-go"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -140,18 +140,18 @@ func run() error {
 	return s.Start(ctx)
 }
 
-// runAccessHandler runs a version of the access handler locally if RUN_ACCESS_HANDLER env var is not false, if not set it defaults to true
+// runAccessHandler runs a version of the access handler locally if COMMONFATE_RUN_ACCESS_HANDLER env var is not false, if not set it defaults to true
 func runAccessHandler() error {
 	ctx := context.Background()
 	_ = godotenv.Load()
 
-	var approvalsCfg config.Config
-	err := envconfig.Process(ctx, &approvalsCfg)
+	var commonfateCfg config.Config
+	err := envconfig.Process(ctx, &commonfateCfg)
 	if err != nil {
 		return err
 	}
 
-	if approvalsCfg.RunAccessHandler {
+	if commonfateCfg.RunAccessHandler {
 		var cfg ahConfig.Config
 		err = envconfig.Process(ctx, &cfg)
 		if err != nil {
@@ -166,7 +166,7 @@ func runAccessHandler() error {
 		return s.Start(ctx)
 	}
 
-	zap.S().Info("Not starting access handler because RUN_ACCESS_HANDLER is set to false")
+	zap.S().Info("Not starting access handler because COMMONFATE_RUN_ACCESS_HANDLER is set to false")
 	return nil
 
 }

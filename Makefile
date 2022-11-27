@@ -1,6 +1,6 @@
 devcli:
-	go build -o bin/approvals cmd/devcli/main.go
-	mv ./bin/approvals /usr/local/bin/
+	go build -o bin/commonfate cmd/devcli/main.go
+	mv ./bin/commonfate /usr/local/bin/
 
 gdeploy:
 	go build -o bin/gdeploy cmd/gdeploy/main.go

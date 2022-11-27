@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 )
 
 // Service holds business logic relating to Access Rules.

@@ -12,7 +12,7 @@ import (
 	"github.com/common-fate/cloudform/cfn"
 	"github.com/common-fate/cloudform/console"
 	"github.com/common-fate/cloudform/ui"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/pkg/errors"
 )
 

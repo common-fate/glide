@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 )
 
 type AccessToken struct {

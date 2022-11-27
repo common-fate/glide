@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/pkg/errors"
 )
 

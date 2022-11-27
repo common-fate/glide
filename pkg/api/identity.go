@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 // (POST /api/v1/admin/identity/sync)

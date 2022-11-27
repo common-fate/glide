@@ -3,12 +3,12 @@ package events
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
@@ -22,7 +22,7 @@ var requestCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		do, err := deploy.LoadConfig("granted-deployment.yml")
+		do, err := deploy.LoadConfig(deploy.DefaultFilename)
 		if err != nil {
 			return err
 		}

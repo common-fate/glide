@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/common-fate/granted-approvals/cmd/devcli/commands/db"
-	"github.com/common-fate/granted-approvals/cmd/devcli/commands/events"
-	"github.com/common-fate/granted-approvals/cmd/devcli/commands/groups"
-	"github.com/common-fate/granted-approvals/cmd/devcli/commands/slack"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -15,7 +15,7 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:        "approvals",
+		Name:        "commonfate",
 		Writer:      color.Output,
 		Version:     "v0.0.1",
 		HideVersion: false,

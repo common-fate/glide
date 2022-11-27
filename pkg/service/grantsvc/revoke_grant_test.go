@@ -7,10 +7,10 @@ import (
 
 	"github.com/benbjohnson/clock"
 
-	ah_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
+	ah_types "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
 
-	"github.com/common-fate/granted-approvals/pkg/access"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/iso8601"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/stretchr/testify/assert"
 )
 

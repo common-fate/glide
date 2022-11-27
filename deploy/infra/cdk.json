@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/granted.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/common-fate.ts",
   "versionReporting": false,
   "build": "cd ../.. && go run mage.go -v package",
   "watch": {

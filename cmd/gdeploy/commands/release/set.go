@@ -3,13 +3,13 @@ package release
 import (
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
 var setCommand = cli.Command{
 	Name:      "set",
-	Usage:     "Set the release version in your Granted configuration file",
+	Usage:     "Set the release version in your Common Fate configuration file",
 	UsageText: "gdeploy release set <VERSION>",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context

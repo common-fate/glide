@@ -5,19 +5,20 @@ import (
 
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/backup"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/cache"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/dashboard"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/identity"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/logs"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/provider"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/release"
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/restore"
-	mw "github.com/common-fate/granted-approvals/cmd/gdeploy/middleware"
-	"github.com/common-fate/granted-approvals/internal"
-	"github.com/common-fate/granted-approvals/internal/build"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/backup"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/cache"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/dashboard"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/logs"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/provider"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/release"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/restore"
+	mw "github.com/common-fate/common-fate/cmd/gdeploy/middleware"
+	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/internal/build"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/fatih/color"
 	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
@@ -28,14 +29,14 @@ import (
 func main() {
 	app := &cli.App{
 		Name:        "gdeploy",
-		Description: "Granted Approvals deployment administration utility",
-		Usage:       "Granted Approvals deployment administration utility",
+		Description: "Common Fate deployment administration utility",
+		Usage:       "Common Fate deployment administration utility",
 		Version:     build.Version,
 		HideVersion: false,
 		Flags: []cli.Flag{
-			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: "granted-deployment.yml", Usage: "The deployment configuration yml file path"},
+			&cli.PathFlag{Name: "file", Aliases: []string{"f"}, Value: deploy.DefaultFilename, Usage: "The deployment configuration yml file path"},
 			&cli.BoolFlag{Name: "ignore-git-dirty", Usage: "Ignore checking if this is a clean repository during create and update commands"},
-			&cli.BoolFlag{Name: "ignore-version-mismatch", EnvVars: []string{"GDEPLOY_IGNORE_VERSION_MISMATCH"}, Usage: "Ignore mismatches between 'gdeploy' and the Granted Approvals release version. Don't use this unless you know what you're doing."},
+			&cli.BoolFlag{Name: "ignore-version-mismatch", EnvVars: []string{"GDEPLOY_IGNORE_VERSION_MISMATCH"}, Usage: "Ignore mismatches between 'gdeploy' and the Common Fate release version. Don't use this unless you know what you're doing."},
 			&cli.BoolFlag{Name: "verbose", Usage: "Enable verbose logging, effectively sets environment variable GRANTED_LOG=DEBUG"},
 		},
 		Writer: color.Output,

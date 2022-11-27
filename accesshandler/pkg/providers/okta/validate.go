@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"github.com/pkg/errors"
 )

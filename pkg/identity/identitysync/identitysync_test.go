@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,12 +20,12 @@ func TestIntegration(t *testing.T) {
 	ctx := context.Background()
 	_ = godotenv.Load("../../../.env")
 
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
-	idpConfig := os.Getenv("IDENTITY_SETTINGS")
+	idpConfig := os.Getenv("COMMONFATE_IDENTITY_SETTINGS")
 	if idpConfig == "" {
-		t.Skip("IDENTITY_SETTINGS is not set, skipping integration testing")
+		t.Skip("COMMONFATE_IDENTITY_SETTINGS is not set, skipping integration testing")
 	}
 
 	ic, err := deploy.UnmarshalFeatureMap(idpConfig)

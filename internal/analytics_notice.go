@@ -8,7 +8,7 @@ import (
 	"github.com/common-fate/clio"
 )
 
-const notice = `Attention: Common Fate collects anonymous product analytics about Granted Approvals deployments.
+const notice = `Attention: Common Fate collects anonymous product analytics about Common Fate deployments.
 This information is used to shape Common Fate's roadmap and prioritize features.
 You can learn more, including how to opt-out and how to provide feedback via our RFD process, by visiting the following URL:
 https://docs.commonfate.io/telemetry`

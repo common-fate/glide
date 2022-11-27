@@ -3,9 +3,9 @@ package storage
 import (
 	"testing"
 
+	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbtest"
-	"github.com/common-fate/granted-approvals/pkg/cache"
 )
 
 func TestListCachedProviderOptionsForArg(t *testing.T) {

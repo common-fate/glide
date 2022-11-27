@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	ssofv2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2/fixtures"
-	adf "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad/fixtures"
-	oktaf "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
+	ssofv2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2/fixtures"
+	adf "github.com/common-fate/common-fate/accesshandler/pkg/providers/azure/ad/fixtures"
+	oktaf "github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
 )
 
 type GeneratorDestroyer interface {

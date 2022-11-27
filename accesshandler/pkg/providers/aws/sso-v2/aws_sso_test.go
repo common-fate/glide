@@ -7,17 +7,17 @@ import (
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
 	"github.com/joho/godotenv"
 )
 
 func TestIntegration(t *testing.T) {
 	ctx := context.Background()
 	_ = godotenv.Load("../../../../../.env")
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
 	var f fixtures.Fixtures
 	err := providertest.LoadFixture(ctx, "aws-sso-v2", &f)

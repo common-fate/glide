@@ -22,7 +22,7 @@ export class EventHandler extends Construct {
       code,
       timeout: Duration.seconds(20),
       environment: {
-        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
+        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "event-handler",

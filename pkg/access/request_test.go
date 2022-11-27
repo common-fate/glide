@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

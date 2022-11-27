@@ -62,7 +62,7 @@ export const PaginationButton = (props: ButtonProps) => {
   };
 
   const activeStyle: SystemStyleObject = {
-    bg: "brandGreen.100",
+    bg: "brandBlue.100",
     color: "white",
   };
 

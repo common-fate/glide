@@ -15,7 +15,7 @@ func (e *PermissionSetNotFoundErr) Error() string {
 	return fmt.Sprintf("permission set %s was not found or you don't have access to it", e.PermissionSet)
 }
 
-type PermissionSetNotManagedByGrantedError struct {
+type PermissionSetNotManagedByCommonFateError struct {
 	PermissionSet string
 	// the underlying AWS error
 	AWSErr error

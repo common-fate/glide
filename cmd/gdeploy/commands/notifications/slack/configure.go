@@ -10,9 +10,9 @@ import (
 	"text/template"
 
 	"github.com/common-fate/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
 
@@ -42,7 +42,7 @@ var configureSlackCommand = cli.Command{
 		}
 
 		appInstallURL := fmt.Sprintf("https://api.slack.com/apps?new_app=1&manifest_json=%s", url.QueryEscape(appManifest))
-		clio.Info("Copy & paste the following link into your web browser to create a new Slack app for Granted Approvals:")
+		clio.Info("Copy & paste the following link into your web browser to create a new Slack app for Common Fate:")
 		fmt.Printf("\n\n%s\n\n", appInstallURL)
 		clio.Info("After creating the app, install it to your workspace and find your Bot User OAuth Token in the OAuth & Permissions tab.")
 

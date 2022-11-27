@@ -8,15 +8,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/common-fate/common-fate/pkg/api/mocks"
+	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/api/mocks"
-	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -124,13 +124,13 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"target":{"providerId":"string","with":{}},"approval":{"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"],"groups":[]},"name":"Productions","description":"Production access ","timeConstraints":{"maxDurationSeconds":3600},"groups":["granted_administrators"]}`,
+			give: `{"target":{"providerId":"string","with":{}},"approval":{"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"],"groups":[]},"name":"Productions","description":"Production access ","timeConstraints":{"maxDurationSeconds":3600},"groups":["common_fate_administrators"]}`,
 			mockCreate: &rule.AccessRule{
 				ID:          "rule1",
 				Status:      rule.ACTIVE,
 				Description: "Production access ",
 				Name:        "Productions",
-				Groups:      []string{"granted_administrators"},
+				Groups:      []string{"common_fate_administrators"},
 
 				//target is not updated by this operation
 				Target: rule.Target{
@@ -147,7 +147,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["granted_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
+			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["common_fate_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
 		},
 		{
 			name:     "malformed",

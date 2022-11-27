@@ -25,7 +25,7 @@ func (a *LambdaAuthenticator) Authenticate(r *http.Request) (*Claims, error) {
 	//     "at_hash": "b3CMDzvb1lVq1_sGbn2dnA",
 	//     "aud": "2aqedb08vdqnktrdo5u51udlvg",
 	//     "auth_time": "1652884341",
-	//     "cognito:groups": "developers,granted_administrators",
+	//     "cognito:groups": "developers,common_fate_administrators",
 	//     "cognito:username": "029230e9-20f4-4a00-999a-4a3a8819cb46",
 	//     "email": "chris@commonfate.io",
 	//     "exp": "Wed May 18 15:32:21 UTC 2022",

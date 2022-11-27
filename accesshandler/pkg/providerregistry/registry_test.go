@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
 	"github.com/stretchr/testify/assert"
 )
 

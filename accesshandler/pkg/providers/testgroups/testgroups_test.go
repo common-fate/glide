@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
 )
 
 func TestIntegration(t *testing.T) {
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
 
 	ctx := context.Background()

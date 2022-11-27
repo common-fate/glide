@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )

@@ -1,6 +1,6 @@
 ## Getting Started
 
-In the following documentation we will be keeping track of our internal OpenAPI standards for maintaining and creating Granted API's
+In the following documentation we will be keeping track of our internal OpenAPI standards for maintaining and creating Common Fate API's
 
 All models, endpoints, responses should follow this standard to keep uniform functionality.
 
