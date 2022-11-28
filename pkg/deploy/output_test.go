@@ -58,6 +58,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		EventBusArn:                   "abcdefg",
 		EventBusSource:                "abcdefg",
 		IdpSyncFunctionName:           "abcdefg",
+		IdentityProvider:              "abcdefg",
 		Region:                        "abcdefg",
 		PaginationKMSKeyARN:           "abcdefg",
 		AccessHandlerExecutionRoleARN: "abcdefg",
@@ -113,6 +114,7 @@ func TestOutput_Get(t *testing.T) {
 		EventBusArn                   string
 		EventBusSource                string
 		IdpSyncFunctionName           string
+		IdentityProvider              string
 		Region                        string
 		PaginationKMSKeyARN           string
 		AccessHandlerExecutionRoleARN string
@@ -170,6 +172,7 @@ func TestOutput_Get(t *testing.T) {
 				EventBusArn:                   tt.fields.EventBusArn,
 				EventBusSource:                tt.fields.EventBusSource,
 				IdpSyncFunctionName:           tt.fields.IdpSyncFunctionName,
+				IdentityProvider:              tt.fields.IdentityProvider,
 				Region:                        tt.fields.Region,
 				PaginationKMSKeyARN:           tt.fields.PaginationKMSKeyARN,
 				AccessHandlerExecutionRoleARN: tt.fields.AccessHandlerExecutionRoleARN,

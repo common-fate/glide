@@ -139,6 +139,7 @@ export class CommonFateStackDev extends cdk.Stack {
       EventBusArn: events.getEventBus().eventBusArn,
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
+      IdentityProvider: webUserPool.getIdpType(),
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
