@@ -24,7 +24,7 @@ export type StackOutputs = {
   EventBusArn: string;
   EventBusSource: string;
   IdpSyncFunctionName: string;
-  IdentityProvider: string;
+  SAMLIdentityProviderName: string;
   Region: string;
   PaginationKMSKeyARN: string;
   AccessHandlerExecutionRoleARN: string;

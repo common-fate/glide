@@ -19,7 +19,7 @@ import (
 // Output is the output from deploying the CDK stack to AWS.
 type Output struct {
 	CognitoClientID               string `json:"CognitoClientID"`
-	IdentityProvider              string `json:"IdentityProvider"`
+	SAMLIdentityProviderName      string `json:"SAMLIdentityProviderName"`
 	CloudFrontDomain              string `json:"CloudFrontDomain"`
 	FrontendDomainOutput          string `json:"FrontendDomainOutput"`
 	CloudFrontDistributionID      string `json:"CloudFrontDistributionID"`
