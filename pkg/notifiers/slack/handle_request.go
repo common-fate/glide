@@ -186,10 +186,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				})
 
 				// err = n.UpdateMessageBlockForRequester(ctx, requestingUserQuery.Result, msg)
-				_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestingUserQuery.Result.ID, msg, fallback)
+				_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestingUserQuery.Result.Email, msg, fallback)
 
 				if err != nil {
-					log.Errorw("failed to update slack message", "user", requestingUserQuery.Result, zap.Error(err))
+					log.Errorw("failed to send slack message", "user", requestingUserQuery.Result, zap.Error(err))
 				}
 
 			}

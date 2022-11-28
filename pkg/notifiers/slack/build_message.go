@@ -166,28 +166,23 @@ type RequestDetailMessageOpts struct {
 // Builds a generic rule detail table to be included in any message
 func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
-	status := titleCase(string(o.Request.Status))
-
 	summary = fmt.Sprintf("Request detail for %s", o.Rule.Name)
 
-	when := "ASAP"
+	var expires time.Time
 	if o.Request.RequestedTiming.StartTime != nil {
-		t := o.Request.RequestedTiming.StartTime
-		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
+		expires = o.Request.RequestedTiming.StartTime.Add(o.Request.RequestedTiming.Duration)
+	} else {
+		expires = time.Now().Add(o.Request.RequestedTiming.Duration)
 	}
-
 	requestDetails := []*slack.TextBlockObject{
-		{
-			Type: "mrkdwn",
-			Text: fmt.Sprintf("*When:*\n%s", when),
-		},
+
 		{
 			Type: "mrkdwn",
 			Text: fmt.Sprintf("*Duration:*\n%s", o.Request.RequestedTiming.Duration),
 		},
 		{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Status:*\n%s", status),
+			Text: fmt.Sprintf("*Expires:*\n%s", expires.Format(time.RFC3339)),
 		},
 	}
 
