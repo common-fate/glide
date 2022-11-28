@@ -876,6 +876,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
       updateFavorite(favorite.id, r)
         .then((favorite) => {
           toast({
+            id: "favourite-updated",
             title: "Favorite updated",
             status: "success",
             duration: 2200,
@@ -910,6 +911,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
       userCreateFavorite(r)
         .then((favorite) => {
           toast({
+            id: "favourite-created",
             title: "Favorite created",
             status: "success",
             duration: 2200,
@@ -949,6 +951,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
       deleteFavorite(favorite?.id)
         .then(() => {
           toast({
+            id: "favourite-removed",
             title: "Favorite removed",
             status: "success",
             duration: 2200,
@@ -1000,6 +1003,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
         <Box display="inline-block">
           <PopoverTrigger>
             <IconButton
+              data-testid="fav-icon-btn"
               color={favorite ? colors.actionWarning[200] : undefined}
               onClick={popoverDisclosure.onOpen}
               variant={"ghost"}
@@ -1030,6 +1034,7 @@ So I have just submitted the form directly using the submit button*/}
             <Input
               bg="white"
               id="nameField"
+              data-testid="favourite-request-button"
               placeholder="Daily Development Access"
               {...methods.register("name", {
                 required: true,
@@ -1073,6 +1078,7 @@ So I have just submitted the form directly using the submit button*/}
             </Button>
             {favorite && (
               <Button
+                data-testid="del-fav-btn"
                 variant={"danger"}
                 size={"sm"}
                 onClick={handleDeleteFavorite}
