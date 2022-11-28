@@ -184,7 +184,9 @@ const WithAccessRequestForm = () => {
           justifyContent="center"
         >
           <Stack textAlign="center" w="70%">
-            <Heading pb="10px">You do not have permission to access this request.</Heading>
+            <Heading pb="10px">
+              You do not have permission to access this request.
+            </Heading>
 
             <Button
               top="40px"
