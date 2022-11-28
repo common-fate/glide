@@ -88,11 +88,16 @@ func (c Config) CDKContextArgs() []string {
 }
 
 // GetDevStageName returns the stage name to be used in a CDK deployment.
-// It expects that the stack name is in the form "common-fate--$STAGE".
+// It expects that the stack name is in the form "common-fate-$STAGE" or "granted-approvals-$STAGE"
 func (c Config) GetDevStageName() (string, error) {
 	pre := "common-fate-"
-	if !strings.HasPrefix(c.Deployment.StackName, pre) {
+	deprecatedPre := "granted-approvals"
+	if !(strings.HasPrefix(c.Deployment.StackName, pre) || strings.HasPrefix(c.Deployment.StackName, deprecatedPre)) {
 		return "", fmt.Errorf("stack name %s must start with %s for development", c.Deployment.StackName, pre)
 	}
-	return strings.TrimPrefix(c.Deployment.StackName, pre), nil
+	if strings.HasPrefix(c.Deployment.StackName, pre) {
+		return strings.TrimPrefix(c.Deployment.StackName, pre), nil
+
+	}
+	return strings.TrimPrefix(c.Deployment.StackName, deprecatedPre), nil
 }
