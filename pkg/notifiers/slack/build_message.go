@@ -54,7 +54,7 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 	when := "ASAP"
 	if o.Request.RequestedTiming.StartTime != nil {
 		t := o.Request.RequestedTiming.StartTime
-		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
+		when = types.ExpiryString(*t)
 	}
 
 	requestDetails := []*slack.TextBlockObject{
@@ -111,7 +111,7 @@ func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Messag
 
 	if o.WasReviewed || o.Request.Status == access.CANCELLED {
 		t := time.Now()
-		when = fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", t.Unix(), t.String())
+		when := types.ExpiryString(t)
 
 		text := fmt.Sprintf("*Reviewed by* %s at %s", o.RequestReviewer.Email, when)
 
@@ -175,7 +175,7 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 		expires = time.Now().Add(o.Request.RequestedTiming.Duration)
 	}
 
-	when := fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", expires.Unix(), expires.String())
+	when := types.ExpiryString(expires)
 
 	requestDetails := []*slack.TextBlockObject{
 
