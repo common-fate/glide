@@ -12,12 +12,12 @@ import {
   randomRuleName,
   randomDescription,
   selectOptionByID,
+  fillFormElementByTestId,
 } from "../utils/helpers";
 const ruleName = randomRuleName();
 const ruleDescription = randomDescription();
 const ruleNameUpdated = ruleName + "-updated";
 test.describe.serial("Running test sequentially", () => {
-  // test.
   let accessRuleId = "";
 
   test("admin can create multi target access rule", async ({ page }) => {
@@ -177,6 +177,97 @@ test.describe.serial("Running test sequentially", () => {
     );
     await expect(page.locator("#toast-user-request-created")).toHaveText(
       "Request created"
+    );
+  });
+
+  test("user can favourite an access request", async ({ page }) => {
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Common Fate/);
+    await page.goto(`/access/request/${accessRuleId}`);
+    await page.waitForLoadState("networkidle");
+
+    const requiredOptions = ["first", "second", "fifth"];
+
+    for (const option of requiredOptions) {
+      await clickFormElementByID("user-request-access", page);
+      await page.locator(`text=${option} >> nth=1`).click();
+    }
+
+    await page.getByRole("button", { name: "Favorite" }).click();
+    await page.getByTestId("favourite-request-button").click();
+    await page.getByTestId("favourite-request-button").fill("test-fav-one");
+    await page.getByRole("button", { name: "Save" }).click();
+
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/favorites") &&
+        response.status() === 201
+    );
+
+    await expect(page.locator("#toast-favourite-created")).toHaveText(
+      "Favorite created"
+    );
+  });
+
+  test("user can see access requests that are favourited", async ({ page }) => {
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Common Fate/);
+
+    await page.getByRole("heading", { name: "Favorites" }).click();
+    await page.getByTestId("fav-request-item-test-fav-one").first().click();
+
+    // check if the saved request contains required values in the groups.
+    await expect(page.locator("#user-request-access >> nth=0")).toHaveText(
+      "fifth secondfirst"
+    );
+  });
+
+  test("user can update a favourite request", async ({ page }) => {
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Common Fate/);
+
+    // const requiredOptions = ["first", "second", "fifth"];
+    await page.getByRole("heading", { name: "Favorites" }).click();
+    await page.getByTestId("fav-request-item-test-fav-one").first().click();
+
+    await page.getByTestId("fav-icon-btn").click();
+    // FIXME: playwright is re-rending the input field and unable to update the text value to smt else.¯\_(ツ)_/¯
+    await page.getByTestId("favourite-request-button").fill("test-fav-one");
+    await page.getByRole("button", { name: "Update" }).click();
+
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/favorites") &&
+        response.status() === 201
+    );
+
+    await expect(page.locator("#toast-favourite-updated")).toHaveText(
+      "Favorite updated"
+    );
+  });
+
+  test("user can delete a favourite request", async ({ page }) => {
+    await LoginUser(page);
+    await expect(page).toHaveTitle(/Common Fate/);
+
+    // const requiredOptions = ["first", "second", "fifth"];
+    await page.getByRole("heading", { name: "Favorites" }).click();
+    await page.getByTestId("fav-request-item-test-fav-one").first().click();
+
+    // check if the saved request contains required values in the groups.
+    await page.getByTestId("fav-icon-btn").click();
+    await page.getByTestId("favourite-request-button").click();
+
+    await page.getByTestId("del-fav-btn").click();
+
+    const response = await page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/v1/favorites") &&
+        response.status() === 200
+    );
+
+    await expect(page.locator("#toast-favourite-removed")).toHaveText(
+      "Favorite removed"
     );
   });
 });
