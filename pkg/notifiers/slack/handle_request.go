@@ -151,7 +151,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		} else {
 
 			//Review not required
-			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* in account has been automatically approved.\n", requestedRule.Name)
+			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.\n", requestedRule.Name)
 
 			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
 			if err != nil {
