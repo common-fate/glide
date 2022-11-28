@@ -271,7 +271,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		return
 	}
 	if err == rulesvc.ErrUserNotAuthorized {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("you don't have permission to access this rule"), Status: http.StatusForbidden})
 		return
 	}
 	if err != nil {
@@ -297,7 +297,7 @@ func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	if err == rulesvc.ErrUserNotAuthorized {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("you don't have permission to access this rule"), Status: http.StatusForbidden})
 		return
 	}
 	if err != nil {
