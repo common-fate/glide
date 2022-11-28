@@ -35,11 +35,11 @@ Note: you can alternatively run `mage` natively with Go with `go run mage.go`.
    mage -v deploy:dev
    ```
 
-1. Setup some users in Cognito.
+1. Set up some users in Cognito.
 
    ```bash
-   gdeploy users create --admin -u you@gmail.com
-   gdeploy users create -u you+1@gmail.com
+   gdeploy identity users create --admin -u you@gmail.com
+   gdeploy identity users create -u you+1@gmail.com
    ```
 
 1. Open the web dashboard.
