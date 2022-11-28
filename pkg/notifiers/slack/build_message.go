@@ -174,6 +174,9 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 	} else {
 		expires = time.Now().Add(o.Request.RequestedTiming.Duration)
 	}
+
+	when := fmt.Sprintf("<!date^%d^{date_short_pretty} at {time}|%s>", expires.Unix(), expires.String())
+
 	requestDetails := []*slack.TextBlockObject{
 
 		{
@@ -182,7 +185,7 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 		},
 		{
 			Type: "mrkdwn",
-			Text: fmt.Sprintf("*Expires:*\n%s", expires.Format(time.RFC3339)),
+			Text: fmt.Sprintf("*Expires:*\n%s", when),
 		},
 	}
 
