@@ -25,7 +25,7 @@ func SendMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail
 	if err != nil {
 		return "", err
 	}
-	_, ts, _, err := slackClient.SendMessageContext(ctx, result.Conversation.ID, slack.MsgOptionBlocks(message.Blocks.BlockSet...))
+	_, ts, _, err := slackClient.SendMessageContext(ctx, result.Conversation.ID, slack.MsgOptionBlocks(message.Blocks.BlockSet...), slack.MsgOptionText(summary, false))
 
 	if err != nil {
 		return "", err

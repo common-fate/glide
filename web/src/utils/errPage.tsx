@@ -36,7 +36,8 @@ export const UnhandledError = (props: Props) => {
             size="md"
             w="40%"
             onClick={() => {
-              navigate({ to: "./admin" });
+              navigate({ to: ".." });
+              window.location.reload();
             }}
           >
             Go back

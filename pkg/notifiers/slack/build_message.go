@@ -160,7 +160,7 @@ type RequestDetailMessageOpts struct {
 	RequestorSlackID string
 	RequestorEmail   string
 	IsWebhook        bool
-	OriginalMessage  string
+	HeadingMessage   string
 }
 
 // Builds a generic rule detail table to be included in any message
@@ -206,7 +206,7 @@ func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg 
 			Type: slack.MBTSection,
 			Text: &slack.TextBlockObject{
 				Type: slack.MarkdownType,
-				Text: o.OriginalMessage,
+				Text: o.HeadingMessage,
 			},
 		},
 		slack.SectionBlock{
