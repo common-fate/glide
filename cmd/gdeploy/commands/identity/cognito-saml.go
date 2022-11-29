@@ -10,8 +10,8 @@ import (
 )
 
 var CognitoSamlCommand = cli.Command{
-	Name:        "cognito-saml",
-	Description: "Generate a SAML Cognito url that can be used to login to Common Fate",
+	Name:        "saml-login-url",
+	Description: "Generate a SAML login URL that can be used to login to Common Fate when you are using SAML SSO",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
 		ctx := c.Context
