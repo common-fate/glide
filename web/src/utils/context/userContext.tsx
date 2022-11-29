@@ -19,7 +19,7 @@ interface Props {
 
 const UserProvider: React.FC<Props> = ({ children }) => {
   const [loadingMe, setLoadingMe] = useState<boolean>(true);
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<User | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState<boolean>();
 
   useEffect(() => {
@@ -41,34 +41,18 @@ const UserProvider: React.FC<Props> = ({ children }) => {
 
   if (loadingMe && user === undefined) {
     return (
-      <UserContextProvider
-        value={{
-          user,
-
-          isAdmin,
-        }}
-      >
-        <Center h="100vh">
-          <CFSpinner />
-        </Center>
-      </UserContextProvider>
+      <Center h="100vh">
+        <CFSpinner />
+      </Center>
     );
   }
 
   // if loading has finished, and there is not user, report that something went wrong
   if (!loadingMe && user === undefined) {
     return (
-      <UserContextProvider
-        value={{
-          user,
-
-          isAdmin,
-        }}
-      >
-        <Center h="100vh">
-          <NoUser />
-        </Center>
-      </UserContextProvider>
+      <Center h="100vh">
+        <NoUser />
+      </Center>
     );
   }
 

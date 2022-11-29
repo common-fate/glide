@@ -25,7 +25,7 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon } from "../../components/icons/providerIcon";
@@ -38,10 +38,11 @@ import {
   useUserListRequestsUpcoming,
 } from "../../utils/backend-client/default/default";
 import {
+  getMe,
   useListUserAccessRules,
   useUserGetAccessRule,
 } from "../../utils/backend-client/end-user/end-user";
-import { Request } from "../../utils/backend-client/types";
+import { Request, User } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
 import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
