@@ -174,8 +174,11 @@ const WithAccessRequestForm = () => {
 
   const HTTP_STATUS_CODE_FORBIDDEN = 403;
   // Users who are approval to the access rule but are not part of request group
-  // should not be able to view the request form 
-  if ((error && error?.response?.status === HTTP_STATUS_CODE_FORBIDDEN) || !rule?.canRequest ) {
+  // should not be able to view the request form
+  if (
+    (error && error?.response?.status === HTTP_STATUS_CODE_FORBIDDEN) ||
+    !rule?.canRequest
+  ) {
     return (
       <>
         <Flex
@@ -186,7 +189,8 @@ const WithAccessRequestForm = () => {
         >
           <Stack textAlign="center" w="70%">
             <Heading pb="10px">
-            <p>Oops, either this rule doesn't exist, </p>or you can't request access to it
+              <p>Oops, either this rule doesn't exist, </p>or you can't request
+              access to it
             </Heading>
             <Flex alignItems="center" justifyContent="center">
               <ChakraLink
