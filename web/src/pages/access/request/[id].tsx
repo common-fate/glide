@@ -107,7 +107,6 @@ import {
   RequestAccessRuleTarget,
   RequestArgumentFormElement,
   RequestTiming,
-  WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
 import { colors } from "../../../utils/theme/colors";
@@ -174,7 +173,9 @@ const WithAccessRequestForm = () => {
   const navigate = useNavigate();
 
   const HTTP_STATUS_CODE_FORBIDDEN = 403;
-  if (error && error?.response?.status === HTTP_STATUS_CODE_FORBIDDEN) {
+  // Users who are approval to the access rule but are not part of request group
+  // should not be able to view the request form 
+  if ((error && error?.response?.status === HTTP_STATUS_CODE_FORBIDDEN) || !rule?.canRequest ) {
     return (
       <>
         <Flex
@@ -185,24 +186,12 @@ const WithAccessRequestForm = () => {
         >
           <Stack textAlign="center" w="70%">
             <Heading pb="10px">
-              You do not have permission to access this request.
+            <p>Oops, either this rule doesn't exist, </p>or you can't request access to it
             </Heading>
-
-            <Button
-              top="40px"
-              alignSelf="center"
-              size="md"
-              w="40%"
-              onClick={() => {
-                navigate({ to: "./admin" });
-              }}
-            >
-              Go back
-            </Button>
             <Flex alignItems="center" justifyContent="center">
               <ChakraLink
                 as={Link}
-                to={".."}
+                to={"/"}
                 transition="all .2s ease"
                 rounded="sm"
                 pt="75px"
@@ -482,7 +471,6 @@ const AccessRequestForm = (props: AccessRequestProps) => {
                 <Text as="h3" textStyle="Heading/H3">
                   You are requesting access to
                 </Text>
-
                 <ButtonGroup>
                   <FavoriteRequestButton
                     favorite={favorite}
@@ -500,7 +488,6 @@ const AccessRequestForm = (props: AccessRequestProps) => {
                   </Tooltip>
                 </ButtonGroup>
               </Flex>
-
               <Stack
                 spacing={2}
                 mt={6}
