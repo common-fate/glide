@@ -32,6 +32,7 @@ export class WebUserPool extends Construct {
   private readonly _userPool: cognito.IUserPool;
   private readonly _appName: string;
   private readonly _idpType: IdentityProviderTypes;
+  private readonly _samlUserPoolClient: SamlUserPoolClient;
   private _userPoolClientId: string;
   private _userPoolDomain: cognito.IUserPoolDomain;
 
@@ -131,16 +132,20 @@ export class WebUserPool extends Construct {
       );
       cfnAdminUserPoolGroup.cfnOptions.condition = createCognitoResources;
     }
-    const samlWebClient = new SamlUserPoolClient(this, "SAMLUserPoolClient", {
-      appName: this._appName,
-      callbackUrls: props.callbackUrls,
-      idpType: props.idpType,
-      samlMetadataUrl: props.samlMetadataUrl,
-      userPool: this._userPool,
-      condition: createSAMLResources,
-      samlMetadata: props.samlMetadata,
-    });
-    samlWebClient.node.defaultChild;
+    this._samlUserPoolClient = new SamlUserPoolClient(
+      this,
+      "SAMLUserPoolClient",
+      {
+        appName: this._appName,
+        callbackUrls: props.callbackUrls,
+        idpType: props.idpType,
+        samlMetadataUrl: props.samlMetadataUrl,
+        userPool: this._userPool,
+        condition: createSAMLResources,
+        samlMetadata: props.samlMetadata,
+      }
+    );
+    this._samlUserPoolClient.node.defaultChild;
     const cognitoWebClient = new CognitoUserPoolClient(
       this,
       "CognitoUserPoolClient",
@@ -153,7 +158,7 @@ export class WebUserPool extends Construct {
     );
     this._userPoolClientId = cdk.Fn.conditionIf(
       createSAMLResources.logicalId,
-      samlWebClient.getUserPoolClient().userPoolClientId,
+      this._samlUserPoolClient.getUserPoolClient().userPoolClientId,
       cognitoWebClient.getUserPoolClient().userPoolClientId
     ).toString();
   }
@@ -162,6 +167,12 @@ export class WebUserPool extends Construct {
   }
   getUserPool(): cdk.aws_cognito.IUserPool {
     return this._userPool;
+  }
+  getSamlUserPoolClient(): SamlUserPoolClient | undefined {
+    if (this._idpType === IdentityProviderRegistry.Cognito) {
+      return undefined;
+    }
+    return this._samlUserPoolClient;
   }
   getUserPoolId(): string {
     return this._userPool.userPoolId;
@@ -260,6 +271,9 @@ export class SamlUserPoolClient extends Construct {
   }
   getUserPoolClient(): cognito.UserPoolClient {
     return this._userPoolClient;
+  }
+  getUserPoolName(): string {
+    return this._userPoolClient.userPoolClientName;
   }
 }
 type CognitoUserPoolClientProps = {

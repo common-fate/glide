@@ -23,6 +23,7 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&sso.SSOCommand,
 		&sync.SyncCommand,
+		&CognitoSamlCommand,
 		middleware.WithBeforeFuncs(&users.UsersCommand, PreventNonCognitoUsage()),
 		middleware.WithBeforeFuncs(&groups.GroupsCommand, PreventNonCognitoUsage()),
 	},

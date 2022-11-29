@@ -27,6 +27,7 @@ const testOutputs: StackOutputs = {
   EventBusArn: "abcdefg",
   EventBusSource: "abcdefg",
   IdpSyncFunctionName: "abcdefg",
+  SAMLIdentityProviderName: "abcdefg",
   Region: "abcdefg",
   PaginationKMSKeyARN: "abcdefg",
   AccessHandlerExecutionRoleARN: "abcdefg",
