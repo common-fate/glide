@@ -8,7 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 )
 
-func (s *Service) GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.AccessRuleWithCanRequest, error) {
+func (s *Service) GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.GetAccessRuleResponse, error) {
 	q := storage.GetAccessRuleCurrent{ID: ID}
 	_, err := s.DB.Query(ctx, &q)
 	// Throw storage errors if they occur
@@ -29,7 +29,7 @@ func (s *Service) GetRule(ctx context.Context, ID string, user *identity.User, i
 			}
 		}
 
-		return &rule.AccessRuleWithCanRequest{
+		return &rule.GetAccessRuleResponse{
 			Rule:       q.Result,
 			CanRequest: canRequest,
 		}, nil

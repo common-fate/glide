@@ -103,7 +103,7 @@ type AccessRuleService interface {
 	LookupRule(ctx context.Context, opts rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error)
 	ArchiveAccessRule(ctx context.Context, user *identity.User, in rule.AccessRule) (*rule.AccessRule, error)
 	CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
-	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.AccessRuleWithCanRequest, error)
+	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.GetAccessRuleResponse, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
 	RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }

@@ -392,7 +392,7 @@ func TestUserGetAccessRuleApprovals(t *testing.T) {
 	type testcase struct {
 		name                         string
 		giveRuleID                   string
-		mockGetRuleResponse          *rule.AccessRuleWithCanRequest
+		mockGetRuleResponse          *rule.GetAccessRuleResponse
 		mockGetRuleErr               error
 		mockGetAccessRuleVersion     *rule.AccessRule
 		withRequestArgumentsResponse map[string]types.RequestArgument
@@ -404,7 +404,7 @@ func TestUserGetAccessRuleApprovals(t *testing.T) {
 		{
 			name:       "ok",
 			giveRuleID: "abcd",
-			mockGetRuleResponse: &rule.AccessRuleWithCanRequest{
+			mockGetRuleResponse: &rule.GetAccessRuleResponse{
 				Rule: &rule.AccessRule{
 					Approval: rule.Approval{
 						Groups: []string{"group1"},
@@ -481,7 +481,7 @@ func TestUserGetAccessRule(t *testing.T) {
 	type testcase struct {
 		name                    string
 		giveRuleID              string
-		mockGetRuleResponse     *rule.AccessRuleWithCanRequest
+		mockGetRuleResponse     *rule.GetAccessRuleResponse
 		mockGetRuleErr          error
 		mockGetGroupQueryResult *identity.Group
 		want                    string
@@ -492,7 +492,7 @@ func TestUserGetAccessRule(t *testing.T) {
 		{
 			name:       "ok",
 			giveRuleID: "abcd",
-			mockGetRuleResponse: &rule.AccessRuleWithCanRequest{
+			mockGetRuleResponse: &rule.GetAccessRuleResponse{
 				Rule: &rule.AccessRule{
 					Approval: rule.Approval{
 						Groups: []string{"group1"},

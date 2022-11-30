@@ -37,7 +37,7 @@ type AccessRule struct {
 
 // Inherit rule and include `canRequest` field
 // which is used to determine if the approval can request the rule or not.
-type AccessRuleWithCanRequest struct {
+type GetAccessRuleResponse struct {
 	Rule       *AccessRule
 	CanRequest bool
 }
