@@ -19,6 +19,7 @@ import {
   FormErrorMessage,
   FormHelperText,
   FormLabel,
+  Heading,
   HStack,
   IconButton,
   Input,
@@ -46,6 +47,7 @@ import {
   VStack,
   Wrap,
   WrapItem,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import axios, { AxiosError } from "axios";
 import { format } from "date-fns";
@@ -66,7 +68,7 @@ import {
   useNavigate,
   useSearch,
 } from "react-location";
-import { components, GroupBase, OptionProps } from "react-select";
+import { CommonFateLogo } from "../../../components/icons/Logos";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
   DurationInput,
@@ -101,10 +103,10 @@ import {
   CreateRequestWith,
   CreateRequestWithSubRequest,
   FavoriteDetail,
+  RequestAccessRule,
   RequestAccessRuleTarget,
   RequestArgumentFormElement,
   RequestTiming,
-  WithOption,
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
 import { colors } from "../../../utils/theme/colors";
@@ -151,13 +153,16 @@ export type RequestFormQueryParameters = MakeGenerics<{
     favorite?: string;
   } & RequestFormFields;
 }>;
-const AccessRequestForm = () => {
-  const [loading, setLoading] = useState(false);
+
+// Wrapper that checks if the user can view
+// the provided request before renderining AccessRequestComponent.
+const WithAccessRequestForm = () => {
   const {
     params: { id: ruleId },
   } = useMatch();
+
   // prevent the form resetting unexpectedly
-  const { data: rule } = useUserGetAccessRule(ruleId, {
+  const { data: rule, error } = useUserGetAccessRule(ruleId, {
     swr: {
       refreshInterval: 0,
       revalidateIfStale: false,
@@ -165,13 +170,66 @@ const AccessRequestForm = () => {
       revalidateOnReconnect: false,
     },
   });
+  const navigate = useNavigate();
 
+  const HTTP_STATUS_CODE_FORBIDDEN = 403;
+  // Users who are approval to the access rule but are not part of request group
+  // should not be able to view the request form
+  if (
+    (error && error?.response?.status === HTTP_STATUS_CODE_FORBIDDEN) ||
+    !rule?.canRequest
+  ) {
+    return (
+      <>
+        <Flex
+          height="100vh"
+          padding="0"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Stack textAlign="center" w="70%">
+            <Heading pb="10px">
+              <p>Oops, either this rule doesn't exist, </p>or you can't request
+              access to it
+            </Heading>
+            <Flex alignItems="center" justifyContent="center">
+              <ChakraLink
+                as={Link}
+                to={"/"}
+                transition="all .2s ease"
+                rounded="sm"
+                pt="75px"
+              >
+                <CommonFateLogo h="42px" w="auto" />
+              </ChakraLink>
+            </Flex>
+          </Stack>
+        </Flex>
+      </>
+    );
+  }
+
+  return <AccessRequestForm rule={rule} ruleId={ruleId} />;
+};
+
+interface AccessRequestProps {
+  rule: RequestAccessRule | undefined;
+  ruleId: string;
+}
+
+const AccessRequestForm = (props: AccessRequestProps) => {
+  const { rule, ruleId } = props;
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const now = useMemo(() => {
     const d = new Date();
     d.setSeconds(0, 0);
     return format(d, "yyyy-MM-dd'T'HH:mm");
   }, []);
+
+  const toast = useToast();
+  const search = useSearch<RequestFormQueryParameters>();
+  const [favorite, setFavorite] = useState<FavoriteDetail>();
 
   const methods = useForm<NewRequestFormData>({
     defaultValues: {
@@ -193,10 +251,6 @@ const AccessRequestForm = () => {
     getValues,
   } = methods;
 
-  const toast = useToast();
-  const search = useSearch<RequestFormQueryParameters>();
-
-  const [favorite, setFavorite] = useState<FavoriteDetail>();
   const resetForm = (fields: RequestFormFields) => {
     if (fields.timing) {
       setValue("timing.durationSeconds", fields.timing.durationSeconds);
@@ -421,7 +475,6 @@ const AccessRequestForm = () => {
                 <Text as="h3" textStyle="Heading/H3">
                   You are requesting access to
                 </Text>
-
                 <ButtonGroup>
                   <FavoriteRequestButton
                     favorite={favorite}
@@ -439,7 +492,6 @@ const AccessRequestForm = () => {
                   </Tooltip>
                 </ButtonGroup>
               </Flex>
-
               <Stack
                 spacing={2}
                 mt={6}
@@ -829,7 +881,7 @@ const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
   );
 };
 
-export default AccessRequestForm;
+export default WithAccessRequestForm;
 
 interface FavoriteRequestButtonProps {
   ruleId: string;

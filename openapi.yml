@@ -1362,6 +1362,8 @@ components:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
           type: boolean
+        canRequest:
+          type: boolean
       required:
         - id
         - version
@@ -1370,6 +1372,7 @@ components:
         - target
         - timeConstraints
         - isCurrent
+        - canRequest
     AccessRuleTarget:
       title: AccessRuleTarget
       type: object

@@ -388,11 +388,11 @@ func TestUserListAccessRules(t *testing.T) {
 		})
 	}
 }
-func TestUserGetAccessRule(t *testing.T) {
+func TestUserGetAccessRuleApprovals(t *testing.T) {
 	type testcase struct {
 		name                         string
 		giveRuleID                   string
-		mockGetRuleResponse          *rule.AccessRule
+		mockGetRuleResponse          *rule.GetAccessRuleResponse
 		mockGetRuleErr               error
 		mockGetAccessRuleVersion     *rule.AccessRule
 		withRequestArgumentsResponse map[string]types.RequestArgument
@@ -404,12 +404,14 @@ func TestUserGetAccessRule(t *testing.T) {
 		{
 			name:       "ok",
 			giveRuleID: "abcd",
-			mockGetRuleResponse: &rule.AccessRule{
-
-				Approval: rule.Approval{
-					Groups: []string{"group1"},
-					Users:  []string{"a"},
+			mockGetRuleResponse: &rule.GetAccessRuleResponse{
+				Rule: &rule.AccessRule{
+					Approval: rule.Approval{
+						Groups: []string{"group1"},
+						Users:  []string{"a"},
+					},
 				},
+				CanRequest: true,
 			},
 			wantCode:                     http.StatusOK,
 			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
@@ -475,11 +477,11 @@ func TestUserGetAccessRule(t *testing.T) {
 		})
 	}
 }
-func TestUserGetAccessRuleApprovers(t *testing.T) {
+func TestUserGetAccessRule(t *testing.T) {
 	type testcase struct {
 		name                    string
 		giveRuleID              string
-		mockGetRuleResponse     *rule.AccessRule
+		mockGetRuleResponse     *rule.GetAccessRuleResponse
 		mockGetRuleErr          error
 		mockGetGroupQueryResult *identity.Group
 		want                    string
@@ -490,11 +492,14 @@ func TestUserGetAccessRuleApprovers(t *testing.T) {
 		{
 			name:       "ok",
 			giveRuleID: "abcd",
-			mockGetRuleResponse: &rule.AccessRule{
-				Approval: rule.Approval{
-					Groups: []string{"group1"},
-					Users:  []string{"a"},
+			mockGetRuleResponse: &rule.GetAccessRuleResponse{
+				Rule: &rule.AccessRule{
+					Approval: rule.Approval{
+						Groups: []string{"group1"},
+						Users:  []string{"a"},
+					},
 				},
+				CanRequest: true,
 			},
 			mockGetGroupQueryResult: &identity.Group{
 				ID:    "group1",

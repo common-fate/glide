@@ -35,6 +35,13 @@ type AccessRule struct {
 	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 }
 
+// Inherit rule and include `canRequest` field
+// which is used to determine if the approval can request the rule or not.
+type GetAccessRuleResponse struct {
+	Rule       *AccessRule
+	CanRequest bool
+}
+
 // ised for admin apis, this contains the access rule target in a format for updating the access rule provider target
 func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 	status := types.AccessRuleStatusACTIVE
@@ -94,7 +101,7 @@ func (a AccessRule) ToAPI() types.AccessRule {
 }
 
 // This is used to serve a user making a request, it contains all the available arguments and options with title, description and labels
-func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.RequestArgument) types.RequestAccessRule {
+func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.RequestArgument, canRequest bool) types.RequestAccessRule {
 	return types.RequestAccessRule{
 		Version:     a.Version,
 		Description: a.Description,
@@ -108,6 +115,7 @@ func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.Req
 			},
 		},
 		TimeConstraints: a.TimeConstraints,
+		CanRequest:      canRequest,
 	}
 }
 

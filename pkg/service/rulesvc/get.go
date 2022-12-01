@@ -8,7 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 )
 
-func (s *Service) GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.AccessRule, error) {
+func (s *Service) GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.GetAccessRuleResponse, error) {
 	q := storage.GetAccessRuleCurrent{ID: ID}
 	_, err := s.DB.Query(ctx, &q)
 	// Throw storage errors if they occur
@@ -17,7 +17,22 @@ func (s *Service) GetRule(ctx context.Context, ID string, user *identity.User, i
 	}
 
 	if canGet(user, q.Result, isAdmin) {
-		return q.Result, nil
+		canRequest := false
+
+		// even though admins can see the rule, requesting access to rule is only possible
+		// if they are explicitly selected as request groups when creating the rule.
+		for _, group := range user.Groups {
+			for _, g := range q.Result.Groups {
+				if g == group {
+					canRequest = true
+				}
+			}
+		}
+
+		return &rule.GetAccessRuleResponse{
+			Rule:       q.Result,
+			CanRequest: canRequest,
+		}, nil
 	}
 
 	// Otherwise not allowed

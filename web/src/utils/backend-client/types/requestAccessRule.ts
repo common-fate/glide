@@ -22,4 +22,5 @@ When a rule is updated, it's ID remains consistent.
   target: RequestAccessRuleTarget;
   timeConstraints: TimeConstraints;
   isCurrent: boolean;
+  canRequest: boolean;
 }

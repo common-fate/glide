@@ -19,7 +19,7 @@ func TestGetRule(t *testing.T) {
 		givenUser       identity.User
 		getRuleResponse *rule.AccessRule
 		wantErr         error
-		want            *rule.AccessRule
+		want            *rule.GetAccessRuleResponse
 		isAdmin         bool
 	}
 
@@ -36,13 +36,28 @@ func TestGetRule(t *testing.T) {
 			name:            "User can see a rule they're an approver for",
 			givenUser:       identity.User{ID: "approver1", Groups: []string{"group1"}},
 			getRuleResponse: mockReq,
-			want:            mockReq,
+			want: &rule.GetAccessRuleResponse{
+				Rule:       mockReq,
+				CanRequest: true,
+			},
+		},
+		{
+			name:            "Approval cannot request a rule if they are not in request group",
+			givenUser:       identity.User{ID: "approver1", Groups: []string{}},
+			getRuleResponse: mockReq,
+			want: &rule.GetAccessRuleResponse{
+				Rule:       mockReq,
+				CanRequest: false,
+			},
 		},
 		{
 			name:            "User can see a rule they're assigned to (via the groups)",
 			givenUser:       identity.User{ID: "approver2", Groups: []string{"group1"}},
 			getRuleResponse: mockReq,
-			want:            mockReq,
+			want: &rule.GetAccessRuleResponse{
+				Rule:       mockReq,
+				CanRequest: true,
+			},
 		},
 		{
 			name:            "User *cannot* see if they're neither an approver nor assigned to the rule",
@@ -55,7 +70,10 @@ func TestGetRule(t *testing.T) {
 			givenUser:       identity.User{ID: "a"},
 			isAdmin:         true,
 			getRuleResponse: mockReq,
-			want:            mockReq,
+			want: &rule.GetAccessRuleResponse{
+				Rule:       mockReq,
+				CanRequest: false,
+			},
 		},
 	}
 
