@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	cloudwatchloggroups "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/cloudwatch-log-groups"
 	ecsshellsso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/ecs-shell-sso"
 	eksrolessso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/eks-roles-sso"
 	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
@@ -94,6 +95,13 @@ func Registry() ProviderRegistry {
 					DefaultID:   "testgroups",
 					Description: "TestGroups - a provider for integration testing Common Fate",
 					Hidden:      true,
+				},
+			},
+			"commonfate/cloudwatch-log-groups": {
+				"v1-alpha1": {
+					Provider:    &cloudwatchloggroups.Provider{},
+					DefaultID:   "cloudwatch-log-groups",
+					Description: "CloudWatch Log Groups",
 				},
 			},
 		},

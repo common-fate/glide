@@ -43,6 +43,11 @@ export const registeredProviders: RegisteredProvider[] = [
     shortType: "testvault",
     name: "TestVault",
   },
+  {
+    type: "commonfate/cloudwatch-log-groups",
+    shortType: "cloudwatch-log-groups",
+    name: "CloudWatch Log Groups",
+  },
 ];
 
 /**
