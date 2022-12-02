@@ -8,6 +8,8 @@ export const IdentityProviderRegistry = {
   AzureAD: "azure",
   Google: "google",
   AWSSSO: "aws-sso",
+  OneLogin: "one-login",
 } as const;
 
-export type IdentityProviderTypes = typeof IdentityProviderRegistry[keyof typeof IdentityProviderRegistry];
+export type IdentityProviderTypes =
+  typeof IdentityProviderRegistry[keyof typeof IdentityProviderRegistry];
