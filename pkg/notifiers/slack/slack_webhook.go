@@ -40,7 +40,7 @@ func (n *SlackIncomingWebhook) SendWebhookMessage(ctx context.Context, blocks sl
 	}
 	log.Infow("sending webhook message", "requestBody", string(slackPayload))
 
-	res, err := http.Post("https://hooks.slack.com/services/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", "application/json", strings.NewReader(string(slackPayload)))
+	res, err := http.Post(n.webhookURL.Get(), "application/json", strings.NewReader(string(slackPayload)))
 	if err != nil {
 		return err
 	}
