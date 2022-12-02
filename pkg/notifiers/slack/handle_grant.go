@@ -66,8 +66,6 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 		zap.S().Infow("unhandled grant event", "detailType", event.DetailType)
 	}
 	if msg != "" {
-		zap.S().Infow("values", "slack settings", n)
-		zap.S().Infow("values", "grant", gq.Result.Grant)
 
 		_, err = SendMessage(ctx, n.directMessageClient.client, gq.Result.Grant.Subject, msg, fallback, accessory)
 		return err
