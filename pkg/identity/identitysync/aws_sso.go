@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore/types"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/identity"
@@ -89,11 +90,15 @@ func (a *AWSSSO) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 			return nil, err
 		}
 		for _, u := range userRes.Users {
-			user, err := a.idpUserFromCognitoUser(ctx, u)
-			if err != nil {
-				return nil, err
+			if len(u.Emails) == 1 && u.Emails[0].Primary {
+				user, err := a.idpUserFromCognitoUser(ctx, u)
+				if err != nil {
+					return nil, err
+				}
+				users = append(users, user)
+			} else {
+				logger.Get(ctx).Warn("skipped syncing user from AWS that did not have either an email or a primary email address ")
 			}
-			users = append(users, user)
 		}
 		paginationToken = userRes.NextToken
 		//Check that the next token is not nil so we don't need any more polling
