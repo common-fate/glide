@@ -172,8 +172,10 @@ const WithAccessRequestForm = () => {
   });
   const navigate = useNavigate();
 
-  const HTTP_STATUS_CODE_FORBIDDEN = 403;
-  if (error && error?.response?.status === HTTP_STATUS_CODE_FORBIDDEN) {
+  if (
+    error &&
+    (error?.response?.status === 403 || error.response?.status === 404)
+  ) {
     return <ErrorNoAccess />;
   }
 
@@ -1123,31 +1125,24 @@ So I have just submitted the form directly using the submit button*/}
 
 const ErrorNoAccess = () => {
   return (
-    <>
-      <Flex
-        height="100vh"
-        padding="0"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Stack textAlign="center" w="70%">
-          <Heading pb="10px">
-            <p>Oops, either this rule doesn't exist, </p>or you can't request
-            access to it
-          </Heading>
-          <Flex alignItems="center" justifyContent="center">
-            <ChakraLink
-              as={Link}
-              to={"/"}
-              transition="all .2s ease"
-              rounded="sm"
-              pt="75px"
-            >
-              <CommonFateLogo h="42px" w="auto" />
-            </ChakraLink>
-          </Flex>
-        </Stack>
-      </Flex>
-    </>
+    <Flex
+      height="100vh"
+      padding="0"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <Stack textAlign="center" w="70%" spacing={5}>
+        <Heading>You don't have permission to access this</Heading>
+        <Text>
+          This access rule may no longer exist, or you don't have permission to
+          view it.
+        </Text>
+        <Flex alignItems="center" justifyContent="center">
+          <Button as={Link} to={"/"} h="42px" w="auto">
+            Go back
+          </Button>
+        </Flex>
+      </Stack>
+    </Flex>
   );
 };
