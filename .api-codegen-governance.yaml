@@ -1,0 +1,12 @@
+package: governance
+generate:
+  chi-server: true
+  models: true
+  client: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+output: governance/api.gen.go # relative to the package root, as the gen.go file is there
+import-mapping:
+  ./openapi.yml: github.com/common-fate/common-fate/pkg/types
+  ./accesshandler/openapi.yml: github.com/common-fate/common-fate/accesshandler/pkg/types

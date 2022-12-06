@@ -42,14 +42,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+                $ref: "./openapi.yml#/components/schemas/AccessRuleDetail"
         "400":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
         "401":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
       description: Create an access rule
       requestBody:
-        $ref: "../openapi.yml#/components/requestBodies/CreateAccessRuleRequest"
+        $ref: "./openapi.yml#/components/requestBodies/CreateAccessRuleRequest"
       tags:
         - Governance
     parameters: []
@@ -62,11 +62,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+                $ref: "./openapi.yml#/components/schemas/AccessRuleDetail"
         "401":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
         "404":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
       operationId: gov-get-access-rule
       description: Get an Access Rule.
       tags:
@@ -86,7 +86,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+                $ref: "./openapi.yml#/components/schemas/AccessRuleDetail"
         "400":
           description: Bad Request
         "401":
@@ -96,7 +96,7 @@ paths:
         "500":
           description: Internal Server Error
       requestBody:
-        $ref: "../openapi.yml#/components/requestBodies/UpdateAccessRuleRequest"
+        $ref: "./openapi.yml#/components/requestBodies/CreateAccessRuleRequest"
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Governance
@@ -116,13 +116,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "../openapi.yml#/components/schemas/AccessRuleDetail"
+                $ref: "./openapi.yml#/components/schemas/AccessRuleDetail"
         "401":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
         "404":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
         "500":
-          $ref: "../openapi.yml#/components/responses/ErrorResponse"
+          $ref: "./openapi.yml#/components/responses/ErrorResponse"
       description: |-
         Marks an access rule as archived.
         Any pending requests for this access rule will be cancelled.
@@ -152,7 +152,7 @@ components:
               accessRules:
                 type: array
                 items:
-                  $ref: "../openapi.yml#/components/schemas/AccessRule"
+                  $ref: "./openapi.yml#/components/schemas/AccessRule"
               next:
                 type: string
                 nullable: true
@@ -169,7 +169,7 @@ components:
               accessRules:
                 type: array
                 items:
-                  $ref: ../openapi.yml#/components/schemas/AccessRuleDetail
+                  $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
               next:
                 type: string
                 nullable: true
@@ -187,13 +187,13 @@ components:
             type: object
             properties:
               timeConstraints:
-                $ref: "../openapi.yml#/components/schemas/TimeConstraints"
+                $ref: "./openapi.yml#/components/schemas/TimeConstraints"
               groups:
                 type: array
                 items:
                   type: string
               approval:
-                $ref: "../openapi.yml#/components/schemas/ApproverConfig"
+                $ref: "./openapi.yml#/components/schemas/ApproverConfig"
               name:
                 type: string
               description:
@@ -220,7 +220,7 @@ components:
                 items:
                   type: string
               approval:
-                $ref: "../openapi.yml#/components/schemas/ApproverConfig"
+                $ref: "./openapi.yml#/components/schemas/ApproverConfig"
               name:
                 type: string
                 example: Okta admin
@@ -228,9 +228,9 @@ components:
                 type: string
                 example: Admin access to Okta
               target:
-                $ref: "../openapi.yml#/components/schemas/CreateAccessRuleTarget"
+                $ref: "./openapi.yml#/components/schemas/CreateAccessRuleTarget"
               timeConstraints:
-                $ref: "../openapi.yml#/components/schemas/TimeConstraints"
+                $ref: "./openapi.yml#/components/schemas/TimeConstraints"
             required:
               - groups
               - approval
