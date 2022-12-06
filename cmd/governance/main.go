@@ -38,7 +38,7 @@ func run() error {
 	}
 	zap.ReplaceGlobals(log.Desugar())
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, cfg)
+	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL})
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -13,41 +14,41 @@ import (
 
 // List Access Rules
 // (GET /api/v1/gov/access-rules)
-// func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params GovListAccessRulesParams) {
-// 	ctx := r.Context()
+func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params GovListAccessRulesParams) {
+	ctx := r.Context()
 
-// 	var err error
-// 	var rules []rule.AccessRule
+	var err error
+	var rules []rule.AccessRule
 
-// 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
-// 	if params.NextToken != nil {
-// 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
-// 	}
+	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
+	if params.NextToken != nil {
+		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
+	}
 
-// 	if params.Status != nil {
-// 		q := storage.ListAccessRulesForStatus{Status: rule.Status(*params.Status)}
-// 		_, err = a.DB.Query(ctx, &q, queryOpts...)
-// 		rules = q.Result
-// 	} else {
-// 		q := storage.ListCurrentAccessRules{}
-// 		_, err = a.DB.Query(ctx, &q, queryOpts...)
-// 		rules = q.Result
-// 	}
-// 	// don't return an error response when there are not rules
-// 	if err != nil && err != ddb.ErrNoItems {
-// 		apio.Error(ctx, w, err)
-// 		return
-// 	}
+	if params.Status != nil {
+		q := storage.ListAccessRulesForStatus{Status: rule.Status(*params.Status)}
+		_, err = a.DB.Query(ctx, &q, queryOpts...)
+		rules = q.Result
+	} else {
+		q := storage.ListCurrentAccessRules{}
+		_, err = a.DB.Query(ctx, &q, queryOpts...)
+		rules = q.Result
+	}
+	// don't return an error response when there are not rules
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-// 	res := types.ListAccessRulesDetailResponse{
-// 		AccessRules: make([]types.AccessRuleDetail, len(rules)),
-// 	}
-// 	for i, r := range rules {
-// 		res.AccessRules[i] = r.ToAPIDetail()
-// 	}
+	res := types.ListAccessRulesDetailResponse{
+		AccessRules: make([]types.AccessRuleDetail, len(rules)),
+	}
+	for i, r := range rules {
+		res.AccessRules[i] = r.ToAPIDetail()
+	}
 
-// 	apio.JSON(ctx, w, res, http.StatusOK)
-// }
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
 
 // Create Access Rule
 // (POST /api/v1/gov/access-rules)

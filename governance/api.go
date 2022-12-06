@@ -2,11 +2,17 @@ package governance
 
 import (
 	"context"
+	"errors"
+	"net/http"
 
+	"github.com/benbjohnson/clock"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 )
 
 type API struct {
@@ -25,47 +31,47 @@ type AccessRuleService interface {
 
 // var _ ServerInterface = &API{}
 
-// type Opts struct {
-// 	Log                 *zap.SugaredLogger
-// 	PaginationKMSKeyARN string
-// 	DynamoTable         string
-// 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-// }
+type Opts struct {
+	Log                 *zap.SugaredLogger
+	PaginationKMSKeyARN string
+	DynamoTable         string
+	AccessHandlerClient ahtypes.ClientWithResponsesInterface
+}
 
-// // New creates a new API.
-// func New(ctx context.Context, opts Opts) (*API, error) {
-// 	if opts.Log == nil {
-// 		return nil, errors.New("opts.Log must be provided")
-// 	}
-// 	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+// New creates a new API.
+func New(ctx context.Context, opts Opts) (*API, error) {
+	if opts.Log == nil {
+		return nil, errors.New("opts.Log must be provided")
+	}
+	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
+	if err != nil {
+		return nil, err
+	}
 
-// 	db, err := ddb.New(ctx, opts.DynamoTable, ddb.WithPageTokenizer(tokenizer))
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	db, err := ddb.New(ctx, opts.DynamoTable, ddb.WithPageTokenizer(tokenizer))
+	if err != nil {
+		return nil, err
+	}
 
-// 	clk := clock.New()
+	clk := clock.New()
 
-// 	a := API{
-// 		Rules: &rulesvc.Service{
-// 			Clock:    clk,
-// 			DB:       db,
-// 			AHClient: opts.AccessHandlerClient,
-// 		},
-// 		DB: db,
-// 	}
+	a := API{
+		Rules: &rulesvc.Service{
+			Clock:    clk,
+			DB:       db,
+			AHClient: opts.AccessHandlerClient,
+		},
+		DB: db,
+	}
 
-// 	return &a, nil
-// }
+	return &a, nil
+}
 
-// // Handler returns a HTTP handler.
-// // Hander doesn't add any middleware. It is the caller's
-// // responsibility to add any middleware.
-// func (a *API) Handler(r chi.Router) http.Handler {
-// 	return HandlerWithOptions(a, ChiServerOptions{
-// 		BaseRouter: r,
-// 	})
-// }
+// Handler returns a HTTP handler.
+// Hander doesn't add any middleware. It is the caller's
+// responsibility to add any middleware.
+func (a *API) Handler(r chi.Router) http.Handler {
+	return HandlerWithOptions(a, ChiServerOptions{
+		BaseRouter: r,
+	})
+}
