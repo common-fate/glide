@@ -4,8 +4,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
 type ListGroups struct {
@@ -19,5 +19,6 @@ func (l *ListGroups) BuildQuery() (*dynamodb.QueryInput, error) {
 			":pk1": &types.AttributeValueMemberS{Value: keys.Groups.PK1},
 		},
 	}
+
 	return &qi, nil
 }

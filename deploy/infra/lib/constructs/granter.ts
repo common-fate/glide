@@ -11,6 +11,8 @@ interface Props {
   eventBus: EventBus;
   providerConfig: string;
   executionRole: iam.Role;
+  remoteConfigUrl: string;
+  remoteConfigHeaders: string;
 }
 export class Granter extends Construct {
   private _stateMachine: sfn.StateMachine;
@@ -25,9 +27,11 @@ export class Granter extends Construct {
       code,
       timeout: Duration.minutes(5),
       environment: {
-        EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        EVENT_BUS_SOURCE: props.eventBusSourceName,
-        PROVIDER_CONFIG: props.providerConfig,
+        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "granter",
@@ -115,7 +119,7 @@ export class Granter extends Construct {
           Type: "Fail",
         },
       },
-      Comment: "Granted Access Handler State Machine",
+      Comment: "Common Fate Access Handler State Machine",
     };
 
     this._stateMachine = new sfn.StateMachine(this, "StateMachine", {

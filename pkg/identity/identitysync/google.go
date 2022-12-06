@@ -3,8 +3,8 @@ package identitysync
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	admin "google.golang.org/api/admin/directory/v1"
@@ -22,7 +22,7 @@ func (s *GoogleSync) Config() gconfig.Config {
 	return gconfig.Config{
 		gconfig.StringField("domain", &s.domain, "the Google domain"),
 		gconfig.StringField("adminEmail", &s.adminEmail, "the Google admin email"),
-		gconfig.SecretStringField("apiToken", &s.apiToken, "the Google API token", gconfig.WithNoArgs("/granted/secrets/identity/google/token")),
+		gconfig.SecretStringField("apiToken", &s.apiToken, "the Google API token", gconfig.WithNoArgs("/granted/secrets/identity/google/token"), gconfig.WithCLIPrompt(gconfig.CLIPromptTypeFile)),
 	}
 }
 

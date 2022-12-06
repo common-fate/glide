@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	lambdagranter "github.com/common-fate/granted-approvals/accesshandler/pkg/runtime/lambda/granter"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	lambdagranter "github.com/common-fate/common-fate/accesshandler/pkg/runtime/lambda/granter"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )

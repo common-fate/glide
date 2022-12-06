@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import { Duration, Stack } from "aws-cdk-lib";
+import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as kms from "aws-cdk-lib/aws-kms";
@@ -14,6 +14,8 @@ import { EventHandler } from "./event-handler";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
+import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
+import { CacheSync } from "./cache-sync";
 
 interface Props {
   appName: string;
@@ -27,7 +29,14 @@ interface Props {
   notificationsConfiguration: string;
   identityProviderSyncConfiguration: string;
   deploymentSuffix: string;
+  remoteConfigUrl: string;
+  remoteConfigHeaders: string;
+  analyticsDisabled: string;
+  analyticsUrl: string;
+  analyticsLogLevel: string;
+  analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
+  apiGatewayWafAclArn: string;
 }
 
 export class AppBackend extends Construct {
@@ -38,6 +47,7 @@ export class AppBackend extends Construct {
   private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
+  private _cacheSync: CacheSync;
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
   private _webhookLambda: lambda.Function;
@@ -52,8 +62,9 @@ export class AppBackend extends Construct {
     this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pendingWindow: cdk.Duration.days(7),
+      enableKeyRotation: true,
       description:
-        "used for encrypting and decrypting pagination tokens for granted approvals",
+        "Used for encrypting and decrypting pagination tokens for Common Fate",
     });
 
     // used to handle webhook events from third party integrations such as Slack
@@ -65,7 +76,7 @@ export class AppBackend extends Construct {
       runtime: lambda.Runtime.GO_1_X,
       handler: "webhook",
       environment: {
-        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
+        COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
       },
     });
 
@@ -89,31 +100,37 @@ export class AppBackend extends Construct {
     this._webhook = webhookv1;
 
     const code = lambda.Code.fromAsset(
-      path.join(__dirname, "..", "..", "..", "..", "bin", "approvals.zip")
+      path.join(__dirname, "..", "..", "..", "..", "bin", "commonfate.zip")
     );
 
     this._lambda = new lambda.Function(this, "RestAPIHandlerFunction", {
       code,
       timeout: Duration.seconds(60),
       environment: {
-        APPROVALS_TABLE_NAME: this._dynamoTable.tableName,
-        APPROVALS_FRONTEND_URL: props.frontendUrl,
-        APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        IDENTITY_PROVIDER: props.userPool.getIdpType(),
-        APPROVALS_ADMIN_GROUP: props.adminGroupId,
-        MOCK_ACCESS_HANDLER: "false",
-        ACCESS_HANDLER_URL: props.accessHandler.getApiGateway().url,
-        PROVIDER_CONFIG: props.providerConfig,
-        // SENTRY_DSN: can be added here
-        EVENT_BUS_ARN: props.eventBus.eventBusArn,
-        EVENT_BUS_SOURCE: props.eventBusSourceName,
-        IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
-        PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
-        DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
+        COMMONFATE_FRONTEND_URL: props.frontendUrl,
+        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+        COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
+        COMMONFATE_ADMIN_GROUP: props.adminGroupId,
+        COMMONFATE_MOCK_ACCESS_HANDLER: "false",
+        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
+        COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
+        // COMMONFATE_SENTRY_DSN: can be added here
+        COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
+        COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+        COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
+        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
+        COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
+        CF_ANALYTICS_DISABLED: props.analyticsDisabled,
+        CF_ANALYTICS_URL: props.analyticsUrl,
+        CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
+        CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
-      handler: "approvals",
+      handler: "commonfate",
     });
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
@@ -148,7 +165,7 @@ export class AppBackend extends Construct {
       })
     );
 
-    // allow the Approvals API to write SSM parameters as part of the guided setup workflow.
+    // allow the Common Fate API to write SSM parameters as part of the guided setup workflow.
     this._lambda.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ssm:PutParameter"],
@@ -157,6 +174,19 @@ export class AppBackend extends Construct {
             Stack.of(this).account
           }:parameter/granted/providers/*`,
         ],
+      })
+    );
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role":
+              "aws-sso-identity-provider",
+          },
+        },
       })
     );
 
@@ -236,7 +266,7 @@ export class AppBackend extends Construct {
 
     this._dynamoTable.grantReadWriteData(this._lambda);
 
-    // Grant the approvals app access to invoke the access handler api
+    // Grant the Common Fate app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
         resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
@@ -244,7 +274,7 @@ export class AppBackend extends Construct {
       })
     );
     props.eventBus.grantPutEventsTo(this._lambda);
-
+    props.apiGatewayWafAclArn && this.wafAssociation(props.apiGatewayWafAclArn);
     this._eventHandler = new EventHandler(this, "EventHandler", {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
@@ -257,6 +287,8 @@ export class AppBackend extends Construct {
       frontendUrl: props.frontendUrl,
       userPool: props.userPool,
       notificationsConfig: props.notificationsConfiguration,
+      remoteConfigUrl: props.remoteConfigUrl,
+      remoteConfigHeaders: props.remoteConfigHeaders,
     });
 
     this._idpSync = new IdpSync(this, "IdpSync", {
@@ -264,10 +296,48 @@ export class AppBackend extends Construct {
       userPool: props.userPool,
       identityProviderSyncConfiguration:
         props.identityProviderSyncConfiguration,
+      analyticsLogLevel: props.analyticsLogLevel,
+      analyticsDeploymentStage: props.analyticsDeploymentStage,
+      analyticsDisabled: props.analyticsDisabled,
+      analyticsUrl: props.analyticsUrl,
+    });
+    this._cacheSync = new CacheSync(this, "CacheSync", {
+      dynamoTable: this._dynamoTable,
+      accessHandler: props.accessHandler,
     });
   }
 
-  getApprovalsApiURL(): string {
+  /**
+   * if an arn is provided, a waf association will be created as part of the stack deployment for the root api
+   * @param apiGatewayWafAclArn
+   */
+  private wafAssociation(apiGatewayWafAclArn: string) {
+    if (apiGatewayWafAclArn != "") {
+      const createApiGatewayWafAssociation = new CfnCondition(
+        this,
+        "CreateApiGatewayWafAssociationCondition",
+        {
+          expression: cdk.Fn.conditionNot(
+            cdk.Fn.conditionEquals(apiGatewayWafAclArn, "")
+          ),
+        }
+      );
+
+      const apiGatewayWafAclAssociation = new CfnWebACLAssociation(
+        this,
+        "APIGatewayWebACLAssociation",
+        {
+          resourceArn: `arn:aws:apigateway:${
+            Stack.of(this).region
+          }::/restapis/${this._apigateway.restApiId}/stages/prod`,
+          webAclArn: apiGatewayWafAclArn,
+        }
+      );
+      apiGatewayWafAclAssociation.cfnOptions.condition = createApiGatewayWafAssociation;
+    }
+  }
+
+  getRestApiURL(): string {
     return this._apigateway.url;
   }
 
@@ -300,8 +370,14 @@ export class AppBackend extends Construct {
   getIdpSync(): IdpSync {
     return this._idpSync;
   }
+  getCacheSync(): CacheSync {
+    return this._cacheSync;
+  }
 
   getKmsKeyArn(): string {
     return this._KMSkey.keyArn;
+  }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
   }
 }

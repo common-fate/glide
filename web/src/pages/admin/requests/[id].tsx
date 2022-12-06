@@ -1,12 +1,12 @@
 import { ArrowBackIcon } from "@chakra-ui/icons";
 import { Center, Container, IconButton, Stack, Text } from "@chakra-ui/react";
+import { Helmet } from "react-helmet";
 import { Link, useMatch } from "react-location";
 import { AuditLog } from "../../../components/AuditLog";
 import { AdminLayout } from "../../../components/Layout";
 import {
   RequestDetails,
   RequestDisplay,
-  RequestOverridableTime,
   RequestRequestor,
   RequestReview,
   RequestRevoke,
@@ -19,9 +19,14 @@ const Home = () => {
     params: { id: requestId },
   } = useMatch();
 
-  const { data, mutate } = useAdminGetRequest(requestId);
+  const { data, mutate, isValidating } = useAdminGetRequest(requestId, {
+    swr: { refreshInterval: 10000 },
+  });
   return (
     <div>
+      <Helmet>
+        <title>Access Request</title>
+      </Helmet>
       <AdminLayout>
         {/* The header bar */}
         <Center borderBottom="1px solid" borderColor="neutrals.200" h="80px">
@@ -43,9 +48,9 @@ const Home = () => {
         {/* Main content */}
         <Container maxW="container.xl" py={16}>
           <Stack spacing={12} direction={{ base: "column", md: "row" }}>
-            <RequestDisplay request={data}>
+            <RequestDisplay request={data} isValidating={isValidating}>
               <RequestDetails>
-                {data?.canReview ? <RequestOverridableTime /> : <RequestTime />}
+                <RequestTime canReview={data?.canReview} />
                 <RequestRequestor />
               </RequestDetails>
               <RequestReview

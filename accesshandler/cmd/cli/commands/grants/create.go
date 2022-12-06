@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/iso8601"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"

@@ -3,15 +3,16 @@ package rulesvc
 import (
 	"context"
 
+	"github.com/common-fate/analytics-go"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-func (s *Service) ArchiveAccessRule(ctx context.Context, in rule.AccessRule) (*rule.AccessRule, error) {
+func (s *Service) ArchiveAccessRule(ctx context.Context, userId string, in rule.AccessRule) (*rule.AccessRule, error) {
 	if in.Status == rule.ARCHIVED {
 		return nil, ErrAccessRuleAlreadyArchived
 	}
@@ -65,5 +66,12 @@ func (s *Service) ArchiveAccessRule(ctx context.Context, in rule.AccessRule) (*r
 	if err != nil {
 		return nil, err
 	}
+
+	// analytics event
+	analytics.FromContext(ctx).Track(&analytics.RuleArchived{
+		ArchivedBy: userId,
+		RuleID:     in.ID,
+	})
+
 	return &newVersion, nil
 }

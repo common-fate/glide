@@ -8,16 +8,18 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
 	cfTypes "github.com/aws/aws-sdk-go-v2/service/cloudfront/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/magefile/mage/sh"
 	"github.com/segmentio/ksuid"
+	"github.com/sethvargo/go-retry"
 	"go.uber.org/zap"
 )
 
@@ -232,23 +234,32 @@ func DeployProductionFrontend(ctx context.Context, cfg config.FrontendDeployerCo
 
 	// Invalidate the distribution cache so the new files are used
 	cfClient := cloudfront.NewFromConfig(defaultAwsConfig)
-
-	// See the aws docs for caller reference, it just needs to be unique for every invalidation request
-	callerReference := ksuid.New().String()
-	res, err := cfClient.CreateInvalidation(ctx, &cloudfront.CreateInvalidationInput{
-
-		DistributionId: &cfg.CloudFrontDistributionID,
-		InvalidationBatch: &cfTypes.InvalidationBatch{
-			CallerReference: &callerReference,
-			Paths: &cfTypes.Paths{
-				Quantity: aws.Int32(1),
-				Items:    []string{"/*"},
+	var attempt int
+	// https://github.com/aws/aws-cdk/issues/15891#issuecomment-966456154
+	// See this issue which states that the cloudfront API can fail randomly during peak times due to internal AWS API limits.
+	// so try invalidating for up to 5 minutes with a backoff to ensure it has the best chance of working
+	b := retry.WithMaxDuration(time.Minute*5, retry.NewFibonacci(time.Second))
+	err = retry.Do(ctx, b, func(ctx context.Context) (err error) {
+		attempt += 1
+		// See the aws docs for caller reference, it just needs to be unique for every invalidation request
+		callerReference := ksuid.New().String()
+		res, err := cfClient.CreateInvalidation(ctx, &cloudfront.CreateInvalidationInput{
+			DistributionId: &cfg.CloudFrontDistributionID,
+			InvalidationBatch: &cfTypes.InvalidationBatch{
+				CallerReference: &callerReference,
+				Paths: &cfTypes.Paths{
+					Quantity: aws.Int32(1),
+					Items:    []string{"/*"},
+				},
 			},
-		},
+		})
+		if err != nil {
+			zap.S().Errorw("failed to invalidate cloudfront distribution due to an AWS API error, retrying", "attempt", attempt, "error", err)
+			return retry.RetryableError(err)
+		}
+		zap.S().Infow("successfully invalidated cloudfront distribution", "attempt", attempt, "cloudfront.id", cfg.CloudFrontDistributionID, "invalidation.id", res.Invalidation.Id)
+		return nil
 	})
-
-	zap.S().Infow("invalidated cloudfront distribution", "cloudfront.id", cfg.CloudFrontDistributionID, "invalidation.id", res.Invalidation.Id)
-
 	return err
 }
 

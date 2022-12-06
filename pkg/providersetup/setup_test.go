@@ -3,9 +3,9 @@ package providersetup
 import (
 	"testing"
 
-	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

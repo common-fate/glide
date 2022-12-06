@@ -8,12 +8,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/common-fate/common-fate/pkg/api/mocks"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/api/mocks"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -51,6 +52,7 @@ func TestGetUsers(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListUsersForStatus{Result: tc.idpUsers}, tc.idpErr)
 
@@ -104,13 +106,15 @@ func TestGetUser(t *testing.T) {
 		{
 			name:     "user not found",
 			wantCode: http.StatusNotFound,
-			idpErr:   identity.UserNotFoundError{User: "123"},
-			wantBody: `{"error":"user 123 not found"}`,
+			idpErr:   ddb.ErrNoItems,
+
+			wantBody: `{"error":"item query returned no items"}`,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetUser{Result: tc.idpUser}, tc.idpErr)
 
@@ -179,6 +183,7 @@ func TestPostApiV1AdminUsers(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
 			a := API{AdminGroup: adminGroup}
 			if !tc.notEnabled {

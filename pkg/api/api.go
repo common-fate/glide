@@ -8,27 +8,29 @@ import (
 
 	"github.com/benbjohnson/clock"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/psetup"
-	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
-	"github.com/common-fate/granted-approvals/pkg/providersetup"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
-	"github.com/common-fate/granted-approvals/pkg/service/cachesvc"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
-	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
-	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
-	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/providersetup"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/accesssvc"
+	"github.com/common-fate/common-fate/pkg/service/cachesvc"
+	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
+	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/types"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
@@ -65,13 +67,13 @@ type API struct {
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito CognitoService
+	Cognito          CognitoService
+	InternalIdentity InternalIdentityService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
 type CognitoService interface {
 	CreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
-	CreateGroup(ctx context.Context, in cognitosvc.CreateGroupOpts) (*identity.Group, error)
 	UpdateUserGroups(ctx context.Context, in cognitosvc.UpdateUserGroupsOpts) (*identity.User, error)
 }
 
@@ -87,24 +89,37 @@ type ProviderSetupService interface {
 
 // RequestServices can create Access Requests.
 type AccessService interface {
-	CreateRequest(ctx context.Context, user *identity.User, in types.CreateRequestRequest) (*accesssvc.CreateRequestResult, error)
+	CreateRequests(ctx context.Context, in accesssvc.CreateRequestsOpts) ([]accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
+	CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
+	UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_accessrule_service.go -package=mocks . AccessRuleService
 
 // AccessRuleService can create and get rules
 type AccessRuleService interface {
-	ArchiveAccessRule(ctx context.Context, in rule.AccessRule) (*rule.AccessRule, error)
+	ArchiveAccessRule(ctx context.Context, userID string, in rule.AccessRule) (*rule.AccessRule, error)
 	CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
-	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.AccessRule, error)
+	LookupRule(ctx context.Context, opts rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error)
+	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.GetAccessRuleResponse, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
+	RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
 
 type CacheService interface {
-	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
-	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, error)
+	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_internalidentity_service.go -package=mocks . InternalIdentityService
+
+type InternalIdentityService interface {
+	UpdateGroup(ctx context.Context, group identity.Group, in types.CreateGroupRequest) (*identity.Group, error)
+	CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error)
+	UpdateUserGroups(ctx context.Context, user identity.User, groups []string) (*identity.User, error)
+	DeleteGroup(ctx context.Context, group identity.Group) error
 }
 
 // API must meet the generated REST API interface.
@@ -157,24 +172,46 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
+		InternalIdentity: &internalidentitysvc.Service{
+			DB:    db,
+			Clock: clk,
+		},
 		Access: &accesssvc.Service{
 			Clock:       clk,
 			DB:          db,
 			Granter:     granter,
 			EventPutter: opts.EventSender,
 			Cache: &cachesvc.Service{
-				DB:                  db,
-				AccessHandlerClient: opts.AccessHandlerClient,
+				ProviderConfigReader: opts.DeploymentConfig,
+				DB:                   db,
+				AccessHandlerClient:  opts.AccessHandlerClient,
 			},
+			Rules: &rulesvc.Service{
+				Clock:    clk,
+				DB:       db,
+				AHClient: opts.AccessHandlerClient,
+				Cache: &cachesvc.Service{
+					ProviderConfigReader: opts.DeploymentConfig,
+					DB:                   db,
+					AccessHandlerClient:  opts.AccessHandlerClient,
+				},
+			},
+			AHClient: opts.AccessHandlerClient,
 		},
 		Cache: &cachesvc.Service{
-			DB:                  db,
-			AccessHandlerClient: opts.AccessHandlerClient,
+			ProviderConfigReader: opts.DeploymentConfig,
+			DB:                   db,
+			AccessHandlerClient:  opts.AccessHandlerClient,
 		},
 		Rules: &rulesvc.Service{
 			Clock:    clk,
 			DB:       db,
 			AHClient: opts.AccessHandlerClient,
+			Cache: &cachesvc.Service{
+				ProviderConfigReader: opts.DeploymentConfig,
+				DB:                   db,
+				AccessHandlerClient:  opts.AccessHandlerClient,
+			},
 		},
 		ProviderSetup: &psetupsvc.Service{
 			DB:               db,

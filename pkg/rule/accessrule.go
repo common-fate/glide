@@ -3,13 +3,14 @@ package rule
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// AccessRule is a rule governing access to something in Granted.
+// AccessRule is a rule governing access to something in Common Fate.
 //
 // Access Rules have versions.
 // When updating an access rule, you need to update the current version with Current = false
@@ -34,26 +35,29 @@ type AccessRule struct {
 	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 }
 
+// Inherit rule and include `canRequest` field
+// which is used to determine if the approval can request the rule or not.
+type GetAccessRuleResponse struct {
+	Rule       *AccessRule
+	CanRequest bool
+}
+
+// ised for admin apis, this contains the access rule target in a format for updating the access rule provider target
 func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 	status := types.AccessRuleStatusACTIVE
 	if a.Status == ARCHIVED {
 		status = types.AccessRuleStatusARCHIVED
 	}
-
-	// There is an annoying property of json marshalling which gives a nil slice a null value rather than an empty array
-	// https://medium.com/swlh/arrays-and-json-in-go-98540f2fa74e
-	approval := types.ApproverConfig{}
+	approval := types.ApproverConfig{
+		Groups: []string{},
+		Users:  []string{},
+	}
 	if a.Approval.Groups != nil {
 		approval.Groups = a.Approval.Groups
-	} else {
-		approval.Groups = make([]string, 0)
 	}
 	if a.Approval.Users != nil {
 		approval.Users = a.Approval.Users
-	} else {
-		approval.Users = make([]string, 0)
 	}
-
 	return types.AccessRuleDetail{
 		ID:          a.ID,
 		Description: a.Description,
@@ -71,13 +75,15 @@ func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 		},
 		Approval: approval,
 
-		Target: a.Target.ToAPI(),
+		Target: a.Target.ToAPIDetail(),
 
 		Status:    status,
 		Version:   a.Version,
 		IsCurrent: a.Current,
 	}
 }
+
+// served basic detail of the access rule
 func (a AccessRule) ToAPI() types.AccessRule {
 
 	return types.AccessRule{
@@ -88,22 +94,28 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
 		},
+
 		Target:    a.Target.ToAPI(),
 		IsCurrent: a.Current,
 	}
 }
 
-func (a AccessRule) ToAPIWithSelectables(argOptions []cache.ProviderOption) types.AccessRuleWithSelectables {
-	return types.AccessRuleWithSelectables{
-		ID:          a.ID,
+// This is used to serve a user making a request, it contains all the available arguments and options with title, description and labels
+func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.RequestArgument, canRequest bool) types.RequestAccessRule {
+	return types.RequestAccessRule{
 		Version:     a.Version,
 		Description: a.Description,
 		Name:        a.Name,
-		TimeConstraints: types.TimeConstraints{
-			MaxDurationSeconds: a.TimeConstraints.MaxDurationSeconds,
+		IsCurrent:   a.Current,
+		ID:          a.ID,
+		Target: types.RequestAccessRuleTarget{
+			Provider: a.Target.ProviderToAPI(),
+			Arguments: types.RequestAccessRuleTarget_Arguments{
+				AdditionalProperties: requestArguments,
+			},
 		},
-		Target:    a.Target.ToAPIDetail(argOptions),
-		IsCurrent: a.Current,
+		TimeConstraints: a.TimeConstraints,
+		CanRequest:      canRequest,
 	}
 }
 
@@ -136,67 +148,122 @@ func (a *Approval) IsRequired() bool {
 // I expect this will be different to what gets returned in the api response
 type Target struct {
 	// References the provider's unique ID
-	ProviderID     string              `json:"providerId"  dynamodbav:"providerId"`
-	ProviderType   string              `json:"providerType"  dynamodbav:"providerType"`
-	With           map[string]string   `json:"with"  dynamodbav:"with"`
+	ProviderID   string            `json:"providerId"  dynamodbav:"providerId"`
+	ProviderType string            `json:"providerType"  dynamodbav:"providerType"`
+	With         map[string]string `json:"with"  dynamodbav:"with"`
+	// when target can have multiple values
 	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
+	// when target doesn't have values but instead belongs to a group
+	// which can be dynamically fetched at access request time.
+	WithArgumentGroupOptions map[string]map[string][]string `json:"withArgumentGroupOptions"  dynamodbav:"withArgumentGroupOptions"`
 }
 
-func (t Target) ToAPI() types.AccessRuleTarget {
-	return types.AccessRuleTarget{
-		Provider: types.Provider{
-			Id:   t.ProviderID,
-			Type: t.ProviderType,
-		},
-		With: types.AccessRuleTarget_With{
-			AdditionalProperties: t.With,
-		},
-		WithSelectable: types.AccessRuleTarget_WithSelectable{
-			AdditionalProperties: t.WithSelectable,
-		},
+// UsesSelectableOptions is true if the rule allows users to select an option
+// when making a request.
+func (t Target) UsesSelectableOptions() bool {
+	return t.WithSelectable != nil && len(t.WithSelectable) > 0
+}
+
+// UsesDynamicOptions is true if the rule uses dynamic options that are automatically
+// updated, such as AWS Organizational Units.
+func (t Target) UsesDynamicOptions() bool {
+	return t.WithArgumentGroupOptions != nil && len(t.WithArgumentGroupOptions) > 0
+}
+
+func (t Target) ProviderToAPI() types.Provider {
+	return types.Provider{
+		Id:   t.ProviderID,
+		Type: t.ProviderType,
 	}
 }
 
-func (t Target) ToAPIDetail(argOptions []cache.ProviderOption) types.AccessRuleTargetDetail {
+// converts to basic api type
+func (t Target) ToAPI() types.AccessRuleTarget {
+	return types.AccessRuleTarget{
+		Provider: t.ProviderToAPI(),
+	}
+}
+
+func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	at := types.AccessRuleTargetDetail{
 		Provider: types.Provider{
 			Id:   t.ProviderID,
 			Type: t.ProviderType,
 		},
 		With: types.AccessRuleTargetDetail_With{
-			AdditionalProperties: t.With,
-		},
-		WithSelectable: types.AccessRuleTargetDetail_WithSelectable{
-			AdditionalProperties: make(map[string][]types.Selectable),
+			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
 		},
 	}
-	for k, v := range t.WithSelectable {
-		opts := make([]types.Selectable, len(v))
-		for i, opt := range v {
-			// initially set it to false
-			opts[i] = types.Selectable{
-				Option: types.WithOption{
-					Label: opt,
-					Value: opt,
-				},
-				Valid: false,
-			}
-			for _, ao := range argOptions {
-				// if a value is found, set it to true with a label
-				if ao.Arg == k && ao.Value == opt {
-					opts[i] = types.Selectable{
-						Option: types.WithOption{
-							Label: ao.Label,
-							Value: opt,
-						},
-						Valid: true,
-					}
-					break
+	// Lookup the provider, ignore errors
+	// if provider is not found, fallback to using the argument key as the title
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
+
+	for k, v := range t.With {
+		argument := at.With.AdditionalProperties[k]
+		argument.Values = append(argument.Values, v)
+
+		// FormElement is used here when loading the UpdateAccessRule form for the first time
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				schema := s.ArgSchema()
+				if arg, ok := schema[k]; ok {
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
+				} else {
+					// I don't expect this should ever fail to find a match, however if it does, default to input.
+					argument.FormElement = types.INPUT
 				}
 			}
 		}
-		at.WithSelectable.AdditionalProperties[k] = opts
+		at.With.AdditionalProperties[k] = argument
 	}
+	for k, v := range t.WithSelectable {
+		argument := at.With.AdditionalProperties[k]
+		argument.Values = append(argument.Values, v...)
+		// FormElement is used here when loading the UpdateAccessRule form for the first time
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				schema := s.ArgSchema()
+				if arg, ok := schema[k]; ok {
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
+				} else {
+					// I don't expect this should ever fail to find a match, however if it does, default to input.
+					argument.FormElement = types.INPUT
+				}
+			}
+		}
+		at.With.AdditionalProperties[k] = argument
+	}
+	for k, v := range t.WithArgumentGroupOptions {
+		argument := at.With.AdditionalProperties[k]
+		argument.Groupings.AdditionalProperties = make(map[string][]string)
+		for k2, v2 := range v {
+			group := argument.Groupings.AdditionalProperties[k2]
+			group = append(group, v2...)
+			argument.Groupings.AdditionalProperties[k2] = group
+		}
+		// FormElement is used here when loading the UpdateAccessRule form for the first time
+		if provider != nil {
+			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+				schema := s.ArgSchema()
+				if arg, ok := schema[k]; ok {
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
+				} else {
+					// I don't expect this should ever fail to find a match, however if it does, default to input.
+					argument.FormElement = types.INPUT
+				}
+			}
+		}
+		at.With.AdditionalProperties[k] = argument
+	}
+
+	// It is essential that all slices be initialised for the apitypes otherwise it will be serialised as null instead of empty
+	for k, v := range at.With.AdditionalProperties {
+		if v.Values == nil {
+			v.Values = make([]string, 0)
+		}
+		at.With.AdditionalProperties[k] = v
+	}
+
 	return at
 }
 

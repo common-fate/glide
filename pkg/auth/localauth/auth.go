@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/common-fate/granted-approvals/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/mitchellh/mapstructure"

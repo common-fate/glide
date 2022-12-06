@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
-  title: Approvals
+  title: Common Fate
   version: "1.0"
   contact:
     name: Common Fate
     url: "https://commonfate.io"
-  description: Granted Approvals API
+  description: Common Fate API
 servers:
   - url: "http://localhost:8080"
 paths:
@@ -30,7 +30,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessRuleWithSelectables"
+                $ref: "#/components/schemas/RequestAccessRule"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "404":
@@ -108,8 +108,8 @@ paths:
       summary: Create a request
       operationId: user-create-request
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
       description: |-
         Make a request to access something.
 
@@ -174,7 +174,7 @@ paths:
         Returns a HTTP401 response if the user is not the requestor or a reviewer.
 
 
-        Use /api/v1/admin/requests/{requestId} as an administrator to view information for requests not made by the current user (note: requires that the user is a Granted administrator).
+        Use /api/v1/admin/requests/{requestId} as an administrator to view information for requests not made by the current user (note: requires that the user is a Common Fate administrator).
       tags:
         - End User
       parameters: []
@@ -303,11 +303,7 @@ paths:
         - End User
       responses:
         "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccessToken"
+          $ref: "#/components/responses/AccessTokenResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -329,7 +325,7 @@ paths:
       tags:
         - End User
       operationId: get-user
-      description: Returns a Granted user.
+      description: Returns a Common Fate user.
       responses:
         "200":
           description: OK
@@ -440,7 +436,7 @@ paths:
         "500":
           description: Internal Server Error
       requestBody:
-        $ref: "#/components/requestBodies/UpdateAccessRuleRequest"
+        $ref: "#/components/requestBodies/CreateAccessRuleRequest"
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Admin
@@ -519,6 +515,17 @@ paths:
         name: version
         in: path
         required: true
+  /api/v1/admin/deployment/version:
+    get:
+      summary: Get deployment version details
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentVersionResponse"
+      operationId: admin-get-deployment-version
+      description: Returns the version information
+    parameters: []
   /api/v1/admin/requests:
     get:
       summary: Your GET endpoint
@@ -650,8 +657,8 @@ paths:
       summary: List groups
       tags:
         - Admin
-      operationId: get-groups
-      description: Gets all groups
+      operationId: list-groups
+      description: Lists all active groups
       responses:
         "200":
           $ref: "#/components/responses/ListGroupsResponse"
@@ -661,6 +668,13 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
+        - schema:
+            type: string
+            enum:
+              - INTERNAL
+              - EXTERNAL
+          in: query
+          name: source
     parameters: []
     post:
       summary: Create Group
@@ -703,6 +717,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Group"
+    put:
+      summary: Update Group
+      operationId: admin-update-group
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/CreateGroupRequest"
+      description: Update a group
+      tags:
+        - Admin
+    delete:
+      summary: Delete Group
+      operationId: admin-delete-group
+      responses:
+        "200":
+          description: OK
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Delete an internal group
   /api/v1/admin/providers:
     get:
       summary: List providers
@@ -765,14 +809,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties: {}
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgSchema
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: get-provider-args
-      description: gets the jsonschema describing the args for this provider
+      description: gets the argSchema describing the args for this provider
   "/api/v1/admin/providers/{providerId}/args/{argId}/options":
     parameters:
       - schema:
@@ -791,7 +834,7 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: "#/components/responses/ArgOptionsResponse"
+          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -962,6 +1005,110 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       operationId: identity-configuration
       description: Get information about the identity configuration
+  /api/v1/access-rules/lookup:
+    get:
+      summary: Lookup an access rule based on the target
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LookupAccessRule"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: access-rule-lookup
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - commonfate/aws-sso
+          in: query
+          name: type
+          description: the provider type i.e. commonfate/aws-sso. type should be encoded i.e.  backslash -> %2
+        - schema:
+            type: string
+          in: query
+          name: permissionSetArn.label
+          description: "the permissionSetArn label, typically resembles a role name i.e. AdminstratorAccess"
+        - schema:
+            type: string
+          in: query
+          name: accountId
+          description: the aws account id
+      description: endpoint returns an array of relevant access rules (used in combination with granted cli)
+  /api/v1/favorites:
+    get:
+      summary: ListFavorites
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListFavoritesResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-favorites
+    post:
+      summary: Create Favorite
+      operationId: user-create-favorite
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteDetail"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/CreateFavoriteRequest"
+      description: ""
+    parameters: []
+  "/api/v1/favorites/{id}":
+    get:
+      summary: Get Favorite
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteDetail"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-get-favorite
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    delete:
+      summary: ""
+      operationId: delete-favorite
+      responses:
+        "200":
+          description: OK
+    put:
+      summary: ""
+      operationId: update-favorite
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteDetail"
+      description: ""
+      requestBody:
+        $ref: "#/components/requestBodies/CreateFavoriteRequest"
 components:
   schemas:
     User:
@@ -975,7 +1122,7 @@ components:
           picture: "https://avatars.githubusercontent.com/u/17420369?v=4"
         Chris:
           id: string
-          email: chris@exponentlabs.io
+          email: chris@commonfate.io
           name: Chris Norman
           picture: "https://avatars.githubusercontent.com/u/14214200?v=4"
       properties:
@@ -1011,7 +1158,7 @@ components:
     Request:
       title: Request
       type: object
-      description: A request to access something made by an end user in Granted.
+      description: A request to access something made by an end user in Common Fate.
       properties:
         id:
           type: string
@@ -1028,8 +1175,10 @@ components:
           type: string
           x-go-type: time.Time
           format: time
-        accessRule:
-          $ref: "#/components/schemas/RequestAccessRule"
+        accessRuleId:
+          type: string
+        accessRuleVersion:
+          type: string
         updatedAt:
           type: string
           x-go-type: time.Time
@@ -1038,23 +1187,19 @@ components:
           $ref: "#/components/schemas/Grant"
         approvalMethod:
           $ref: "#/components/schemas/ApprovalMethod"
-        selectedWith:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/WithOption"
       required:
         - id
         - requestor
         - status
         - timing
         - requestedAt
-        - accessRule
+        - accessRuleId
+        - accessRuleVersion
         - updatedAt
-        - selectedWith
     RequestDetail:
       title: Request
       type: object
-      description: A request to access something made by an end user in Granted.
+      description: A request to access something made by an end user in Common Fate.
       properties:
         id:
           type: string
@@ -1084,10 +1229,10 @@ components:
           description: true if the requesting user is a reviewer of this request.
         approvalMethod:
           $ref: "#/components/schemas/ApprovalMethod"
-        selectedWith:
+        arguments:
           type: object
           additionalProperties:
-            $ref: "#/components/schemas/WithOption"
+            $ref: "#/components/schemas/With"
       required:
         - id
         - requestor
@@ -1097,6 +1242,7 @@ components:
         - accessRule
         - updatedAt
         - canReview
+        - arguments
     RequestStatus:
       type: string
       description: |
@@ -1107,17 +1253,6 @@ components:
         - CANCELLED
         - DECLINED
       title: RequestStatus
-    RequestAccessRule:
-      title: RequestAccessRule
-      type: object
-      properties:
-        id:
-          type: string
-        version:
-          type: string
-      required:
-        - id
-        - version
     AccessRule:
       title: AccessRule
       type: object
@@ -1140,40 +1275,6 @@ components:
           example: Admin access to Okta
         target:
           $ref: "#/components/schemas/AccessRuleTarget"
-        timeConstraints:
-          $ref: "#/components/schemas/TimeConstraints"
-        isCurrent:
-          type: boolean
-      required:
-        - id
-        - version
-        - name
-        - description
-        - target
-        - timeConstraints
-        - isCurrent
-    AccessRuleWithSelectables:
-      title: AccessRuleWithSelectables
-      type: object
-      description: Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
-      properties:
-        id:
-          type: string
-          x-go-name: ID
-          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
-        version:
-          type: string
-          description: |
-            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
-            When a rule is updated, it's ID remains consistent.
-        name:
-          type: string
-          example: Okta admin
-        description:
-          type: string
-          example: Admin access to Okta
-        target:
-          $ref: "#/components/schemas/AccessRuleTargetDetail"
         timeConstraints:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
@@ -1218,7 +1319,7 @@ components:
         metadata:
           $ref: "#/components/schemas/AccessRuleMetadata"
         target:
-          $ref: "#/components/schemas/AccessRuleTarget"
+          $ref: "#/components/schemas/AccessRuleTargetDetail"
         timeConstraints:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
@@ -1235,6 +1336,94 @@ components:
         - target
         - timeConstraints
         - isCurrent
+    RequestAccessRule:
+      title: RequestAccessRule
+      type: object
+      description: Access Rule contains information for an end user to make a request for access.
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+          example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
+        version:
+          type: string
+          description: |
+            A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+            When a rule is updated, it's ID remains consistent.
+        name:
+          type: string
+          example: Okta admin
+        description:
+          type: string
+          example: Admin access to Okta
+        target:
+          $ref: "#/components/schemas/RequestAccessRuleTarget"
+        timeConstraints:
+          $ref: "#/components/schemas/TimeConstraints"
+        isCurrent:
+          type: boolean
+        canRequest:
+          type: boolean
+      required:
+        - id
+        - version
+        - name
+        - description
+        - target
+        - timeConstraints
+        - isCurrent
+        - canRequest
+    AccessRuleTarget:
+      title: AccessRuleTarget
+      type: object
+      description: A target for an access rule
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+      required:
+        - provider
+    AccessRuleTargetDetail:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A detailed target for an access rule
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        with:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
+      required:
+        - provider
+        - with
+    CreateAccessRuleTarget:
+      title: CreateAccessRuleTarget
+      type: object
+      description: a request body for creating a Access Rule Target
+      properties:
+        providerId:
+          type: string
+        with:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/CreateAccessRuleTargetDetailArguments"
+      required:
+        - providerId
+        - with
+    RequestAccessRuleTarget:
+      title: AccessRuleTargetDetail
+      type: object
+      description: A detailed target for an access rule request
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        arguments:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/RequestArgument"
+      required:
+        - provider
+        - arguments
     AccessRuleStatus:
       type: string
       description: The status of an Access Rule.
@@ -1264,65 +1453,6 @@ components:
         - createdBy
         - updatedAt
         - updatedBy
-    CreateAccessRuleTarget:
-      title: AccessRuleTarget
-      type: object
-      description: A target for an access rule
-      properties:
-        providerId:
-          type: string
-        with:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-          description: "The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule."
-      required:
-        - providerId
-        - with
-    AccessRuleTarget:
-      title: AccessRuleTarget
-      type: object
-      description: A target for an access rule
-      properties:
-        provider:
-          $ref: "#/components/schemas/Provider"
-        with:
-          type: object
-          additionalProperties:
-            type: string
-        withSelectable:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-      required:
-        - provider
-        - with
-        - withSelectable
-    AccessRuleTargetDetail:
-      title: AccessRuleTargetDetail
-      type: object
-      description: A target for an access rule
-      properties:
-        provider:
-          $ref: "#/components/schemas/Provider"
-        with:
-          type: object
-          additionalProperties:
-            type: string
-        withSelectable:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              $ref: "#/components/schemas/Selectable"
-      required:
-        - provider
-        - with
-        - withSelectable
     ApproverConfig:
       title: ApproverConfig
       type: object
@@ -1350,6 +1480,7 @@ components:
           description: The maximum duration in seconds the access is allowed for.
           minimum: 60
           exclusiveMinimum: false
+          maximum: 15724800
       required:
         - maxDurationSeconds
     Provider:
@@ -1364,6 +1495,7 @@ components:
           id: string
           name: string
           type: okta
+      description: "Provider "
       properties:
         id:
           type: string
@@ -1372,7 +1504,6 @@ components:
       required:
         - id
         - type
-      description: "Provider "
     Group:
       title: Group
       type: object
@@ -1386,16 +1517,24 @@ components:
           type: string
         memberCount:
           type: integer
+        members:
+          type: array
+          items:
+            type: string
+        source:
+          type: string
       required:
         - name
         - description
         - id
         - memberCount
+        - members
+        - source
     IdpStatus:
+      type: string
       title: IdpStatus
       x-stoplight:
         id: a3fdr17gch04a
-      type: string
       enum:
         - ARCHIVED
         - ACTIVE
@@ -1448,30 +1587,6 @@ components:
         - provider
         - start
         - end
-    RequestTiming:
-      title: RequestTiming
-      x-stoplight:
-        id: 4ooyqlf8xba5b
-      type: object
-      properties:
-        durationSeconds:
-          type: integer
-        startTime:
-          type: string
-          description: iso8601 timestamp in UTC timezone
-          x-go-type: time.Time
-          format: time
-      required:
-        - durationSeconds
-    ApprovalMethod:
-      type: string
-      description: "Describes whether a request has been approved automatically or from a review "
-      title: ApprovalMethod
-      x-stoplight:
-        id: 689mlt8aqxnx4
-      enum:
-        - AUTOMATIC
-        - REVIEWED
     RequestEvent:
       title: RequestEvent
       x-stoplight:
@@ -1528,11 +1643,75 @@ components:
         - id
         - requestId
         - createdAt
-    AccessToken:
-      title: AccessToken
+    RequestTiming:
+      title: RequestTiming
       x-stoplight:
-        id: yxma8dkhj406q
+        id: 4ooyqlf8xba5b
+      type: object
+      properties:
+        durationSeconds:
+          type: integer
+        startTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+      required:
+        - durationSeconds
+    ApprovalMethod:
       type: string
+      description: "Describes whether a request has been approved automatically or from a review "
+      title: ApprovalMethod
+      x-stoplight:
+        id: 689mlt8aqxnx4
+      enum:
+        - AUTOMATIC
+        - REVIEWED
+    RequestArgument:
+      title: RequestArgument
+      x-stoplight:
+        id: 1sgrgc47iwg61
+      type: object
+      properties:
+        title:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/WithOption"
+        description:
+          type: string
+        requiresSelection:
+          type: boolean
+          description: This will be true if a selection is require when creating a request
+        formElement:
+          type: string
+          enum:
+            - SELECT
+      required:
+        - title
+        - options
+        - requiresSelection
+    With:
+      title: With
+      x-stoplight:
+        id: 1sgrgc47iwg61
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+        optionDescription:
+          type: string
+        fieldDescription:
+          type: string
+      required:
+        - title
+        - label
+        - value
     WithOption:
       title: WithOption
       x-stoplight:
@@ -1543,21 +1722,13 @@ components:
           type: string
         label:
           type: string
+        valid:
+          type: boolean
+        description:
+          type: string
       required:
         - value
         - label
-    Selectable:
-      title: Selectable
-      x-stoplight:
-        id: ab18xdxwinqhb
-      type: object
-      properties:
-        option:
-          $ref: "#/components/schemas/WithOption"
-        valid:
-          type: boolean
-      required:
-        - option
         - valid
     CreateRequestWith:
       title: CreateRequestWith
@@ -1565,17 +1736,26 @@ components:
         id: 8oa3c4w7ml7tx
       type: object
       additionalProperties:
-        type: string
+        type: array
+        items:
+          type: string
+    CreateRequestWithSubRequest:
+      title: CreateRequestWithSubRequest
+      x-stoplight:
+        id: 8oa3c4w7ml7tx
+      type: array
+      items:
+        $ref: "#/components/schemas/CreateRequestWith"
     ProviderSetup:
       title: ProviderSetup
       x-stoplight:
         id: 1nm3rev9qez9b
       type: object
-      description: A provider in the process of being set up through the guided setup workflow in Granted. These providers are **not** yet active.
+      description: A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
       properties:
         id:
           type: string
-          description: A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `granted-deployment.yml` file.
+          description: A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file.
         type:
           type: string
           description: The type of the Access Provider being set up.
@@ -1747,6 +1927,118 @@ components:
       required:
         - level
         - msg
+    LookupAccessRule:
+      title: LookupAccessRule
+      x-stoplight:
+        id: phxrq09t2fv2z
+      type: object
+      description: A matched access rule with option values if they are required for the access rule request
+      properties:
+        accessRule:
+          $ref: "#/components/schemas/AccessRule"
+        selectableWithOptionValues:
+          type: array
+          description: "If the matched access rule has selectable fields, this array will contain the matched values to be used to prefill the form when requesting"
+          items:
+            $ref: "#/components/schemas/KeyValue"
+      required:
+        - accessRule
+    KeyValue:
+      title: KeyValue
+      x-stoplight:
+        id: 35jvelu9x12l2
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      required:
+        - key
+        - value
+    AccessRuleTargetDetailArguments:
+      title: AccessRuleTargetDetailArguments
+      x-stoplight:
+        id: e4h3bs3hxeqyx
+      type: object
+      description: ""
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+        groupings:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        formElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+      required:
+        - values
+        - groupings
+        - formElement
+    CreateAccessRuleTargetDetailArguments:
+      title: CreateAccessRuleTargetDetailArguments
+      x-stoplight:
+        id: e4h3bs3hxeqyx
+      type: object
+      description: ""
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+        groupings:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+        - values
+        - groupings
+    Favorite:
+      title: Favorite
+      x-stoplight:
+        id: wyyga2547rs1n
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ruleId:
+          type: string
+      required:
+        - id
+        - name
+        - ruleId
+    FavoriteDetail:
+      title: FavoriteDetail
+      x-stoplight:
+        id: wyyga2547rs1n
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        with:
+          $ref: "#/components/schemas/CreateRequestWithSubRequest"
+        reason:
+          type: string
+        timing:
+          $ref: "#/components/schemas/RequestTiming"
+      required:
+        - id
+        - name
+        - with
+        - timing
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -1882,29 +2174,11 @@ components:
               user:
                 $ref: "#/components/schemas/User"
               isAdmin:
-                description: Whether the user is an administrator of Granted.
+                description: Whether the user is an administrator of Common Fate.
                 type: boolean
             required:
               - user
               - isAdmin
-    ArgOptionsResponse:
-      description: Options for an Grant argument.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              hasOptions:
-                type: boolean
-                description: Whether any options have been suggested for the argument.
-              options:
-                type: array
-                description: The suggested options.
-                items:
-                  $ref: ./accesshandler/openapi.yml#/components/schemas/Option
-            required:
-              - hasOptions
-              - options
     ListRequestEventsResponse:
       description: Example response
       content:
@@ -1929,7 +2203,7 @@ components:
           schema:
             $ref: "#/components/schemas/ProviderSetup"
     ListProviderSetupsResponse:
-      description: A list of in-progress Access Providers being set up by the Granted administrators.
+      description: A list of in-progress Access Providers being set up by the Common Fate administrators.
       content:
         application/json:
           schema:
@@ -1950,7 +2224,7 @@ components:
             properties:
               deploymentConfigUpdateRequired:
                 type: boolean
-                description: Whether a manual update is required to the Granted Approvals deployment configuration (`granted-deployment.yml`) to activate the provider.
+                description: Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
             required:
               - deploymentConfigUpdateRequired
     IdentityConfigurationResponse:
@@ -1967,37 +2241,51 @@ components:
             required:
               - identityProvider
               - administratorGroupId
-  examples: {}
-  securitySchemes: {}
-  requestBodies:
-    UpdateAccessRuleRequest:
+    DeploymentVersionResponse:
+      description: Deployment version information.
       content:
         application/json:
           schema:
-            description: ""
             type: object
             properties:
-              timeConstraints:
-                $ref: "#/components/schemas/TimeConstraints"
-              groups:
+              version:
+                type: string
+                description: 'The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.'
+            required:
+              - version
+    ListFavoritesResponse:
+      description: ""
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              next:
+                type: string
+                nullable: true
+              favorites:
                 type: array
                 items:
-                  type: string
-              approval:
-                $ref: "#/components/schemas/ApproverConfig"
-              name:
-                type: string
-              description:
-                type: string
-              updateMessage:
+                  $ref: "#/components/schemas/Favorite"
+            required:
+              - next
+              - favorites
+    AccessTokenResponse:
+      description: "If the request has an access token, hasToken will be true"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              hasToken:
+                type: boolean
+              token:
                 type: string
             required:
-              - timeConstraints
-              - groups
-              - approval
-              - name
-              - description
-          examples: {}
+              - hasToken
+  examples: {}
+  securitySchemes: {}
+  requestBodies:
     CreateAccessRuleRequest:
       content:
         application/json:
@@ -2015,9 +2303,15 @@ components:
               name:
                 type: string
                 example: Okta admin
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 1
+                maxLength: 400
               description:
                 type: string
                 example: Admin access to Okta
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]|^$'
+                minLength: 0
+                maxLength: 2048
               target:
                 $ref: "#/components/schemas/CreateAccessRuleTarget"
               timeConstraints:
@@ -2044,10 +2338,12 @@ components:
                 type: string
                 minLength: 1
                 maxLength: 2048
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
               lastName:
                 type: string
                 minLength: 1
                 maxLength: 2048
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
               isAdmin:
                 type: boolean
             required:
@@ -2064,12 +2360,17 @@ components:
             properties:
               accessRuleId:
                 type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 1
+                maxLength: 400
               reason:
                 type: string
+                minLength: 0
+                maxLength: 2048
               timing:
                 $ref: "#/components/schemas/RequestTiming"
               with:
-                $ref: "#/components/schemas/CreateRequestWith"
+                $ref: "#/components/schemas/CreateRequestWithSubRequest"
             required:
               - accessRuleId
               - timing
@@ -2083,6 +2384,8 @@ components:
                 $ref: "#/components/schemas/ReviewDecision"
               comment:
                 type: string
+                minLength: 0
+                maxLength: 2048
               overrideTiming:
                 $ref: "#/components/schemas/RequestTiming"
             required:
@@ -2118,6 +2421,9 @@ components:
               providerType:
                 type: string
                 description: The type of the provider to set up.
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 0
+                maxLength: 2048
             required:
               - providerType
       description: Begin the guided setup process for a new Access Provider.
@@ -2134,7 +2440,40 @@ components:
                 maxLength: 2048
               description:
                 type: string
+                minLength: 0
+                maxLength: 2048
+              members:
+                type: array
+                items:
+                  type: string
             required:
+              - name
+              - members
+    CreateFavoriteRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              accessRuleId:
+                type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
+                minLength: 1
+                maxLength: 400
+              reason:
+                type: string
+                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]|^$'
+                minLength: 0
+                maxLength: 2048
+              timing:
+                $ref: "#/components/schemas/RequestTiming"
+              with:
+                $ref: "#/components/schemas/CreateRequestWithSubRequest"
+              name:
+                type: string
+            required:
+              - accessRuleId
+              - timing
               - name
 tags:
   - name: End User

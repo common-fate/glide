@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 )
 
 // Define your struct using the Value types from gconfig, choosing the appropriate type for the data sensitivity.

@@ -2,7 +2,7 @@ import { Duration, Stack } from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
@@ -12,6 +12,10 @@ interface Props {
   dynamoTable: Table;
   userPool: WebUserPool;
   identityProviderSyncConfiguration: string;
+  analyticsDisabled: string;
+  analyticsUrl: string;
+  analyticsLogLevel: string;
+  analyticsDeploymentStage: string;
 }
 
 export class IdpSync extends Construct {
@@ -28,10 +32,14 @@ export class IdpSync extends Construct {
       code,
       timeout: Duration.seconds(20),
       environment: {
-        APPROVALS_TABLE_NAME: props.dynamoTable.tableName,
-        IDENTITY_PROVIDER: props.userPool.getIdpType(),
-        APPROVALS_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-        IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+        COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
+        COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
+        COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+        CF_ANALYTICS_DISABLED: props.analyticsDisabled,
+        CF_ANALYTICS_URL: props.analyticsUrl,
+        CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
+        CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "syncer",
@@ -75,6 +83,19 @@ export class IdpSync extends Construct {
         ],
       })
     );
+
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: ["sts:AssumeRole"],
+        resources: ["*"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role":
+              "aws-sso-identity-provider",
+          },
+        },
+      })
+    );
     //allow the lambda to write to the table
     props.dynamoTable.grantWriteData(this._lambda);
   }
@@ -83,5 +104,8 @@ export class IdpSync extends Construct {
   }
   getFunctionName(): string {
     return this._lambda.functionName;
+  }
+  getExecutionRoleArn(): string {
+    return this._lambda.role?.roleArn || "";
   }
 }

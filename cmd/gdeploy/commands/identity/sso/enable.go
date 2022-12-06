@@ -7,11 +7,11 @@ import (
 	"sort"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 
 	"github.com/urfave/cli/v2"
 )
@@ -75,7 +75,7 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		// Should never happen
 		return errors.New("no matching identity provider found")
 	}
-	clio.Info("You can follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s for detailed instruction on setting up SSO", idpType, idp.DocsID)
+	clio.Infof("You can follow our %s setup guide at: https://docs.commonfate.io/granted-approvals/sso/%s for detailed instruction on setting up SSO", idpType, idp.DocsID)
 
 	cfg := idp.IdentityProvider.Config()
 
@@ -107,8 +107,8 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 	dc.Deployment.Parameters.IdentityConfiguration.Upsert(idpType, newConfig)
 
 	clio.Info("The following parameters are required to setup a SAML app in your identity provider")
-	clio.Info("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idp.DocsID)
-	o, err := dc.LoadSAMLOutput(ctx)
+	clio.Infof("Instructions for setting up SAML SSO for %s can be found here: https://docs.commonfate.io/granted-approvals/sso/%s/#setting-up-saml-sso", idpType, idp.DocsID)
+	o, err := dc.LoadOutput(ctx)
 	if err != nil {
 		return err
 	}
@@ -174,11 +174,11 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 			dc.Deployment.Parameters.SamlSSOMetadata = string(b)
 		}
 	}
-	clio.Warn("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
+	clio.Warnf("Don't forget to assign your users to the SAML app in %s so that they can login after setup is complete.", idpType)
 
 	dc.Deployment.Parameters.IdentityProviderType = idpType
-	clio.Info(`When using SSO, administrators for Granted are managed in your identity provider.
-	Create a group called 'Granted Administrators' in your identity provider and copy the group's ID.
+	clio.Info(`When using SSO, administrators for Common Fate are managed in your identity provider.
+	Create a group called 'Common Fate Administrators' in your identity provider and copy the group's ID.
 	Users in this group will be able to manage Access Rules.
 	`)
 
@@ -187,34 +187,63 @@ func updateOrAddSSO(c *cli.Context, idpType string) error {
 		return err
 	}
 
+	// This fails for AWS SSO because the users credentials may not be able to assume the sso role because of a restrictive trust relationship
+	// fall back to manual for these instances
+
 	grps, err := idp.IdentityProvider.ListGroups(ctx)
 	if err != nil {
-		return err
+		clio.Debugf("could not list groups for IDP due to the following error %s", err)
+		clio.Debug("Falling back to prompting user to enter a group ID manually")
+		var groupID string
+		err = survey.AskOne(&survey.Input{
+			Message: "The ID of the Common Fate Administrators group in your identity provider:",
+		}, &groupID, survey.WithValidator(survey.MinLength(1)))
+		if err != nil {
+			return err
+		}
+		dc.Deployment.Parameters.AdministratorGroupID = groupID
+	} else {
+		// convert groups to a string map
+		groupMap := make(map[string]identity.IDPGroup)
+		groupNames := []string{}
+		chosenKey := ""
+		for _, g := range grps {
+			key := fmt.Sprintf("%s: %s", g.Name, g.Description)
+			groupMap[key] = g
+			groupNames = append(groupNames, key)
+		}
+
+		// sort groupNames alphabetically
+		sort.Strings(groupNames)
+
+		if len(groupNames) == 0 {
+			clio.Error("no groups found please make at least 1 group in your identity provider")
+			//if there are no groups found, let the user know and make them create a group
+			//halt the cli to not end by asking for them for a bool input when they have created the group and then we will try and pull again
+
+			var groupID string
+			err = survey.AskOne(&survey.Input{
+				Message: "The ID of the Common Fate Administrators group in your identity provider:",
+			}, &groupID, survey.WithValidator(survey.MinLength(1)))
+			if err != nil {
+				return err
+			}
+			dc.Deployment.Parameters.AdministratorGroupID = groupID
+
+		} else {
+			err = survey.AskOne(&survey.Select{
+				Message: "The ID of the Common Fate Administrators group in your identity provider:",
+				Options: groupNames,
+			}, &chosenKey)
+
+			if err != nil {
+				return err
+			}
+			dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
+
+		}
+
 	}
-
-	// convert groups to a string map
-	groupMap := make(map[string]identity.IDPGroup)
-	groupNames := []string{}
-	chosenKey := ""
-	for _, g := range grps {
-		key := fmt.Sprintf("%s: %s", g.Name, g.Description)
-		groupMap[key] = g
-		groupNames = append(groupNames, key)
-	}
-
-	// sort groupNames alphabetically
-	sort.Strings(groupNames)
-
-	err = survey.AskOne(&survey.Select{
-		Message: "The ID of the Granted Administrators group in your identity provider:",
-		Options: groupNames,
-	}, &chosenKey)
-
-	if err != nil {
-		return err
-	}
-
-	dc.Deployment.Parameters.AdministratorGroupID = groupMap[chosenKey].ID
 
 	clio.Info("Updating your deployment config")
 

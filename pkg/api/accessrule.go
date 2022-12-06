@@ -3,17 +3,16 @@ package api
 import (
 	"errors"
 	"net/http"
-	"sync"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/cache"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/rulesvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
-	"golang.org/x/sync/errgroup"
 )
 
 func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
@@ -29,8 +28,9 @@ func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, rul
 		apio.Error(ctx, w, err)
 		return
 	}
+	u := auth.UserFromContext(ctx)
 
-	c, err := a.Rules.ArchiveAccessRule(ctx, *q.Result)
+	c, err := a.Rules.ArchiveAccessRule(ctx, u.ID, *q.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -95,6 +95,7 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
+
 	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
 }
 
@@ -106,7 +107,7 @@ func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId 
 	// get the requesting users id
 	u := auth.UserFromContext(ctx)
 	// A user is always an admin if they can access this admin API
-	rule, err := a.Rules.GetRule(ctx, ruleId, u, true)
+	ruleWithCanRequest, err := a.Rules.GetRule(ctx, ruleId, u, true)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: err, Status: http.StatusNotFound})
 		return
@@ -115,14 +116,14 @@ func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId 
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, rule.ToAPIDetail(), http.StatusOK)
+	apio.JSON(ctx, w, ruleWithCanRequest.Rule.ToAPIDetail(), http.StatusOK)
 }
 
 // Update Access Rule
 // (POST /api/v1/access-rules/{ruleId})
 func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	var updateRequest types.UpdateAccessRuleRequest
+	var updateRequest types.CreateAccessRuleRequest
 	err := apio.DecodeJSONBody(w, r, &updateRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
@@ -133,8 +134,12 @@ func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, rule
 	var rule *rule.AccessRule
 	ruleq := storage.GetAccessRuleCurrent{ID: ruleId}
 	_, err = a.DB.Query(ctx, &ruleq)
-	if err != nil {
+	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
 		return
 	}
 	rule = ruleq.Result
@@ -188,11 +193,49 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 	apio.JSON(ctx, w, q.Result.ToAPIDetail(), http.StatusOK)
 }
 
+// Your GET endpoint
+// (GET /api/v1/access-rules/lookup)
+func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
+	ctx := r.Context()
+
+	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
+		// prevent us from panicking with a nil pointer error if one of the required parameters isn't provided.
+		apio.ErrorString(ctx, w, "invalid query params", http.StatusBadRequest)
+		return
+	}
+
+	logger.Get(ctx).Infow("looking up access rule", "params", params)
+
+	u := auth.UserFromContext(ctx)
+
+	rules, err := a.Rules.LookupRule(ctx, rulesvc.LookupRuleOpts{
+		User:         *u,
+		ProviderType: string(*params.Type),
+		Fields: rulesvc.LookupFields{
+			AccountID: *params.AccountId,
+			RoleName:  *params.PermissionSetArnLabel,
+		},
+	})
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := []types.LookupAccessRule{}
+
+	for _, r := range rules {
+		res = append(res, r.ToAPI())
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
 // List Access Rules
 // (GET /api/v1/access-rules)
 func (a *API) ListUserAccessRules(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
+	admin := auth.IsAdmin(ctx)
 	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
 	_, err := a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
@@ -206,7 +249,12 @@ func (a *API) ListUserAccessRules(w http.ResponseWriter, r *http.Request) {
 	for i, r := range q.Result {
 		res.AccessRules[i] = r.ToAPI()
 	}
-
+	analytics.FromContext(ctx).Track(&analytics.UserInfo{
+		ID:             u.ID,
+		GroupCount:     len(u.Groups),
+		IsAdmin:        admin,
+		AvailableRules: len(q.Result),
+	})
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
@@ -217,42 +265,26 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 	// get the requesting users id
 	u := auth.UserFromContext(ctx)
 
-	rule, err := a.Rules.GetRule(ctx, ruleId, u, false)
+	ruleWithCanRequest, err := a.Rules.GetRule(ctx, ruleId, u, false)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
 		return
 	}
 	if err == rulesvc.ErrUserNotAuthorized {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("you don't have permission to access this rule"), Status: http.StatusForbidden})
 		return
 	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	var options []cache.ProviderOption
-	var mu sync.Mutex
-	g, gctx := errgroup.WithContext(ctx)
-	for k := range rule.Target.WithSelectable {
-		kCopy := k
-		g.Go(func() error {
-			// load from the cache, if the user has requested it, the cache is very likely to be valid
-			_, opts, err := a.Cache.LoadCachedProviderArgOptions(gctx, rule.Target.ProviderID, kCopy)
-			if err != nil {
-				return err
-			}
-			mu.Lock()
-			defer mu.Unlock()
-			options = append(options, opts...)
-			return nil
-		})
-	}
-	err = g.Wait()
+
+	requestArguments, err := a.Rules.RequestArguments(ctx, ruleWithCanRequest.Rule.Target)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, rule.ToAPIWithSelectables(options), http.StatusOK)
+	apio.JSON(ctx, w, ruleWithCanRequest.Rule.ToRequestAccessRuleAPI(requestArguments, ruleWithCanRequest.CanRequest), http.StatusOK)
 }
 
 func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request, ruleId string) {
@@ -260,20 +292,22 @@ func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request,
 	// get the requesting users id
 	u := auth.UserFromContext(ctx)
 
-	rule, err := a.Rules.GetRule(ctx, ruleId, u, false)
+	ruleWithCanRequest, err := a.Rules.GetRule(ctx, ruleId, u, false)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
 		return
 	}
 	if err == rulesvc.ErrUserNotAuthorized {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("you don't have permission to access this rule"), Status: http.StatusForbidden})
 		return
 	}
+	// check if the user
+
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	users, err := rulesvc.GetApprovers(ctx, a.DB, *rule)
+	users, err := rulesvc.GetApprovers(ctx, a.DB, *ruleWithCanRequest.Rule)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

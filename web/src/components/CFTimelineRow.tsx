@@ -1,24 +1,56 @@
-import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
-import React from "react";
+import {
+  Box,
+  Flex,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverTrigger,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import { differenceInSeconds, formatDistanceToNowStrict } from "date-fns";
+import React, { useEffect, useState } from "react";
 
 interface Props {
   header: React.ReactNode;
-  body?: React.ReactNode;
+  timestamp: Date;
   /** this should be a 20px react node (use boxSize with chakra elements) */
   marker?: React.ReactNode;
   index: number;
   arrLength: number;
 }
 
+const TimestampLine = React.forwardRef<React.ReactNode, { timestamp: Date }>(
+  ({ timestamp }, ref) => (
+    <Text fontSize="sm" color="gray.400" fontWeight="normal">
+      {formatDistanceToNowStrict(timestamp, { addSuffix: true })}
+    </Text>
+  )
+);
+
 export const CFTimelineRow = ({
   header,
-  body,
+  timestamp,
   marker,
   index,
   arrLength,
 }: Props) => {
   const textColor = useColorModeValue("gray.700", "white.300");
-
+  const [timeSince, setTimeSince] = useState("");
+  const renderTimeSince = () => {
+    if (differenceInSeconds(new Date(), timestamp) < 60) {
+      setTimeSince("a few seconds ago");
+    } else {
+      setTimeSince(formatDistanceToNowStrict(timestamp, { addSuffix: true }));
+    }
+  };
+  useEffect(() => {
+    renderTimeSince();
+    const interval = setInterval(renderTimeSince, 60000);
+    return () => clearInterval(interval);
+  }, [timestamp]);
   return (
     <Flex>
       <Flex
@@ -55,9 +87,29 @@ export const CFTimelineRow = ({
         <Text fontSize="sm" color={textColor} fontWeight="bold">
           {header}
         </Text>
-        <Text fontSize="sm" color="gray.400" fontWeight="normal">
-          {body}
-        </Text>
+        <Box>
+          <Popover>
+            <PopoverTrigger>
+              <Text
+                flexGrow={0}
+                tabIndex={0}
+                as="button"
+                display={"inline-block"}
+                textAlign="left"
+                fontSize="sm"
+                color="gray.400"
+                fontWeight="normal"
+              >
+                {timeSince}
+              </Text>
+            </PopoverTrigger>
+            <PopoverContent>
+              <PopoverArrow />
+              <PopoverCloseButton />
+              <PopoverBody>{timestamp.toString()}</PopoverBody>
+            </PopoverContent>
+          </Popover>
+        </Box>
       </Flex>
     </Flex>
   );

@@ -2,11 +2,10 @@ package server
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/apikit/openapi"
-	"github.com/common-fate/granted-approvals/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/auth"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
@@ -18,8 +17,8 @@ func (c *Server) Handler() http.Handler {
 	r.Use(c.requestIDMiddleware)
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
-	r.Use(chiMiddleware.Timeout(30 * time.Second))
 	r.Use(logger.Middleware(c.log.Desugar()))
+	r.Use(analyticsMiddleware(c.db, c.log))
 	r.Use(sentryMiddleware)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{c.cfg.FrontendURL},

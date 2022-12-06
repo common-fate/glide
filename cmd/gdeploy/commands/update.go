@@ -3,15 +3,15 @@ package commands
 import (
 	"os"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
 var UpdateCommand = cli.Command{
 	Name:        "update",
-	Usage:       "Update a Granted Approvals deployment CloudFormation stack",
-	Description: "Update Granted Approvals deployment based on a deployment configuration file (granted-deployment.yml by default). Deploys resources to AWS using CloudFormation.",
+	Usage:       "Update a Common Fate deployment CloudFormation stack",
+	Description: "Update Common Fate deployment based on a deployment configuration file (deployment.yml by default). Deploys resources to AWS using CloudFormation.",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{Name: "confirm", Aliases: []string{"y"}, Usage: "If provided, will automatically deploy without asking for confirmation"},
 	},
@@ -22,8 +22,8 @@ var UpdateCommand = cli.Command{
 			return err
 		}
 
-		clio.Info("Deploying Granted Approvals %s", dc.Deployment.Release)
-		clio.Info("Using template: %s", dc.CfnTemplateURL())
+		clio.Infof("Deploying Common Fate %s", dc.Deployment.Release)
+		clio.Infof("Using template: %s", dc.CfnTemplateURL())
 		confirm := c.Bool("confirm")
 
 		if os.Getenv("CI") == "true" {
@@ -40,15 +40,16 @@ var UpdateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		o.PrintTable()
+
 		if status == "UPDATE_COMPLETE" {
-			clio.Success("Your Granted deployment has been updated")
+			o.PrintTable()
+			clio.Success("Your Common Fate deployment has been updated")
 		} else if status == "DEPLOY_SKIPPED" {
 			//return without displaying status, nothing changed
 			return nil
 
 		} else {
-			clio.Warn("Your Granted deployment update ended in status %s", status)
+			clio.Warnf("Your Common Fate deployment update ended in status %s", status)
 		}
 
 		return nil

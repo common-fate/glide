@@ -1,4 +1,4 @@
-# Granted Approvals releases
+# Common Fate releases
 
 Our versioning follows [SemVer numbering](https://semver.org/). Currently both `gdeploy` and our CloudFormation templates are versioned and released together. In future, this may change if it's more convenient to use separate release cycles for each one.
 
@@ -14,9 +14,23 @@ s3://granted-test-releases-us-east-1/rc/<TAG>/Granted.template.json
 
 Where `<TAG>` is the RC tag, e.g. `v0.2.0-rc2`.
 
-# Running Granted Approvals Locally
+## Production Releases
 
-The goal with Granted Approvals was to keep local development environments as similar to deployments as possible. This makes spinning up a dev environment super simple.
+Once you have tagged a commit and pushed to the remote repo, it must not be changed. If there is an issue found after the tag has been pushed.
+
+1. Create a PR to fix the issue.
+2. Merge to main
+3. Tag the new commit and increment the minor number `v0.1.1` -> `v0.1.2`
+4. Run the release workflow for this new tag
+
+Side effects from manipulating tags after they are created include
+
+- go pkg.dev will refer to the original commit for the tag rather than a new commit if you delete the tag and re create it
+- the cli build pipeline will refer to the first tag for the commit hash, so even if you create a new tag for the same commit, it will not work as expected
+
+# Running Common Fate Locally
+
+The goal with Common Fate was to keep local development environments as similar to deployments as possible. This makes spinning up a dev environment super simple.
 
 Start by exporting some AWS credentials, using whatever method you like. Here we just run `assume` using [Granted](https://granted.dev/).
 
@@ -37,7 +51,7 @@ It will create a CDK changeset and ask to continue with the provisioning, input 
 Once it has completed successfully you will receive the following success message in your console:
 
 ```
- ✅  GrantedDev (granted-approvals-dev-deployment)
+ ✅  GrantedDev (common-fate-dev-deployment)
 
 ✨  Deployment time: 749.51s
 ```

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // Healthcheck

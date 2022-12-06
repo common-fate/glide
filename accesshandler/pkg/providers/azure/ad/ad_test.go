@@ -1,29 +1,24 @@
 package ad
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIntegration(t *testing.T) {
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
-	}
-
 	ctx := context.Background()
-	_ = godotenv.Load("../../../../.env")
-
+	_ = godotenv.Load("../../../../../.env")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
+	}
 	var f fixtures.Fixtures
 	err := providertest.LoadFixture(ctx, "azure", &f)
 	if err != nil {
@@ -56,32 +51,9 @@ func TestIntegration(t *testing.T) {
 			WantValidationErr: &multierror.Error{Errors: []error{&UserNotFoundError{User: "other"}, &GroupNotFoundError{Group: "non-existent"}}},
 		},
 	}
-	pc := os.Getenv("PROVIDER_CONFIG")
-	var configMap map[string]json.RawMessage
-	err = json.Unmarshal([]byte(pc), &configMap)
+	w, err := integration.ProviderWith("azure")
 	if err != nil {
 		t.Fatal(err)
 	}
-	integration.RunTests(t, ctx, "azure", &Provider{}, testcases, integration.WithProviderConfig(configMap["azure"]))
-}
-
-func TestArgSchema(t *testing.T) {
-	o := Provider{}
-
-	res := o.ArgSchema()
-	out, err := json.Marshal(res)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := os.ReadFile("./testdata/argschema.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, want)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, buffer.String(), string(out))
+	integration.RunTests(t, ctx, "azure", &Provider{}, testcases, integration.WithProviderConfig(w))
 }

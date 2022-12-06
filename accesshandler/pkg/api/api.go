@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/benbjohnson/clock"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/deploy"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"

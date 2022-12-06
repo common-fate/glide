@@ -1,10 +1,10 @@
 import { expect, Page } from "@playwright/test";
-
+import { randomBytes } from "crypto";
 //login helper functions
 
 export const LoginUser = async (page: Page) => {
   //  const page = await context.newPage();
-  await page.goto("/");
+  await Logout(page);
   await fillFormElement(
     "input",
     "username",
@@ -24,9 +24,9 @@ export const LoginUser = async (page: Page) => {
   await page.waitForRequest(/me/);
 };
 
-export const LoginAdmin = async (page) => {
+export const LoginAdmin = async (page: Page) => {
   //  const page = await context.newPage();
-  await page.goto("/", { timeout: 10000 });
+  await Logout(page);
   await fillFormElement(
     "input",
     "username",
@@ -36,7 +36,7 @@ export const LoginAdmin = async (page) => {
   await fillFormElement(
     "input",
     "password",
-    process.env.TEST_PASSWORD ?? "",
+    process.env.TEST_ADMIN_PASSWORD || process.env.TEST_PASSWORD || "",
     page
   );
   await clickFormElementByText("input", "Sign in", page);
@@ -51,12 +51,16 @@ export const Logout = async (page: Page) => {
   await page.goto("/logout", { waitUntil: "networkidle" });
 };
 
-export const CreateAccessRule = async (page: Page, ruleName: string) => {
-  await Logout(page);
+export const CreateAccessRule = async (
+  page: Page,
+  ruleName: string,
+  group: string
+) => {
+  // await Logout(page);
   await LoginAdmin(page);
   await page.waitForLoadState("networkidle");
   await clickFormElementByID("admin-button", page);
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Common Fate/);
   await expect(
     page.locator(".chakra-container #new-access-rule-button")
   ).toHaveText("New Access Rule");
@@ -65,7 +69,7 @@ export const CreateAccessRule = async (page: Page, ruleName: string) => {
   await clickFormElementByID("new-access-rule-button", page);
 
   //enter a name for new rule
-  await fillFormElement("input", "name", "test-rule", page);
+  await fillFormElement("input", "name", ruleName, page);
   await fillFormElement(
     "textarea",
     "description",
@@ -84,8 +88,18 @@ export const CreateAccessRule = async (page: Page, ruleName: string) => {
   await clickFormElementByID("form-step-next-button", page);
 
   //click on group select, add both groups for approval
-  await clickFormElementByID("group-select", page);
-  await page.locator(testId("everyone")).first().click();
+  if (group != "") {
+    await clickFormElementByID("group-select", page);
+    await fillFormElementById("group-select-input", group, page);
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Escape");
+  } else {
+    await clickFormElementByID("group-select", page);
+    await fillFormElementById("group-select-input", "everyone", page);
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Escape");
+  }
+  // page.keyboard.press("Escape");
 
   //ensure granted_admins was added to selection box
   await clickFormElementByID("form-step-next-button", page);
@@ -95,11 +109,14 @@ export const CreateAccessRule = async (page: Page, ruleName: string) => {
 
   //ensure granted_admins was added to selection box
   // await clickFormElementByID("approval-group-select", page);
-  await page.locator("#approval-group-select >> visible=true").click();
+  await page.locator("#user-select >> visible=true").click();
+  await page.keyboard.insertText(process.env.TEST_ADMIN_USERNAME ?? "");
   await page.keyboard.press("Enter");
+  await page.keyboard.press("Escape");
+
   // await clickFormElementByID("approval-group-select", page);
-  await page.locator("#approval-group-select").click();
-  await page.keyboard.press("Enter");
+  // await page.locator("#approval-group-select").click();
+  // await page.keyboard.press("Enter");
 
   await clickFormElementByID("rule-create-button", page);
 
@@ -128,6 +145,23 @@ export const fillFormElementById = async (
   await page.locator(`#${name} >> visible=true`).fill(value);
 };
 
+export const selectOptionByID = async (
+  name: string,
+  label: string,
+  page: Page
+) => {
+  await page.locator(`#${name} >> visible=true`).click();
+  await page.locator(`p:has-text("${label}") >> nth=0`).click();
+};
+
+export const fillFormElementByTestId = async (
+  name: string,
+  value: string,
+  page: Page
+) => {
+  await page.locator(`${name} >> visible=true`).fill(value);
+};
+
 export const clickFormElementByText = async (
   inputType: "input" | "textarea" | "button",
   name: string,
@@ -148,4 +182,22 @@ export const clickFormElementByClass = async (id: string, page: Page) => {
 
 export const testId = (id: string) => {
   return `[data-testid="${id}"]`;
+};
+
+export const randomId = (prefix: string): string => {
+  var id = randomBytes(20).toString("hex");
+  return prefix + id;
+};
+export const randomRuleName = (): string => {
+  return randomId("test-rule-");
+};
+
+export const randomDescription = (): string => {
+  return randomId("test-description-");
+};
+export const randomReason = (): string => {
+  return randomId("test-reason-");
+};
+export const randomGroupName = (): string => {
+  return randomId("test-group-");
 };

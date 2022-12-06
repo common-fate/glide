@@ -5,7 +5,7 @@ info:
   contact:
     name: Common Fate
     url: "https://commonfate.io"
-  description: Granted Access Handler API
+  description: Common Fate Access Handler API
 servers:
   - url: "http://localhost:9092"
 paths:
@@ -62,6 +62,24 @@ paths:
         description: The grant to be created.
       tags:
         - grants
+    parameters: []
+  /api/v1/grants/validate:
+    post:
+      summary: ValidateGrant
+      operationId: validate-grant
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Valdates that a grant will succeed without granting the access
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGrant"
     parameters: []
   "/api/v1/grants/{grantId}/revoke":
     post:
@@ -212,8 +230,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties: {}
+                $ref: "#/components/schemas/ArgSchema"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -428,6 +445,8 @@ components:
           type: string
         value:
           type: string
+        description:
+          type: string
       required:
         - label
         - value
@@ -499,6 +518,91 @@ components:
       required:
         - level
         - msg
+    Argument:
+      title: Argument
+      x-stoplight:
+        id: 8z6izf547yuch
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        ruleFormElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: "Optional form element for the request form, if not provided, defaults to multiselect"
+        groups:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Group"
+      required:
+        - id
+        - title
+        - ruleFormElement
+    Groups:
+      title: Groups
+      x-stoplight:
+        id: igcye0lpfpqdh
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: "#/components/schemas/GroupOption"
+    Group:
+      title: Group
+      x-stoplight:
+        id: qkfqj9p8zwy6l
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
+    GroupOption:
+      title: GroupOption
+      x-stoplight:
+        id: d4xwup330jrg4
+      type: object
+      properties:
+        label:
+          type: string
+        description:
+          type: string
+        value:
+          type: string
+        children:
+          type: array
+          items:
+            type: string
+        labelPrefix:
+          type: string
+          description: A label prefix allows additional context to be prefixed to the label when displayed in a form
+      required:
+        - label
+        - value
+        - children
+    ArgSchema:
+      title: ArgSchema
+      x-stoplight:
+        id: 3kwu2i69r0rpg
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/Argument"
   requestBodies:
     ValidateRequest:
       content:
@@ -558,16 +662,14 @@ components:
           schema:
             type: object
             properties:
-              hasOptions:
-                type: boolean
-                description: Whether any options have been suggested for the argument.
               options:
                 type: array
                 description: The suggested options.
                 items:
                   $ref: "#/components/schemas/Option"
+              groups:
+                $ref: "#/components/schemas/Groups"
             required:
-              - hasOptions
               - options
     ValidateResponse:
       description: Validation of a provider's configuration.

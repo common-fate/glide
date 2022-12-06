@@ -7,6 +7,7 @@ export interface RegisteredProvider {
    */
   shortType: string;
   name: string;
+  alpha?: boolean;
 }
 
 export const registeredProviders: RegisteredProvider[] = [
@@ -29,11 +30,13 @@ export const registeredProviders: RegisteredProvider[] = [
     type: "commonfate/aws-eks-roles-sso",
     shortType: "aws-eks-roles-sso",
     name: "EKS (with AWS SSO)",
+    alpha: true,
   },
   {
     type: "commonfate/ecs-exec-sso",
     shortType: "ecs-exec-sso",
     name: "ECS Exec (with AWS SSO)",
+    alpha: true,
   },
   {
     type: "commonfate/testvault",
@@ -46,6 +49,7 @@ export const registeredProviders: RegisteredProvider[] = [
  * If we type registeredProviders with a const assertion i.e. `registeredProviders = [...] as const;`
  * it is possible to strongly type the shortType key-values (could be beneficial)
  */
-export type RegisteredShortTypes = typeof registeredProviders[number]["shortType"];
+export type RegisteredShortTypes =
+  typeof registeredProviders[number]["shortType"];
 
 export type RegisteredTypes = typeof registeredProviders[number]["type"];

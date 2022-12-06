@@ -16,8 +16,8 @@ import (
 )
 
 type Args struct {
-	PermissionSetARN string `json:"permissionSetArn" jsonschema:"title=Permission Set"`
-	AccountID        string `json:"accountId" jsonschema:"title=Account"`
+	PermissionSetARN string `json:"permissionSetArn"`
+	AccountID        string `json:"accountId"`
 }
 
 // Grant the access by calling the AWS SSO API.
@@ -197,7 +197,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 			return false, err
 		}
 		for _, aa := range res.AccountAssignments {
-			if aa.PrincipalType == types.PrincipalTypeUser && aa.PrincipalId == user.UserId {
+			if aa.PrincipalType == types.PrincipalTypeUser && aws.ToString(aa.PrincipalId) == aws.ToString(user.UserId) {
 				// the permission set has been assigned to the user, so return true.
 				return true, nil
 			}
@@ -250,10 +250,17 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	if err != nil {
 		return "", err
 	}
+
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 
+	if p.ssoSubdomain.Get() != "" {
+		url = fmt.Sprintf("https://%s.awsapps.com/start", p.ssoSubdomain.Get())
+	}
+
 	i := "# Browser\n"
-	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s)\n\n", url)
+	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s).\n\n", url)
+	i += fmt.Sprintf("**Account ID**: %s\n\n", a.AccountID)
+	i += fmt.Sprintf("**Role**: %s\n\n", *po.PermissionSet.Name)
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"

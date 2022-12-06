@@ -1,9 +1,9 @@
-import { type PlaywrightTestConfig, devices } from '@playwright/test';
+import { type PlaywrightTestConfig, devices } from "@playwright/test";
 // Read from default ".env" file.
 const config: PlaywrightTestConfig = {
+  testDir: "./tests",
   forbidOnly: !!process.env.CI,
-  
- 
+
   retries: 0,
   globalSetup: "./globalSetup.ts",
   use: {
@@ -11,6 +11,7 @@ const config: PlaywrightTestConfig = {
     baseURL: process.env.TESTING_DOMAIN,
   },
   globalTimeout: process.env.CI ? 60 * 60 * 1000 : undefined,
+  timeout: 60*1000,
   projects: [
     //     {
     //   name: 'firefox',
@@ -24,7 +25,6 @@ const config: PlaywrightTestConfig = {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-
   ],
 };
 export default config;

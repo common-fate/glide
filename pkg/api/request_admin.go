@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // "/api/v1/admin/requests"
@@ -99,5 +99,10 @@ func (a *API) AdminGetRequest(w http.ResponseWriter, r *http.Request, requestId 
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
-	apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, q.Result.RequestedBy != u.ID), http.StatusOK)
+	requestArguments, err := a.Rules.RequestArguments(ctx, qr.Result.Target)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, q.Result.RequestedBy != u.ID, requestArguments), http.StatusOK)
 }

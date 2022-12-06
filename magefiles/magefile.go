@@ -12,8 +12,8 @@ import (
 	"path"
 
 	"github.com/bitfield/script"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/fatih/color"
 	"github.com/joho/godotenv"
 	"github.com/magefile/mage/mg"
@@ -32,6 +32,17 @@ func init() {
 		os.Exit(1)
 	}
 	zap.ReplaceGlobals(log)
+}
+
+// ldFlags returns the linker flags. These are used to inject the release details into the
+// built binaries.
+func ldFlags() string {
+	release := os.Getenv("COMMONFATE_RELEASE")
+	if release == "" {
+		release = "dev"
+	}
+
+	return fmt.Sprintf(`-X 'github.com/common-fate/common-fate/internal/build.Version=%s'`, release)
 }
 
 type Deps mg.Namespace
@@ -59,7 +70,7 @@ func (Build) Backend() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/approvals", "cmd/lambda/approvals/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/commonfate", "cmd/lambda/commonfate/handler.go")
 }
 
 func (Build) Granter() error {
@@ -67,7 +78,7 @@ func (Build) Granter() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/granter", "cmd/lambda/granter/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/granter", "cmd/lambda/granter/handler.go")
 }
 
 func (Build) FrontendDeployer() error {
@@ -75,7 +86,7 @@ func (Build) FrontendDeployer() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
 }
 
 func (Build) AccessHandler() error {
@@ -83,7 +94,7 @@ func (Build) AccessHandler() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
 }
 
 func (Build) Syncer() error {
@@ -91,7 +102,14 @@ func (Build) Syncer() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/syncer", "cmd/lambda/syncer/handler.go")
+}
+func (Build) CacheSyncer() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/cache-sync", "cmd/lambda/cache-sync/handler.go")
 }
 
 func (Build) SlackNotifier() error {
@@ -99,7 +117,7 @@ func (Build) SlackNotifier() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
 }
 
 func (Build) EventHandler() error {
@@ -107,7 +125,7 @@ func (Build) EventHandler() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
 }
 
 func (Build) Webhook() error {
@@ -115,7 +133,7 @@ func (Build) Webhook() error {
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
-	return sh.RunWith(env, "go", "build", "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
 }
 
 func (Build) FrontendAWSExports() error {
@@ -163,11 +181,13 @@ func (Build) Frontend() error {
 // PackageBackend zips the Go API so that it can be deployed to Lambda.
 func PackageBackend() error {
 	mg.Deps(Build.Backend)
-	return sh.Run("zip", "--junk-paths", "bin/approvals.zip", "bin/approvals")
+	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate")
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier, PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
+	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageCacheSyncer)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
@@ -192,6 +212,12 @@ func PackageAccessHandler() error {
 func PackageSyncer() error {
 	mg.Deps(Build.Syncer)
 	return sh.Run("zip", "--junk-paths", "bin/syncer.zip", "bin/syncer")
+}
+
+// PackageSyncer zips the Go Syncer function handler so that it can be deployed to Lambda.
+func PackageCacheSyncer() error {
+	mg.Deps(Build.CacheSyncer)
+	return sh.Run("zip", "--junk-paths", "bin/cache-sync.zip", "bin/cache-sync")
 }
 
 // PackageNotifier zips the Go notifier so that it can be deployed to Lambda.
@@ -221,7 +247,7 @@ func (Deploy) CDK() error {
 	// infrastructure/cdk.json defines a build step within CDK which calls `go run mage.go build`,
 	// so we don't need to build or package the code before running cdk deploy.
 	args := []string{"--dir", "deploy/infra", "cdk", "deploy", "--outputs-file", "cdk-outputs.json"}
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -253,7 +279,7 @@ func Dotenv() error {
 		return err
 	}
 
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -278,20 +304,22 @@ func Dotenv() error {
 		idpType = cfg.Deployment.Parameters.IdentityProviderType
 	}
 
-	myEnv["APPROVALS_TABLE_NAME"] = o.DynamoDBTable
 	myEnv["AWS_REGION"] = o.Region
-	myEnv["APPROVALS_COGNITO_USER_POOL_ID"] = o.UserPoolID
-	myEnv["EVENT_BUS_ARN"] = o.EventBusArn
-	myEnv["EVENT_BUS_SOURCE"] = o.EventBusSource
-	myEnv["IDENTITY_SETTINGS"] = idConf
-	myEnv["PROVIDER_CONFIG"] = providerConf
-	myEnv["STATE_MACHINE_ARN"] = o.GranterStateMachineArn
-	myEnv["IDENTITY_PROVIDER"] = idpType
-	myEnv["APPROVALS_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
-	myEnv["APPROVALS_FRONTEND_URL"] = "http://localhost:3000"
-	myEnv["GRANTED_RUNTIME"] = "lambda"
-	myEnv["PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
-	myEnv["ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
+	myEnv["COMMONFATE_TABLE_NAME"] = o.DynamoDBTable
+	myEnv["COMMONFATE_COGNITO_USER_POOL_ID"] = o.UserPoolID
+	myEnv["COMMONFATE_EVENT_BUS_ARN"] = o.EventBusArn
+	myEnv["COMMONFATE_EVENT_BUS_SOURCE"] = o.EventBusSource
+	myEnv["COMMONFATE_IDENTITY_SETTINGS"] = idConf
+	myEnv["COMMONFATE_PROVIDER_CONFIG"] = providerConf
+	myEnv["COMMONFATE_STATE_MACHINE_ARN"] = o.GranterStateMachineArn
+	myEnv["COMMONFATE_IDENTITY_PROVIDER"] = idpType
+	myEnv["COMMONFATE_ADMIN_GROUP"] = cfg.Deployment.Parameters.AdministratorGroupID
+	myEnv["COMMONFATE_FRONTEND_URL"] = "http://localhost:3000"
+	myEnv["COMMONFATE_ACCESS_HANDLER_RUNTIME"] = "lambda"
+	myEnv["COMMONFATE_PAGINATION_KMS_KEY_ARN"] = o.PaginationKMSKeyARN
+	myEnv["COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
+	myEnv["COMMONFATE_ACCESS_REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
+	myEnv["COMMONFATE_REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
 
 	err = godotenv.Write(myEnv, ".env")
 	if err != nil {
@@ -490,7 +518,7 @@ func Watch() error {
 	mg.Deps(Deps.NPM)
 	args := []string{"--dir", "deploy/infra", "cdk", "watch", "--outputs-file", "cdk-outputs.json"}
 
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -504,7 +532,7 @@ func Destroy() error {
 	mg.Deps(Deps.NPM)
 	args := []string{"--dir", "deploy/infra", "cdk", "destroy"}
 
-	cfg, err := deploy.LoadConfig("granted-deployment.yml")
+	cfg, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
@@ -519,15 +547,23 @@ func Clean() error {
 	return os.RemoveAll("next/out")
 }
 
-// DevConfig sets up the granted-deployment.yml file
+// DevConfig sets up the deployment.yml file
 func DevConfig() error {
-	_, err := deploy.LoadConfig("granted-deployment.yml")
+	_, err := deploy.LoadConfig(deploy.DefaultFilename)
+	if err != nil && err != deploy.ErrConfigNotExist {
+		return err
+	}
+
+	if err == nil {
+		fmt.Println("deployment.yml already exists: skipping setup")
+		return nil
+	}
+	_, err = deploy.LoadConfig(deploy.DeprecatedDefaultFilename)
 	if err != nil && err != deploy.ErrConfigNotExist {
 		return err
 	}
 	if err == nil {
-		fmt.Println("granted-deployment.yml already exists: skipping setup")
-		return nil
+		deploy.DeprecatedDefaultFilenameWarning.Print()
 	}
 
 	c, err := deploy.SetupDevConfig()
@@ -535,12 +571,12 @@ func DevConfig() error {
 		return err
 	}
 
-	err = c.Save("granted-deployment.yml")
+	err = c.Save(deploy.DefaultFilename)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("wrote granted-deployment.yml")
+	fmt.Println("wrote deployment.yml")
 	return nil
 }
 
@@ -548,7 +584,7 @@ func DevConfig() error {
 // If it doesn't exist yet it adds a dependency for the CDK deploy
 // task, which will create the output, and then tries to read it again.
 func ensureCDKOutput() (deploy.Output, error) {
-	dc, err := deploy.LoadConfig("granted-deployment.yml")
+	dc, err := deploy.LoadConfig(deploy.DefaultFilename)
 	if err != nil {
 		return deploy.Output{}, err
 	}

@@ -1,13 +1,12 @@
-import { test, expect } from "@playwright/test";
-import { LoginAdmin, Logout } from "../utils/helpers";
+import { expect, test } from "@playwright/test";
+import { LoginAdmin } from "../utils/helpers";
 
-test("test admin login gets to granted page with admin nav", async ({
+test("test admin login gets to Common Fate page with admin nav", async ({
   page,
 }) => {
-  await Logout(page);
   await LoginAdmin(page);
   await page.goto("/");
-  await expect(page).toHaveTitle(/Granted/);
+  await expect(page).toHaveTitle(/Common Fate/);
   await expect(page.locator("#admin-button >> visible=true")).toHaveText(
     "Switch To Admin"
   );

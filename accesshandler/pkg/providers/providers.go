@@ -4,13 +4,12 @@ import (
 	"context"
 	"embed"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/diagnostics"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/invopop/jsonschema"
+	"github.com/common-fate/common-fate/accesshandler/pkg/diagnostics"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // Accessors know how to grant and revoke access to something.
-// Accessors are considered the 'bare minimum' Granted providers.
+// Accessors are considered the 'bare minimum' Common Fate providers.
 // When writing a provider you must implement this interface.
 type Accessor interface {
 	// Grant the access.
@@ -30,10 +29,11 @@ type AccessTokener interface {
 	RequiresAccessToken() bool
 }
 
-// Validators know how to validate access without actually granting it.
-type Validator interface {
-	// Validate arguments and a subject for access without actually granting it.
-	Validate(ctx context.Context, subject string, args []byte) error
+// GrantValidator know how to validate access without actually granting it.
+type GrantValidator interface {
+	// ValidateGrant arguments and a subject for access without actually granting it.
+
+	ValidateGrant() GrantValidationSteps
 }
 
 type ConfigValidationStep struct {
@@ -48,14 +48,28 @@ type ConfigValidator interface {
 	ValidateConfig() map[string]ConfigValidationStep
 }
 
-// ArgSchemarers provide a JSON Schema for the arguments they accept.
-type ArgSchemarer interface {
-	ArgSchema() *jsonschema.Schema
+type ArgSchema map[string]types.Argument
+
+func (a ArgSchema) ToAPI() types.ArgSchema {
+	argSchema := types.ArgSchema{
+		AdditionalProperties: make(map[string]types.Argument),
+	}
+	for k, v := range a {
+		argSchema.AdditionalProperties[k] = v
+	}
+	return argSchema
 }
 
-// ArgOptioner provides a list of options for an argument.
+type ArgSchemarer interface {
+	ArgSchema() ArgSchema
+}
+type ArgOptionGroupValueser interface {
+	ArgOptionGroupValues(ctx context.Context, argId string, groupingName string, groupingValues []string) ([]string, error)
+}
+
+// ArgOptioner provides a list of options for an argument and groupings if available.
 type ArgOptioner interface {
-	Options(ctx context.Context, arg string) ([]types.Option, error)
+	Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error)
 }
 
 // Instructioners provide instructions on how a user can access a role or
@@ -67,4 +81,9 @@ type Instructioner interface {
 // SetupDocers return an embedded filesystem containing setup documentation.
 type SetupDocer interface {
 	SetupDocs() embed.FS
+}
+
+// returns a pointer to an ArgumentRequestFormElement
+func ArgumentRequestFormElement(element types.ArgumentRequestFormElement) *types.ArgumentRequestFormElement {
+	return &element
 }

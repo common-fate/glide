@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/runtime/lambda"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/runtime/local"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/runtime/lambda"
+	"github.com/common-fate/common-fate/accesshandler/pkg/runtime/local"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // A runtime is responsible for the actual execution of a grant and are tied to the

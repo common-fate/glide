@@ -8,7 +8,7 @@
       "domain": "test.auth.us-east-1.amazoncognito.com",
       "scope": ["email", "profile", "openid"],
       "redirectSignIn": "https://example.granted.run",
-      "redirectSignOut": "https://example.granted.run",
+      "redirectSignOut": "https://example.granted.run?state=loggedOut",
       "responseType": "code"
     },
     "cookieStorage": {
@@ -18,7 +18,7 @@
   "API": {
     "endpoints": [
       {
-        "name": "approvals",
+        "name": "common-fate",
         "endpoint": "https://test.execute-api.us-east-1.amazonaws.com/prod/",
         "region": "us-east-1"
       }

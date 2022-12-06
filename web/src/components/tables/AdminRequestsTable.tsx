@@ -30,6 +30,7 @@ export const AdminRequestsTable = () => {
     hookProps: {
       status: status ? (status.toUpperCase() as RequestStatus) : undefined,
     },
+    swrProps: { swr: { refreshInterval: 10000 } },
   });
 
   const cols: Column<Request>[] = useMemo(
@@ -39,8 +40,9 @@ export const AdminRequestsTable = () => {
         Header: "Request",
         Cell: (props) => (
           <RuleNameCell
-            accessRuleId={props.row.original.accessRule.id}
+            accessRuleId={props.row.original.accessRuleId}
             reason={props.value ?? ""}
+            adminRoute={true}
           />
         ),
       },

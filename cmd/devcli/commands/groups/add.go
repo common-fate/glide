@@ -2,8 +2,8 @@ package groups
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )
@@ -37,7 +37,7 @@ var addCommand = cli.Command{
 		username := c.String("username")
 		group := c.String("group")
 
-		do, err := deploy.LoadConfig("granted-deployment.yml")
+		do, err := deploy.LoadConfig(deploy.DefaultFilename)
 		if err != nil {
 			return err
 		}

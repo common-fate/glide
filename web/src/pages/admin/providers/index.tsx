@@ -22,6 +22,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
+import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { Column } from "react-table";
 import { CFCode } from "../../../components/CodeInstruction";
@@ -66,6 +67,9 @@ const Providers = () => {
 
   return (
     <AdminLayout>
+      <Helmet>
+        <title>Providers</title>
+      </Helmet>
       <Container
         my={12}
         // This prevents unbounded widths for small screen widths
@@ -91,12 +95,13 @@ const Providers = () => {
           New Access Provider
         </Button>
         <AdminProvidersTable />
-        <Center>
+        <HStack mt={2} spacing={1} w="100%" justify={"center"}>
           <Text textStyle={"Body/ExtraSmall"}>
             View the full configuration of each access provider in your{" "}
-            <Code fontSize={"12px"}>granted-deployment.yml</Code> file.
           </Text>
-        </Center>
+          <Code fontSize={"12px"}>deployment.yml</Code>
+          <Text textStyle={"Body/ExtraSmall"}>file.</Text>
+        </HStack>
       </Container>
     </AdminLayout>
   );

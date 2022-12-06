@@ -31,8 +31,10 @@ export const UserReviewsTable = () => {
     swrHook: useUserListRequests,
     hookProps: {
       reviewer: true,
+
       status: status ? (status.toUpperCase() as RequestStatus) : undefined,
     },
+    swrProps: { swr: { refreshInterval: 10000 } },
   });
 
   const cols: Column<Request>[] = useMemo(
@@ -43,12 +45,13 @@ export const UserReviewsTable = () => {
         Cell: (props) => (
           <Link to={"/requests/" + props.row.original.id}>
             <RuleNameCell
-              accessRuleId={props.row.original.accessRule.id}
+              accessRuleId={props.row.original.accessRuleId}
               reason={props.value ?? ""}
               as="a"
               _hover={{
                 textDecor: "underline",
               }}
+              adminRoute={false}
             />
           </Link>
         ),

@@ -5,17 +5,18 @@
 package cache
 
 import (
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
 )
 
 // ProviderOption is an argument option that we've cached
 // from an Access Provider in DynamoDB.
 type ProviderOption struct {
-	Provider string `json:"provider" dynamodbav:"provider"`
-	Arg      string `json:"arg" dynamodbav:"arg"`
-	Label    string `json:"label" dynamodbav:"label"`
-	Value    string `json:"value" dynamodbav:"value"`
+	Provider    string  `json:"provider" dynamodbav:"provider"`
+	Arg         string  `json:"arg" dynamodbav:"arg"`
+	Label       string  `json:"label" dynamodbav:"label"`
+	Value       string  `json:"value" dynamodbav:"value"`
+	Description *string `json:"description" dynamodbav:"description"`
 }
 
 func (r *ProviderOption) DDBKeys() (ddb.Keys, error) {

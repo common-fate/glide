@@ -4,13 +4,14 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
+	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // Returns a list of users
@@ -25,7 +26,7 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request, params types.GetU
 
 	q := storage.ListUsersForStatus{Status: types.IdpStatusACTIVE}
 
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -33,6 +34,9 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request, params types.GetU
 
 	res := types.ListUserResponse{
 		Users: make([]types.User, len(q.Result)),
+	}
+	if qr != nil && qr.NextPage != "" {
+		res.Next = &qr.NextPage
 	}
 
 	for i, u := range q.Result {
@@ -52,10 +56,9 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
 
 	_, err := a.DB.Query(ctx, &q)
 	// return a 404 if the user was not found.
-	if errors.As(err, &identity.UserNotFoundError{}) {
+	if err == ddb.ErrNoItems {
 		err = apio.NewRequestError(err, http.StatusNotFound)
 	}
-
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -74,6 +77,11 @@ func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
 		User:    u.ToAPI(),
 		IsAdmin: admin,
 	}
+	analytics.FromContext(ctx).Track(&analytics.UserInfo{
+		ID:         u.ID,
+		GroupCount: len(u.Groups),
+		IsAdmin:    admin,
+	})
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
@@ -110,20 +118,29 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/admin/users/{userId})
 func (a *API) UpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
 	ctx := r.Context()
-	if a.Cognito == nil {
-		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
-		return
-	}
-	var updateUserRequest types.UpdateUserJSONRequestBody
+	var updateUserRequest types.UpdateUserJSONBody
 	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	user, err := a.Cognito.UpdateUserGroups(ctx, cognitosvc.UpdateUserGroupsOpts{
-		Groups: updateUserRequest.Groups,
-		UserID: userId,
-	})
+	q := storage.GetUser{
+		ID: userId,
+	}
+	_, err = a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("user not found"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	user, err := a.InternalIdentity.UpdateUserGroups(ctx, *q.Result, updateUserRequest.Groups)
+	if err == internalidentitysvc.ErrGroupNotFoundOrNotInternal {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

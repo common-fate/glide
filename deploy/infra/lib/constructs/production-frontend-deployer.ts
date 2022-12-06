@@ -33,18 +33,21 @@ export class ProductionFrontendDeployer extends Construct {
     );
     this._lambda = new lambda.Function(this, "Function", {
       code,
-      timeout: Duration.seconds(60),
+      // The frontend deployer has a 7 minute timeout
+      // internally, the deployer has a 5 minute retry backoff around the invalidation cloudfront method
+      // at worst execution would take around 5 mins 30s
+      timeout: Duration.seconds(60 * 7),
       environment: {
         CF_RELEASES_BUCKET: props.cfReleaseBucket,
         CF_RELEASES_FRONTEND_ASSET_OBJECT_PREFIX:
           props.cfReleaseBucketFrontendAssetObjectPrefix,
-        FRONTEND_BUCKET: props.frontendBucket.bucketName,
-        COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
-        COGNITO_CLIENT_ID: props.cognitoClientId,
-        USER_POOL_DOMAIN: props.userPoolDomain,
-        FRONTEND_DOMAIN: props.frontendDomain,
-        CLOUDFRONT_DISTRIBUTION_ID: props.cloudfrontDistributionId,
-        API_URL: props.apiUrl,
+        COMMONFATE_FRONTEND_BUCKET: props.frontendBucket.bucketName,
+        COMMONFATE_COGNITO_USER_POOL_ID: props.cognitoUserPoolId,
+        COMMONFATE_COGNITO_CLIENT_ID: props.cognitoClientId,
+        COMMONFATE_USER_POOL_DOMAIN: props.userPoolDomain,
+        COMMONFATE_FRONTEND_DOMAIN: props.frontendDomain,
+        COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID: props.cloudfrontDistributionId,
+        COMMONFATE_API_URL: props.apiUrl,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "frontend-deployer",

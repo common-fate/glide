@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
 // Options list the argument options for the provider
-func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, error) {
+func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error) {
 	switch arg {
 	case "taskDefinitionFamily":
-		opts := []types.Option{}
+		var opts types.ArgOptionsResponse
 		hasMore := true
 		var nextToken *string
 
@@ -19,12 +19,12 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 
 			taskFams, err := p.ecsClient.ListTaskDefinitionFamilies(ctx, &ecs.ListTaskDefinitionFamiliesInput{Status: "ACTIVE", NextToken: nextToken})
 			if err != nil {
-				return []types.Option{}, err
+				return nil, err
 			}
 
 			for _, t := range taskFams.Families {
 
-				opts = append(opts, types.Option{Label: t, Value: t})
+				opts.Options = append(opts.Options, types.Option{Label: t, Value: t})
 			}
 			//exit the pagination
 			nextToken = taskFams.NextToken
@@ -32,7 +32,7 @@ func (p *Provider) Options(ctx context.Context, arg string) ([]types.Option, err
 
 		}
 
-		return opts, nil
+		return &opts, nil
 	}
 	return nil, nil
 

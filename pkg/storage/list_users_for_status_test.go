@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )

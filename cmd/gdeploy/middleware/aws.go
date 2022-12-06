@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go"
 	"github.com/briandowns/spinner"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/clio/clierr"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
@@ -27,13 +27,13 @@ func RequireAWSCredentials() cli.BeforeFunc {
 		si.Writer = os.Stderr
 		si.Start()
 		defer si.Stop()
-		needCredentialsLog := clio.LogMsg(`Please export valid AWS credentials to run this command.
+		needCredentialsLog := clierr.Info(`Please export valid AWS credentials to run this command.
 For more information see:
 https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
 `)
 		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
-			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
+			return clierr.New("Failed to load AWS credentials.", clierr.Debugf("Encountered error while loading default aws config: %s", err), needCredentialsLog)
 		}
 
 		// Use the deployment region if it is available
@@ -46,17 +46,17 @@ https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
 			}
 			if dc.Deployment.Account != "" {
 				// include the account id in the log message if available
-				needCredentialsLog = clio.LogMsg("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
+				needCredentialsLog = clierr.Infof("Please export valid AWS credentials for account %s to run this command.\nFor more information see: https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials", dc.Deployment.Account)
 			}
 		}
 
 		creds, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
-			return clio.NewCLIError("Failed to load AWS credentials.", clio.DebugMsg("Encountered error while loading default aws config: %s", err), needCredentialsLog)
+			return clierr.New("Failed to load AWS credentials.", clierr.Debugf("Encountered error while loading default aws config: %s", err), needCredentialsLog)
 		}
 
 		if !creds.HasKeys() {
-			return clio.NewCLIError("Failed to load AWS credentials.", needCredentialsLog)
+			return clierr.New("Failed to load AWS credentials.", needCredentialsLog)
 		}
 
 		stsClient := sts.NewFromConfig(cfg)
@@ -66,14 +66,14 @@ https://docs.commonfate.io/granted-approvals/troubleshooting/aws-credentials
 			var ae smithy.APIError
 			// the aws sdk doesn't seem to have a concrete type for ExpiredToken so instead we check the error code
 			if errors.As(err, &ae) && ae.ErrorCode() == "ExpiredToken" {
-				return clio.NewCLIError("AWS credentials are expired.", needCredentialsLog)
+				return clierr.New("AWS credentials are expired.", needCredentialsLog)
 			}
-			return clio.NewCLIError("Failed to call AWS get caller identity. ", clio.DebugMsg(err.Error()), needCredentialsLog)
+			return clierr.New("Failed to call AWS get caller identity. ", clierr.Debug(err.Error()), needCredentialsLog)
 		}
 
 		//check to see that account number in config is the same account that is assumed
 		if configExists && *identity.Account != dc.Deployment.Account {
-			return clio.NewCLIError(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), needCredentialsLog)
+			return clierr.New(fmt.Sprintf("AWS account in your deployment config %s does not match the account of your current AWS credentials %s", dc.Deployment.Account, *identity.Account), needCredentialsLog)
 		}
 		c.Context = cfaws.SetConfigInContext(ctx, cfg)
 		return nil

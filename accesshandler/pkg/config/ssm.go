@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
@@ -21,7 +22,7 @@ func (s *SSM) Load(ctx context.Context) (string, error) {
 	}
 
 	client := ssm.NewFromConfig(cfg)
-	o, err := client.GetParameter(ctx, &ssm.GetParameterInput{Name: &s.Path, WithDecryption: true})
+	o, err := client.GetParameter(ctx, &ssm.GetParameterInput{Name: &s.Path, WithDecryption: aws.Bool(true)})
 	if err != nil {
 		return "", err
 	}

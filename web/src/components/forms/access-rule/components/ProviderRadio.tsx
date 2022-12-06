@@ -5,6 +5,7 @@ import {
   RadioProps,
   Spinner,
   Text,
+  Tooltip,
   useRadio,
   useRadioGroup,
   UseRadioGroupProps,
@@ -37,11 +38,11 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
         m="1px"
         _checked={{
           m: "0px",
-          borderColor: "brandGreen.300",
+          borderColor: "brandBlue.300",
           borderWidth: "2px",
         }}
-        _focus={{
-          boxShadow: "outline",
+        _hover={{
+          boxShadow: `0px 0px 0px 1px #2e7fff`,
         }}
         px={6}
         py={5}
@@ -56,7 +57,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
             right={2}
             h="12px"
             w="12px"
-            color={"brandGreen.300"}
+            color={"brandBlue.300"}
           />
         )}
         <HStack>

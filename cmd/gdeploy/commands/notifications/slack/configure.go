@@ -9,10 +9,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	slacknotifier "github.com/common-fate/granted-approvals/pkg/notifiers/slack"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
 	"github.com/urfave/cli/v2"
 )
 
@@ -42,15 +42,17 @@ var configureSlackCommand = cli.Command{
 		}
 
 		appInstallURL := fmt.Sprintf("https://api.slack.com/apps?new_app=1&manifest_json=%s", url.QueryEscape(appManifest))
-		clio.Info("Copy & paste the following link into your web browser to create a new Slack app for Granted Approvals:")
+		clio.Info("Copy & paste the following link into your web browser to create a new Slack app for Common Fate:")
 		fmt.Printf("\n\n%s\n\n", appInstallURL)
 		clio.Info("After creating the app, install it to your workspace and find your Bot User OAuth Token in the OAuth & Permissions tab.")
 
-		var slack slacknotifier.SlackNotifier
+		var slack slacknotifier.SlackDirectMessage
+		if dc.Deployment.Parameters.NotificationsConfiguration == nil {
+			dc.Deployment.Parameters.NotificationsConfiguration = &deploy.Notifications{}
+		}
 		cfg := slack.Config()
-		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration[slacknotifier.NotificationsTypeSlack]
-		if currentConfig != nil {
-			err = cfg.Load(ctx, &gconfig.MapLoader{Values: currentConfig})
+		if dc.Deployment.Parameters.NotificationsConfiguration.Slack != nil {
+			err = cfg.Load(ctx, &gconfig.MapLoader{Values: dc.Deployment.Parameters.NotificationsConfiguration.Slack})
 			if err != nil {
 				return err
 			}
@@ -73,7 +75,9 @@ var configureSlackCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		dc.Deployment.Parameters.NotificationsConfiguration.Upsert(slacknotifier.NotificationsTypeSlack, newConfig)
+
+		dc.Deployment.Parameters.NotificationsConfiguration.Slack = newConfig
+
 		err = dc.Save(f)
 		if err != nil {
 			return err

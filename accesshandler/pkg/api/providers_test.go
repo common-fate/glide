@@ -8,11 +8,10 @@ import (
 	"testing"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testgroups"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/invopop/jsonschema"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testgroups"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -41,6 +40,7 @@ func TestGetProvider(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId, nil)
@@ -80,6 +80,7 @@ func TestListProviders(t *testing.T) {
 	})
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers", nil)
@@ -105,7 +106,7 @@ func TestGetProviderArgs(t *testing.T) {
 	type testcase struct {
 		name           string
 		giveProviderId string
-		wantBody       *jsonschema.Schema
+		wantBody       *types.ArgSchema
 		wantCode       int
 		wantErr        string
 	}
@@ -120,13 +121,15 @@ func TestGetProviderArgs(t *testing.T) {
 
 	notFoundErr := &providers.ProviderNotFoundError{Provider: "badid"}
 
+	schema := tg.ArgSchema().ToAPI()
 	testcases := []testcase{
-		{name: "ok", giveProviderId: "test", wantCode: http.StatusOK, wantBody: tg.ArgSchema()},
+		{name: "ok", giveProviderId: "test", wantCode: http.StatusOK, wantBody: &schema},
 		{name: "not found", giveProviderId: "badid", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args", nil)
@@ -178,9 +181,8 @@ func TestListProviderArgOptions(t *testing.T) {
 	invalidArgErr := &providers.InvalidArgumentError{Arg: "notexist"}
 
 	options := []types.Option{{Label: "group1", Value: "group1"}}
-	tg := &testgroups.Provider{
-		Groups: []string{"group1"},
-	}
+	tg := &testgroups.Provider{}
+	tg.SetGroups([]string{"group1"})
 	config.ConfigureTestProviders([]config.Provider{
 		{
 			ID:       "test",
@@ -189,13 +191,14 @@ func TestListProviderArgOptions(t *testing.T) {
 		},
 	})
 	testcases := []testcase{
-		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{HasOptions: true, Options: options}},
+		{name: "ok", giveProviderId: "test", giveArgId: "group", wantCode: http.StatusOK, wantBody: types.ArgOptionsResponse{Options: options}},
 		{name: "provider not found", giveProviderId: "badid", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: notFoundErr.Error()},
 		{name: "arg not found", giveProviderId: "test", giveArgId: "notexist", wantCode: http.StatusNotFound, wantErr: invalidArgErr.Error()},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t)
 
 			req, err := http.NewRequest("GET", "/api/v1/providers/"+tc.giveProviderId+"/args/"+tc.giveArgId+"/options", nil)

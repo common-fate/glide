@@ -11,8 +11,9 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
 	"github.com/common-fate/iso8601"
 
 	"github.com/stretchr/testify/assert"
@@ -50,6 +51,7 @@ func TestPostGrants(t *testing.T) {
 	})
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t, withClock(clk))
 
 			req, err := http.NewRequest("POST", "/api/v1/grants", strings.NewReader(tc.body))
@@ -95,6 +97,7 @@ func TestRevokeGrant(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			handler := newTestServer(t, withClock(clk))
 
 			//create grant
@@ -130,6 +133,62 @@ func TestRevokeGrant(t *testing.T) {
 			_ = json.NewDecoder(rr.Body).Decode(&apiErr)
 			assert.Equal(t, tc.wantErr, apiErr.Error)
 
+		})
+	}
+}
+
+func TestValidateGrant(t *testing.T) {
+	type testcase struct {
+		name     string
+		body     string
+		wantCode int
+		wantErr  string
+	}
+
+	TenAM := time.Date(2022, 1, 1, 10, 0, 0, 0, time.UTC)
+
+	TenAMISO8601 := iso8601.New(TenAM)
+	TenThirtyAMISO8601 := iso8601.New(time.Date(2022, 1, 1, 10, 30, 0, 0, time.UTC))
+
+	clk := clock.NewMock()
+	clk.Set(TenAM)
+
+	testcases := []testcase{
+		{name: "400 response if provider doesn't exist", body: fmt.Sprintf(`{"id":"abcd","subject":"chris@commonfate.io","provider":"no-provider","with":{"group":"Admins"},"start":"%s","end":"%s"}`, TenAMISO8601, TenThirtyAMISO8601), wantCode: http.StatusBadRequest, wantErr: "provider not found"},
+		{name: "200 response if provider doesn't implement validate", body: fmt.Sprintf(`{"id":"abcd","subject":"chris@commonfate.io","provider":"testvault","with":{"group":"Admins"},"start":"%s","end":"%s"}`, TenAMISO8601, TenThirtyAMISO8601), wantCode: http.StatusOK, wantErr: ""},
+	}
+	config.ConfigureTestProviders([]config.Provider{
+		{
+			ID:       "okta",
+			Type:     "okta",
+			Provider: &okta.Provider{},
+		},
+		{
+			ID:       "testvault",
+			Type:     "testvault",
+			Provider: &testvault.Provider{},
+		},
+	})
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			handler := newTestServer(t, withClock(clk))
+
+			req, err := http.NewRequest("POST", "/api/v1/grants/validate", strings.NewReader(tc.body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+			var apiErr apio.ErrorResponse
+
+			_ = json.NewDecoder(rr.Body).Decode(&apiErr)
+			assert.Equal(t, tc.wantErr, apiErr.Error)
 		})
 	}
 }

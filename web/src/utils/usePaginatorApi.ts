@@ -6,6 +6,7 @@ type InputParams<T extends (...args: any[]) => any> = {
   /** This will be called within usePaginatorAPI, the resulting nextToken will be extracted */
   swrHook: T;
   hookProps: Parameters<T>[0];
+  swrProps?: Parameters<T>[1];
 };
 
 export type PaginationProps<T extends (...args: any[]) => any> = {
@@ -42,6 +43,7 @@ export const usePaginatorApi = <
   pageSize,
   swrHook,
   hookProps,
+  swrProps,
 }: InputParams<T>): PaginationProps<T> => {
   const [pageIndex, setPageIndex] = useState(0);
   const pageSizeOrDefault = pageSize || 5;
@@ -52,10 +54,13 @@ export const usePaginatorApi = <
     undefined,
   ]);
 
-  const { data, mutate } = swrHook({
-    ...hookProps,
-    nextToken: nextToken,
-  });
+  const { data, mutate } = swrHook(
+    {
+      ...hookProps,
+      nextToken: nextToken,
+    },
+    swrProps
+  );
 
   const [pageOptions, setPageOptions] = useState<number[]>([pageIndex]);
 
@@ -106,9 +111,10 @@ export const usePaginatorApi = <
   };
 
   //  canNextPage support
-  const canNextPage = useMemo(() => !(pageOptions?.length > 0 && !data?.next), [
-    data,
-  ]);
+  const canNextPage = useMemo(
+    () => !(pageOptions?.length > 0 && !data?.next),
+    [data]
+  );
 
   //  canPrevPage support
   const canPrevPage = useMemo(() => pageIndex != 0, [pageIndex]);

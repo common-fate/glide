@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/providersetup"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/common-fate/granted-approvals/pkg/providersetup"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // InvalidConfigFieldError is returned if the user attempts to set
@@ -66,7 +66,9 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 	}
 
 	// load the current values into this config
-	err = cfg.Load(ctx, &gconfig.MapLoader{Values: setup.ConfigValues})
+	// Skip secrets is set to true because we never need to read the value of a secret in this context.
+	// If a value is provided for a secret it will be updated
+	err = cfg.Load(ctx, &gconfig.MapLoader{Values: setup.ConfigValues, SkipLoadingSecrets: true})
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +82,7 @@ func (s *Service) CompleteStep(ctx context.Context, setupID string, stepIndex in
 
 		// any secret starting with 'awsssm://' is assumed to be an existing reference
 		// to a secret and is not set.
-		if strings.HasPrefix(value, "awsssm://") {
+		if f.IsSecret() && strings.HasPrefix(value, "awsssm://") {
 			continue
 		}
 

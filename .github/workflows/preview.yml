@@ -45,6 +45,8 @@ jobs:
 
       - name: Release CloudFormation
         run: go run mage.go -v release:production granted-test-releases-us-west-2 dev/${{ github.sha }}
+        env:
+          COMMONFATE_RELEASE: dev-${{ github.sha }}
 
   deploy:
     name: Deploy
@@ -134,9 +136,8 @@ jobs:
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
   playwright-tests:
     needs: [deploy]
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    # if: github.event.deployment_status.state == 'success'
     steps:
       - uses: common-fate/branch-name@v1.1.2
         name: Get branch name

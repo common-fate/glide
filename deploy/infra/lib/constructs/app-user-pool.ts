@@ -8,15 +8,18 @@ import {
 } from "aws-cdk-lib/aws-cognito";
 import { Construct } from "constructs";
 import { DevEnvironmentConfig } from "../helpers/dev-accounts";
+import { inviteEmailTemplate } from "../helpers/emails";
 import {
   IdentityProviderRegistry,
   IdentityProviderTypes,
 } from "../helpers/registry";
+import { CallBackUrls } from "./app-frontend";
 
 interface Props {
   appName: string;
   domainPrefix: string;
-  callbackUrls: string[];
+  frontendUrl: string;
+  callbackUrls: CallBackUrls;
   idpType: IdentityProviderTypes;
   // default should be an empty string is not in use
   samlMetadataUrl: string;
@@ -29,6 +32,7 @@ export class WebUserPool extends Construct {
   private readonly _userPool: cognito.IUserPool;
   private readonly _appName: string;
   private readonly _idpType: IdentityProviderTypes;
+  private readonly _samlUserPoolClient: SamlUserPoolClient;
   private _userPoolClientId: string;
   private _userPoolDomain: cognito.IUserPoolDomain;
 
@@ -74,6 +78,10 @@ export class WebUserPool extends Construct {
     } else {
       this._userPool = new cognito.UserPool(this, "UserPool", {
         userPoolName: this._appName,
+        userInvitation: {
+          emailSubject: "You've been invited to Common Fate",
+          emailBody: inviteEmailTemplate(props.frontendUrl),
+        },
         standardAttributes: {
           email: {
             required: true,
@@ -99,30 +107,45 @@ export class WebUserPool extends Construct {
           domainPrefix: props.domainPrefix,
         },
       });
-
-      const cfnAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
+      const cfnDeprecatedAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
         this,
         "WebAppAdministratorsGroup",
         {
           userPoolId: this._userPool.userPoolId,
           groupName: "granted_administrators",
           description:
-            "Administrators role for Granted Approvals Web Dashboard, all cognito users assigned to this group will have access to admin features",
+            "Deprecated: Auto generated administrators role for Common Fate Web Dashboard. This group has been deprecated in v0.11.0 and is here for backwards compatibility. It may be removed in a future release.",
+          precedence: 0,
+        }
+      );
+      cfnDeprecatedAdminUserPoolGroup.cfnOptions.condition = createCognitoResources;
+      const cfnAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
+        this,
+        "WebAppAdministratorsGroupCF",
+        {
+          userPoolId: this._userPool.userPoolId,
+          groupName: "common_fate_administrators",
+          description:
+            "Auto generated administrators role for Common Fate Web Dashboard",
           precedence: 0,
         }
       );
       cfnAdminUserPoolGroup.cfnOptions.condition = createCognitoResources;
     }
-    const samlWebClient = new SamlUserPoolClient(this, "SAMLUserPoolClient", {
-      appName: this._appName,
-      callbackUrls: props.callbackUrls,
-      idpType: props.idpType,
-      samlMetadataUrl: props.samlMetadataUrl,
-      userPool: this._userPool,
-      condition: createSAMLResources,
-      samlMetadata: props.samlMetadata,
-    });
-    samlWebClient.node.defaultChild;
+    this._samlUserPoolClient = new SamlUserPoolClient(
+      this,
+      "SAMLUserPoolClient",
+      {
+        appName: this._appName,
+        callbackUrls: props.callbackUrls,
+        idpType: props.idpType,
+        samlMetadataUrl: props.samlMetadataUrl,
+        userPool: this._userPool,
+        condition: createSAMLResources,
+        samlMetadata: props.samlMetadata,
+      }
+    );
+    this._samlUserPoolClient.node.defaultChild;
     const cognitoWebClient = new CognitoUserPoolClient(
       this,
       "CognitoUserPoolClient",
@@ -135,7 +158,7 @@ export class WebUserPool extends Construct {
     );
     this._userPoolClientId = cdk.Fn.conditionIf(
       createSAMLResources.logicalId,
-      samlWebClient.getUserPoolClient().userPoolClientId,
+      this._samlUserPoolClient.getUserPoolClient().userPoolClientId,
       cognitoWebClient.getUserPoolClient().userPoolClientId
     ).toString();
   }
@@ -144,6 +167,12 @@ export class WebUserPool extends Construct {
   }
   getUserPool(): cdk.aws_cognito.IUserPool {
     return this._userPool;
+  }
+  getSamlUserPoolClient(): SamlUserPoolClient | undefined {
+    if (this._idpType === IdentityProviderRegistry.Cognito) {
+      return undefined;
+    }
+    return this._samlUserPoolClient;
   }
   getUserPoolId(): string {
     return this._userPool.userPoolId;
@@ -163,7 +192,7 @@ export class WebUserPool extends Construct {
 type SamlUserPoolClientProps = {
   userPool: cognito.IUserPool;
   appName: string;
-  callbackUrls: string[];
+  callbackUrls: CallBackUrls;
   idpType: string;
   samlMetadataUrl: string;
   samlMetadata: string;
@@ -228,8 +257,8 @@ export class SamlUserPoolClient extends Construct {
           cognito.OAuthScope.EMAIL,
           cognito.OAuthScope.PROFILE,
         ],
-        callbackUrls: props.callbackUrls,
-        logoutUrls: props.callbackUrls,
+        callbackUrls: props.callbackUrls.callBackUrls,
+        logoutUrls: props.callbackUrls.logoutUrls,
       },
     });
 
@@ -243,11 +272,14 @@ export class SamlUserPoolClient extends Construct {
   getUserPoolClient(): cognito.UserPoolClient {
     return this._userPoolClient;
   }
+  getUserPoolName(): string {
+    return this._userPoolClient.userPoolClientName;
+  }
 }
 type CognitoUserPoolClientProps = {
   userPool: cognito.IUserPool;
   appName: string;
-  callbackUrls: string[];
+  callbackUrls: CallBackUrls;
   condition: cdk.CfnCondition;
 };
 export class CognitoUserPoolClient extends Construct {
@@ -279,8 +311,8 @@ export class CognitoUserPoolClient extends Construct {
           cognito.OAuthScope.EMAIL,
           cognito.OAuthScope.PROFILE,
         ],
-        callbackUrls: props.callbackUrls,
-        logoutUrls: props.callbackUrls,
+        callbackUrls: props.callbackUrls.callBackUrls,
+        logoutUrls: props.callbackUrls.logoutUrls,
       },
     });
     // have to drill down into the L1 construct to set the condition here

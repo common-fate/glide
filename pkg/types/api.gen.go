@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	externalRef0 "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	externalRef0 "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -26,6 +26,12 @@ import (
 const (
 	AccessRuleStatusACTIVE   AccessRuleStatus = "ACTIVE"
 	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
+)
+
+// Defines values for AccessRuleTargetDetailArgumentsFormElement.
+const (
+	INPUT       AccessRuleTargetDetailArgumentsFormElement = "INPUT"
+	MULTISELECT AccessRuleTargetDetailArgumentsFormElement = "MULTISELECT"
 )
 
 // Defines values for ApprovalMethod.
@@ -71,6 +77,11 @@ const (
 	ProviderSetupValidationStatusINPROGRESS ProviderSetupValidationStatus = "IN_PROGRESS"
 	ProviderSetupValidationStatusPENDING    ProviderSetupValidationStatus = "PENDING"
 	ProviderSetupValidationStatusSUCCESS    ProviderSetupValidationStatus = "SUCCESS"
+)
+
+// Defines values for RequestArgumentFormElement.
+const (
+	SELECT RequestArgumentFormElement = "SELECT"
 )
 
 // Defines values for RequestEventFromGrantStatus.
@@ -139,8 +150,8 @@ type AccessRuleDetail struct {
 	// The status of an Access Rule.
 	Status AccessRuleStatus `json:"status"`
 
-	// A target for an access rule
-	Target AccessRuleTarget `json:"target"`
+	// A detailed target for an access rule
+	Target AccessRuleTargetDetail `json:"target"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints TimeConstraints `json:"timeConstraints"`
@@ -165,59 +176,35 @@ type AccessRuleStatus string
 // A target for an access rule
 type AccessRuleTarget struct {
 	// Provider
-	Provider       Provider                        `json:"provider"`
-	With           AccessRuleTarget_With           `json:"with"`
-	WithSelectable AccessRuleTarget_WithSelectable `json:"withSelectable"`
+	Provider Provider `json:"provider"`
 }
 
-// AccessRuleTarget_With defines model for AccessRuleTarget.With.
-type AccessRuleTarget_With struct {
-	AdditionalProperties map[string]string `json:"-"`
-}
-
-// AccessRuleTarget_WithSelectable defines model for AccessRuleTarget.WithSelectable.
-type AccessRuleTarget_WithSelectable struct {
-	AdditionalProperties map[string][]string `json:"-"`
-}
-
-// A target for an access rule
+// A detailed target for an access rule
 type AccessRuleTargetDetail struct {
 	// Provider
-	Provider       Provider                              `json:"provider"`
-	With           AccessRuleTargetDetail_With           `json:"with"`
-	WithSelectable AccessRuleTargetDetail_WithSelectable `json:"withSelectable"`
+	Provider Provider                    `json:"provider"`
+	With     AccessRuleTargetDetail_With `json:"with"`
 }
 
 // AccessRuleTargetDetail_With defines model for AccessRuleTargetDetail.With.
 type AccessRuleTargetDetail_With struct {
-	AdditionalProperties map[string]string `json:"-"`
+	AdditionalProperties map[string]AccessRuleTargetDetailArguments `json:"-"`
 }
 
-// AccessRuleTargetDetail_WithSelectable defines model for AccessRuleTargetDetail.WithSelectable.
-type AccessRuleTargetDetail_WithSelectable struct {
-	AdditionalProperties map[string][]Selectable `json:"-"`
+// AccessRuleTargetDetailArguments defines model for AccessRuleTargetDetailArguments.
+type AccessRuleTargetDetailArguments struct {
+	FormElement AccessRuleTargetDetailArgumentsFormElement `json:"formElement"`
+	Groupings   AccessRuleTargetDetailArguments_Groupings  `json:"groupings"`
+	Values      []string                                   `json:"values"`
 }
 
-// Access Rule contains information for an end user to make a request for access. `AccessRuleWithSelectables` contains a more detailed `target` field with the specific options that can be selected.
-type AccessRuleWithSelectables struct {
-	Description string `json:"description"`
-	ID          string `json:"id"`
-	IsCurrent   bool   `json:"isCurrent"`
-	Name        string `json:"name"`
+// AccessRuleTargetDetailArgumentsFormElement defines model for AccessRuleTargetDetailArguments.FormElement.
+type AccessRuleTargetDetailArgumentsFormElement string
 
-	// A target for an access rule
-	Target AccessRuleTargetDetail `json:"target"`
-
-	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
-
-	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
-	// When a rule is updated, it's ID remains consistent.
-	Version string `json:"version"`
+// AccessRuleTargetDetailArguments_Groupings defines model for AccessRuleTargetDetailArguments.Groupings.
+type AccessRuleTargetDetailArguments_Groupings struct {
+	AdditionalProperties map[string][]string `json:"-"`
 }
-
-// AccessToken defines model for AccessToken.
-type AccessToken = string
 
 // Describes whether a request has been approved automatically or from a review
 type ApprovalMethod string
@@ -230,22 +217,50 @@ type ApproverConfig struct {
 	Users []string `json:"users"`
 }
 
-// A target for an access rule
+// a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
-	ProviderId string `json:"providerId"`
-
-	// The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.
-	With CreateAccessRuleTarget_With `json:"with"`
+	ProviderId string                      `json:"providerId"`
+	With       CreateAccessRuleTarget_With `json:"with"`
 }
 
-// The with field is a map of options for the field, if more than one option is specified, the requesting user will be able to select one of the options when requesting this rule.
+// CreateAccessRuleTarget_With defines model for CreateAccessRuleTarget.With.
 type CreateAccessRuleTarget_With struct {
+	AdditionalProperties map[string]CreateAccessRuleTargetDetailArguments `json:"-"`
+}
+
+// CreateAccessRuleTargetDetailArguments defines model for CreateAccessRuleTargetDetailArguments.
+type CreateAccessRuleTargetDetailArguments struct {
+	Groupings CreateAccessRuleTargetDetailArguments_Groupings `json:"groupings"`
+	Values    []string                                        `json:"values"`
+}
+
+// CreateAccessRuleTargetDetailArguments_Groupings defines model for CreateAccessRuleTargetDetailArguments.Groupings.
+type CreateAccessRuleTargetDetailArguments_Groupings struct {
 	AdditionalProperties map[string][]string `json:"-"`
 }
 
 // CreateRequestWith defines model for CreateRequestWith.
 type CreateRequestWith struct {
-	AdditionalProperties map[string]string `json:"-"`
+	AdditionalProperties map[string][]string `json:"-"`
+}
+
+// CreateRequestWithSubRequest defines model for CreateRequestWithSubRequest.
+type CreateRequestWithSubRequest = []CreateRequestWith
+
+// Favorite defines model for Favorite.
+type Favorite struct {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	RuleId string `json:"ruleId"`
+}
+
+// FavoriteDetail defines model for FavoriteDetail.
+type FavoriteDetail struct {
+	Id     string                      `json:"id"`
+	Name   string                      `json:"name"`
+	Reason *string                     `json:"reason,omitempty"`
+	Timing RequestTiming               `json:"timing"`
+	With   CreateRequestWithSubRequest `json:"with"`
 }
 
 // A temporary assignment of a user to a principal.
@@ -271,14 +286,31 @@ type GrantStatus string
 
 // Group defines model for Group.
 type Group struct {
-	Description string `json:"description"`
-	Id          string `json:"id"`
-	MemberCount int    `json:"memberCount"`
-	Name        string `json:"name"`
+	Description string   `json:"description"`
+	Id          string   `json:"id"`
+	MemberCount int      `json:"memberCount"`
+	Members     []string `json:"members"`
+	Name        string   `json:"name"`
+	Source      string   `json:"source"`
 }
 
 // IdpStatus defines model for IdpStatus.
 type IdpStatus string
+
+// KeyValue defines model for KeyValue.
+type KeyValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// A matched access rule with option values if they are required for the access rule request
+type LookupAccessRule struct {
+	// Access Rule contains information for an end user to make a request for access.
+	AccessRule AccessRule `json:"accessRule"`
+
+	// If the matched access rule has selectable fields, this array will contain the matched values to be used to prefill the form when requesting
+	SelectableWithOptionValues *[]KeyValue `json:"selectableWithOptionValues,omitempty"`
+}
 
 // Provider
 type Provider struct {
@@ -311,14 +343,14 @@ type ProviderConfigValue struct {
 	Value string `json:"value"`
 }
 
-// A provider in the process of being set up through the guided setup workflow in Granted. These providers are **not** yet active.
+// A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
 type ProviderSetup struct {
 	ConfigValidation []externalRef0.ProviderConfigValidation `json:"configValidation"`
 
 	// The current configuration values.
 	ConfigValues map[string]string `json:"configValues"`
 
-	// A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `granted-deployment.yml` file.
+	// A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file.
 	Id string `json:"id"`
 
 	// The status of the setup process.
@@ -383,20 +415,20 @@ type ProviderSetupValidation struct {
 // The status of the validation.
 type ProviderSetupValidationStatus string
 
-// A request to access something made by an end user in Granted.
+// A request to access something made by an end user in Common Fate.
 type Request struct {
-	AccessRule RequestAccessRule `json:"accessRule"`
+	AccessRuleId      string `json:"accessRuleId"`
+	AccessRuleVersion string `json:"accessRuleVersion"`
 
 	// Describes whether a request has been approved automatically or from a review
 	ApprovalMethod *ApprovalMethod `json:"approvalMethod,omitempty"`
 
 	// A temporary assignment of a user to a principal.
-	Grant        *Grant               `json:"grant,omitempty"`
-	ID           string               `json:"id"`
-	Reason       *string              `json:"reason,omitempty"`
-	RequestedAt  time.Time            `json:"requestedAt"`
-	Requestor    string               `json:"requestor"`
-	SelectedWith Request_SelectedWith `json:"selectedWith"`
+	Grant       *Grant    `json:"grant,omitempty"`
+	ID          string    `json:"id"`
+	Reason      *string   `json:"reason,omitempty"`
+	RequestedAt time.Time `json:"requestedAt"`
+	Requestor   string    `json:"requestor"`
 
 	// The status of an Access Request.
 	Status    RequestStatus `json:"status"`
@@ -404,35 +436,70 @@ type Request struct {
 	UpdatedAt time.Time     `json:"updatedAt"`
 }
 
-// Request_SelectedWith defines model for Request.SelectedWith.
-type Request_SelectedWith struct {
-	AdditionalProperties map[string]WithOption `json:"-"`
-}
-
-// RequestAccessRule defines model for RequestAccessRule.
+// Access Rule contains information for an end user to make a request for access.
 type RequestAccessRule struct {
-	Id      string `json:"id"`
+	CanRequest  bool   `json:"canRequest"`
+	Description string `json:"description"`
+	ID          string `json:"id"`
+	IsCurrent   bool   `json:"isCurrent"`
+	Name        string `json:"name"`
+
+	// A detailed target for an access rule request
+	Target RequestAccessRuleTarget `json:"target"`
+
+	// Time configuration for an Access Rule.
+	TimeConstraints TimeConstraints `json:"timeConstraints"`
+
+	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
+	// When a rule is updated, it's ID remains consistent.
 	Version string `json:"version"`
 }
 
-// A request to access something made by an end user in Granted.
+// A detailed target for an access rule request
+type RequestAccessRuleTarget struct {
+	Arguments RequestAccessRuleTarget_Arguments `json:"arguments"`
+
+	// Provider
+	Provider Provider `json:"provider"`
+}
+
+// RequestAccessRuleTarget_Arguments defines model for RequestAccessRuleTarget.Arguments.
+type RequestAccessRuleTarget_Arguments struct {
+	AdditionalProperties map[string]RequestArgument `json:"-"`
+}
+
+// RequestArgument defines model for RequestArgument.
+type RequestArgument struct {
+	Description *string                     `json:"description,omitempty"`
+	FormElement *RequestArgumentFormElement `json:"formElement,omitempty"`
+	Options     []WithOption                `json:"options"`
+
+	// This will be true if a selection is require when creating a request
+	RequiresSelection bool   `json:"requiresSelection"`
+	Title             string `json:"title"`
+}
+
+// RequestArgumentFormElement defines model for RequestArgument.FormElement.
+type RequestArgumentFormElement string
+
+// A request to access something made by an end user in Common Fate.
 type RequestDetail struct {
 	// Access Rule contains information for an end user to make a request for access.
 	AccessRule AccessRule `json:"accessRule"`
 
 	// Describes whether a request has been approved automatically or from a review
-	ApprovalMethod *ApprovalMethod `json:"approvalMethod,omitempty"`
+	ApprovalMethod *ApprovalMethod         `json:"approvalMethod,omitempty"`
+	Arguments      RequestDetail_Arguments `json:"arguments"`
 
 	// true if the requesting user is a reviewer of this request.
 	CanReview bool `json:"canReview"`
 
 	// A temporary assignment of a user to a principal.
-	Grant        *Grant                      `json:"grant,omitempty"`
-	ID           string                      `json:"id"`
-	Reason       *string                     `json:"reason,omitempty"`
-	RequestedAt  time.Time                   `json:"requestedAt"`
-	Requestor    string                      `json:"requestor"`
-	SelectedWith *RequestDetail_SelectedWith `json:"selectedWith,omitempty"`
+	Grant       *Grant    `json:"grant,omitempty"`
+	ID          string    `json:"id"`
+	Reason      *string   `json:"reason,omitempty"`
+	RequestedAt time.Time `json:"requestedAt"`
+	Requestor   string    `json:"requestor"`
 
 	// The status of an Access Request.
 	Status    RequestStatus `json:"status"`
@@ -440,9 +507,9 @@ type RequestDetail struct {
 	UpdatedAt time.Time     `json:"updatedAt"`
 }
 
-// RequestDetail_SelectedWith defines model for RequestDetail.SelectedWith.
-type RequestDetail_SelectedWith struct {
-	AdditionalProperties map[string]WithOption `json:"-"`
+// RequestDetail_Arguments defines model for RequestDetail.Arguments.
+type RequestDetail_Arguments struct {
+	AdditionalProperties map[string]With `json:"-"`
 }
 
 // RequestEvent defines model for RequestEvent.
@@ -493,12 +560,6 @@ type RequestTiming struct {
 // A decision made on an Access Request.
 type ReviewDecision string
 
-// Selectable defines model for Selectable.
-type Selectable struct {
-	Option WithOption `json:"option"`
-	Valid  bool       `json:"valid"`
-}
-
 // Time configuration for an Access Rule.
 type TimeConstraints struct {
 	// The maximum duration in seconds the access is allowed for.
@@ -517,32 +578,46 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// WithOption defines model for WithOption.
-type WithOption struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+// With defines model for With.
+type With struct {
+	FieldDescription  *string `json:"fieldDescription,omitempty"`
+	Label             string  `json:"label"`
+	OptionDescription *string `json:"optionDescription,omitempty"`
+	Title             string  `json:"title"`
+	Value             string  `json:"value"`
 }
 
-// ArgOptionsResponse defines model for ArgOptionsResponse.
-type ArgOptionsResponse struct {
-	// Whether any options have been suggested for the argument.
-	HasOptions bool `json:"hasOptions"`
+// WithOption defines model for WithOption.
+type WithOption struct {
+	Description *string `json:"description,omitempty"`
+	Label       string  `json:"label"`
+	Valid       bool    `json:"valid"`
+	Value       string  `json:"value"`
+}
 
-	// The suggested options.
-	Options []externalRef0.Option `json:"options"`
+// AccessTokenResponse defines model for AccessTokenResponse.
+type AccessTokenResponse struct {
+	HasToken bool    `json:"hasToken"`
+	Token    *string `json:"token,omitempty"`
 }
 
 // AuthUserResponse defines model for AuthUserResponse.
 type AuthUserResponse struct {
-	// Whether the user is an administrator of Granted.
+	// Whether the user is an administrator of Common Fate.
 	IsAdmin bool `json:"isAdmin"`
 	User    User `json:"user"`
 }
 
 // CompleteProviderSetupResponse defines model for CompleteProviderSetupResponse.
 type CompleteProviderSetupResponse struct {
-	// Whether a manual update is required to the Granted Approvals deployment configuration (`granted-deployment.yml`) to activate the provider.
+	// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
 	DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
+}
+
+// DeploymentVersionResponse defines model for DeploymentVersionResponse.
+type DeploymentVersionResponse struct {
+	// The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.
+	Version string `json:"version"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -574,6 +649,12 @@ type ListAccessRulesResponse struct {
 	Next        *string      `json:"next"`
 }
 
+// ListFavoritesResponse defines model for ListFavoritesResponse.
+type ListFavoritesResponse struct {
+	Favorites []Favorite `json:"favorites"`
+	Next      *string    `json:"next"`
+}
+
 // ListGroupsResponse defines model for ListGroupsResponse.
 type ListGroupsResponse struct {
 	Groups []Group `json:"groups"`
@@ -603,12 +684,12 @@ type ListUserResponse struct {
 	Users []User  `json:"users"`
 }
 
-// A provider in the process of being set up through the guided setup workflow in Granted. These providers are **not** yet active.
+// A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
 type ProviderSetupResponse = ProviderSetup
 
 // ReviewResponse defines model for ReviewResponse.
 type ReviewResponse struct {
-	// A request to access something made by an end user in Granted.
+	// A request to access something made by an end user in Common Fate.
 	Request *Request `json:"request,omitempty"`
 }
 
@@ -622,17 +703,27 @@ type CreateAccessRuleRequest struct {
 	Groups []string `json:"groups"`
 	Name   string   `json:"name"`
 
-	// A target for an access rule
+	// a request body for creating a Access Rule Target
 	Target CreateAccessRuleTarget `json:"target"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints TimeConstraints `json:"timeConstraints"`
 }
 
+// CreateFavoriteRequest defines model for CreateFavoriteRequest.
+type CreateFavoriteRequest struct {
+	AccessRuleId string                       `json:"accessRuleId"`
+	Name         string                       `json:"name"`
+	Reason       *string                      `json:"reason,omitempty"`
+	Timing       RequestTiming                `json:"timing"`
+	With         *CreateRequestWithSubRequest `json:"with,omitempty"`
+}
+
 // CreateGroupRequest defines model for CreateGroupRequest.
 type CreateGroupRequest struct {
-	Description *string `json:"description,omitempty"`
-	Name        string  `json:"name"`
+	Description *string  `json:"description,omitempty"`
+	Members     []string `json:"members"`
+	Name        string   `json:"name"`
 }
 
 // CreateProviderSetupRequest defines model for CreateProviderSetupRequest.
@@ -643,10 +734,10 @@ type CreateProviderSetupRequest struct {
 
 // CreateRequestRequest defines model for CreateRequestRequest.
 type CreateRequestRequest struct {
-	AccessRuleId string             `json:"accessRuleId"`
-	Reason       *string            `json:"reason,omitempty"`
-	Timing       RequestTiming      `json:"timing"`
-	With         *CreateRequestWith `json:"with,omitempty"`
+	AccessRuleId string                       `json:"accessRuleId"`
+	Reason       *string                      `json:"reason,omitempty"`
+	Timing       RequestTiming                `json:"timing"`
+	With         *CreateRequestWithSubRequest `json:"with,omitempty"`
 }
 
 // CreateUserRequest defines model for CreateUserRequest.
@@ -675,18 +766,20 @@ type ReviewRequest struct {
 	OverrideTiming *RequestTiming `json:"overrideTiming,omitempty"`
 }
 
-// UpdateAccessRuleRequest defines model for UpdateAccessRuleRequest.
-type UpdateAccessRuleRequest struct {
-	// Approver config for access rules
-	Approval    ApproverConfig `json:"approval"`
-	Description string         `json:"description"`
-	Groups      []string       `json:"groups"`
-	Name        string         `json:"name"`
+// AccessRuleLookupParams defines parameters for AccessRuleLookup.
+type AccessRuleLookupParams struct {
+	// the provider type i.e. commonfate/aws-sso. type should be encoded i.e.  backslash -> %2
+	Type *AccessRuleLookupParamsType `form:"type,omitempty" json:"type,omitempty"`
 
-	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
-	UpdateMessage   *string         `json:"updateMessage,omitempty"`
+	// the permissionSetArn label, typically resembles a role name i.e. AdminstratorAccess
+	PermissionSetArnLabel *string `form:"permissionSetArn.label,omitempty" json:"permissionSetArn.label,omitempty"`
+
+	// the aws account id
+	AccountId *string `form:"accountId,omitempty" json:"accountId,omitempty"`
 }
+
+// AccessRuleLookupParamsType defines parameters for AccessRuleLookup.
+type AccessRuleLookupParamsType string
 
 // AdminListAccessRulesParams defines parameters for AdminListAccessRules.
 type AdminListAccessRulesParams struct {
@@ -700,11 +793,15 @@ type AdminListAccessRulesParams struct {
 // AdminListAccessRulesParamsStatus defines parameters for AdminListAccessRules.
 type AdminListAccessRulesParamsStatus string
 
-// GetGroupsParams defines parameters for GetGroups.
-type GetGroupsParams struct {
+// ListGroupsParams defines parameters for ListGroups.
+type ListGroupsParams struct {
 	// encrypted token containing pagination info
-	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+	NextToken *string                 `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+	Source    *ListGroupsParamsSource `form:"source,omitempty" json:"source,omitempty"`
 }
+
+// ListGroupsParamsSource defines parameters for ListGroups.
+type ListGroupsParamsSource string
 
 // ListProviderArgOptionsParams defines parameters for ListProviderArgOptions.
 type ListProviderArgOptionsParams struct {
@@ -766,10 +863,13 @@ type UserListRequestsUpcomingParams struct {
 type AdminCreateAccessRuleJSONRequestBody CreateAccessRuleRequest
 
 // AdminUpdateAccessRuleJSONRequestBody defines body for AdminUpdateAccessRule for application/json ContentType.
-type AdminUpdateAccessRuleJSONRequestBody UpdateAccessRuleRequest
+type AdminUpdateAccessRuleJSONRequestBody CreateAccessRuleRequest
 
 // CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
 type CreateGroupJSONRequestBody CreateGroupRequest
+
+// AdminUpdateGroupJSONRequestBody defines body for AdminUpdateGroup for application/json ContentType.
+type AdminUpdateGroupJSONRequestBody CreateGroupRequest
 
 // CreateProvidersetupJSONRequestBody defines body for CreateProvidersetup for application/json ContentType.
 type CreateProvidersetupJSONRequestBody CreateProviderSetupRequest
@@ -783,121 +883,21 @@ type CreateUserJSONRequestBody CreateUserRequest
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody UpdateUserJSONBody
 
+// UserCreateFavoriteJSONRequestBody defines body for UserCreateFavorite for application/json ContentType.
+type UserCreateFavoriteJSONRequestBody CreateFavoriteRequest
+
+// UpdateFavoriteJSONRequestBody defines body for UpdateFavorite for application/json ContentType.
+type UpdateFavoriteJSONRequestBody CreateFavoriteRequest
+
 // UserCreateRequestJSONRequestBody defines body for UserCreateRequest for application/json ContentType.
 type UserCreateRequestJSONRequestBody CreateRequestRequest
 
 // ReviewRequestJSONRequestBody defines body for ReviewRequest for application/json ContentType.
 type ReviewRequestJSONRequestBody ReviewRequest
 
-// Getter for additional properties for AccessRuleTarget_With. Returns the specified
-// element and whether it was found
-func (a AccessRuleTarget_With) Get(fieldName string) (value string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for AccessRuleTarget_With
-func (a *AccessRuleTarget_With) Set(fieldName string, value string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for AccessRuleTarget_With to handle AdditionalProperties
-func (a *AccessRuleTarget_With) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for AccessRuleTarget_With to handle AdditionalProperties
-func (a AccessRuleTarget_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for AccessRuleTarget_WithSelectable. Returns the specified
-// element and whether it was found
-func (a AccessRuleTarget_WithSelectable) Get(fieldName string) (value []string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for AccessRuleTarget_WithSelectable
-func (a *AccessRuleTarget_WithSelectable) Set(fieldName string, value []string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for AccessRuleTarget_WithSelectable to handle AdditionalProperties
-func (a *AccessRuleTarget_WithSelectable) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal []string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for AccessRuleTarget_WithSelectable to handle AdditionalProperties
-func (a AccessRuleTarget_WithSelectable) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
 // Getter for additional properties for AccessRuleTargetDetail_With. Returns the specified
 // element and whether it was found
-func (a AccessRuleTargetDetail_With) Get(fieldName string) (value string, found bool) {
+func (a AccessRuleTargetDetail_With) Get(fieldName string) (value AccessRuleTargetDetailArguments, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
@@ -905,9 +905,9 @@ func (a AccessRuleTargetDetail_With) Get(fieldName string) (value string, found 
 }
 
 // Setter for additional properties for AccessRuleTargetDetail_With
-func (a *AccessRuleTargetDetail_With) Set(fieldName string, value string) {
+func (a *AccessRuleTargetDetail_With) Set(fieldName string, value AccessRuleTargetDetailArguments) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
+		a.AdditionalProperties = make(map[string]AccessRuleTargetDetailArguments)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
@@ -921,9 +921,9 @@ func (a *AccessRuleTargetDetail_With) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
+		a.AdditionalProperties = make(map[string]AccessRuleTargetDetailArguments)
 		for fieldName, fieldBuf := range object {
-			var fieldVal string
+			var fieldVal AccessRuleTargetDetailArguments
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -948,25 +948,25 @@ func (a AccessRuleTargetDetail_With) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for AccessRuleTargetDetail_WithSelectable. Returns the specified
+// Getter for additional properties for AccessRuleTargetDetailArguments_Groupings. Returns the specified
 // element and whether it was found
-func (a AccessRuleTargetDetail_WithSelectable) Get(fieldName string) (value []Selectable, found bool) {
+func (a AccessRuleTargetDetailArguments_Groupings) Get(fieldName string) (value []string, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for AccessRuleTargetDetail_WithSelectable
-func (a *AccessRuleTargetDetail_WithSelectable) Set(fieldName string, value []Selectable) {
+// Setter for additional properties for AccessRuleTargetDetailArguments_Groupings
+func (a *AccessRuleTargetDetailArguments_Groupings) Set(fieldName string, value []string) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]Selectable)
+		a.AdditionalProperties = make(map[string][]string)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for AccessRuleTargetDetail_WithSelectable to handle AdditionalProperties
-func (a *AccessRuleTargetDetail_WithSelectable) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for AccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a *AccessRuleTargetDetailArguments_Groupings) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -974,9 +974,9 @@ func (a *AccessRuleTargetDetail_WithSelectable) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]Selectable)
+		a.AdditionalProperties = make(map[string][]string)
 		for fieldName, fieldBuf := range object {
-			var fieldVal []Selectable
+			var fieldVal []string
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -987,8 +987,8 @@ func (a *AccessRuleTargetDetail_WithSelectable) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for AccessRuleTargetDetail_WithSelectable to handle AdditionalProperties
-func (a AccessRuleTargetDetail_WithSelectable) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for AccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a AccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1003,7 +1003,7 @@ func (a AccessRuleTargetDetail_WithSelectable) MarshalJSON() ([]byte, error) {
 
 // Getter for additional properties for CreateAccessRuleTarget_With. Returns the specified
 // element and whether it was found
-func (a CreateAccessRuleTarget_With) Get(fieldName string) (value []string, found bool) {
+func (a CreateAccessRuleTarget_With) Get(fieldName string) (value CreateAccessRuleTargetDetailArguments, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
@@ -1011,9 +1011,9 @@ func (a CreateAccessRuleTarget_With) Get(fieldName string) (value []string, foun
 }
 
 // Setter for additional properties for CreateAccessRuleTarget_With
-func (a *CreateAccessRuleTarget_With) Set(fieldName string, value []string) {
+func (a *CreateAccessRuleTarget_With) Set(fieldName string, value CreateAccessRuleTargetDetailArguments) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]string)
+		a.AdditionalProperties = make(map[string]CreateAccessRuleTargetDetailArguments)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
@@ -1027,9 +1027,9 @@ func (a *CreateAccessRuleTarget_With) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]string)
+		a.AdditionalProperties = make(map[string]CreateAccessRuleTargetDetailArguments)
 		for fieldName, fieldBuf := range object {
-			var fieldVal []string
+			var fieldVal CreateAccessRuleTargetDetailArguments
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -1054,9 +1054,62 @@ func (a CreateAccessRuleTarget_With) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for CreateAccessRuleTargetDetailArguments_Groupings. Returns the specified
+// element and whether it was found
+func (a CreateAccessRuleTargetDetailArguments_Groupings) Get(fieldName string) (value []string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CreateAccessRuleTargetDetailArguments_Groupings
+func (a *CreateAccessRuleTargetDetailArguments_Groupings) Set(fieldName string, value []string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string][]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CreateAccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a *CreateAccessRuleTargetDetailArguments_Groupings) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string][]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal []string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for CreateAccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
+func (a CreateAccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for CreateRequestWith. Returns the specified
 // element and whether it was found
-func (a CreateRequestWith) Get(fieldName string) (value string, found bool) {
+func (a CreateRequestWith) Get(fieldName string) (value []string, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
@@ -1064,9 +1117,9 @@ func (a CreateRequestWith) Get(fieldName string) (value string, found bool) {
 }
 
 // Setter for additional properties for CreateRequestWith
-func (a *CreateRequestWith) Set(fieldName string, value string) {
+func (a *CreateRequestWith) Set(fieldName string, value []string) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
+		a.AdditionalProperties = make(map[string][]string)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
@@ -1080,9 +1133,9 @@ func (a *CreateRequestWith) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
+		a.AdditionalProperties = make(map[string][]string)
 		for fieldName, fieldBuf := range object {
-			var fieldVal string
+			var fieldVal []string
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -1107,25 +1160,25 @@ func (a CreateRequestWith) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for Request_SelectedWith. Returns the specified
+// Getter for additional properties for RequestAccessRuleTarget_Arguments. Returns the specified
 // element and whether it was found
-func (a Request_SelectedWith) Get(fieldName string) (value WithOption, found bool) {
+func (a RequestAccessRuleTarget_Arguments) Get(fieldName string) (value RequestArgument, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for Request_SelectedWith
-func (a *Request_SelectedWith) Set(fieldName string, value WithOption) {
+// Setter for additional properties for RequestAccessRuleTarget_Arguments
+func (a *RequestAccessRuleTarget_Arguments) Set(fieldName string, value RequestArgument) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]WithOption)
+		a.AdditionalProperties = make(map[string]RequestArgument)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for Request_SelectedWith to handle AdditionalProperties
-func (a *Request_SelectedWith) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for RequestAccessRuleTarget_Arguments to handle AdditionalProperties
+func (a *RequestAccessRuleTarget_Arguments) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -1133,9 +1186,9 @@ func (a *Request_SelectedWith) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]WithOption)
+		a.AdditionalProperties = make(map[string]RequestArgument)
 		for fieldName, fieldBuf := range object {
-			var fieldVal WithOption
+			var fieldVal RequestArgument
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -1146,8 +1199,8 @@ func (a *Request_SelectedWith) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for Request_SelectedWith to handle AdditionalProperties
-func (a Request_SelectedWith) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for RequestAccessRuleTarget_Arguments to handle AdditionalProperties
+func (a RequestAccessRuleTarget_Arguments) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1160,25 +1213,25 @@ func (a Request_SelectedWith) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for RequestDetail_SelectedWith. Returns the specified
+// Getter for additional properties for RequestDetail_Arguments. Returns the specified
 // element and whether it was found
-func (a RequestDetail_SelectedWith) Get(fieldName string) (value WithOption, found bool) {
+func (a RequestDetail_Arguments) Get(fieldName string) (value With, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for RequestDetail_SelectedWith
-func (a *RequestDetail_SelectedWith) Set(fieldName string, value WithOption) {
+// Setter for additional properties for RequestDetail_Arguments
+func (a *RequestDetail_Arguments) Set(fieldName string, value With) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]WithOption)
+		a.AdditionalProperties = make(map[string]With)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for RequestDetail_SelectedWith to handle AdditionalProperties
-func (a *RequestDetail_SelectedWith) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for RequestDetail_Arguments to handle AdditionalProperties
+func (a *RequestDetail_Arguments) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -1186,9 +1239,9 @@ func (a *RequestDetail_SelectedWith) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]WithOption)
+		a.AdditionalProperties = make(map[string]With)
 		for fieldName, fieldBuf := range object {
-			var fieldVal WithOption
+			var fieldVal With
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -1199,8 +1252,8 @@ func (a *RequestDetail_SelectedWith) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for RequestDetail_SelectedWith to handle AdditionalProperties
-func (a RequestDetail_SelectedWith) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for RequestDetail_Arguments to handle AdditionalProperties
+func (a RequestDetail_Arguments) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1218,6 +1271,9 @@ type ServerInterface interface {
 	// List Access Rules
 	// (GET /api/v1/access-rules)
 	ListUserAccessRules(w http.ResponseWriter, r *http.Request)
+	// Lookup an access rule based on the target
+	// (GET /api/v1/access-rules/lookup)
+	AccessRuleLookup(w http.ResponseWriter, r *http.Request, params AccessRuleLookupParams)
 	// Get Access Rule
 	// (GET /api/v1/access-rules/{ruleId})
 	UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
@@ -1245,15 +1301,24 @@ type ServerInterface interface {
 	// Get Access Rule Version
 	// (GET /api/v1/admin/access-rules/{ruleId}/versions/{version})
 	AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, ruleId string, version string)
+	// Get deployment version details
+	// (GET /api/v1/admin/deployment/version)
+	AdminGetDeploymentVersion(w http.ResponseWriter, r *http.Request)
 	// List groups
 	// (GET /api/v1/admin/groups)
-	GetGroups(w http.ResponseWriter, r *http.Request, params GetGroupsParams)
+	ListGroups(w http.ResponseWriter, r *http.Request, params ListGroupsParams)
 	// Create Group
 	// (POST /api/v1/admin/groups)
 	CreateGroup(w http.ResponseWriter, r *http.Request)
+	// Delete Group
+	// (DELETE /api/v1/admin/groups/{groupId})
+	AdminDeleteGroup(w http.ResponseWriter, r *http.Request, groupId string)
 	// Get Group Details
 	// (GET /api/v1/admin/groups/{groupId})
 	GetGroup(w http.ResponseWriter, r *http.Request, groupId string)
+	// Update Group
+	// (PUT /api/v1/admin/groups/{groupId})
+	AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId string)
 	// Get identity configuration
 	// (GET /api/v1/admin/identity)
 	IdentityConfiguration(w http.ResponseWriter, r *http.Request)
@@ -1311,6 +1376,21 @@ type ServerInterface interface {
 	// Update User
 	// (POST /api/v1/admin/users/{userId})
 	UpdateUser(w http.ResponseWriter, r *http.Request, userId string)
+	// ListFavorites
+	// (GET /api/v1/favorites)
+	UserListFavorites(w http.ResponseWriter, r *http.Request)
+	// Create Favorite
+	// (POST /api/v1/favorites)
+	UserCreateFavorite(w http.ResponseWriter, r *http.Request)
+
+	// (DELETE /api/v1/favorites/{id})
+	DeleteFavorite(w http.ResponseWriter, r *http.Request, id string)
+	// Get Favorite
+	// (GET /api/v1/favorites/{id})
+	UserGetFavorite(w http.ResponseWriter, r *http.Request, id string)
+
+	// (PUT /api/v1/favorites/{id})
+	UpdateFavorite(w http.ResponseWriter, r *http.Request, id string)
 	// List my requests
 	// (GET /api/v1/requests)
 	UserListRequests(w http.ResponseWriter, r *http.Request, params UserListRequestsParams)
@@ -1367,6 +1447,59 @@ func (siw *ServerInterfaceWrapper) ListUserAccessRules(w http.ResponseWriter, r 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListUserAccessRules(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AccessRuleLookup operation middleware
+func (siw *ServerInterfaceWrapper) AccessRuleLookup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AccessRuleLookupParams
+
+	// ------------- Optional query parameter "type" -------------
+	if paramValue := r.URL.Query().Get("type"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "type", r.URL.Query(), &params.Type)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "type", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "permissionSetArn.label" -------------
+	if paramValue := r.URL.Query().Get("permissionSetArn.label"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "permissionSetArn.label", r.URL.Query(), &params.PermissionSetArnLabel)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "permissionSetArn.label", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "accountId" -------------
+	if paramValue := r.URL.Query().Get("accountId"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "accountId", r.URL.Query(), &params.AccountId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "accountId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AccessRuleLookup(w, r, params)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1624,14 +1757,29 @@ func (siw *ServerInterfaceWrapper) AdminGetAccessRuleVersion(w http.ResponseWrit
 	handler(w, r.WithContext(ctx))
 }
 
-// GetGroups operation middleware
-func (siw *ServerInterfaceWrapper) GetGroups(w http.ResponseWriter, r *http.Request) {
+// AdminGetDeploymentVersion operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetDeploymentVersion(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetDeploymentVersion(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// ListGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetGroupsParams
+	var params ListGroupsParams
 
 	// ------------- Optional query parameter "nextToken" -------------
 	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
@@ -1644,8 +1792,19 @@ func (siw *ServerInterfaceWrapper) GetGroups(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// ------------- Optional query parameter "source" -------------
+	if paramValue := r.URL.Query().Get("source"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "source", r.URL.Query(), &params.Source)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "source", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetGroups(w, r, params)
+		siw.Handler.ListGroups(w, r, params)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1661,6 +1820,32 @@ func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Re
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateGroup(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminDeleteGroup operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "groupId" -------------
+	var groupId string
+
+	err = runtime.BindStyledParameter("simple", false, "groupId", chi.URLParam(r, "groupId"), &groupId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteGroup(w, r, groupId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1687,6 +1872,32 @@ func (siw *ServerInterfaceWrapper) GetGroup(w http.ResponseWriter, r *http.Reque
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetGroup(w, r, groupId)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminUpdateGroup operation middleware
+func (siw *ServerInterfaceWrapper) AdminUpdateGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "groupId" -------------
+	var groupId string
+
+	err = runtime.BindStyledParameter("simple", false, "groupId", chi.URLParam(r, "groupId"), &groupId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminUpdateGroup(w, r, groupId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2177,6 +2388,114 @@ func (siw *ServerInterfaceWrapper) UpdateUser(w http.ResponseWriter, r *http.Req
 	handler(w, r.WithContext(ctx))
 }
 
+// UserListFavorites operation middleware
+func (siw *ServerInterfaceWrapper) UserListFavorites(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserListFavorites(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserCreateFavorite operation middleware
+func (siw *ServerInterfaceWrapper) UserCreateFavorite(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserCreateFavorite(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// DeleteFavorite operation middleware
+func (siw *ServerInterfaceWrapper) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteFavorite(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserGetFavorite operation middleware
+func (siw *ServerInterfaceWrapper) UserGetFavorite(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserGetFavorite(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UpdateFavorite operation middleware
+func (siw *ServerInterfaceWrapper) UpdateFavorite(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateFavorite(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // UserListRequests operation middleware
 func (siw *ServerInterfaceWrapper) UserListRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -2647,6 +2966,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/access-rules", wrapper.ListUserAccessRules)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/access-rules/lookup", wrapper.AccessRuleLookup)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/access-rules/{ruleId}", wrapper.UserGetAccessRule)
 	})
 	r.Group(func(r chi.Router) {
@@ -2674,13 +2996,22 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}/versions/{version}", wrapper.AdminGetAccessRuleVersion)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/groups", wrapper.GetGroups)
+		r.Get(options.BaseURL+"/api/v1/admin/deployment/version", wrapper.AdminGetDeploymentVersion)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/admin/groups", wrapper.ListGroups)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/admin/groups", wrapper.CreateGroup)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/admin/groups/{groupId}", wrapper.AdminDeleteGroup)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/groups/{groupId}", wrapper.GetGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/api/v1/admin/groups/{groupId}", wrapper.AdminUpdateGroup)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/identity", wrapper.IdentityConfiguration)
@@ -2740,6 +3071,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/users/{userId}", wrapper.UpdateUser)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/favorites", wrapper.UserListFavorites)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/favorites", wrapper.UserCreateFavorite)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/favorites/{id}", wrapper.DeleteFavorite)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/favorites/{id}", wrapper.UserGetFavorite)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/api/v1/favorites/{id}", wrapper.UpdateFavorite)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests", wrapper.UserListRequests)
 	})
 	r.Group(func(r chi.Router) {
@@ -2785,132 +3131,148 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AA==",
+	"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",
+	"TtIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

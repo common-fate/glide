@@ -8,12 +8,11 @@ import (
 
 // Runtime is a runtime which initiates a stepfunctions workflow
 type Runtime struct {
-	StateMachineARN        string `env:"STATE_MACHINE_ARN"`
-	RevokeStateMachineARN  string `env:"REVOKE_STATE_MACHINE_ARN"`
+	StateMachineARN        string `env:"COMMONFATE_STATE_MACHINE_ARN"`
 	LogLevel               string `env:"LOG_LEVEL,default=info"`
-	EventBusArn            string `env:"EVENT_BUS_ARN"`
-	EventBusSource         string `env:"EVENT_BUS_SOURCE"`
-	GranterStateMachineARN string `env:"STATE_MACHINE_ARN"`
+	EventBusArn            string `env:"COMMONFATE_EVENT_BUS_ARN"`
+	EventBusSource         string `env:"COMMONFATE_EVENT_BUS_SOURCE"`
+	GranterStateMachineARN string `env:"COMMONFATE_STATE_MACHINE_ARN"`
 }
 
 // Init initialises the runtime

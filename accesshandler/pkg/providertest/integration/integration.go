@@ -2,11 +2,14 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 	"github.com/sethvargo/go-retry"
 	"github.com/stretchr/testify/assert"
@@ -14,10 +17,11 @@ import (
 
 // TestCase is a test case for running integration tests.
 type TestCase struct {
-	Name              string
-	Subject           string
-	Args              string
-	WantValidationErr error
+	Name                    string
+	Subject                 string
+	Args                    string
+	WantValidationSucceeded map[string]bool
+	WantValidationErr       error
 }
 
 func WithProviderConfig(config []byte) func(*IntegrationTests) {
@@ -26,7 +30,23 @@ func WithProviderConfig(config []byte) func(*IntegrationTests) {
 	}
 }
 
-// RunTests runs standardised integration tests to check the behaviour of a Granted Provider.
+// ProviderWith fetches teh provider with config from the environment
+func ProviderWith(providerID string) ([]byte, error) {
+	pc := os.Getenv("COMMONFATE_PROVIDER_CONFIG")
+	var configMap map[string]json.RawMessage
+	err := json.Unmarshal([]byte(pc), &configMap)
+	if err != nil {
+		return nil, err
+	}
+	pm, err := deploy.UnmarshalProviderMap(string(pc))
+	if err != nil {
+		return nil, err
+	}
+	o := pm[providerID]
+	return json.Marshal(o.With)
+}
+
+// RunTests runs standardised integration tests to check the behaviour of a Common Fate Provider.
 // It tests validation, granting, and revoking of access.
 //
 // This should be used against the live version of any integration APIs - you shouldn't mock the API that you are
@@ -81,17 +101,21 @@ func (it *IntegrationTests) run(t *testing.T, ctx context.Context) {
 		t.Run(tc.Name, func(t *testing.T) {
 
 			t.Run("validate", func(t *testing.T) {
-				v, ok := it.p.(providers.Validator)
+				v, ok := it.p.(providers.GrantValidator)
 				if !ok {
 					t.Skip("Provider does not implement providers.Validator")
 				} else {
-					err := v.Validate(ctx, tc.Subject, []byte(tc.Args))
-					if tc.WantValidationErr == nil {
-						// we shouldn't get any validation errors.
-						assert.NoError(t, err)
-					} else {
-						assert.EqualError(t, err, tc.WantValidationErr.Error())
+					// the provider implements validation, so try and validate the request
+					validationSteps := v.ValidateGrant()
+
+					validationResult := validationSteps.Run(ctx, tc.Subject, []byte(tc.Args))
+
+					for k, v := range tc.WantValidationSucceeded {
+						l := validationResult[k].Logs
+						assert.NotNil(t, l)
+						assert.Equal(t, v, l.HasSucceeded())
 					}
+
 				}
 			})
 

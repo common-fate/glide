@@ -1,23 +1,46 @@
 import { SmallAddIcon } from "@chakra-ui/icons";
-import { Box, Button, Flex, Text, useDisclosure } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  Tooltip,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { useMemo } from "react";
 import { Column } from "react-table";
 import {
-  useGetGroups,
   useIdentityConfiguration,
+  useListGroups,
 } from "../../utils/backend-client/admin/admin";
 
-import { Group } from "../../utils/backend-client/types";
+import { MakeGenerics, useNavigate, useSearch } from "react-location";
+import { Group, ListGroupsSource } from "../../utils/backend-client/types";
+import { IDPLogo } from "../../utils/idp-logo";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
 import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
+import { GroupsFilterMenu } from "./GroupsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
 
+type MyLocationGenerics = MakeGenerics<{
+  Search: {
+    source?: Lowercase<ListGroupsSource>;
+  };
+}>;
+
 export const GroupsTable = () => {
+  const search = useSearch<MyLocationGenerics>();
+  const navigate = useNavigate<MyLocationGenerics>();
+  const { source } = search;
+
   const { onOpen, isOpen, onClose } = useDisclosure();
-  const paginator = usePaginatorApi<typeof useGetGroups>({
-    swrHook: useGetGroups,
-    hookProps: {},
+  const paginator = usePaginatorApi<typeof useListGroups>({
+    swrHook: useListGroups,
+    hookProps: {
+      source: source ? (source.toUpperCase() as ListGroupsSource) : undefined,
+    },
+    swrProps: {},
   });
 
   const cols: Column<Group>[] = useMemo(
@@ -40,24 +63,42 @@ export const GroupsTable = () => {
           </Box>
         ),
       },
+      {
+        accessor: "memberCount",
+        Header: "Members",
+        Cell: ({ cell }) => (
+          <Box>
+            <Text color="neutrals.900">{cell.value}</Text>
+          </Box>
+        ),
+      },
+      {
+        accessor: "source",
+        Header: "",
+        Cell: ({ cell }) => <IDPLogo idpType={cell.value} boxSize={30} />,
+      },
     ],
     []
   );
   const { data } = useIdentityConfiguration();
   const AddGroupButton = () => {
-    if (data?.identityProvider !== "cognito") {
-      return <div />;
-    }
     return (
-      <Button
-        isLoading={data?.identityProvider === undefined}
-        size="sm"
-        variant="ghost"
-        leftIcon={<SmallAddIcon />}
-        onClick={onOpen}
+      <Tooltip
+        label={
+          "Internal groups allows you to configure more granular access policies that may not be possible with your existing identity provider groups."
+        }
       >
-        Add Group
-      </Button>
+        <Button
+          isLoading={data?.identityProvider === undefined}
+          size="sm"
+          variant="ghost"
+          leftIcon={<SmallAddIcon />}
+          onClick={onOpen}
+          data-testid={"create-group-button"}
+        >
+          Add Internal Group
+        </Button>
+      </Tooltip>
     );
   };
   return (
@@ -69,12 +110,29 @@ export const GroupsTable = () => {
             void paginator.mutate();
           }}
         />
+        <GroupsFilterMenu
+          onChange={(s) =>
+            navigate({
+              search: (old) => ({
+                ...old,
+                source: s?.toLowerCase() as Lowercase<ListGroupsSource>,
+              }),
+            })
+          }
+          source={source?.toUpperCase() as ListGroupsSource}
+        />
       </Flex>
       {TableRenderer<Group>({
         columns: cols,
         data: paginator?.data?.groups,
         emptyText: "No groups",
         apiPaginator: paginator,
+        linkTo: true,
+        rowProps: (row) => ({
+          // in our test cases we use the group name for the unique key
+          "data-testid": row.original.name,
+          "alignItems": "center",
+        }),
       })}
 
       <CreateGroupModal

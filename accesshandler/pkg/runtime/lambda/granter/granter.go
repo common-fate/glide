@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -48,7 +48,10 @@ func NewGranter(ctx context.Context, c config.GranterConfig) (*Granter, error) {
 		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	dc := &deploy.EnvDeploymentConfig{}
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return nil, err
+	}
 	providers, err := dc.ReadProviders(ctx)
 	if err != nil {
 		return nil, err
@@ -111,6 +114,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
 		grant.Status = types.GrantStatusERROR
+
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
 			return Output{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())

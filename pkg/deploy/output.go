@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/smithy-go"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/mitchellh/mapstructure"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
@@ -19,6 +19,7 @@ import (
 // Output is the output from deploying the CDK stack to AWS.
 type Output struct {
 	CognitoClientID               string `json:"CognitoClientID"`
+	SAMLIdentityProviderName      string `json:"SAMLIdentityProviderName"`
 	CloudFrontDomain              string `json:"CloudFrontDomain"`
 	FrontendDomainOutput          string `json:"FrontendDomainOutput"`
 	CloudFrontDistributionID      string `json:"CloudFrontDistributionID"`
@@ -43,6 +44,10 @@ type Output struct {
 	Region                        string `json:"Region"`
 	PaginationKMSKeyARN           string `json:"PaginationKMSKeyARN"`
 	AccessHandlerExecutionRoleARN string `json:"AccessHandlerExecutionRoleARN"`
+	CacheSyncLogGroupName         string `json:"CacheSyncLogGroupName"`
+	RestAPIExecutionRoleARN       string `json:"RestAPIExecutionRoleARN"`
+	IDPSyncExecutionRoleARN       string `json:"IDPSyncExecutionRoleARN"`
+	CacheSyncFunctionName         string `json:"CacheSyncFunctionName"`
 }
 
 func (c Output) FrontendURL() string {
@@ -101,14 +106,15 @@ func (o Output) Get(key string) (string, error) {
 	return f.String(), nil
 }
 
-func (c SAMLOutputs) PrintSAMLTable() {
+func (o Output) PrintSAMLTable() {
 	data := [][]string{
-		{"SAML SSO URL (ACS URL)", c.ACSURL},
-		{"Audience URI", c.AudienceURI},
+		{"SAML SSO URL (ACS URL)", fmt.Sprintf("https://%s/saml2/idpresponse", o.UserPoolDomain)},
+		{"Audience URI", fmt.Sprintf("urn:amazon:cognito:sp:%s", o.UserPoolID)},
+		{"Dashboard URL", o.FrontendURL()},
 	}
 
 	table := tablewriter.NewWriter(os.Stderr)
-	table.SetHeader([]string{"Output Parameter", "Value"})
+	table.SetHeader([]string{"Parameter", "Value"})
 
 	table.SetColumnColor(
 		tablewriter.Colors{tablewriter.FgHiBlackColor},
@@ -119,61 +125,6 @@ func (c SAMLOutputs) PrintSAMLTable() {
 		table.Append(v)
 	}
 	table.Render()
-}
-
-type SAMLOutputs struct {
-	// ACS URL
-	ACSURL      string
-	AudienceURI string
-}
-
-// LoadOutput loads the outputs for the current deployment.
-func (c *Config) LoadSAMLOutput(ctx context.Context) (SAMLOutputs, error) {
-	if c.cachedSAMLOutput != nil {
-		return *c.cachedSAMLOutput, nil
-	}
-	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
-	if err != nil {
-		return SAMLOutputs{}, err
-	}
-	client := cloudformation.NewFromConfig(cfg)
-	res, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
-		StackName: &c.Deployment.StackName,
-	})
-
-	var ve *smithy.GenericAPIError
-	if errors.As(err, &ve) && ve.Code == "ValidationError" {
-		clio.Error("We couldn't find a CloudFormation stack '%s' in region '%s'.", c.Deployment.StackName, c.Deployment.Region)
-		clio.Log(`
-To fix this, take one of the following actions:
-  a) verify that your AWS credentials match the account you're trying to deploy to (%s). You can check this by calling 'aws sts get-caller-identity'.
-  b) your stack may not have been deployed yet. Run 'gdeploy create' to deploy it using CloudFormation.
-`, c.Deployment.Account)
-		return SAMLOutputs{}, err
-	}
-
-	if err != nil {
-		return SAMLOutputs{}, err
-	}
-
-	if len(res.Stacks) != 1 {
-		return SAMLOutputs{}, fmt.Errorf("expected 1 stack but got %d", len(res.Stacks))
-	}
-
-	stack := res.Stacks[0]
-	out := SAMLOutputs{}
-
-	for _, o := range stack.Outputs {
-		if *o.OutputKey == "UserPoolDomain" {
-			out.ACSURL = "https://" + *o.OutputValue + "/saml2/idpresponse"
-		}
-		if *o.OutputKey == "UserPoolID" {
-			out.AudienceURI = fmt.Sprintf("urn:amazon:cognito:sp:%s", *o.OutputValue)
-		}
-	}
-	// set the cached output value in case this method is called again.
-	c.cachedSAMLOutput = &out
-	return out, nil
 }
 
 // GetStackStatus indicates whether the Cloud Formation stack is online (via "CREATE_COMPLETE")
@@ -215,8 +166,8 @@ func (c *Config) LoadOutput(ctx context.Context) (Output, error) {
 
 	var ve *smithy.GenericAPIError
 	if errors.As(err, &ve) && ve.Code == "ValidationError" {
-		clio.Error("We couldn't find a CloudFormation stack '%s' in region '%s'.", c.Deployment.StackName, c.Deployment.Region)
-		clio.Log(`
+		clio.Errorf("We couldn't find a CloudFormation stack '%s' in region '%s'.", c.Deployment.StackName, c.Deployment.Region)
+		clio.Infof(`
 To fix this, take one of the following actions:
   a) verify that your AWS credentials match the account you're trying to deploy to (%s). You can check this by calling 'aws sts get-caller-identity'.
   b) your stack may not have been deployed yet. Run 'gdeploy create' to deploy it using CloudFormation.

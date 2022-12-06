@@ -1,14 +1,15 @@
 package release
 
 import (
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
 var setCommand = cli.Command{
 	Name:      "set",
-	Usage:     "Set the release version in your Granted configuration file",
+	Usage:     "Set the release version in your Common Fate configuration file",
 	UsageText: "gdeploy release set <VERSION>",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
@@ -20,7 +21,7 @@ var setCommand = cli.Command{
 
 		version := c.Args().First()
 		if version == "" {
-			return clio.NewCLIError("You need to provide a version. Usage: gdeploy release set <VERSION>")
+			return clierr.New("You need to provide a version. Usage: gdeploy release set <VERSION>")
 		}
 
 		dc.Deployment.Release = version
@@ -32,7 +33,7 @@ var setCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Set release version to %s", version)
+		clio.Successf("Set release version to %s", version)
 		return nil
 	},
 }

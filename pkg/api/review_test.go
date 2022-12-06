@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/api/mocks"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/accesssvc"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/api/mocks"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,7 +49,7 @@ func TestReviewRequest(t *testing.T) {
 			},
 			wantAddReviewOpts: accesssvc.AddReviewOpts{Decision: access.DecisionApproved},
 			wantCode:          http.StatusCreated,
-			wantBody:          `{"request":{"accessRule":{"id":"","version":""},"id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}}`,
+			wantBody:          `{"request":{"accessRuleId":"","accessRuleVersion":"","id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}}`,
 		},
 		{
 			name: "ok with override timing",
@@ -69,7 +69,7 @@ func TestReviewRequest(t *testing.T) {
 				StartTime: &overrideTime,
 			}},
 			wantCode: http.StatusCreated,
-			wantBody: `{"request":{"accessRule":{"id":"","version":""},"id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"","timing":{"durationSeconds":3600,"startTime":"2020-01-01T16:20:10Z"},"updatedAt":"0001-01-01T00:00:00Z"}}`,
+			wantBody: `{"request":{"accessRuleId":"","accessRuleVersion":"","id":"test","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"","timing":{"durationSeconds":3600,"startTime":"2020-01-01T16:20:10Z"},"updatedAt":"0001-01-01T00:00:00Z"}}`,
 		},
 		{
 			name:              "not authorized",
@@ -96,10 +96,20 @@ func TestReviewRequest(t *testing.T) {
 			wantCode:          http.StatusUnauthorized,
 			wantBody:          `{"error":"you are not a reviewer of this request"}`,
 		},
+		{
+			name:              "multiple decision race condition",
+			wantAddReviewOpts: accesssvc.AddReviewOpts{Decision: access.DecisionApproved, ReviewerIsAdmin: true},
+			withTestUser:      &identity.User{Groups: []string{"testAdmin"}},
+			give:              `{"decision": "APPROVED"}`,
+			addReviewErr:      accesssvc.ErrUserNotAuthorized,
+			wantCode:          http.StatusUnauthorized,
+			wantBody:          `{"error":"you are not a reviewer of this request"}`,
+		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 

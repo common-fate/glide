@@ -33,6 +33,7 @@ jobs:
 
       - name: Install NodeJS dependencies
         run: pnpm install
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -42,13 +43,13 @@ jobs:
       - name: Provision test DynamoDB database
         run: |
           echo > .env
-          go run cmd/devcli/main.go db create -n approvals-test-$GITHUB_REF_NAME --wait
+          go run cmd/devcli/main.go db create -n commonfate-test-$GITHUB_REF_NAME --wait
 
       - name: Build Dev Server
         run: go build cmd/server/main.go
 
       - name: Build Deployable Lambda
-        run: go build cmd/lambda/approvals/handler.go
+        run: go build cmd/lambda/commonfate/handler.go
 
       - name: Lint
         run: go vet ./...
@@ -110,12 +111,54 @@ jobs:
       - name: Build
         run: pnpm run build
         working-directory: web
-  test-accesshandler:
+
+  playwright-component-tests:
+    name: Playwright React Component Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 7.1.5
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "pnpm"
+
+      - name: Cache playwright binaries
+        uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: cache-playwright
+
+      - name: Install Deps
+        run: pnpm i
+        working-directory: web
+
+      - name: Install Playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm run e2e-install
+        working-directory: web
+
+      - name: Run Component Tests
+        run: pnpm test-ct
+        working-directory: web
+
+  test-accesshandler: #consider using a matrix test or a test runner command
+    permissions:
+      id-token: write
+      contents: read
     name: Test Access Handler
     runs-on: ubuntu-latest
     env:
-      GRANTED_INTEGRATION_TEST: true
-      PROVIDER_CONFIG: '{"okta":{"uses": "commonfate/okta@v1", "with": {"orgUrl":"${{ secrets.OKTA_ORG_URL }}","apiToken":"${{ secrets.OKTA_API_TOKEN }}"}}}'
+      COMMONFATE_INTEGRATION_TEST: true
+      COMMONFATE_PROVIDER_CONFIG: "${{ secrets.INTEGRATION_TESTING_PROVIDER_CONFIG }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -125,10 +168,59 @@ jobs:
         with:
           go-version: "1.19.0"
           cache: true
-      - name: generate fixtures
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ap-southeast-2
+          role-to-assume: "${{ secrets.AWS_SANDBOX_INTEGRATION_TESTING_ROLE_ARN }}"
+      - name: generate fixtures okta
         run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta --path accesshandler/fixtures
       - name: test okta
         run: go test ./accesshandler/pkg/providers/okta
       - name: destroy fixtures
         if: always() #always destroy the fixture even if the test fails
         run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name okta --path accesshandler/fixtures
+
+      - name: generate fixtures azure
+        run: go run accesshandler/cmd/gdk/main.go fixtures create --name azure --path accesshandler/fixtures
+      - name: test azure
+        run: go test ./accesshandler/pkg/providers/azure/ad
+      - name: destroy fixtures
+        if: always() #always destroy the fixture even if the test fails
+        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name azure --path accesshandler/fixtures
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ap-southeast-2
+          role-to-assume: "${{ secrets.AWS_SANDBOX_INTEGRATION_TESTING_ROLE_ARN }}"
+      - name: generate fixtures aws-sso
+        run: go run accesshandler/cmd/gdk/main.go fixtures create --name aws-sso-v2 --path accesshandler/fixtures
+      - name: test aws-sso-v2
+        run: go test ./accesshandler/pkg/providers/aws/sso-v2
+      - name: destroy fixtures
+        if: always() #always destroy the fixture even if the test fails
+        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name aws-sso-v2 --path accesshandler/fixtures
+  test-identity-provider:
+    permissions:
+      id-token: write
+      contents: read
+    name: Test Identity Provider
+    runs-on: ubuntu-latest
+    env:
+      COMMONFATE_INTEGRATION_TEST: true
+      COMMONFATE_IDENTITY_SETTINGS: "${{ secrets.IDENTITY_SETTINGS }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19.0"
+          cache: true
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ap-southeast-2
+          role-to-assume: "${{ secrets.AWS_SANDBOX_INTEGRATION_TESTING_ROLE_ARN }}"
+      - name: test idp
+        run: go test ./pkg/identity/identitysync

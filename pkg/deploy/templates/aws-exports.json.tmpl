@@ -8,7 +8,7 @@
       "domain": "{{ .UserPoolDomain }}",
       "scope": ["email", "profile", "openid"],
       "redirectSignIn": "https://{{ .FrontendDomain }}",
-      "redirectSignOut": "https://{{ .FrontendDomain }}",
+      "redirectSignOut": "https://{{ .FrontendDomain }}?state=loggedOut",
       "responseType": "code"
     },
     "cookieStorage": {
@@ -18,7 +18,7 @@
   "API": {
     "endpoints": [
       {
-        "name": "approvals",
+        "name": "common-fate",
         "endpoint": "{{ .APIURL }}",
         "region": "{{ .Region }}"
       }

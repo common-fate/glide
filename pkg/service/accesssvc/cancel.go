@@ -3,10 +3,10 @@ package accesssvc
 import (
 	"context"
 
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
 )
 
 type CancelRequestOpts struct {
@@ -60,6 +60,7 @@ func canCancel(opts CancelRequestOpts, request access.Request) bool {
 	return opts.CancellerID == request.RequestedBy
 }
 
+// A request can be cancelled if
 func isCancellable(request access.Request) bool {
-	return request.Status == access.PENDING
+	return request.Status == access.PENDING || request.Grant == nil && request.Status != access.CANCELLED
 }

@@ -10,7 +10,7 @@ import (
 // in the form "-c" "ArgName=ArgValue"
 //
 // This should only be used in development, where the StackName variable is always of
-// the form "granted-approvals-$STAGE". It panics if this is not the case.
+// the form "common-fate-$STAGE". It panics if this is not the case.
 func (c Config) CDKContextArgs() []string {
 	name, err := c.GetDevStageName()
 	if err != nil {
@@ -61,13 +61,36 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.SamlSSOMetadataURL != "" {
 		args = append(args, "-c", fmt.Sprintf("samlMetadataUrl=%s", string(c.Deployment.Parameters.SamlSSOMetadataURL)))
 	}
+	if c.Deployment.Parameters.CloudfrontWAFACLARN != "" {
+		args = append(args, "-c", fmt.Sprintf("cloudfrontWafAclArn=%s", string(c.Deployment.Parameters.CloudfrontWAFACLARN)))
+	}
+	if c.Deployment.Parameters.APIGatewayWAFACLARN != "" {
+		args = append(args, "-c", fmt.Sprintf("apiGatewayWafAclArn=%s", string(c.Deployment.Parameters.APIGatewayWAFACLARN)))
+	}
+	if c.Deployment.Parameters.ExperimentalRemoteConfigURL != "" {
+		args = append(args, "-c", fmt.Sprintf("experimentalRemoteConfigUrl=%s", string(c.Deployment.Parameters.ExperimentalRemoteConfigURL)))
+	}
+	if c.Deployment.Parameters.ExperimentalRemoteConfigHeaders != "" {
+		args = append(args, "-c", fmt.Sprintf("experimentalRemoteConfigHeaders=%s", string(c.Deployment.Parameters.ExperimentalRemoteConfigHeaders)))
+	}
+	if c.Deployment.Parameters.AnalyticsDisabled != "" {
+		args = append(args, "-c", fmt.Sprintf("analyticsDisabled=%s", string(c.Deployment.Parameters.AnalyticsDisabled)))
+	}
+	if c.Deployment.Parameters.AnalyticsLogLevel != "" {
+		args = append(args, "-c", fmt.Sprintf("analyticsLogLevel=%s", string(c.Deployment.Parameters.AnalyticsLogLevel)))
+	}
+
+	// CDK deploys always use the dev analytics endpoint and debug mode
+	args = append(args, "-c", "analyticsUrl=https://t-dev.commonfate.io")
+	args = append(args, "-c", "analyticsDeploymentStage=dev")
+
 	return args
 }
 
 // GetDevStageName returns the stage name to be used in a CDK deployment.
-// It expects that the stack name is in the form "granted-approvals-$STAGE".
+// It expects that the stack name is in the form "common-fate--$STAGE".
 func (c Config) GetDevStageName() (string, error) {
-	pre := "granted-approvals-"
+	pre := "common-fate-"
 	if !strings.HasPrefix(c.Deployment.StackName, pre) {
 		return "", fmt.Errorf("stack name %s must start with %s for development", c.Deployment.StackName, pre)
 	}

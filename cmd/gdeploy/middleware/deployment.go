@@ -5,23 +5,28 @@ import (
 	"net/url"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/common-fate/granted-approvals/internal/build"
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
+	"github.com/common-fate/common-fate/internal/build"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/hashicorp/go-version"
 	"github.com/urfave/cli/v2"
 )
 
 func RequireDeploymentConfig() cli.BeforeFunc {
 	return func(c *cli.Context) error {
-
 		f := c.Path("file")
 		dc, err := deploy.LoadConfig(f)
 		if err == deploy.ErrConfigNotExist {
-			return clio.NewCLIError(fmt.Sprintf("Tried to load Granted deployment configuration from %s but the file doesn't exist.", f),
-				clio.LogMsg(`
+			_, err2 := deploy.LoadConfig(deploy.DeprecatedDefaultFilename)
+			if err2 == nil {
+				return clierr.New(fmt.Sprintf("Tried to load Common Fate deployment configuration from %s but the file doesn't exist.", f),
+					deploy.DeprecatedDefaultFilenameWarning)
+			}
+			return clierr.New(fmt.Sprintf("Tried to load Common Fate deployment configuration from %s but the file doesn't exist.", f),
+				clierr.Info(`
 To fix this, take one of the following actions:
-  a) run this command from a folder which contains a Granted deployment configuration file (like 'granted-deployment.yml')
+  a) run this command from a folder which contains a Common Fate deployment configuration file (like 'deployment.yml')
   b) run 'gdeploy init' to set up a new deployment configuration file
 `),
 			)
@@ -47,14 +52,14 @@ func PreventDevUsage() cli.BeforeFunc {
 			return err
 		}
 		if dc.Deployment.Dev != nil && *dc.Deployment.Dev {
-			return clio.NewCLIError("Unsupported command used on development deployment", clio.WarnMsg("It looks like you tried to use an unsupported command on your development stack: '%s'.", c.Command.Name), clio.InfoMsg("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
+			return clierr.New("Unsupported command used on development deployment", clierr.Warnf("It looks like you tried to use an unsupported command on your development stack: '%s'.", c.Command.Name), clierr.Info("If you were trying to update your stack, use 'mage deploy:dev', if you didn't expect to see this message, check you are in the correct directory!"))
 		}
 		return nil
 	}
 }
 
 // BeforeFunc wrapper for IsReleaseVersionDifferent func.
-// Prompt user to save `gdeploy` version as release version to `granted-deployment.yml`
+// Prompt user to save `gdeploy` version as release version to `deployment.yml`
 // if release version  and gdeploy version is different.
 func VerifyGDeployCompatibility() cli.BeforeFunc {
 	return func(c *cli.Context) error {
@@ -72,9 +77,9 @@ func VerifyGDeployCompatibility() cli.BeforeFunc {
 			var shouldUpdate bool
 			e := fmt.Sprintf("Incompatible release version detected. Expected v%s got %s.", build.Version, dc.Deployment.Release)
 			if !isBuildGreater {
-				return clio.NewCLIError(
+				return clierr.New(
 					e,
-					clio.WarnMsg(`It looks like your gdeploy version is older than your deployment config release version.
+					clierr.Warnf(`It looks like your gdeploy version is older than your deployment config release version.
 This may have happened if you have updated the deployment config without updating gdeploy CLI first.
 It is important to ensure your version of gdeploy CLI matches your release, otherwise you could experience potentially unexpected behaviour.
 
@@ -91,7 +96,7 @@ You should take one of the following actions:
 			clio.Info("If you were not intending to update your deployment, try installing the version of gdeploy that your stack was deployed with instead.")
 			clio.Warn("It is important to ensure your version of gdeploy matches your release, otherwise you could experience potentially unexpected behaviour.\nIf you need to skip this check, you can pass the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'")
 			prompt := &survey.Confirm{
-				Message: fmt.Sprintf("Would you like to update your 'granted-deployment.yml' to release v%s?", build.Version),
+				Message: fmt.Sprintf("Would you like to update your 'deployment.yml' to release v%s?", build.Version),
 			}
 			err = survey.AskOne(prompt, &shouldUpdate)
 			if err != nil {
@@ -103,11 +108,11 @@ You should take one of the following actions:
 				if err != nil {
 					return err
 				}
-				clio.Success("Release version updated to v%s", build.Version)
+				clio.Successf("Release version updated to v%s", build.Version)
 				clio.Warn("To complete the update, run 'gdeploy update' to apply the changes to your CloudFormation deployment.")
 				return nil
 			}
-			return clio.NewCLIError("Please ensure that your gdeploy version matches your release version in 'granted-deployment.yml'.")
+			return clierr.New("Please ensure that your gdeploy version matches your release version in 'deployment.yml'.")
 		}
 		return nil
 
@@ -124,7 +129,7 @@ func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string, ignoreM
 		return false, true, nil
 	}
 	if ignoreMismatch {
-		clio.Warn("Ignoring version mismatch between gdeploy CLI (v%s) and deployment release version (%s) because the '--ignore-version-mismatch' flag was provided", buildVersion, d.Release)
+		clio.Warnf("Ignoring version mismatch between gdeploy CLI (v%s) and deployment release version (%s) because the '--ignore-version-mismatch' flag was provided", buildVersion, d.Release)
 		return false, true, nil
 	}
 	// this check allows a local build of Gdeploy to be used for UAT on releases
@@ -134,7 +139,7 @@ func IsReleaseVersionDifferent(d deploy.Deployment, buildVersion string, ignoreM
 	}
 	parsedBuildVersion, err := version.NewVersion(buildVersion)
 	if err != nil {
-		return false, true, clio.NewCLIError(err.Error(), clio.LogMsg("Unexpected error encountered while checking build version compatibility. If you see this, let us know via an issue on Github. You can skip this warning by passing the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'"))
+		return false, true, clierr.New(err.Error(), clierr.Warn("Unexpected error encountered while checking build version compatibility. If you see this, let us know via an issue on Github. You can skip this warning by passing the '--ignore-version-mismatch' flag e.g 'gdeploy --ignore-version-mismatch <COMMAND>'"))
 	}
 	parsedReleaseVersion, err := version.NewVersion(d.Release)
 	if err != nil {

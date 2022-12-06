@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	accessMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	accessMocks "github.com/common-fate/granted-approvals/pkg/service/accesssvc/mocks"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,7 +51,7 @@ func TestCancelRequest(t *testing.T) {
 			wantErr: ErrUserNotAuthorized,
 		},
 		{
-			name: "request not pending",
+			name: "active request not pending",
 			givenCancelRequest: CancelRequestOpts{
 				CancellerID: "abcd",
 				RequestID:   "req123",
@@ -58,6 +59,44 @@ func TestCancelRequest(t *testing.T) {
 			getRequestResponse: &access.Request{
 				RequestedBy: "abcd",
 				Status:      access.APPROVED,
+				Grant:       &access.Grant{Status: types.GrantStatusACTIVE},
+			},
+			wantErr: ErrRequestCannotBeCancelled,
+		},
+		{
+			name: "failed grant auto approved request can be cancelled",
+			givenCancelRequest: CancelRequestOpts{
+				CancellerID: "abcd",
+				RequestID:   "req123",
+			},
+			getRequestResponse: &access.Request{
+				RequestedBy: "abcd",
+				Status:      access.APPROVED,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "cancelled request cannot be cancelled",
+			givenCancelRequest: CancelRequestOpts{
+				CancellerID: "abcd",
+				RequestID:   "req123",
+			},
+			getRequestResponse: &access.Request{
+				RequestedBy: "abcd",
+				Status:      access.CANCELLED,
+			},
+			wantErr: ErrRequestCannotBeCancelled,
+		},
+		{
+			name: "revoked grants cannot be cancelled",
+			givenCancelRequest: CancelRequestOpts{
+				CancellerID: "abcd",
+				RequestID:   "req123",
+			},
+			getRequestResponse: &access.Request{
+				RequestedBy: "abcd",
+				Status:      access.APPROVED,
+				Grant:       &access.Grant{Status: types.GrantStatusREVOKED},
 			},
 			wantErr: ErrRequestCannotBeCancelled,
 		},

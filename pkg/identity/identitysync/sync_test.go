@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,6 +20,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 		giveInternalGroups []identity.Group
 		wantUserMap        map[string]identity.User
 		wantGroupMap       map[string]identity.Group
+		withIdpType        string
 	}
 	now := time.Now()
 	testcases := []testcase{
@@ -162,6 +163,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Users:       []string{"abcd", "efgh"},
 					CreatedAt:   now,
 					UpdatedAt:   now,
+					Source:      "OKTA",
 				},
 				{
 					ID:          "5678",
@@ -172,6 +174,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Users:       []string{"efgh"},
 					CreatedAt:   now,
 					UpdatedAt:   now,
+					Source:      "OKTA",
 				},
 			},
 			wantUserMap: map[string]identity.User{
@@ -202,6 +205,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Status:      types.IdpStatusARCHIVED,
 					Users:       []string{},
 					CreatedAt:   now,
+					Source:      "OKTA",
 				},
 				"larrysGroupId": {
 					ID:          "5678",
@@ -211,24 +215,26 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Status:      types.IdpStatusACTIVE,
 					Users:       []string{"efgh"},
 					CreatedAt:   now,
+					Source:      "OKTA",
 				},
 			},
+			withIdpType: "OKTA",
 		},
 		{
 			// a group should be dearchived if it exists again
 			name:         "dearchive group when it exists again",
 			giveIdpUsers: []identity.IDPUser{},
 			giveIdpGroups: []identity.IDPGroup{{
-				ID:          "granted_administrators",
-				Name:        "granted_administrators",
+				ID:          "common_fate_administrators",
+				Name:        "common_fate_administrators",
 				Description: "admin group",
 			}},
 			giveInternalUsers: []identity.User{},
 			giveInternalGroups: []identity.Group{
 				{
 					ID:          "1234",
-					IdpID:       "granted_administrators",
-					Name:        "granted_administrators",
+					IdpID:       "common_fate_administrators",
+					Name:        "common_fate_administrators",
 					Description: "admin group",
 					Status:      types.IdpStatusARCHIVED,
 					Users:       []string{},
@@ -238,10 +244,10 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			},
 			wantUserMap: map[string]identity.User{},
 			wantGroupMap: map[string]identity.Group{
-				"granted_administrators": {
+				"common_fate_administrators": {
 					ID:          "1234",
-					IdpID:       "granted_administrators",
-					Name:        "granted_administrators",
+					IdpID:       "common_fate_administrators",
+					Name:        "common_fate_administrators",
 					Description: "admin group",
 					Status:      types.IdpStatusACTIVE,
 					Users:       []string{},
@@ -253,7 +259,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 	}
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			gotUsers, gotGroups := processUsersAndGroups(tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups)
+			gotUsers, gotGroups := processUsersAndGroups(tc.withIdpType, tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups)
 			for k, u := range tc.wantUserMap {
 				got := gotUsers[k]
 				u.ID = got.ID

@@ -4,18 +4,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/service/cognitosvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
-// Your GET endpoint
+// Lists all active groups
 // (GET /api/v1/groups/)
-func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.GetGroupsParams) {
+func (a *API) ListGroups(w http.ResponseWriter, r *http.Request, params types.ListGroupsParams) {
 	ctx := r.Context()
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
@@ -23,22 +22,44 @@ func (a *API) GetGroups(w http.ResponseWriter, r *http.Request, params types.Get
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	q := storage.ListGroupsForStatus{
-		Status: types.IdpStatusACTIVE,
-	}
+	var groups []identity.Group
+	var nextToken string
 
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
-
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	if params.Source == nil {
+		q := storage.ListGroupsForStatus{
+			Status: types.IdpStatusACTIVE,
+		}
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		groups = q.Result
+		nextToken = qr.NextPage
+	} else {
+		source := identity.INTERNAL
+		if *params.Source != types.ListGroupsParamsSource("INTERNAL") {
+			source = a.IdentityProvider
+		}
+		q := storage.ListGroupsForSourceAndStatus{
+			Source: source,
+			Status: types.IdpStatusACTIVE,
+		}
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		groups = q.Result
+		nextToken = qr.NextPage
 	}
 
 	res := types.ListGroupsResponse{
-		Groups: make([]types.Group, len(q.Result)),
+		Groups: make([]types.Group, len(groups)),
+		Next:   &nextToken,
 	}
 
-	for i, g := range q.Result {
+	for i, g := range groups {
 		res.Groups[i] = g.ToAPI()
 	}
 
@@ -54,7 +75,7 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 
 	_, err := a.DB.Query(ctx, &q)
 	// return a 404 if the user was not found.
-	if errors.As(err, &identity.UserNotFoundError{}) {
+	if err == ddb.ErrNoItems {
 		err = apio.NewRequestError(err, http.StatusNotFound)
 	}
 
@@ -62,31 +83,97 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 		apio.Error(ctx, w, err)
 		return
 	}
-
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Create Group
 // (POST /api/v1/admin/groups)
+// Creates an internal group not connected to any identiy provider in dynamodb
 func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	if a.Cognito == nil {
-		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
-		return
-	}
-	var createGroupRequest types.CreateGroupJSONRequestBody
+	var createGroupRequest types.CreateGroupRequest
 	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	group, err := a.Cognito.CreateGroup(ctx, cognitosvc.CreateGroupOpts{
-		Name:        createGroupRequest.Name,
-		Description: aws.ToString(createGroupRequest.Description),
-	})
+	group, err := a.InternalIdentity.CreateGroup(ctx, createGroupRequest)
+	if errors.As(err, &internalidentitysvc.UserNotFoundError{}) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 	apio.JSON(ctx, w, group.ToAPI(), http.StatusCreated)
+}
+
+// Update Group
+// (PUT /api/v1/admin/groups/{id})
+// Updates an internal group not connected to any identiy provider in dynamodb
+func (a *API) AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId string) {
+	ctx := r.Context()
+	var createGroupRequest types.CreateGroupRequest
+	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	gq := storage.GetGroup{
+		ID: groupId,
+	}
+	_, err = a.DB.Query(ctx, &gq)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	group, err := a.InternalIdentity.UpdateGroup(ctx, *gq.Result, createGroupRequest)
+	if err == internalidentitysvc.ErrNotInternal {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if errors.As(err, &internalidentitysvc.UserNotFoundError{}) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, group.ToAPI(), http.StatusOK)
+
+}
+
+// Delete Group
+// (DELETE /api/v1/admin/groups/{groupId})
+func (a *API) AdminDeleteGroup(w http.ResponseWriter, r *http.Request, groupId string) {
+	ctx := r.Context()
+	gq := storage.GetGroup{
+		ID: groupId,
+	}
+	_, err := a.DB.Query(ctx, &gq)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	err = a.InternalIdentity.DeleteGroup(ctx, *gq.Result)
+	if err == internalidentitysvc.ErrNotInternal {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }

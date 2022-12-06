@@ -2,12 +2,18 @@ package rulesvc
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
+	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +23,7 @@ func TestUpdateAccessRule(t *testing.T) {
 		name            string
 		givenUserID     string
 		givenRule       rule.AccessRule
-		givenUpdateBody types.UpdateAccessRuleRequest
+		givenUpdateBody types.CreateAccessRuleRequest
 		wantErr         error
 		want            *rule.AccessRule
 	}
@@ -29,6 +35,8 @@ func TestUpdateAccessRule(t *testing.T) {
 	userID := "user1"
 	clk := clock.NewMock()
 	now := clk.Now()
+	cacheArgOptionsResponse := []cache.ProviderOption{}
+	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
 
 	/**
 	Input values needed:
@@ -45,9 +53,15 @@ func TestUpdateAccessRule(t *testing.T) {
 			UpdatedAt: now,
 			UpdatedBy: userID,
 		},
+		Target: rule.Target{
+			ProviderID:     "hello",
+			ProviderType:   "awssso",
+			With:           map[string]string{},
+			WithSelectable: map[string][]string{},
+		},
 	}
 
-	mockRuleUpdateBody := types.UpdateAccessRuleRequest{
+	mockRuleUpdateBody := types.CreateAccessRuleRequest{
 		Approval: types.ApproverConfig{
 			Users: []string{"user1", "user2"},
 		},
@@ -56,6 +70,12 @@ func TestUpdateAccessRule(t *testing.T) {
 		Groups:      []string{"group1", "group2"},
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: 600,
+		},
+		Target: types.CreateAccessRuleTarget{
+			ProviderId: "newTarget",
+			With: types.CreateAccessRuleTarget_With{
+				AdditionalProperties: make(map[string]types.CreateAccessRuleTargetDetailArguments),
+			},
 		},
 	}
 
@@ -78,6 +98,13 @@ func TestUpdateAccessRule(t *testing.T) {
 			MaxDurationSeconds: 600,
 		},
 		Version: versionID,
+		Target: rule.Target{
+			ProviderID:               "newTarget",
+			ProviderType:             "awssso",
+			With:                     make(map[string]string),
+			WithSelectable:           make(map[string][]string),
+			WithArgumentGroupOptions: make(map[string]map[string][]string),
+		},
 	}
 
 	/**
@@ -101,10 +128,23 @@ func TestUpdateAccessRule(t *testing.T) {
 			dbc := ddbmock.Client{
 				PutBatchErr: tc.wantErr,
 			}
+			clk := clock.NewMock()
+			ctrl := gomock.NewController(t)
+
+			defer ctrl.Finish()
+
+			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
+			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId)).Return(&ahTypes.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.Provider{Type: "awssso"}}, nil)
+			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId)).Return(&ahTypes.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.ArgSchema{}}, nil)
+
+			cm := mocks.NewMockCacheService(ctrl)
+			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
 
 			s := Service{
-				Clock: clk,
-				DB:    &dbc,
+				Clock:    clk,
+				DB:       &dbc,
+				AHClient: m,
+				Cache:    cm,
 			}
 
 			got, err := s.UpdateRule(context.Background(), &UpdateOpts{

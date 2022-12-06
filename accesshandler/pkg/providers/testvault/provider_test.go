@@ -1,24 +1,23 @@
 package testvault
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta/fixtures"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providertest/integration"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestIntegration(t *testing.T) {
-	if os.Getenv("GRANTED_INTEGRATION_TEST") == "" {
-		t.Skip("GRANTED_INTEGRATION_TEST is not set, skipping integration testing")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
 
 	ctx := context.Background()
@@ -38,34 +37,13 @@ func TestIntegration(t *testing.T) {
 			WantValidationErr: nil,
 		},
 	}
-	pc := os.Getenv("PROVIDER_CONFIG")
+	pc := os.Getenv("COMMONFATE_PROVIDER_CONFIG")
 	var configMap map[string]json.RawMessage
 	err = json.Unmarshal([]byte(pc), &configMap)
 	if err != nil {
 		t.Fatal(err)
 	}
 	integration.RunTests(t, ctx, "okta", &Provider{}, testcases, integration.WithProviderConfig(configMap["okta"]))
-}
-
-func TestArgSchema(t *testing.T) {
-	o := Provider{}
-
-	res := o.ArgSchema()
-	out, err := json.Marshal(res)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := os.ReadFile("./testdata/argschema.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, want)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	assert.Equal(t, buffer.String(), string(out))
 }
 
 func TestInstructions(t *testing.T) {
@@ -78,6 +56,6 @@ func TestInstructions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](https://testvault.internal/vaults/1234_my-vault/members/testuser) to check that your access has been provisioned."
+	want := "This is just a test resource to show you how Common Fate works.\nVisit the [vault membership URL](https://testvault.internal/vaults/1234_my-vault/members/testuser) to check that your access has been provisioned."
 	assert.Equal(t, want, got)
 }

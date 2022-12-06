@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/common-fate/granted-approvals/accesshandler/cmd/gdk/commands/fixtures"
+	"github.com/common-fate/common-fate/accesshandler/cmd/gdk/commands/fixtures"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
 )
@@ -12,8 +12,7 @@ import (
 func main() {
 	app := &cli.App{
 		Name:                 "gdk",
-		Usage:                "https://granted.dev",
-		Description:          "Granted Development Kit",
+		Description:          "Common Fate Development Kit",
 		UsageText:            "gdk [global options] command [command options] [arguments...]",
 		HideVersion:          false,
 		Commands:             []*cli.Command{&fixtures.Command},

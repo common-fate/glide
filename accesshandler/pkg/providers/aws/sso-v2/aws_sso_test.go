@@ -1,31 +1,65 @@
 package ssov2
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
+	"errors"
+	"fmt"
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
+	"github.com/joho/godotenv"
 )
 
-func TestArgSchema(t *testing.T) {
-	p := Provider{}
-
-	res := p.ArgSchema()
-	out, err := json.Marshal(res)
-	if err != nil {
-		t.Fatal(err)
+func TestIntegration(t *testing.T) {
+	ctx := context.Background()
+	_ = godotenv.Load("../../../../../.env")
+	if os.Getenv("COMMONFATE_INTEGRATION_TEST") == "" {
+		t.Skip("COMMONFATE_INTEGRATION_TEST is not set, skipping integration testing")
 	}
-	want, err := os.ReadFile("./testdata/argschema.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	buffer := new(bytes.Buffer)
-	err = json.Compact(buffer, want)
+	var f fixtures.Fixtures
+	err := providertest.LoadFixture(ctx, "aws-sso-v2", &f)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, buffer.String(), string(out))
+	testcases := []integration.TestCase{
+		{
+			Name:              "ok",
+			Subject:           f.User,
+			Args:              fmt.Sprintf(`{"accountId": "%s", "permissionSetArn": "%s"}`, f.AccountID, f.PermissionSetARN),
+			WantValidationErr: nil,
+		},
+		{
+			Name:              "account not exist",
+			Subject:           f.User,
+			Args:              fmt.Sprintf(`{"accountId": "non-existent", "permissionSetArn": "%s"}`, f.PermissionSetARN),
+			WantValidationErr: errors.New(""),
+		},
+		{
+			Name:              "permission set not exist",
+			Subject:           f.User,
+			Args:              fmt.Sprintf(`{"accountId": "%s", "permissionSetArn": "non-existent"}`, f.AccountID),
+			WantValidationErr: errors.New(""),
+		},
+		{
+			Name:              "subject not exist",
+			Subject:           "other",
+			Args:              fmt.Sprintf(`{"accountId": "%s", "permissionSetArn": "%s"}`, f.AccountID, f.PermissionSetARN),
+			WantValidationErr: errors.New(""),
+		},
+		{
+			Name:              "permission set and subject not exist",
+			Subject:           "other",
+			Args:              fmt.Sprintf(`{"accountId": "%s", "permissionSetArn": "non-existent"}`, f.AccountID),
+			WantValidationErr: errors.New(""),
+		},
+	}
+	w, err := integration.ProviderWith("aws-sso-v2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	integration.RunTests(t, ctx, "aws-sso-v2", &Provider{}, testcases, integration.WithProviderConfig(w))
 }

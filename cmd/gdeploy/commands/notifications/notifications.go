@@ -1,7 +1,8 @@
 package notifications
 
 import (
-	"github.com/common-fate/granted-approvals/cmd/gdeploy/commands/notifications/slack"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications/slack"
+	slackwebhook "github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications/slack-webhook"
 	"github.com/urfave/cli/v2"
 )
 
@@ -11,5 +12,5 @@ var Command = cli.Command{
 	Description: "Manage your notification channels like Slack",
 	Usage:       "Manage your notification channels like Slack",
 	Action:      cli.ShowSubcommandHelp,
-	Subcommands: []*cli.Command{&slack.Command},
+	Subcommands: []*cli.Command{&slack.Command, &slackwebhook.Command},
 }

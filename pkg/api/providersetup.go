@@ -7,14 +7,14 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/providersetup"
+	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/providersetup"
-	"github.com/common-fate/granted-approvals/pkg/service/psetupsvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -323,9 +323,9 @@ func (a *API) CompleteProvidersetup(w http.ResponseWriter, r *http.Request, prov
 	}
 
 	var res types.CompleteProviderSetupResponse
-	configWriter, ok := a.DeploymentConfig.(deploy.DeployConfigWriter)
+	configWriter, ok := a.DeploymentConfig.(deploy.ProviderWriter)
 	if !ok {
-		// runtime configuration isn't enabled, so the user needs to manually update their granted-deployment.yml file.
+		// runtime configuration isn't enabled, so the user needs to manually update their deployment.yml file.
 		res.DeploymentConfigUpdateRequired = true
 		apio.JSON(ctx, w, res, http.StatusOK)
 		return

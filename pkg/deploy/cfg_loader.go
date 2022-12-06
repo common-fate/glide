@@ -2,18 +2,27 @@ package deploy
 
 import (
 	"context"
+	"os"
 )
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_deploy_config_reader.go -package=mocks . DeployConfigReader
 
-// DeployConfigReader reads configuration about this Granted Approvals deployment,
+// DeployConfigReader reads configuration about this Common Fate deployment,
 // including provider and notification information.
 type DeployConfigReader interface {
 	ReadProviders(ctx context.Context) (ProviderMap, error)
-	ReadNotifications(ctx context.Context) (FeatureMap, error)
+	ReadNotifications(ctx context.Context) (*Notifications, error)
 }
 
-type DeployConfigWriter interface {
+type ProviderWriter interface {
 	WriteProviders(ctx context.Context, pm ProviderMap) error
-	WriteNotifications(ctx context.Context, fm FeatureMap) error
+}
+
+func GetDeploymentConfig() (DeployConfigReader, error) {
+	url := os.Getenv("COMMONFATE_ACCESS_REMOTE_CONFIG_URL")
+	if url != "" {
+		headers := os.Getenv("COMMONFATE_REMOTE_CONFIG_HEADERS")
+		return NewRemoteDeploymentConfig(url, headers)
+	}
+	return &EnvDeploymentConfig{}, nil
 }

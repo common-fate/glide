@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"github.com/segmentio/ksuid"
 )
 
 type Fixtures struct {
-	User    string
-	GroupID string
+	User             string
+	GroupID          string
+	PermissionSetARN string
+	AccountID        string
 }
 
 type Generator struct {

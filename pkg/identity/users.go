@@ -3,9 +3,9 @@ package identity
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // IDPUser is a generic user type which should be returned by our IDP implementations
@@ -45,6 +45,24 @@ type User struct {
 
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+}
+
+// RemoveGroup removes the group from the list in memory, it does not update the database
+func (u *User) RemoveGroup(group string) {
+	var newGroups []string
+	for _, g := range u.Groups {
+		if g != group {
+			newGroups = append(newGroups, g)
+		}
+	}
+	u.Groups = newGroups
+}
+
+// AddGroup adds the group to the list in memory if it is not already there, it does not update the database
+func (u *User) AddGroup(group string) {
+	if !u.BelongsToGroup(group) {
+		u.Groups = append(u.Groups, group)
+	}
 }
 
 // contains is a helper function to check if a string slice

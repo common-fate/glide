@@ -2,22 +2,52 @@ package testgroups
 
 import (
 	"context"
-	"encoding/json"
+	"strings"
 
-	"github.com/invopop/jsonschema"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 )
 
+// Provider TestGroups is a provider designed for integration testing only
 type Provider struct {
-	Groups []string `json:"groups"`
+	groups []string
+	g      gconfig.StringValue
 }
 
-// Configure the Okta provider.
-func (p *Provider) Configure(ctx context.Context, jsonConfig []byte) error {
-	return json.Unmarshal(jsonConfig, p)
-
+// SetGroups is a convenient method to setup the provider for testing without using gconfig
+func (p *Provider) SetGroups(groups []string) {
+	p.groups = groups
 }
 
-// ArgSchema returns the schema for the Okta provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) Config() gconfig.Config {
+	return gconfig.Config{
+		gconfig.StringField("groups", &p.g, "comma seperated group ids"),
+	}
+}
+func (p *Provider) Init(ctx context.Context) error {
+	p.groups = strings.Split(p.g.Get(), ",")
+	return nil
+}
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	description := "A test description"
+	arg := providers.ArgSchema{
+		"group": {
+			Id:              "group",
+			Title:           "Group",
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
+			Description:     &description,
+			Groups: &types.Argument_Groups{
+				AdditionalProperties: map[string]types.Group{
+					"category": {
+						Description: &description,
+						Id:          "category",
+						Title:       "Category",
+					},
+				},
+			},
+		},
+	}
+
+	return arg
 }

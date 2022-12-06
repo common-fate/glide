@@ -58,9 +58,14 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		EventBusArn:                   "abcdefg",
 		EventBusSource:                "abcdefg",
 		IdpSyncFunctionName:           "abcdefg",
+		SAMLIdentityProviderName:      "abcdefg",
 		Region:                        "abcdefg",
 		PaginationKMSKeyARN:           "abcdefg",
 		AccessHandlerExecutionRoleARN: "abcdefg",
+		CacheSyncLogGroupName:         "abcdefg",
+		RestAPIExecutionRoleARN:       "abcdefg",
+		IDPSyncExecutionRoleARN:       "abcdefg",
+		CacheSyncFunctionName:         "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
@@ -109,9 +114,11 @@ func TestOutput_Get(t *testing.T) {
 		EventBusArn                   string
 		EventBusSource                string
 		IdpSyncFunctionName           string
+		SAMLIdentityProviderName      string
 		Region                        string
 		PaginationKMSKeyARN           string
 		AccessHandlerExecutionRoleARN string
+		CacheSyncFunctionName         string
 	}
 	type args struct {
 		key string
@@ -165,6 +172,7 @@ func TestOutput_Get(t *testing.T) {
 				EventBusArn:                   tt.fields.EventBusArn,
 				EventBusSource:                tt.fields.EventBusSource,
 				IdpSyncFunctionName:           tt.fields.IdpSyncFunctionName,
+				SAMLIdentityProviderName:      tt.fields.SAMLIdentityProviderName,
 				Region:                        tt.fields.Region,
 				PaginationKMSKeyARN:           tt.fields.PaginationKMSKeyARN,
 				AccessHandlerExecutionRoleARN: tt.fields.AccessHandlerExecutionRoleARN,

@@ -7,14 +7,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	ecsshellsso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/ecs-shell-sso"
-	eksrolessso "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/eks-roles-sso"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso"
-	ssov2 "github.com/common-fate/granted-approvals/accesshandler/pkg/providers/aws/sso-v2"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/okta"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/testvault"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	ecsshellsso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/ecs-shell-sso"
+	eksrolessso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/eks-roles-sso"
+	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testgroups"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-version"
 )
@@ -34,8 +34,10 @@ func (pr ProviderRegistry) All() map[string]RegisteredProvider {
 
 	for ptype, pversions := range pr.Providers {
 		for pversion, rp := range pversions {
+
 			key := ptype + "@" + pversion
 			all[key] = rp
+
 		}
 	}
 	return all
@@ -65,11 +67,7 @@ func Registry() ProviderRegistry {
 				},
 			},
 			"commonfate/aws-sso": {
-				"v1": {
-					Provider:    &sso.Provider{},
-					DefaultID:   "aws-sso",
-					Description: "AWS SSO PermissionSets",
-				},
+
 				"v2": {
 					Provider:    &ssov2.Provider{},
 					DefaultID:   "aws-sso-v2",
@@ -87,7 +85,15 @@ func Registry() ProviderRegistry {
 				"v1": {
 					Provider:    &testvault.Provider{},
 					DefaultID:   "testvault",
-					Description: "TestVault - a provider for testing out Granted Approvals",
+					Description: "TestVault - a provider for testing out Common Fate",
+				},
+			},
+			"commonfate/testgroups": {
+				"v1": {
+					Provider:    &testgroups.Provider{},
+					DefaultID:   "testgroups",
+					Description: "TestGroups - a provider for integration testing Common Fate",
+					Hidden:      true,
 				},
 			},
 		},
@@ -116,6 +122,11 @@ func (r ProviderRegistry) Lookup(providerType, version string) (*RegisteredProvi
 	}
 
 	return &p, nil
+}
+
+// GetLatestByShortType prepends 'commonfate/' to the providerType then calls GetLatestByType
+func (r ProviderRegistry) GetLatestByShortType(providerType string) (latestVersion string, p *RegisteredProvider, err error) {
+	return r.GetLatestByType("commonfate/" + providerType)
 }
 
 // GetLatestByType gets the latest version of a particular provider by it's type.
@@ -156,10 +167,13 @@ func ParseUses(uses string) (providerType string, version string, err error) {
 func (r ProviderRegistry) CLIOptions() []string {
 	var opts []string
 	for k, v := range r.All() {
-		grey := color.New(color.FgHiBlack).SprintFunc()
-		id := "(" + k + ")"
-		opt := fmt.Sprintf("%s %s", v.Description, grey(id))
-		opts = append(opts, opt)
+		if !v.Hidden {
+			grey := color.New(color.FgHiBlack).SprintFunc()
+			id := "(" + k + ")"
+			opt := fmt.Sprintf("%s %s", v.Description, grey(id))
+			opts = append(opts, opt)
+		}
+
 	}
 	sort.Strings(opts)
 	return opts
@@ -190,4 +204,6 @@ type RegisteredProvider struct {
 	Provider    providers.Accessor
 	DefaultID   string
 	Description string
+	// Hidden providers can be used in testing but should be hidden from cli and setup docs
+	Hidden bool
 }

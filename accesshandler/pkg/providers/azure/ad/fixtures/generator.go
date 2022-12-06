@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers/azure/ad"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/segmentio/ksuid"
 )
 
@@ -30,7 +30,7 @@ func (a *Generator) Init(ctx context.Context) error {
 
 // Generate fixtures by calling the azure API.
 func (g *Generator) Generate(ctx context.Context) ([]byte, error) {
-	email := fmt.Sprintf("test_%s@exponentlabsio.onmicrosoft.com", ksuid.New().String())
+	email := fmt.Sprintf("test_%s@cfdemocompany.onmicrosoft.com", ksuid.New().String())
 
 	createUserRequest := ad.CreateADUser{
 		AccountEnabled:    true,

@@ -7,15 +7,18 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
+	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/service/accesssvc"
+	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	ahtypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
-	"github.com/common-fate/granted-approvals/pkg/service/grantsvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/types"
+	"github.com/hashicorp/go-multierror"
+	"go.uber.org/zap"
 )
 
 // List my requests
@@ -180,8 +183,13 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, errors.New("access rule result was nil"))
 		return
 	}
+	requestArguments, err := a.Rules.RequestArguments(ctx, qr.Result.Target)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 	if q.Result.RequestedBy == u.ID {
-		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false), http.StatusOK)
+		apio.JSON(ctx, w, q.Result.ToAPIDetail(*qr.Result, false, requestArguments), http.StatusOK)
 		return
 	}
 	qrv := storage.GetRequestReviewer{RequestID: requestId, ReviewerID: u.ID}
@@ -194,7 +202,7 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true), http.StatusOK)
+	apio.JSON(ctx, w, qrv.Result.Request.ToAPIDetail(*qr.Result, true, requestArguments), http.StatusOK)
 }
 
 // Creates a request
@@ -210,22 +218,29 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create the request. The RequestCreator handles the validation
-	// and saving the request to the database.
-	result, err := a.Access.CreateRequest(ctx, u, incomingRequest)
-	if err == accesssvc.ErrNoMatchingGroup {
-		// the user isn't authorized to make requests on this rule.
-		err = apio.NewRequestError(err, http.StatusUnauthorized)
-	} else if err == accesssvc.ErrRuleNotFound {
-		err = apio.NewRequestError(fmt.Errorf("access rule %s not found", incomingRequest.AccessRuleId), http.StatusNotFound)
+	log := zap.S()
+	log.Infow("validating and creating grant")
+	_, err = a.Access.CreateRequests(ctx, accesssvc.CreateRequestsOpts{
+		User: *u,
+		Create: accesssvc.CreateRequests{
+			AccessRuleId: incomingRequest.AccessRuleId,
+			Reason:       incomingRequest.Reason,
+			Timing:       incomingRequest.Timing,
+			With:         incomingRequest.With,
+		},
+	})
+	var me *multierror.Error
+	// multipart error will contain
+	if errors.As(err, &me) {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
 	}
-
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	apio.JSON(ctx, w, result.Request.ToAPI(), http.StatusCreated)
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
 func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
@@ -256,49 +271,39 @@ func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId st
 
 func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
-
 	isAdmin := auth.IsAdmin(ctx)
 	uid := auth.UserIDFromContext(ctx)
 	var req access.Request
-	if isAdmin {
-		q := storage.GetRequest{ID: requestID}
-		_, err := a.DB.Query(ctx, &q)
-		if err == ddb.ErrNoItems {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-		if q.Result == nil {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
-			return
-		}
+	q := storage.GetRequest{ID: requestID}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		//grant not found return 404
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	// user can revoke their own request and admins can revoke any request
+	if q.Result.RequestedBy == uid || isAdmin {
 		req = *q.Result
-	} else {
+	} else { // reviewers can revoke reviewable requests
 		q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: uid}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
 			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
 			return
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
-			return
-		}
-		if q.Result == nil {
-			//grant not found return 404
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
 			return
 		}
 		req = q.Result.Request
 	}
 
-	_, err := a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
+	_, err = a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
 	if err == grantsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
@@ -311,6 +316,15 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 		apio.Error(ctx, w, err)
 		return
 	}
+
+	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
+		RequestedBy: req.RequestedBy,
+		RevokedBy:   uid,
+		RuleID:      req.Rule,
+		Timing:      req.RequestedTiming.ToAnalytics(),
+		HasReason:   req.HasReason(),
+	})
+
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
@@ -320,7 +334,6 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 	ctx := r.Context()
 	q := storage.GetRequest{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
-
 	if err == ddb.ErrNoItems {
 		// we couldn't find the request
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
@@ -334,19 +347,16 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 		apio.ErrorString(ctx, w, "request has no grant", http.StatusBadRequest)
 		return
 	}
-	q.Result.Grant.With.AdditionalProperties["GrantId"] = q.ID
 
-	argsJSON, err := json.Marshal(q.Result.Grant.With)
+	args, err := json.Marshal(q.Result.Grant.With)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	args := string(argsJSON)
-
 	res, err := a.AccessHandlerClient.GetAccessInstructionsWithResponse(ctx, q.Result.Grant.Provider, &ahtypes.GetAccessInstructionsParams{
 		Subject: q.Result.Grant.Subject,
-		Args:    args,
+		Args:    string(args),
 		GrantId: q.ID,
 	})
 	if err != nil {
@@ -358,7 +368,8 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 	case http.StatusOK:
 		apio.JSON(ctx, w, res.JSON200, http.StatusOK)
 	case http.StatusNotFound:
-		apio.JSON(ctx, w, res.JSON404.Error, res.StatusCode())
+		// Not found error means that the provider does not exist, in this case, return an empty instructions response instead of 404
+		apio.JSON(ctx, w, ahtypes.AccessInstructions{}, http.StatusOK)
 	case http.StatusBadRequest:
 		apio.JSON(ctx, w, res.JSON400.Error, res.StatusCode())
 	default:
@@ -427,6 +438,10 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 	uid := auth.UserIDFromContext(ctx)
 	q := storage.GetRequest{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found"), http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -435,18 +450,14 @@ func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId s
 		q := storage.GetAccessToken{RequestID: requestId}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: false}, http.StatusOK)
 			return
 		}
-
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
 		}
-
-		res := q.Result.ToAPI()
-
-		apio.JSON(ctx, w, res, http.StatusOK)
+		apio.JSON(ctx, w, types.AccessTokenResponse{HasToken: true, Token: &q.Result.Token}, http.StatusOK)
 	} else {
 		// not authorised
 		apio.Error(ctx, w, apio.NewRequestError(errors.New("not authorised"), http.StatusUnauthorized))

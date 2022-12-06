@@ -5,10 +5,10 @@ import (
 
 	"github.com/benbjohnson/clock"
 
+	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/auth"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
 )
 
 // Service holds business logic relating to Cognito user management.

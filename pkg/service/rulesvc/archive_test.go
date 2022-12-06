@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,7 +69,7 @@ func TestArchiveAccessRule(t *testing.T) {
 				DB:    db,
 			}
 
-			got, err := s.ArchiveAccessRule(context.Background(), tc.givenRule)
+			got, err := s.ArchiveAccessRule(context.Background(), "", tc.givenRule)
 
 			// This is the only thing from service layer that we can't mock yet, hence the override
 			if err == nil {

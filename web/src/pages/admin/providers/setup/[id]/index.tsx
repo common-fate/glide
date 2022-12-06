@@ -47,6 +47,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
+import { Helmet } from "react-helmet";
 import { Controller, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import ReactMarkdown from "react-markdown";
@@ -54,11 +55,11 @@ import { Sticky, StickyContainer } from "react-sticky";
 import useWindowSize from "react-use/lib/useWindowSize";
 import {
   CFCode,
-  CodeInstruction,
+  CFReactMarkownCode,
 } from "../../../../../components/CodeInstruction";
 import { ConnectorArrow } from "../../../../../components/ConnectorArrow";
 import { ExpandingImage } from "../../../../../components/ExpandingImage";
-import { ApprovalsLogo } from "../../../../../components/icons/Logos";
+import { CommonFateLogo } from "../../../../../components/icons/Logos";
 import { ProviderIcon } from "../../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../../components/Layout";
 import {
@@ -207,9 +208,18 @@ const Page = () => {
           to="/admin/providers"
         />
         <Text as="h4" textStyle="Heading/H4">
-          {registeredProvider !== undefined &&
+          {registeredProvider !== undefined && (
+              <Helmet>
+                <title>{registeredProvider.name} provider</title>
+              </Helmet>
+            ) &&
             `Setting up the ${registeredProvider.name} provider`}
         </Text>
+        {registeredProvider !== undefined && (
+          <Helmet>
+            <title>{registeredProvider.name} Setup</title>
+          </Helmet>
+        )}
         {data && (
           <HStack
             spacing={3}
@@ -305,7 +315,7 @@ const Page = () => {
                     justifyContent={"center"}
                     alignItems={"center"}
                   >
-                    <ApprovalsLogo h="20px" w="auto" />
+                    <CommonFateLogo h="20px" w="auto" />
                     <ConnectorArrow animate={data.status === "VALIDATING"} />
                     <ProviderIcon type={data.type} h="24px" w="auto" />
                   </HStack>
@@ -550,7 +560,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
                       {props.children}
                     </OrderedList>
                   ),
-                  code: CodeInstruction,
+                  code: CFReactMarkownCode,
                   img: (props) => <ExpandingImage {...props} />,
                 }}
               >

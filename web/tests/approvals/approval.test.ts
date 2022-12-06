@@ -1,27 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   clickFormElementByText,
   CreateAccessRule,
   fillFormElementById,
   LoginAdmin,
   LoginUser,
-  Logout,
+  randomReason,
+  randomRuleName,
   testId,
 } from "../utils/helpers";
 
-const RULE_NAME = "test";
-
+const ruleName = randomRuleName();
+const uniqueReason = randomReason();
 test.describe.serial("Approval/Request Workflows", () => {
-  const uniqueReason = "test-" + Math.floor(Math.random() * 1000);
   let accessInstructionLink: string;
 
   test("create an initial Access Rule", async ({ page }) => {
     // This will create our Acess Rule for the user account and log us in
-    await CreateAccessRule(page, RULE_NAME);
+    await CreateAccessRule(page, ruleName, "");
   });
 
   test("test request workflow", async ({ page }) => {
-    // This will log us in as an admin
+    // This will log us in as an user
     await LoginUser(page);
 
     await page.waitForLoadState("networkidle");
@@ -32,7 +32,7 @@ test.describe.serial("Approval/Request Workflows", () => {
     await page.waitForLoadState("networkidle");
 
     //   Click on the first rule
-    await page.click(testId("r_0"));
+    await page.click(`text=${ruleName}`);
 
     await fillFormElementById("reasonField", uniqueReason, page);
     await page.waitForSelector(testId("rule-name"));
@@ -62,6 +62,7 @@ test.describe.serial("Approval/Request Workflows", () => {
 
   test("test approval workflow", async ({ page }) => {
     // This will log us in as an admin
+
     await LoginAdmin(page);
 
     await page.waitForLoadState("networkidle");
@@ -96,7 +97,7 @@ test.describe.serial("Approval/Request Workflows", () => {
   });
 
   // @NOTE: commented out for now, will not pass on the CI (unknown reason)
-  // test("ensure access granted for matching user", async ({
+  // test("ensure access Common Fate for matching user", async ({
   //   playwright,
   //   page,
   // }) => {
@@ -109,7 +110,7 @@ test.describe.serial("Approval/Request Workflows", () => {
   //   const res = await apiContext.get(accessInstructionLink);
   //   let stringSuccess = await res.text();
 
-  //   // ensure the vault has granted access
+  //   // ensure the vault has Common Fate access
   //   expect(stringSuccess).toContain(
   //     `{"message":"success! user ${user} is a member of vault`
   //   );

@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/AzureAD/microsoft-authentication-library-for-go/apps/confidential"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"go.uber.org/zap"
 )
 
@@ -51,7 +52,13 @@ func (a *Provider) Init(ctx context.Context) error {
 	return nil
 }
 
-// ArgSchema returns the schema for the AzureAD provider.
-func (o *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"groupId": {
+			Id:              "groupId",
+			Title:           "Group",
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
+		},
+	}
+	return arg
 }

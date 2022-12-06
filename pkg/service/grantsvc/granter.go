@@ -10,17 +10,17 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/providers"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
@@ -112,7 +112,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 		}
 
 		// Emit an event for the grant revoke
-		// We have chosen to emit events from the approvals app for grant revocation rather than from the access handler because we are using a syncronous API.
+		// We have chosen to emit events from the Common Fate app for grant revocation rather than from the access handler because we are using a syncronous API.
 		// All effects from revoking will be implemented in this syncronous api rather than triggered from the events.
 		// So we update the grant status here and save the grant before emitting the event
 		err = g.EventBus.Put(ctx, gevent.GrantRevoked{Grant: opts.Request.Grant.ToAHGrant(opts.Request.ID)})
@@ -137,40 +137,48 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 	return nil, errors.New("unhandled response code")
 }
 
-// CreateGrant creates a Grant in the Access Handler, it does not update the approvals app database.
+// validate grant runs all the checks that will need to occur when creating a real grant to validate its success
+func (g *Granter) ValidateGrant(ctx context.Context, opts CreateGrantOpts) error {
+	req, err := g.prepareCreateGrantRequest(ctx, opts)
+	if err != nil {
+		return err
+	}
+
+	res, err := g.AHClient.ValidateGrantWithResponse(ctx, req)
+	if err != nil {
+		return err
+	}
+	code := res.StatusCode()
+	switch code {
+	case 200:
+		return nil
+	case 400:
+		// there was an error, handle it
+		if res.JSON400.Error != nil {
+			return &GrantValidationError{ValidationFailureMsg: *res.JSON400.Error}
+		} else {
+			return &GrantValidationError{ValidationFailureMsg: "unknown error occurred"}
+		}
+	case 500:
+		// there was an internal error, handle it
+		// there was an error, handle it
+		if res.JSON500.Error != nil {
+			return fmt.Errorf("access handler returned internal server error while validating grant. error: %s", *res.JSON500.Error)
+		} else {
+			return fmt.Errorf("unexpected response while validating grant")
+		}
+	default:
+		logger.Get(ctx).Errorw("unhandled response from access handler while validating grant", "statusCode", code, "body", string(res.Body))
+		return fmt.Errorf("unhandled response from access handler while validating grant")
+	}
+}
+
+// CreateGrant creates a Grant in the Access Handler, it does not update the Common Fate app database.
 // the returned Request will contain the newly created grant
 func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*access.Request, error) {
-	q := &storage.GetUser{
-		ID: opts.Request.RequestedBy,
-	}
-	_, err := g.DB.Query(ctx, q)
+	req, err := g.prepareCreateGrantRequest(ctx, opts)
 	if err != nil {
 		return nil, err
-	}
-
-	// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
-	// check now before we actually provision the access, so that we can return early if we fail.
-	requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)
-	if err != nil {
-		return nil, err
-	}
-
-	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
-	req := ahTypes.PostGrantsJSONRequestBody{
-		Id:       opts.Request.ID,
-		Provider: opts.AccessRule.Target.ProviderID,
-		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
-		Subject: openapi_types.Email(q.Result.Email),
-		Start:   iso8601.New(start),
-		End:     iso8601.New(end),
-	}
-	for k, v := range opts.AccessRule.Target.With {
-		req.With.AdditionalProperties[k] = v
-	}
-	for k, v := range opts.Request.SelectedWith {
-		req.With.AdditionalProperties[k] = v.Value
 	}
 	res, err := g.AHClient.PostGrantsWithResponse(ctx, req)
 	if err != nil {
@@ -191,6 +199,12 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 			UpdatedAt: now,
 		}
 
+		// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
+		// check now before we actually provision the access, so that we can return early if we fail.
+		requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)
+		if err != nil {
+			return nil, err
+		}
 		if requiresAccessToken {
 			logger.Get(ctx).Infow("creating access token for request", "request.id", opts.Request.ID)
 			at := access.AccessToken{
@@ -247,4 +261,36 @@ func (r registryAccessTokenChecker) NeedsAccessToken(ctx context.Context, provid
 		return true, nil
 	}
 	return false, nil
+}
+
+// prepareCreateGrantRequest converts opts into a CreateGrant struct for access handler requests
+func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGrantOpts) (ahTypes.CreateGrant, error) {
+	q := &storage.GetUser{
+		ID: opts.Request.RequestedBy,
+	}
+	_, err := g.DB.Query(ctx, q)
+	if err != nil {
+		return ahTypes.CreateGrant{}, err
+	}
+
+	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))
+	req := ahTypes.CreateGrant{
+		Id:       opts.Request.ID,
+		Provider: opts.AccessRule.Target.ProviderID,
+		With: ahTypes.CreateGrant_With{
+			AdditionalProperties: make(map[string]string),
+		},
+		Subject: openapi_types.Email(q.Result.Email),
+		Start:   iso8601.New(start),
+		End:     iso8601.New(end),
+	}
+
+	//todo: rework this to be used safely around the codebase
+	for k, v := range opts.AccessRule.Target.With {
+		req.With.AdditionalProperties[k] = v
+	}
+	for k, v := range opts.Request.SelectedWith {
+		req.With.AdditionalProperties[k] = v.Value
+	}
+	return req, nil
 }

@@ -24,6 +24,18 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Defines values for ArgumentRequestFormElement.
+const (
+	ArgumentRequestFormElementSELECT ArgumentRequestFormElement = "SELECT"
+)
+
+// Defines values for ArgumentRuleFormElement.
+const (
+	ArgumentRuleFormElementINPUT       ArgumentRuleFormElement = "INPUT"
+	ArgumentRuleFormElementMULTISELECT ArgumentRuleFormElement = "MULTISELECT"
+	ArgumentRuleFormElementSELECT      ArgumentRuleFormElement = "SELECT"
+)
+
 // Defines values for GrantStatus.
 const (
 	GrantStatusACTIVE  GrantStatus = "ACTIVE"
@@ -55,6 +67,34 @@ type AccessInstructions struct {
 	// Instructions on how to access the role or resource.
 	Instructions *string `json:"instructions,omitempty"`
 }
+
+// ArgSchema defines model for ArgSchema.
+type ArgSchema struct {
+	AdditionalProperties map[string]Argument `json:"-"`
+}
+
+// Argument defines model for Argument.
+type Argument struct {
+	Description *string          `json:"description,omitempty"`
+	Groups      *Argument_Groups `json:"groups,omitempty"`
+	Id          string           `json:"id"`
+
+	// Optional form element for the request form, if not provided, defaults to multiselect
+	RequestFormElement *ArgumentRequestFormElement `json:"requestFormElement,omitempty"`
+	RuleFormElement    ArgumentRuleFormElement     `json:"ruleFormElement"`
+	Title              string                      `json:"title"`
+}
+
+// Argument_Groups defines model for Argument.Groups.
+type Argument_Groups struct {
+	AdditionalProperties map[string]Group `json:"-"`
+}
+
+// Optional form element for the request form, if not provided, defaults to multiselect
+type ArgumentRequestFormElement string
+
+// ArgumentRuleFormElement defines model for Argument.RuleFormElement.
+type ArgumentRuleFormElement string
 
 // A grant to be created.
 type CreateGrant struct {
@@ -112,6 +152,29 @@ type Grant_With struct {
 	AdditionalProperties map[string]string `json:"-"`
 }
 
+// Group defines model for Group.
+type Group struct {
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+}
+
+// GroupOption defines model for GroupOption.
+type GroupOption struct {
+	Children    []string `json:"children"`
+	Description *string  `json:"description,omitempty"`
+	Label       string   `json:"label"`
+
+	// A label prefix allows additional context to be prefixed to the label when displayed in a form
+	LabelPrefix *string `json:"labelPrefix,omitempty"`
+	Value       string  `json:"value"`
+}
+
+// Groups defines model for Groups.
+type Groups struct {
+	AdditionalProperties map[string][]GroupOption `json:"-"`
+}
+
 // A log entry.
 type Log struct {
 	// The log level.
@@ -126,8 +189,9 @@ type LogLevel string
 
 // Option defines model for Option.
 type Option struct {
-	Label string `json:"label"`
-	Value string `json:"value"`
+	Description *string `json:"description,omitempty"`
+	Label       string  `json:"label"`
+	Value       string  `json:"value"`
 }
 
 // Provider
@@ -167,8 +231,7 @@ type ProviderHealth struct {
 
 // ArgOptionsResponse defines model for ArgOptionsResponse.
 type ArgOptionsResponse struct {
-	// Whether any options have been suggested for the argument.
-	HasOptions bool `json:"hasOptions"`
+	Groups *Groups `json:"groups,omitempty"`
 
 	// The suggested options.
 	Options []Option `json:"options"`
@@ -207,6 +270,9 @@ type ValidateRequest struct {
 // PostGrantsJSONBody defines parameters for PostGrants.
 type PostGrantsJSONBody = CreateGrant
 
+// ValidateGrantJSONBody defines parameters for ValidateGrant.
+type ValidateGrantJSONBody = CreateGrant
+
 // PostGrantsRevokeJSONBody defines parameters for PostGrantsRevoke.
 type PostGrantsRevokeJSONBody struct {
 	// An id representiing the user calling this API will be included in the GrantRevoked event
@@ -228,11 +294,120 @@ type GetAccessInstructionsParams struct {
 // PostGrantsJSONRequestBody defines body for PostGrants for application/json ContentType.
 type PostGrantsJSONRequestBody = PostGrantsJSONBody
 
+// ValidateGrantJSONRequestBody defines body for ValidateGrant for application/json ContentType.
+type ValidateGrantJSONRequestBody = ValidateGrantJSONBody
+
 // PostGrantsRevokeJSONRequestBody defines body for PostGrantsRevoke for application/json ContentType.
 type PostGrantsRevokeJSONRequestBody PostGrantsRevokeJSONBody
 
 // ValidateSetupJSONRequestBody defines body for ValidateSetup for application/json ContentType.
 type ValidateSetupJSONRequestBody ValidateRequest
+
+// Getter for additional properties for ArgSchema. Returns the specified
+// element and whether it was found
+func (a ArgSchema) Get(fieldName string) (value Argument, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ArgSchema
+func (a *ArgSchema) Set(fieldName string, value Argument) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Argument)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a *ArgSchema) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Argument)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Argument
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a ArgSchema) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Argument_Groups. Returns the specified
+// element and whether it was found
+func (a Argument_Groups) Get(fieldName string) (value Group, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Argument_Groups
+func (a *Argument_Groups) Set(fieldName string, value Group) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Group)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a *Argument_Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Group)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Group
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a Argument_Groups) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for CreateGrant_With. Returns the specified
 // element and whether it was found
@@ -340,6 +515,59 @@ func (a Grant_With) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for Groups. Returns the specified
+// element and whether it was found
+func (a Groups) Get(fieldName string) (value []GroupOption, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Groups
+func (a *Groups) Set(fieldName string, value []GroupOption) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string][]GroupOption)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a *Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string][]GroupOption)
+		for fieldName, fieldBuf := range object {
+			var fieldVal []GroupOption
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a Groups) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -421,6 +649,11 @@ type ClientInterface interface {
 
 	PostGrants(ctx context.Context, body PostGrantsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ValidateGrant request with any body
+	ValidateGrantWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ValidateGrant(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// PostGrantsRevoke request with any body
 	PostGrantsRevokeWithBody(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -479,6 +712,30 @@ func (c *Client) PostGrantsWithBody(ctx context.Context, contentType string, bod
 
 func (c *Client) PostGrants(ctx context.Context, body PostGrantsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostGrantsRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ValidateGrantWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewValidateGrantRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ValidateGrant(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewValidateGrantRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -669,6 +926,46 @@ func NewPostGrantsRequestWithBody(server string, contentType string, body io.Rea
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/grants")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewValidateGrantRequest calls the generic ValidateGrant builder with application/json body
+func NewValidateGrantRequest(server string, body ValidateGrantJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewValidateGrantRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewValidateGrantRequestWithBody generates requests for ValidateGrant with any type of body
+func NewValidateGrantRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/grants/validate")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1090,6 +1387,11 @@ type ClientWithResponsesInterface interface {
 
 	PostGrantsWithResponse(ctx context.Context, body PostGrantsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGrantsResponse, error)
 
+	// ValidateGrant request with any body
+	ValidateGrantWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ValidateGrantResponse, error)
+
+	ValidateGrantWithResponse(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*ValidateGrantResponse, error)
+
 	// PostGrantsRevoke request with any body
 	PostGrantsRevokeWithBodyWithResponse(ctx context.Context, grantId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGrantsRevokeResponse, error)
 
@@ -1174,6 +1476,33 @@ func (r PostGrantsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PostGrantsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ValidateGrantResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *struct {
+		Error *string `json:"error,omitempty"`
+	}
+	JSON500 *struct {
+		Error *string `json:"error,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r ValidateGrantResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ValidateGrantResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1344,7 +1673,7 @@ func (r GetAccessInstructionsResponse) StatusCode() int {
 type GetProviderArgsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]interface{}
+	JSON200      *ArgSchema
 	JSON404      *struct {
 		Error *string `json:"error,omitempty"`
 	}
@@ -1373,8 +1702,7 @@ type ListProviderArgOptionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		// Whether any options have been suggested for the argument.
-		HasOptions bool `json:"hasOptions"`
+		Groups *Groups `json:"groups,omitempty"`
 
 		// The suggested options.
 		Options []Option `json:"options"`
@@ -1454,6 +1782,23 @@ func (c *ClientWithResponses) PostGrantsWithResponse(ctx context.Context, body P
 		return nil, err
 	}
 	return ParsePostGrantsResponse(rsp)
+}
+
+// ValidateGrantWithBodyWithResponse request with arbitrary body returning *ValidateGrantResponse
+func (c *ClientWithResponses) ValidateGrantWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ValidateGrantResponse, error) {
+	rsp, err := c.ValidateGrantWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseValidateGrantResponse(rsp)
+}
+
+func (c *ClientWithResponses) ValidateGrantWithResponse(ctx context.Context, body ValidateGrantJSONRequestBody, reqEditors ...RequestEditorFn) (*ValidateGrantResponse, error) {
+	rsp, err := c.ValidateGrant(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseValidateGrantResponse(rsp)
 }
 
 // PostGrantsRevokeWithBodyWithResponse request with arbitrary body returning *PostGrantsRevokeResponse
@@ -1614,6 +1959,43 @@ func ParsePostGrantsResponse(rsp *http.Response) (*PostGrantsResponse, error) {
 		}
 		response.JSON201 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseValidateGrantResponse parses an HTTP response from a ValidateGrantWithResponse call
+func ParseValidateGrantResponse(rsp *http.Response) (*ValidateGrantResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ValidateGrantResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest struct {
 			Error *string `json:"error,omitempty"`
@@ -1885,7 +2267,7 @@ func ParseGetProviderArgsResponse(rsp *http.Response) (*GetProviderArgsResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]interface{}
+		var dest ArgSchema
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1930,8 +2312,7 @@ func ParseListProviderArgOptionsResponse(rsp *http.Response) (*ListProviderArgOp
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			// Whether any options have been suggested for the argument.
-			HasOptions bool `json:"hasOptions"`
+			Groups *Groups `json:"groups,omitempty"`
 
 			// The suggested options.
 			Options []Option `json:"options"`
@@ -2009,6 +2390,9 @@ type ServerInterface interface {
 	// Create Grant
 	// (POST /api/v1/grants)
 	PostGrants(w http.ResponseWriter, r *http.Request)
+	// ValidateGrant
+	// (POST /api/v1/grants/validate)
+	ValidateGrant(w http.ResponseWriter, r *http.Request)
 	// Revoke grant
 	// (POST /api/v1/grants/{grantId}/revoke)
 	PostGrantsRevoke(w http.ResponseWriter, r *http.Request, grantId string)
@@ -2068,6 +2452,21 @@ func (siw *ServerInterfaceWrapper) PostGrants(w http.ResponseWriter, r *http.Req
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostGrants(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// ValidateGrant operation middleware
+func (siw *ServerInterfaceWrapper) ValidateGrant(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ValidateGrant(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2441,6 +2840,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/grants", wrapper.PostGrants)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/grants/validate", wrapper.ValidateGrant)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/grants/{grantId}/revoke", wrapper.PostGrantsRevoke)
 	})
 	r.Group(func(r chi.Router) {
@@ -2474,52 +2876,58 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"HxtZhLaW8klRBm/vt/8PAAD//wWJYp1IMQAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

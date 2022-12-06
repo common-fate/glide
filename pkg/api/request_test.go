@@ -8,25 +8,29 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
+	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/api/mocks"
+	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/accesssvc"
+	ahMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
+	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/api/mocks"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/service/accesssvc"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserCreateRequest(t *testing.T) {
 	type testcase struct {
-		name          string
-		give          string
-		mockCreate    *accesssvc.CreateRequestResult
+		name string
+		give string
+		// mockCreate    []accesssvc.CreateRequestResult
 		mockCreateErr error
 		wantCode      int
 		wantBody      string
@@ -34,23 +38,10 @@ func TestUserCreateRequest(t *testing.T) {
 
 	testcases := []testcase{
 		{
-			name: "ok",
-			give: `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
-			mockCreate: &accesssvc.CreateRequestResult{
-				Request: access.Request{
-					ID:          "123",
-					RequestedBy: "testuser",
-					Rule:        "rul_123",
-					RuleVersion: "0001-01-01T00:00:00Z",
-
-					Status: access.PENDING,
-					RequestedTiming: access.Timing{
-						Duration: time.Second * 10,
-					},
-				},
-			},
-			wantCode: http.StatusCreated,
-			wantBody: `{"accessRule":{"id":"rul_123","version":"0001-01-01T00:00:00Z"},"id":"123","requestedAt":"0001-01-01T00:00:00Z","requestor":"testuser","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":10},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			name:     "ok",
+			give:     `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
+			wantCode: http.StatusOK,
+			wantBody: `null`,
 		},
 		{
 			name:     "no duration",
@@ -67,24 +58,25 @@ func TestUserCreateRequest(t *testing.T) {
 		{
 			name:          "rule not found",
 			give:          `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
-			mockCreateErr: accesssvc.ErrRuleNotFound,
-			wantCode:      http.StatusNotFound,
-			wantBody:      `{"error":"access rule rul_123 not found"}`,
+			mockCreateErr: apio.NewRequestError(accesssvc.ErrRuleNotFound, http.StatusBadRequest),
+			wantCode:      http.StatusBadRequest,
+			wantBody:      `{"error":"access rule not found"}`,
 		},
 		{
 			name:          "no matching group",
 			give:          `{"timing":{"durationSeconds": 10}, "accessRuleId": "rul_123"}`,
-			mockCreateErr: accesssvc.ErrNoMatchingGroup,
-			wantCode:      http.StatusUnauthorized,
+			mockCreateErr: apio.NewRequestError(accesssvc.ErrNoMatchingGroup, http.StatusBadRequest),
+			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"user was not in a matching group for the access rule"}`,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
-			mockAccess.EXPECT().CreateRequest(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
+			mockAccess.EXPECT().CreateRequests(gomock.Any(), gomock.Any()).Return(nil, tc.mockCreateErr).AnyTimes()
 			a := API{Access: mockAccess}
 			handler := newTestServer(t, &a)
 
@@ -159,6 +151,7 @@ func TestUserCancelRequest(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 			mockAccess.EXPECT().CancelRequest(gomock.Any(), gomock.Any()).Return(tc.mockCancelErr).AnyTimes()
@@ -203,7 +196,8 @@ func TestUserGetRequest(t *testing.T) {
 		// expected HTTP response code
 		wantCode int
 		// expected HTTP response body
-		wantBody string
+		wantBody                     string
+		withRequestArgumentsResponse map[string]types.RequestArgument
 	}
 
 	testcases := []testcase{
@@ -217,9 +211,10 @@ func TestUserGetRequest(t *testing.T) {
 				Rule:        "abcd",
 				RuleVersion: "efgh",
 			},
-			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
+			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 			// canReview is false in the response
-			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"arguments":{},"canReview":false,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:     "reviewer can see request they can review",
@@ -232,7 +227,8 @@ func TestUserGetRequest(t *testing.T) {
 				Rule:        "abcd",
 				RuleVersion: "efgh",
 			},
-			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
+			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 			mockGetReviewer: &access.Reviewer{Request: access.Request{
 				ID:          "req_123",
 				Status:      access.PENDING,
@@ -240,7 +236,7 @@ func TestUserGetRequest(t *testing.T) {
 				RuleVersion: "efgh",
 			}},
 			// note canReview is true in the response
-			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"canReview":true,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"","type":""}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"arguments":{},"canReview":true,"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:              "noRequestFound",
@@ -257,20 +253,28 @@ func TestUserGetRequest(t *testing.T) {
 				RequestedBy: "notThisUser",
 				Status:      access.PENDING,
 			},
-			mockGetAccessRuleVersion: &rule.AccessRule{ID: "test"},
-			mockGetReviewerErr:       ddb.ErrNoItems,
-			wantCode:                 http.StatusNotFound,
-			wantBody:                 `{"error":"item query returned no items"}`,
+			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
+			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
+			mockGetReviewerErr:           ddb.ErrNoItems,
+			wantCode:                     http.StatusNotFound,
+			wantBody:                     `{"error":"item query returned no items"}`,
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetRequest{Result: tc.mockGetRequest}, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: tc.mockGetReviewer}, tc.mockGetReviewerErr)
 			db.MockQuery(&storage.GetAccessRuleVersion{Result: tc.mockGetAccessRuleVersion})
-			a := API{DB: db}
+			db.MockQuery(&storage.ListCachedProviderOptions{Result: []cache.ProviderOption{}})
+			ctrl := gomock.NewController(t)
+			rs := mocks.NewMockAccessRuleService(ctrl)
+			if tc.withRequestArgumentsResponse != nil {
+				rs.EXPECT().RequestArguments(gomock.Any(), gomock.Any()).Return(tc.withRequestArgumentsResponse, nil)
+			}
+			a := API{DB: db, Rules: rs}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("GET", "/api/v1/requests/"+tc.givenID, strings.NewReader(""))
@@ -328,7 +332,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:       "ok requestor with status",
@@ -341,7 +345,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:         "ok reviewer",
@@ -354,7 +358,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"PENDING","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:         "ok requestor with status",
@@ -368,7 +372,7 @@ func TestUserListRequests(t *testing.T) {
 				RuleVersion: "efgh",
 			}}},
 
-			wantBody: `{"next":null,"requests":[{"accessRule":{"id":"abcd","version":"efgh"},"id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","selectedWith":{},"status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
+			wantBody: `{"next":null,"requests":[{"accessRuleId":"abcd","accessRuleVersion":"efgh","id":"req_123","requestedAt":"0001-01-01T00:00:00Z","requestor":"","status":"APPROVED","timing":{"durationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z"}]}`,
 		},
 		{
 			name:           "internal error user",
@@ -420,6 +424,7 @@ func TestUserListRequests(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(tc.mockDBQuery, tc.mockDBQueryErr)
 			a := API{DB: db}
@@ -459,20 +464,61 @@ func TestUserListRequests(t *testing.T) {
 }
 func TestRevokeRequest(t *testing.T) {
 	type testcase struct {
-		request  access.Request
-		name     string
-		give     string
-		wantCode int
-		wantErr  error
+		request              access.Request
+		name                 string
+		give                 string
+		withUID              string
+		withRevokeGrantErr   error
+		wantCode             int
+		withGetRequestError  error
+		withGetReviewerError error
+		wantBody             string
+		withIsAdmin          bool
 	}
 
 	testcases := []testcase{
 
 		{
-			request:  access.Request{},
-			name:     "grant not found",
-			wantCode: http.StatusNotFound,
-			wantErr:  ddb.ErrNoItems,
+			name:                "grant not found",
+			request:             access.Request{},
+			wantCode:            http.StatusNotFound,
+			withGetRequestError: ddb.ErrNoItems,
+			wantBody:            `{"error":"request not found or you don't have access to it"}`,
+		},
+		{
+			name: "user can revoke their own grant",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:  "user1",
+			wantCode: http.StatusOK,
+		},
+		{
+			name: "admin can revoke any request",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:     "admin",
+			withIsAdmin: true,
+			wantCode:    http.StatusOK,
+		},
+		{
+			name: "user cant revoke other users request",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:              "user2",
+			withGetReviewerError: ddb.ErrNoItems,
+			wantCode:             http.StatusNotFound,
+			wantBody:             `{"error":"request not found or you don't have access to it"}`,
+		},
+		{
+			name: "reviewer can revoke request",
+			request: access.Request{
+				RequestedBy: "user1",
+			},
+			withUID:  "user2",
+			wantCode: http.StatusOK,
 		},
 	}
 
@@ -480,11 +526,15 @@ func TestRevokeRequest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.wantErr)
-			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{Request: tc.request}}, tc.wantErr)
+			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.withGetRequestError)
+			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{Request: tc.request}}, tc.withGetReviewerError)
+			ctrl := gomock.NewController(t)
+			rs := ahMocks.NewMockGranter(ctrl)
 
-			a := API{DB: db}
-			handler := newTestServer(t, &a, withIsAdmin(true))
+			rs.EXPECT().RevokeGrant(gomock.Any(), grantsvc.RevokeGrantOpts{Request: tc.request, RevokerID: tc.withUID}).AnyTimes().Return(nil, tc.withRevokeGrantErr)
+
+			a := API{DB: db, Granter: rs}
+			handler := newTestServer(t, &a, withIsAdmin(tc.withIsAdmin), withRequestUser(identity.User{ID: tc.withUID}))
 
 			req, err := http.NewRequest("POST", "/api/v1/requests/123/revoke", strings.NewReader(tc.give))
 			if err != nil {
@@ -494,9 +544,16 @@ func TestRevokeRequest(t *testing.T) {
 			rr := httptest.NewRecorder()
 
 			handler.ServeHTTP(rr, req)
-
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			} else {
+				fmt.Print((data))
+			}
 			assert.Equal(t, tc.wantCode, rr.Code)
-
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
 		})
 	}
 }
@@ -601,6 +658,7 @@ func TestUserListRequestEvents(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)
@@ -632,4 +690,83 @@ func TestUserListRequestEvents(t *testing.T) {
 		})
 	}
 
+}
+
+func TestGetAccessToken(t *testing.T) {
+	type testcase struct {
+		name               string
+		withUID            string
+		withRequest        *access.Request
+		withGetRequestErr  error
+		withAccessToken    *access.AccessToken
+		withAccessTokenErr error
+		wantBody           string
+		wantCode           int
+	}
+
+	testcases := []testcase{
+		{
+			name:            "ok",
+			withUID:         "a",
+			withRequest:     &access.Request{RequestedBy: "a"},
+			withAccessToken: &access.AccessToken{Token: "token"},
+			wantBody:        `{"hasToken":true,"token":"token"}`,
+			wantCode:        http.StatusOK,
+		},
+		{
+			name:            "wrong user unauthorised",
+			withUID:         "b",
+			withRequest:     &access.Request{RequestedBy: "a"},
+			withAccessToken: &access.AccessToken{Token: "token"},
+			wantBody:        `{"error":"not authorised"}`,
+			wantCode:        http.StatusUnauthorized,
+		},
+		{
+			name:              "request not found",
+			withUID:           "b",
+			withGetRequestErr: ddb.ErrNoItems,
+			withAccessToken:   &access.AccessToken{Token: "token"},
+			wantBody:          `{"error":"request not found"}`,
+			wantCode:          http.StatusNotFound,
+		},
+		{
+			name:               "request has no token",
+			withUID:            "a",
+			withRequest:        &access.Request{RequestedBy: "a"},
+			withAccessTokenErr: ddb.ErrNoItems,
+			wantBody:           `{"hasToken":false}`,
+			wantCode:           http.StatusOK,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetRequest{Result: tc.withRequest}, tc.withGetRequestErr)
+			db.MockQueryWithErr(&storage.GetAccessToken{Result: tc.withAccessToken}, tc.withAccessTokenErr)
+
+			a := API{DB: db}
+			handler := newTestServer(t, &a, withRequestUser(identity.User{ID: tc.withUID}))
+
+			req, err := http.NewRequest("GET", "/api/v1/requests/123/access-token", strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			} else {
+				fmt.Print((data))
+			}
+			assert.Equal(t, tc.wantCode, rr.Code)
+			if tc.wantBody != "" {
+				assert.Equal(t, tc.wantBody, string(data))
+			}
+		})
+	}
 }

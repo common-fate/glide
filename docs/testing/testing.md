@@ -1,6 +1,6 @@
 ## Getting Started
 
-Granted Approvals uses [Playwright](https://playwright.dev/) to run full end to end tests. These tests run on Github actions for each branch and controls part of the CI/CD pipeline.
+Common Fate uses [Playwright](https://playwright.dev/) to run full end to end tests. These tests run on Github actions for each branch and controls part of the CI/CD pipeline.
 It's important to make sure these tests are passing while developing. These docs will serve as instructions to make sure you can run them locally to test against local changes.
 
 First make sure the frontend dependencies are up to date by running
@@ -11,7 +11,7 @@ pnpm install
 ```
 
 Then you can get your environment ready to run tests locally
-Create a `.env` file within `granted-approvals/web` and copy in the following template
+Create a `.env` file within `common-fate/web` and copy in the following template
 
 ```
 TEST_USERNAME=""

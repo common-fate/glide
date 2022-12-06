@@ -5,9 +5,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
-	"github.com/common-fate/granted-approvals/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
@@ -27,7 +27,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	//set up the sync handler
 	syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
 		TableName:      cfg.TableName,
@@ -43,6 +42,6 @@ func main() {
 		panic(err)
 	}
 	zap.ReplaceGlobals(log.Desugar())
-	zap.S().Infow("starting sync with configuration")
+	zap.S().Infow("starting sync", "config", ic, "idp.type", cfg.IdpProvider)
 	lambda.Start(syncer.Sync)
 }

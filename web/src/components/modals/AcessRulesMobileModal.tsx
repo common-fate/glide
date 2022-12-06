@@ -77,8 +77,8 @@ const AcessRulesMobileModal = (props: Props) => {
                     No Access
                   </Text>
                   <Text textStyle="Body/Medium" color="neutrals.400" mt={2}>
-                    You don’t have access to anything yet. Ask your Granted
-                    administrator to finish setting up Granted.
+                    You don’t have access to anything yet. Ask your Common Fate
+                    administrator to finish setting up Common Fate.
                   </Text>
                 </Center>
               )

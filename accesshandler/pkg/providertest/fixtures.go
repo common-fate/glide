@@ -18,7 +18,7 @@ var (
 func LoadFixture(ctx context.Context, name string, f interface{}) error {
 	switch name {
 	case "azure":
-		projectPath = filepath.Join(basepath, "../../..")
+		projectPath = filepath.Join(basepath, "../..")
 	case "okta":
 		projectPath = filepath.Join(basepath, "../..")
 	default:

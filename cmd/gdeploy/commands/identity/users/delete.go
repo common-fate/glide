@@ -2,9 +2,9 @@ package users
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
@@ -42,7 +42,7 @@ var DeleteCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Deleted user %s", username)
-
+		clio.Successf("Deleted user %s", username)
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	}}

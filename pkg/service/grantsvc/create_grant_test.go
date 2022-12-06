@@ -8,12 +8,12 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/iso8601"
 
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb/ddbmock"
-	ahTypes "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types/ahmocks"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/identity"
-	"github.com/common-fate/granted-approvals/pkg/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,7 +35,10 @@ func TestCreateGrant(t *testing.T) {
 		withCreateGrantResponseErr     error
 		withUser                       identity.User
 		give                           CreateGrantOpts
+		subject                        string
 		wantPostGrantsWithResponseBody ahTypes.PostGrantsJSONRequestBody
+		wantValidateRequestToProvider  ahTypes.ValidateGrantJSONRequestBody
+		wantValidateRequestResponse    *ahTypes.ValidateGrantResponse
 		needsAccessToken               bool
 		needsAccessTokenErr            error
 
@@ -81,6 +84,17 @@ func TestCreateGrant(t *testing.T) {
 					AdditionalProperties: make(map[string]string),
 				},
 			},
+			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
+				Id:       "123",
+				Provider: "OKTA",
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: make(map[string]string),
+				},
+				Subject: "test@test.com",
+				Start:   iso8601.New(overrideStart),
+				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+			},
+			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{},
 			wantRequest: &access.Request{
 				Status: access.APPROVED,
 				RequestedTiming: access.Timing{
@@ -95,6 +109,7 @@ func TestCreateGrant(t *testing.T) {
 					Subject:   "test@test.com",
 				},
 			},
+			subject: "test@test.com",
 		},
 		{
 			name: "created success with override timing",
@@ -111,6 +126,8 @@ func TestCreateGrant(t *testing.T) {
 					},
 				},
 			},
+			subject: "test@test.com",
+
 			withCreateGrantResponse: &ahTypes.PostGrantsResponse{
 				JSON201: &struct {
 					Grant ahTypes.Grant "json:\"grant\""
@@ -134,6 +151,17 @@ func TestCreateGrant(t *testing.T) {
 					AdditionalProperties: make(map[string]string),
 				},
 			},
+			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
+				Id:       "123",
+				Provider: "OKTA",
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: make(map[string]string),
+				},
+				Subject: "test@test.com",
+				Start:   iso8601.New(overrideStart),
+				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
+			},
+			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{},
 
 			wantRequest: &access.Request{
 				Status: access.APPROVED,
@@ -160,8 +188,9 @@ func TestCreateGrant(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
+			g.EXPECT().ValidateGrantWithResponse(gomock.Any(), gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.wantValidateRequestResponse, tc.withCreateGrantResponseErr).AnyTimes()
 
+			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
 			c := ddbmock.New(t)
 			c.MockQuery(&storage.GetUser{Result: &tc.withUser})
 

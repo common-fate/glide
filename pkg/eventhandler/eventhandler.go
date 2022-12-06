@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/gevent"
-	"github.com/common-fate/granted-approvals/pkg/storage"
-	"github.com/common-fate/granted-approvals/pkg/storage/dbupdate"
 	"go.uber.org/zap"
 )
 
@@ -82,6 +82,7 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 		}
 		requestEvent = access.NewGrantFailedEvent(gq.Result.ID, event.Time, oldStatus, newStatus, grantFailedEvent.Reason)
 		log.Infow("inserting request event for grant failed")
+
 	} else {
 		requestEvent = access.NewGrantStatusChangeEvent(gq.Result.ID, event.Time, nil, oldStatus, newStatus)
 		log.Infow("inserting request event for grant status change")

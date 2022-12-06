@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/cfaws"
 )
 
 // SSMDumper will upload any secrets to SSM which have changed and then return the tokenised ssm path as the value
@@ -59,7 +59,7 @@ func putSecretVersion(ctx context.Context, path string, suffix, value string) (o
 		Name:      aws.String(name),
 		Value:     aws.String(value),
 		Type:      types.ParameterTypeSecureString,
-		Overwrite: true,
+		Overwrite: aws.Bool(true),
 	})
 	if err != nil {
 		return "", "", err

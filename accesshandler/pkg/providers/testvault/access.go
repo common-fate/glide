@@ -14,7 +14,7 @@ import (
 )
 
 type Args struct {
-	Vault string `json:"vault" jsonschema:"title=Vault,description=The name of an example vault to grant access to (can be any string),default=demovault"`
+	Vault string `json:"vault"`
 }
 
 // Grant the access
@@ -89,7 +89,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	u.Path = path.Join("vaults", vault, "members", EscapeEmailForURL(subject))
 	urlString := u.String()
 
-	return fmt.Sprintf("This is just a test resource to show you how Granted Approvals works.\nVisit the [vault membership URL](%s) to check that your access has been provisioned.", urlString), nil
+	return fmt.Sprintf("This is just a test resource to show you how Common Fate works.\nVisit the [vault membership URL](%s) to check that your access has been provisioned.", urlString), nil
 }
 
 // getPrefixedVault gets the vault ID with the unique ID prefixed to it.

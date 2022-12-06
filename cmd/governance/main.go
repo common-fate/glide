@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/governance"
-	"github.com/common-fate/granted-approvals/internal"
-	"github.com/common-fate/granted-approvals/pkg/config"
+	"github.com/common-fate/common-fate/governance"
+	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"

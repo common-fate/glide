@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,7 +28,7 @@ var DeleteCommand = cli.Command{
 
 		// prevent the user deleting the administrators group
 		// it is created by the stack deployment automatically
-		if group == "granted_administrators" || group == dc.Deployment.Parameters.AdministratorGroupID {
+		if group == deploy.DefaultCommonFateAdministratorsGroup || group == dc.Deployment.Parameters.AdministratorGroupID {
 			return errors.New("you cannot delete the administrators group")
 		}
 
@@ -55,8 +55,8 @@ var DeleteCommand = cli.Command{
 			return err
 		}
 
-		clio.Success("Successfully deleted group '%s'", group)
-
+		clio.Successf("Successfully deleted group '%s'", group)
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 		return nil
 	},
 }

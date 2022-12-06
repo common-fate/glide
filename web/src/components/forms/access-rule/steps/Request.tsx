@@ -11,18 +11,18 @@ import {
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { GroupSelect } from "../components/Select";
-import { CreateAccessRuleFormData } from "../CreateForm";
+import { AccessRuleFormData } from "../CreateForm";
 import { GroupDisplay } from "./Approval";
 import { FormStep } from "./FormStep";
 
 export const RequestsStep: React.FC = () => {
-  const methods = useFormContext<CreateAccessRuleFormData>();
+  const methods = useFormContext<AccessRuleFormData>();
   const groups = methods.watch("groups");
 
   return (
     <FormStep
       heading="Request"
-      subHeading="Who can request access to the principal?"
+      subHeading="Who can request access to the permissions?"
       fields={["groups"]}
       preview={
         <VStack width={"100%"} align="flex-start">
@@ -48,6 +48,9 @@ export const RequestsStep: React.FC = () => {
           testId="group-select"
           fieldName="groups"
           rules={{ required: true, minLength: 1 }}
+          onBlurSecondaryAction={() => {
+            void methods.trigger("groups");
+          }}
         />
         <FormErrorMessage>At least one group is required.</FormErrorMessage>
       </FormControl>

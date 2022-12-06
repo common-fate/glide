@@ -13,7 +13,7 @@ type Dumper interface {
 	Dump(ctx context.Context, cfg Config) (map[string]string, error)
 }
 
-// Loader loads configuration for Granted providers.
+// Loader loads configuration for Common Fate providers.
 type Loader interface {
 	// Load configuration. Returns a map of config values.
 	// The keys of the map are the value names, and the values
@@ -101,6 +101,14 @@ func WithArgs(path string, expectedCount int) SecretPathFunc {
 	}
 }
 
+type cliPromptType uint8
+
+const (
+	CLIPromptTypeString cliPromptType = iota
+	CLIPromptTypeFile
+	CLIPromptTypePassword
+)
+
 // Field represents a key-value pair in a configuration
 // to create a Field, use one of the generator functions
 // StringField(), SecretStringField() or OptionalStringField()
@@ -131,6 +139,7 @@ type Field struct {
 	// this value is typically derived from the secretPathPrefix a suffix and a version number
 	secretPath  string
 	defaultFunc func() string
+	cliPrompt   cliPromptType
 }
 
 func (s Field) HasChanged() bool {
@@ -209,6 +218,10 @@ func (s *Field) Get() string {
 		return ""
 	}
 	return s.value.Get()
+}
+
+func (s *Field) CLIPrompt() cliPromptType {
+	return s.cliPrompt
 }
 
 // String calls the Valuer.String() method for this fields value.
@@ -306,6 +319,13 @@ func WithDefaultFunc(df func() string) FieldOptFunc {
 	}
 }
 
+// WithCLIPrompt allows to override the type of cli prompt used to collect a value for this field when used in the context of a CLI
+func WithCLIPrompt(prompt cliPromptType) FieldOptFunc {
+	return func(f *Field) {
+		f.cliPrompt = prompt
+	}
+}
+
 // StringField creates a new field with a StringValue
 // This field type is for non secrets
 // for secrets, use SecretField()
@@ -317,6 +337,7 @@ func StringField(key string, dest *StringValue, usage string, opts ...FieldOptFu
 		key:         key,
 		value:       dest,
 		description: usage,
+		cliPrompt:   CLIPromptTypeString,
 	}
 	for _, opt := range opts {
 		opt(f)
@@ -335,6 +356,7 @@ func SecretStringField(key string, dest *SecretStringValue, usage string, secret
 		description:    usage,
 		secret:         true,
 		secretPathFunc: secretPathFunc,
+		cliPrompt:      CLIPromptTypePassword,
 	}
 	for _, opt := range opts {
 		opt(f)
@@ -353,6 +375,7 @@ func OptionalStringField(key string, dest *OptionalStringValue, usage string, op
 		value:       dest,
 		description: usage,
 		optional:    true,
+		cliPrompt:   CLIPromptTypeString,
 	}
 	for _, opt := range opts {
 		opt(f)

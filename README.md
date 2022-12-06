@@ -1,6 +1,6 @@
 <p align="center"><img src="./docs/img/logo.svg" height="80" /></p>
 
-<h1 align="center">Granted Approvals</h1>
+<h1 align="center">Common Fate</h1>
 <p align="center">The easiest way to access your cloud.</p>
 
 <p align="center">
@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-    <a href="https://granted.dev" alt="visit the Granted website">
+    <a href="https://docs.commonfate.io/granted-approvals/introduction" alt="visit the Common Fate documentation website">
         <img src="./docs/img/approvals-1.png">
     </a>
 </p>
 
 <br/>
 
-## What is Granted Approvals?
+## What is Common Fate?
 
-Granted Approvals is an open source privileged access management framework which makes requesting roles a breeze.
+Common Fate is an open source privileged access management framework which makes requesting roles a breeze.
 
 **Get access**: set up rules defining who can request access to what, and the resource owners who can approve access.
 
@@ -41,8 +41,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for information on how to contribute. W
 
 ## Security
 
-See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Granted Approvals website](https://docs.commonfate.io/granted-approvals/security-architecture).
+See [SECURITY.md](./SECURITY.md) for security information. You can view our full security documentation on the [Common Fate website](https://docs.commonfate.io/granted-approvals/security-architecture).
 
 ## Licence
 
-Granted Approvals is licenced under [AGPL-3.0](./LICENCE). [Contact us](mailto:hello@commonfate.io) if you'd like to use Granted Approvals under a different licence.
+Common Fate is licenced under [AGPL-3.0](./LICENCE). [Contact us](mailto:hello@commonfate.io) if you'd like to use Common Fate under a different licence.

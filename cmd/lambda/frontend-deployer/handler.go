@@ -8,15 +8,15 @@ import (
 	"github.com/aws/aws-lambda-go/cfn"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/pkg/config"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )
 
 func main() {
 	lambda.Start(cfn.LambdaWrap(func(ctx context.Context, e cfn.Event) (physicalResourceID string, data map[string]interface{}, err error) {
-		physicalResourceID = "grantedFrontendConfigurer"
+		physicalResourceID = "CommonFateFrontendConfigurer"
 		var cfg config.FrontendDeployerConfig
 		_ = godotenv.Load()
 		err = envconfig.Process(ctx, &cfg)

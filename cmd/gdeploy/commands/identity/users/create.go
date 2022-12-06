@@ -3,10 +3,13 @@ package users
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/clio"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
+	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/urfave/cli/v2"
 )
 
@@ -14,7 +17,9 @@ var CreateCommand = cli.Command{
 	Name: "create",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "username", Aliases: []string{"u"}, Usage: "The username of the user to create (should be an email address)", Required: true},
-		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "Whether to make the user a Granted Approvals administrator"},
+		&cli.StringFlag{Name: "given-name", Usage: "The user's given name"},
+		&cli.StringFlag{Name: "family-name", Usage: "The user's family name"},
+		&cli.BoolFlag{Name: "admin", Aliases: []string{"a"}, Usage: "Whether to make the user a Common Fate administrator"},
 	},
 	Description: "Create a Cognito user",
 	Action: func(c *cli.Context) error {
@@ -38,19 +43,38 @@ var CreateCommand = cli.Command{
 			return err
 		}
 		cog := cognitoidentityprovider.NewFromConfig(cfg)
-		_, err = cog.AdminCreateUser(ctx, &cognitoidentityprovider.AdminCreateUserInput{
+
+		in := cognitoidentityprovider.AdminCreateUserInput{
 			UserPoolId: &o.UserPoolID,
 			Username:   &username,
-		})
+		}
+
+		givenName := c.String("given-name")
+		if givenName != "" {
+			in.UserAttributes = append(in.UserAttributes, types.AttributeType{
+				Name:  aws.String("given_name"),
+				Value: &givenName,
+			})
+		}
+
+		familyName := c.String("family-name")
+		if familyName != "" {
+			in.UserAttributes = append(in.UserAttributes, types.AttributeType{
+				Name:  aws.String("family_name"),
+				Value: &familyName,
+			})
+		}
+
+		_, err = cog.AdminCreateUser(ctx, &in)
 		if err != nil {
 			return err
 		}
 
-		clio.Success("created user %s", username)
+		clio.Successf("created user %s", username)
 
 		if c.Bool("admin") {
 			if adminGroup == "" {
-				return clio.NewCLIError(fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy identity groups members add --username %s --group <the admin group ID>' to make the user a Granted administrator.", f, username))
+				return clierr.New(fmt.Sprintf("The AdministratorGroupID parameter is not set in %s. Set the parameter in the Parameters section and then call 'gdeploy identity groups members add --username %s --group <the admin group ID>' to make the user a Common Fate administrator.", f, username))
 			}
 
 			_, err = cog.AdminAddUserToGroup(ctx, &cognitoidentityprovider.AdminAddUserToGroupInput{
@@ -62,8 +86,9 @@ var CreateCommand = cli.Command{
 				return err
 			}
 
-			clio.Success("added user %s to administrator group '%s'", username, adminGroup)
+			clio.Successf("added user %s to administrator group '%s'", username, adminGroup)
 		}
+		clio.Warn("Run 'gdeploy identity sync' to sync your changes now.")
 
 		return nil
 	},

@@ -1,3 +1,4 @@
+import Auth from "@aws-amplify/auth";
 import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Avatar,
@@ -28,7 +29,7 @@ import { Link } from "react-location";
 import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
 import { DoorIcon } from "../icons/Icons";
-import { ApprovalsLogoAdmin } from "../icons/Logos";
+import { CommonFateAdminLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
 
 export const AdminNavbar: React.FC = () => {
@@ -74,7 +75,7 @@ export const AdminNavbar: React.FC = () => {
                   transition="all .2s ease"
                   rounded="sm"
                 >
-                  <ApprovalsLogoAdmin h="32px" w="auto" />
+                  <CommonFateAdminLogo h="32px" w="auto" />
                 </ChakraLink>
                 {isDesktop && (
                   <ButtonGroup variant="ghost" spacing="1">
@@ -110,6 +111,7 @@ export const AdminNavbar: React.FC = () => {
                   </Button>
                   <Menu>
                     <MenuButton
+                      data-testid="logout-icon"
                       as={Button}
                       variant="ghost"
                       rounded="full"
@@ -139,6 +141,7 @@ export const AdminNavbar: React.FC = () => {
                         {user.user?.email}
                       </MenuItem>
                       <MenuItem
+                        data-testid="logout-button"
                         icon={<DoorIcon color={"gray.400"} />}
                         onClick={auth.initiateSignOut}
                       >

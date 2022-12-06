@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbtest"
-	"github.com/common-fate/granted-approvals/pkg/access"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

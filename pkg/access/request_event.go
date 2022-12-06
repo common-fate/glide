@@ -3,10 +3,10 @@ package access
 import (
 	"time"
 
+	ac_types "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 )
 
 // request events should not be updated once created

@@ -1,5 +1,10 @@
 // theme/index.js
-import { extendTheme, ThemeOverride, withDefaultProps } from "@chakra-ui/react";
+import {
+  extendTheme,
+  StyleFunctionProps,
+  ThemeOverride,
+  withDefaultProps,
+} from "@chakra-ui/react";
 import { colors } from "./colors";
 
 const progressBaseStyle = () => ({
@@ -55,7 +60,7 @@ const one: ThemeOverride = {
       },
       variants: {
         // this adds the default border style (::before is needed)
-        withBorder: (props) => ({
+        withBorder: (props: StyleFunctionProps) => ({
           container: {
             "pos": "relative",
             "&::after": {
@@ -177,29 +182,29 @@ const two: ThemeOverride = {
   components: {
     Button: {
       variants: {
-        brandPrimary: (props) => ({
+        brandPrimary: (props: StyleFunctionProps) => ({
           px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
           py: props.size == "sm" ? "10px" : "13px",
           color: "white",
           rounded: "full",
-          bg: "brandGreen.300",
+          bg: "brandBlue.300",
           _hover: {
-            bg: "brandGreen.400",
+            bg: "brandBlue.400",
             _disabled: {
               // nested _disabled is needed here to override base style
-              bg: "brandGreen.300",
+              bg: "brandBlue.300",
             },
           },
           _active: {
-            bg: "brandGreen.400",
+            bg: "brandBlue.400",
           },
           _disabled: {
             opacity: 0.2,
-            bg: "brandGreen.300",
+            bg: "brandBlue.300",
           },
           variant: "solid",
         }),
-        brandSecondary: (props) => ({
+        brandSecondary: (props: StyleFunctionProps) => ({
           px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
           py: props.size == "sm" ? "10px" : "13px",
           color: "neutrals.700",
@@ -226,6 +231,28 @@ const two: ThemeOverride = {
         secondary: {
           bg: "white",
         },
+        danger: (props: StyleFunctionProps) => ({
+          px: props.size == "xs" ? 3 : props.size == "sm" ? "24px" : "32px",
+          py: props.size == "sm" ? "10px" : "13px",
+          color: "white",
+          rounded: "full",
+          bg: "actionDanger.200",
+          _hover: {
+            bg: "actionDanger.200",
+            _disabled: {
+              // nested _disabled is needed here to override base style
+              bg: "actionDanger.200",
+            },
+          },
+          _active: {
+            bg: "actionDanger.200",
+          },
+          _disabled: {
+            opacity: 0.2,
+            bg: "actionDanger.200",
+          },
+          variant: "solid",
+        }),
       },
     },
     Breadcrumb: {
@@ -265,7 +292,7 @@ const two: ThemeOverride = {
             // 'Current' state
             _selected: {
               fontWeight: 500,
-              borderColor: "#34B53A",
+              borderColor: "brandBlue.300",
               borderBottomWidth: "2px",
             },
             // Disabled state

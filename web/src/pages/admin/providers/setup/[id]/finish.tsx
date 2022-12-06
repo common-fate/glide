@@ -12,11 +12,12 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { Helmet } from "react-helmet";
 import { Link, Navigate, useMatch } from "react-location";
 import ReactMarkdown from "react-markdown";
 import {
   CFCode,
-  CodeInstruction,
+  CFReactMarkownCode,
 } from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
 import { useGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
@@ -109,6 +110,11 @@ const Page = () => {
           {registeredProvider !== undefined &&
             `Setting up the ${registeredProvider.name} provider`}
         </Text>
+        {registeredProvider !== undefined && (
+          <Helmet>
+            <title>{registeredProvider.name} Setup</title>
+          </Helmet>
+        )}
         {data && (
           <HStack
             spacing={3}
@@ -137,8 +143,8 @@ const Page = () => {
           spacing={8}
         >
           <Text>
-            To finish setting up this provider, you need to update your Granted
-            deployment configuration.
+            To finish setting up this provider, you need to update your Common
+            Fate deployment configuration.
           </Text>
 
           <OrderedList color="#757575" spacing={5}>
@@ -147,7 +153,7 @@ const Page = () => {
             </ListItem>
             <ListItem>
               Open a terminal window in the folder containing your{" "}
-              <CFCode>granted-deployment.yml</CFCode> file.
+              <CFCode>deployment.yml</CFCode> file.
             </ListItem>
             <ListItem>
               <Stack>
@@ -166,7 +172,7 @@ const Page = () => {
                         {props.children}
                       </Text>
                     ),
-                    code: CodeInstruction,
+                    code: CFReactMarkownCode,
                   }}
                 >
                   {gdeployCommand}
@@ -191,7 +197,7 @@ const Page = () => {
                         {props.children}
                       </Text>
                     ),
-                    code: CodeInstruction,
+                    code: CFReactMarkownCode,
                   }}
                 >
                   {"```\ngdeploy update\n```"}

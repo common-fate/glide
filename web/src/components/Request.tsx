@@ -1,5 +1,9 @@
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
+  Alert,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
   Avatar,
   Badge,
   Box,
@@ -14,6 +18,7 @@ import {
   Link,
   Progress,
   Skeleton,
+  SkeletonCircle,
   SkeletonText,
   Spinner,
   Stack,
@@ -51,20 +56,24 @@ import { useUser } from "../utils/context/userContext";
 import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
-import { CodeInstruction } from "./CodeInstruction";
+import { CFReactMarkownCode } from "./CodeInstruction";
 import { CopyableOption } from "./CopyableOption";
+import { WarningIcon } from "./icons/Icons";
 import { ProviderIcon } from "./icons/providerIcon";
+import { InfoOption } from "./InfoOption";
 import EditRequestTimeModal from "./modals/EditRequestTimeModal";
 import RevokeConfirmationModal from "./modals/RevokeConfirmationModal";
 import { StatusCell } from "./StatusCell";
 
 interface RequestProps {
   request?: RequestDetail;
+  isValidating: boolean;
   children?: React.ReactNode;
 }
 
 interface RequestContext {
   request: RequestDetail | undefined;
+  isValidating: boolean;
   overrideTiming?: RequestTiming;
   setOverrideTiming: React.Dispatch<
     React.SetStateAction<RequestTiming | undefined>
@@ -73,6 +82,7 @@ interface RequestContext {
 
 const Context = createContext<RequestContext>({
   request: undefined,
+  isValidating: true,
   setOverrideTiming: () => {
     undefined;
   },
@@ -80,12 +90,15 @@ const Context = createContext<RequestContext>({
 
 export const RequestDisplay: React.FC<RequestProps> = ({
   request,
+  isValidating,
   children,
 }) => {
   const [overrideTiming, setOverrideTiming] = useState<RequestTiming>();
 
   return (
-    <Context.Provider value={{ overrideTiming, setOverrideTiming, request }}>
+    <Context.Provider
+      value={{ overrideTiming, setOverrideTiming, request, isValidating }}
+    >
       <Stack spacing={6} flex={1}>
         {children}
       </Stack>
@@ -162,42 +175,30 @@ export const RequestStatusDisplay: React.FC<{
   );
 };
 
-export const RequestSelectedWithDisplay: React.FC<{
-  request: Request | RequestDetail | undefined;
+export const RequestArgumentsDisplay: React.FC<{
+  request: RequestDetail | undefined;
 }> = ({ request }) => {
-  if (request?.selectedWith === undefined) {
-    <Skeleton
-      minW="30ch"
-      minH="6"
-      isLoaded={request?.selectedWith !== undefined}
-      mr="auto"
-    />;
+  if (request === undefined) {
+    return <Skeleton minW="30ch" minH="6" mr="auto" />;
   }
 
-  if (
-    request?.selectedWith &&
-    Object.entries(request.selectedWith).length > 0
-  ) {
-    return (
-      <VStack align={"left"}>
-        <Text textStyle="Body/Medium">Request Details</Text>
-        <Wrap>
-          {request?.selectedWith &&
-            Object.entries(request?.selectedWith).map(([k, v]) => {
-              return (
-                <WrapItem>
-                  <VStack align={"left"}>
-                    <Text>{k}</Text>
-                    <CopyableOption label={v.label} value={v.value} />
-                  </VStack>
-                </WrapItem>
-              );
-            })}
-        </Wrap>
-      </VStack>
-    );
-  }
-  return null;
+  return (
+    <VStack align={"left"}>
+      <Text textStyle="Body/Medium">Request Details</Text>
+      <Wrap>
+        {Object.entries(request.arguments).map(([k, v]) => {
+          return (
+            <WrapItem key={"request-argument-" + k}>
+              <VStack align={"left"}>
+                <Text>{v.title}</Text>
+                <InfoOption label={v.label} value={v.value} />
+              </VStack>
+            </WrapItem>
+          );
+        })}
+      </Wrap>
+    </VStack>
+  );
 };
 export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
   const { request } = useContext(Context);
@@ -210,8 +211,9 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       }
     : {
         badge: "Old Version",
-        label:
-          "The access rule has been updated since this request was made. You can still approve this request.",
+        label: `The access rule has been updated since this request was made. ${
+          request?.canReview ? "You can still approve this request." : ""
+        }`,
       };
 
   return (
@@ -251,8 +253,9 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
             </Tooltip>
           </HStack>
         </Skeleton>
-        <RequestSelectedWithDisplay request={request} />
+        <RequestArgumentsDisplay request={request} />
         <Skeleton isLoaded={request !== undefined}>
+          {/* @NOTE: this causes CLS, potential improvement */}
           {request?.reason && (
             <VStack align={"left"}>
               <Text textStyle="Body/Medium">Reason</Text>
@@ -291,7 +294,17 @@ export const RequestAccessInstructions: React.FC = () => {
 
   useEffect(() => {
     if (reqData?.grant?.status == "PENDING") {
-      setRefreshInterval(2000);
+      if (
+        reqData?.timing.startTime &&
+        Date.parse(reqData.timing.startTime) > new Date().valueOf()
+      ) {
+        // This should make it refresh at least once just after its scheduled start time
+        setRefreshInterval(
+          Date.parse(reqData.timing.startTime) - new Date().valueOf() + 100
+        );
+      } else {
+        setRefreshInterval(2000);
+      }
     } else {
       setRefreshInterval(0);
     }
@@ -301,10 +314,20 @@ export const RequestAccessInstructions: React.FC = () => {
     return null;
   }
 
+  // Don't attempt to load a scheduled request until start time
+  if (
+    reqData?.timing.startTime &&
+    Date.parse(reqData.timing.startTime) > new Date().valueOf()
+  ) {
+    return null;
+  }
+
   if (reqData?.grant?.status === "PENDING") {
     return (
       <Stack>
-        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Box textStyle="Body/Medium" id="access_instructions">
+          Access Instructions
+        </Box>
         <Text textStyle="Body/small" color="neutrals.600">
           Provisioning access
         </Text>
@@ -315,7 +338,9 @@ export const RequestAccessInstructions: React.FC = () => {
   if (reqData?.grant?.status === "ACTIVE") {
     return (
       <Stack>
-        <Box textStyle="Body/Medium">Access Instructions</Box>
+        <Box textStyle="Body/Medium" id="access_instructions">
+          Access Instructions
+        </Box>
         <ReactMarkdown
           components={{
             a: (props) => <Link target="_blank" rel="noreferrer" {...props} />,
@@ -324,7 +349,7 @@ export const RequestAccessInstructions: React.FC = () => {
                 {props.children}
               </Text>
             ),
-            code: CodeInstruction,
+            code: CFReactMarkownCode,
           }}
         >
           {data.instructions}
@@ -336,21 +361,25 @@ export const RequestAccessInstructions: React.FC = () => {
   return null;
 };
 
-export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
-  const { data, error } = useGetAccessToken(reqId);
-
-  const { data: reqData } = useUserGetRequest(reqId);
+export const RequestAccessToken: React.FC = () => {
+  const { request } = useContext(Context);
+  const { data, error } = useGetAccessToken(request?.id ?? "", {
+    swr: {
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      refreshWhenHidden: false,
+    },
+  });
 
   const toast = useToast();
-  // The Access tokne API returns a 404 for anyone other than the requestor or if there is no access token.
-  // We treat the 404 as an indication tha there is no access token to display for this request
-  if (error?.response?.status == 404) {
-    return null;
-  }
+
+  if (error) return null;
+  if (!request) return <Spinner />;
   if (!data) return <Spinner />;
+  if (!data.hasToken) return null;
 
   const handleClick = async () => {
-    await navigator.clipboard.writeText(data);
+    await navigator.clipboard.writeText(data.token || "");
     toast({
       title: "Access token copied to clipboard",
       status: "success",
@@ -360,17 +389,17 @@ export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
     });
   };
 
-  if (reqData?.grant?.status === "ACTIVE") {
+  if (request.grant?.status === "ACTIVE") {
     return (
       <Stack>
         <Box textStyle="Body/Medium" mb={2}>
           Access Token
         </Box>
         <InputGroup size="md" bg="white" maxW="400px">
-          <Input pr="4.5rem" type={"password"} value={data} readOnly />
+          <Input pr="4.5rem" type={"password"} value={data.token} readOnly />
           <InputRightElement width="4.5rem" pr={1}>
             <Button h="1.75rem" size="sm" onClick={handleClick}>
-              {"Copy"}
+              Copy
             </Button>
           </InputRightElement>
         </InputGroup>
@@ -381,11 +410,32 @@ export const RequestAccessToken: React.FC<{ reqId: string }> = ({ reqId }) => {
   }
 };
 
-export const RequestTime: React.FC = () => {
+export const RequestTime: React.FC<{ canReview?: boolean }> = ({
+  canReview,
+}) => {
+  const { request } = useContext(Context);
+
+  return request ? (
+    canReview ? (
+      <_RequestOverridableTime />
+    ) : (
+      <_RequestTime />
+    )
+  ) : (
+    // This let's us leverage the same Skeleton component
+    <Stack spacing={2} minH="90px">
+      <SkeletonText noOfLines={1} w="10ch" lineHeight="12px" />
+      <SkeletonText noOfLines={1} w="10ch" lineHeight="12px" />
+      <SkeletonText noOfLines={1} w="20ch" lineHeight="12px" />
+    </Stack>
+  );
+};
+
+export const _RequestTime: React.FC = () => {
   const { request } = useContext(Context);
   const timing = request?.timing;
 
-  return request ? (
+  return (
     <Flex textStyle="Body/Small" flexDir="column" h="59px">
       <Box textStyle="Body/Medium">Duration</Box>
       <Text
@@ -398,19 +448,15 @@ export const RequestTime: React.FC = () => {
         {renderTiming(timing)}{" "}
       </Text>
     </Flex>
-  ) : (
-    <Stack spacing={2}>
-      <SkeletonText noOfLines={1} w="10ch" />
-      <SkeletonText noOfLines={1} w="20ch" />
-    </Stack>
   );
 };
 
 /**
  * Similar to `<RequestTime />`, but allows the timing to be overridden during review.
  */
-export const RequestOverridableTime: React.FC = () => {
-  const { request, setOverrideTiming, overrideTiming } = useContext(Context);
+export const _RequestOverridableTime: React.FC = () => {
+  const { request, setOverrideTiming, overrideTiming, isValidating } =
+    useContext(Context);
   const { onOpen, onClose, isOpen } = useDisclosure();
   const timing = request?.timing;
 
@@ -419,12 +465,12 @@ export const RequestOverridableTime: React.FC = () => {
   };
 
   if (request?.status !== "PENDING") {
-    return <RequestTime />;
+    return <_RequestTime />;
   }
 
   return (
     <>
-      <Flex textStyle="Body/Small" flexDir="column">
+      <Flex textStyle="Body/Small" flexDir="column" flexWrap="wrap">
         <Box textStyle="Body/Medium" mb={1} pos="relative">
           Timing
           <IconButton
@@ -438,25 +484,20 @@ export const RequestOverridableTime: React.FC = () => {
             rounded="full"
           />
         </Box>
-        <Skeleton isLoaded={request !== undefined}>
-          <Text
-            color="neutrals.600"
-            textStyle="Body/Small"
-            // noOfLines={1}
-            p={1}
-            pl={0}
-            textDecoration={
-              overrideTiming !== undefined ? "line-through" : undefined
-            }
-          >
-            {renderTiming(timing)}{" "}
-          </Text>
-        </Skeleton>
+        <Text
+          color="neutrals.600"
+          textStyle="Body/Small"
+          // noOfLines={1}
+          p={1}
+          pl={0}
+          textDecoration={overrideTiming ? "line-through" : undefined}
+        >
+          {renderTiming(timing)}{" "}
+        </Text>
         {overrideTiming && (
           <Text
             color="neutrals.600"
             textStyle="Body/Small"
-            noOfLines={1}
             p={1}
             pl={0}
             fontStyle={"italic"}
@@ -472,46 +513,57 @@ export const RequestOverridableTime: React.FC = () => {
           </Text>
         )}
       </Flex>
-      {request && (
-        <EditRequestTimeModal
-          handleSubmit={onUpdate}
-          isOpen={isOpen}
-          onClose={onClose}
-          request={request}
-        />
-      )}
+      <EditRequestTimeModal
+        handleSubmit={onUpdate}
+        isOpen={isOpen}
+        onClose={onClose}
+        request={request}
+      />
     </>
   );
 };
 
 export const RequestRequestor: React.FC = () => {
   const { request } = useContext(Context);
-  const { data: requestor } = useGetUser(request?.requestor ?? "");
+  const { data: requestor, isValidating } = useGetUser(
+    request?.requestor ?? ""
+  );
 
-  return (
+  /**
+   * Load state requirements:
+   * - show nothing if request?.requestor is undefined
+   * - show skeleton if requestor is loading
+   *
+   * Improvements:
+   * - reduce CLS by finding a way to absolute position component,
+   * eliminating uncertainty of height
+   */
+
+  return !isValidating && requestor ? (
     <Flex textStyle="Body/Small" flexDir="column">
       <Box textStyle="Body/Medium">Requestor</Box>
-      <Skeleton w="30ch" isLoaded={requestor !== undefined}>
-        {requestor && (
-          <Flex>
-            <Avatar
-              name={requestor.email}
-              variant="withBorder"
-              mr={2}
-              size="xs"
-            />
-            <Text textStyle="Body/Small">{userName(requestor)}</Text>
-            <Text
-              color="neutrals.600"
-              textStyle="Body/Small"
-              maxW="20ch"
-              noOfLines={1}
-            >
-              {requestor.email}
-            </Text>
-          </Flex>
-        )}
-      </Skeleton>
+      <Flex>
+        <Avatar name={requestor.email} variant="withBorder" mr={2} size="xs" />
+        <Text textStyle="Body/Small" mr={2}>
+          {userName(requestor)}
+        </Text>
+        <Text
+          color="neutrals.600"
+          textStyle="Body/Small"
+          maxW="20ch"
+          noOfLines={1}
+        >
+          {requestor.email}
+        </Text>
+      </Flex>
+    </Flex>
+  ) : (
+    <Flex flexDir="column">
+      <SkeletonText noOfLines={1} w="10ch" height="22px" />
+      <Flex alignItems="center" height="24px">
+        <SkeletonCircle size="24px" mr={2} />
+        <SkeletonText noOfLines={1} w="10ch" lineHeight="12px" />
+      </Flex>
     </Flex>
   );
 };
@@ -524,15 +576,19 @@ interface ReviewButtonsProps {
 }
 
 export const RequestReview: React.FC<ReviewButtonsProps> = ({
+  // @TODO: i can be replaced with a requestId and we can generate our own mutate hook
   onSubmitReview,
   canReview,
   focus,
 }) => {
-  const { request, overrideTiming } = useContext(Context);
+  const { request, overrideTiming, setOverrideTiming } = useContext(Context);
   const toast = useToast();
   const auth = useUser();
-  const [comment, setComment] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<ReviewDecision>();
+  const { onOpen, onClose, isOpen } = useDisclosure();
+  const onUpdate = (timing: RequestTiming) => {
+    setOverrideTiming(timing);
+  };
 
   const submitReview = async (decision: ReviewDecision) => {
     if (request === undefined) return;
@@ -540,7 +596,6 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
       setIsSubmitting(decision);
       await reviewRequest(request.id, {
         decision,
-        comment,
         overrideTiming: overrideTiming,
       });
       toast({
@@ -576,11 +631,89 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
     return null;
   }
 
-  const borderColor = focus !== undefined ? "brandGreen.300" : "neutrals.300";
+  const borderColor = focus !== undefined ? "brandBlue.300" : "neutrals.300";
+
+  const reqStartsInPast =
+    request.timing.startTime && new Date() > new Date(request.timing.startTime);
+  const overrideStartsInPast =
+    overrideTiming?.startTime &&
+    new Date() > new Date(overrideTiming.startTime);
+
+  const startsAndEndsInPast =
+    !!request.timing.startTime &&
+    !!request.timing.durationSeconds &&
+    new Date().getTime() >
+      new Date(request.timing.startTime).getTime() +
+        request.timing.durationSeconds * 1000;
+
+  let warningTitle = "This request is scheduled to start in the past";
+  if (startsAndEndsInPast) {
+    warningTitle = "This request is scheduled in the past";
+  }
+  let warningDescription = (
+    <>
+      The scheduled start time for this request has already elapsed.{" "}
+      <strong>Approving</strong> this request will{" "}
+      <strong>activate access now</strong>
+    </>
+  );
+  if (startsAndEndsInPast) {
+    warningDescription = (
+      <>
+        The scheduled start and end times for this request have already elapsed.{" "}
+        <strong>Close the request</strong>, or <strong>edit</strong> the timing
+        to continue.
+      </>
+    );
+  }
 
   return (
     <Stack spacing={4}>
       <Text textStyle="Body/LargeBold">Review</Text>
+      {
+        // if the start time is in the past, show warning
+        ((reqStartsInPast && !overrideTiming) || overrideStartsInPast) && (
+          <Alert
+            status="warning"
+            rounded="md"
+            borderColor={borderColor}
+            borderRadius={"md"}
+            borderWidth={"1px"}
+            bg="white"
+            alignItems="start"
+            pb={8}
+          >
+            <WarningIcon boxSize="24px" mr={4} mt={1} />
+            <Box>
+              <AlertTitle mr={2} color="neutrals.800" fontWeight="medium">
+                {warningTitle}
+              </AlertTitle>
+              <AlertDescription
+                color="neutrals.600"
+                sx={{
+                  strong: { fontWeight: 600 },
+                }}
+              >
+                {warningDescription}
+              </AlertDescription>
+              <Button
+                onClick={onOpen}
+                key={2}
+                rounded="full"
+                size="sm"
+                variant="outline"
+                position="absolute"
+                right={4}
+                bottom={4}
+                zIndex={2}
+                bg="white"
+              >
+                Edit
+              </Button>
+            </Box>
+          </Alert>
+        )
+      }
       <HStack spacing={3}>
         <Avatar
           variant="withBorder"
@@ -651,7 +784,11 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
                   <Button
                     data-testid="approve"
                     isLoading={isSubmitting === "APPROVED"}
-                    isDisabled={isSubmitting === "DECLINED"}
+                    isDisabled={
+                      isSubmitting === "DECLINED" ||
+                      !canReview ||
+                      (startsAndEndsInPast && !overrideTiming)
+                    }
                     autoFocus={focus === "approve"}
                     variant={"brandPrimary"}
                     key={1}
@@ -677,6 +814,12 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
           </Tooltip>
         </Stack>
       </HStack>
+      <EditRequestTimeModal
+        handleSubmit={onUpdate}
+        isOpen={isOpen}
+        onClose={onClose}
+        request={request}
+      />
     </Stack>
   );
 };
@@ -715,17 +858,22 @@ export const RequestCancelButton: React.FC = () => {
       });
     }
   };
-
-  return (
-    <ButtonGroup variant="outline" size="sm">
-      {!request && <Skeleton rounded="full" w="64px" h="32px" />}
-      {request?.status === "PENDING" && request.grant?.status == "PENDING" && (
+  // only display cancel if request is pending or is grant is still undefined
+  if (
+    (request?.status === "PENDING" && request.grant?.status == "PENDING") ||
+    request?.grant == undefined
+  ) {
+    return (
+      <ButtonGroup variant="outline" size="sm">
+        {!request && <Skeleton rounded="full" w="64px" h="32px" />}
         <Button rounded="full" onClick={handleCancel}>
           Cancel
         </Button>
-      )}
-    </ButtonGroup>
-  );
+      </ButtonGroup>
+    );
+  } else {
+    return null;
+  }
 };
 
 interface RevokeButtonsProps {
@@ -781,6 +929,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
                 key={2}
                 rounded="full"
                 onClick={() => revokeConfirmationDisclosure.onOpen()}
+                data-testid="revoke-button"
               >
                 Revoke
               </Button>

@@ -39,7 +39,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
     // use map here to ensure order is preserved
     // foreach is not synchronous
     const l = data?.events.length || 0;
-    data?.events.map((e, i) => {
+    data?.events.forEach((e, i) => {
       if (e.grantCreated) {
         items.push(
           <CFTimelineRow
@@ -47,23 +47,30 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             header={<Text>Grant created</Text>}
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromGrantStatus && e.actor) {
+        let selectCase: string | undefined;
+        if (e.toGrantStatus === "ACTIVE") selectCase = " approved the request";
+        if (e.toGrantStatus === "REVOKED") selectCase = " revoked the grant";
         items.push(
           <CFTimelineRow
             arrLength={l}
             header={
               <Text>
-                <UserText userId={e.actor || ""} />
-                {`changed grant status from
-              ${e.fromGrantStatus?.toLowerCase()} to ${e.toGrantStatus?.toLowerCase()}`}
+                <UserText userId={e.actor || ""} />{" "}
+                {
+                  /** if null, fallback to default case */
+                  selectCase ??
+                    `changed grant status from
+              ${e.fromGrantStatus?.toLowerCase()} to ${e.toGrantStatus?.toLowerCase()}`
+                }
               </Text>
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromGrantStatus && e.grantFailureReason) {
@@ -105,7 +112,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromGrantStatus) {
@@ -120,7 +127,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromTiming && e.actor) {
@@ -136,7 +143,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromStatus && e.actor) {
@@ -146,13 +153,12 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             header={
               <Text>
                 <UserText userId={e.actor || ""} />
-                {` changed request status from
-              ${e.fromStatus?.toLowerCase()} to ${e.toStatus?.toLowerCase()}`}
+                {` ${e.toStatus?.toLowerCase()} the request`}
               </Text>
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.fromStatus?.toLowerCase()) {
@@ -161,13 +167,13 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             arrLength={l}
             header={
               <Text>
-                {`Granted Approvals changed request status from
+                {`Common Fate changed the request status from
               ${e.fromStatus?.toLowerCase()} to ${e.toStatus?.toLowerCase()}`}
               </Text>
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.requestCreated) {
@@ -182,7 +188,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
             }
             index={i}
             key={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       } else if (e.recordedEvent) {
@@ -219,7 +225,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
               </Stack>
             }
             index={i}
-            body={new Date(e.createdAt).toString()}
+            timestamp={new Date(e.createdAt)}
           />
         );
       }

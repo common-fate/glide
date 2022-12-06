@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/api"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/config"
-	"github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/deploy"
+	"github.com/common-fate/common-fate/accesshandler/pkg/api"
+	"github.com/common-fate/common-fate/accesshandler/pkg/config"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/deploy"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"go.uber.org/zap"
@@ -35,7 +35,10 @@ func New(ctx context.Context, c config.Config) (*Server, error) {
 	// remove any servers from the spec, as we don't know what host or port the user will run the API as.
 	swagger.Servers = nil
 
-	dc := &deploy.EnvDeploymentConfig{}
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return nil, err
+	}
 	providers, err := dc.ReadProviders(ctx)
 	if err != nil {
 		return nil, err

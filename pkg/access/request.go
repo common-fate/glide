@@ -3,11 +3,12 @@ package access
 import (
 	"time"
 
+	"github.com/common-fate/analytics-go"
+	ac_types "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	ac_types "github.com/common-fate/granted-approvals/accesshandler/pkg/types"
-	"github.com/common-fate/granted-approvals/pkg/rule"
-	"github.com/common-fate/granted-approvals/pkg/storage/keys"
-	"github.com/common-fate/granted-approvals/pkg/types"
 	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
@@ -59,8 +60,9 @@ func (g *Grant) ToAPI() types.Grant {
 }
 
 type Option struct {
-	Value string `json:"value" dynamodbav:"value"`
-	Label string `json:"label" dynamodbav:"label"`
+	Value       string  `json:"value" dynamodbav:"value"`
+	Label       string  `json:"label" dynamodbav:"label"`
+	Description *string `json:"description" dynamodbav:"description"`
 }
 
 type Request struct {
@@ -92,6 +94,7 @@ type Request struct {
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 }
+
 type GetIntervalOpts struct {
 	Now time.Time
 }
@@ -99,6 +102,11 @@ type GetIntervalOpts struct {
 // WithNow allows you to override the now time used by getInterval
 func WithNow(t time.Time) func(o *GetIntervalOpts) {
 	return func(o *GetIntervalOpts) { o.Now = t }
+}
+
+// HasReason returns true if the request has a non-empty reason associated with it.
+func (r *Request) HasReason() bool {
+	return r.Data.Reason != nil && *r.Data.Reason != ""
 }
 
 // GetInterval will return the interval for either the requested timing or for the override timing if it is present
@@ -119,28 +127,16 @@ func (r *Request) IsScheduled() bool {
 
 func (r *Request) ToAPI() types.Request {
 	req := types.Request{
-		AccessRule: types.RequestAccessRule{
-			Id:      r.Rule,
-			Version: r.RuleVersion,
-		},
-		Timing:         r.RequestedTiming.ToAPI(),
-		Reason:         r.Data.Reason,
-		ID:             r.ID,
-		RequestedAt:    r.CreatedAt,
-		Requestor:      r.RequestedBy,
-		Status:         types.RequestStatus(r.Status),
-		UpdatedAt:      r.UpdatedAt,
-		ApprovalMethod: r.ApprovalMethod,
-		SelectedWith: types.Request_SelectedWith{
-			AdditionalProperties: make(map[string]types.WithOption),
-		},
-	}
-
-	for k, v := range r.SelectedWith {
-		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
-			Label: v.Label,
-			Value: v.Value,
-		}
+		AccessRuleId:      r.Rule,
+		AccessRuleVersion: r.RuleVersion,
+		Timing:            r.RequestedTiming.ToAPI(),
+		Reason:            r.Data.Reason,
+		ID:                r.ID,
+		RequestedAt:       r.CreatedAt,
+		Requestor:         r.RequestedBy,
+		Status:            types.RequestStatus(r.Status),
+		UpdatedAt:         r.UpdatedAt,
+		ApprovalMethod:    r.ApprovalMethod,
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -155,7 +151,7 @@ func (r *Request) ToAPI() types.Request {
 	return req
 }
 
-func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.RequestDetail {
+func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, requestArguments map[string]types.RequestArgument) types.RequestDetail {
 	req := types.RequestDetail{
 		AccessRule:     accessRule.ToAPI(),
 		Timing:         r.RequestedTiming.ToAPI(),
@@ -167,16 +163,41 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool) types.
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
-		SelectedWith: &types.RequestDetail_SelectedWith{
-			AdditionalProperties: make(map[string]types.WithOption),
+		Arguments: types.RequestDetail_Arguments{
+			AdditionalProperties: make(map[string]types.With),
 		},
 	}
 
-	for k, v := range r.SelectedWith {
-		req.SelectedWith.AdditionalProperties[k] = types.WithOption{
-			Label: v.Label,
-			Value: v.Value,
+	// gets the option properties from requestArgumenst and maps to the fields selected for this request.
+	// @TODO, it would be simpler if the request stored the value of all arguments rather than just the selected arguments,
+	// because we need to infer which ones were fixed values at the time of teh request which is available in request arguments
+	for k, v := range requestArguments {
+		// in the unexpected case that an option is not found, fallback rather than returning an error
+		option := types.WithOption{
+			Label: "error not found",
+			Value: "error not found",
 		}
+		if !v.RequiresSelection {
+			if len(v.Options) == 1 {
+				option = v.Options[0]
+			}
+		} else {
+			if selected, ok := r.SelectedWith[k]; ok {
+				for _, o := range v.Options {
+					if o.Value == selected.Value {
+						option = o
+					}
+				}
+			}
+		}
+		with := types.With{
+			Title:             v.Title,
+			FieldDescription:  v.Description,
+			Label:             option.Label,
+			Value:             option.Value,
+			OptionDescription: option.Description,
+		}
+		req.Arguments.AdditionalProperties[k] = with
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -196,10 +217,13 @@ func (r *Request) DDBKeys() (ddb.Keys, error) {
 	// - PENDING asap requests should have MAXIMUM endtime
 	// - Declined and Cancelled requests should have an end time = createdAt so they get a somewhat natural order in the results
 	// - REVOKED grants should have end time = created at
+	// - ERROR grants should have end times = created at
 	end := r.CreatedAt
 	if r.Status == APPROVED || r.Status == PENDING {
 		if r.Grant != nil {
-			if r.Grant.Status != ac_types.GrantStatusREVOKED {
+			//any grant status other than revoked or error should be equal to grant.end.
+			//this is to make sure the error and revoke grants are pushed to the past column in the frontend
+			if !(r.Grant.Status == ac_types.GrantStatusREVOKED || r.Grant.Status == ac_types.GrantStatusERROR) {
 				end = r.Grant.End
 			}
 		} else if r.IsScheduled() {
@@ -235,6 +259,18 @@ type Timing struct {
 	Duration time.Duration `json:"duration" dynamodbav:"duration"`
 	// If the start time is not nil, this request is for scheduled access, if it is nil, then the request is for asap access
 	StartTime *time.Time `json:"start,omitempty" dynamodbav:"start,omitempty"`
+}
+
+func (t Timing) ToAnalytics() analytics.Timing {
+	mode := analytics.TimingModeASAP
+	if t.IsScheduled() {
+		mode = analytics.TimingModeScheduled
+	}
+
+	return analytics.Timing{
+		Mode:            mode,
+		DurationSeconds: t.Duration.Seconds(),
+	}
 }
 
 // TimingFromRequestTiming converts from the api type to the internal type

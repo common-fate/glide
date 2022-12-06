@@ -8,9 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
-	"github.com/common-fate/granted-approvals/pkg/cfaws"
-	"github.com/common-fate/granted-approvals/pkg/gconfig"
-	"github.com/invopop/jsonschema"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/gconfig"
 	"go.uber.org/zap"
 )
 
@@ -19,12 +20,15 @@ type Provider struct {
 	client        *ssoadmin.Client
 	idStoreClient *identitystore.Client
 	orgClient     *organizations.Client
-	ssoRoleARN    gconfig.StringValue
-	instanceARN   gconfig.StringValue
+	// resourcesClient *resourcegroupstaggingapi.Client
+	ssoRoleARN  gconfig.StringValue
+	instanceARN gconfig.StringValue
 	// The globally unique identifier for the identity store, such as d-1234567890.
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
 	region gconfig.OptionalStringValue
+	//custom sso portal URL
+	ssoSubdomain gconfig.OptionalStringValue
 }
 
 func (p *Provider) Config() gconfig.Config {
@@ -33,6 +37,7 @@ func (p *Provider) Config() gconfig.Config {
 		gconfig.StringField("identityStoreId", &p.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("instanceArn", &p.instanceARN, "the AWS SSO Instance ARN"),
 		gconfig.OptionalStringField("region", &p.region, "the region the AWS SSO instance is deployed to"),
+		gconfig.OptionalStringField("ssoSubdomain", &p.ssoSubdomain, "the custom SSO subdomain configured (if applicable)"),
 	}
 }
 
@@ -45,16 +50,47 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// NOTE: commented until "tags" group option is release.
+	// resourcesCfg := cfg.Copy()
+	// Hardcoded use east 1 region so that I can search organization accounts using the resource tagging api
+	// not sure how this works for other regions?
+	// resourcesCfg.Region = "us-east-1"
 	cfg.RetryMaxAttempts = 5
 	p.awsConfig = cfg
 	p.client = ssoadmin.NewFromConfig(cfg)
 	p.orgClient = organizations.NewFromConfig(cfg)
 	p.idStoreClient = identitystore.NewFromConfig(cfg)
+	// NOTE: commented until "tags" group option is release.
+	// p.resourcesClient = resourcegroupstaggingapi.NewFromConfig(resourcesCfg)
 	zap.S().Infow("configured aws sso client", "instanceArn", p.instanceARN, "idstoreID", p.identityStoreID)
 	return nil
 }
 
-// ArgSchema returns the schema for the AWS SSO provider.
-func (p *Provider) ArgSchema() *jsonschema.Schema {
-	return jsonschema.Reflect(&Args{})
+func (p *Provider) ArgSchema() providers.ArgSchema {
+	arg := providers.ArgSchema{
+		"permissionSetArn": {
+			Id:                 "permissionSetArn",
+			Title:              "Permission Set",
+			Description:        aws.String("The AWS Permission Set"),
+			RuleFormElement:    types.ArgumentRuleFormElementMULTISELECT,
+			RequestFormElement: providers.ArgumentRequestFormElement(types.ArgumentRequestFormElementSELECT),
+		},
+		"accountId": {
+			Id:              "accountId",
+			Title:           "Account",
+			Description:     aws.String("The AWS Account ID"),
+			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
+			Groups: &types.Argument_Groups{
+				AdditionalProperties: map[string]types.Group{
+					"organizationalUnit": {
+						Title: "Organizational Unit",
+						Id:    "organizationalUnit",
+					},
+				},
+			},
+		},
+	}
+
+	return arg
 }
