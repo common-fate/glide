@@ -127,6 +127,7 @@ const Home = () => {
                     templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
                     minW={{ base: "unset", xl: "488px" }}
                     gap={6}
+                    overflowX={{ base: "scroll" }}
                   >
                     {rules ? (
                       rules.accessRules.length > 0 ? (
