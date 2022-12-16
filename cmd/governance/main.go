@@ -25,7 +25,7 @@ func main() {
 func run() error {
 	var cfg config.Config
 	ctx := context.Background()
-	_ = godotenv.Load()
+	_ = godotenv.Load("../../.env")
 
 	err := envconfig.Process(ctx, &cfg)
 	if err != nil {

@@ -132,7 +132,11 @@ export const AccessRuleTable = () => {
             <HStack>
               <UserAvatarDetails
                 tooltip
-                user={cell.value?.createdBy}
+                user={
+                  cell.value?.createdBy !== ""
+                    ? cell.value?.createdBy
+                    : "Common Fate Terraform Bot"
+                }
                 size="xs"
                 variant="withBorder"
                 textProps={{

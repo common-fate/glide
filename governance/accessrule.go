@@ -60,11 +60,12 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
+
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
-	if err == rulesvc.ErrRuleIdAlreadyExists {
-		// the user supplied id already exists
-		err = apio.NewRequestError(err, http.StatusBadRequest)
-	}
+	// if err == rulesvc.ErrRuleIdAlreadyExists {
+	// 	// the user supplied id already exists
+	// 	err = apio.NewRequestError(err, http.StatusBadRequest)
+	// }
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -94,34 +95,34 @@ func (a *API) GovGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId st
 // Update Access Rule
 // (PUT /api/v1/gov/access-rules/{ruleId})
 func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
-	// ctx := r.Context()
-	// var updateRequest types.UpdateAccessRuleRequest
-	// err := apio.DecodeJSONBody(w, r, &updateRequest)
-	// if err != nil {
-	// 	apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-	// 	return
-	// }
+	ctx := r.Context()
+	var updateRequest types.CreateAccessRuleRequest
+	err := apio.DecodeJSONBody(w, r, &updateRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
 
-	// var rule *rule.AccessRule
-	// ruleq := storage.GetAccessRuleCurrent{ID: ruleId}
-	// _, err = a.DB.Query(ctx, &ruleq)
-	// if err != nil {
-	// 	apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
-	// 	return
-	// }
-	// rule = ruleq.Result
+	var rule *rule.AccessRule
+	ruleq := storage.GetAccessRuleCurrent{ID: ruleId}
+	_, err = a.DB.Query(ctx, &ruleq)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	rule = ruleq.Result
 
-	// updatedRule, err := a.Rules.UpdateRule(ctx, &rulesvc.UpdateOpts{
-	// 	UpdaterID:     "bot_governance_api",
-	// 	Rule:          *rule,
-	// 	UpdateRequest: updateRequest,
-	// })
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	updatedRule, err := a.Rules.UpdateRule(ctx, &rulesvc.UpdateOpts{
+		UpdaterID:     "bot_governance_api",
+		Rule:          *rule,
+		UpdateRequest: updateRequest,
+	})
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusAccepted)
+	apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusAccepted)
 }
 
 // Archive Access Rule
