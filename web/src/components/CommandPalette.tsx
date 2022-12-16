@@ -23,53 +23,80 @@ import {
   Spinner,
   Tag,
   Tooltip,
+  IconProps,
+  ComponentWithAs,
 } from "@chakra-ui/react";
-import { useHotkeys } from "react-hotkeys-hook";
 // import { useServiceKeys, useServiceMetaData } from "../../utils/apiHooks";
 // import { ServiceMetadataPrivilege } from "../../iamzero-advisories/types";
 import { useRef } from "react";
 // import { useEditor } from "../../utils/context/EditorProvider";
-import { AddIcon, EditIcon, PlusSquareIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  ArrowForwardIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  DeleteIcon,
+  EditIcon,
+  PlusSquareIcon,
+} from "@chakra-ui/icons";
+import { useNavigate, useRouter } from "react-location";
 // import QueryStringHighlight from "./QueryStringHighlight";
 
 interface Props {}
+
+type ICommand = {
+  name: string;
+  icon: ComponentWithAs<"svg", IconProps>;
+  action: () => void;
+  isAdminOnly?: boolean;
+};
 
 const EditActionModal = ({
   isOpen,
   onClose,
   ...rest
 }: Omit<ModalProps, "children">) => {
-  //   const api = useEditor();
-
   const [selectedKey, setSelectedKey] = useState("s3");
 
   const [inputValue, setInputValue] = useState("");
 
   const inputRef = useRef(null);
 
-  //   const { data: serviceMetadata, isValidating } = useServiceMetaData(
-  //     selectedKey ?? "s3"
-  //   );
+  const nav = useNavigate();
 
-  //   const { data: serviceKeys } = useServiceKeys();
+  const otherActions: ICommand[] = [
+    {
+      name: "Create access rule",
+      icon: ArrowForwardIcon,
+      action: () => nav({ to: "/admin/access-rules/create" }),
+      isAdminOnly: true,
+    },
+    {
+      name: "Switch to admin",
+      icon: ArrowForwardIcon,
+      action: () => nav({ to: "/admin/" }),
+      isAdminOnly: true,
+    },
+  ];
 
-  const [privilegeTypeMap, setPrivilegeTypeMap] = useState<Array<string>>([]);
+  /**
+   Context aware
+    - The palette knows where you are in the app
+    - i.e. If you open the palette on an Access Request it displays a set of actions specific to that request e.g. 'Approve' or 'Revoke' request, or 'Copy access instructions'
+   */
 
-  //   useEffect(() => {
-  //     console.log(serviceMetadata);
-  //     serviceMetadata?.privileges.map((p) =>
-  //       setPrivilegeTypeMap((curr) => [...new Set([...curr, p.access_level])])
-  //     );
-  //     return () => {
-  //       setPrivilegeTypeMap([]);
-  //     };
-  //   }, [serviceMetadata]);
-
-  //   const keyCheck = () => {
-  //     if (serviceKeys.includes(inputValue)) {
-  //       setSelectedKey(inputValue);
-  //     }
-  //   };
+  const accessRequestActions: ICommand[] = [
+    {
+      name: "Approve request",
+      icon: CheckIcon,
+      action: () => undefined,
+    },
+    {
+      name: "Revoke request",
+      icon: DeleteIcon,
+      action: () => undefined,
+    },
+  ];
 
   /**
    * This typing allows us to merge different search results,
@@ -174,7 +201,7 @@ const EditActionModal = ({
                 autoFocus={true}
                 type="text"
                 ref={inputRef}
-                placeholder="Try searching for an AWS Service i.e. s3"
+                placeholder="Type a command or search"
               />
               {loading && (
                 <InputRightElement>
@@ -259,13 +286,13 @@ const EditActionModal = ({
               )}
 
               <Box fontSize="sm" mt={5} px={6}>
-                <Text opacity={0.52} display="inline">
+                {/* <Text opacity={0.52} display="inline">
                   Showing suggestions for&nbsp;
                   <Badge colorScheme="cyan">{selectedKey}</Badge>
-                </Text>
+                </Text> */}
               </Box>
 
-              {[...privilegeTypeMap]
+              {[...otherActions, ...accessRequestActions]
                 /**
                  * @NOTE: if there's a performant way to adding sorting
                  * based on privilege Type > type results.length
@@ -281,7 +308,7 @@ const EditActionModal = ({
                 // 		? 1
                 // 		: 0
                 // )
-                .map((privilegeType) => {
+                .map((item) => {
                   // Total count
                   //   let [] = serviceMetadata?.privileges.filter(
                   //     (a) => a.access_level == privilegeType
@@ -294,7 +321,7 @@ const EditActionModal = ({
                   //   );
 
                   return (
-                    <Box mt={5} key={privilegeType} mx={6}>
+                    <Box mt={5} key={item.name} mx={6}>
                       <Text
                         fontSize="sm"
                         opacity={0.7}
@@ -304,42 +331,11 @@ const EditActionModal = ({
                         <span>
                           <Highlight
                             query={[inputValue]}
-                            children={privilegeType}
+                            children={item.name}
                           />
                         </span>
-                        {/* <span>{privilegeType}</span> */}
                         <span>
-                          {`(${[]?.length}/${[]?.length})`}
-                          <Tooltip
-                            label={`Add ${[]?.length} actions`}
-                            placement="right"
-                          >
-                            <IconButton
-                              disabled={[]?.length == 0}
-                              aria-label="Add all"
-                              icon={<AddIcon />}
-                              rounded="full"
-                              size="xs"
-                              transition="all .2s ease"
-                              transform="scale(.7)"
-                              opacity={0.6}
-                              _hover={{
-                                transform: "scale(.8)",
-                                opacity: 1,
-                              }}
-                              //   onClick={() =>
-                              //     api.addMultipleActions(
-                              //       [].map(
-                              //         (sr) =>
-                              //           serviceMetadata.prefix +
-                              //           ":" +
-                              //           sr.node.privilege
-                              //       ),
-                              //       api.selectedServiceIndex
-                              //     )
-                              //   }
-                            />
-                          </Tooltip>
+                          {/* add in recent/bookmarked subtext here */}
                         </span>
                       </Text>
                     </Box>
