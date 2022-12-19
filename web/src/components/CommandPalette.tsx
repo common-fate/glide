@@ -25,6 +25,7 @@ import {
   Tooltip,
   IconProps,
   ComponentWithAs,
+  useUpdateEffect,
 } from "@chakra-ui/react";
 // import { useServiceKeys, useServiceMetaData } from "../../utils/apiHooks";
 // import { ServiceMetadataPrivilege } from "../../iamzero-advisories/types";
@@ -113,65 +114,83 @@ const EditActionModal = ({
   //   type ServiceKeyResult = ResultsFormat<string, "serviceKey">;
   //   type CombinedResult = ServiceResult | ServiceKeyResult;
 
-  //   const serviceKeyResults = React.useMemo(
-  //     function getResults() {
-  //       if (serviceKeys) {
-  //         let serviceKeySearchResults: ServiceKeyResult[] = serviceKeys.map(
-  //           (el) => ({
-  //             key: el,
-  //             description: el,
-  //             node: el,
-  //             type: "serviceKey",
-  //           })
-  //         );
+  const both = [...otherActions, ...accessRequestActions];
 
-  //         serviceKeySearchResults = matchSorter(
-  //           serviceKeySearchResults,
-  //           inputValue,
-  //           {
-  //             keys: ["node"],
-  //             threshold: matchSorter.rankings.STARTS_WITH,
-  //           }
-  //         )
-  //           .slice(0, 10)
-  //           .filter((k) => k.key != selectedKey);
+  const results = React.useMemo(
+    function getResults() {
+      if (inputValue.length < 2) return both;
+      return matchSorter(both, inputValue, {
+        keys: [
+          "name",
+          // "hierarchy.lvl2", "hierarchy.lvl3", "content"
+        ],
+      }).slice(0, 20);
+    },
+    [inputValue]
+  );
 
-  //         return serviceKeySearchResults;
-  //       } else return [];
-  //     },
-  //     [inputValue, serviceKeys]
-  //   );
+  const [active, setActive] = React.useState(0);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const eventRef = React.useRef<"mouse" | "keyboard">("keyboard");
 
-  //   const results = React.useMemo(
-  //     function getResults() {
-  //       if (serviceMetadata?.privileges) {
-  //         let privilegeSearchResults: ServiceResult[] =
-  //           serviceMetadata.privileges.map((el) => ({
-  //             key: el.privilege,
-  //             description: el.description,
-  //             node: el,
-  //             type: "service",
-  //           }));
+  // @TODO: add sort/filtering
+  // @TOOD: add support for `isSelected` which can be altered by arrow key up/down navigation, inverted color bg
+  const onKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      eventRef.current = "keyboard";
+      switch (e.key) {
+        case "ArrowDown": {
+          e.preventDefault();
+          if (active + 1 < results.length) {
+            setActive(active + 1);
+          }
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          if (active - 1 >= 0) {
+            setActive(active - 1);
+          }
+          break;
+        }
+        case "Control":
+        case "Alt":
+        case "Shift": {
+          e.preventDefault();
+          onClose();
+          break;
+        }
+        case "Enter": {
+          if (results?.length <= 0) {
+            break;
+          }
 
-  //         // @TODO: turn this conditional check into a regex of whether the service is selected
-  //         privilegeSearchResults = matchSorter(
-  //           privilegeSearchResults,
-  //           inputValue,
-  //           {
-  //             keys: [
-  //               "node.description", // i.e. 'Grants permission to...' - the long description
-  //               "node.access_level", // i.e. 'Write' - used to filter by category
-  //               (key) => selectedKey + ":" + key.node.privilege, // i.e. 's3:' + 'AllocateAddress' - the privileges key
-  //             ],
-  //             threshold: matchSorter.rankings.CONTAINS,
-  //           }
-  //         ).slice(0, 50);
+          onClose();
+          // nav(results[active].url);
+          results[active].action();
+          break;
+        }
+      }
+    },
+    [active, results, nav]
+  );
 
-  //         return privilegeSearchResults;
-  //       } else return [];
-  //     },
-  //     [inputValue, serviceMetadata]
-  //   );
+  useUpdateEffect(() => {
+    setActive(0);
+  }, [inputValue]);
+
+  /** used to scroll input results into view */
+  // useUpdateEffect(() => {
+  //   if (!menuRef.current || eventRef.current === "mouse") return;
+  //   const node = menuNodes.map.get(active);
+  //   if (!node) return;
+  // scrollIntoView(node, {
+  //   scrollMode: "if-needed",
+  //   block: "nearest",
+  //   inline: "nearest",
+  //   boundary: menuRef.current,
+  // });
+  // }, [active]);
 
   //   const loading = isValidating && !serviceMetadata;
   const loading = false;
@@ -184,7 +203,14 @@ const EditActionModal = ({
         {/* <ModalHeader fontSize="md" pb={2}>
           Add an action
         </ModalHeader> */}
-        <ModalBody p={0} position="relative" pb={3} h="100%" maxH="80vh">
+        <ModalBody
+          p={0}
+          position="relative"
+          pb={3}
+          h="100%"
+          maxH="80vh"
+          ref={menuRef}
+        >
           <Flex flex={1} position="relative" flexDir="column" pb={4}>
             <InputGroup>
               <Input
@@ -202,6 +228,8 @@ const EditActionModal = ({
                 type="text"
                 ref={inputRef}
                 placeholder="Type a command or search"
+                onKeyDown={onKeyDown}
+                // onKeyUp={onKeyUp}
               />
               {loading && (
                 <InputRightElement>
@@ -226,65 +254,6 @@ const EditActionModal = ({
                 },
               }}
             >
-              {[].length > 0 && (
-                <Box fontSize="sm" flex="1 0 20%" mt={5} px={6}>
-                  <Text opacity={0.52} display="inline">
-                    Filter by Service:
-                  </Text>
-                  <Kbd float="right" opacity=".4">
-                    Tab
-                  </Kbd>
-                  <br />
-
-                  <HStack
-                    spacing={1}
-                    display="inline"
-                    ml={1}
-                    opacity={1}
-                    position="relative"
-                  >
-                    {[...[]]
-                      //   .filter((result) => result.type == "serviceKey")
-                      .slice(0, 5)
-                      .map((el, i) => (
-                        <Button
-                          opacity={0.52}
-                          _selected={{
-                            opacity: "1 !important",
-                          }}
-                          _focus={{
-                            opacity: "1 !important",
-                            boxShadow: "outline",
-                          }}
-                          // @TODO: we may want to improve these selective stylings a bit more
-                          // opacity={
-                          // 	i == 0
-                          // 		? '1 !important'
-                          // 		: '.4'
-                          // }
-                          // colorScheme={
-                          // 	i == 0
-                          // 		? 'cyan'
-                          // 		: 'gray'
-                          // }
-                          size="xs"
-                          //   key={i}
-                          //   onClick={() => {
-                          // setSelectedKey(el.node);
-                          // setInputValue(el.node + ":");
-                          // inputRef?.current?.focus();
-                          //   }}
-                        >
-                          {/* {el.node} */}
-                        </Button>
-                      ))}
-                    <chakra.span opacity={0.52} pos="absolute">
-                      {[].length > 5 && "..."}
-                    </chakra.span>
-                  </HStack>
-                </Box>
-              )}
-
               <Box fontSize="sm" mt={5} px={6}>
                 {/* <Text opacity={0.52} display="inline">
                   Showing suggestions for&nbsp;
@@ -292,55 +261,55 @@ const EditActionModal = ({
                 </Text> */}
               </Box>
 
-              {[...otherActions, ...accessRequestActions]
-                /**
-                 * @NOTE: if there's a performant way to adding sorting
-                 * based on privilege Type > type results.length
-                 * then we should implement it
-                 * */
-                // .sort((a, b) =>
-                // 	results.filter(
-                // 		(x) => x.node?.access_level == a
-                // 	).length >
-                // 	results?.filter(
-                // 		(x) => x.node?.access_level == b
-                // 	).length
-                // 		? 1
-                // 		: 0
-                // )
-                .map((item) => {
-                  // Total count
-                  //   let [] = serviceMetadata?.privileges.filter(
-                  //     (a) => a.access_level == privilegeType
-                  //   );
-                  //   // Filtered search results
-                  //   let [] = results.filter(
-                  //     (p) =>
-                  //       p.type == "service" &&
-                  //       p.node.access_level == privilegeType
-                  //   );
+              {results.map((el, index) => {
+                const selected = index === active;
+                // const isLvl1 = item.type === 'lvl1'
+                return (
+                  <Button
+                    id={`search-item-${index}`}
+                    as="li"
+                    aria-selected={selected ? true : undefined}
+                    onMouseEnter={() => {
+                      setActive(index);
+                      eventRef.current = "mouse";
+                    }}
+                    onClick={() => {
+                      // if (shouldCloseModal) {
+                      onClose();
+                      // }
+                    }}
+                    // ref={menuNodes.ref(index)}
+                    role="option"
+                    key={index}
+                    textAlign="left"
+                    justifyContent="start"
+                    sx={{
+                      "display": "flex",
+                      "alignItems": "center",
+                      "minH": 7,
+                      "px": 4,
+                      "py": 1,
+                      "rounded": "none",
+                      // "bg": "gray.100",
+                      "bg": "white",
+                      ".chakra-ui-da  rk &": { bg: "gray.600" },
+                      "color": "gray.900",
 
-                  return (
-                    <Box mt={5} key={item.name} mx={6}>
-                      <Text
-                        fontSize="sm"
-                        opacity={0.7}
-                        display="flex"
-                        justifyContent="space-between"
-                      >
-                        <span>
-                          <Highlight
-                            query={[inputValue]}
-                            children={item.name}
-                          />
-                        </span>
-                        <span>
-                          {/* add in recent/bookmarked subtext here */}
-                        </span>
-                      </Text>
-                    </Box>
-                  );
-                })}
+                      "_selected": {
+                        bg: "brandBlue.400",
+                        color: "white",
+                        mark: {
+                          color: "white",
+                          textDecoration: "underline",
+                        },
+                      },
+                    }}
+                  >
+                    <el.icon mr={2} />
+                    <Highlight query={[inputValue]} children={el.name} />
+                  </Button>
+                );
+              })}
             </Box>
           </Flex>
         </ModalBody>
