@@ -162,7 +162,7 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 		return
 	}
 
-	apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusAccepted)
+	apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusOK)
 }
 
 // Archive Access Rule
@@ -186,5 +186,5 @@ func (a *API) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleI
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
+	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusOK)
 }
