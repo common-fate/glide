@@ -152,6 +152,46 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 	}
 	rule = ruleq.Result
 
+	//create a mapping of usernames to user ids
+
+	listUsers := storage.ListUsers{}
+
+	_, err = a.DB.Query(ctx, &listUsers)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	listGroups := &storage.ListGroups{}
+	_, err = a.DB.Query(ctx, listGroups)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	userMap := make(map[string]string)
+	groupMap := make(map[string]string)
+
+	for _, u := range listUsers.Result {
+		userMap[u.Email] = u.ID
+	}
+	for _, g := range listGroups.Result {
+		groupMap[g.Name] = g.ID
+	}
+
+	for i, group := range updateRequest.Groups {
+		updateRequest.Groups[i] = groupMap[group]
+	}
+
+	for i, group := range updateRequest.Approval.Groups {
+		updateRequest.Approval.Groups[i] = groupMap[group]
+
+	}
+
+	for i, user := range updateRequest.Approval.Users {
+		updateRequest.Approval.Users[i] = userMap[user]
+
+	}
+
 	updatedRule, err := a.Rules.UpdateRule(ctx, &rulesvc.UpdateOpts{
 		UpdaterID:     "bot_governance_api",
 		Rule:          *rule,
