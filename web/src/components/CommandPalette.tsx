@@ -41,6 +41,7 @@ import {
   PlusSquareIcon,
 } from "@chakra-ui/icons";
 import { useNavigate, useRouter } from "react-location";
+import { GitCompareOutline } from "./icons/Icons";
 // import QueryStringHighlight from "./QueryStringHighlight";
 
 interface Props {}
@@ -72,12 +73,6 @@ const EditActionModal = ({
       action: () => nav({ to: "/admin/access-rules/create" }),
       isAdminOnly: true,
     },
-    {
-      name: "Switch to admin",
-      icon: ArrowForwardIcon,
-      action: () => nav({ to: "/admin/" }),
-      isAdminOnly: true,
-    },
   ];
 
   /**
@@ -99,6 +94,47 @@ const EditActionModal = ({
     },
   ];
 
+  type ContextualCommand = {
+    pathRegex: string;
+    commands: ICommand[];
+  };
+
+  const contextualCommands: ContextualCommand[] = [
+    {
+      pathRegex: "/admin",
+      commands: [
+        {
+          name: "Switch to user",
+          icon: GitCompareOutline,
+          action: () => nav({ to: "/" }),
+          isAdminOnly: true,
+        },
+      ],
+    },
+    {
+      // regex pattern for paths that dont include '/admin'
+      pathRegex: "(?!/admin)",
+      commands: [
+        {
+          name: "Switch to admin",
+          icon: GitCompareOutline,
+          action: () => nav({ to: "/admin/" }),
+          isAdminOnly: true,
+        },
+      ],
+    },
+  ];
+
+  /**
+   * To handle contextual command palette results we need to update the input arrays (ICommand) depending on the page route,
+   * we need to watch this route and ensure newly updated values are passed to the results filtering function
+   *
+   * Another way we could handle contextual results (including support for arbitrary/custom conditions) is:
+   * - Define a set of 'contexts' which are a set of conditions that must be met for a set of commands to be displayed
+   * - Define a set of 'commands' which are a set of commands that can be displayed in the palette
+   * - Define a set of 'rules' which are a set of conditions that must be met for a set of commands to be displayed
+   */
+
   /**
    * This typing allows us to merge different search results,
    * specifying a search result type, key, description and the original node
@@ -114,19 +150,36 @@ const EditActionModal = ({
   //   type ServiceKeyResult = ResultsFormat<string, "serviceKey">;
   //   type CombinedResult = ServiceResult | ServiceKeyResult;
 
-  const both = [...otherActions, ...accessRequestActions];
+  const router = useRouter();
+
+  const contextualAndStaticCommands = React.useMemo(() => {
+    console.log({ router });
+    // how do I get the router current path using react-location and not using window object
+    const currentPath = router.state.location.href || "";
+    const matchedContextualCommands = contextualCommands
+      // run the regex from string to regex
+      .filter((command) => new RegExp(command.pathRegex).test(currentPath))
+      .map((command) => command.commands)
+      .flat();
+    return [
+      ...matchedContextualCommands,
+      // I need to be made contextual
+      ...accessRequestActions,
+      ...otherActions,
+    ];
+  }, [router.state.location.href]);
 
   const results = React.useMemo(
     function getResults() {
-      if (inputValue.length < 2) return both;
-      return matchSorter(both, inputValue, {
+      if (inputValue.length < 2) return contextualAndStaticCommands;
+      return matchSorter(contextualAndStaticCommands, inputValue, {
         keys: [
           "name",
           // "hierarchy.lvl2", "hierarchy.lvl3", "content"
         ],
       }).slice(0, 20);
     },
-    [inputValue]
+    [inputValue, contextualAndStaticCommands, router.state.location.href]
   );
 
   const [active, setActive] = React.useState(0);
@@ -168,6 +221,9 @@ const EditActionModal = ({
           onClose();
           // nav(results[active].url);
           results[active].action();
+          // also clear the input value and reset active
+          setInputValue("");
+          setActive(0);
           break;
         }
       }
@@ -294,7 +350,6 @@ const EditActionModal = ({
                       "bg": "white",
                       ".chakra-ui-da  rk &": { bg: "gray.600" },
                       "color": "gray.900",
-
                       "_selected": {
                         bg: "brandBlue.400",
                         color: "white",
