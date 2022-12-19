@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useGetUser } from "../utils/backend-client/end-user/end-user";
+import { TerraformIcon } from "./icons/Icons";
 
 interface UserAvatarProps extends AvatarProps {
   user: string | undefined;
@@ -45,14 +46,28 @@ export const UserAvatarDetails: React.FC<UserAvatarProps> = ({
   tooltip,
   ...rest
 }) => {
+  const Component = tooltip ? TooltipAvatar : Avatar;
+
+  //skip lookup user step if creating user was terraform
+  if (user === "bot_governance_api") {
+    // Loading/loaded states
+    return (
+      <HStack>
+        <Avatar
+          icon={<TerraformIcon fontSize="0.9rem" />}
+          {...rest}
+          bg="white"
+        />
+        <Text {...textProps}>Terraform</Text>
+      </HStack>
+    );
+  }
   // @ts-ignore
   const { data, isValidating } = useGetUser(user);
 
   if (!data) {
     return <Avatar {...rest} />;
   }
-
-  const Component = tooltip ? TooltipAvatar : Avatar;
 
   // Loading/loaded states
   return !data && isValidating ? (

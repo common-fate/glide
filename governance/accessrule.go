@@ -61,6 +61,46 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//create a mapping of usernames to user ids
+
+	listUsers := storage.ListUsers{}
+
+	_, err = a.DB.Query(ctx, &listUsers)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	listGroups := &storage.ListGroups{}
+	_, err = a.DB.Query(ctx, listGroups)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	userMap := make(map[string]string)
+	groupMap := make(map[string]string)
+
+	for _, u := range listUsers.Result {
+		userMap[u.Email] = u.ID
+	}
+	for _, g := range listGroups.Result {
+		groupMap[g.Name] = g.ID
+	}
+
+	for i, group := range createRequest.Groups {
+		createRequest.Groups[i] = groupMap[group]
+	}
+
+	for i, group := range createRequest.Approval.Groups {
+		createRequest.Approval.Groups[i] = groupMap[group]
+
+	}
+
+	for i, user := range createRequest.Approval.Users {
+		createRequest.Approval.Users[i] = userMap[user]
+
+	}
+
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
 	// if err == rulesvc.ErrRuleIdAlreadyExists {
 	// 	// the user supplied id already exists

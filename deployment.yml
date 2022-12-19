@@ -17,6 +17,12 @@ deployment:
           region: ap-southeast-2
           ssoRoleArn: arn:aws:iam::632700053629:role/Granted-Access-Handler-SS-GrantedAccessHandlerSSOR-J3EE9BM8QKBW
           ssoSubdomain: custom-domain
+      azure-ad:
+        uses: commonfate/azure-ad@v1
+        with:
+          clientId: 089723ea-8a48-410c-9acc-fab919ce2ae5
+          clientSecret: awsssm:///granted/providers/azure-ad/clientSecret:4
+          tenantId: 0d928b90-2449-4c9e-90cc-acce6171ad53
       testgroups:
         uses: commonfate/testgroups@v1
         with:
