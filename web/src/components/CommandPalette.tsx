@@ -404,7 +404,7 @@ const EditActionModal = ({
                     <Highlight query={[inputValue]} children={el.name} />
                     {el?.type === "favorite" && (
                       <Flex opacity=".5" ml="auto">
-                        favorite
+                        Favorited
                       </Flex>
                     )}
                   </Button>
