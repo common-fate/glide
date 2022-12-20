@@ -27,10 +27,7 @@ import {
   ComponentWithAs,
   useUpdateEffect,
 } from "@chakra-ui/react";
-// import { useServiceKeys, useServiceMetaData } from "../../utils/apiHooks";
-// import { ServiceMetadataPrivilege } from "../../iamzero-advisories/types";
 import { useRef } from "react";
-// import { useEditor } from "../../utils/context/EditorProvider";
 import {
   AddIcon,
   ArrowForwardIcon,
@@ -39,10 +36,16 @@ import {
   DeleteIcon,
   EditIcon,
   PlusSquareIcon,
+  StarIcon,
 } from "@chakra-ui/icons";
 import { useNavigate, useRouter } from "react-location";
 import { GitCompareOutline } from "./icons/Icons";
-// import QueryStringHighlight from "./QueryStringHighlight";
+import { useListUserAccessRules } from "../utils/backend-client/end-user/end-user";
+import { ProviderIcon } from "./icons/providerIcon";
+import {
+  userListFavorites,
+  useUserListFavorites,
+} from "../utils/backend-client/default/default";
 
 interface Props {}
 
@@ -80,24 +83,51 @@ const EditActionModal = ({
     - The palette knows where you are in the app
     - i.e. If you open the palette on an Access Request it displays a set of actions specific to that request e.g. 'Approve' or 'Revoke' request, or 'Copy access instructions'
    */
-
-  const accessRequestActions: ICommand[] = [
-    {
-      name: "Approve request",
-      icon: CheckIcon,
-      action: () => undefined,
-    },
-    {
-      name: "Revoke request",
-      icon: DeleteIcon,
-      action: () => undefined,
-    },
-  ];
+  // const accessRequestActions: ICommand[] = [
+  //   {
+  //     name: "Approve request",
+  //     icon: CheckIcon,
+  //     action: () => undefined,
+  //   },
+  //   {
+  //     name: "Revoke request",
+  //     icon: DeleteIcon,
+  //     action: () => undefined,
+  //   },
+  // ];
 
   type ContextualCommand = {
     pathRegex: string;
     commands: ICommand[];
   };
+
+  const { data: rules } = useListUserAccessRules();
+
+  const rulesAsCommands: ICommand[] = rules?.accessRules
+    ? rules?.accessRules.map((rule) => ({
+        name: rule.name,
+        action: () => nav({ to: `/access/request/${rule.id}` }),
+        icon: (props) => (
+          <ProviderIcon
+            shortType={rule.target.provider.type}
+            h="4"
+            w="4"
+            {...props}
+          />
+        ),
+      }))
+    : [];
+
+  // now do the same for favourites
+  const { data: favorites } = useUserListFavorites();
+
+  const favoritesAsCommands: ICommand[] = favorites?.favorites
+    ? favorites?.favorites.map((favorite) => ({
+        name: favorite.name,
+        action: () => nav({ to: `/access/request/${favorite.id}` }),
+        icon: StarIcon,
+      }))
+    : [];
 
   const contextualCommands: ContextualCommand[] = [
     {
@@ -163,11 +193,11 @@ const EditActionModal = ({
       .flat();
     return [
       ...matchedContextualCommands,
-      // I need to be made contextual
-      ...accessRequestActions,
+      ...rulesAsCommands,
+      ...favoritesAsCommands,
       ...otherActions,
     ];
-  }, [router.state.location.href]);
+  }, [router.state.location.href, rulesAsCommands, favoritesAsCommands]);
 
   const results = React.useMemo(
     function getResults() {
@@ -252,9 +282,15 @@ const EditActionModal = ({
   const loading = false;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <ModalOverlay />
-      <ModalContent overflow="hidden">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      {/* <ModalOverlay /> */}
+      <ModalContent
+        border="1px solid"
+        borderColor="whiteAlpha.400"
+        overflow="hidden"
+        bg="#ffffff76"
+        backdropFilter="blur(20px) saturate(170%) contrast(50%) brightness(130%)"
+      >
         {/* <ModalCloseButton zIndex={999} size="sm" /> */}
         {/* <ModalHeader fontSize="md" pb={2}>
           Add an action
@@ -267,9 +303,14 @@ const EditActionModal = ({
           maxH="80vh"
           ref={menuRef}
         >
-          <Flex flex={1} position="relative" flexDir="column" pb={4}>
-            <InputGroup>
+          <Flex flex={1} position="relative" flexDir="column">
+            <InputGroup pt={5}>
               <Input
+                pb={5}
+                // To increase the placeholder text size you can use the `fontSize` prop
+                fontSize="xl"
+                // py={5}
+                // minH={20}
                 spellCheck={false}
                 px={6}
                 variant="flushed"
@@ -298,6 +339,7 @@ const EditActionModal = ({
               flex="1 0 auto"
               overflowY="auto"
               maxH="60vh"
+              py={3}
               sx={{
                 "&::-webkit-scrollbar": {
                   WebkitAppearance: "none",
@@ -310,13 +352,6 @@ const EditActionModal = ({
                 },
               }}
             >
-              <Box fontSize="sm" mt={5} px={6}>
-                {/* <Text opacity={0.52} display="inline">
-                  Showing suggestions for&nbsp;
-                  <Badge colorScheme="cyan">{selectedKey}</Badge>
-                </Text> */}
-              </Box>
-
               {results.map((el, index) => {
                 const selected = index === active;
                 // const isLvl1 = item.type === 'lvl1'
@@ -343,15 +378,18 @@ const EditActionModal = ({
                       "display": "flex",
                       "alignItems": "center",
                       "minH": 7,
-                      "px": 4,
-                      "py": 1,
-                      "rounded": "none",
+                      "mx": 2,
+                      "px": 3,
+                      // "px": 4,
+                      // "py": 1,
+                      "rounded": "md",
                       // "bg": "gray.100",
-                      "bg": "white",
+                      "bg": "none",
                       ".chakra-ui-da  rk &": { bg: "gray.600" },
                       "color": "gray.900",
                       "_selected": {
                         bg: "brandBlue.400",
+
                         color: "white",
                         mark: {
                           color: "white",
@@ -360,7 +398,7 @@ const EditActionModal = ({
                       },
                     }}
                   >
-                    <el.icon mr={2} />
+                    <el.icon mr={3} />
                     <Highlight query={[inputValue]} children={el.name} />
                   </Button>
                 );
