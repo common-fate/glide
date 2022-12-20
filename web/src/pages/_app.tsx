@@ -5,6 +5,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import CommandPalette from "../components/CommandPalette";
+import CommandPalette2 from "../components/CommandPalette2";
 import { CognitoProvider } from "../utils/context/cognitoContext";
 import { UserProvider } from "../utils/context/userContext";
 import ErrorBoundary from "../utils/errorBoundary";
@@ -28,6 +29,7 @@ export default function App({ children }: { children: React.ReactNode }) {
         <CognitoProvider>
           <UserProvider>{children}</UserProvider>
           <CommandPalette isOpen={modal.isOpen} onClose={modal.onClose} />
+          {/* <CommandPalette2 isOpen={modal.isOpen} onClose={modal.onClose} /> */}
         </CognitoProvider>
       </ErrorBoundary>
     </ChakraProvider>
