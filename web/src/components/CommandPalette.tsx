@@ -54,6 +54,7 @@ type ICommand = {
   icon: ComponentWithAs<"svg", IconProps>;
   action: () => void;
   isAdminOnly?: boolean;
+  type?: "favorite";
 };
 
 const EditActionModal = ({
@@ -126,6 +127,7 @@ const EditActionModal = ({
         name: favorite.name,
         action: () => nav({ to: `/access/request/${favorite.id}` }),
         icon: StarIcon,
+        type: "favorite",
       }))
     : [];
 
@@ -165,25 +167,10 @@ const EditActionModal = ({
    * - Define a set of 'rules' which are a set of conditions that must be met for a set of commands to be displayed
    */
 
-  /**
-   * This typing allows us to merge different search results,
-   * specifying a search result type, key, description and the original node
-   */
-  type ResultsFormat<T, K> = {
-    key: string;
-    description: string;
-    node: T;
-    type: K;
-  };
-
-  //   type ServiceResult = ResultsFormat<ServiceMetadataPrivilege, "service">;
-  //   type ServiceKeyResult = ResultsFormat<string, "serviceKey">;
-  //   type CombinedResult = ServiceResult | ServiceKeyResult;
-
   const router = useRouter();
 
   const contextualAndStaticCommands = React.useMemo(() => {
-    console.log({ router });
+    // console.log({ router });
     // how do I get the router current path using react-location and not using window object
     const currentPath = router.state.location.href || "";
     const matchedContextualCommands = contextualCommands
@@ -192,10 +179,10 @@ const EditActionModal = ({
       .map((command) => command.commands)
       .flat();
     return [
-      ...matchedContextualCommands,
       ...rulesAsCommands,
       ...favoritesAsCommands,
-      ...otherActions,
+      // ...matchedContextualCommands,
+      // ...otherActions,
     ];
   }, [router.state.location.href, rulesAsCommands, favoritesAsCommands]);
 
@@ -203,10 +190,7 @@ const EditActionModal = ({
     function getResults() {
       if (inputValue.length < 2) return contextualAndStaticCommands;
       return matchSorter(contextualAndStaticCommands, inputValue, {
-        keys: [
-          "name",
-          // "hierarchy.lvl2", "hierarchy.lvl3", "content"
-        ],
+        keys: ["name"],
       }).slice(0, 20);
     },
     [inputValue, contextualAndStaticCommands, router.state.location.href]
@@ -216,8 +200,17 @@ const EditActionModal = ({
   const menuRef = React.useRef<HTMLDivElement>(null);
   const eventRef = React.useRef<"mouse" | "keyboard">("keyboard");
 
-  // @TODO: add sort/filtering
-  // @TOOD: add support for `isSelected` which can be altered by arrow key up/down navigation, inverted color bg
+  const onKeyUp = React.useCallback((e: React.KeyboardEvent) => {
+    eventRef.current = "keyboard";
+    switch (e.key) {
+      case "Control":
+      case "Alt":
+      case "Shift": {
+        e.preventDefault();
+      }
+    }
+  }, []);
+
   const onKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
       eventRef.current = "keyboard";
@@ -247,9 +240,7 @@ const EditActionModal = ({
           if (results?.length <= 0) {
             break;
           }
-
           onClose();
-          // nav(results[active].url);
           results[active].action();
           // also clear the input value and reset active
           setInputValue("");
@@ -278,18 +269,26 @@ const EditActionModal = ({
   // });
   // }, [active]);
 
-  //   const loading = isValidating && !serviceMetadata;
   const loading = false;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="lg"
+      onCloseComplete={() => {
+        setInputValue("");
+      }}
+    >
       {/* <ModalOverlay /> */}
       <ModalContent
         border="1px solid"
         borderColor="whiteAlpha.400"
         overflow="hidden"
         bg="#ffffff76"
+        rounded="md"
         backdropFilter="blur(20px) saturate(170%) contrast(50%) brightness(130%)"
+        boxShadow="rgb(0 0 0 / 50%) 0px 16px 70px"
       >
         {/* <ModalCloseButton zIndex={999} size="sm" /> */}
         {/* <ModalHeader fontSize="md" pb={2}>
@@ -304,7 +303,7 @@ const EditActionModal = ({
           ref={menuRef}
         >
           <Flex flex={1} position="relative" flexDir="column">
-            <InputGroup pt={5}>
+            <InputGroup pt={4}>
               <Input
                 pb={5}
                 // To increase the placeholder text size you can use the `fontSize` prop
@@ -326,7 +325,7 @@ const EditActionModal = ({
                 ref={inputRef}
                 placeholder="Type a command or search"
                 onKeyDown={onKeyDown}
-                // onKeyUp={onKeyUp}
+                onKeyUp={onKeyUp}
               />
               {loading && (
                 <InputRightElement>
@@ -365,13 +364,14 @@ const EditActionModal = ({
                       eventRef.current = "mouse";
                     }}
                     onClick={() => {
+                      // Can re-enable this for level-2 queries if we add it
                       // if (shouldCloseModal) {
                       onClose();
                       // }
                     }}
                     // ref={menuNodes.ref(index)}
                     role="option"
-                    key={index}
+                    key={el.name}
                     textAlign="left"
                     justifyContent="start"
                     sx={{
@@ -380,16 +380,15 @@ const EditActionModal = ({
                       "minH": 7,
                       "mx": 2,
                       "px": 3,
-                      // "px": 4,
-                      // "py": 1,
                       "rounded": "md",
-                      // "bg": "gray.100",
                       "bg": "none",
                       ".chakra-ui-da  rk &": { bg: "gray.600" },
                       "color": "gray.900",
+                      "_hover": {
+                        bg: "none",
+                      },
                       "_selected": {
                         bg: "brandBlue.400",
-
                         color: "white",
                         mark: {
                           color: "white",
@@ -400,6 +399,11 @@ const EditActionModal = ({
                   >
                     <el.icon mr={3} />
                     <Highlight query={[inputValue]} children={el.name} />
+                    {el?.type === "favorite" && (
+                      <Flex opacity=".5" ml="auto">
+                        favorite
+                      </Flex>
+                    )}
                   </Button>
                 );
               })}
