@@ -125,7 +125,10 @@ const EditActionModal = ({
   const favoritesAsCommands: ICommand[] = favorites?.favorites
     ? favorites?.favorites.map((favorite) => ({
         name: favorite.name,
-        action: () => nav({ to: `/access/request/${favorite.id}` }),
+        action: () =>
+          nav({
+            to: `/access/request/${favorite.ruleId}?favorite=${favorite.id}`,
+          }),
         icon: StarIcon,
         type: "favorite",
       }))

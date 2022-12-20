@@ -109,6 +109,7 @@ export const AdminNavbar: React.FC = () => {
                   >
                     Switch To User
                   </Button>
+
                   <Menu>
                     <MenuButton
                       data-testid="logout-icon"

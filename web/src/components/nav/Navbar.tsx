@@ -1,4 +1,4 @@
-import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Avatar,
   Box,
@@ -9,6 +9,7 @@ import {
   Flex,
   HStack,
   IconButton,
+  Kbd,
   Link as ChakraLink,
   Menu,
   MenuButton,
@@ -17,6 +18,7 @@ import {
   useBreakpointValue,
   useColorModeValue,
   useDisclosure,
+  useEventListener,
 } from "@chakra-ui/react";
 import * as React from "react";
 import { useMemo } from "react";
@@ -28,6 +30,7 @@ import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
+import CommandPalette from "../CommandPalette";
 import reactSelect from "react-select";
 
 export const Navbar: React.FC = () => {
@@ -39,6 +42,16 @@ export const Navbar: React.FC = () => {
   const { data: reviews } = useUserListRequests({ reviewer: true });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const modal = useDisclosure();
+
+  useEventListener("keydown", (event) => {
+    const isMac = /(Mac|iPhone|iPod|iPad)/i.test(navigator?.platform);
+    const hotkey = isMac ? "metaKey" : "ctrlKey";
+    if (event?.key?.toLowerCase() === "k" && event[hotkey]) {
+      event.preventDefault();
+      modal.isOpen ? modal.onClose() : modal.onOpen();
+    }
+  });
 
   const showReqCount = useMemo(
     () => requests?.requests && requests?.requests.length > 0,
@@ -130,11 +143,38 @@ export const Navbar: React.FC = () => {
                       px={3}
                       aria-label="Admin"
                       id="admin-button"
+                      color="neutrals.600"
                     >
                       Switch To Admin
                     </Button>
                   </ButtonGroup>
                 )}
+                <Button
+                  size="md"
+                  variant="unstyled"
+                  bg="neutrals.100"
+                  rounded="full"
+                  border="1px solid"
+                  borderColor="neutrals.200"
+                  aria-label="Search"
+                  // w="113px"
+                  // px={2}
+                  textAlign="left"
+                  color="neutrals.600"
+                  onClick={modal.onOpen}
+                >
+                  <SearchIcon
+                    color="neutrals.600"
+                    boxSize="15px"
+                    ml={3}
+                    mr={2}
+                  />
+                  Search
+                  <Flex ml={2} mr={3} display="inline-flex">
+                    <Kbd>⌘</Kbd>
+                    <Kbd>k</Kbd>
+                  </Flex>
+                </Button>
                 <Menu>
                   <MenuButton
                     data-testid="logout-icon"
@@ -190,6 +230,7 @@ export const Navbar: React.FC = () => {
         </Container>
       </Box>
       <DrawerNav isOpen={isOpen} onClose={onClose} />
+      <CommandPalette isOpen={modal.isOpen} onClose={modal.onClose} />
     </Box>
   );
 };
