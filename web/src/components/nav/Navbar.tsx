@@ -83,6 +83,27 @@ export const Navbar: React.FC = () => {
               >
                 <CommonFateLogo h="32px" w="auto" />
               </ChakraLink>
+              <Button
+                size="md"
+                variant="unstyled"
+                bg="neutrals.100"
+                rounded="full"
+                border="1px solid"
+                borderColor="neutrals.200"
+                aria-label="Search"
+                // w="113px"
+                // px={2}
+                textAlign="left"
+                color="neutrals.600"
+                onClick={modal.onOpen}
+              >
+                <SearchIcon color="neutrals.600" boxSize="15px" ml={3} mr={2} />
+                Search
+                <Flex ml={2} mr={3} display="inline-flex">
+                  <Kbd>⌘</Kbd>
+                  <Kbd>k</Kbd>
+                </Flex>
+              </Button>
               {isDesktop && (
                 <ButtonGroup
                   variant="ghost"
@@ -149,32 +170,7 @@ export const Navbar: React.FC = () => {
                     </Button>
                   </ButtonGroup>
                 )}
-                <Button
-                  size="md"
-                  variant="unstyled"
-                  bg="neutrals.100"
-                  rounded="full"
-                  border="1px solid"
-                  borderColor="neutrals.200"
-                  aria-label="Search"
-                  // w="113px"
-                  // px={2}
-                  textAlign="left"
-                  color="neutrals.600"
-                  onClick={modal.onOpen}
-                >
-                  <SearchIcon
-                    color="neutrals.600"
-                    boxSize="15px"
-                    ml={3}
-                    mr={2}
-                  />
-                  Search
-                  <Flex ml={2} mr={3} display="inline-flex">
-                    <Kbd>⌘</Kbd>
-                    <Kbd>k</Kbd>
-                  </Flex>
-                </Button>
+
                 <Menu>
                   <MenuButton
                     data-testid="logout-icon"
