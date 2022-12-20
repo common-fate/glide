@@ -117,122 +117,119 @@ const Home = () => {
                       View All
                     </Button>
                   </Flex>
-                  <Grid
-                    mt={4}
-                    templateColumns={{
-                      base: "repeat(20, 1fr)",
-                      lg: "repeat(1, 1fr)",
-                      xl: "repeat(2, 1fr)",
-                    }}
-                    templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
-                    minW={{ base: "unset", xl: "488px" }}
-                    gap={6}
-                    overflowX={{ base: "scroll" }}
-                  >
-                    {rules ? (
-                      rules.accessRules.length > 0 ? (
-                        rules.accessRules.map((r, i) => (
-                          <Link
-                            style={{ display: "flex" }}
-                            to={"/access/request/" + r.id}
-                            key={r.id}
-                          >
-                            <Box
-                              className="group"
-                              textAlign="center"
-                              bg="neutrals.100"
+                  {((rules && rules.accessRules.length > 0) ||
+                    typeof rules == "undefined") && (
+                    <Grid
+                      mt={4}
+                      templateColumns={{
+                        base: "repeat(20, 1fr)",
+                        lg: "repeat(1, 1fr)",
+                        xl: "repeat(2, 1fr)",
+                      }}
+                      templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
+                      minW={{ base: "unset", xl: "488px" }}
+                      gap={6}
+                      overflowX={{ base: "scroll" }}
+                    >
+                      {rules
+                        ? rules.accessRules.map((r, i) => (
+                            <Link
+                              style={{ display: "flex" }}
+                              to={"/access/request/" + r.id}
+                              key={r.id}
+                            >
+                              <Box
+                                className="group"
+                                textAlign="center"
+                                bg="neutrals.100"
+                                p={6}
+                                h="172px"
+                                w="232px"
+                                rounded="md"
+                                data-testid={"r_" + i}
+                              >
+                                <ProviderIcon
+                                  shortType={r.target.provider.type}
+                                  mb={3}
+                                  h="8"
+                                  w="8"
+                                />
+
+                                <Text
+                                  textStyle="Body/SmallBold"
+                                  color="neutrals.700"
+                                >
+                                  {r.name}
+                                </Text>
+
+                                <Button
+                                  mt={4}
+                                  variant="brandSecondary"
+                                  size="sm"
+                                  opacity={0}
+                                  sx={{
+                                    // This media query ensure always visible for touch screens
+                                    "@media (hover: none)": {
+                                      opacity: 1,
+                                    },
+                                  }}
+                                  transition="all .2s ease-in-out"
+                                  transform="translateY(8px)"
+                                  _groupHover={{
+                                    bg: "white",
+                                    opacity: 1,
+                                    transform: "translateY(0px)",
+                                  }}
+                                >
+                                  Request
+                                </Button>
+                              </Box>
+                            </Link>
+                          ))
+                        : // Otherwise loading state
+                          [1, 2, 3, 4].map((i) => (
+                            <Skeleton
+                              key={i}
                               p={6}
                               h="172px"
                               w="232px"
-                              rounded="md"
-                              data-testid={"r_" + i}
-                            >
-                              <ProviderIcon
-                                shortType={r.target.provider.type}
-                                mb={3}
-                                h="8"
-                                w="8"
-                              />
-
-                              <Text
-                                textStyle="Body/SmallBold"
-                                color="neutrals.700"
-                              >
-                                {r.name}
-                              </Text>
-
-                              <Button
-                                mt={4}
-                                variant="brandSecondary"
-                                size="sm"
-                                opacity={0}
-                                sx={{
-                                  // This media query ensure always visible for touch screens
-                                  "@media (hover: none)": {
-                                    opacity: 1,
-                                  },
-                                }}
-                                transition="all .2s ease-in-out"
-                                transform="translateY(8px)"
-                                _groupHover={{
-                                  bg: "white",
-                                  opacity: 1,
-                                  transform: "translateY(0px)",
-                                }}
-                              >
-                                Request
-                              </Button>
-                            </Box>
-                          </Link>
-                        ))
-                      ) : (
-                        <Center
-                          bg="neutrals.100"
-                          p={6}
-                          as="a"
-                          h="193px"
-                          w="488px"
-                          rounded="md"
-                          flexDir="column"
-                          textAlign="center"
-                        >
-                          <Text textStyle="Heading/H3" color="neutrals.500">
-                            No Access
-                          </Text>
-                          <Text
-                            textStyle="Body/Medium"
-                            color="neutrals.400"
-                            mt={2}
+                              rounded="sm"
+                            />
+                          ))}
+                    </Grid>
+                  )}
+                  {rules?.accessRules.length === 0 && (
+                    <Center
+                      bg="neutrals.100"
+                      p={6}
+                      as="a"
+                      h="193px"
+                      w={{ base: "100%", md: "488px" }}
+                      rounded="md"
+                      flexDir="column"
+                      textAlign="center"
+                      mt={4}
+                    >
+                      <Text textStyle="Heading/H3" color="neutrals.500">
+                        No Access
+                      </Text>
+                      <Text textStyle="Body/Medium" color="neutrals.400" mt={2}>
+                        You don’t have access to anything yet.{" "}
+                        {user?.isAdmin ? (
+                          <ChakraLink
+                            as={Link}
+                            to="/admin/access-rules/create"
+                            textDecor="none"
+                            _hover={{ textDecor: "underline" }}
                           >
-                            You don’t have access to anything yet.{" "}
-                            {user?.isAdmin ? (
-                              <ChakraLink
-                                as={Link}
-                                to="/admin/access-rules/create"
-                                textDecor="none"
-                                _hover={{ textDecor: "underline" }}
-                              >
-                                Click here to create a new access rule.
-                              </ChakraLink>
-                            ) : (
-                              "Ask your Common Fate administrator to finish setting up Common Fate."
-                            )}
-                          </Text>
-                        </Center>
-                      )
-                    ) : (
-                      // Otherwise loading state
-                      [1, 2, 3, 4].map((i) => (
-                        <Skeleton
-                          key={i}
-                          p={6}
-                          h="172px"
-                          w="232px"
-                          rounded="sm"
-                        />
-                      ))
-                    )}
-                  </Grid>
+                            Click here to create a new access rule.
+                          </ChakraLink>
+                        ) : (
+                          "Ask your Common Fate administrator to finish setting up Common Fate."
+                        )}
+                      </Text>
+                    </Center>
+                  )}
                 </Flex>
               </VStack>
 
@@ -471,7 +468,7 @@ const Favorites: React.FC = () => {
   }
 
   return (
-    <Box>
+    <Box w="100%">
       <Flex>
         <Text
           as="h3"
