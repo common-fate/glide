@@ -102,10 +102,7 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
-	// if err == rulesvc.ErrRuleIdAlreadyExists {
-	// 	// the user supplied id already exists
-	// 	err = apio.NewRequestError(err, http.StatusBadRequest)
-	// }
+
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
