@@ -47,8 +47,6 @@ import {
   useUserListFavorites,
 } from "../utils/backend-client/default/default";
 
-interface Props {}
-
 type ICommand = {
   name: string;
   icon: ComponentWithAs<"svg", IconProps>;
