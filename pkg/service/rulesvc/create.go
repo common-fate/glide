@@ -102,10 +102,10 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 	if err != nil {
 		return rule.Target{}, err
 	}
-	// err = s.validateTargetArgumentAgainstCachedOptions(ctx, in, providerArgSchema)
-	// if err != nil {
-	// 	return rule.Target{}, err
-	// }
+	err = s.validateTargetArgumentAgainstCachedOptions(ctx, in, providerArgSchema)
+	if err != nil {
+		return rule.Target{}, err
+	}
 	target := rule.Target{
 		ProviderID:               in.ProviderId,
 		ProviderType:             provider.Type,

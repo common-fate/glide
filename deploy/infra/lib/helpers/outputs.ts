@@ -11,6 +11,7 @@ export type StackOutputs = {
   UserPoolDomain: string;
   APIURL: string;
   WebhookURL: string;
+  GovernanceURL: string;
   APILogGroupName: string;
   WebhookLogGroupName: string;
   IDPSyncLogGroupName: string;

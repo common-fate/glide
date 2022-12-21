@@ -11,6 +11,7 @@ import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
+import { access } from "fs";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -124,6 +125,7 @@ export class CommonFateStackDev extends cdk.Stack {
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getRestApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
+      GovernanceURL: appBackend.getGovernanceApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
@@ -143,7 +145,8 @@ export class CommonFateStackDev extends cdk.Stack {
         webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

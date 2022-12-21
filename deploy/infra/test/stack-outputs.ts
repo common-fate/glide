@@ -14,6 +14,7 @@ const testOutputs: StackOutputs = {
   UserPoolDomain: "abcdefg",
   APIURL: "abcdefg",
   WebhookURL: "abcdefg",
+  GovernanceURL: "abcdefg",
   APILogGroupName: "abcdefg",
   WebhookLogGroupName: "abcdefg",
   IDPSyncLogGroupName: "abcdefg",
