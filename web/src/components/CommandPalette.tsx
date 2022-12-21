@@ -369,6 +369,7 @@ const EditActionModal = ({
                     onClick={() => {
                       // Can re-enable this for level-2 queries if we add it
                       // if (shouldCloseModal) {
+                      el.action();
                       onClose();
                       // }
                     }}
