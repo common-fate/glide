@@ -15,6 +15,7 @@ import (
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testgroups"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
+	testvaultcommunity "github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault-community"
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-version"
 )
@@ -67,7 +68,6 @@ func Registry() ProviderRegistry {
 				},
 			},
 			"commonfate/aws-sso": {
-
 				"v2": {
 					Provider:    &ssov2.Provider{},
 					DefaultID:   "aws-sso-v2",
@@ -86,6 +86,13 @@ func Registry() ProviderRegistry {
 					Provider:    &testvault.Provider{},
 					DefaultID:   "testvault",
 					Description: "TestVault - a provider for testing out Common Fate",
+				},
+			},
+			"commonfate/testvault-community": {
+				"v1": {
+					Provider:    &testvaultcommunity.Provider{},
+					DefaultID:   "testvault-community",
+					Description: "TestVault Community - a provider for testing out Common Fate",
 				},
 			},
 			"commonfate/testgroups": {
