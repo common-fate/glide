@@ -2,12 +2,18 @@ package testvaultcommunity
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"path"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/common-fate/clio"
 	"go.uber.org/zap"
 )
 
@@ -99,34 +105,54 @@ func (p *Provider) getPrefixedVault(vault string) string {
 	return p.uniqueID.Get() + "_" + vault
 }
 
-// func invokeLambda(ctx context.Context, payload Payload) error {
-// 	cfg, err := config.LoadDefaultConfig(ctx)
-// 	if err != nil {
-// 		return err
-// 	}
+/*
+*
+@TODO: figure out what config we're missing
+where this config should be stored (in the context of this)
+whether we need a payload?
+*/
+type Payload struct {
+	Type string `json:"type"`
+	Data Data   `json:"data"`
+}
 
-// 	payloadbytes, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return err
-// 	}
+type Data struct {
+	Subject string `json:"subject"`
+	Args    any    `json:"args"`
+}
 
-// 	lambdaclient := lambda.NewFromConfig(cfg)
-// 	out, err := lambdaclient.Invoke(ctx, &lambda.InvokeInput{
-// 		FunctionName: aws.String("cf-community-provider-prototype"),
-// 		Payload:      payloadbytes,
-// 		LogType:      types.LogTypeTail,
-// 	})
-// 	if err != nil {
-// 		return err
-// 	}
+func invokeLambda(ctx context.Context,
 
-// 	clio.Infof(string(out.Payload))
+// payload Payload
+) error {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return err
+	}
 
-// 	logs, err := base64.StdEncoding.DecodeString(*out.LogResult)
-// 	if err != nil {
-// 		return err
-// 	}
+	// payloadbytes, err := json.Marshal(payload)
+	payloadbytes := []byte("test")
+	if err != nil {
+		return err
+	}
 
-// 	clio.Infof(string(logs))
-// 	return nil
-// }
+	lambdaclient := lambda.NewFromConfig(cfg)
+	out, err := lambdaclient.Invoke(ctx, &lambda.InvokeInput{
+		FunctionName: aws.String("cf-community-provider-prototype"),
+		Payload:      payloadbytes,
+		LogType:      types.LogTypeTail,
+	})
+	if err != nil {
+		return err
+	}
+
+	clio.Infof(string(out.Payload))
+
+	logs, err := base64.StdEncoding.DecodeString(*out.LogResult)
+	if err != nil {
+		return err
+	}
+
+	clio.Infof(string(logs))
+	return nil
+}
