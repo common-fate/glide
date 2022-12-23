@@ -12,6 +12,7 @@ import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
 import { access } from "fs";
+import { Governance } from "./constructs/governance";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -93,11 +94,34 @@ export class CommonFateStackDev extends cdk.Stack {
       remoteConfigHeaders,
     });
 
+    const governance = new Governance(this, "Governance", {
+      appName: appName,
+      userPool: webUserPool,
+      frontendUrl: "https://" + cdn.getDomainName(),
+      accessHandler: accessHandler,
+      eventBus: events.getEventBus(),
+      eventBusSourceName: events.getEventBusSourceName(),
+      adminGroupId,
+      providerConfig: props.providerConfig,
+      identityProviderSyncConfiguration: identityProviderSyncConfiguration,
+      notificationsConfiguration: notificationsConfiguration,
+      deploymentSuffix: stage,
+      dynamoTable: db.getTable(),
+      remoteConfigUrl,
+      remoteConfigHeaders,
+      apiGatewayWafAclArn,
+      analyticsDisabled,
+      analyticsUrl,
+      analyticsLogLevel,
+      analyticsDeploymentStage,
+    });
+
     const appBackend = new AppBackend(this, "API", {
       appName: appName,
       userPool: webUserPool,
       frontendUrl: "https://" + cdn.getDomainName(),
       accessHandler: accessHandler,
+      governanceHandler: governance,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId,
@@ -125,7 +149,7 @@ export class CommonFateStackDev extends cdk.Stack {
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getRestApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
-      GovernanceURL: appBackend.getGovernanceApiURL(),
+      GovernanceURL: governance.getGovernanceApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),

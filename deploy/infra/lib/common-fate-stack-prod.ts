@@ -15,6 +15,7 @@ import {
   IdentityProviderTypes,
 } from "./helpers/registry";
 import { Database } from "./constructs/database";
+import { Governance } from "./constructs/governance";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -213,11 +214,34 @@ export class CommonFateStackProd extends cdk.Stack {
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
     });
 
+    const governance = new Governance(this, "Governance", {
+      appName,
+      userPool: webUserPool,
+      frontendUrl: "https://" + appFrontend.getDomainName(),
+      accessHandler: accessHandler,
+      eventBus: events.getEventBus(),
+      eventBusSourceName: events.getEventBusSourceName(),
+      adminGroupId: administratorGroupId.valueAsString,
+      identityProviderSyncConfiguration: identityConfig.valueAsString,
+      notificationsConfiguration: notificationsConfiguration.valueAsString,
+      providerConfig: providerConfig.valueAsString,
+      deploymentSuffix: suffix.valueAsString,
+      dynamoTable: db.getTable(),
+      remoteConfigUrl: remoteConfigUrl.valueAsString,
+      remoteConfigHeaders: remoteConfigHeaders.valueAsString,
+      apiGatewayWafAclArn: apiGatewayWafAclArn.valueAsString,
+      analyticsDisabled: analyticsDisabled.valueAsString,
+      analyticsUrl: analyticsUrl.valueAsString,
+      analyticsLogLevel: analyticsLogLevel.valueAsString,
+      analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
+    });
+
     const appBackend = new AppBackend(this, "API", {
       appName,
       userPool: webUserPool,
       frontendUrl: "https://" + appFrontend.getDomainName(),
       accessHandler: accessHandler,
+      governanceHandler: governance,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId: administratorGroupId.valueAsString,
@@ -259,7 +283,7 @@ export class CommonFateStackProd extends cdk.Stack {
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getRestApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
-      GovernanceURL: appBackend.getGovernanceApiURL(),
+      GovernanceURL: governance.getGovernanceApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),

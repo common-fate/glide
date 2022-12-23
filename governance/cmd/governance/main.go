@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/governance"
+	"github.com/common-fate/common-fate/governance/pkg/api"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/go-chi/chi/v5"
@@ -43,7 +43,7 @@ func run() error {
 		return err
 	}
 
-	api, err := governance.New(ctx, governance.Opts{
+	api, err := api.New(ctx, api.Opts{
 		Log:                 log,
 		DynamoTable:         cfg.DynamoTable,
 		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,

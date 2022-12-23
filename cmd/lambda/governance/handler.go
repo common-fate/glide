@@ -4,57 +4,53 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/awslabs/aws-lambda-go-api-proxy/handlerfunc"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/governance"
-	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/governance/pkg/server"
 	"github.com/common-fate/common-fate/pkg/config"
-	"github.com/go-chi/chi/v5"
-	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 )
 
-func buildHandler() (http.Handler, error) {
-	var cfg config.Config
-	ctx := context.Background()
-	_ = godotenv.Load("../../.env")
+type Lambda struct {
+	Server http.Handler
+}
 
+func buildHandler() (*Lambda, error) {
+	ctx := context.Background()
+	var cfg config.Config
 	err := envconfig.Process(ctx, &cfg)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	zap.ReplaceGlobals(log.Desugar())
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL})
+	s, err := server.New(ctx, cfg)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	api, err := governance.New(ctx, governance.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-	})
-	if err != nil {
-		panic(err)
+	l := Lambda{
+		Server: s.Routes(),
 	}
-	r := chi.NewRouter()
+	return &l, nil
+}
 
-	return api.Handler(r), nil
+func (a *Lambda) Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	adapter := handlerfunc.New(a.Server.ServeHTTP)
+	return adapter.ProxyWithContext(ctx, req)
 }
 
 func main() {
-	l, err := buildHandler()
+	govApi, err := buildHandler()
 	if err != nil {
 		panic(err)
 	}
 
-	lambda.Start(l)
+	lambda.Start(govApi.Handler)
 }

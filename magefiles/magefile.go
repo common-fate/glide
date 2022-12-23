@@ -194,7 +194,7 @@ func PackageBackend() error {
 
 func Package() {
 	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
-	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
 	mg.Deps(PackageCacheSyncer)
 }
 

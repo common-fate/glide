@@ -9,7 +9,7 @@ info:
 servers:
   - url: 'http://localhost:8889'
 paths:
-  /api/v1/gov/access-rules:
+  /gov/v1/access-rules:
     get:
       summary: List Access Rules
       tags:
@@ -53,7 +53,7 @@ paths:
       tags:
         - Governance
     parameters: []
-  '/api/v1/gov/access-rules/{ruleId}':
+  '/gov/v1/access-rules/{ruleId}':
     get:
       summary: Get Access Rule
       responses:
@@ -100,7 +100,7 @@ paths:
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Governance
-  '/api/v1/gov/access-rules/{ruleId}/archive':
+  '/gov/v1/access-rules/{ruleId}/archive':
     parameters:
       - schema:
           type: string

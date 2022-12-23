@@ -18,12 +18,14 @@ import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { CacheSync } from "./cache-sync";
 import { HttpIamAuthorizer } from "@aws-cdk/aws-apigatewayv2-authorizers-alpha";
 import { AuthorizationType } from "aws-cdk-lib/aws-apigateway";
+import { Governance } from "./governance";
 
 interface Props {
   appName: string;
   userPool: WebUserPool;
   frontendUrl: string;
   accessHandler: AccessHandler;
+  governanceHandler: Governance;
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
@@ -50,11 +52,10 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
+
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
-  private _governance: apigateway.Resource;
   private _webhookLambda: lambda.Function;
-  private _governanceLambda: lambda.Function;
 
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
@@ -86,25 +87,6 @@ export class AppBackend extends Construct {
 
     this._dynamoTable.grantReadWriteData(this._webhookLambda);
 
-    // used for governance api calls to manage common fate out of the official app
-    this._governanceLambda = new lambda.Function(
-      this,
-      "governanceHandlerFunction",
-      {
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, "..", "..", "..", "..", "bin", "governance.zip")
-        ),
-        timeout: Duration.seconds(20),
-        runtime: lambda.Runtime.GO_1_X,
-        handler: "webhook",
-        environment: {
-          COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
-        },
-      }
-    );
-
-    this._dynamoTable.grantReadWriteData(this._governanceLambda);
-
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._appName,
     });
@@ -123,22 +105,6 @@ export class AppBackend extends Construct {
     );
 
     this._webhook = webhookv1;
-
-    //governace api
-    const authorizer = new HttpIamAuthorizer();
-    const governance = this._apigateway.root.addResource("governance");
-    const governancev1 = governance.addResource("v1");
-
-    const governanceProxy = governancev1.addResource("{proxy+}");
-    governanceProxy.addMethod(
-      "ANY",
-      new apigateway.LambdaIntegration(this._governanceLambda, {
-        allowTestInvoke: false,
-      }),
-      { authorizationType: AuthorizationType.IAM }
-    );
-
-    this._governance = governancev1;
 
     const code = lambda.Code.fromAsset(
       path.join(__dirname, "..", "..", "..", "..", "bin", "commonfate.zip")
@@ -389,14 +355,6 @@ export class AppBackend extends Construct {
     return (
       this._apigateway.url +
       this._webhook.path.substring(1, this._webhook.path.length)
-    );
-  }
-
-  getGovernanceApiURL(): string {
-    // both prepend and append a / so we have to remove one out
-    return (
-      this._apigateway.url +
-      this._governance.path.substring(1, this._governance.path.length)
     );
   }
 

@@ -275,7 +275,7 @@ func NewGovListAccessRulesRequest(server string, params *GovListAccessRulesParam
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/gov/access-rules")
+	operationPath := fmt.Sprintf("/gov/v1/access-rules")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -349,7 +349,7 @@ func NewGovCreateAccessRuleRequestWithBody(server string, contentType string, bo
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/gov/access-rules")
+	operationPath := fmt.Sprintf("/gov/v1/access-rules")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -385,7 +385,7 @@ func NewGovGetAccessRuleRequest(server string, ruleId string) (*http.Request, er
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/gov/access-rules/%s", pathParam0)
+	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -430,7 +430,7 @@ func NewGovUpdateAccessRuleRequestWithBody(server string, ruleId string, content
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/gov/access-rules/%s", pathParam0)
+	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -466,7 +466,7 @@ func NewGovArchiveAccessRuleRequest(server string, ruleId string) (*http.Request
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/gov/access-rules/%s/archive", pathParam0)
+	operationPath := fmt.Sprintf("/gov/v1/access-rules/%s/archive", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -941,19 +941,19 @@ func ParseGovArchiveAccessRuleResponse(rsp *http.Response) (*GovArchiveAccessRul
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List Access Rules
-	// (GET /api/v1/gov/access-rules)
+	// (GET /gov/v1/access-rules)
 	GovListAccessRules(w http.ResponseWriter, r *http.Request, params GovListAccessRulesParams)
 	// Create Access Rule
-	// (POST /api/v1/gov/access-rules)
+	// (POST /gov/v1/access-rules)
 	GovCreateAccessRule(w http.ResponseWriter, r *http.Request)
 	// Get Access Rule
-	// (GET /api/v1/gov/access-rules/{ruleId})
+	// (GET /gov/v1/access-rules/{ruleId})
 	GovGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Update Access Rule
-	// (PUT /api/v1/gov/access-rules/{ruleId})
+	// (PUT /gov/v1/access-rules/{ruleId})
 	GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Archive Access Rule
-	// (POST /api/v1/gov/access-rules/{ruleId}/archive)
+	// (POST /gov/v1/access-rules/{ruleId}/archive)
 	GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 }
 
@@ -1215,19 +1215,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/gov/access-rules", wrapper.GovListAccessRules)
+		r.Get(options.BaseURL+"/gov/v1/access-rules", wrapper.GovListAccessRules)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/gov/access-rules", wrapper.GovCreateAccessRule)
+		r.Post(options.BaseURL+"/gov/v1/access-rules", wrapper.GovCreateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/gov/access-rules/{ruleId}", wrapper.GovGetAccessRule)
+		r.Get(options.BaseURL+"/gov/v1/access-rules/{ruleId}", wrapper.GovGetAccessRule)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/api/v1/gov/access-rules/{ruleId}", wrapper.GovUpdateAccessRule)
+		r.Put(options.BaseURL+"/gov/v1/access-rules/{ruleId}", wrapper.GovUpdateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/gov/access-rules/{ruleId}/archive", wrapper.GovArchiveAccessRule)
+		r.Post(options.BaseURL+"/gov/v1/access-rules/{ruleId}/archive", wrapper.GovArchiveAccessRule)
 	})
 
 	return r
@@ -1246,16 +1246,16 @@ var swaggerSpec = []string{
 	"SOd3/nTH5FGqZ9gP7jA7Ljrcs7cANadBx9HnSExXSuFVSCTPFSUP9LBNrcE4pKEnderBVv6B7n1dffvi",
 	"HZuAks6DmUNNCiJCWk+Vem62fcK8JhUDRExNWRoNp+jDG1mxEmOx9N66cRY2XBo9R0+pNGLI9JPfZjA3",
 	"DJbNgrEs0csclVpDiRoXUi/aR6EDqeGMUXsqYNKkgUtjwPv6ON4OwllIUI06p1BDJGJF7OqyR+kocGmk",
-	"EWPxQzpKRyIRFv0yypehldnqKFuYVVbX/463GjdnZHcnwVmASnXYiliDo5NmhRiLM7PqWTAWZSzJEzsx",
-	"ft/HPZXKE3cEgas1IFhkL/NKIYPz6KvYBRmWfKyI19uIDB4JT0XSsjDpqgw+mUwvZu9ORCIm59OfZu9O",
-	"jls22VmrT4l0zmsbFPDmmjRER0gdpLJBsbhdiH4ZZhQMeRGWdkj16172kvv70aj1YnXepdt52f3xGHzs",
-	"qrJEXm8lazc2XhgWQQWxM4+43CTCGjegeX35AdRt0Yc079+SRNK6+a4PiovOTTm765q82evZ0aOy7Qlp",
-	"vx8nNckikHrR0e6+XW6F7J7TEeLoaRAd7RvpWurfJf4muTMMspvwZ1Zs7kyFM/LBHq0y6ZA/zsj3zLHv",
-	"+y+j4dufn6X3AeLFM8oX+nqAdnvZGtMohPwujGoJRfsArY/Ye5PJVgNq118Prq84xPF4ktXfc3k0nwME",
-	"TZ+gOZYGjdH/HvkXg+MrMN1ov8WvsYAW58aYPRk0Vn5pWP61DZ8X+5N+NR5OTaXjjJdDpWbaBycp+J14",
-	"RQzRjz0f1vo8V4xkyPlSruJ19B8z7uBJ9gb52vUOMkAHDaEi/VNP9Bos6SL4uPGUixc3v5Sus+6TVAqu",
-	"CPKwdaWoGLT2pIb+P/cehHj51MOzY9mm7wd5NiyM5q9NuLvaj7NMmRzV0jg/fvXq1Y8ieKsBuf0waIFt",
-	"Ljd/BwAA//87tIic/BMAAA==",
+	"EWPxQzpKRyIRFv0yypctzCpbHWV17e94q29zPnZ3EVwFqFSHqYj4HF00K8RYnJlVz36xIGNJntiJ8fs+",
+	"7qlUnrgjBlytAcEie5lXChmcR1/FDsiw5GNFvN7GY/BHeCqSln1JV2XwyGR6MXt3IhIxOZ/+NHt3ctyy",
+	"yM5WfUqkc17b0H1vrklDdIPUQSYb1IrbheiVYUbBjBdhaYdUv+5lL7W/H41aL1XnPbqdl90fjcHDripL",
+	"5PVWsnZj42VhEVQQO+OIy00irHEDmtcXH0DdFn1I8/4NSSStW+/6oKjo3JKzu67Im72eHT0q156Q9PtR",
+	"UpMsAqkXHe3u2+VWyO4ZHSGOngbR0b6RrqX+XeJvksEgyG7Cn1mxuTMRzsgHa7RKpEPeOCPfM8a+57+M",
+	"fm9/fpa+B4gXzyhd6OsBuu3lakyiEO67IKolFO2Dsz5a700lWw2oXX81uL7iEMfjCVZ/x+XReA4QNH2C",
+	"5jgaNEb/O+RfDI2vwHSj/Ra/xgJanBtj9mTQWPmlYfnXNnhe7E/61Xg4NZWOM14OlZppH5yk4HfiFTFE",
+	"P/Z8WOvzHBGSIedLuYpX0H/MtIMn2Bvka9c7wAAdNISK9E890WuwpIvg4cZPLl7W/FK6zrpPUim4IsjD",
+	"tpWiYtDWkxr6/8x7EOLlUw/Njl2bvh/k17AwGr824e46P84yZXJUS+P8+NWrVz+K4K0G5PZjoAW2udz8",
+	"HQAA//8SEgxp8BMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

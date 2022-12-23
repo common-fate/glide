@@ -1,4 +1,4 @@
-package governance
+package api
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/benbjohnson/clock"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	gov_types "github.com/common-fate/common-fate/governance/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -71,7 +72,5 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 // Hander doesn't add any middleware. It is the caller's
 // responsibility to add any middleware.
 func (a *API) Handler(r chi.Router) http.Handler {
-	return HandlerWithOptions(a, ChiServerOptions{
-		BaseRouter: r,
-	})
+	return gov_types.HandlerFromMux(a, r)
 }

@@ -1,20 +1,22 @@
-package governance
+package api
 
 import (
 	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	gov_types "github.com/common-fate/common-fate/governance/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+
 	"github.com/common-fate/ddb"
 )
 
 // List Access Rules
 // (GET /api/v1/gov/access-rules)
-func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params GovListAccessRulesParams) {
+func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params gov_types.GovListAccessRulesParams) {
 	ctx := r.Context()
 
 	var err error
