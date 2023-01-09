@@ -66,7 +66,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.rawLog.Infow("starting server", "config", s.cfg)
 
 	server := &http.Server{
-		Addr:     s.cfg.Host,
+		Addr:     s.cfg.GovernanceURL,
 		ErrorLog: errorLog,
 		Handler:  s.Routes(),
 	}

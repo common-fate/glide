@@ -3,17 +3,11 @@ package main
 import (
 	"context"
 	"log"
-	"net/http"
 
-	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/governance/pkg/api"
-	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/governance/pkg/server"
 	"github.com/common-fate/common-fate/pkg/config"
-	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -24,6 +18,7 @@ func main() {
 }
 
 func run() error {
+
 	var cfg config.Config
 	ctx := context.Background()
 	_ = godotenv.Load("../../.env")
@@ -33,39 +28,45 @@ func run() error {
 		return err
 	}
 
-	dc, err := deploy.GetDeploymentConfig()
+	s, err := server.New(ctx, cfg)
 	if err != nil {
 		return err
 	}
+	return s.Start(ctx)
 
-	log, err := logger.Build(cfg.LogLevel)
-	if err != nil {
-		return err
-	}
-	zap.ReplaceGlobals(log.Desugar())
+	// dc, err := deploy.GetDeploymentConfig()
+	// if err != nil {
+	// 	return err
+	// }
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL})
-	if err != nil {
-		return err
-	}
+	// log, err := logger.Build(cfg.LogLevel)
+	// if err != nil {
+	// 	return err
+	// }
+	// zap.ReplaceGlobals(log.Desugar())
 
-	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		DeploymentConfig:    dc,
-	})
-	if err != nil {
-		return err
-	}
+	// ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL})
+	// if err != nil {
+	// 	return err
+	// }
 
-	r := chi.NewRouter()
-	h := api.Handler(r)
+	// api, err := api.New(ctx, api.Opts{
+	// 	Log:                 log,
+	// 	DynamoTable:         cfg.DynamoTable,
+	// 	PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
+	// 	AccessHandlerClient: ahc,
+	// 	DeploymentConfig:    dc,
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
-	host := "0.0.0.0:8889"
+	// r := chi.NewRouter()
+	// h := api.Handler(r)
 
-	log.Infow("serving governance API", "host", host, "dynamoTable", cfg.DynamoTable)
+	// host := "0.0.0.0:8889"
 
-	return http.ListenAndServe(host, h)
+	// log.Infow("serving governance API", "host", host, "dynamoTable", cfg.DynamoTable)
+
+	// return http.ListenAndServe(host, h)
 }
