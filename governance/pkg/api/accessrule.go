@@ -103,7 +103,11 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	a.log.Infow("creating access rule", "request", createRequest)
+
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
+
+	a.log.Infow("error creating access rule", "error", err.Error())
 
 	if err != nil {
 		apio.Error(ctx, w, err)

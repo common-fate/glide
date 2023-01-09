@@ -21,6 +21,7 @@ import (
 type API struct {
 	DB    ddb.Storage
 	Rules AccessRuleService
+	log   zap.SugaredLogger
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_accessrule_service.go -package=mocks . AccessRuleService
@@ -71,7 +72,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				AccessHandlerClient:  opts.AccessHandlerClient,
 			},
 		},
-		DB: db,
+		DB:  db,
+		log: *opts.Log,
 	}
 
 	return &a, nil
