@@ -201,16 +201,6 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
   // true if no argument values have been selected
   const groupSelectionRequired =
     multiSelects === undefined || multiSelects.length === 0;
-  console.log({
-    id: argument.id,
-    argumentSelectionRequired,
-    groupSelectionRequired,
-    argumentGroups,
-    multiSelects,
-    watch: watch(),
-    argument,
-    argOptions,
-  });
 
   return (
     <VStack

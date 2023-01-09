@@ -52,7 +52,6 @@ export const TimeStep: React.FC = () => {
           }}
           name="timeConstraints.maxDurationSeconds"
           render={({ field: { ref, ...rest } }) => {
-            console.log(sixMonthsMaxInSeconds, "maxDurationSeconds");
             return (
               <>
                 <DurationInput
