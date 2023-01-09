@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/governance/pkg/api"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -32,6 +33,11 @@ func run() error {
 		return err
 	}
 
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return err
+	}
+
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {
 		return err
@@ -48,6 +54,7 @@ func run() error {
 		DynamoTable:         cfg.DynamoTable,
 		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
 		AccessHandlerClient: ahc,
+		DeploymentConfig:    dc,
 	})
 	if err != nil {
 		return err

@@ -9,6 +9,7 @@ import (
 	gov_types "github.com/common-fate/common-fate/governance/pkg/types"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/getkin/kin-openapi/openapi3"
 	"go.uber.org/zap"
 )
@@ -34,12 +35,17 @@ func New(ctx context.Context, c config.Config) (*Server, error) {
 	// remove any servers from the spec, as we don't know what host or port the user will run the API as.
 	swagger.Servers = nil
 
+	dc, err := deploy.GetDeploymentConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: c.Region, AccessHandlerURL: c.AccessHandlerURL, MockAccessHandler: c.MockAccessHandler})
 	if err != nil {
 		return nil, err
 	}
 
-	api, err := api.New(ctx, api.Opts{Log: log, PaginationKMSKeyARN: c.PaginationKMSKeyARN, DynamoTable: c.DynamoTable, AccessHandlerClient: ahc})
+	api, err := api.New(ctx, api.Opts{Log: log, PaginationKMSKeyARN: c.PaginationKMSKeyARN, DynamoTable: c.DynamoTable, AccessHandlerClient: ahc, DeploymentConfig: dc})
 	if err != nil {
 		return nil, err
 	}
