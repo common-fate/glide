@@ -99,6 +99,13 @@ export class Governance extends Construct {
     );
     this._dynamoTable.grantReadWriteData(this._governanceLambda);
 
+    this._governanceLambda.addToRolePolicy(
+      new PolicyStatement({
+        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
+        actions: ["execute-api:Invoke"],
+      })
+    );
+
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._restApiName,
     });
