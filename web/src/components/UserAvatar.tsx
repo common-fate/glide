@@ -9,7 +9,7 @@ import {
   SkeletonText,
 } from "@chakra-ui/react";
 import React from "react";
-import { useGetUser } from "../utils/backend-client/end-user/end-user";
+import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 
 interface UserAvatarProps extends AvatarProps {
   user: string | undefined;
@@ -30,7 +30,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   ...rest
 }) => {
   // @ts-ignore, swr should handle this fine
-  const { data, isValidating } = useGetUser(user);
+  const { data, isValidating } = useUserGetUser(user);
   if (!data && isValidating) {
     return <SkeletonCircle size="6" />;
   }
@@ -46,7 +46,7 @@ export const UserAvatarDetails: React.FC<UserAvatarProps> = ({
   ...rest
 }) => {
   // @ts-ignore
-  const { data, isValidating } = useGetUser(user);
+  const { data, isValidating } = useUserGetUser(user);
 
   if (!data) {
     return <Avatar {...rest} />;

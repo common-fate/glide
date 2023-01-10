@@ -38,8 +38,7 @@ import {
   useUserListRequestsUpcoming,
 } from "../../utils/backend-client/default/default";
 import {
-  getMe,
-  useListUserAccessRules,
+  useUserListAccessRules,
   useUserGetAccessRule,
 } from "../../utils/backend-client/end-user/end-user";
 import { Request, User } from "../../utils/backend-client/types";
@@ -57,7 +56,7 @@ const Home = () => {
   const search = useSearch<MyLocationGenerics>();
   const navigate = useNavigate<MyLocationGenerics>();
 
-  const { data: rules } = useListUserAccessRules();
+  const { data: rules } = useUserListAccessRules();
 
   const {
     data: reqsUpcoming,
@@ -75,7 +74,6 @@ const Home = () => {
   >({
     swrHook: useUserListRequestsPast,
     hookProps: {},
-
     listObjKey: "requests",
   });
 

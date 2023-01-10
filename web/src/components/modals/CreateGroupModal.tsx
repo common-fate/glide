@@ -20,7 +20,7 @@ import {
 import axios from "axios";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { createGroup } from "../../utils/backend-client/admin/admin";
+import { adminCreateGroup } from "../../utils/backend-client/admin/admin";
 
 import { CreateGroupRequestBody } from "../../utils/backend-client/types";
 import { UserSelect } from "../forms/access-rule/components/Select";
@@ -37,7 +37,7 @@ const CreateGroupModal = (props: Props) => {
 
   const onSubmit = async (data: CreateGroupRequestBody) => {
     try {
-      await createGroup(data);
+      await adminCreateGroup(data);
       toast({
         title: "Group Created",
         status: "success",

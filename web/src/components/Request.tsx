@@ -36,12 +36,12 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
-  cancelRequest,
-  reviewRequest,
-  revokeRequest,
-  useGetAccessInstructions,
-  useGetAccessToken,
-  useGetUser,
+  userCancelRequest,
+  userReviewRequest,
+  userRevokeRequest,
+  useUserGetAccessInstructions,
+  useUserGetAccessToken,
+  useUserGetUser,
   useUserGetRequest,
 } from "../utils/backend-client/end-user/end-user";
 import {
@@ -277,7 +277,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
 
 export const RequestAccessInstructions: React.FC = () => {
   const { request } = useContext(Context);
-  const { data } = useGetAccessInstructions(
+  const { data } = useUserGetAccessInstructions(
     request?.grant != null ? request.id : ""
   );
 
@@ -363,7 +363,7 @@ export const RequestAccessInstructions: React.FC = () => {
 
 export const RequestAccessToken: React.FC = () => {
   const { request } = useContext(Context);
-  const { data, error } = useGetAccessToken(request?.id ?? "", {
+  const { data, error } = useUserGetAccessToken(request?.id ?? "", {
     swr: {
       refreshInterval: 0,
       revalidateOnFocus: false,
@@ -525,7 +525,7 @@ export const _RequestOverridableTime: React.FC = () => {
 
 export const RequestRequestor: React.FC = () => {
   const { request } = useContext(Context);
-  const { data: requestor, isValidating } = useGetUser(
+  const { data: requestor, isValidating } = useUserGetUser(
     request?.requestor ?? ""
   );
 
@@ -594,7 +594,7 @@ export const RequestReview: React.FC<ReviewButtonsProps> = ({
     if (request === undefined) return;
     try {
       setIsSubmitting(decision);
-      await reviewRequest(request.id, {
+      await userReviewRequest(request.id, {
         decision,
         overrideTiming: overrideTiming,
       });
@@ -832,7 +832,7 @@ export const RequestCancelButton: React.FC = () => {
   const handleCancel = async () => {
     if (request === undefined) return;
     try {
-      await cancelRequest(request.id, {});
+      await userCancelRequest(request.id, {});
       void mutate();
       toast({
         title: "Request cancelled",
@@ -890,7 +890,7 @@ export const RequestRevoke: React.FC<RevokeButtonsProps> = ({
   const submitRevoke = async () => {
     if (request === undefined) return;
     try {
-      await revokeRequest(request.id, {});
+      await userRevokeRequest(request.id, {});
       toast({
         title: "Deactivated grant",
         status: "success",

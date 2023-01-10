@@ -32,13 +32,13 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useMatch, useNavigate } from "react-location";
 import { UserSelect } from "../../../components/forms/access-rule/components/Select";
-import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
+import { useUserGetUser } from "../../../utils/backend-client/end-user/end-user";
 
 import { AdminLayout } from "../../../components/Layout";
 
 import {
   adminUpdateGroup,
-  useGetGroup,
+  useAdminGetGroup,
 } from "../../../utils/backend-client/admin/admin";
 import {
   CreateGroupRequestBody,
@@ -55,7 +55,7 @@ const Index = () => {
   const {
     params: { id: groupId },
   } = useMatch();
-  const { data: group, mutate } = useGetGroup(groupId);
+  const { data: group, mutate } = useAdminGetGroup(groupId);
   const toast = useToast();
   const [isEditable, setIsEditable] = useState(false);
 
@@ -276,7 +276,7 @@ const Index = () => {
 export default Index;
 
 const UserDisplay: React.FC<{ userId: string }> = ({ userId }) => {
-  const { data } = useGetUser(encodeURIComponent(userId));
+  const { data } = useUserGetUser(encodeURIComponent(userId));
 
   return (
     <Flex

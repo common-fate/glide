@@ -118,8 +118,8 @@ func (a *API) AdminCreateUser(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/admin/users/{userId})
 func (a *API) AdminUpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
 	ctx := r.Context()
-	var updateUserRequest types.AdminUpdateUserJSONBody
-	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
+	var adminUpdateUserRequest types.AdminUpdateUserJSONBody
+	err := apio.DecodeJSONBody(w, r, &adminUpdateUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
@@ -136,7 +136,7 @@ func (a *API) AdminUpdateUser(w http.ResponseWriter, r *http.Request, userId str
 		apio.Error(ctx, w, err)
 		return
 	}
-	user, err := a.InternalIdentity.UpdateUserGroups(ctx, *q.Result, updateUserRequest.Groups)
+	user, err := a.InternalIdentity.UpdateUserGroups(ctx, *q.Result, adminUpdateUserRequest.Groups)
 	if err == internalidentitysvc.ErrGroupNotFoundOrNotInternal {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return

@@ -14,7 +14,7 @@ import { Helmet } from "react-helmet";
 import { Link, useNavigate } from "react-location";
 import { ProviderIcon } from "../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../components/Layout";
-import { createProvidersetup } from "../../../../utils/backend-client/default/default";
+import { adminCreateProvidersetup } from "../../../../utils/backend-client/default/default";
 import { registeredProviders } from "../../../../utils/providerRegistry";
 
 const Page = () => {
@@ -24,7 +24,7 @@ const Page = () => {
 
   const createProvider = async (providerType: string) => {
     setProviderLoading(providerType);
-    const res = await createProvidersetup({
+    const res = await adminCreateProvidersetup({
       providerType,
     });
     navigate({ to: `/admin/providers/setup/${res.id}` });
