@@ -144,7 +144,8 @@ test.describe.serial("Internal Groups Workflows", () => {
     await page.click(testId("request-submit-button"));
     await page.waitForNavigation({ url: /requests/ });
     const locator5 = page.locator(testId("req_" + uniqueReason));
-    await expect(locator5).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await expect(locator5).toHaveCount(1);
   });
 
   test("test review access rule", async ({ page }) => {

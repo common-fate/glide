@@ -29,4 +29,8 @@ export default defineConfig({
       "./runtimeConfig": "./runtimeConfig.browser",
     },
   },
+  server: {
+    host: "localhost",
+    port: 3000,
+  },
 });
