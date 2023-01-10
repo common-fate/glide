@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/common-fate/common-fate/governance/pkg/config"
 	"github.com/common-fate/common-fate/governance/pkg/server"
-	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )

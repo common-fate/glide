@@ -6,9 +6,9 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/governance/pkg/api"
+	"github.com/common-fate/common-fate/governance/pkg/config"
 	gov_types "github.com/common-fate/common-fate/governance/pkg/types"
 	"github.com/common-fate/common-fate/internal"
-	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/getkin/kin-openapi/openapi3"
 	"go.uber.org/zap"

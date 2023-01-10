@@ -71,27 +71,11 @@ export class Governance extends Construct {
         timeout: Duration.seconds(60),
         environment: {
           COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
-          COMMONFATE_FRONTEND_URL: props.frontendUrl,
-          COMMONFATE_COGNITO_USER_POOL_ID: props.userPool.getUserPoolId(),
-          COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
-          COMMONFATE_ADMIN_GROUP: props.adminGroupId,
           COMMONFATE_MOCK_ACCESS_HANDLER: "false",
           COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
           COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
-          // COMMONFATE_SENTRY_DSN: can be added here
-          COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
-          COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
-          COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
+
           COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-          COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
-            props.accessHandler.getAccessHandlerExecutionRoleArn(),
-          COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
-          COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
-          COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
-          CF_ANALYTICS_DISABLED: props.analyticsDisabled,
-          CF_ANALYTICS_URL: props.analyticsUrl,
-          CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
-          CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
         },
         runtime: lambda.Runtime.GO_1_X,
         handler: "governance",
