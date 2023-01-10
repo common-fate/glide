@@ -20,7 +20,7 @@ import (
 
 // List the provider setups in progress
 // (GET /api/v1/admin/providersetups)
-func (a *API) ListProvidersetups(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminListProvidersetups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	q := storage.ListProviderSetups{}
 
@@ -70,7 +70,7 @@ func (a *API) ListProvidersetups(w http.ResponseWriter, r *http.Request) {
 
 // Begin the setup process for a new Access Provider
 // (POST /api/v1/admin/providersetups)
-func (a *API) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminCreateProvidersetup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var b types.CreateProviderSetupRequest
 	err := apio.DecodeJSONBody(w, r, &b)
@@ -100,7 +100,7 @@ func (a *API) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
 
 // Delete an in-progress provider setup
 // (DELETE /api/v1/admin/providersetups/{providersetupId})
-func (a *API) DeleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
+func (a *API) AdminDeleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
 	ctx := r.Context()
 
 	g, gctx := errgroup.WithContext(ctx)
@@ -158,7 +158,7 @@ func (a *API) DeleteProvidersetup(w http.ResponseWriter, r *http.Request, provid
 
 // Get an in-progress provider setup
 // (GET /api/v1/admin/providersetups/{providersetupId})
-func (a *API) GetProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
+func (a *API) AdminGetProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
 	ctx := r.Context()
 	q := storage.GetProviderSetup{
 		ID: providersetupId,
@@ -179,7 +179,7 @@ func (a *API) GetProvidersetup(w http.ResponseWriter, r *http.Request, providers
 
 // Get the setup instructions for an Access Provider
 // (GET /api/v1/admin/providersetups/{providersetupId}/instructions)
-func (a *API) GetProvidersetupInstructions(w http.ResponseWriter, r *http.Request, providersetupId string) {
+func (a *API) AdminGetProvidersetupInstructions(w http.ResponseWriter, r *http.Request, providersetupId string) {
 	ctx := r.Context()
 
 	q := storage.ListProviderSetupSteps{
@@ -205,7 +205,7 @@ func (a *API) GetProvidersetupInstructions(w http.ResponseWriter, r *http.Reques
 
 // Update the completion status for a Provider setup step
 // (PUT /api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete)
-func (a *API) SubmitProvidersetupStep(w http.ResponseWriter, r *http.Request, providersetupId string, stepIndex int) {
+func (a *API) AdminSubmitProvidersetupStep(w http.ResponseWriter, r *http.Request, providersetupId string, stepIndex int) {
 	ctx := r.Context()
 	var b types.ProviderSetupStepCompleteRequest
 	err := apio.DecodeJSONBody(w, r, &b)
@@ -234,7 +234,7 @@ func (a *API) SubmitProvidersetupStep(w http.ResponseWriter, r *http.Request, pr
 
 // Validate the configuration for a Provider Setup
 // (POST /api/v1/admin/providersetups/{providersetupId}/validate)
-func (a *API) ValidateProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
+func (a *API) AdminValidateProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
 	ctx := r.Context()
 	q := storage.GetProviderSetup{
 		ID: providersetupId,
@@ -298,7 +298,7 @@ func (a *API) ValidateProvidersetup(w http.ResponseWriter, r *http.Request, prov
 
 // Complete a ProviderSetup
 // (POST /api/v1/admin/providersetups/{providersetupId}/complete)
-func (a *API) CompleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
+func (a *API) AdminCompleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string) {
 	ctx := r.Context()
 
 	q := storage.GetProviderSetup{

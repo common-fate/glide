@@ -12,7 +12,7 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	res, err := a.AccessHandlerClient.ListProvidersWithResponse(ctx)
 	if err != nil {
@@ -40,7 +40,7 @@ func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
+func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 	res, err := a.AccessHandlerClient.GetProviderWithResponse(ctx, providerId)
 	if err != nil {
@@ -67,7 +67,7 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 	}
 }
 
-func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
+func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 	res, err := a.AccessHandlerClient.GetProviderArgsWithResponse(ctx, providerId)
 	if err != nil {
@@ -96,7 +96,7 @@ func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId
 
 // List provider arg options
 // (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
-func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.ListProviderArgOptionsParams) {
+func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.AdminListProviderArgOptionsParams) {
 	ctx := r.Context()
 
 	res := ahTypes.ArgOptionsResponse{

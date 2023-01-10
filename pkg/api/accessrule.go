@@ -195,7 +195,7 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 
 // Your GET endpoint
 // (GET /api/v1/access-rules/lookup)
-func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.AccessRuleLookupParams) {
+func (a *API) UserAccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.UserAccessRuleLookupParams) {
 	ctx := r.Context()
 
 	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
@@ -232,7 +232,7 @@ func (a *API) AccessRuleLookup(w http.ResponseWriter, r *http.Request, params ty
 
 // List Access Rules
 // (GET /api/v1/access-rules)
-func (a *API) ListUserAccessRules(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserListAccessRules(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	admin := auth.IsAdmin(ctx)

@@ -81,7 +81,7 @@ func (a *API) UserGetFavorite(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // (DELETE /api/v1/favorites/{id})
-func (a *API) DeleteFavorite(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) UserDeleteFavorite(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	q := storage.GetFavoriteForUser{
@@ -106,7 +106,7 @@ func (a *API) DeleteFavorite(w http.ResponseWriter, r *http.Request, id string) 
 }
 
 // (PUT /api/v1/favorites/{id})
-func (a *API) UpdateFavorite(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) UserUpdateFavorite(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 	var createFavorite types.CreateFavoriteRequest
 	err := apio.DecodeJSONBody(w, r, &createFavorite)

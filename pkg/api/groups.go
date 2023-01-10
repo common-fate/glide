@@ -14,7 +14,7 @@ import (
 
 // Lists all active groups
 // (GET /api/v1/groups/)
-func (a *API) ListGroups(w http.ResponseWriter, r *http.Request, params types.ListGroupsParams) {
+func (a *API) AdminListGroups(w http.ResponseWriter, r *http.Request, params types.AdminListGroupsParams) {
 	ctx := r.Context()
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
@@ -38,7 +38,7 @@ func (a *API) ListGroups(w http.ResponseWriter, r *http.Request, params types.Li
 		nextToken = qr.NextPage
 	} else {
 		source := identity.INTERNAL
-		if *params.Source != types.ListGroupsParamsSource("INTERNAL") {
+		if *params.Source != types.AdminListGroupsParamsSource("INTERNAL") {
 			source = a.IdentityProvider
 		}
 		q := storage.ListGroupsForSourceAndStatus{
@@ -67,8 +67,8 @@ func (a *API) ListGroups(w http.ResponseWriter, r *http.Request, params types.Li
 }
 
 // Get Group Details
-// (GET /api/v1/groups/{groupId})
-func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
+// (GET /api/v1/admin/groups/{groupId})
+func (a *API) AdminGetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 	ctx := r.Context()
 
 	q := storage.GetGroup{ID: groupId}
@@ -89,7 +89,7 @@ func (a *API) GetGroup(w http.ResponseWriter, r *http.Request, groupId string) {
 // Create Group
 // (POST /api/v1/admin/groups)
 // Creates an internal group not connected to any identiy provider in dynamodb
-func (a *API) CreateGroup(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminCreateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var createGroupRequest types.CreateGroupRequest
 	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
