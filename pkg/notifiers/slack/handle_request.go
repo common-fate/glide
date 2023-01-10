@@ -72,7 +72,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
 			}
 			// for webhooks
-			reviewerSummary, reviewerMsg := BuildRequestMessage(RequestMessageOpts{
+			reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
 				Request:          request,
 				RequestArguments: requestArguments,
 				Rule:             requestedRule,
@@ -103,7 +103,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				if requestor != nil {
 					slackUserID = requestor.ID
 				}
-				reviewerSummary, reviewerMsg := BuildRequestMessage(RequestMessageOpts{
+				reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
 					Request:          request,
 					RequestArguments: requestArguments,
 					Rule:             requestedRule,
@@ -149,16 +149,12 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				wg.Wait()
 			}
 		} else {
-
 			//Review not required
-			msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.\n", requestedRule.Name)
+			// this will only apply to oauth clients, webhooks are handled conditionally within
+			oauthMsg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.\n", requestedRule.Name)
+			oauthFallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
 
-			fallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
-			if err != nil {
-				return errors.Wrap(err, "building review URL")
-			}
-
-			n.sendRequestDetailsMessage(ctx, log, request, requestedRule, *requestingUserQuery.Result, msg, fallback)
+			n.sendRequestDetailsMessage(ctx, log, request, requestedRule, *requestingUserQuery.Result, oauthMsg, oauthFallback)
 		}
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been approved.", requestedRule.Name)
@@ -176,42 +172,47 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	return nil
 }
 
+// sendRequestDetailsMessage sends a message to the user who requested access with details about the request. Sent only on access create/approved
 func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, request access.Request, requestedRule rule.AccessRule, requestingUser identity.User, headingMsg string, summary string) {
 	requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
 	if err != nil {
 		log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
 	}
 
-	//send message including
-	if n.directMessageClient != nil {
-		// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
-		var slackUserID string
-		requestor, err := n.directMessageClient.client.GetUserByEmailContext(ctx, requestingUser.Email)
-		if err != nil {
-			// log this instead of returning
-			log.Errorw("failed to get slack user id, defaulting to email", "user", requestingUser.Email, zap.Error(err))
-		}
-		if requestor != nil {
-			slackUserID = requestor.ID
-		}
-		_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-			Request:          request,
-			RequestArguments: requestArguments,
-			Rule:             requestedRule,
-			RequestorSlackID: slackUserID,
-			RequestorEmail:   requestingUser.Email,
-			IsWebhook:        false,
-			HeadingMessage:   headingMsg,
-		})
+	if n.directMessageClient != nil || len(n.webhooks) > 0 {
+		if n.directMessageClient != nil {
+			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+				Request:          request,
+				RequestArguments: requestArguments,
+				Rule:             requestedRule,
+				HeadingMessage:   headingMsg,
+			})
 
-		// err = n.UpdateMessageBlockForRequester(ctx, requestingUserQuery.Result, msg)
-		_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestingUser.Email, msg, summary)
+			_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestingUser.Email, msg, summary)
 
-		if err != nil {
-			log.Errorw("failed to send slack message", "user", requestingUser, zap.Error(err))
-			return
+			if err != nil {
+				log.Errorw("failed to send slack message", "user", requestingUser, zap.Error(err))
+			}
 		}
 
+		for _, webhook := range n.webhooks {
+			if !requestedRule.Approval.IsRequired() {
+				headingMsg = fmt.Sprintf(":white_check_mark: %s's request to access *%s* has been automatically approved.\n", requestingUser.Email, requestedRule.Name)
+
+				summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
+			}
+			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
+				Request:          request,
+				RequestArguments: requestArguments,
+				Rule:             requestedRule,
+				HeadingMessage:   headingMsg,
+			})
+
+			err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
+			if err != nil {
+				log.Errorw("failed to send slack message to webhook channel", "error", err)
+			}
+		}
 	}
 }
 
@@ -250,14 +251,14 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		if requestor != nil {
 			slackUserID = requestor.ID
 		}
-		_, msg := BuildRequestMessage(RequestMessageOpts{
+		_, msg := BuildRequestReviewMessage(RequestMessageOpts{
 			Request:          request,
 			RequestArguments: requestArguments,
 			Rule:             rule,
 			RequestorSlackID: slackUserID,
 			RequestorEmail:   requestingUser.Email,
 			ReviewURLs:       reviewURL,
-			WasReviewed:      false,
+			WasReviewed:      true,
 			RequestReviewer:  reqReviewer.Result,
 			IsWebhook:        false,
 		})
@@ -274,7 +275,7 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		log.Infow("webhooks found", "webhooks", n.webhooks)
 	}
 	// this does not include the slackUserID because we don't have access to look it up
-	summary, msg := BuildRequestMessage(RequestMessageOpts{
+	summary, msg := BuildRequestReviewMessage(RequestMessageOpts{
 		Request:          request,
 		RequestArguments: requestArguments,
 		Rule:             rule,
