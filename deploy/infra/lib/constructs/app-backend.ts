@@ -41,6 +41,7 @@ interface Props {
   analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
+  kmsKey: cdk.aws_kms.Key;
 }
 
 export class AppBackend extends Construct {
@@ -64,13 +65,7 @@ export class AppBackend extends Construct {
 
     this._dynamoTable = props.dynamoTable;
 
-    this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      pendingWindow: cdk.Duration.days(7),
-      enableKeyRotation: true,
-      description:
-        "Used for encrypting and decrypting pagination tokens for Common Fate",
-    });
+    this._KMSkey = props.kmsKey;
 
     // used to handle webhook events from third party integrations such as Slack
     this._webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {

@@ -6,6 +6,7 @@ import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
 import { Database } from "./constructs/database";
+import * as kms from "aws-cdk-lib/aws-kms";
 
 import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
@@ -94,8 +95,18 @@ export class CommonFateStackDev extends cdk.Stack {
       remoteConfigHeaders,
     });
 
+    //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
+    const kmsKey = new kms.Key(this, "PaginationKMSKey", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pendingWindow: cdk.Duration.days(7),
+      enableKeyRotation: true,
+      description:
+        "Used for encrypting and decrypting pagination tokens for Common Fate",
+    });
+
     const governance = new Governance(this, "Governance", {
       appName: appName,
+      kmsKey: kmsKey,
 
       accessHandler: accessHandler,
 
@@ -125,6 +136,7 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsUrl,
       analyticsLogLevel,
       analyticsDeploymentStage,
+      kmsKey: kmsKey,
     });
     /* Outputs */
     generateOutputs(this, {

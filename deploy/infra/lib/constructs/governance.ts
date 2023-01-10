@@ -17,6 +17,7 @@ interface Props {
   accessHandler: AccessHandler;
   providerConfig: string;
   dynamoTable: dynamodb.Table;
+  kmsKey: cdk.aws_kms.Key;
 }
 
 export class Governance extends Construct {
@@ -34,13 +35,7 @@ export class Governance extends Construct {
     this._dynamoTable = props.dynamoTable;
 
     //todo passthrough kmskey
-    this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      pendingWindow: cdk.Duration.days(7),
-      enableKeyRotation: true,
-      description:
-        "Used for encrypting and decrypting pagination tokens for Common Fate",
-    });
+    this._KMSkey = props.kmsKey;
 
     this._restApiName = props.appName + "_governance";
 
