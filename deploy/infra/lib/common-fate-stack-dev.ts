@@ -96,24 +96,12 @@ export class CommonFateStackDev extends cdk.Stack {
 
     const governance = new Governance(this, "Governance", {
       appName: appName,
-      userPool: webUserPool,
-      frontendUrl: "https://" + cdn.getDomainName(),
+
       accessHandler: accessHandler,
-      eventBus: events.getEventBus(),
-      eventBusSourceName: events.getEventBusSourceName(),
-      adminGroupId,
+
       providerConfig: props.providerConfig,
-      identityProviderSyncConfiguration: identityProviderSyncConfiguration,
-      notificationsConfiguration: notificationsConfiguration,
-      deploymentSuffix: stage,
+
       dynamoTable: db.getTable(),
-      remoteConfigUrl,
-      remoteConfigHeaders,
-      apiGatewayWafAclArn,
-      analyticsDisabled,
-      analyticsUrl,
-      analyticsLogLevel,
-      analyticsDeploymentStage,
     });
 
     const appBackend = new AppBackend(this, "API", {

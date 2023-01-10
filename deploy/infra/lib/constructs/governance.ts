@@ -14,24 +14,9 @@ import * as kms from "aws-cdk-lib/aws-kms";
 
 interface Props {
   appName: string;
-  userPool: WebUserPool;
-  frontendUrl: string;
   accessHandler: AccessHandler;
-  eventBusSourceName: string;
-  eventBus: EventBus;
-  adminGroupId: string;
   providerConfig: string;
-  notificationsConfiguration: string;
-  identityProviderSyncConfiguration: string;
-  deploymentSuffix: string;
-  remoteConfigUrl: string;
-  remoteConfigHeaders: string;
-  analyticsDisabled: string;
-  analyticsUrl: string;
-  analyticsLogLevel: string;
-  analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
-  apiGatewayWafAclArn: string;
 }
 
 export class Governance extends Construct {

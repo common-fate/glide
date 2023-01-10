@@ -216,24 +216,10 @@ export class CommonFateStackProd extends cdk.Stack {
 
     const governance = new Governance(this, "Governance", {
       appName,
-      userPool: webUserPool,
-      frontendUrl: "https://" + appFrontend.getDomainName(),
       accessHandler: accessHandler,
-      eventBus: events.getEventBus(),
-      eventBusSourceName: events.getEventBusSourceName(),
-      adminGroupId: administratorGroupId.valueAsString,
-      identityProviderSyncConfiguration: identityConfig.valueAsString,
-      notificationsConfiguration: notificationsConfiguration.valueAsString,
+
       providerConfig: providerConfig.valueAsString,
-      deploymentSuffix: suffix.valueAsString,
       dynamoTable: db.getTable(),
-      remoteConfigUrl: remoteConfigUrl.valueAsString,
-      remoteConfigHeaders: remoteConfigHeaders.valueAsString,
-      apiGatewayWafAclArn: apiGatewayWafAclArn.valueAsString,
-      analyticsDisabled: analyticsDisabled.valueAsString,
-      analyticsUrl: analyticsUrl.valueAsString,
-      analyticsLogLevel: analyticsLogLevel.valueAsString,
-      analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
     });
 
     const appBackend = new AppBackend(this, "API", {
