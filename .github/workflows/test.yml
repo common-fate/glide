@@ -71,8 +71,8 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.49.0
-          args: --timeout=3m
+          version: v1.50.0
+          args: --timeout=4m
 
   test-frontend:
     name: Test NodeJS
