@@ -28,7 +28,7 @@ type Output struct {
 	UserPoolDomain                string `json:"UserPoolDomain"`
 	APIURL                        string `json:"APIURL"`
 	WebhookURL                    string `json:"WebhookURL"`
-	GovernanceURL                 string `json:"GovernanceURL"`
+	GovernanceURL                 string `json:"GovernanceRestAPIEndpoint439AF932"`
 	WebhookLogGroupName           string `json:"WebhookLogGroupName"`
 	APILogGroupName               string `json:"APILogGroupName"`
 	IDPSyncLogGroupName           string `json:"IDPSyncLogGroupName"`
