@@ -36,6 +36,9 @@ type RequestMessageOpts struct {
 	IsWebhook        bool
 }
 
+/**
+ * BuildRequestMessage builds a slack message for a request
+ */
 func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
 	requestor := o.RequestorEmail
 	if o.RequestorSlackID != "" {

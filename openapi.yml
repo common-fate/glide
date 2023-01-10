@@ -126,7 +126,7 @@ paths:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-upcoming
-      description: display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+      description: Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
       parameters:
         - schema:
             type: string
@@ -142,7 +142,7 @@ paths:
           $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-past
       description: |
-        display show cancelled, expired, and revoked requests.
+        Display show cancelled, expired, and revoked requests.
       parameters:
         - schema:
             type: string
@@ -815,7 +815,7 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: get-provider-args
-      description: gets the argSchema describing the args for this provider
+      description: Gets the argSchema describing the args for this provider
   "/api/v1/admin/providers/{providerId}/args/{argId}/options":
     parameters:
       - schema:
@@ -1039,7 +1039,7 @@ paths:
           in: query
           name: accountId
           description: the aws account id
-      description: endpoint returns an array of relevant access rules (used in combination with granted cli)
+      description: Endpoint returns an array of relevant access rules (used in combination with granted cli)
   /api/v1/favorites:
     get:
       summary: ListFavorites
@@ -1050,6 +1050,7 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-favorites
+      description: "Returns a list of the user's favourited access requests. "
     post:
       summary: Create Favorite
       operationId: user-create-favorite
@@ -1066,7 +1067,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
-      description: ""
+      description: "Favorites an access request for a given user. This is used for frequent access requests saving time and repeated actions. "
     parameters: []
   "/api/v1/favorites/{id}":
     get:
@@ -1084,6 +1085,7 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-get-favorite
+      description: "Returns a detailed favorite response. This is used to display a favorite's details on the frontend. "
     parameters:
       - schema:
           type: string
@@ -1096,6 +1098,7 @@ paths:
       responses:
         "200":
           description: OK
+      description: Delete a saved favorite
     put:
       summary: ""
       operationId: update-favorite
@@ -1106,7 +1109,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FavoriteDetail"
-      description: ""
+      description: Update a favorite with new FavoriteDetails
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
 components:
@@ -2039,6 +2042,7 @@ components:
         - name
         - with
         - timing
+      description: "Detailed object for a Favorite. "
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2088,7 +2092,7 @@ components:
               - accessRules
               - next
     ListRequestsResponse:
-      description: Example response
+      description: Paginated list of Requests
       content:
         application/json:
           schema:
@@ -2105,7 +2109,7 @@ components:
               - requests
               - next
     ListGroupsResponse:
-      description: Example response
+      description: Returns a list of Groups
       content:
         application/json:
           schema:
@@ -2180,7 +2184,7 @@ components:
               - user
               - isAdmin
     ListRequestEventsResponse:
-      description: Example response
+      description: Paginated list of RequestEvent
       content:
         application/json:
           schema:
@@ -2254,7 +2258,7 @@ components:
             required:
               - version
     ListFavoritesResponse:
-      description: ""
+      description: Returns a list of Favorites
       content:
         application/json:
           schema:
