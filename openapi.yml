@@ -17,7 +17,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListAccessRulesResponse"
-      operationId: list-user-access-rules
+      operationId: user-list-access-rules
       description: Get all access rules as an end user.
   "/api/v1/access-rules/{ruleId}":
     get:
@@ -194,7 +194,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: list-request-events
+      operationId: user-list-request-events
       description: |
         Returns a HTTP401 response if the user is not the requestor or a reviewer.
       tags:
@@ -209,7 +209,7 @@ paths:
         required: true
     post:
       summary: Review a request
-      operationId: review-request
+      operationId: user-review-request
       responses:
         "200":
           $ref: "#/components/responses/ReviewResponse"
@@ -227,7 +227,7 @@ paths:
         required: true
     post:
       summary: Cancel a request
-      operationId: cancel-request
+      operationId: user-cancel-request
       responses:
         "200":
           description: OK
@@ -254,7 +254,7 @@ paths:
         required: true
     post:
       summary: Revoke an active request
-      operationId: revoke-request
+      operationId: user-revoke-request
       responses:
         "200":
           description: OK
@@ -285,7 +285,7 @@ paths:
             application/json:
               schema:
                 $ref: ./accesshandler/openapi.yml#/components/schemas/AccessInstructions
-      operationId: get-access-instructions
+      operationId: user-get-access-instructions
       description: |-
         Get access instructions for a request.
 
@@ -308,7 +308,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: get-access-token
+      operationId: user-get-access-token
       description: |-
         Get access token for a request.
 
@@ -324,7 +324,7 @@ paths:
       summary: Get a user
       tags:
         - End User
-      operationId: get-user
+      operationId: user-get-user
       description: Returns a Common Fate user.
       responses:
         "200":
@@ -342,7 +342,7 @@ paths:
       summary: Get details for the current user
       tags:
         - End User
-      operationId: get-me
+      operationId: user-get-me
       description: Returns information about the currently logged in user.
       responses:
         "200":
@@ -586,7 +586,7 @@ paths:
         required: true
     post:
       summary: Update User
-      operationId: update-user
+      operationId: admin-update-user
       responses:
         "200":
           description: OK
@@ -623,7 +623,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListUserResponse"
-      operationId: get-users
+      operationId: admin-get-users
       description: Fetch a list of users
       parameters:
         - schema:
@@ -633,7 +633,7 @@ paths:
           description: encrypted token containing pagination info
     post:
       summary: Create User
-      operationId: create-user
+      operationId: admin-create-user
       responses:
         "201":
           description: Created
@@ -657,7 +657,7 @@ paths:
       summary: List groups
       tags:
         - Admin
-      operationId: list-groups
+      operationId: admin-list-groups
       description: Lists all active groups
       responses:
         "200":
@@ -678,7 +678,7 @@ paths:
     parameters: []
     post:
       summary: Create Group
-      operationId: create-group
+      operationId: admin-create-group
       responses:
         "201":
           description: Created
@@ -708,7 +708,7 @@ paths:
       summary: Get Group Details
       tags:
         - Admin
-      operationId: get-group
+      operationId: admin-get-group
       description: Returns information for a group.
       responses:
         "200":
@@ -765,7 +765,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: list-providers
+      operationId: admin-list-providers
       description: List providers
     parameters: []
   "/api/v1/admin/providers/{providerId}":
@@ -784,7 +784,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: get-provider
+      operationId: admin-get-provider
       description: Get provider by id
     parameters:
       - schema:
@@ -814,7 +814,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: get-provider-args
+      operationId: admin-get-provider-args
       description: gets the argSchema describing the args for this provider
   "/api/v1/admin/providers/{providerId}/args/{argId}/options":
     parameters:
@@ -839,7 +839,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: list-provider-arg-options
+      operationId: admin-list-provider-arg-options
       description: "Returns the options for a particular Access Provider argument. The options may be cached. To refresh the cache, pass the `refresh` query parameter."
       parameters:
         - schema:
@@ -855,12 +855,12 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListProviderSetupsResponse"
-      operationId: list-providersetups
+      operationId: admin-list-providersetups
       description: List providers which are still in the process of being set up.
     parameters: []
     post:
       summary: Begin the setup process for a new Access Provider
-      operationId: create-providersetup
+      operationId: admin-create-providersetup
       responses:
         "201":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -877,7 +877,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
-      operationId: get-providersetup
+      operationId: admin-get-providersetup
       description: Get the setup instructions for an Access Provider.
     parameters:
       - schema:
@@ -887,7 +887,7 @@ paths:
         required: true
     delete:
       summary: Delete an in-progress provider setup
-      operationId: delete-providersetup
+      operationId: admin-delete-providersetup
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -907,7 +907,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProviderSetupInstructions"
-      operationId: get-providersetup-instructions
+      operationId: admin-get-providersetup-instructions
       description: Get the setup instructions for an Access Provider.
     parameters:
       - schema:
@@ -924,7 +924,7 @@ paths:
         required: true
     post:
       summary: Validate the configuration for a Provider Setup
-      operationId: validate-providersetup
+      operationId: admin-validate-providersetup
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -945,7 +945,7 @@ paths:
         required: true
     post:
       summary: Complete a ProviderSetup
-      operationId: complete-providersetup
+      operationId: admin-complete-providersetup
       tags:
         - Admin
       description: "If Runtime Configuration is enabled, this will write the Access Provider to the configuration storage and activate it. If Runtime Configuration is disabled, this endpoint does nothing."
@@ -967,7 +967,7 @@ paths:
         required: true
     put:
       summary: Update the completion status for a Provider setup step
-      operationId: submit-providersetup-step
+      operationId: admin-submit-providersetup-step
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -980,7 +980,7 @@ paths:
     parameters: []
     post:
       summary: Sync Identity
-      operationId: identity-sync
+      operationId: admin-identity-sync
       responses:
         "200":
           description: OK
@@ -1003,7 +1003,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: identity-configuration
+      operationId: admin-identity-configuration
       description: Get information about the identity configuration
   /api/v1/access-rules/lookup:
     get:
@@ -1020,7 +1020,7 @@ paths:
                   $ref: "#/components/schemas/LookupAccessRule"
         "404":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: access-rule-lookup
+      operationId: user-access-rule-lookup
       parameters:
         - schema:
             type: string
@@ -1092,13 +1092,13 @@ paths:
         required: true
     delete:
       summary: ""
-      operationId: delete-favorite
+      operationId: user-delete-favorite
       responses:
         "200":
           description: OK
     put:
       summary: ""
-      operationId: update-favorite
+      operationId: user-update-favorite
       responses:
         "200":
           description: OK
