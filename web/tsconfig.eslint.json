@@ -8,5 +8,10 @@
     // add all files in which you see
     // the "parserOptions.project" error
     ".eslintrc.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "../node_modules"
+
   ]
 }
