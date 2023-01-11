@@ -23,15 +23,14 @@ import {
 import * as React from "react";
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-location";
-import { useCognito } from "../../utils/context/cognitoContext";
 import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
+import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
+import CommandPalette from "../CommandPalette";
 import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
-import CommandPalette from "../CommandPalette";
-import reactSelect from "react-select";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
@@ -44,9 +43,26 @@ export const Navbar: React.FC = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const modal = useDisclosure();
 
+  // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
+  const isMac = () =>
+    /(Mac|iPhone|iPod|iPad)/i.test(
+      // @ts-ignore
+      navigator?.userAgentData?.platform || navigator?.platform || "unknown"
+    );
+
+  const ACTION_KEY_DEFAULT = ["Ctrl", "Control"];
+  const ACTION_KEY_APPLE = ["⌘", "Command"];
+  const [actionKey, setActionKey] = React.useState<string[]>(ACTION_KEY_APPLE);
+
+  React.useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    if (!isMac()) {
+      setActionKey(ACTION_KEY_DEFAULT);
+    }
+  }, []);
+
   useEventListener("keydown", (event) => {
-    const isMac = /(Mac|iPhone|iPod|iPad)/i.test(navigator?.platform);
-    const hotkey = isMac ? "metaKey" : "ctrlKey";
+    const hotkey = isMac() ? "metaKey" : "ctrlKey";
     if (event?.key?.toLowerCase() === "k" && event[hotkey]) {
       event.preventDefault();
       modal.isOpen ? modal.onClose() : modal.onOpen();
@@ -100,7 +116,7 @@ export const Navbar: React.FC = () => {
                 <SearchIcon color="neutrals.600" boxSize="15px" ml={3} mr={2} />
                 Search
                 <Flex ml={2} mr={3} display="inline-flex">
-                  <Kbd>⌘</Kbd>
+                  <Kbd>{actionKey[0]}</Kbd>
                   <Kbd>k</Kbd>
                 </Flex>
               </Button>

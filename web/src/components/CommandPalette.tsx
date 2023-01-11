@@ -55,7 +55,7 @@ type ICommand = {
   type?: "favorite";
 };
 
-const EditActionModal = ({
+const CommandPalette = ({
   isOpen,
   onClose,
   ...rest
@@ -417,4 +417,4 @@ const EditActionModal = ({
   );
 };
 
-export default EditActionModal;
+export default CommandPalette;
