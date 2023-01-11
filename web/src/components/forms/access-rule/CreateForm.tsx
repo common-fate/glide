@@ -45,7 +45,7 @@ export const accessRuleFormDataTargetToApi = (
   }
   for (const k in target.multiSelects) {
     t.with[k] = {
-      groupings: target.argumentGroups[k] || {},
+      groupings: target.argumentGroups?.[k] || {},
       values: target.multiSelects[k],
     };
   }
