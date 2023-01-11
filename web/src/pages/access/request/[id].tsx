@@ -31,7 +31,6 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
-  Portal,
   Skeleton,
   SkeletonCircle,
   SkeletonText,
@@ -47,7 +46,6 @@ import {
   VStack,
   Wrap,
   WrapItem,
-  Link as ChakraLink,
 } from "@chakra-ui/react";
 import axios, { AxiosError } from "axios";
 import { format } from "date-fns";
@@ -68,13 +66,12 @@ import {
   useNavigate,
   useSearch,
 } from "react-location";
-import { CommonFateLogo } from "../../../components/icons/Logos";
 import { CFRadioBox } from "../../../components/CFRadioBox";
 import {
+  Days,
   DurationInput,
   Hours,
   Minutes,
-  Days,
   Weeks,
 } from "../../../components/DurationInput";
 import {
@@ -86,14 +83,12 @@ import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
-  userDeleteFavorite,
-  userUpdateFavorite,
-  userCreateFavorite,
-  userGetFavorite,
-} from "../../../utils/backend-client/default/default";
-import {
   getUserGetAccessRuleApproversKey,
+  userCreateFavorite,
   userCreateRequest,
+  userDeleteFavorite,
+  userGetFavorite,
+  userUpdateFavorite,
   useUserGetAccessRule,
   useUserGetAccessRuleApprovers,
 } from "../../../utils/backend-client/end-user/end-user";

@@ -22,8 +22,8 @@ import { useMatch, useNavigate } from "react-location";
 import {
   adminUpdateAccessRule,
   useAdminGetAccessRule,
+  adminArchiveAccessRule,
 } from "../../../utils/backend-client/admin/admin";
-import { adminArchiveAccessRule } from "../../../utils/backend-client/default/default";
 import {
   AccessRuleDetail,
   AccessRuleTargetDetailArgumentsFormElement,

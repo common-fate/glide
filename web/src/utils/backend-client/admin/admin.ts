@@ -32,6 +32,7 @@ import type {
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
+  CreateProviderSetupRequestBody,
   ProviderSetupInstructions,
   CompleteProviderSetupResponseResponse,
   ProviderSetupStepCompleteRequestBody,
@@ -161,6 +162,21 @@ export const adminUpdateAccessRule = (
       {url: `/api/v1/admin/access-rules/${ruleId}`, method: 'put',
       headers: {'Content-Type': 'application/json', },
       data: createAccessRuleRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * Marks an access rule as archived.
+Any pending requests for this access rule will be cancelled.
+ * @summary Archive Access Rule
+ */
+export const adminArchiveAccessRule = (
+    ruleId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AccessRuleDetail>(
+      {url: `/api/v1/admin/access-rules/${ruleId}/archive`, method: 'post'
     },
       options);
     }
@@ -512,6 +528,20 @@ export const adminUpdateGroup = (
   
 
 /**
+ * Delete an internal group
+ * @summary Delete Group
+ */
+export const adminDeleteGroup = (
+    groupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/groups/${groupId}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
  * List providers
  * @summary List providers
  */
@@ -714,6 +744,22 @@ export const useAdminListProvidersetups = <TError = ErrorType<unknown>>(
 }
 
 /**
+ * Begins the guided setup process for a new Access Provider.
+ * @summary Begin the setup process for a new Access Provider
+ */
+export const adminCreateProvidersetup = (
+    createProviderSetupRequestBody: CreateProviderSetupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderSetupRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * Get the setup instructions for an Access Provider.
  * @summary Get an in-progress provider setup
  */
@@ -751,6 +797,22 @@ export const useAdminGetProvidersetup = <TError = ErrorType<unknown>>(
     ...query
   }
 }
+
+/**
+ * Removes an in-progress provider setup and deletes all data relating to it.
+
+Returns the deleted provider.
+ * @summary Delete an in-progress provider setup
+ */
+export const adminDeleteProvidersetup = (
+    providersetupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups/${providersetupId}`, method: 'delete'
+    },
+      options);
+    }
+  
 
 /**
  * Get the setup instructions for an Access Provider.

@@ -14,7 +14,7 @@ import { Helmet } from "react-helmet";
 import { Link, useNavigate } from "react-location";
 import { ProviderIcon } from "../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../components/Layout";
-import { adminCreateProvidersetup } from "../../../../utils/backend-client/default/default";
+import { adminCreateProvidersetup } from "../../../../utils/backend-client/admin/admin";
 import { registeredProviders } from "../../../../utils/providerRegistry";
 
 const Page = () => {

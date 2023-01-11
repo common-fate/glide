@@ -13,7 +13,7 @@ import { CFCodeMultiline } from "../../components/CodeInstruction";
 import { UserLayout } from "../../components/Layout";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
-import { useUserLookupAccessRule } from "../../utils/backend-client/default/default";
+import { useUserLookupAccessRule } from "../../utils/backend-client/end-user/end-user";
 import {
   CreateRequestWith,
   LookupAccessRule,

@@ -1,51 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { matchSorter } from "match-sorter";
+import { ArrowForwardIcon, StarIcon } from "@chakra-ui/icons";
 import {
-  Badge,
   Box,
   Button,
   chakra,
+  ComponentWithAs,
   Flex,
   Highlight,
-  HStack,
-  IconButton,
+  IconProps,
   Input,
   InputGroup,
   InputRightElement,
-  Kbd,
   Modal,
   ModalBody,
   ModalContent,
-  ModalHeader,
-  Text,
-  ModalOverlay,
   ModalProps,
   Spinner,
-  Tag,
-  Tooltip,
-  IconProps,
-  ComponentWithAs,
   useUpdateEffect,
 } from "@chakra-ui/react";
-import { useRef } from "react";
-import {
-  AddIcon,
-  ArrowForwardIcon,
-  ArrowRightIcon,
-  CheckIcon,
-  DeleteIcon,
-  EditIcon,
-  PlusSquareIcon,
-  StarIcon,
-} from "@chakra-ui/icons";
+import { matchSorter } from "match-sorter";
+import React, { useRef, useState } from "react";
 import { useNavigate, useRouter } from "react-location";
-import { GitCompareOutline } from "./icons/Icons";
-import { useListUserAccessRules } from "../utils/backend-client/end-user/end-user";
-import { ProviderIcon } from "./icons/providerIcon";
 import {
-  userListFavorites,
+  useUserListAccessRules,
   useUserListFavorites,
-} from "../utils/backend-client/default/default";
+} from "../utils/backend-client/end-user/end-user";
+import { GitCompareOutline } from "./icons/Icons";
+import { ProviderIcon } from "./icons/providerIcon";
 
 type ICommand = {
   name: string;
@@ -100,7 +80,7 @@ const CommandPalette = ({
     commands: ICommand[];
   };
 
-  const { data: rules } = useListUserAccessRules();
+  const { data: rules } = useUserListAccessRules();
 
   const rulesAsCommands: ICommand[] = rules?.accessRules
     ? rules?.accessRules.map((rule) => ({

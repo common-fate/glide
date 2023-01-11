@@ -31,8 +31,8 @@ import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
   useAdminListProviders,
   useAdminListProvidersetups,
+  adminDeleteProvidersetup,
 } from "../../../utils/backend-client/admin/admin";
-import { adminDeleteProvidersetup } from "../../../utils/backend-client/default/default";
 import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
 
 const AdminProvidersTable = () => {

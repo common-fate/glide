@@ -32,13 +32,11 @@ import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
 import { RequestStatusDisplay } from "../../components/Request";
 import {
+  useUserListAccessRules,
+  useUserGetAccessRule,
   useUserListFavorites,
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
-} from "../../utils/backend-client/default/default";
-import {
-  useUserListAccessRules,
-  useUserGetAccessRule,
 } from "../../utils/backend-client/end-user/end-user";
 import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";

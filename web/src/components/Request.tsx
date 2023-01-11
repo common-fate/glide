@@ -33,15 +33,15 @@ import axios from "axios";
 import { intervalToDuration } from "date-fns";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { useUserListRequestsUpcoming } from "../utils/backend-client/default/default";
 import {
   userCancelRequest,
   userReviewRequest,
   userRevokeRequest,
   useUserGetAccessInstructions,
   useUserGetAccessToken,
-  useUserGetUser,
   useUserGetRequest,
+  useUserGetUser,
+  useUserListRequestsUpcoming,
 } from "../utils/backend-client/end-user/end-user";
 import {
   GrantStatus,

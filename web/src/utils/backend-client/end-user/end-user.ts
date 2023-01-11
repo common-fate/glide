@@ -31,7 +31,8 @@ import type {
   LookupAccessRule,
   UserLookupAccessRuleParams,
   ListFavoritesResponseResponse,
-  FavoriteDetail
+  FavoriteDetail,
+  CreateFavoriteRequestBody
 } from '.././types'
 import type {
   AccessInstructions
@@ -717,6 +718,22 @@ export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
+ * Favorites an access request for a given user. This is used for frequent access requests saving time and repeated actions. 
+ * @summary Create Favorite
+ */
+export const userCreateFavorite = (
+    createFavoriteRequestBody: CreateFavoriteRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createFavoriteRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * Returns a detailed favorite response. This is used to display a favorite's details on the frontend. 
  * @summary Get Favorite
  */
@@ -754,4 +771,33 @@ export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
     ...query
   }
 }
+
+/**
+ * Delete a saved favorite
+ */
+export const userDeleteFavorite = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/favorites/${id}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
+ * Update a favorite with new FavoriteDetails
+ */
+export const userUpdateFavorite = (
+    id: string,
+    createFavoriteRequestBody: CreateFavoriteRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites/${id}`, method: 'put',
+      headers: {'Content-Type': 'application/json', },
+      data: createFavoriteRequestBody
+    },
+      options);
+    }
+  
 
