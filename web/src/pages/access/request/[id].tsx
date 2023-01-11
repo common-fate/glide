@@ -86,8 +86,8 @@ import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
 import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
-  deleteFavorite,
-  updateFavorite,
+  userDeleteFavorite,
+  userUpdateFavorite,
   userCreateFavorite,
   userGetFavorite,
 } from "../../../utils/backend-client/default/default";
@@ -901,7 +901,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
     setIsSubmitting(true);
 
     if (favorite) {
-      updateFavorite(favorite.id, r)
+      userUpdateFavorite(favorite.id, r)
         .then((favorite) => {
           toast({
             id: "favourite-updated",
@@ -976,7 +976,7 @@ const FavoriteRequestButton: React.FC<FavoriteRequestButtonProps> = ({
   const handleDeleteFavorite = () => {
     if (favorite) {
       setIsSubmitting(true);
-      deleteFavorite(favorite?.id)
+      userDeleteFavorite(favorite?.id)
         .then(() => {
           toast({
             id: "favourite-removed",

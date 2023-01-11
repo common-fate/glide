@@ -12,7 +12,7 @@ import (
 	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 )
 
-func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
+func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 	prov, ok := config.Providers[providerId]
 	if !ok {
@@ -34,7 +34,7 @@ func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 	apio.JSON(r.Context(), w, listProvidersResponse, http.StatusOK)
 }
 
-func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
+func (a *API) GetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 	prov, ok := config.Providers[providerId]
 	if !ok {
@@ -49,7 +49,7 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	apio.JSON(ctx, w, as.ArgSchema().ToAPI(), http.StatusOK)
 }
 
-func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
+func (a *API) ListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string) {
 	ctx := r.Context()
 	prov, ok := config.Providers[providerId]
 	if !ok {
