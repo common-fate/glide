@@ -18,6 +18,8 @@ import type {
   ListRequestsResponseResponse,
   UserListRequestsParams,
   CreateRequestRequestBody,
+  UserListRequestsUpcomingParams,
+  UserListRequestsPastParams,
   RequestDetail,
   ListRequestEventsResponseResponse,
   ReviewResponseResponse,
@@ -25,7 +27,11 @@ import type {
   UserCancelRequest200,
   AccessTokenResponseResponse,
   User,
-  AuthUserResponseResponse
+  AuthUserResponseResponse,
+  LookupAccessRule,
+  UserLookupAccessRuleParams,
+  ListFavoritesResponseResponse,
+  FavoriteDetail
 } from '.././types'
 import type {
   AccessInstructions
@@ -223,6 +229,87 @@ export const userCreateRequest = (
       options);
     }
   
+
+/**
+ * Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+ * @summary Your GET endpoint
+ */
+export const userListRequestsUpcoming = (
+    params?: UserListRequestsUpcomingParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListRequestsResponseResponse>(
+      {url: `/api/v1/requests/upcoming`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getUserListRequestsUpcomingKey = (params?: UserListRequestsUpcomingParams,) => [`/api/v1/requests/upcoming`, ...(params ? [params]: [])];
+
+    
+export type UserListRequestsUpcomingQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsUpcoming>>>
+export type UserListRequestsUpcomingQueryError = ErrorType<unknown>
+
+export const useUserListRequestsUpcoming = <TError = ErrorType<unknown>>(
+ params?: UserListRequestsUpcomingParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsUpcoming>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestsUpcomingKey(params) : null);
+  const swrFn = () => userListRequestsUpcoming(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Display show cancelled, expired, and revoked requests.
+
+ * @summary Your GET endpoint
+ */
+export const userListRequestsPast = (
+    params?: UserListRequestsPastParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListRequestsResponseResponse>(
+      {url: `/api/v1/requests/past`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getUserListRequestsPastKey = (params?: UserListRequestsPastParams,) => [`/api/v1/requests/past`, ...(params ? [params]: [])];
+
+    
+export type UserListRequestsPastQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsPast>>>
+export type UserListRequestsPastQueryError = ErrorType<unknown>
+
+export const useUserListRequestsPast = <TError = ErrorType<unknown>>(
+ params?: UserListRequestsPastParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsPast>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestsPastKey(params) : null);
+  const swrFn = () => userListRequestsPast(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 /**
  * Returns a HTTP401 response if the user is not the requestor or a reviewer.
@@ -541,6 +628,124 @@ export const useAdminGetRequest = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnabled = swrOptions?.enabled !== false && !!(requestId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetRequestKey(requestId) : null);
   const swrFn = () => adminGetRequest(requestId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Endpoint returns an array of relevant access rules (used in combination with granted cli)
+ * @summary Lookup an access rule based on the target
+ */
+export const userLookupAccessRule = (
+    params?: UserLookupAccessRuleParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<LookupAccessRule[]>(
+      {url: `/api/v1/access-rules/lookup`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getUserLookupAccessRuleKey = (params?: UserLookupAccessRuleParams,) => [`/api/v1/access-rules/lookup`, ...(params ? [params]: [])];
+
+    
+export type UserLookupAccessRuleQueryResult = NonNullable<Awaited<ReturnType<typeof userLookupAccessRule>>>
+export type UserLookupAccessRuleQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserLookupAccessRule = <TError = ErrorType<ErrorResponseResponse>>(
+ params?: UserLookupAccessRuleParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userLookupAccessRule>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserLookupAccessRuleKey(params) : null);
+  const swrFn = () => userLookupAccessRule(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Returns a list of the user's favourited access requests. 
+ * @summary ListFavorites
+ */
+export const userListFavorites = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListFavoritesResponseResponse>(
+      {url: `/api/v1/favorites`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListFavoritesKey = () => [`/api/v1/favorites`];
+
+    
+export type UserListFavoritesQueryResult = NonNullable<Awaited<ReturnType<typeof userListFavorites>>>
+export type UserListFavoritesQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListFavorites>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListFavoritesKey() : null);
+  const swrFn = () => userListFavorites(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Returns a detailed favorite response. This is used to display a favorite's details on the frontend. 
+ * @summary Get Favorite
+ */
+export const userGetFavorite = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<FavoriteDetail>(
+      {url: `/api/v1/favorites/${id}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetFavoriteKey = (id: string,) => [`/api/v1/favorites/${id}`];
+
+    
+export type UserGetFavoriteQueryResult = NonNullable<Awaited<ReturnType<typeof userGetFavorite>>>
+export type UserGetFavoriteQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetFavorite>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetFavoriteKey(id) : null);
+  const swrFn = () => userGetFavorite(id, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

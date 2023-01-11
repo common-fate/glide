@@ -121,7 +121,8 @@ paths:
   /api/v1/requests/upcoming:
     get:
       summary: Your GET endpoint
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
@@ -136,7 +137,8 @@ paths:
   /api/v1/requests/past:
     get:
       summary: Your GET endpoint
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
@@ -1008,7 +1010,8 @@ paths:
   /api/v1/access-rules/lookup:
     get:
       summary: Lookup an access rule based on the target
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           description: OK
@@ -1043,7 +1046,8 @@ paths:
   /api/v1/favorites:
     get:
       summary: ListFavorites
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           $ref: "#/components/responses/ListFavoritesResponse"
@@ -1072,7 +1076,8 @@ paths:
   "/api/v1/favorites/{id}":
     get:
       summary: Get Favorite
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           description: OK
