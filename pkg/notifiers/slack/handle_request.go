@@ -257,9 +257,9 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 			RequestorSlackID: slackUserID,
 			RequestorEmail:   requestingUser.Email,
 			ReviewURLs:       reviewURL,
-			WasReviewed:      false,
-			RequestReviewer:  reqReviewer.Result,
-			IsWebhook:        false,
+			WasReviewed:     true,
+			RequestReviewer: reqReviewer.Result,
+			IsWebhook:       false,
 		})
 		for _, usr := range reviewers.Result {
 			err = n.UpdateMessageBlockForReviewer(ctx, usr, msg)
