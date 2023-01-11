@@ -14,9 +14,11 @@ import (
 // SlackNotifier provides handler methods for sending notifications to Slack based on events.
 // It has config for sending Slack DMs and/or messaging via Incoming Webhooks.
 type SlackNotifier struct {
-	DB                  ddb.Storage
-	FrontendURL         string
-	webhooks            []*SlackIncomingWebhook
+	DB          ddb.Storage
+	FrontendURL string
+	// webhooks is a list of Slack incoming webhooks to send messages to (limited in functionality compared to DMs)
+	webhooks []*SlackIncomingWebhook
+	// directMessageClient is client that uses the OAuth token to send direct messages to users
 	directMessageClient *SlackDirectMessage
 }
 

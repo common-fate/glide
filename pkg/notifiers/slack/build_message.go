@@ -29,6 +29,7 @@ type RequestMessageOpts struct {
 	RequestArguments []types.With
 	Rule             rule.AccessRule
 	ReviewURLs       notifiers.ReviewURLs
+	// optional field that will replace the default requestor email with a slack @mention
 	RequestorSlackID string
 	RequestorEmail   string
 	WasReviewed      bool
@@ -37,9 +38,9 @@ type RequestMessageOpts struct {
 }
 
 /**
- * BuildRequestMessage builds a slack message for a request
+ * BuildRequestReviewMessage builds a slack message for a request review based on the contextual RequestMessageOpts
  */
-func BuildRequestMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
+func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
 	requestor := o.RequestorEmail
 	if o.RequestorSlackID != "" {
 		requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
@@ -160,13 +161,11 @@ type RequestDetailMessageOpts struct {
 	Request          access.Request
 	RequestArguments []types.With
 	Rule             rule.AccessRule
-	RequestorSlackID string
-	RequestorEmail   string
-	IsWebhook        bool
-	HeadingMessage   string
+	// the message that renders in the header of the slack message
+	HeadingMessage string
 }
 
-// Builds a generic rule detail table to be included in any message
+// Builds a contextual request detail message, with an optional HeadingMessage to be rendered in the header, this is fired after a request has been reviewed
 func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
 	summary = fmt.Sprintf("Request detail for %s", o.Rule.Name)
