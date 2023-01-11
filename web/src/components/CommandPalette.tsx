@@ -274,7 +274,7 @@ const CommandPalette = ({
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen={true}
       onClose={onClose}
       size="lg"
       onCloseComplete={() => {
@@ -402,10 +402,17 @@ const CommandPalette = ({
                       "alignItems": "flex-start",
                       "maxHeight": "4.5em",
                       "height": "unset",
+                      "flexDir": "row",
                     }}
                   >
-                    <el.icon mr={3} />
-                    <Highlight query={[inputValue]} children={el.name} />
+                    <el.icon mr={3} display="inline-flex" />
+                    <chakra.span display="inline-lex">
+                      <Highlight
+                        query={[inputValue]}
+                        styles={{ px: 0, d: "inline" }}
+                        children={el.name}
+                      />
+                    </chakra.span>
                     {el?.type === "favorite" && (
                       <Flex opacity=".5" ml="auto">
                         Favorited
