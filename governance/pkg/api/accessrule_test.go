@@ -62,7 +62,7 @@ func TestGovListAccessRules(t *testing.T) {
 				},
 			},
 
-			want: `{"accessRules":[{"approval":{"groups":["a"],"users":["b"]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule2","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
+			want: `{"accessRules":[{"approval":{"groups":["a"],"users":["b"]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule2","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
 		},
 		{
 			name:        "no rules returns an empty list not an error",
@@ -90,7 +90,7 @@ func TestGovListAccessRules(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/gov/access-rules", nil)
+			req, err := http.NewRequest("GET", "/gov/v1/access-rules", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -140,7 +140,7 @@ func TestGovCreateAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusCreated,
-			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"bot_governance_api","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{},"withSelectable":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"bot_governance_api","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:          "id already exists",
@@ -167,10 +167,15 @@ func TestGovCreateAccessRule(t *testing.T) {
 				m.EXPECT().CreateAccessRule(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
 			}
 
-			a := API{Rules: m}
+			db := ddbmock.New(t)
+
+			db.MockQuery(&storage.ListUsers{})
+			db.MockQuery(&storage.ListGroups{})
+
+			a := API{Rules: m, DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("POST", "/api/v1/gov/access-rules", strings.NewReader(tc.give))
+			req, err := http.NewRequest("POST", "/gov/v1/access-rules", strings.NewReader(tc.give))
 			if err != nil {
 				t.Fatal(err)
 			}

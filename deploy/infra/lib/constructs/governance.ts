@@ -91,12 +91,6 @@ export class Governance extends Construct {
 
   getGovernanceApiURL(): string {
     // both prepend and append a / so we have to remove one out
-    return (
-      this._apigateway.url +
-      this._governanceApiGateway.path.substring(
-        1,
-        this._governanceApiGateway.path.length
-      )
-    );
+    return this._apigateway.url;
   }
 }

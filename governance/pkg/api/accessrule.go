@@ -103,8 +103,6 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	a.log.Infow("creating access rule", "request", createRequest)
-
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
 
 	if err == rulesvc.ErrRuleIdAlreadyExists {

@@ -27,5 +27,5 @@ func newTestServer(t *testing.T, a *API) http.Handler {
 	r.Use(logger.Middleware(log))
 	r.Use(openapi.Validator(swagger))
 
-	return r
+	return a.Handler(r)
 }
