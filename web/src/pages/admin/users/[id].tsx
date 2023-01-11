@@ -30,16 +30,16 @@ import { GroupSelect } from "../../../components/forms/access-rule/components/Se
 
 import { AdminLayout } from "../../../components/Layout";
 import {
-  getGroup,
-  updateUser,
-  useIdentityConfiguration,
+  adminGetGroup,
+  adminUpdateUser,
+  useAdminGetIdentityConfiguration,
 } from "../../../utils/backend-client/admin/admin";
 
-import { useGetUser } from "../../../utils/backend-client/end-user/end-user";
+import { useUserGetUser } from "../../../utils/backend-client/end-user/end-user";
 import {
   Group,
-  ListGroupsSource,
-  UpdateUserBody,
+  AdminListGroupsSource,
+  AdminUpdateUserBody,
   User,
 } from "../../../utils/backend-client/types";
 import { GetIDPName } from "../../../utils/idp-logo";
@@ -103,13 +103,13 @@ const Content: React.FC = () => {
   const {
     params: { id: userId },
   } = useMatch();
-  const { data: user, mutate } = useGetUser(userId);
+  const { data: user, mutate } = useUserGetUser(userId);
   const [userGroups, setUserGroups] = useState<Group[]>();
   const toast = useToast();
   useEffect(() => {
     if (user) {
       const groups = Promise.all(
-        user.groups.map((g) => getGroup(encodeURIComponent(g)))
+        user.groups.map((g) => adminGetGroup(encodeURIComponent(g)))
       );
       groups
         .then((g) => {
@@ -184,7 +184,7 @@ const InternalGroups: React.FC<InternalGroupsProps> = ({
   onSubmit,
   userGroups,
 }) => {
-  const methods = useForm<UpdateUserBody>({});
+  const methods = useForm<AdminUpdateUserBody>({});
   const toast = useToast();
   const { onOpen, onClose, isOpen } = useDisclosure();
 
@@ -198,9 +198,9 @@ const InternalGroups: React.FC<InternalGroupsProps> = ({
     }
   }, [isOpen]);
 
-  const handleSubmit = async (data: UpdateUserBody) => {
+  const handleSubmit = async (data: AdminUpdateUserBody) => {
     try {
-      const u = await updateUser(user.id, data);
+      const u = await adminUpdateUser(user.id, data);
       toast({
         title: "Updated Groups",
         status: "success",
@@ -265,7 +265,7 @@ const InternalGroups: React.FC<InternalGroupsProps> = ({
                 testId="group-select"
                 fieldName="groups"
                 isDisabled={methods.formState.isSubmitting}
-                source={ListGroupsSource.INTERNAL}
+                source={AdminListGroupsSource.INTERNAL}
               />
             </Flex>
           </FormControl>
@@ -331,7 +331,7 @@ const InternalGroupsLabel = () => {
   );
 };
 const ExternalGroupsLabel = () => {
-  const { data } = useIdentityConfiguration();
+  const { data } = useAdminGetIdentityConfiguration();
   return (
     <Tooltip label="External groups are managed by your identity provider. You can use your identity providers management console to update group memberships. These groups are synced automatically every 5 minutes.">
       <Text textStyle="Body/Medium" textTransform={"capitalize"}>

@@ -1,11 +1,11 @@
 import React from "react";
 
 import { Link, Text } from "@chakra-ui/react";
-import { useListProviders } from "../utils/backend-client/admin/admin";
+import { useAdminListProviders } from "../utils/backend-client/admin/admin";
 import { OnboardingCard } from "./OnboardingCard";
 import { WarningIcon } from "./icons/Icons";
 const ProviderSetupNotice: React.FC = () => {
-  const { data, error } = useListProviders();
+  const { data, error } = useAdminListProviders();
 
   if (error) {
     return (

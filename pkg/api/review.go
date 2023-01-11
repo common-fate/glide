@@ -17,9 +17,9 @@ import (
 
 // Review a request
 // (POST /api/v1/requests/{requestId}/review)
-func (a *API) ReviewRequest(w http.ResponseWriter, r *http.Request, requestId string) {
+func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
-	var b types.ReviewRequestJSONRequestBody
+	var b types.UserReviewRequestJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &b)
 	if err != nil {
 		apio.Error(ctx, w, err)

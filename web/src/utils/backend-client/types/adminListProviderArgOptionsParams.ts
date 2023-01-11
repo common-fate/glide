@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AccessRuleTargetDetailArgumentsGroupings = {[key: string]: string[]};
+export type AdminListProviderArgOptionsParams = { refresh?: boolean };

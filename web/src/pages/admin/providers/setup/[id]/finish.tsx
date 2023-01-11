@@ -20,7 +20,7 @@ import {
   CFReactMarkownCode,
 } from "../../../../../components/CodeInstruction";
 import { AdminLayout } from "../../../../../components/Layout";
-import { useGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
+import { useAdminGetProvidersetup } from "../../../../../utils/backend-client/admin/admin";
 import { registeredProviders } from "../../../../../utils/providerRegistry";
 
 const Page = () => {
@@ -28,7 +28,7 @@ const Page = () => {
     params: { id },
   } = useMatch();
 
-  const { data } = useGetProvidersetup(id);
+  const { data } = useAdminGetProvidersetup(id);
 
   // used to look up extra details like the name
   const registeredProvider = registeredProviders.find(

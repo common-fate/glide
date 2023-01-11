@@ -32,13 +32,11 @@ import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
 import { RequestStatusDisplay } from "../../components/Request";
 import {
+  useUserListAccessRules,
+  useUserGetAccessRule,
   useUserListFavorites,
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
-} from "../../utils/backend-client/default/default";
-import {
-  useListUserAccessRules,
-  useUserGetAccessRule,
 } from "../../utils/backend-client/end-user/end-user";
 import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
@@ -71,7 +69,6 @@ const Home = () => {
   >({
     swrHook: useUserListRequestsPast,
     hookProps: {},
-
     listObjKey: "requests",
   });
 
@@ -252,7 +249,7 @@ const Home = () => {
 };
 
 const Rules = () => {
-  const { data: rules } = useListUserAccessRules();
+  const { data: rules } = useUserListAccessRules();
   const user = useUser();
 
   // loading/standard state needs to be rendered in a Grid container

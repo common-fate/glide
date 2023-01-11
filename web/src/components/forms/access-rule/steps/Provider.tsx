@@ -12,10 +12,10 @@ import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { ArgumentRuleFormElement } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 import {
-  listProviderArgOptions,
-  useGetProvider,
-  useGetProviderArgs,
-  useListProviderArgOptions,
+  adminListProviderArgOptions,
+  useAdminGetProvider,
+  useAdminGetProviderArgs,
+  useAdminListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
 
 import { RefreshIcon } from "../../../icons/Icons";
@@ -30,10 +30,10 @@ export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
 
-  const { data: provider, isValidating: ivp } = useGetProvider(
+  const { data: provider, isValidating: ivp } = useAdminGetProvider(
     target?.providerId
   );
-  const { data: providerArgs, isValidating: ivpa } = useGetProviderArgs(
+  const { data: providerArgs, isValidating: ivpa } = useAdminGetProviderArgs(
     target?.providerId ?? ""
   );
 
@@ -100,15 +100,14 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   ...props
 }) => {
   const [loading, setLoading] = useState(false);
-  const { data, mutate, isValidating } = useListProviderArgOptions(
+  const { data, mutate, isValidating } = useAdminListProviderArgOptions(
     providerId,
     argId
   );
-
   const onClick = async () => {
     setLoading(true);
     await mutate(
-      listProviderArgOptions(providerId, argId, {
+      adminListProviderArgOptions(providerId, argId, {
         refresh: true,
       })
     );

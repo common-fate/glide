@@ -16,9 +16,9 @@ type CreateUserOpts struct {
 	IsAdmin   bool
 }
 
-func (s *Service) CreateUser(ctx context.Context, in CreateUserOpts) (*identity.User, error) {
+func (s *Service) AdminCreateUser(ctx context.Context, in CreateUserOpts) (*identity.User, error) {
 	log := logger.Get(ctx)
-	u, err := s.Cognito.CreateUser(ctx, identitysync.CreateUserOpts{FirstName: in.FirstName, LastName: in.LastName, Email: in.Email})
+	u, err := s.Cognito.AdminCreateUser(ctx, identitysync.CreateUserOpts{FirstName: in.FirstName, LastName: in.LastName, Email: in.Email})
 	if err != nil {
 		return nil, err
 	}
@@ -49,9 +49,9 @@ type CreateGroupOpts struct {
 	Description string
 }
 
-func (s *Service) CreateGroup(ctx context.Context, in CreateGroupOpts) (*identity.Group, error) {
+func (s *Service) AdminCreateGroup(ctx context.Context, in CreateGroupOpts) (*identity.Group, error) {
 	log := logger.Get(ctx)
-	_, err := s.Cognito.CreateGroup(ctx, identitysync.CreateGroupOpts{Name: in.Name, Description: in.Description})
+	_, err := s.Cognito.AdminCreateGroup(ctx, identitysync.CreateGroupOpts{Name: in.Name, Description: in.Description})
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ type UpdateUserGroupsOpts struct {
 	Groups []string
 }
 
-func (s *Service) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) (*identity.User, error) {
+func (s *Service) AdminUpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) (*identity.User, error) {
 	log := logger.Get(ctx)
 	q := storage.GetUser{
 		ID: in.UserID,
@@ -85,7 +85,7 @@ func (s *Service) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts)
 	if err != nil {
 		return nil, err
 	}
-	err = s.Cognito.UpdateUserGroups(ctx, identitysync.UpdateUserGroupsOpts{UserID: q.Result.Email, Groups: in.Groups})
+	err = s.Cognito.AdminUpdateUserGroups(ctx, identitysync.UpdateUserGroupsOpts{UserID: q.Result.Email, Groups: in.Groups})
 	if err != nil {
 		return nil, err
 	}
