@@ -77,8 +77,6 @@ const Home = () => {
 
   const { isOpen, onClose, onToggle } = useDisclosure();
 
-  const user = useUser();
-
   return (
     <>
       <UserLayout>
@@ -255,6 +253,8 @@ const Home = () => {
 
 const Rules = () => {
   const { data: rules } = useListUserAccessRules();
+  const user = useUser();
+
   // loading/standard state needs to be rendered in a Grid container
   if ((rules && rules.accessRules.length > 0) || typeof rules == "undefined") {
     return (
