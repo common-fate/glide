@@ -4,8 +4,8 @@ import { useMemo } from "react";
 import { Column } from "react-table";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import {
-  useAdminGetUsers,
-  useAdminIdentityConfiguration,
+  useAdminListUsers,
+  useAdminGetIdentityConfiguration,
 } from "../../utils/backend-client/admin/admin";
 import { User } from "../../utils/backend-client/types";
 import { TableRenderer } from "./TableRenderer";
@@ -16,8 +16,8 @@ import { SyncUsersAndGroupsButton } from "../SyncUsersAndGroupsButton";
 export const UsersTable = () => {
   const { onOpen, isOpen, onClose } = useDisclosure();
 
-  const paginator = usePaginatorApi<typeof useAdminGetUsers>({
-    swrHook: useAdminGetUsers,
+  const paginator = usePaginatorApi<typeof useAdminListUsers>({
+    swrHook: useAdminListUsers,
     hookProps: {},
   });
   const cols: Column<User>[] = useMemo(
@@ -58,7 +58,7 @@ export const UsersTable = () => {
     ],
     []
   );
-  const { data } = useAdminIdentityConfiguration();
+  const { data } = useAdminGetIdentityConfiguration();
   const AddUsersButton = () => {
     if (data?.identityProvider !== "cognito") {
       return <div />;

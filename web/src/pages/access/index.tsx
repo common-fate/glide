@@ -13,11 +13,11 @@ import { CFCodeMultiline } from "../../components/CodeInstruction";
 import { UserLayout } from "../../components/Layout";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
-import { useUserAccessRuleLookup } from "../../utils/backend-client/default/default";
+import { useUserLookupAccessRule } from "../../utils/backend-client/default/default";
 import {
   CreateRequestWith,
   LookupAccessRule,
-  UserAccessRuleLookupParams,
+  UserLookupAccessRuleParams,
 } from "../../utils/backend-client/types";
 import { RequestFormQueryParameters } from "./request/[id]";
 // const a: RequestFormQueryParameters = {
@@ -62,14 +62,14 @@ export const makeLookupAccessRuleRequestLink = (
 };
 const Access = () => {
   type MyLocationGenerics = MakeGenerics<{
-    Search: UserAccessRuleLookupParams;
+    Search: UserLookupAccessRuleParams;
   }>;
 
   const search = useSearch<MyLocationGenerics>();
 
   const navigate = useNavigate();
 
-  const { data, isValidating, error } = useUserAccessRuleLookup(search);
+  const { data, isValidating, error } = useUserLookupAccessRule(search);
 
   const toast = useToast();
   useEffect(() => {

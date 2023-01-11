@@ -10,7 +10,7 @@ import {
 import { useMemo } from "react";
 import { Column } from "react-table";
 import {
-  useAdminIdentityConfiguration,
+  useAdminGetIdentityConfiguration,
   useAdminListGroups,
 } from "../../utils/backend-client/admin/admin";
 
@@ -82,7 +82,7 @@ export const GroupsTable = () => {
     ],
     []
   );
-  const { data } = useAdminIdentityConfiguration();
+  const { data } = useAdminGetIdentityConfiguration();
   const AddGroupButton = () => {
     return (
       <Tooltip

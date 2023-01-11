@@ -32,7 +32,7 @@ import { AdminLayout } from "../../../components/Layout";
 import {
   adminGetGroup,
   adminUpdateUser,
-  useAdminIdentityConfiguration,
+  useAdminGetIdentityConfiguration,
 } from "../../../utils/backend-client/admin/admin";
 
 import { useUserGetUser } from "../../../utils/backend-client/end-user/end-user";
@@ -331,7 +331,7 @@ const InternalGroupsLabel = () => {
   );
 };
 const ExternalGroupsLabel = () => {
-  const { data } = useAdminIdentityConfiguration();
+  const { data } = useAdminGetIdentityConfiguration();
   return (
     <Tooltip label="External groups are managed by your identity provider. You can use your identity providers management console to update group memberships. These groups are synced automatically every 5 minutes.">
       <Text textStyle="Body/Medium" textTransform={"capitalize"}>

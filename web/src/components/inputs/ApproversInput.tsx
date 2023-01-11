@@ -11,14 +11,14 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import React from "react";
-import { useAdminGetUsers } from "../../utils/backend-client/admin/admin";
+import { useAdminListUsers } from "../../utils/backend-client/admin/admin";
 
 type Props = {
   setApprovers: React.Dispatch<React.SetStateAction<string[]>>;
 } & ButtonProps;
 
 const ApproversInput = ({ setApprovers, ...props }: Props) => {
-  const { data, isValidating } = useAdminGetUsers({
+  const { data, isValidating } = useAdminListUsers({
     // request: {
     //   baseURL: "http://127.0.0.1:3100",
     //   headers: {

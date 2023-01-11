@@ -4,7 +4,7 @@ import ReactSelect, { ActionMeta, components, OptionProps } from "react-select";
 import { Box, Text } from "@chakra-ui/react";
 import {
   useAdminListGroups,
-  useAdminGetUsers,
+  useAdminListUsers,
 } from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
 import { Option } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
@@ -25,7 +25,7 @@ interface GroupSelectProps extends BaseSelectProps {
 
 // UserSelect required defaults to true
 export const UserSelect: React.FC<BaseSelectProps> = (props) => {
-  const { data } = useAdminGetUsers();
+  const { data } = useAdminListUsers();
   const options = useMemo(() => {
     return (
       data?.users
