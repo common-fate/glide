@@ -2,7 +2,6 @@ import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
-  AlertIcon,
   AlertTitle,
   Avatar,
   Badge,
@@ -57,7 +56,6 @@ import { durationStringHoursMinutes } from "../utils/durationString";
 import { renderTiming } from "../utils/renderTiming";
 import { userName } from "../utils/userName";
 import { CFReactMarkownCode } from "./CodeInstruction";
-import { CopyableOption } from "./CopyableOption";
 import { WarningIcon } from "./icons/Icons";
 import { ProviderIcon } from "./icons/providerIcon";
 import { InfoOption } from "./InfoOption";
