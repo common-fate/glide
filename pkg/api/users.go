@@ -16,7 +16,7 @@ import (
 
 // Returns a list of users
 // (GET /api/v1/users/)
-func (a *API) AdminGetUsers(w http.ResponseWriter, r *http.Request, params types.AdminGetUsersParams) {
+func (a *API) AdminListUsers(w http.ResponseWriter, r *http.Request, params types.AdminListUsersParams) {
 	ctx := r.Context()
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}

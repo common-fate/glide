@@ -22,7 +22,7 @@ import type {
   User,
   AdminUpdateUserBody,
   ListUserResponseResponse,
-  AdminGetUsersParams,
+  AdminListUsersParams,
   CreateUserRequestBody,
   ListGroupsResponseResponse,
   AdminListGroupsParams,
@@ -347,8 +347,8 @@ export const adminUpdateUser = (
  * Fetch a list of users
  * @summary Returns a list of users
  */
-export const adminGetUsers = (
-    params?: AdminGetUsersParams,
+export const adminListUsers = (
+    params?: AdminListUsersParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListUserResponseResponse>(
       {url: `/api/v1/admin/users`, method: 'get',
@@ -358,22 +358,22 @@ export const adminGetUsers = (
     }
   
 
-export const getAdminGetUsersKey = (params?: AdminGetUsersParams,) => [`/api/v1/admin/users`, ...(params ? [params]: [])];
+export const getAdminListUsersKey = (params?: AdminListUsersParams,) => [`/api/v1/admin/users`, ...(params ? [params]: [])];
 
     
-export type AdminGetUsersQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetUsers>>>
-export type AdminGetUsersQueryError = ErrorType<unknown>
+export type AdminListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof adminListUsers>>>
+export type AdminListUsersQueryError = ErrorType<unknown>
 
-export const useAdminGetUsers = <TError = ErrorType<unknown>>(
- params?: AdminGetUsersParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetUsers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useAdminListUsers = <TError = ErrorType<unknown>>(
+ params?: AdminListUsersParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListUsers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetUsersKey(params) : null);
-  const swrFn = () => adminGetUsers(params, requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListUsersKey(params) : null);
+  const swrFn = () => adminListUsers(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -590,7 +590,7 @@ export const useAdminGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
- * gets the argSchema describing the args for this provider
+ * Gets the argSchema describing the args for this provider
  * @summary Get provider arg schema
  */
 export const adminGetProviderArgs = (
@@ -845,7 +845,7 @@ export const adminSubmitProvidersetupStep = (
  * Run the identity sync operation on demand
  * @summary Sync Identity
  */
-export const adminIdentitySync = (
+export const adminSyncIdentity = (
     
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
@@ -859,7 +859,7 @@ export const adminIdentitySync = (
  * Get information about the identity configuration
  * @summary Get identity configuration
  */
-export const adminIdentityConfiguration = (
+export const adminGetIdentityConfiguration = (
     
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<IdentityConfigurationResponseResponse>(
@@ -869,22 +869,22 @@ export const adminIdentityConfiguration = (
     }
   
 
-export const getAdminIdentityConfigurationKey = () => [`/api/v1/admin/identity`];
+export const getAdminGetIdentityConfigurationKey = () => [`/api/v1/admin/identity`];
 
     
-export type AdminIdentityConfigurationQueryResult = NonNullable<Awaited<ReturnType<typeof adminIdentityConfiguration>>>
-export type AdminIdentityConfigurationQueryError = ErrorType<ErrorResponseResponse>
+export type AdminGetIdentityConfigurationQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetIdentityConfiguration>>>
+export type AdminGetIdentityConfigurationQueryError = ErrorType<ErrorResponseResponse>
 
-export const useAdminIdentityConfiguration = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminIdentityConfiguration>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useAdminGetIdentityConfiguration = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetIdentityConfiguration>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminIdentityConfigurationKey() : null);
-  const swrFn = () => adminIdentityConfiguration(requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetIdentityConfigurationKey() : null);
+  const swrFn = () => adminGetIdentityConfiguration(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

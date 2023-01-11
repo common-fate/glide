@@ -623,7 +623,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListUserResponse"
-      operationId: admin-get-users
+      operationId: admin-list-users
       description: Fetch a list of users
       parameters:
         - schema:
@@ -980,7 +980,7 @@ paths:
     parameters: []
     post:
       summary: Sync Identity
-      operationId: admin-identity-sync
+      operationId: admin-sync-identity
       responses:
         "200":
           description: OK
@@ -1003,7 +1003,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: admin-identity-configuration
+      operationId: admin-get-identity-configuration
       description: Get information about the identity configuration
   /api/v1/access-rules/lookup:
     get:
@@ -1020,7 +1020,7 @@ paths:
                   $ref: "#/components/schemas/LookupAccessRule"
         "404":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: user-access-rule-lookup
+      operationId: user-lookup-access-rule
       parameters:
         - schema:
             type: string

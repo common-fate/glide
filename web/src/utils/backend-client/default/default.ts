@@ -19,7 +19,7 @@ import type {
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody,
   LookupAccessRule,
-  UserAccessRuleLookupParams,
+  UserLookupAccessRuleParams,
   ListFavoritesResponseResponse,
   FavoriteDetail,
   CreateFavoriteRequestBody
@@ -38,7 +38,7 @@ import type { ErrorType } from '../../custom-instance'
   : never;
 
 /**
- * display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+ * Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
  * @summary Your GET endpoint
  */
 export const userListRequestsUpcoming = (
@@ -78,7 +78,7 @@ export const useUserListRequestsUpcoming = <TError = ErrorType<unknown>>(
 }
 
 /**
- * display show cancelled, expired, and revoked requests.
+ * Display show cancelled, expired, and revoked requests.
 
  * @summary Your GET endpoint
  */
@@ -180,11 +180,11 @@ export const adminDeleteProvidersetup = (
   
 
 /**
- * endpoint returns an array of relevant access rules (used in combination with granted cli)
+ * Endpoint returns an array of relevant access rules (used in combination with granted cli)
  * @summary Lookup an access rule based on the target
  */
-export const userAccessRuleLookup = (
-    params?: UserAccessRuleLookupParams,
+export const userLookupAccessRule = (
+    params?: UserLookupAccessRuleParams,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<LookupAccessRule[]>(
       {url: `/api/v1/access-rules/lookup`, method: 'get',
@@ -194,22 +194,22 @@ export const userAccessRuleLookup = (
     }
   
 
-export const getUserAccessRuleLookupKey = (params?: UserAccessRuleLookupParams,) => [`/api/v1/access-rules/lookup`, ...(params ? [params]: [])];
+export const getUserLookupAccessRuleKey = (params?: UserLookupAccessRuleParams,) => [`/api/v1/access-rules/lookup`, ...(params ? [params]: [])];
 
     
-export type UserAccessRuleLookupQueryResult = NonNullable<Awaited<ReturnType<typeof userAccessRuleLookup>>>
-export type UserAccessRuleLookupQueryError = ErrorType<ErrorResponseResponse>
+export type UserLookupAccessRuleQueryResult = NonNullable<Awaited<ReturnType<typeof userLookupAccessRule>>>
+export type UserLookupAccessRuleQueryError = ErrorType<ErrorResponseResponse>
 
-export const useUserAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse>>(
- params?: UserAccessRuleLookupParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userAccessRuleLookup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useUserLookupAccessRule = <TError = ErrorType<ErrorResponseResponse>>(
+ params?: UserLookupAccessRuleParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userLookupAccessRule>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserAccessRuleLookupKey(params) : null);
-  const swrFn = () => userAccessRuleLookup(params, requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserLookupAccessRuleKey(params) : null);
+  const swrFn = () => userLookupAccessRule(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -220,6 +220,7 @@ export const useUserAccessRuleLookup = <TError = ErrorType<ErrorResponseResponse
 }
 
 /**
+ * Returns a list of the user's favourited access requests. 
  * @summary ListFavorites
  */
 export const userListFavorites = (
@@ -258,6 +259,7 @@ export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
+ * Favorites an access request for a given user. This is used for frequent access requests saving time and repeated actions. 
  * @summary Create Favorite
  */
 export const userCreateFavorite = (
@@ -273,6 +275,7 @@ export const userCreateFavorite = (
   
 
 /**
+ * Returns a detailed favorite response. This is used to display a favorite's details on the frontend. 
  * @summary Get Favorite
  */
 export const userGetFavorite = (
@@ -310,6 +313,9 @@ export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
   }
 }
 
+/**
+ * Delete a saved favorite
+ */
 export const userDeleteFavorite = (
     id: string,
  options?: SecondParameter<typeof customInstance>) => {
@@ -320,6 +326,9 @@ export const userDeleteFavorite = (
     }
   
 
+/**
+ * Update a favorite with new FavoriteDetails
+ */
 export const userUpdateFavorite = (
     id: string,
     createFavoriteRequestBody: CreateFavoriteRequestBody,

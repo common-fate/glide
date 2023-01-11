@@ -195,7 +195,7 @@ func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, 
 
 // Your GET endpoint
 // (GET /api/v1/access-rules/lookup)
-func (a *API) UserAccessRuleLookup(w http.ResponseWriter, r *http.Request, params types.UserAccessRuleLookupParams) {
+func (a *API) UserLookupAccessRule(w http.ResponseWriter, r *http.Request, params types.UserLookupAccessRuleParams) {
 	ctx := r.Context()
 
 	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
