@@ -274,7 +274,7 @@ const CommandPalette = ({
 
   return (
     <Modal
-      isOpen={true}
+      isOpen={isOpen}
       onClose={onClose}
       size="lg"
       onCloseComplete={() => {
