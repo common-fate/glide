@@ -378,8 +378,6 @@ const CommandPalette = ({
                     justifyContent="start"
                     sx={{
                       "display": "flex",
-                      "alignItems": "center",
-                      "minH": 7,
                       "mx": 2,
                       "px": 3,
                       "rounded": "md",
@@ -397,6 +395,13 @@ const CommandPalette = ({
                           textDecoration: "underline",
                         },
                       },
+
+                      "whiteSpace": "normal",
+                      "textOverflow": "ellipsis",
+                      "overflow": "hidden",
+                      "alignItems": "flex-start",
+                      "maxHeight": "4.5em",
+                      "height": "unset",
                     }}
                   >
                     <el.icon mr={3} />
