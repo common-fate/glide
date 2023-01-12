@@ -112,6 +112,7 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsUrl,
       analyticsLogLevel,
       analyticsDeploymentStage,
+      sdkApiAuthorizerLambdaArn: "",
     });
     /* Outputs */
     generateOutputs(this, {
@@ -143,7 +144,8 @@ export class CommonFateStackDev extends cdk.Stack {
         webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

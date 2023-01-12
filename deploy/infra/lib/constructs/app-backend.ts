@@ -1,8 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import * as apigatewayv2 from "@aws-cdk/aws-apigatewayv2-alpha";
-import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
+import * as apigatewayv2 from "aws-cdk-lib/aws-apigatewayv2";
+
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as kms from "aws-cdk-lib/aws-kms";
 import { EventBus } from "aws-cdk-lib/aws-events";
@@ -276,14 +276,20 @@ export class AppBackend extends Construct {
       restApiName: this._appName,
     });
 
-    (
-      this._sdkapigateway.node.defaultChild as apigateway.CfnRestApi
-    ).cfnOptions.condition = enableSdkApiCondition;
-
     const sdkapi = this._sdkapigateway.root.addResource("api");
     const sdkapiv1 = sdkapi.addResource("v1");
 
     const sdklambdaProxy = sdkapiv1.addResource("{proxy+}");
+
+    const defaultSdkAuthorizer = new lambda.Function(
+      this,
+      "DefaultSDKAPIGatewayAuthorizerHandlerFunction",
+      {
+        code,
+        runtime: lambda.Runtime.GO_1_X,
+        handler: "sdk-authorizer",
+      }
+    );
 
     sdklambdaProxy.addMethod(
       "ANY",
@@ -295,9 +301,14 @@ export class AppBackend extends Construct {
         authorizer: new apigateway.TokenAuthorizer(this, "TokenAuthorizer", {
           handler: lambda.Function.fromFunctionArn(
             this,
-            "AuthorizerFunction",
-            props.sdkApiAuthorizerLambdaArn
+            "CustomAuthorizerHandlerFunction",
+            cdk.Fn.conditionIf(
+              enableSdkApiCondition.logicalId,
+              props.sdkApiAuthorizerLambdaArn,
+              defaultSdkAuthorizer.functionArn
+            ).toString()
           ),
+
           identitySource: apigateway.IdentitySource.header("Authorization"),
         }),
       }

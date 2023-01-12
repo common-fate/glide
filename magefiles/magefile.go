@@ -135,6 +135,13 @@ func (Build) Webhook() error {
 	}
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
 }
+func (Build) SDKAuthorizer() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/sdk-authorizer", "cmd/lambda/sdk-authorizer/handler.go")
+}
 
 func (Build) FrontendAWSExports() error {
 	// create the aws-exports.js file if it doesn't exist. This prevents the frontend build from breaking.
@@ -185,15 +192,23 @@ func PackageBackend() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
-	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
-	mg.Deps(PackageCacheSyncer)
+	mg.Deps(PackageBackend, PackageGranter)
+	mg.Deps(PackageAccessHandler, PackageSlackNotifier)
+	mg.Deps(PackageEventHandler, PackageSyncer)
+	mg.Deps(PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageCacheSyncer, PackageSDKAuthorizer)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
 func PackageGranter() error {
 	mg.Deps(Build.Granter)
 	return sh.Run("zip", "--junk-paths", "bin/granter.zip", "bin/granter")
+}
+
+// PackageGranter zips the Go granter so that it can be deployed to Lambda.
+func PackageSDKAuthorizer() error {
+	mg.Deps(Build.SDKAuthorizer)
+	return sh.Run("zip", "--junk-paths", "bin/sdk-authorizer.zip", "bin/sdk-authorizer")
 }
 
 // PackageFrontendDeployer zips the Go frontend deployer so that it can be deployed to Lambda.

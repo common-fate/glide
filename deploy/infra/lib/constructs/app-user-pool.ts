@@ -118,7 +118,8 @@ export class WebUserPool extends Construct {
           precedence: 0,
         }
       );
-      cfnDeprecatedAdminUserPoolGroup.cfnOptions.condition = createCognitoResources;
+      cfnDeprecatedAdminUserPoolGroup.cfnOptions.condition =
+        createCognitoResources;
       const cfnAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
         this,
         "WebAppAdministratorsGroupCF",
@@ -267,7 +268,7 @@ export class SamlUserPoolClient extends Construct {
     c.cfnOptions.condition = props.condition;
     // adding this depends on to ensure that the user pool client is not created until the saml CfnUserPoolIdentityProvider exists
     // this avoids an error "The provider <PROVIDER NAME> does not exist for User Pool <POOL_ID>"
-    c.addDependsOn(this._idp);
+    c.addDependency(this._idp);
   }
   getUserPoolClient(): cognito.UserPoolClient {
     return this._userPoolClient;
