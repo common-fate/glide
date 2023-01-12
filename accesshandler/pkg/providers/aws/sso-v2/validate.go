@@ -44,10 +44,13 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 					}
 
 					for _, u := range listUsers.Users {
-						if *u.Emails[0].Value == subject {
-							return diagnostics.Info("User exists in SSO")
-
+						//there should always only be one email but to avoid empty list errors we loop  the emails
+						for _, email := range u.Emails {
+							if *email.Value == subject {
+								return diagnostics.Info("User exists in SSO")
+							}
 						}
+
 					}
 
 					nextToken = listUsers.NextToken
