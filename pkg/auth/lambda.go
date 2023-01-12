@@ -3,8 +3,10 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/awslabs/aws-lambda-go-api-proxy/core"
+	"github.com/common-fate/apikit/logger"
 )
 
 // LambdaAuthenticator is an authenticator used in production.
@@ -17,6 +19,19 @@ func (a *LambdaAuthenticator) Authenticate(r *http.Request) (*Claims, error) {
 	req, ok := core.GetAPIGatewayContextFromContext(ctx)
 	if !ok {
 		return nil, errors.New("could not get API Gateway context from request")
+	}
+	log := logger.Get(ctx)
+	log.Infow("gateway request", "req", req, "r", r.URL)
+	var rawClaims map[string]interface{}
+	// check if th
+	if strings.HasPrefix(req.ResourcePath, "/sdk-api/") {
+		log.Info("matched")
+		rawClaims = req.Authorizer
+	} else {
+		rawClaims, ok = req.Authorizer["claims"].(map[string]interface{})
+		if !ok {
+			return nil, errors.New("could not retrieve authorizer claims")
+		}
 	}
 
 	// The request context contains an 'authorizer' field which looks like the following:
@@ -38,15 +53,10 @@ func (a *LambdaAuthenticator) Authenticate(r *http.Request) (*Claims, error) {
 	//   }
 	// }
 
-	rawClaims, ok := req.Authorizer["claims"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("could not retrieve authorizer claims")
-	}
-
-	sub, ok := rawClaims["sub"].(string)
-	if !ok {
-		return nil, errors.New("could not parse sub field")
-	}
+	// sub, ok := rawClaims["sub"].(string)
+	// if !ok {
+	// 	return nil, errors.New("could not parse sub field")
+	// }
 
 	email, ok := rawClaims["email"].(string)
 	if !ok {
@@ -54,7 +64,7 @@ func (a *LambdaAuthenticator) Authenticate(r *http.Request) (*Claims, error) {
 	}
 
 	c := Claims{
-		Sub:   sub,
+		// Sub:   sub,
 		Email: email,
 	}
 

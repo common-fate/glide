@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/common-fate/apikit/logger"
 )
 
 // Help function to generate an IAM policy
@@ -28,14 +29,15 @@ func generatePolicy(principalId, effect, resource string) events.APIGatewayCusto
 
 	// Optional output with custom properties of the String, Number or Boolean type.
 	authResponse.Context = map[string]interface{}{
-		"stringKey":  "stringval",
-		"numberKey":  123,
-		"booleanKey": true,
+		"email": "josh@commonfate.io",
 	}
+
 	return authResponse
 }
 
 func handleRequest(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
+	log, _ := logger.Build("info")
+	log.Infow("even handling", "event", event)
 	token := event.AuthorizationToken
 	switch strings.ToLower(token) {
 	case "allow":

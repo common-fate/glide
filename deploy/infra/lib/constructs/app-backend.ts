@@ -275,8 +275,7 @@ export class AppBackend extends Construct {
     this._sdkapigateway = new apigateway.RestApi(this, "SDKRestAPI", {
       restApiName: this._appName,
     });
-
-    const sdkapi = this._sdkapigateway.root.addResource("api");
+    const sdkapi = this._sdkapigateway.root.addResource("sdk-api");
     const sdkapiv1 = sdkapi.addResource("v1");
 
     const sdklambdaProxy = sdkapiv1.addResource("{proxy+}");
@@ -285,7 +284,17 @@ export class AppBackend extends Construct {
       this,
       "DefaultSDKAPIGatewayAuthorizerHandlerFunction",
       {
-        code,
+        code: lambda.Code.fromAsset(
+          path.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "..",
+            "bin",
+            "sdk-authorizer.zip"
+          )
+        ),
         runtime: lambda.Runtime.GO_1_X,
         handler: "sdk-authorizer",
       }
@@ -297,17 +306,18 @@ export class AppBackend extends Construct {
         allowTestInvoke: false,
       }),
       {
-        authorizationType: apigateway.AuthorizationType.CUSTOM,
         authorizer: new apigateway.TokenAuthorizer(this, "TokenAuthorizer", {
-          handler: lambda.Function.fromFunctionArn(
-            this,
-            "CustomAuthorizerHandlerFunction",
-            cdk.Fn.conditionIf(
-              enableSdkApiCondition.logicalId,
-              props.sdkApiAuthorizerLambdaArn,
-              defaultSdkAuthorizer.functionArn
-            ).toString()
-          ),
+          handler: defaultSdkAuthorizer,
+
+          // lambda.Function.fromFunctionArn(
+          //   this,
+          //   "CustomAuthorizerHandlerFunction",
+          //   cdk.Fn.conditionIf(
+          //     enableSdkApiCondition.logicalId,
+          //     props.sdkApiAuthorizerLambdaArn,
+          //     defaultSdkAuthorizer.functionArn
+          //   ).toString()
+          // ),
 
           identitySource: apigateway.IdentitySource.header("Authorization"),
         }),
@@ -443,6 +453,10 @@ export class AppBackend extends Construct {
 
   getRestApiURL(): string {
     return this._apigateway.url;
+  }
+
+  getSdkRestApiURL(): string {
+    return this._sdkapigateway.url;
   }
 
   getWebhookApiURL(): string {

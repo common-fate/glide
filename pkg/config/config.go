@@ -16,6 +16,7 @@ type Config struct {
 	EventBusSource    string `env:"COMMONFATE_EVENT_BUS_SOURCE,required"`
 	IdpProvider       string `env:"COMMONFATE_IDENTITY_PROVIDER,required"`
 	DeploymentSuffix  string `env:"COMMONFATE_DEPLOYMENT_SUFFIX"`
+	SDKAPIURL         string `env:"COMMONFATE_SDK_API_URL"`
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
 	IdentitySettings              string `env:"COMMONFATE_IDENTITY_SETTINGS,default={}"`
