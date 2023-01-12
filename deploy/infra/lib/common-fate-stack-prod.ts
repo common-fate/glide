@@ -171,6 +171,17 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
+    const sdkApiAuthorizerLambdaArn = new CfnParameter(
+      this,
+      "SDKAPIAuthorizerLambdaARN",
+      {
+        type: "String",
+        description:
+          "Optional ARN of a lambda authorizer function to enable usage of the SDK API",
+        default: "",
+      }
+    );
+
     const appName = this.stackName + suffix.valueAsString;
 
     const db = new Database(this, "Database", {
@@ -233,6 +244,7 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsUrl: analyticsUrl.valueAsString,
       analyticsLogLevel: analyticsLogLevel.valueAsString,
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
+      sdkApiAuthorizerLambdaArn: sdkApiAuthorizerLambdaArn.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -278,7 +290,8 @@ export class CommonFateStackProd extends cdk.Stack {
         webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

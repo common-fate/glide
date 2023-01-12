@@ -1,6 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as apigatewayv2 from "@aws-cdk/aws-apigatewayv2-alpha";
+import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as kms from "aws-cdk-lib/aws-kms";
 import { EventBus } from "aws-cdk-lib/aws-events";
@@ -16,6 +18,7 @@ import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { CacheSync } from "./cache-sync";
+import { CfnFunction } from "aws-cdk-lib/aws-lambda";
 
 interface Props {
   appName: string;
@@ -37,13 +40,52 @@ interface Props {
   analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
+  sdkApiAuthorizerLambdaArn: string;
 }
+// export class JWTAuthoriser extends apigateway.Authorizer {
+
+//   public authorizerId: string
+//   private restApiId:string
+//   constructor(scope: Construct, id: string, props: apigateway.CfnAuthorizerProps) {
+//     super(scope, id);
+
+//     const a = new apigateway.CfnAuthorizer(
+//       this,
+//       "Authorizer",
+//       {
+//         restApiId: this.restApiId
+//         name:"",
+//          type:
+//       }
+//     ),
+//   }
+
+//     //  const  resource = new apigateway.CfnAuthorizer(this, "Resource", {
+//         // name: props.authorizerName ?? core_1.Names.uniqueId(this),
+//         // restApiId,
+//         // type: "COGNITO_USER_POOLS",
+//         // providerArns: props.cognitoUserPools.map(
+//         //   (userPool) => userPool.userPoolArn
+//         // ),
+//         // authorizerResultTtlInSeconds: props.resultsCacheTtl?.toSeconds(),
+//         // identitySource:
+//         //   props.identitySource || "method.request.header.Authorization",
+//       // });
+
+//   }
+
+//   _attachToApi(restApi: apigateway.IRestApi): void{
+
+//     this.restApiId = restApi.restApiId
+//   }
+// }
 
 export class AppBackend extends Construct {
   private readonly _appName: string;
   private _dynamoTable: dynamodb.Table;
   private _lambda: lambda.Function;
   private _apigateway: apigateway.LambdaRestApi;
+  private _sdkapigateway: apigateway.LambdaRestApi;
   private _notifiers: Notifiers;
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
@@ -120,7 +162,8 @@ export class AppBackend extends Construct {
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
         COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
+          props.accessHandler.getAccessHandlerExecutionRoleArn(),
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
@@ -190,6 +233,11 @@ export class AppBackend extends Construct {
       })
     );
 
+    /**
+     * Rest API gateway used by web client
+     *
+     */
+
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 
@@ -208,6 +256,50 @@ export class AppBackend extends Construct {
             cognitoUserPools: [props.userPool.getUserPool()],
           }
         ),
+      }
+    );
+
+    const enableSdkApiCondition = new CfnCondition(
+      this,
+      "EnableSDKAPICondition",
+      {
+        expression: cdk.Fn.conditionNot(
+          cdk.Fn.conditionEquals(props.sdkApiAuthorizerLambdaArn, "")
+        ),
+      }
+    );
+    /**
+     * SDK Rest API gateway used by sdk clients
+     *
+     */
+    this._sdkapigateway = new apigateway.RestApi(this, "SDKRestAPI", {
+      restApiName: this._appName,
+    });
+
+    (
+      this._sdkapigateway.node.defaultChild as apigateway.CfnRestApi
+    ).cfnOptions.condition = enableSdkApiCondition;
+
+    const sdkapi = this._sdkapigateway.root.addResource("api");
+    const sdkapiv1 = sdkapi.addResource("v1");
+
+    const sdklambdaProxy = sdkapiv1.addResource("{proxy+}");
+
+    sdklambdaProxy.addMethod(
+      "ANY",
+      new apigateway.LambdaIntegration(this._lambda, {
+        allowTestInvoke: false,
+      }),
+      {
+        authorizationType: apigateway.AuthorizationType.CUSTOM,
+        authorizer: new apigateway.TokenAuthorizer(this, "TokenAuthorizer", {
+          handler: lambda.Function.fromFunctionArn(
+            this,
+            "AuthorizerFunction",
+            props.sdkApiAuthorizerLambdaArn
+          ),
+          identitySource: apigateway.IdentitySource.header("Authorization"),
+        }),
       }
     );
 
@@ -333,7 +425,8 @@ export class AppBackend extends Construct {
           webAclArn: apiGatewayWafAclArn,
         }
       );
-      apiGatewayWafAclAssociation.cfnOptions.condition = createApiGatewayWafAssociation;
+      apiGatewayWafAclAssociation.cfnOptions.condition =
+        createApiGatewayWafAssociation;
     }
   }
 
