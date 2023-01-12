@@ -225,6 +225,12 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 			gid := ddbGroupMap[idpGroupId].ID
 			internalGroupIds[gid] = gid
 			uid := ddbUserMap[idpUser.Email].ID
+
+			// prevents a panic due to an assignment to a nil map
+			if internalGroupUsers[gid] == nil {
+				internalGroupUsers[gid] = map[string]string{}
+			}
+
 			internalGroupUsers[gid][uid] = uid
 		}
 
