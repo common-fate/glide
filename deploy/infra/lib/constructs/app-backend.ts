@@ -275,7 +275,7 @@ export class AppBackend extends Construct {
     this._sdkapigateway = new apigateway.RestApi(this, "SDKRestAPI", {
       restApiName: this._appName,
     });
-    const sdkapi = this._sdkapigateway.root.addResource("sdk-api");
+    const sdkapi = this._sdkapigateway.root.addResource("api");
     const sdkapiv1 = sdkapi.addResource("v1");
 
     const sdklambdaProxy = sdkapiv1.addResource("{proxy+}");
