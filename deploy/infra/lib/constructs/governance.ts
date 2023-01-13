@@ -62,6 +62,7 @@ export class Governance extends Construct {
       }
     );
     this._dynamoTable.grantReadWriteData(this._governanceLambda);
+    this._KMSkey.grantEncryptDecrypt(this._governanceLambda);
 
     this._governanceLambda.addToRolePolicy(
       new PolicyStatement({

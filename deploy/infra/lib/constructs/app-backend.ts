@@ -16,7 +16,6 @@ import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { CacheSync } from "./cache-sync";
-import { HttpIamAuthorizer } from "@aws-cdk/aws-apigatewayv2-authorizers-alpha";
 import { AuthorizationType } from "aws-cdk-lib/aws-apigateway";
 import { Governance } from "./governance";
 
