@@ -11,6 +11,7 @@ import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
+import { SDKAPI } from "./constructs/sdk-api";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -31,6 +32,8 @@ interface Props extends cdk.StackProps {
   analyticsUrl: string;
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
+  sdkApiJwtAudience: string;
+  sdkApiJwtIssuer: string;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -112,8 +115,19 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsUrl,
       analyticsLogLevel,
       analyticsDeploymentStage,
-      sdkApiAuthorizerLambdaArn: "",
     });
+
+    /**
+     * SDK Rest API gateway used by sdk clients
+     *
+     */
+    const sdkApi = new SDKAPI(this, "SDKAPI", {
+      appName: appName,
+      restApiLambda: appBackend.getRestApiLambda(),
+      audience: props.sdkApiJwtAudience,
+      issuer: props.sdkApiJwtIssuer,
+    });
+
     /* Outputs */
     generateOutputs(this, {
       CognitoClientID: webUserPool.getUserPoolClientId(),
@@ -150,6 +164,7 @@ export class CommonFateStackDev extends cdk.Stack {
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
+      SDKAPIURL: sdkApi.getRestApiURL(),
     });
   }
 }

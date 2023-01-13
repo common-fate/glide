@@ -15,6 +15,7 @@ import {
   IdentityProviderTypes,
 } from "./helpers/registry";
 import { Database } from "./constructs/database";
+import { SDKAPI } from "./constructs/sdk-api";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -171,16 +172,18 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
-    const sdkApiAuthorizerLambdaArn = new CfnParameter(
-      this,
-      "SDKAPIAuthorizerLambdaARN",
-      {
-        type: "String",
-        description:
-          "Optional ARN of a lambda authorizer function to enable usage of the SDK API",
-        default: "",
-      }
-    );
+    const sdkApiJwtAudience = new CfnParameter(this, "SDKAPIJWTAudience", {
+      type: "String",
+      description:
+        "Provide this value to enable the SDK API using JWT authorization",
+      default: "",
+    });
+    const sdkApiJwtIssuer = new CfnParameter(this, "SDKAPIJWTIssuer", {
+      type: "String",
+      description:
+        "Provide this value to enable the SDK API using JWT authorization",
+      default: "",
+    });
 
     const appName = this.stackName + suffix.valueAsString;
 
@@ -244,7 +247,17 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsUrl: analyticsUrl.valueAsString,
       analyticsLogLevel: analyticsLogLevel.valueAsString,
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
-      sdkApiAuthorizerLambdaArn: sdkApiAuthorizerLambdaArn.valueAsString,
+    });
+
+    /**
+     * SDK Rest API gateway used by sdk clients
+     *
+     */
+    const sdkApi = new SDKAPI(this, "SDKAPI", {
+      appName: appName,
+      restApiLambda: appBackend.getRestApiLambda(),
+      audience: sdkApiJwtAudience.valueAsString,
+      issuer: sdkApiJwtIssuer.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -296,6 +309,7 @@ export class CommonFateStackProd extends cdk.Stack {
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
+      SDKAPIURL: sdkApi.getRestApiURL(),
     });
   }
 }

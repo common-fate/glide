@@ -1,24 +1,22 @@
 import * as cdk from "aws-cdk-lib";
 import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import * as apigatewayv2 from "aws-cdk-lib/aws-apigatewayv2";
 
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as kms from "aws-cdk-lib/aws-kms";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import * as kms from "aws-cdk-lib/aws-kms";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { Construct } from "constructs";
 import * as path from "path";
+import { AccessHandler } from "./access-handler";
 import { WebUserPool } from "./app-user-pool";
+import { CacheSync } from "./cache-sync";
 import { EventHandler } from "./event-handler";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
-import { AccessHandler } from "./access-handler";
-import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
-import { CacheSync } from "./cache-sync";
-import { CfnFunction } from "aws-cdk-lib/aws-lambda";
 
 interface Props {
   appName: string;
@@ -40,45 +38,7 @@ interface Props {
   analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
-  sdkApiAuthorizerLambdaArn: string;
 }
-// export class JWTAuthoriser extends apigateway.Authorizer {
-
-//   public authorizerId: string
-//   private restApiId:string
-//   constructor(scope: Construct, id: string, props: apigateway.CfnAuthorizerProps) {
-//     super(scope, id);
-
-//     const a = new apigateway.CfnAuthorizer(
-//       this,
-//       "Authorizer",
-//       {
-//         restApiId: this.restApiId
-//         name:"",
-//          type:
-//       }
-//     ),
-//   }
-
-//     //  const  resource = new apigateway.CfnAuthorizer(this, "Resource", {
-//         // name: props.authorizerName ?? core_1.Names.uniqueId(this),
-//         // restApiId,
-//         // type: "COGNITO_USER_POOLS",
-//         // providerArns: props.cognitoUserPools.map(
-//         //   (userPool) => userPool.userPoolArn
-//         // ),
-//         // authorizerResultTtlInSeconds: props.resultsCacheTtl?.toSeconds(),
-//         // identitySource:
-//         //   props.identitySource || "method.request.header.Authorization",
-//       // });
-
-//   }
-
-//   _attachToApi(restApi: apigateway.IRestApi): void{
-
-//     this.restApiId = restApi.restApiId
-//   }
-// }
 
 export class AppBackend extends Construct {
   private readonly _appName: string;
@@ -259,71 +219,6 @@ export class AppBackend extends Construct {
       }
     );
 
-    const enableSdkApiCondition = new CfnCondition(
-      this,
-      "EnableSDKAPICondition",
-      {
-        expression: cdk.Fn.conditionNot(
-          cdk.Fn.conditionEquals(props.sdkApiAuthorizerLambdaArn, "")
-        ),
-      }
-    );
-    /**
-     * SDK Rest API gateway used by sdk clients
-     *
-     */
-    this._sdkapigateway = new apigateway.RestApi(this, "SDKRestAPI", {
-      restApiName: this._appName,
-    });
-    const sdkapi = this._sdkapigateway.root.addResource("api");
-    const sdkapiv1 = sdkapi.addResource("v1");
-
-    const sdklambdaProxy = sdkapiv1.addResource("{proxy+}");
-
-    const defaultSdkAuthorizer = new lambda.Function(
-      this,
-      "DefaultSDKAPIGatewayAuthorizerHandlerFunction",
-      {
-        code: lambda.Code.fromAsset(
-          path.join(
-            __dirname,
-            "..",
-            "..",
-            "..",
-            "..",
-            "bin",
-            "sdk-authorizer.zip"
-          )
-        ),
-        runtime: lambda.Runtime.GO_1_X,
-        handler: "sdk-authorizer",
-      }
-    );
-
-    sdklambdaProxy.addMethod(
-      "ANY",
-      new apigateway.LambdaIntegration(this._lambda, {
-        allowTestInvoke: false,
-      }),
-      {
-        authorizer: new apigateway.TokenAuthorizer(this, "TokenAuthorizer", {
-          handler: defaultSdkAuthorizer,
-
-          // lambda.Function.fromFunctionArn(
-          //   this,
-          //   "CustomAuthorizerHandlerFunction",
-          //   cdk.Fn.conditionIf(
-          //     enableSdkApiCondition.logicalId,
-          //     props.sdkApiAuthorizerLambdaArn,
-          //     defaultSdkAuthorizer.functionArn
-          //   ).toString()
-          // ),
-
-          identitySource: apigateway.IdentitySource.header("Authorization"),
-        }),
-      }
-    );
-
     const ALLOWED_HEADERS = [
       "Content-Type",
       "X-Amz-Date",
@@ -453,6 +348,10 @@ export class AppBackend extends Construct {
 
   getRestApiURL(): string {
     return this._apigateway.url;
+  }
+
+  getRestApiLambda(): lambda.Function {
+    return this._lambda;
   }
 
   getSdkRestApiURL(): string {

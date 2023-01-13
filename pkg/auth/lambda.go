@@ -23,9 +23,16 @@ func (a *LambdaAuthenticator) Authenticate(r *http.Request) (*Claims, error) {
 	log.Infow("gateway request", "req", req, "r", r.URL)
 	var rawClaims map[string]interface{}
 	// if the authorizer context contains an email key, it came from a custom authorizer rather than from cognito
-	if _, ok := req.Authorizer["email"]; ok {
-		log.Info("detected that this request originated from the sdk client api")
-		rawClaims = req.Authorizer
+	if _, ok := req.Authorizer["jwt"]; ok {
+		log.Info("detected that this request originated from the sdk client api with jwt authorizer")
+		jwt, ok := req.Authorizer["jwt"].(map[string]interface{})
+		if !ok {
+			return nil, errors.New("could not retrieve authorizer claims")
+		}
+		rawClaims, ok = jwt["claims"].(map[string]interface{})
+		if !ok {
+			return nil, errors.New("could not retrieve authorizer claims")
+		}
 	} else {
 		log.Info("detected that this request originated from the web client api")
 		rawClaims, ok = req.Authorizer["claims"].(map[string]interface{})

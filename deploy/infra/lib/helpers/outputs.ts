@@ -32,6 +32,7 @@ export type StackOutputs = {
   RestAPIExecutionRoleARN: string;
   IDPSyncExecutionRoleARN: string;
   CacheSyncFunctionName: string;
+  SDKAPIURL: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs

@@ -48,6 +48,7 @@ type Output struct {
 	RestAPIExecutionRoleARN       string `json:"RestAPIExecutionRoleARN"`
 	IDPSyncExecutionRoleARN       string `json:"IDPSyncExecutionRoleARN"`
 	CacheSyncFunctionName         string `json:"CacheSyncFunctionName"`
+	SDKAPIURL                     string `json:"SDKAPIURL"`
 }
 
 func (c Output) FrontendURL() string {

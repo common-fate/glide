@@ -40,6 +40,8 @@ const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
 
+const sdkApiJwtAudience = app.node.tryGetContext("sdkApiJwtAudience");
+const sdkApiJwtIssuer = app.node.tryGetContext("sdkApiJwtIssuer");
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one
 // To prepare the prod stack only, set the env var to "prod"
@@ -84,6 +86,8 @@ if (stackTarget === "dev") {
     analyticsUrl: analyticsUrl || "",
     analyticsLogLevel: analyticsLogLevel || "",
     analyticsDeploymentStage: analyticsDeploymentStage || "",
+    sdkApiJwtAudience: sdkApiJwtAudience || "",
+    sdkApiJwtIssuer: sdkApiJwtIssuer || "",
   });
 } else if (stackTarget === "prod") {
   new CommonFateStackProd(app, "Granted", {

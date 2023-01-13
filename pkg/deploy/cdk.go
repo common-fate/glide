@@ -79,6 +79,12 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.AnalyticsLogLevel != "" {
 		args = append(args, "-c", fmt.Sprintf("analyticsLogLevel=%s", string(c.Deployment.Parameters.AnalyticsLogLevel)))
 	}
+	if c.Deployment.Parameters.SDKAPIJWTAudience != "" {
+		args = append(args, "-c", fmt.Sprintf("sdkApiJwtAudience=%s", string(c.Deployment.Parameters.SDKAPIJWTAudience)))
+	}
+	if c.Deployment.Parameters.SDKAPIJWTIssuer != "" {
+		args = append(args, "-c", fmt.Sprintf("sdkApiJwtIssuer=%s", string(c.Deployment.Parameters.SDKAPIJWTIssuer)))
+	}
 
 	// CDK deploys always use the dev analytics endpoint and debug mode
 	args = append(args, "-c", "analyticsUrl=https://t-dev.commonfate.io")

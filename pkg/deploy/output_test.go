@@ -66,6 +66,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		RestAPIExecutionRoleARN:       "abcdefg",
 		IDPSyncExecutionRoleARN:       "abcdefg",
 		CacheSyncFunctionName:         "abcdefg",
+		SDKAPIURL:                     "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
@@ -119,6 +120,7 @@ func TestOutput_Get(t *testing.T) {
 		PaginationKMSKeyARN           string
 		AccessHandlerExecutionRoleARN string
 		CacheSyncFunctionName         string
+		SDKAPIURL                     string
 	}
 	type args struct {
 		key string
