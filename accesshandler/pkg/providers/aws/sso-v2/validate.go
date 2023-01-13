@@ -29,6 +29,24 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 					return diagnostics.Error(err)
 				}
 
+				//check if username is email first. Then fallback on a manual lookup of each email for each user in aws sso
+
+				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+					IdentityStoreId: aws.String(p.identityStoreID.Get()),
+					Filters: []types.Filter{{
+						AttributePath:  aws.String("UserName"),
+						AttributeValue: aws.String(subject),
+					}},
+				})
+				if err != nil {
+					return diagnostics.Error(err)
+				}
+
+				if len(res.Users) != 0 {
+					return diagnostics.Info("User exists in SSO")
+				}
+
+				//Fallback attempt at finding a users email
 				//Pull all users and check if emails match to find if user exists in AWS SSO
 				//This was required as filtering on Username, does not always work since some users do not use email as their username in AWS SSO
 				hasMore := true
@@ -57,6 +75,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 					hasMore = nextToken != nil
 				}
 
+				//if we got here the user was never found
 				return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
 
 			},
