@@ -288,6 +288,8 @@ const Rules = () => {
                     w="232px"
                     rounded="md"
                     data-testid={"r_" + i}
+                    pos="relative"
+                    overflow="hidden"
                   >
                     <ProviderIcon
                       shortType={r.target.provider.type}
@@ -296,7 +298,11 @@ const Rules = () => {
                       w="8"
                     />
 
-                    <Text textStyle="Body/SmallBold" color="neutrals.700">
+                    <Text
+                      textStyle="Body/SmallBold"
+                      color="neutrals.700"
+                      noOfLines={3}
+                    >
                       {r.name}
                     </Text>
 
@@ -305,6 +311,8 @@ const Rules = () => {
                       variant="brandSecondary"
                       size="sm"
                       opacity={0}
+                      pos="absolute"
+                      bottom={6}
                       sx={{
                         // This media query ensure always visible for touch screens
                         "@media (hover: none)": {
@@ -312,12 +320,13 @@ const Rules = () => {
                         },
                       }}
                       transition="all .2s ease-in-out"
-                      transform="translateY(8px)"
+                      transform="translate(-50%, 8px)"
                       _groupHover={{
                         bg: "white",
                         opacity: 1,
-                        transform: "translateY(0px)",
+                        transform: "translateY(-50%, 0px)",
                       }}
+                      left="50%"
                     >
                       Request
                     </Button>
