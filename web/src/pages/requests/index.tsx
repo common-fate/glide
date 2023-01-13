@@ -265,7 +265,7 @@ const Rules = () => {
         templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
         minW={{ base: "unset", xl: "488px" }}
         gap={6}
-        overflowX={{ base: "scroll" }}
+        overflowX={["scroll", "auto"]}
       >
         {
           // Loading state
