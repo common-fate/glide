@@ -113,7 +113,7 @@ func TestCreateAccessRule(t *testing.T) {
 			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&ahTypes.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.ArgSchema{}}, nil)
 
 			cm := mocks.NewMockCacheService(ctrl)
-			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+			cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
 
 			s := Service{
 				Clock:    clk,
