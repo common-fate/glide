@@ -348,7 +348,7 @@ func TestProcessTarget(t *testing.T) {
 
 			cm := mocks.NewMockCacheService(ctrl)
 			if !tc.dontExpectCacheCall {
-				cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+				cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
 			}
 			s := Service{
 				Clock:    clk,
