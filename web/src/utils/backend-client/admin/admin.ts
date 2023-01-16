@@ -590,7 +590,7 @@ export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
- * gets the argSchema describing the args for this provider
+ * Gets the argSchema describing the args for this provider
  * @summary Get provider arg schema
  */
 export const getProviderArgs = (

@@ -45,7 +45,7 @@ func TestUpdateAccessRule(t *testing.T) {
 	*/
 	mockRule := rule.AccessRule{
 		ID:       ruleID,
-		Approval: rule.Approval(in.Approval),
+		Approval: rule.Approval(*in.Approval),
 		Status:   rule.ACTIVE,
 		Metadata: rule.AccessRuleMetadata{
 			CreatedAt: now,
@@ -62,7 +62,7 @@ func TestUpdateAccessRule(t *testing.T) {
 	}
 
 	mockRuleUpdateBody := types.CreateAccessRuleRequest{
-		Approval: types.ApproverConfig{
+		Approval: &types.ApproverConfig{
 			Users: []string{"user1", "user2"},
 		},
 		Name:        "changing the name",

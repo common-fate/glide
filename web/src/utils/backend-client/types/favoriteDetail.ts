@@ -8,6 +8,9 @@
 import type { CreateRequestWithSubRequest } from './createRequestWithSubRequest';
 import type { RequestTiming } from './requestTiming';
 
+/**
+ * Detailed object for a Favorite. 
+ */
 export interface FavoriteDetail {
   id: string;
   name: string;
