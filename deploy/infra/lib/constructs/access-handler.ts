@@ -70,6 +70,11 @@ export class AccessHandler extends Construct {
               ],
               resources: ["*"],
             }),
+            // new policy statement to lambda:InvokeFunction
+            new PolicyStatement({
+              actions: ["lambda:InvokeFunction"],
+              resources: ["*"],
+            }),
           ],
         }),
       },

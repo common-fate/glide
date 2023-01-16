@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/common-fate/clio"
 	"go.uber.org/zap"
 )
 
@@ -34,6 +33,9 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	// _, err = p.client.AddMemberToVault(ctx, vault, tv.AddMemberToVaultJSONRequestBody{
 	// 	User: subject,
 	// })
+
+	err = invokeLambda(ctx)
+
 	return err
 }
 
@@ -130,8 +132,24 @@ func invokeLambda(ctx context.Context,
 		return err
 	}
 
-	// payloadbytes, err := json.Marshal(payload)
-	payloadbytes := []byte("test")
+	// log that it has been invoked
+	log := zap.S()
+	log.Info("invoking lambda")
+
+	argsStr := `{"group": "testCF","account":"testCF","permission_set":"testCF"}`
+	var args any
+
+	json.Unmarshal([]byte(argsStr), &args)
+
+	payload := Payload{
+		Type: "grant",
+		Data: Data{
+			Subject: "subject2023jordi_testing",
+			Args:    args,
+		},
+	}
+
+	payloadbytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
@@ -146,13 +164,13 @@ func invokeLambda(ctx context.Context,
 		return err
 	}
 
-	clio.Infof(string(out.Payload))
+	log.Info(string(out.Payload))
 
 	logs, err := base64.StdEncoding.DecodeString(*out.LogResult)
 	if err != nil {
 		return err
 	}
 
-	clio.Infof(string(logs))
+	log.Info(string(logs))
 	return nil
 }
