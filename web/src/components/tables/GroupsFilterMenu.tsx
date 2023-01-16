@@ -8,11 +8,11 @@ import {
   MenuItemOption,
 } from "@chakra-ui/react";
 import React from "react";
-import { ListGroupsSource } from "../../utils/backend-client/types";
+import { AdminListGroupsSource } from "../../utils/backend-client/types";
 
 export const GroupsFilterMenu: React.FC<{
-  source: ListGroupsSource | undefined;
-  onChange: (source: ListGroupsSource | undefined) => void;
+  source: AdminListGroupsSource | undefined;
+  onChange: (source: AdminListGroupsSource | undefined) => void;
 }> = ({ source, onChange }) => {
   return (
     <Menu>
@@ -36,10 +36,10 @@ export const GroupsFilterMenu: React.FC<{
           onChange={(e) => {
             switch (e) {
               case "int":
-                onChange(ListGroupsSource.INTERNAL);
+                onChange(AdminListGroupsSource.INTERNAL);
                 break;
               case "ext":
-                onChange(ListGroupsSource.EXTERNAL);
+                onChange(AdminListGroupsSource.EXTERNAL);
                 break;
 
               default:

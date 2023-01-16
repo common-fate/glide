@@ -15,13 +15,13 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Link } from "react-location";
-import { useListUserAccessRules } from "../../utils/backend-client/end-user/end-user";
+import { useUserListAccessRules } from "../../utils/backend-client/end-user/end-user";
 import { ProviderIcon } from "../icons/providerIcon";
 
 type Props = Omit<ModalProps, "children">;
 
 const AcessRulesMobileModal = (props: Props) => {
-  const { data: rules, isValidating } = useListUserAccessRules();
+  const { data: rules, isValidating } = useUserListAccessRules();
 
   return (
     <Modal size="full" scrollBehavior="inside" {...props}>

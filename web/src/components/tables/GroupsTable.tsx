@@ -10,12 +10,12 @@ import {
 import { useMemo } from "react";
 import { Column } from "react-table";
 import {
-  useIdentityConfiguration,
-  useListGroups,
+  useAdminGetIdentityConfiguration,
+  useAdminListGroups,
 } from "../../utils/backend-client/admin/admin";
 
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
-import { Group, ListGroupsSource } from "../../utils/backend-client/types";
+import { Group, AdminListGroupsSource } from "../../utils/backend-client/types";
 import { IDPLogo } from "../../utils/idp-logo";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import CreateGroupModal from "../modals/CreateGroupModal";
@@ -25,7 +25,7 @@ import { TableRenderer } from "./TableRenderer";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
-    source?: Lowercase<ListGroupsSource>;
+    source?: Lowercase<AdminListGroupsSource>;
   };
 }>;
 
@@ -35,10 +35,12 @@ export const GroupsTable = () => {
   const { source } = search;
 
   const { onOpen, isOpen, onClose } = useDisclosure();
-  const paginator = usePaginatorApi<typeof useListGroups>({
-    swrHook: useListGroups,
+  const paginator = usePaginatorApi<typeof useAdminListGroups>({
+    swrHook: useAdminListGroups,
     hookProps: {
-      source: source ? (source.toUpperCase() as ListGroupsSource) : undefined,
+      source: source
+        ? (source.toUpperCase() as AdminListGroupsSource)
+        : undefined,
     },
     swrProps: {},
   });
@@ -80,7 +82,7 @@ export const GroupsTable = () => {
     ],
     []
   );
-  const { data } = useIdentityConfiguration();
+  const { data } = useAdminGetIdentityConfiguration();
   const AddGroupButton = () => {
     return (
       <Tooltip
@@ -115,11 +117,11 @@ export const GroupsTable = () => {
             navigate({
               search: (old) => ({
                 ...old,
-                source: s?.toLowerCase() as Lowercase<ListGroupsSource>,
+                source: s?.toLowerCase() as Lowercase<AdminListGroupsSource>,
               }),
             })
           }
-          source={source?.toUpperCase() as ListGroupsSource}
+          source={source?.toUpperCase() as AdminListGroupsSource}
         />
       </Flex>
       {TableRenderer<Group>({

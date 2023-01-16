@@ -17,7 +17,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListAccessRulesResponse"
-      operationId: list-user-access-rules
+      operationId: user-list-access-rules
       description: Get all access rules as an end user.
   "/api/v1/access-rules/{ruleId}":
     get:
@@ -121,12 +121,13 @@ paths:
   /api/v1/requests/upcoming:
     get:
       summary: Your GET endpoint
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-upcoming
-      description: display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+      description: Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
       parameters:
         - schema:
             type: string
@@ -136,13 +137,14 @@ paths:
   /api/v1/requests/past:
     get:
       summary: Your GET endpoint
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-past
       description: |
-        display show cancelled, expired, and revoked requests.
+        Display show cancelled, expired, and revoked requests.
       parameters:
         - schema:
             type: string
@@ -194,7 +196,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: list-request-events
+      operationId: user-list-request-events
       description: |
         Returns a HTTP401 response if the user is not the requestor or a reviewer.
       tags:
@@ -209,7 +211,7 @@ paths:
         required: true
     post:
       summary: Review a request
-      operationId: review-request
+      operationId: user-review-request
       responses:
         "200":
           $ref: "#/components/responses/ReviewResponse"
@@ -227,7 +229,7 @@ paths:
         required: true
     post:
       summary: Cancel a request
-      operationId: cancel-request
+      operationId: user-cancel-request
       responses:
         "200":
           description: OK
@@ -254,7 +256,7 @@ paths:
         required: true
     post:
       summary: Revoke an active request
-      operationId: revoke-request
+      operationId: user-revoke-request
       responses:
         "200":
           description: OK
@@ -285,7 +287,7 @@ paths:
             application/json:
               schema:
                 $ref: ./accesshandler/openapi.yml#/components/schemas/AccessInstructions
-      operationId: get-access-instructions
+      operationId: user-get-access-instructions
       description: |-
         Get access instructions for a request.
 
@@ -308,7 +310,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: get-access-token
+      operationId: user-get-access-token
       description: |-
         Get access token for a request.
 
@@ -324,7 +326,7 @@ paths:
       summary: Get a user
       tags:
         - End User
-      operationId: get-user
+      operationId: user-get-user
       description: Returns a Common Fate user.
       responses:
         "200":
@@ -342,7 +344,7 @@ paths:
       summary: Get details for the current user
       tags:
         - End User
-      operationId: get-me
+      operationId: user-get-me
       description: Returns information about the currently logged in user.
       responses:
         "200":
@@ -450,6 +452,8 @@ paths:
     post:
       summary: Archive Access Rule
       operationId: admin-archive-access-rule
+      tags:
+        - Admin
       responses:
         "200":
           description: OK
@@ -586,7 +590,7 @@ paths:
         required: true
     post:
       summary: Update User
-      operationId: update-user
+      operationId: admin-update-user
       responses:
         "200":
           description: OK
@@ -623,7 +627,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListUserResponse"
-      operationId: get-users
+      operationId: admin-list-users
       description: Fetch a list of users
       parameters:
         - schema:
@@ -633,7 +637,7 @@ paths:
           description: encrypted token containing pagination info
     post:
       summary: Create User
-      operationId: create-user
+      operationId: admin-create-user
       responses:
         "201":
           description: Created
@@ -657,7 +661,7 @@ paths:
       summary: List groups
       tags:
         - Admin
-      operationId: list-groups
+      operationId: admin-list-groups
       description: Lists all active groups
       responses:
         "200":
@@ -678,7 +682,7 @@ paths:
     parameters: []
     post:
       summary: Create Group
-      operationId: create-group
+      operationId: admin-create-group
       responses:
         "201":
           description: Created
@@ -708,7 +712,7 @@ paths:
       summary: Get Group Details
       tags:
         - Admin
-      operationId: get-group
+      operationId: admin-get-group
       description: Returns information for a group.
       responses:
         "200":
@@ -739,6 +743,8 @@ paths:
     delete:
       summary: Delete Group
       operationId: admin-delete-group
+      tags:
+        - Admin
       responses:
         "200":
           description: OK
@@ -765,7 +771,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: list-providers
+      operationId: admin-list-providers
       description: List providers
     parameters: []
   "/api/v1/admin/providers/{providerId}":
@@ -784,7 +790,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: get-provider
+      operationId: admin-get-provider
       description: Get provider by id
     parameters:
       - schema:
@@ -814,8 +820,8 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: get-provider-args
-      description: gets the argSchema describing the args for this provider
+      operationId: admin-get-provider-args
+      description: Gets the argSchema describing the args for this provider
   "/api/v1/admin/providers/{providerId}/args/{argId}/options":
     parameters:
       - schema:
@@ -839,7 +845,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: list-provider-arg-options
+      operationId: admin-list-provider-arg-options
       description: "Returns the options for a particular Access Provider argument. The options may be cached. To refresh the cache, pass the `refresh` query parameter."
       parameters:
         - schema:
@@ -855,12 +861,14 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListProviderSetupsResponse"
-      operationId: list-providersetups
+      operationId: admin-list-providersetups
       description: List providers which are still in the process of being set up.
     parameters: []
     post:
       summary: Begin the setup process for a new Access Provider
-      operationId: create-providersetup
+      operationId: admin-create-providersetup
+      tags:
+        - Admin
       responses:
         "201":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -877,7 +885,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
-      operationId: get-providersetup
+      operationId: admin-get-providersetup
       description: Get the setup instructions for an Access Provider.
     parameters:
       - schema:
@@ -887,7 +895,9 @@ paths:
         required: true
     delete:
       summary: Delete an in-progress provider setup
-      operationId: delete-providersetup
+      operationId: admin-delete-providersetup
+      tags:
+        - Admin
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -907,7 +917,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProviderSetupInstructions"
-      operationId: get-providersetup-instructions
+      operationId: admin-get-providersetup-instructions
       description: Get the setup instructions for an Access Provider.
     parameters:
       - schema:
@@ -924,7 +934,7 @@ paths:
         required: true
     post:
       summary: Validate the configuration for a Provider Setup
-      operationId: validate-providersetup
+      operationId: admin-validate-providersetup
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -945,7 +955,7 @@ paths:
         required: true
     post:
       summary: Complete a ProviderSetup
-      operationId: complete-providersetup
+      operationId: admin-complete-providersetup
       tags:
         - Admin
       description: "If Runtime Configuration is enabled, this will write the Access Provider to the configuration storage and activate it. If Runtime Configuration is disabled, this endpoint does nothing."
@@ -967,7 +977,7 @@ paths:
         required: true
     put:
       summary: Update the completion status for a Provider setup step
-      operationId: submit-providersetup-step
+      operationId: admin-submit-providersetup-step
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
@@ -980,7 +990,7 @@ paths:
     parameters: []
     post:
       summary: Sync Identity
-      operationId: identity-sync
+      operationId: admin-sync-identity
       responses:
         "200":
           description: OK
@@ -1003,12 +1013,13 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: identity-configuration
+      operationId: admin-get-identity-configuration
       description: Get information about the identity configuration
   /api/v1/access-rules/lookup:
     get:
       summary: Lookup an access rule based on the target
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           description: OK
@@ -1020,7 +1031,7 @@ paths:
                   $ref: "#/components/schemas/LookupAccessRule"
         "404":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: access-rule-lookup
+      operationId: user-lookup-access-rule
       parameters:
         - schema:
             type: string
@@ -1039,20 +1050,24 @@ paths:
           in: query
           name: accountId
           description: the aws account id
-      description: endpoint returns an array of relevant access rules (used in combination with granted cli)
+      description: Endpoint returns an array of relevant access rules (used in combination with granted cli)
   /api/v1/favorites:
     get:
       summary: ListFavorites
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           $ref: "#/components/responses/ListFavoritesResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-favorites
+      description: "Returns a list of the user's favourited access requests. "
     post:
       summary: Create Favorite
       operationId: user-create-favorite
+      tags:
+        - End User
       responses:
         "201":
           description: Created
@@ -1066,12 +1081,13 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
-      description: ""
+      description: "Favorites an access request for a given user. This is used for frequent access requests saving time and repeated actions. "
     parameters: []
   "/api/v1/favorites/{id}":
     get:
       summary: Get Favorite
-      tags: []
+      tags:
+        - End User
       responses:
         "200":
           description: OK
@@ -1084,6 +1100,7 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-get-favorite
+      description: "Returns a detailed favorite response. This is used to display a favorite's details on the frontend. "
     parameters:
       - schema:
           type: string
@@ -1092,13 +1109,18 @@ paths:
         required: true
     delete:
       summary: ""
-      operationId: delete-favorite
+      operationId: user-delete-favorite
+      tags:
+        - End User
       responses:
         "200":
           description: OK
+      description: Delete a saved favorite
     put:
       summary: ""
-      operationId: update-favorite
+      operationId: user-update-favorite
+      tags:
+        - End User
       responses:
         "200":
           description: OK
@@ -1106,7 +1128,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FavoriteDetail"
-      description: ""
+      description: Update a favorite with new FavoriteDetails
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
 components:
@@ -2039,6 +2061,7 @@ components:
         - name
         - with
         - timing
+      description: "Detailed object for a Favorite. "
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2088,7 +2111,7 @@ components:
               - accessRules
               - next
     ListRequestsResponse:
-      description: Example response
+      description: Paginated list of Requests
       content:
         application/json:
           schema:
@@ -2105,7 +2128,7 @@ components:
               - requests
               - next
     ListGroupsResponse:
-      description: Example response
+      description: Returns a list of Groups
       content:
         application/json:
           schema:
@@ -2180,7 +2203,7 @@ components:
               - user
               - isAdmin
     ListRequestEventsResponse:
-      description: Example response
+      description: Paginated list of RequestEvent
       content:
         application/json:
           schema:
@@ -2254,7 +2277,7 @@ components:
             required:
               - version
     ListFavoritesResponse:
-      description: ""
+      description: Returns a list of Favorites
       content:
         application/json:
           schema:

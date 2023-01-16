@@ -125,7 +125,7 @@ func TestBuildRequestMessage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotSummary, gotMsg := BuildRequestMessage(tt.args)
+			gotSummary, gotMsg := BuildRequestReviewMessage(tt.args)
 			assert.Equal(t, tt.wantSummary, gotSummary)
 
 			gotMsgJSON, err := json.MarshalIndent(gotMsg, "", "\t")

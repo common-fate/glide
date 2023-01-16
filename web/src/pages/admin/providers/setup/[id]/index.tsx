@@ -63,11 +63,11 @@ import { CommonFateLogo } from "../../../../../components/icons/Logos";
 import { ProviderIcon } from "../../../../../components/icons/providerIcon";
 import { AdminLayout } from "../../../../../components/Layout";
 import {
-  completeProvidersetup,
-  submitProvidersetupStep,
-  useGetProvidersetup,
-  useGetProvidersetupInstructions,
-  validateProvidersetup,
+  adminCompleteProvidersetup,
+  adminSubmitProvidersetupStep,
+  useAdminGetProvidersetup,
+  useAdminGetProvidersetupInstructions,
+  adminValidateProvidersetup,
 } from "../../../../../utils/backend-client/admin/admin";
 import { ProviderSetupStepDetails } from "../../../../../utils/backend-client/types";
 import { ProviderConfigValidation } from "../../../../../utils/backend-client/types/accesshandler-openapi.yml/providerConfigValidation";
@@ -86,8 +86,8 @@ const Page = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [accordionIndex, setAccordionIndex] = useState([0]);
   const [validationErrorMsg, setValidationErrorMsg] = useState("");
-  const { data, mutate } = useGetProvidersetup(id);
-  const { data: instructions } = useGetProvidersetupInstructions(id);
+  const { data, mutate } = useAdminGetProvidersetup(id);
+  const { data: instructions } = useAdminGetProvidersetupInstructions(id);
 
   const { hasCopied, onCopy } = useClipboard(validationErrorMsg);
 
@@ -111,7 +111,7 @@ const Page = () => {
   }, [data]);
 
   const handleCompleteSetup = async () => {
-    const res = await completeProvidersetup(id);
+    const res = await adminCompleteProvidersetup(id);
     if (res.deploymentConfigUpdateRequired) {
       navigate({ to: "./finish" });
     } else {
@@ -137,7 +137,7 @@ const Page = () => {
   const handleStartTests = async () => {
     if (data != null) {
       await mutate({ ...data, status: "VALIDATING" }, { revalidate: false });
-      const res = await validateProvidersetup(id);
+      const res = await adminValidateProvidersetup(id);
 
       if (res?.configValidation.length > 0) {
         setValidationErrorMsg(
@@ -472,7 +472,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
   configValues,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { mutate } = useGetProvidersetup(setupId);
+  const { mutate } = useAdminGetProvidersetup(setupId);
   const { control, handleSubmit } = useForm<Record<string, string>>({
     defaultValues: configValues,
   });
@@ -483,7 +483,7 @@ const StepDisplay: React.FC<StepDisplayProps> = ({
     });
 
     setLoading(true);
-    const res = await submitProvidersetupStep(setupId, index, {
+    const res = await adminSubmitProvidersetupStep(setupId, index, {
       complete: true,
       configValues: filteredData,
     });

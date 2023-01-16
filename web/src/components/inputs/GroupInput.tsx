@@ -11,7 +11,7 @@ import {
   MenuOptionGroupProps,
 } from "@chakra-ui/react";
 import React from "react";
-import { useListGroups } from "../../utils/backend-client/admin/admin";
+import { useAdminListGroups } from "../../utils/backend-client/admin/admin";
 
 type Props = {
   onChange: (...event: any[]) => void;
@@ -24,7 +24,7 @@ type Props = {
  */
 
 const GroupInput = ({ ...props }: Props) => {
-  const { data, isValidating } = useListGroups({});
+  const { data, isValidating } = useAdminListGroups({});
   return (
     <Menu closeOnSelect={false}>
       <MenuButton

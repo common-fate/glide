@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
-import { useListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
+import { useAdminListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
   ArgumentRuleFormElement,
@@ -93,7 +93,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
   providerId,
 }) => {
   const { formState, watch } = useFormContext<AccessRuleFormData>();
-  const { data: argOptions } = useListProviderArgOptions(
+  const { data: argOptions } = useAdminListProviderArgOptions(
     providerId,
     argument.id
   );
@@ -201,16 +201,6 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
   // true if no argument values have been selected
   const groupSelectionRequired =
     multiSelects === undefined || multiSelects.length === 0;
-  console.log({
-    id: argument.id,
-    argumentSelectionRequired,
-    groupSelectionRequired,
-    argumentGroups,
-    multiSelects,
-    watch: watch(),
-    argument,
-    argOptions,
-  });
 
   return (
     <VStack

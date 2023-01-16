@@ -13,7 +13,7 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import React from "react";
-import { useListProviders } from "../../../../utils/backend-client/admin/admin";
+import { useAdminListProviders } from "../../../../utils/backend-client/admin/admin";
 import { Provider } from "../../../../utils/backend-client/types";
 import { ProviderIcon } from "../../../icons/providerIcon";
 
@@ -73,7 +73,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
 };
 
 export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {
-  const { data } = useListProviders();
+  const { data } = useAdminListProviders();
   const { getRootProps, getRadioProps } = useRadioGroup(props);
   const group = getRootProps();
   if (!data) {

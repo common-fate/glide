@@ -21,8 +21,8 @@ type Service struct {
 }
 
 type Cognito interface {
-	CreateGroup(context.Context, identitysync.CreateGroupOpts) (identity.IDPGroup, error)
-	CreateUser(context.Context, identitysync.CreateUserOpts) (identity.IDPUser, error)
+	AdminCreateGroup(context.Context, identitysync.CreateGroupOpts) (identity.IDPGroup, error)
+	AdminCreateUser(context.Context, identitysync.CreateUserOpts) (identity.IDPUser, error)
 	AddUserToGroup(context.Context, identitysync.AddUserToGroupOpts) error
-	UpdateUserGroups(context.Context, identitysync.UpdateUserGroupsOpts) error
+	AdminUpdateUserGroups(context.Context, identitysync.UpdateUserGroupsOpts) error
 }

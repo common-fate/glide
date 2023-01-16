@@ -13,6 +13,7 @@ import (
 // The message is in Slack message block format.
 // The summary must be plaintext and is used as the fallback
 // message in Slack notifications.
+// The mesage is addressed to userEmail (therefore this is for DMs only, no webhook support)
 func SendMessageBlocks(ctx context.Context, slackClient *slack.Client, userEmail string, message slack.Message, summary string) (timestamp string, error error) {
 	u, err := slackClient.GetUserByEmailContext(ctx, userEmail)
 	if err != nil {
