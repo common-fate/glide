@@ -93,6 +93,8 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		createRequest.Groups[i] = groupMap[group]
 	}
 
+	//approval may come in nil if not applied
+
 	for i, group := range createRequest.Approval.Groups {
 		createRequest.Approval.Groups[i] = groupMap[group]
 

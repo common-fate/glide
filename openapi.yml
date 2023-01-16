@@ -2321,6 +2321,7 @@ components:
                 $ref: '#/components/schemas/TimeConstraints'
             required:
               - groups
+              - approval
               - name
               - description
               - target

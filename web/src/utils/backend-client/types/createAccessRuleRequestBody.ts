@@ -12,7 +12,7 @@ import type { TimeConstraints } from './timeConstraints';
 export type CreateAccessRuleRequestBody = {
   /** The group IDs that the access rule applies to. */
   groups: string[];
-  approval?: ApproverConfig;
+  approval: ApproverConfig;
   name: string;
   description: string;
   target: CreateAccessRuleTarget;
