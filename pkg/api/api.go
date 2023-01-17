@@ -151,9 +151,9 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	if opts.AccessHandlerClient == nil {
 		return nil, errors.New("AccessHandlerClient must be provided")
 	}
-	if opts.RegistryProvider == nil {
-		return nil, errors.New("RegistryProvider must be provided")
-	}
+	// if opts.RegistryProvider == nil {
+	// 	return nil, errors.New("RegistryProvider must be provided")
+	// }
 
 	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
 	if err != nil {

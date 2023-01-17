@@ -8,9 +8,8 @@
 
 /**
  * Provider 
- * @deprecated
  */
-export interface Provider {
+export interface ProviderV2 {
   id: string;
   type: string;
 }

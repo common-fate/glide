@@ -774,6 +774,27 @@ paths:
       operationId: admin-list-providers
       description: List providers
     parameters: []
+  /api/v1/admin/providersv2:
+    get:
+      summary: List providers
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProviderV2"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-list-providers-v2
+      description: List providers is used to display a list of providers. Uses the new registry provider paradigm and ProviderV2 type
+    parameters: []
   "/api/v1/admin/providers/{providerId}":
     get:
       summary: List providers
@@ -1505,9 +1526,22 @@ components:
           maximum: 15724800
       required:
         - maxDurationSeconds
+    ProviderV2:
+      title: Provider
+      type: object
+      description: "Provider "
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+      required:
+        - id
+        - type
     Provider:
       title: Provider
       type: object
+      deprecated: true
       x-examples:
         AWS:
           id: string

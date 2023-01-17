@@ -15,6 +15,8 @@ type Provider struct {
 	Schema    string    `json:"schema" dynamodbav:"schema"`
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+	// URL, the url for the packaged lambda fn
+	URL string `json:"url" dynamodbav:"url"`
 }
 
 func (p *Provider) DDBKeys() (ddb.Keys, error) {
@@ -25,4 +27,3 @@ func (p *Provider) DDBKeys() (ddb.Keys, error) {
 
 	return keys, nil
 }
-

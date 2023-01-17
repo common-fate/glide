@@ -70,6 +70,7 @@ export * from './providerSetupStepDetails';
 export * from './providerSetupStepOverview';
 export * from './providerSetupValidation';
 export * from './providerSetupValidationStatus';
+export * from './providerV2';
 export * from './request';
 export * from './requestAccessRule';
 export * from './requestAccessRuleTarget';
