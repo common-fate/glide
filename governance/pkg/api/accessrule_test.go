@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/common-fate/common-fate/governance/mocks"
+	"github.com/common-fate/common-fate/governance/pkg/api/mocks"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
