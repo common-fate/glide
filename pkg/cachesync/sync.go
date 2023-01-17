@@ -8,12 +8,14 @@ import (
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/ddb"
+	prtypes "github.com/common-fate/provider-registry/pkg/types"
 )
 
 type CacheSyncer struct {
-	DB                  ddb.Storage
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	Cache               cachesvc.Service
+	DB                     ddb.Storage
+	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
+	Cache                  cachesvc.Service
+	ProviderRegistryClient prtypes.ClientWithResponsesInterface
 }
 
 // Sync will attempt to sync all argument options for all providers
@@ -56,6 +58,9 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 
 		}
 	}
+
+	// @TODO: ProviderRegistryClient
+
 	log.Info("completed syncing provider options cache")
 
 	return nil

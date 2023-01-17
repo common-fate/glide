@@ -33,6 +33,11 @@ func main() {
 		panic(err)
 	}
 
+	prc, err := internal.ProviderRegistryClient(ctx, internal.BuildProviderRegistryClientOpts{Region: cfg.Region})
+	if err != nil {
+		panic(err)
+	}
+
 	syncer := cachesync.CacheSyncer{
 		DB:                  db,
 		AccessHandlerClient: ahc,
@@ -40,6 +45,7 @@ func main() {
 			DB:                  db,
 			AccessHandlerClient: ahc,
 		},
+		ProviderRegistryClient: prc,
 	}
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {

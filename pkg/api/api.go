@@ -28,6 +28,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	providerRegistry2 "github.com/common-fate/provider-registry/pkg/types"
 
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -57,15 +58,16 @@ type API struct {
 	DB               ddb.Storage
 	DeploymentConfig deploy.DeployConfigReader
 	// Requests is the service which provides business logic for Access Requests.
-	Access              AccessService
-	Rules               AccessRuleService
-	ProviderSetup       ProviderSetupService
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	AdminGroup          string
-	IdentityProvider    string
-	Granter             accesssvc.Granter
-	Cache               CacheService
-	IdentitySyncer      auth.IdentitySyncer
+	Access                 AccessService
+	Rules                  AccessRuleService
+	ProviderSetup          ProviderSetupService
+	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
+	RegistryProviderClient providerRegistry2.ClientWithResponsesInterface
+	AdminGroup             string
+	IdentityProvider       string
+	Granter                accesssvc.Granter
+	Cache                  CacheService
+	IdentitySyncer         auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito          CognitoService
 	InternalIdentity InternalIdentityService
@@ -127,6 +129,7 @@ var _ types.ServerInterface = &API{}
 type Opts struct {
 	Log                 *zap.SugaredLogger
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
+	RegistryProvider    providerRegistry2.ClientWithResponsesInterface
 	EventSender         *gevent.Sender
 	IdentitySyncer      auth.IdentitySyncer
 	DeploymentConfig    deploy.DeployConfigReader
@@ -147,6 +150,9 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	}
 	if opts.AccessHandlerClient == nil {
 		return nil, errors.New("AccessHandlerClient must be provided")
+	}
+	if opts.RegistryProvider == nil {
+		return nil, errors.New("RegistryProvider must be provided")
 	}
 
 	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)

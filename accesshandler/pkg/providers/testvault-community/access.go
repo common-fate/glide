@@ -139,7 +139,10 @@ func invokeLambda(ctx context.Context,
 	argsStr := `{"group": "testCF","account":"testCF","permission_set":"testCF"}`
 	var args any
 
-	json.Unmarshal([]byte(argsStr), &args)
+	err = json.Unmarshal([]byte(argsStr), &args)
+	if err != nil {
+		return err
+	}
 
 	payload := Payload{
 		Type: "grant",

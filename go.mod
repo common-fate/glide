@@ -23,7 +23,8 @@ require (
 	github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed
 	github.com/common-fate/cloudform v0.3.0
 	github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73
-	github.com/common-fate/iso8601 v1.0.2
+	github.com/common-fate/iso8601 v1.1.0
+	github.com/common-fate/provider-registry v0.0.0-20230116055124-bfc2079ca723
 	github.com/deepmap/oapi-codegen v1.11.0
 	github.com/getkin/kin-openapi v0.98.0
 	github.com/getsentry/sentry-go v0.13.0
@@ -31,8 +32,8 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-memdb v1.3.3
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/magefile/mage v1.13.0
-	github.com/mattn/go-colorable v0.1.12
+	github.com/magefile/mage v1.14.0
+	github.com/mattn/go-colorable v0.1.13
 	github.com/okta/okta-sdk-golang/v2 v2.13.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
@@ -93,7 +94,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/labstack/echo/v4 v4.7.2 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
@@ -146,9 +147,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.17 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.11
+	github.com/aws/aws-sdk-go-v2/service/sts v1.17.5
 	github.com/aws/smithy-go v1.13.4
 	github.com/benbjohnson/clock v1.3.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
@@ -172,10 +173,10 @@ require (
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
-	github.com/BurntSushi/toml v1.2.0 // indirect
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
-	github.com/aws/aws-lambda-go v1.32.0
+	github.com/aws/aws-lambda-go v1.34.1
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.6
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.18.2
 	github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.16.10
@@ -185,9 +186,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
-	github.com/briandowns/spinner v1.18.1
+	github.com/briandowns/spinner v1.19.0
 	github.com/common-fate/analytics-go v0.1.0
-	github.com/common-fate/clio v1.0.0
+	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
@@ -198,7 +199,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/slack-go/slack v0.11.2
 	github.com/stretchr/testify v1.8.1
-	github.com/urfave/cli/v2 v2.11.1
+	github.com/urfave/cli/v2 v2.23.5
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/sync v0.1.0
