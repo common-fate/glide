@@ -28,6 +28,9 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 				if err != nil {
 					return diagnostics.Error(err)
 				}
+
+				//check if username is email first. Then fallback on a manual lookup of each email for each user in aws sso
+
 				res, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
 					IdentityStoreId: aws.String(p.identityStoreID.Get()),
 					Filters: []types.Filter{{
@@ -39,14 +42,42 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 					return diagnostics.Error(err)
 				}
 
-				if len(res.Users) == 0 {
-					return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
+				if len(res.Users) != 0 {
+					return diagnostics.Info("User exists in AWS SSO")
 				}
-				if len(res.Users) > 1 {
-					// this should never happen, but check it anyway.
-					return diagnostics.Error(fmt.Errorf("expected 1 user but found %v", len(res.Users)))
+
+				//Fallback attempt at finding a users email
+				//Pull all users and check if emails match to find if user exists in AWS SSO
+				//This was required as filtering on Username, does not always work since some users do not use email as their username in AWS SSO
+				hasMore := true
+				var nextToken *string
+				for hasMore {
+
+					listUsers, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+						IdentityStoreId: aws.String(p.identityStoreID.Get()),
+						NextToken:       nextToken,
+					})
+					if err != nil {
+						return diagnostics.Error(err)
+					}
+
+					for _, u := range listUsers.Users {
+						//there should always only be one email but to avoid empty list errors we loop  the emails
+						for _, email := range u.Emails {
+							if *email.Value == subject {
+								return diagnostics.Info("User exists in SSO")
+							}
+						}
+
+					}
+
+					nextToken = listUsers.NextToken
+					hasMore = nextToken != nil
 				}
-				return diagnostics.Info("User exists in SSO")
+
+				//if we got here the user was never found
+				return diagnostics.Error(fmt.Errorf("could not find user %s in AWS SSO", subject))
+
 			},
 		},
 		"permission-set-should-exist": {
