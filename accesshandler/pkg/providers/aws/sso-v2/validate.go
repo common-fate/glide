@@ -43,7 +43,7 @@ func (p *Provider) ValidateGrant() providers.GrantValidationSteps {
 				}
 
 				if len(res.Users) != 0 {
-					return diagnostics.Info("User exists in SSO")
+					return diagnostics.Info("User exists in AWS SSO")
 				}
 
 				//Fallback attempt at finding a users email
