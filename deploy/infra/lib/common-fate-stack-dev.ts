@@ -12,7 +12,6 @@ import { EventBus } from "./constructs/events";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
-import { access } from "fs";
 import { Governance } from "./constructs/governance";
 
 interface Props extends cdk.StackProps {

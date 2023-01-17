@@ -2,22 +2,20 @@ import * as cdk from "aws-cdk-lib";
 import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as kms from "aws-cdk-lib/aws-kms";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { Construct } from "constructs";
 import * as path from "path";
+import { AccessHandler } from "./access-handler";
 import { WebUserPool } from "./app-user-pool";
+import { CacheSync } from "./cache-sync";
 import { EventHandler } from "./event-handler";
+import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
-import { AccessHandler } from "./access-handler";
-import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
-import { CacheSync } from "./cache-sync";
-import { AuthorizationType } from "aws-cdk-lib/aws-apigateway";
-import { Governance } from "./governance";
 
 interface Props {
   appName: string;

@@ -1,16 +1,12 @@
-import { Duration, Stack } from "aws-cdk-lib";
+import * as cdk from "aws-cdk-lib";
+import { Duration } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import { EventBus } from "aws-cdk-lib/aws-events";
-import * as iam from "aws-cdk-lib/aws-iam";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import { WebUserPool } from "./app-user-pool";
-import * as cdk from "aws-cdk-lib";
 import { AccessHandler } from "./access-handler";
-import * as kms from "aws-cdk-lib/aws-kms";
 
 interface Props {
   appName: string;
