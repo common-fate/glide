@@ -137,7 +137,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					FirstName: "larry",
 					LastName:  "brown",
 					Email:     "larry@test.go",
-					Groups:    []string{"1234", "5678"},
+					Groups:    []string{"internalEveryoneId", "larrysGroupId"},
 					Status:    types.IdpStatusACTIVE,
 					CreatedAt: now,
 					UpdatedAt: now,
@@ -147,7 +147,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					FirstName: "josh",
 					LastName:  "wilkes",
 					Email:     "josh@test.go",
-					Groups:    []string{"1234"},
+					Groups:    []string{"internalEveryoneId"},
 					Status:    types.IdpStatusACTIVE,
 					CreatedAt: now,
 					UpdatedAt: now,
@@ -155,7 +155,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			},
 			giveInternalGroups: []identity.Group{
 				{
-					ID:          "1234",
+					ID:          "internalEveryoneId",
 					IdpID:       "internalEveryoneId",
 					Name:        "everyone",
 					Description: "a description",
@@ -166,7 +166,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Source:      "OKTA",
 				},
 				{
-					ID:          "5678",
+					ID:          "larrysGroupId",
 					IdpID:       "larrysGroupId",
 					Name:        "larrysGroup",
 					Description: "a description",
@@ -191,14 +191,14 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					FirstName: "larry",
 					LastName:  "browner",
 					Email:     "larry@test.go",
-					Groups:    []string{"5678"},
+					Groups:    []string{"larrysGroupId"},
 					Status:    types.IdpStatusACTIVE,
 					CreatedAt: now,
 				},
 			},
 			wantGroupMap: map[string]identity.Group{
 				"internalEveryoneId": {
-					ID:          "1234",
+					ID:          "internalEveryoneId",
 					IdpID:       "internalEveryoneId",
 					Name:        "everyone",
 					Description: "a description",
@@ -208,7 +208,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Source:      "OKTA",
 				},
 				"larrysGroupId": {
-					ID:          "5678",
+					ID:          "larrysGroupId",
 					IdpID:       "larrysGroupId",
 					Name:        "larrysGroupNewName",
 					Description: "a different description",
@@ -253,6 +253,67 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Users:       []string{},
 					CreatedAt:   now,
 					UpdatedAt:   now,
+				},
+			},
+		},
+		{
+			name: "user with non-existent group",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Groups: []string{
+						"internalEveryoneId",
+						"doesnt-exist",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "internalEveryoneId",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+				},
+			},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "internalEveryoneId",
+					IdpID:       "internalEveryoneId",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+			},
+			wantUserMap: map[string]identity.User{
+				"josh@test.go": {
+					ID:        "user1",
+					FirstName: "josh",
+					LastName:  "wilkes",
+					Email:     "josh@test.go",
+					Status:    types.IdpStatusACTIVE,
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"internalEveryoneId": {
+					ID:          "internalEveryoneId",
+					IdpID:       "internalEveryoneId",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users: []string{
+						"user1",
+					},
 				},
 			},
 		},

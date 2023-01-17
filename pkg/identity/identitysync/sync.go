@@ -221,8 +221,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 
 		// This map ensures we have a distinct list of ids
 		internalGroupIds := map[string]string{}
-		for _, idpGroupId := range idpUser.Groups {
-			gid := ddbGroupMap[idpGroupId].ID
+		for _, gid := range idpUser.Groups {
 			internalGroupIds[gid] = gid
 			uid := ddbUserMap[idpUser.Email].ID
 
