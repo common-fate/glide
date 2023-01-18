@@ -6,7 +6,7 @@ import {
   SkeletonText,
 } from "@chakra-ui/react";
 import React from "react";
-import { useGetUser } from "../utils/backend-client/end-user/end-user";
+import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 
 import { UserAvatarDetails } from "./UserAvatar";
 import { BotAvatarDetails } from "./BotAvatar";
@@ -25,7 +25,7 @@ interface CFAvatarProps extends AvatarProps {
 
 // UserAvatar loads a user avatar from a user ID
 export const CFAvatar: React.FC<CFAvatarProps> = ({ userId }) => {
-  const { data, isValidating } = useGetUser(userId);
+  const { data, isValidating } = useUserGetUser(userId);
 
   if (!data && isValidating) {
     return (
