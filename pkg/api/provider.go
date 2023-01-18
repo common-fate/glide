@@ -1,11 +1,9 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -43,33 +41,6 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 	}
 
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
-}
-
-func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
-	ctx := r.Context()
-	res, err := a.AccessHandlerClient.GetProviderArgsWithResponse(ctx, providerId)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	code := res.StatusCode()
-	switch code {
-	case 200:
-		apio.JSON(ctx, w, res.JSON200, code)
-		return
-	case 404:
-		apio.JSON(ctx, w, res.JSON404, code)
-		return
-	case 500:
-		apio.JSON(ctx, w, res.JSON500, code)
-		return
-	default:
-		if err != nil {
-			logger.Get(ctx).Errorw("unhandled access handler response", "response", string(res.Body))
-			apio.Error(ctx, w, errors.New("unhandled response code"))
-			return
-		}
-	}
 }
 
 // List provider arg options
