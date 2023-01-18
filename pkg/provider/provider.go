@@ -3,6 +3,7 @@ package provider
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -23,6 +24,13 @@ func (p Provider) ToAPI() types.Provider {
 	return types.Provider{
 		Id:   p.ID,
 		Type: p.Type,
+		// TODO REPLACE HARDCODED SCHEMA
+		Schema: types.ArgSchema{"vault": {
+			Id:              "vault",
+			Title:           "Vault",
+			Description:     aws.String("The name of an example vault to grant access to (can be any string)"),
+			RuleFormElement: types.ArgumentRuleFormElementINPUT,
+		}},
 	}
 }
 

@@ -6,7 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-/**
- * The current configuration values.
- */
-export type ProviderSetupConfigValues = { [key: string]: any };
+export interface ProviderGroup {
+  id: string;
+  title: string;
+  description?: string;
+}

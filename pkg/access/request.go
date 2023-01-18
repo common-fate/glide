@@ -221,7 +221,7 @@ func (r *Request) DDBKeys() (ddb.Keys, error) {
 		if r.Grant != nil {
 			//any grant status other than revoked or error should be equal to grant.end.
 			//this is to make sure the error and revoke grants are pushed to the past column in the frontend
-			if !(r.Grant.Status == ac_types.GrantStatusREVOKED || r.Grant.Status == ac_types.GrantStatusERROR) {
+			if !(r.Grant.Status == ac_types.REVOKED || r.Grant.Status == ac_types.ERROR) {
 				end = r.Grant.End
 			}
 		} else if r.IsScheduled() {

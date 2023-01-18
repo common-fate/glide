@@ -77,7 +77,7 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 	}
 
 	//update the grant status
-	grant.Status = types.GrantStatusREVOKED
+	grant.Status = types.REVOKED
 
 	return &grant, nil
 }

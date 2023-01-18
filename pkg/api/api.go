@@ -8,7 +8,6 @@ import (
 
 	"github.com/benbjohnson/clock"
 
-	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
@@ -19,14 +18,12 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
-	"github.com/common-fate/common-fate/pkg/providersetup"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
-	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 
 	"github.com/common-fate/common-fate/pkg/types"
@@ -59,7 +56,6 @@ type API struct {
 	// Requests is the service which provides business logic for Access Requests.
 	Access              AccessService
 	Rules               AccessRuleService
-	ProviderSetup       ProviderSetupService
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	// RegistryProviderClient providerRegistry2.ClientWithResponsesInterface
 	AdminGroup       string
@@ -76,14 +72,6 @@ type API struct {
 type CognitoService interface {
 	AdminCreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
 	AdminUpdateUserGroups(ctx context.Context, in cognitosvc.UpdateUserGroupsOpts) (*identity.User, error)
-}
-
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providersetup_service.go -package=mocks . ProviderSetupService
-
-// ProviderSetupService contains business logic for managing the guided provider setup workflows.
-type ProviderSetupService interface {
-	Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error)
-	CompleteStep(ctx context.Context, setupID string, stepIndex int, body types.ProviderSetupStepCompleteRequest) (*providersetup.Setup, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_access_service.go -package=mocks . AccessService
@@ -216,11 +204,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				DB:                   db,
 				AccessHandlerClient:  opts.AccessHandlerClient,
 			},
-		},
-		ProviderSetup: &psetupsvc.Service{
-			DB:               db,
-			TemplateData:     opts.TemplateData,
-			DeploymentSuffix: opts.DeploymentSuffix,
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,

@@ -5,6 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Group } from './group';
+import type { ProviderGroup } from './providerGroup';
 
-export type ArgumentGroups = {[key: string]: Group};
+export type ArgumentGroups = {[key: string]: ProviderGroup};

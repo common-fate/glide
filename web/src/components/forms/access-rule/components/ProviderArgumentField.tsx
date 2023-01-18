@@ -14,17 +14,18 @@ import {
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { useAdminListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
-import {
-  Argument,
-  ArgumentRuleFormElement,
-  GroupOption,
-  Option,
-} from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
 import { AccessRuleFormData } from "../CreateForm";
 import { RefreshButton } from "../steps/Provider";
 import { MultiSelect } from "./Select";
+import {
+  Argument,
+  ArgumentRuleFormElement,
+  GroupOption,
+} from "../../../../utils/backend-client/types";
+import { Option } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 
 interface ProviderArgumentFieldProps {
   argument: Argument;
