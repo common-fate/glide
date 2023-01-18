@@ -5,8 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { Argument } from './argument';
 
-export type CreateProviderSetupRequestBody = {
-  /** The type of the provider to set up. */
-  providerType: string;
-};
+export interface ArgSchema {[key: string]: Argument}

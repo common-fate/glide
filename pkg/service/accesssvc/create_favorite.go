@@ -79,8 +79,8 @@ func (s *Service) validateFavorite(ctx context.Context, user identity.User, in t
 	if in.With != nil {
 		for _, w := range *in.With {
 			// omit any empty sections
-			if w.AdditionalProperties != nil {
-				favorite.With = append(favorite.With, w.AdditionalProperties)
+			if w != nil {
+				favorite.With = append(favorite.With, w)
 			}
 		}
 	}

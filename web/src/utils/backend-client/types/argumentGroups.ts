@@ -5,8 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { ProviderGroup } from './providerGroup';
 
-/**
- * The provider's configuration.
- */
-export type ValidateRequestBodyWith = {[key: string]: string};
+export type ArgumentGroups = {[key: string]: ProviderGroup};

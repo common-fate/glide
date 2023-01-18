@@ -24,9 +24,9 @@ const (
 )
 
 type Grant struct {
-	Provider string              `json:"provider" dynamodbav:"provider"`
-	Subject  string              `json:"subject" dynamodbav:"subject"`
-	With     ac_types.Grant_With `json:"with" dynamodbav:"with"`
+	Provider string            `json:"provider" dynamodbav:"provider"`
+	Subject  string            `json:"subject" dynamodbav:"subject"`
+	With     map[string]string `json:"with" dynamodbav:"with"`
 	//the time which the grant starts
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
@@ -163,9 +163,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, reques
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
-		Arguments: types.RequestDetail_Arguments{
-			AdditionalProperties: make(map[string]types.With),
-		},
+		Arguments:      make(map[string]types.With),
 	}
 
 	// gets the option properties from requestArgumenst and maps to the fields selected for this request.
@@ -197,7 +195,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, reques
 			Value:             option.Value,
 			OptionDescription: option.Description,
 		}
-		req.Arguments.AdditionalProperties[k] = with
+		req.Arguments[k] = with
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()
@@ -223,7 +221,7 @@ func (r *Request) DDBKeys() (ddb.Keys, error) {
 		if r.Grant != nil {
 			//any grant status other than revoked or error should be equal to grant.end.
 			//this is to make sure the error and revoke grants are pushed to the past column in the frontend
-			if !(r.Grant.Status == ac_types.GrantStatusREVOKED || r.Grant.Status == ac_types.GrantStatusERROR) {
+			if !(r.Grant.Status == ac_types.REVOKED || r.Grant.Status == ac_types.ERROR) {
 				end = r.Grant.End
 			}
 		} else if r.IsScheduled() {

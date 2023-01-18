@@ -51,7 +51,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 
 	// add the arguments from the schema
 	requestArguments := make(map[string]types.RequestArgument)
-	for k, v := range providerSchema.AdditionalProperties {
+	for k, v := range providerSchema {
 		var requestFormElement *types.RequestArgumentFormElement
 		if v.RequestFormElement != nil {
 			requestFormElement = (*types.RequestArgumentFormElement)(v.RequestFormElement)
@@ -131,7 +131,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 					Label: argValue,
 					// If the field is an input, it won't match any options, but its still valid for selection!
 					// the label and value are the same for an input field
-					Valid: providerSchema.AdditionalProperties[argId].RuleFormElement == ahtypes.ArgumentRuleFormElementINPUT,
+					Valid: providerSchema[argId].RuleFormElement == ahtypes.ArgumentRuleFormElementINPUT,
 					Value: argValue,
 				}
 

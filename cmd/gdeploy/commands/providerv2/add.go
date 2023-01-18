@@ -13,8 +13,10 @@ var addv2Command = cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Usage: "An identifier for the provider"},
 		&cli.StringFlag{Name: "name", Usage: "An name for the provider"},
-		&cli.StringFlag{Name: "version", Usage: "An version for the provider"},
 		&cli.StringFlag{Name: "url", Usage: "An url for the provider"},
+		&cli.StringFlag{Name: "type", Usage: "A type for the provider"},
+		&cli.StringFlag{Name: "version", Usage: "An version for the provider"},
+		&cli.StringFlag{Name: "schema", Usage: "An schema for the provider"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
@@ -33,7 +35,7 @@ var addv2Command = cli.Command{
 		if err != nil {
 			return err
 		}
-		provider := provider.Provider{ID: c.String("id"), Name: c.String("name"), Version: c.String("version"), URL: c.String("url")}
+		provider := provider.Provider{ID: c.String("id"), Name: c.String("name"), Version: c.String("version"), Schema: c.String("schema"), Type: c.String("type"), URL: c.String("url")}
 
 		err = db.Put(ctx, &provider)
 		if err != nil {

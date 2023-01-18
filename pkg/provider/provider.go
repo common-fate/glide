@@ -10,6 +10,7 @@ import (
 
 type Provider struct {
 	ID      string `json:"id" dynamodbav:"id"`
+	Type    string `json:"type" dynamodbav:"type"`
 	Name    string `json:"name" dynamodbav:"name"`
 	Version string `json:"version" dynamodbav:"version"`
 	// Schema is the list of available args the provider supports

@@ -59,7 +59,7 @@ func TestCancelRequest(t *testing.T) {
 			getRequestResponse: &access.Request{
 				RequestedBy: "abcd",
 				Status:      access.APPROVED,
-				Grant:       &access.Grant{Status: types.GrantStatusACTIVE},
+				Grant:       &access.Grant{Status: types.ACTIVE},
 			},
 			wantErr: ErrRequestCannotBeCancelled,
 		},
@@ -96,7 +96,7 @@ func TestCancelRequest(t *testing.T) {
 			getRequestResponse: &access.Request{
 				RequestedBy: "abcd",
 				Status:      access.APPROVED,
-				Grant:       &access.Grant{Status: types.GrantStatusREVOKED},
+				Grant:       &access.Grant{Status: types.REVOKED},
 			},
 			wantErr: ErrRequestCannotBeCancelled,
 		},

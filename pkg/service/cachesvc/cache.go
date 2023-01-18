@@ -59,7 +59,7 @@ func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId s
 	var q2 storage.ListCachedProviderArgGroupOptionsForArg
 	// Here we only fetch the groups cache for a provider argument if groups are enabled in the schema
 	// this avoids refetching the cache everytime for arguments which do not have any groups
-	if argument.Groups != nil && len(argument.Groups.AdditionalProperties) > 0 {
+	if argument.Groups != nil && len(*argument.Groups) > 0 {
 		q2 = storage.ListCachedProviderArgGroupOptionsForArg{
 			ProviderID: providerId,
 			ArgID:      argId,
@@ -134,7 +134,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 
 	var cachedGroups []cache.ProviderArgGroupOption
 	if res.Groups != nil {
-		for k, v := range res.Groups.AdditionalProperties {
+		for k, v := range *res.Groups {
 			for _, option := range v {
 				op := cache.ProviderArgGroupOption{
 					Provider:    providerId,

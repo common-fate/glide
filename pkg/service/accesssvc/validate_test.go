@@ -41,10 +41,8 @@ func TestValidateFavorite(t *testing.T) {
 					DurationSeconds: 3600,
 				},
 				With: &[]types.CreateRequestWith{
-					{
-						AdditionalProperties: map[string][]string{
-							"accountId": {"a", "b"},
-						},
+					map[string][]string{
+						"accountId": {"a", "b"},
 					},
 				},
 			},
@@ -193,10 +191,8 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{
-								"accountId": {"a", "b"},
-							},
+						map[string][]string{
+							"accountId": {"a", "b"},
 						},
 					},
 				},
@@ -222,15 +218,11 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{
-								"accountId": {"a", "b"},
-							},
+						map[string][]string{
+							"accountId": {"a", "b"},
 						},
-						{
-							AdditionalProperties: map[string][]string{
-								"accountId": {},
-							},
+						map[string][]string{
+							"accountId": {},
 						},
 					},
 				},
@@ -254,15 +246,11 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{
-								"accountId": {"a", "b"},
-							},
+						map[string][]string{
+							"accountId": {"a", "b"},
 						},
-						{
-							AdditionalProperties: map[string][]string{
-								"accountId": {"a", "b"},
-							},
+						map[string][]string{
+							"accountId": {"a", "b"},
 						},
 					},
 				},
@@ -284,9 +272,7 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{},
-						},
+						map[string][]string{},
 					},
 				},
 				User: identity.User{
@@ -311,9 +297,7 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{"vault": {"values"}},
-						},
+						map[string][]string{"vault": {"values"}},
 					},
 				},
 				User: identity.User{
@@ -334,14 +318,10 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{
-								"accountId": {"a", "b"},
-							},
+						map[string][]string{
+							"accountId": {"a", "b"},
 						},
-						{
-							AdditionalProperties: map[string][]string{},
-						},
+						map[string][]string{},
 					},
 				},
 				User: identity.User{
@@ -362,10 +342,8 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{
-								"wrong": {"a", "b"},
-							},
+						map[string][]string{
+							"wrong": {"a", "b"},
 						},
 					},
 				},
@@ -387,10 +365,8 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{
-								"wrong": {"a", "wrong"},
-							},
+						map[string][]string{
+							"wrong": {"a", "wrong"},
 						},
 					},
 				},
@@ -412,12 +388,8 @@ func TestValidateCreate(t *testing.T) {
 						DurationSeconds: 3600,
 					},
 					With: &[]types.CreateRequestWith{
-						{
-							AdditionalProperties: map[string][]string{},
-						},
-						{
-							AdditionalProperties: map[string][]string{},
-						},
+						map[string][]string{},
+						map[string][]string{},
 					},
 				},
 				User: identity.User{

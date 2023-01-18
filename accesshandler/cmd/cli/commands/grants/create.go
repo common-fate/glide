@@ -23,9 +23,7 @@ var CreateCommand = cli.Command{
 			Start:    iso8601.New(time.Now().Add(time.Second * 2)),
 			End:      iso8601.New(time.Now().Add(time.Hour)),
 			Provider: "cf-dev",
-			With: types.CreateGrant_With{
-				AdditionalProperties: map[string]string{"accountId": "123451234512"},
-			},
+			With:     map[string]string{"accountId": "123451234512"},
 		}
 
 		res, err := api.PostGrantsWithResponse(c.Context, b)

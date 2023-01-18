@@ -162,14 +162,11 @@ func TestProcessTarget(t *testing.T) {
 			name: "ok testvault with input element",
 			give: types.CreateAccessRuleTarget{
 				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"vault": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"example-vault"},
-						},
+				With: map[string]types.CreateAccessRuleTargetDetailArguments{
+					"vault": {
+						Groupings: map[string][]string{},
+
+						Values: []string{"example-vault"},
 					},
 				},
 			},
@@ -201,20 +198,16 @@ func TestProcessTarget(t *testing.T) {
 			name: "ok single value for field is stored in target.With, all other fields on target are empty",
 			give: types.CreateAccessRuleTarget{
 				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"accountId": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"account1"},
-						},
-						"permissionSetArn": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"abcdefg"},
-						},
+				With: map[string]types.CreateAccessRuleTargetDetailArguments{
+					"accountId": {
+						Groupings: map[string][]string{},
+
+						Values: []string{"account1"},
+					},
+					"permissionSetArn": {
+						Groupings: map[string][]string{},
+
+						Values: []string{"abcdefg"},
 					},
 				},
 			},
@@ -245,20 +238,16 @@ func TestProcessTarget(t *testing.T) {
 			name: "ok single value for field is stored in target.WithSelectable, all other fields on target are empty",
 			give: types.CreateAccessRuleTarget{
 				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"accountId": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"account1", "account2"},
-						},
-						"permissionSetArn": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"abcdefg"},
-						},
+				With: map[string]types.CreateAccessRuleTargetDetailArguments{
+					"accountId": {
+						Groupings: map[string][]string{},
+
+						Values: []string{"account1", "account2"},
+					},
+					"permissionSetArn": {
+						Groupings: map[string][]string{},
+
+						Values: []string{"abcdefg"},
 					},
 				},
 			},
@@ -289,20 +278,16 @@ func TestProcessTarget(t *testing.T) {
 			name: "ok group is provided for one of teh arguments",
 			give: types.CreateAccessRuleTarget{
 				ProviderId: "abcd",
-				With: types.CreateAccessRuleTarget_With{
-					AdditionalProperties: map[string]types.CreateAccessRuleTargetDetailArguments{
-						"accountId": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{"organizationalUnit": {"orgunit1", "orgunit2"}},
-							},
-							Values: []string{"account1", "account2"},
-						},
-						"permissionSetArn": {
-							Groupings: types.CreateAccessRuleTargetDetailArguments_Groupings{
-								AdditionalProperties: map[string][]string{},
-							},
-							Values: []string{"abcdefg"},
-						},
+				With: map[string]types.CreateAccessRuleTargetDetailArguments{
+					"accountId": {
+						Groupings: map[string][]string{"organizationalUnit": {"orgunit1", "orgunit2"}},
+
+						Values: []string{"account1", "account2"},
+					},
+					"permissionSetArn": {
+						Groupings: map[string][]string{},
+
+						Values: []string{"abcdefg"},
 					},
 				},
 			},

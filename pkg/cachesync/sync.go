@@ -18,7 +18,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	prtypes "github.com/common-fate/provider-registry/pkg/types"
+	prtypes "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 type CacheSyncer struct {
@@ -114,7 +114,7 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 				log.Errorw("failed to get provider schema", "providerId", provider.Id, "responseBody", string(providers.Body))
 				continue
 			}
-			for k, v := range providerSchema.JSON200.AdditionalProperties {
+			for k, v := range *providerSchema.JSON200 {
 				// Only fetch options for arguments which support it
 				// Currently only the Multiselect type has options, if we add other field types we may need to sync the options for those as well
 				if v.RuleFormElement == ahtypes.ArgumentRuleFormElementMULTISELECT {

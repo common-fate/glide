@@ -5,8 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { GroupOption } from './groupOption';
 
-/**
- * The current configuration values.
- */
-export type ProviderSetupConfigValues = { [key: string]: any };
+export interface Groups {[key: string]: GroupOption[]}

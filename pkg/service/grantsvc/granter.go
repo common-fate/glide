@@ -80,7 +80,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 		return nil, ErrNoGrant
 	}
 	//Cannot request to revoke/cancel grant if it is not active or pending (state function has been created and executed)
-	canRevoke := opts.Request.Grant.Status == ahTypes.GrantStatusACTIVE || opts.Request.Grant.Status == ahTypes.GrantStatusPENDING
+	canRevoke := opts.Request.Grant.Status == ahTypes.ACTIVE || opts.Request.Grant.Status == ahTypes.PENDING
 
 	if !canRevoke || opts.Request.Grant.End.Before(g.Clock.Now()) {
 		return nil, ErrGrantInactive
@@ -94,7 +94,7 @@ func (g *Granter) RevokeGrant(ctx context.Context, opts RevokeGrantOpts) (*acces
 
 	if res.JSON200 != nil {
 		oldStatus := opts.Request.Grant.Status
-		opts.Request.Grant.Status = ahTypes.GrantStatusREVOKED
+		opts.Request.Grant.Status = ahTypes.REVOKED
 		opts.Request.Grant.UpdatedAt = g.Clock.Now()
 		items, err := dbupdate.GetUpdateRequestItems(ctx, g.DB, opts.Request)
 		if err != nil {
@@ -277,9 +277,8 @@ func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGran
 	req := ahTypes.CreateGrant{
 		Id:       opts.Request.ID,
 		Provider: opts.AccessRule.Target.ProviderID,
-		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
+		With:     make(map[string]string),
+
 		Subject: openapi_types.Email(q.Result.Email),
 		Start:   iso8601.New(start),
 		End:     iso8601.New(end),
@@ -287,10 +286,10 @@ func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGran
 
 	//todo: rework this to be used safely around the codebase
 	for k, v := range opts.AccessRule.Target.With {
-		req.With.AdditionalProperties[k] = v
+		req.With[k] = v
 	}
 	for k, v := range opts.Request.SelectedWith {
-		req.With.AdditionalProperties[k] = v.Value
+		req.With[k] = v.Value
 	}
 	return req, nil
 }

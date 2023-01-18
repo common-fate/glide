@@ -14,7 +14,6 @@ import { ArgumentRuleFormElement } from "../../../../utils/backend-client/types/
 import {
   adminListProviderArgOptions,
   useAdminGetProvider,
-  useAdminGetProviderArgs,
   useAdminListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
 
@@ -30,12 +29,8 @@ export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
 
-  const { data: provider, isValidating: ivp } = useAdminGetProvider(
-    target?.providerId
-  );
-  const { data: providerArgs, isValidating: ivpa } = useAdminGetProviderArgs(
-    target?.providerId ?? ""
-  );
+  const { data: provider, isValidating: isValidatingProvider } =
+    useAdminGetProvider(target?.providerId);
 
   const Preview = () => {
     if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
@@ -43,7 +38,7 @@ export const ProviderStep: React.FC = () => {
     }
     return <ProviderPreview provider={provider} />;
   };
-  const isFieldLoading = (!provider && ivp) || (!providerArgs && ivpa);
+  const isFieldLoading = !provider && isValidatingProvider;
 
   return (
     <FormStep
@@ -76,9 +71,9 @@ export const ProviderStep: React.FC = () => {
 
           <FormErrorMessage>Provider is required</FormErrorMessage>
         </FormControl>
-        {providerArgs &&
+        {provider?.schema &&
           target?.providerId &&
-          Object.values(providerArgs).map((v) => (
+          Object.values(provider.schema).map((v) => (
             <ProviderArgumentField
               argument={v}
               providerId={target?.providerId}

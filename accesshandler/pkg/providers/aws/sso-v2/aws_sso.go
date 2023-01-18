@@ -81,12 +81,10 @@ func (p *Provider) ArgSchema() providers.ArgSchema {
 			Title:           "Account",
 			Description:     aws.String("The AWS Account ID"),
 			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
-			Groups: &types.Argument_Groups{
-				AdditionalProperties: map[string]types.Group{
-					"organizationalUnit": {
-						Title: "Organizational Unit",
-						Id:    "organizationalUnit",
-					},
+			Groups: &map[string]types.Group{
+				"organizationalUnit": {
+					Title: "Organizational Unit",
+					Id:    "organizationalUnit",
 				},
 			},
 		},

@@ -5,6 +5,7 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { ArgSchema } from './argSchema';
 
 /**
  * Provider 
@@ -13,4 +14,5 @@
 export interface Provider {
   id: string;
   type: string;
+  schema: ArgSchema;
 }

@@ -80,16 +80,13 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:    make(map[string]string),
 			},
 			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
 				Id:       "123",
 				Provider: "OKTA",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:     make(map[string]string),
+
 				Subject: "test@test.com",
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
@@ -147,16 +144,13 @@ func TestCreateGrant(t *testing.T) {
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
 				Subject: "test@test.com",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:    make(map[string]string),
 			},
 			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
 				Id:       "123",
 				Provider: "OKTA",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:     make(map[string]string),
+
 				Subject: "test@test.com",
 				Start:   iso8601.New(overrideStart),
 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),

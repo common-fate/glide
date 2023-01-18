@@ -10,6 +10,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
@@ -33,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	prc, err := internal.ProviderRegistryClient(ctx, internal.BuildProviderRegistryClientOpts{Region: cfg.Region})
+	prc, err := providerregistrysdk.NewClientWithResponses("TODO")
 	if err != nil {
 		panic(err)
 	}

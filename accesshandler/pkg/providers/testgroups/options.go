@@ -18,12 +18,7 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 			})
 		}
 		description := "a category containing all groups"
-		opts.Groups = &types.Groups{
-			AdditionalProperties: make(map[string][]types.GroupOption),
-		}
-		opts.Groups.AdditionalProperties["category"] = []types.GroupOption{
-			{Label: "all", Children: p.groups, Description: &description, Value: "all"},
-		}
+		opts.Groups = &types.Groups{"category": {{Label: "all", Children: p.groups, Description: &description, Value: "all"}}}
 
 		return &opts, nil
 	}

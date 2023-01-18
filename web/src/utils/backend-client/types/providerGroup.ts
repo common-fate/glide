@@ -6,9 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface ProviderConfigValue {
-  /** The ID of the config field. */
+export interface ProviderGroup {
   id: string;
-  /** The value entered by the user. */
-  value: string;
+  title: string;
+  description?: string;
 }
