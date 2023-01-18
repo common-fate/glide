@@ -14,7 +14,9 @@ import (
 
 func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	res, err := a.AccessHandlerClient.ListProvidersWithResponse(ctx)
+	// res, err := a.AccessHandlerClient.ListProvidersWithResponse(ctx)
+	res, err := a.RegistryProviderClient.ListAllProvidersWithResponse(ctx)
+
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -24,7 +26,7 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	switch code {
 	case 200:
 		// A nil array gets serialised as null, make sure we return an empty array to avoid this
-		if res.JSON200 == nil || len(*res.JSON200) == 0 {
+		if res.JSON200 == nil || len(*res.JSON200.Next) == 0 {
 			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
 			return
 		}
@@ -42,6 +44,8 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
+
+	// @TODO: instead of me it should be a.RegistryProviderClient.GetProviderWithResponse(ctx, providerId)
 	res, err := a.AccessHandlerClient.GetProviderWithResponse(ctx, providerId)
 	if err != nil {
 		apio.Error(ctx, w, err)
