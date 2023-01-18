@@ -11,11 +11,6 @@ import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 import { UserAvatarDetails } from "./UserAvatar";
 import { BotAvatarDetails } from "./BotAvatar";
 
-enum AvatarType {
-  User,
-  Bot,
-}
-
 interface CFAvatarProps extends AvatarProps {
   //   type: AvatarType;
   userId: string;
