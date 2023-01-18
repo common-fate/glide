@@ -10,6 +10,8 @@
  * Provider 
  */
 export interface ProviderV2 {
-  id: string;
-  type: string;
+  name: string;
+  version: string;
+  schema?: string;
+  url: string;
 }

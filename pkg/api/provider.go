@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/provider"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -153,10 +154,10 @@ func (a *API) AdminListProvidersV2(w http.ResponseWriter, r *http.Request) {
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
 
-	var providers []types.ProviderV2
+	var providers []provider.Provider
 
 	q := storage.ListProviders{
-		Result: []types.ProviderV2{},
+		Result: []provider.Provider{},
 	}
 	_, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil {
@@ -165,7 +166,11 @@ func (a *API) AdminListProvidersV2(w http.ResponseWriter, r *http.Request) {
 	}
 	providers = q.Result
 
-	res := providers
+	apiResponse := []types.ProviderV2{}
 
-	apio.JSON(ctx, w, res, http.StatusOK)
+	for _, p := range providers {
+		apiResponse = append(apiResponse, p.ToAPI())
+	}
+
+	apio.JSON(ctx, w, apiResponse, http.StatusOK)
 }

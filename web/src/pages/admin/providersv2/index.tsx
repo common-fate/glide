@@ -46,12 +46,20 @@ const AdminProvidersTable = () => {
   const cols: Column<ProviderV2>[] = useMemo(
     () => [
       {
-        accessor: "id",
-        Header: "ID",
+        accessor: "name",
+        Header: "Name",
       },
       {
-        accessor: "type",
-        Header: "Type",
+        accessor: "version",
+        Header: "Version",
+      },
+      {
+        accessor: "schema",
+        Header: "Schema",
+      },
+      {
+        accessor: "url",
+        Header: "ARN URL",
       },
     ],
     []

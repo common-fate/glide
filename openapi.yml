@@ -1531,13 +1531,18 @@ components:
       type: object
       description: "Provider "
       properties:
-        id:
+        name:
           type: string
-        type:
+        version:
+          type: string
+        schema:
+          type: string
+        url:
           type: string
       required:
-        - id
-        - type
+        - name
+        - version
+        - url
     Provider:
       title: Provider
       type: object

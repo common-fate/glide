@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -26,4 +27,8 @@ func (p *Provider) DDBKeys() (ddb.Keys, error) {
 	}
 
 	return keys, nil
+}
+
+func (p *Provider) ToAPI() types.ProviderV2 {
+	return types.ProviderV2{Name: p.Name, Schema: &p.Schema, Version: p.Version, Url: p.URL}
 }

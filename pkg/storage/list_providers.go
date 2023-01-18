@@ -4,12 +4,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/common-fate/common-fate/pkg/provider"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
-	"github.com/common-fate/common-fate/pkg/types"
 )
 
 type ListProviders struct {
-	Result []types.ProviderV2 `ddb:"result"`
+	Result []provider.Provider `ddb:"result"`
 }
 
 func (l *ListProviders) BuildQuery() (*dynamodb.QueryInput, error) {
