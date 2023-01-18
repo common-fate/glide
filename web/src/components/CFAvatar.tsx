@@ -9,7 +9,7 @@ import React from "react";
 import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 
 import { UserAvatarDetails } from "./UserAvatar";
-import { BotAvatarDetails } from "./BotAvatar";
+import { BotAvatarDetails, BotType } from "./BotAvatar";
 
 interface CFAvatarProps extends AvatarProps {
   //   type: AvatarType;
@@ -58,7 +58,7 @@ export const CFAvatar: React.FC<CFAvatarProps> = ({ userId }) => {
           noOfLines: 1,
           color: "neutrals.700",
         }}
-        botType={"Terraform"}
+        botType={BotType.Terraform}
       />
     );
   }
