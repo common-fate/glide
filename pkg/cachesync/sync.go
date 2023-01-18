@@ -8,7 +8,7 @@ import (
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/ddb"
-	prtypes "github.com/common-fate/provider-registry/pkg/types"
+	prtypes "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 type CacheSyncer struct {

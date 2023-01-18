@@ -28,7 +28,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
-	providerRegistry2 "github.com/common-fate/provider-registry/pkg/types"
+	providerRegistry2 "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
