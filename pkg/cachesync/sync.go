@@ -2,20 +2,29 @@ package cachesync
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/briandowns/spinner"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/clio"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/provider"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	prtypes "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 type CacheSyncer struct {
-	DB                     ddb.Storage
-	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
-	Cache                  cachesvc.Service
-	ProviderRegistryClient prtypes.ClientWithResponsesInterface
+	DB                   ddb.Storage
+	AccessHandlerClient  ahtypes.ClientWithResponsesInterface
+	Cache                cachesvc.Service
+	ProviderRegistrySync bool
 }
 
 // Sync will attempt to sync all argument options for all providers
@@ -24,38 +33,98 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 	log := logger.Get(ctx)
 	log.Info("starting to sync provider options cache")
 
-	providers, err := s.AccessHandlerClient.ListProvidersWithResponse(ctx)
-	if err != nil {
-		return err
-	}
+	//temporary conditional here to separate sync type
+	if s.ProviderRegistrySync {
+		//invoke lambda to get outputs
 
-	if providers.JSON200 == nil {
-		log.Errorw("failed to list providers", "responseBody", string(providers.Body))
-		return fmt.Errorf("failed to list providers")
-	}
-
-	for _, provider := range *providers.JSON200 {
-		providerSchema, err := s.AccessHandlerClient.GetProviderArgsWithResponse(ctx, provider.Id)
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 		if err != nil {
-			log.Errorw("failed to get provider schema", "providerId", provider.Id, "responseBody", string(providers.Body), "error", err)
-			continue
+			return err
 		}
-		if providerSchema.JSON200 == nil {
-			log.Errorw("failed to get provider schema", "providerId", provider.Id, "responseBody", string(providers.Body))
-			continue
+
+		payload := Payload{
+			Type: "schema",
 		}
-		for k, v := range *providerSchema.JSON200 {
-			// Only fetch options for arguments which support it
-			// Currently only the Multiselect type has options, if we add other field types we may need to sync the options for those as well
-			if v.RuleFormElement == ahtypes.ArgumentRuleFormElementMULTISELECT {
-				log.Infow("refreshing cache for provider argument", "providerId", provider.Id, "argId", k)
-				_, _, _, err = s.Cache.RefreshCachedProviderArgOptions(ctx, provider.Id, k)
-				if err != nil {
-					log.Errorw("failed to refresh cache for provider argument", "providerId", provider.Id, "argId", k, "error", err)
-					continue
-				}
+
+		payloadbytes, err := json.Marshal(payload)
+		if err != nil {
+			return err
+		}
+
+		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		si.Suffix = " invoking IDP sync lambda function"
+		si.Writer = os.Stderr
+		si.Start()
+
+		lambdaClient := lambda.NewFromConfig(cfg)
+
+		//list providers registered in database
+		q := storage.ListProviders{
+			Result: []provider.Provider{},
+		}
+		_, err = s.DB.Query(ctx, &q)
+		if err != nil {
+			return err
+		}
+		providers := q.Result
+
+		for _, p := range providers {
+			res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
+				//todo: hardcoded for MVP, will be updated to dynamic later
+				FunctionName:   &p.URL,
+				InvocationType: types.InvocationTypeRequestResponse,
+				Payload:        payloadbytes,
+				LogType:        types.LogTypeTail,
+			})
+			si.Stop()
+			if err != nil {
+				return err
 			}
 
+			clio.Info("provider sync lamda invoke response: %s", string(res.Payload))
+
+			p.Schema = string(res.Payload)
+
+			err = s.DB.Put(ctx, &p)
+			if err != nil {
+				return err
+			}
+		}
+
+	} else {
+		providers, err := s.AccessHandlerClient.ListProvidersWithResponse(ctx)
+		if err != nil {
+			return err
+		}
+
+		if providers.JSON200 == nil {
+			log.Errorw("failed to list providers", "responseBody", string(providers.Body))
+			return fmt.Errorf("failed to list providers")
+		}
+
+		for _, provider := range *providers.JSON200 {
+			providerSchema, err := s.AccessHandlerClient.GetProviderArgsWithResponse(ctx, provider.Id)
+			if err != nil {
+				log.Errorw("failed to get provider schema", "providerId", provider.Id, "responseBody", string(providers.Body), "error", err)
+				continue
+			}
+			if providerSchema.JSON200 == nil {
+				log.Errorw("failed to get provider schema", "providerId", provider.Id, "responseBody", string(providers.Body))
+				continue
+			}
+			for k, v := range *providerSchema.JSON200 {
+				// Only fetch options for arguments which support it
+				// Currently only the Multiselect type has options, if we add other field types we may need to sync the options for those as well
+				if v.RuleFormElement == ahtypes.ArgumentRuleFormElementMULTISELECT {
+					log.Infow("refreshing cache for provider argument", "providerId", provider.Id, "argId", k)
+					_, _, _, err = s.Cache.RefreshCachedProviderArgOptions(ctx, provider.Id, k)
+					if err != nil {
+						log.Errorw("failed to refresh cache for provider argument", "providerId", provider.Id, "argId", k, "error", err)
+						continue
+					}
+				}
+
+			}
 		}
 	}
 
@@ -65,3 +134,29 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 
 	return nil
 }
+
+type Payload struct {
+	Type string `json:"type"`
+	Data Data   `json:"data"`
+}
+
+type Data struct {
+	Subject string `json:"subject"`
+	Args    any    `json:"args"`
+}
+
+// type ArgSchema struct {
+// 	AdditionalProperties map[string]Argument `json:"-"`
+// }
+
+// // Argument defines model for Argument.
+// type Argument struct {
+// 	Description *string          `json:"description,omitempty"`
+// 	Groups      *Argument_Groups `json:"groups,omitempty"`
+// 	Id          string           `json:"id"`
+
+// 	// Optional form element for the request form, if not provided, defaults to multiselect
+// 	RequestFormElement *ArgumentRequestFormElement `json:"requestFormElement,omitempty"`
+// 	RuleFormElement    ArgumentRuleFormElement     `json:"ruleFormElement"`
+// 	Title              string                      `json:"title"`
+// }

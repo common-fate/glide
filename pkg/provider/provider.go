@@ -3,7 +3,6 @@ package provider
 import (
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -18,20 +17,8 @@ type Provider struct {
 	Schema    string    `json:"schema" dynamodbav:"schema"`
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
-}
-
-func (p Provider) ToAPI() types.Provider {
-	return types.Provider{
-		Id:   p.ID,
-		Type: p.Type,
-		// TODO REPLACE HARDCODED SCHEMA
-		Schema: types.ArgSchema{"vault": {
-			Id:              "vault",
-			Title:           "Vault",
-			Description:     aws.String("The name of an example vault to grant access to (can be any string)"),
-			RuleFormElement: types.ArgumentRuleFormElementINPUT,
-		}},
-	}
+	// URL, the url for the packaged lambda fn
+	URL string `json:"url" dynamodbav:"url"`
 }
 
 func (p *Provider) DDBKeys() (ddb.Keys, error) {
@@ -41,4 +28,8 @@ func (p *Provider) DDBKeys() (ddb.Keys, error) {
 	}
 
 	return keys, nil
+}
+
+func (p *Provider) ToAPI() types.Provider {
+	return types.Provider{Name: p.Name, Schema: &p.Schema, Version: p.Version, Url: p.URL}
 }

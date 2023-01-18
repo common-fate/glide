@@ -1351,6 +1351,7 @@ components:
     Provider:
       title: Provider
       type: object
+      deprecated: true
       x-examples:
         AWS:
           id: string
@@ -1362,16 +1363,24 @@ components:
           type: okta
       description: "Provider "
       properties:
-        id:
+        name:
+          type: string
+        version:
+          type: string
+        schema:
+          type: string
+        url:
           type: string
         type:
           type: string
-        schema:
-          $ref: "#/components/schemas/ArgSchema"
+        id:
+          type: string
       required:
-        - id
+        - name
+        - version
+        - url
         - type
-        - schema
+        - id
     Group:
       title: Group
       type: object
