@@ -1,31 +1,7 @@
-import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
-import {
-  Button,
-  Center,
-  CircularProgress,
-  Code,
-  Container,
-  Flex,
-  HStack,
-  IconButton,
-  LinkBox,
-  LinkOverlay,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Stack,
-  Text,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { Code, Container, HStack, Text } from "@chakra-ui/react";
+import { useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-location";
 import { Column } from "react-table";
-import { CFCode } from "../../../components/CodeInstruction";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import { useAdminListProviders } from "../../../utils/backend-client/admin/admin";
@@ -37,12 +13,20 @@ const AdminProvidersTable = () => {
   const cols: Column<Provider>[] = useMemo(
     () => [
       {
-        accessor: "id",
-        Header: "ID",
+        accessor: "name",
+        Header: "Name",
       },
       {
-        accessor: "type",
-        Header: "Type",
+        accessor: "version",
+        Header: "Version",
+      },
+      {
+        accessor: "schema",
+        Header: "Schema",
+      },
+      {
+        accessor: "url",
+        Header: "ARN URL",
       },
     ],
     []
@@ -68,17 +52,6 @@ const Providers = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
-        <Button
-          my={5}
-          size="sm"
-          variant="ghost"
-          leftIcon={<SmallAddIcon />}
-          as={Link}
-          to="/admin/providers/setup"
-          id="new-provider-button"
-        >
-          New Access Provider
-        </Button>
         <AdminProvidersTable />
         <HStack mt={2} spacing={1} w="100%" justify={"center"}>
           <Text textStyle={"Body/ExtraSmall"}>

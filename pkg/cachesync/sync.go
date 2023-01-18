@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
-	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/briandowns/spinner"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/clio"
@@ -72,9 +72,9 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 			res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
 				//todo: hardcoded for MVP, will be updated to dynamic later
 				FunctionName:   &p.URL,
-				InvocationType: types.InvocationTypeRequestResponse,
+				InvocationType: lambdatypes.InvocationTypeRequestResponse,
 				Payload:        payloadbytes,
-				LogType:        types.LogTypeTail,
+				LogType:        lambdatypes.LogTypeTail,
 			})
 			si.Stop()
 			if err != nil {
@@ -83,7 +83,17 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 
 			clio.Info("provider sync lamda invoke response: %s", string(res.Payload))
 
-			p.Schema = string(res.Payload)
+			type Schema struct {
+				Args map[string]provider.Argument
+			}
+
+			var schema Schema
+			err = json.Unmarshal(res.Payload, &schema)
+			if err != nil {
+				return err
+			}
+
+			p.Schema = schema.Args
 
 			err = s.DB.Put(ctx, &p)
 			if err != nil {
