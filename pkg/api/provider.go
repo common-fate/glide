@@ -8,67 +8,41 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
 func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// res, err := a.AccessHandlerClient.ListProvidersWithResponse(ctx)
-	res, err := a.RegistryProviderClient.ListAllProvidersWithResponse(ctx)
-
-	if err != nil {
+	q := storage.ListProviders{}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	code := res.StatusCode()
-	switch code {
-	case 200:
-		// A nil array gets serialised as null, make sure we return an empty array to avoid this
-		if res.JSON200 == nil || len(*res.JSON200.Next) == 0 {
-			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
-			return
-		}
-		apio.JSON(ctx, w, res.JSON200, code)
-		return
-	case 500:
-		apio.JSON(ctx, w, res.JSON500, code)
-		return
-	default:
-		logger.Get(ctx).Errorw("unhandled access handler response", "response", string(res.Body))
-		apio.Error(ctx, w, errors.New("unhandled response code"))
-		return
+	res := []types.Provider{}
+	for _, provider := range q.Result {
+		res = append(res, provider.ToAPI())
 	}
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
-
-	// @TODO: instead of me it should be a.RegistryProviderClient.GetProviderWithResponse(ctx, providerId)
-	res, err := a.AccessHandlerClient.GetProviderWithResponse(ctx, providerId)
+	q := storage.GetProvider{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	code := res.StatusCode()
-	switch code {
-	case 200:
-		apio.JSON(ctx, w, res.JSON200, code)
-		return
-	case 404:
-		apio.JSON(ctx, w, res.JSON404, code)
-		return
-	case 500:
-		apio.JSON(ctx, w, res.JSON500, code)
-		return
-	default:
-		if err != nil {
-			logger.Get(ctx).Errorw("unhandled access handler response", "response", string(res.Body))
-			apio.Error(ctx, w, errors.New("unhandled response code"))
-			return
-		}
-	}
+
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
