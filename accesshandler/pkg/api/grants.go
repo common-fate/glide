@@ -120,7 +120,7 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 		apio.JSON(ctx, w, nil, http.StatusOK)
 		return
 	}
-	args, err := json.Marshal(b.With.AdditionalProperties)
+	args, err := json.Marshal(b.With)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

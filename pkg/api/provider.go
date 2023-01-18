@@ -50,7 +50,7 @@ func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request
 
 	res := ahTypes.ArgOptionsResponse{
 		Options: []ahTypes.Option{},
-		Groups:  &ahTypes.Groups{AdditionalProperties: make(map[string][]ahTypes.GroupOption)},
+		Groups:  &ahTypes.Groups{},
 	}
 	var options []cache.ProviderOption
 	var groups []cache.ProviderArgGroupOption
@@ -74,7 +74,7 @@ func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request
 	}
 
 	for _, group := range groups {
-		res.Groups.AdditionalProperties[group.Group] = append(res.Groups.AdditionalProperties[group.Group], ahTypes.GroupOption{
+		(*res.Groups)[group.Group] = append((*res.Groups)[group.Group], ahTypes.GroupOption{
 			Children:    group.Children,
 			Label:       group.Label,
 			Value:       group.Value,

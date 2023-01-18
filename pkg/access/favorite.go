@@ -39,9 +39,7 @@ func (b Favorite) ToAPIDetail() types.FavoriteDetail {
 	}
 
 	for _, w := range b.With {
-		bm.With = append(bm.With, types.CreateRequestWith{
-			AdditionalProperties: w,
-		})
+		bm.With = append(bm.With, w)
 	}
 	return bm
 }

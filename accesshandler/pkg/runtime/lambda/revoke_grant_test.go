@@ -75,7 +75,7 @@ func TestRevokeGrant(t *testing.T) {
 		End:      iso8601.New(time.Now().Add(time.Minute)),
 		Subject:  openapi_types.Email(testCfg.Email),
 		Provider: testCfg.ProviderID,
-		With:     types.CreateGrant_With{AdditionalProperties: map[string]string{"groupId": testCfg.GroupID}},
+		With:     map[string]string{"groupId": testCfg.GroupID},
 	},
 	})
 

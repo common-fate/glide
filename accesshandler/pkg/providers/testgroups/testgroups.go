@@ -37,13 +37,11 @@ func (p *Provider) ArgSchema() providers.ArgSchema {
 			Title:           "Group",
 			RuleFormElement: types.ArgumentRuleFormElementMULTISELECT,
 			Description:     &description,
-			Groups: &types.Argument_Groups{
-				AdditionalProperties: map[string]types.Group{
-					"category": {
-						Description: &description,
-						Id:          "category",
-						Title:       "Category",
-					},
+			Groups: &map[string]types.Group{
+				"category": {
+					Description: &description,
+					Id:          "category",
+					Title:       "Category",
 				},
 			},
 		},

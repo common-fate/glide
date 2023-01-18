@@ -55,9 +55,7 @@ func TestValidateGrant(t *testing.T) {
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:    make(map[string]string),
 			},
 			wantValidateGrantsResponseBody: &ahTypes.ValidateGrantResponse{HTTPResponse: &http.Response{StatusCode: http.StatusOK}},
 		},
@@ -80,9 +78,7 @@ func TestValidateGrant(t *testing.T) {
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:    make(map[string]string),
 			},
 			wantValidateGrantsResponseBody: &ahTypes.ValidateGrantResponse{HTTPResponse: &http.Response{StatusCode: http.StatusBadRequest}, JSON400: &struct {
 				Error *string "json:\"error,omitempty\""
@@ -108,9 +104,7 @@ func TestValidateGrant(t *testing.T) {
 				Start:   iso8601.New(now),
 				End:     iso8601.New(now.Add(time.Minute)),
 				Subject: "test@test.com",
-				With: ahTypes.CreateGrant_With{
-					AdditionalProperties: make(map[string]string),
-				},
+				With:    make(map[string]string),
 			},
 			wantValidateGrantsResponseBody: &ahTypes.ValidateGrantResponse{HTTPResponse: &http.Response{StatusCode: http.StatusInternalServerError}, JSON500: &struct {
 				Error *string "json:\"error,omitempty\""

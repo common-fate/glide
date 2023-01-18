@@ -109,10 +109,8 @@ func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.Req
 		IsCurrent:   a.Current,
 		ID:          a.ID,
 		Target: types.RequestAccessRuleTarget{
-			Provider: a.Target.ProviderToAPI(),
-			Arguments: types.RequestAccessRuleTarget_Arguments{
-				AdditionalProperties: requestArguments,
-			},
+			Provider:  a.Target.ProviderToAPI(),
+			Arguments: requestArguments,
 		},
 		TimeConstraints: a.TimeConstraints,
 		CanRequest:      canRequest,
@@ -190,16 +188,14 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 			Id:   t.ProviderID,
 			Type: t.ProviderType,
 		},
-		With: types.AccessRuleTargetDetail_With{
-			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
-		},
+		With: make(map[string]types.AccessRuleTargetDetailArguments),
 	}
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
 	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
 
 	for k, v := range t.With {
-		argument := at.With.AdditionalProperties[k]
+		argument := at.With[k]
 		argument.Values = append(argument.Values, v)
 
 		// FormElement is used here when loading the UpdateAccessRule form for the first time
@@ -210,14 +206,14 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.INPUT
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
 				}
 			}
 		}
-		at.With.AdditionalProperties[k] = argument
+		at.With[k] = argument
 	}
 	for k, v := range t.WithSelectable {
-		argument := at.With.AdditionalProperties[k]
+		argument := at.With[k]
 		argument.Values = append(argument.Values, v...)
 		// FormElement is used here when loading the UpdateAccessRule form for the first time
 		if provider != nil {
@@ -227,19 +223,19 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.INPUT
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
 				}
 			}
 		}
-		at.With.AdditionalProperties[k] = argument
+		at.With[k] = argument
 	}
 	for k, v := range t.WithArgumentGroupOptions {
-		argument := at.With.AdditionalProperties[k]
-		argument.Groupings.AdditionalProperties = make(map[string][]string)
+		argument := at.With[k]
+		argument.Groupings = make(map[string][]string)
 		for k2, v2 := range v {
-			group := argument.Groupings.AdditionalProperties[k2]
+			group := argument.Groupings[k2]
 			group = append(group, v2...)
-			argument.Groupings.AdditionalProperties[k2] = group
+			argument.Groupings[k2] = group
 		}
 		// FormElement is used here when loading the UpdateAccessRule form for the first time
 		if provider != nil {
@@ -249,19 +245,19 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.INPUT
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
 				}
 			}
 		}
-		at.With.AdditionalProperties[k] = argument
+		at.With[k] = argument
 	}
 
 	// It is essential that all slices be initialised for the apitypes otherwise it will be serialised as null instead of empty
-	for k, v := range at.With.AdditionalProperties {
+	for k, v := range at.With {
 		if v.Values == nil {
 			v.Values = make([]string, 0)
 		}
-		at.With.AdditionalProperties[k] = v
+		at.With[k] = v
 	}
 
 	return at

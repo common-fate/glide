@@ -39,7 +39,6 @@ import type {
   IdentityConfigurationResponseResponse
 } from '.././types'
 import type {
-  ArgSchema,
   ArgOptionsResponseResponse
 } from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
@@ -610,45 +609,6 @@ export const useAdminGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnabled = swrOptions?.enabled !== false && !!(providerId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProviderKey(providerId) : null);
   const swrFn = () => adminGetProvider(providerId, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Gets the argSchema describing the args for this provider
- * @summary Get provider arg schema
- */
-export const adminGetProviderArgs = (
-    providerId: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgSchema>(
-      {url: `/api/v1/admin/providers/${providerId}/args`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getAdminGetProviderArgsKey = (providerId: string,) => [`/api/v1/admin/providers/${providerId}/args`];
-
-    
-export type AdminGetProviderArgsQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProviderArgs>>>
-export type AdminGetProviderArgsQueryError = ErrorType<ErrorResponseResponse>
-
-export const useAdminGetProviderArgs = <TError = ErrorType<ErrorResponseResponse>>(
- providerId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetProviderArgs>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(providerId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProviderArgsKey(providerId) : null);
-  const swrFn = () => adminGetProviderArgs(providerId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

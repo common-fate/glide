@@ -277,9 +277,8 @@ func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGran
 	req := ahTypes.CreateGrant{
 		Id:       opts.Request.ID,
 		Provider: opts.AccessRule.Target.ProviderID,
-		With: ahTypes.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
+		With:     make(map[string]string),
+
 		Subject: openapi_types.Email(q.Result.Email),
 		Start:   iso8601.New(start),
 		End:     iso8601.New(end),
@@ -287,10 +286,10 @@ func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGran
 
 	//todo: rework this to be used safely around the codebase
 	for k, v := range opts.AccessRule.Target.With {
-		req.With.AdditionalProperties[k] = v
+		req.With[k] = v
 	}
 	for k, v := range opts.Request.SelectedWith {
-		req.With.AdditionalProperties[k] = v.Value
+		req.With[k] = v.Value
 	}
 	return req, nil
 }

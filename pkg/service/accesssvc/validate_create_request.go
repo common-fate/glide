@@ -79,7 +79,7 @@ func (cro CreateRequestsOpts) argumentCombinations() (types.RequestArgumentCombi
 		return combinationsToCreate, nil
 	} else {
 		arr := *cro.Create.With
-		if len(arr) == 0 || (len(arr) == 1 && len(arr[0].AdditionalProperties) == 0) {
+		if len(arr) == 0 || (len(arr) == 1 && len(arr[0]) == 0) {
 			combinationsToCreate = append(combinationsToCreate, make(map[string]string))
 			return combinationsToCreate, nil
 		}
@@ -87,7 +87,7 @@ func (cro CreateRequestsOpts) argumentCombinations() (types.RequestArgumentCombi
 
 	for _, v := range *cro.Create.With {
 		// a request which contains subrequests with no arguments is invalid
-		if len(v.AdditionalProperties) == 0 {
+		if len(v) == 0 {
 			return nil, apio.NewRequestError(errors.New("request contains subrequest with no arguments"), http.StatusBadRequest)
 		}
 		combinations, err := v.ArgumentCombinations()

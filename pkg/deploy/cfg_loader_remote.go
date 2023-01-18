@@ -100,7 +100,7 @@ func (r *RemoteDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap
 
 	pm := ProviderMap{}
 
-	for id, provider := range dc.DeploymentConfiguration.ProviderConfiguration.AdditionalProperties {
+	for id, provider := range dc.DeploymentConfiguration.ProviderConfiguration {
 		ptmp := provider
 		err = pm.Add(id, Provider{
 			Uses: ptmp.Uses,
@@ -118,10 +118,10 @@ func (r *RemoteDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap
 func (r *RemoteDeploymentConfig) WriteProviders(ctx context.Context, pm ProviderMap) error {
 	var config remoteconfig.ProviderMap
 	for k, v := range pm {
-		config.Set(k, remoteconfig.ProviderConfiguration{
+		config[k] = remoteconfig.ProviderConfiguration{
 			Uses: v.Uses,
 			With: v.With,
-		})
+		}
 	}
 
 	logger.Get(ctx).Infow("writing remote provider config", "url", r.url, "config", config)

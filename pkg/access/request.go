@@ -24,9 +24,9 @@ const (
 )
 
 type Grant struct {
-	Provider string              `json:"provider" dynamodbav:"provider"`
-	Subject  string              `json:"subject" dynamodbav:"subject"`
-	With     ac_types.Grant_With `json:"with" dynamodbav:"with"`
+	Provider string            `json:"provider" dynamodbav:"provider"`
+	Subject  string            `json:"subject" dynamodbav:"subject"`
+	With     map[string]string `json:"with" dynamodbav:"with"`
 	//the time which the grant starts
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
@@ -163,9 +163,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, reques
 		UpdatedAt:      r.UpdatedAt,
 		CanReview:      canReview,
 		ApprovalMethod: r.ApprovalMethod,
-		Arguments: types.RequestDetail_Arguments{
-			AdditionalProperties: make(map[string]types.With),
-		},
+		Arguments:      make(map[string]types.With),
 	}
 
 	// gets the option properties from requestArgumenst and maps to the fields selected for this request.
@@ -197,7 +195,7 @@ func (r *Request) ToAPIDetail(accessRule rule.AccessRule, canReview bool, reques
 			Value:             option.Value,
 			OptionDescription: option.Description,
 		}
-		req.Arguments.AdditionalProperties[k] = with
+		req.Arguments[k] = with
 	}
 	if r.Grant != nil {
 		g := r.Grant.ToAPI()

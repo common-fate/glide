@@ -114,12 +114,7 @@ func (p *Provider) Options(ctx context.Context, arg string) (*types.ArgOptionsRe
 		// 	Options: tags,
 		// }
 
-		opts.Groups = &types.Groups{
-			AdditionalProperties: map[string][]types.GroupOption{
-				"organizationalUnit": ous,
-				// "tags":               tags,
-			},
-		}
+		opts.Groups = &types.Groups{"organizationalUnit": ous}
 
 		return &opts, nil
 	}

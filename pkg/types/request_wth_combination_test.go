@@ -17,30 +17,24 @@ func TestRequestWithCombination(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok one argument",
-			crw: CreateRequestWith{
-				AdditionalProperties: map[string][]string{
-					"accountId": {"a", "b"},
-				},
+			crw: map[string][]string{
+				"accountId": {"a", "b"},
 			},
 			want: []map[string]string{{"accountId": "a"}, {"accountId": "b"}},
 		},
 		{
 			name: "ok two arguments",
-			crw: CreateRequestWith{
-				AdditionalProperties: map[string][]string{
-					"accountId":        {"a", "b"},
-					"permissionSetArn": {"c", "d"},
-				},
+			crw: map[string][]string{
+				"accountId":        {"a", "b"},
+				"permissionSetArn": {"c", "d"},
 			},
 			want: []map[string]string{{"permissionSetArn": "d", "accountId": "a"}, {"accountId": "b", "permissionSetArn": "c"}, {"accountId": "b", "permissionSetArn": "d"}, {"accountId": "a", "permissionSetArn": "c"}},
 		},
 		{
 			name: "invalid if one of the arguments has no values",
-			crw: CreateRequestWith{
-				AdditionalProperties: map[string][]string{
-					"accountId":        {},
-					"permissionSetArn": {"c", "d"},
-				},
+			crw: map[string][]string{
+				"accountId":        {},
+				"permissionSetArn": {"c", "d"},
 			},
 			wantErr: ArgumentHasNoValuesError{Argument: "accountId"},
 		},

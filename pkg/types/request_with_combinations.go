@@ -45,11 +45,11 @@ func (e ArgumentHasNoValuesError) Error() string {
 // This method uses recursion to build a slice of possible combinations of arguments
 func (requestWith CreateRequestWith) ArgumentCombinations() (RequestArgumentCombinations, error) {
 
-	if requestWith.AdditionalProperties == nil {
+	if requestWith == nil {
 		return nil, nil
 	}
-	keys := make([]string, 0, len(requestWith.AdditionalProperties))
-	for k, v := range requestWith.AdditionalProperties {
+	keys := make([]string, 0, len(requestWith))
+	for k, v := range requestWith {
 		if len(v) == 0 {
 			return nil, ArgumentHasNoValuesError{Argument: k}
 		}
@@ -60,9 +60,9 @@ func (requestWith CreateRequestWith) ArgumentCombinations() (RequestArgumentComb
 	// for each value of the first argument, create all possible combinations with the other arguments by stepping down through the argument slices
 	var combinations []map[string]string
 	if len(keys) > 0 {
-		for _, value := range requestWith.AdditionalProperties[keys[0]] {
+		for _, value := range requestWith[keys[0]] {
 			if len(keys) > 1 {
-				combinations = append(combinations, branch(requestWith.AdditionalProperties, keys, map[string]string{keys[0]: value}, 1)...)
+				combinations = append(combinations, branch(requestWith, keys, map[string]string{keys[0]: value}, 1)...)
 			} else {
 				combinations = append(combinations, map[string]string{keys[0]: value})
 			}

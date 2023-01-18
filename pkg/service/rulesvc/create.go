@@ -18,19 +18,19 @@ import (
 // validateTargetAgainstSchema checks that all the arguments match the schema of the provider
 // It validates that all required arguments were provided with at least 1 value
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
-	if len(providerArgSchema.AdditionalProperties) != len(in.With.AdditionalProperties) {
+func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema ahTypes.ArgSchema) error {
+	if len(providerArgSchema) != len(in.With) {
 		return apio.NewRequestError(errors.New("target is missing required arguments from the provider schema"), http.StatusBadRequest)
 	}
-	for argumentID, argument := range in.With.AdditionalProperties {
+	for argumentID, argument := range in.With {
 		hasAtLeastOneValue := len(argument.Values) != 0
-		argumentSchema, ok := providerArgSchema.AdditionalProperties[argumentID]
+		argumentSchema, ok := providerArgSchema[argumentID]
 		if !ok {
 			return apio.NewRequestError(errors.New("argument does not match schema for provider"), http.StatusBadRequest)
 		}
 		// filter any group options which do not have any values
-		for groupId, group := range argument.Groupings.AdditionalProperties {
-			if _, ok := argumentSchema.Groups.AdditionalProperties[groupId]; !ok {
+		for groupId, group := range argument.Groupings {
+			if _, ok := (*argumentSchema.Groups)[groupId]; !ok {
 				return apio.NewRequestError(errors.New("argument group does not match schema for provider"), http.StatusBadRequest)
 			}
 			if len(group) != 0 {
@@ -47,9 +47,9 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 // validateTargetArgumentAgainstCachedOptions checks that all the argument values and argument group values currently exist in the cache.
 // this prevents being able to create an access rule with arguments which are invalid for the provider.
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
-	for argumentID, argument := range in.With.AdditionalProperties {
-		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != ahTypes.ArgumentRuleFormElementINPUT {
+func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema ahTypes.ArgSchema) error {
+	for argumentID, argument := range in.With {
+		if providerArgSchema[argumentID].RuleFormElement != ahTypes.ArgumentRuleFormElementINPUT {
 			_, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
 			if err != nil {
 				return err
@@ -68,7 +68,7 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 				groupOptionsValueMap[group.Group] = options
 			}
 
-			for groupId, groupValues := range argument.Groupings.AdditionalProperties {
+			for groupId, groupValues := range argument.Groupings {
 				if len(groupValues) > 0 {
 					if _, ok := groupOptionsValueMap[groupId]; !ok {
 						return apio.NewRequestError(errors.New("argument group values do not match available options for provider"), http.StatusBadRequest)
@@ -115,8 +115,8 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		WithArgumentGroupOptions: make(map[string]map[string][]string),
 	}
 
-	for argumentID, argument := range in.With.AdditionalProperties {
-		for groupId, groupValues := range argument.Groupings.AdditionalProperties {
+	for argumentID, argument := range in.With {
+		for groupId, groupValues := range argument.Groupings {
 			if len(groupValues) > 0 {
 
 				argumentGroupOptions := target.WithArgumentGroupOptions[argumentID]
@@ -213,14 +213,14 @@ func (s *Service) getProviderByID(ctx context.Context, providerID string) (*ahTy
 }
 
 // getProviderArgSchemaByID fetches the provider argschema and returns it if it exists
-func (s *Service) getProviderArgSchemaByID(ctx context.Context, providerID string) (*ahTypes.ArgSchema, error) {
+func (s *Service) getProviderArgSchemaByID(ctx context.Context, providerID string) (ahTypes.ArgSchema, error) {
 	argResponse, err := s.AHClient.GetProviderArgsWithResponse(ctx, providerID)
 	if err != nil {
 		return nil, err
 	}
 	switch argResponse.StatusCode() {
 	case http.StatusOK:
-		return argResponse.JSON200, nil
+		return *argResponse.JSON200, nil
 	case http.StatusNotFound:
 		return nil, ErrProviderNotFound
 	case http.StatusInternalServerError:
