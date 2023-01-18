@@ -6,11 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export type ListGroupsSource = typeof ListGroupsSource[keyof typeof ListGroupsSource];
+export type AdminListGroupsSource = typeof AdminListGroupsSource[keyof typeof AdminListGroupsSource];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ListGroupsSource = {
+export const AdminListGroupsSource = {
   INTERNAL: 'INTERNAL',
   EXTERNAL: 'EXTERNAL',
 } as const;

@@ -6,6 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type UpdateUserBody = {
-  groups: string[];
-};
+export type UserCancelRequest200 = { [key: string]: any };

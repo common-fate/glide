@@ -228,15 +228,43 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 	if err != nil {
 		return nil, err
 	}
-	if len(res.Users) == 0 {
-		return nil, &UserNotFoundError{Email: email}
-	}
-	if len(res.Users) > 1 {
-		// this should never happen, but check it anyway.
-		return nil, fmt.Errorf("expected 1 user but found %v", len(res.Users))
+	if len(res.Users) != 0 {
+		return &res.Users[0], nil
+
 	}
 
-	return &res.Users[0], nil
+	//fallback to manually checking emails of aws sso users.
+
+	//Pull all users and check if emails match to find if user exists in AWS SSO
+	//This was required as filtering on Username, does not always work since some users do not use email as their username in AWS SSO
+	hasMore := true
+	var nextToken *string
+	for hasMore {
+
+		listUsers, err := p.idStoreClient.ListUsers(ctx, &identitystore.ListUsersInput{
+			IdentityStoreId: aws.String(p.identityStoreID.Get()),
+			NextToken:       nextToken,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, u := range listUsers.Users {
+			//there should always only be one email but to avoid empty list errors we loop  the emails
+			for _, e := range u.Emails {
+				if *e.Value == email {
+					return &u, nil
+				}
+			}
+
+		}
+
+		nextToken = listUsers.NextToken
+		hasMore = nextToken != nil
+	}
+
+	return nil, &UserNotFoundError{Email: email}
+
 }
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
 	var a Args

@@ -36,32 +36,32 @@ func (m *MockCognitoService) EXPECT() *MockCognitoServiceMockRecorder {
 	return m.recorder
 }
 
-// CreateUser mocks base method.
-func (m *MockCognitoService) CreateUser(arg0 context.Context, arg1 cognitosvc.CreateUserOpts) (*identity.User, error) {
+// AdminCreateUser mocks base method.
+func (m *MockCognitoService) AdminCreateUser(arg0 context.Context, arg1 cognitosvc.CreateUserOpts) (*identity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", arg0, arg1)
+	ret := m.ctrl.Call(m, "AdminCreateUser", arg0, arg1)
 	ret0, _ := ret[0].(*identity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateUser indicates an expected call of CreateUser.
-func (mr *MockCognitoServiceMockRecorder) CreateUser(arg0, arg1 interface{}) *gomock.Call {
+// AdminCreateUser indicates an expected call of AdminCreateUser.
+func (mr *MockCognitoServiceMockRecorder) AdminCreateUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockCognitoService)(nil).CreateUser), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminCreateUser", reflect.TypeOf((*MockCognitoService)(nil).AdminCreateUser), arg0, arg1)
 }
 
-// UpdateUserGroups mocks base method.
-func (m *MockCognitoService) UpdateUserGroups(arg0 context.Context, arg1 cognitosvc.UpdateUserGroupsOpts) (*identity.User, error) {
+// AdminUpdateUserGroups mocks base method.
+func (m *MockCognitoService) AdminUpdateUserGroups(arg0 context.Context, arg1 cognitosvc.UpdateUserGroupsOpts) (*identity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserGroups", arg0, arg1)
+	ret := m.ctrl.Call(m, "AdminUpdateUserGroups", arg0, arg1)
 	ret0, _ := ret[0].(*identity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateUserGroups indicates an expected call of UpdateUserGroups.
-func (mr *MockCognitoServiceMockRecorder) UpdateUserGroups(arg0, arg1 interface{}) *gomock.Call {
+// AdminUpdateUserGroups indicates an expected call of AdminUpdateUserGroups.
+func (mr *MockCognitoServiceMockRecorder) AdminUpdateUserGroups(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserGroups", reflect.TypeOf((*MockCognitoService)(nil).UpdateUserGroups), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminUpdateUserGroups", reflect.TypeOf((*MockCognitoService)(nil).AdminUpdateUserGroups), arg0, arg1)
 }

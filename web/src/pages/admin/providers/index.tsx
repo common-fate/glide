@@ -29,14 +29,14 @@ import { CFCode } from "../../../components/CodeInstruction";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
-  useListProviders,
-  useListProvidersetups,
+  useAdminListProviders,
+  useAdminListProvidersetups,
+  adminDeleteProvidersetup,
 } from "../../../utils/backend-client/admin/admin";
-import { deleteProvidersetup } from "../../../utils/backend-client/default/default";
 import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
 
 const AdminProvidersTable = () => {
-  const { data } = useListProviders();
+  const { data } = useAdminListProviders();
 
   const cols: Column<Provider>[] = useMemo(
     () => [
@@ -61,7 +61,7 @@ const AdminProvidersTable = () => {
 };
 
 const Providers = () => {
-  const { data } = useListProvidersetups();
+  const { data } = useAdminListProvidersetups();
 
   const setups = data?.providerSetups ?? [];
 
@@ -113,13 +113,13 @@ interface ProviderSetupBannerProps {
 
 const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
   const stepsOverview = setup.steps ?? [];
-  const { data, mutate } = useListProvidersetups();
+  const { data, mutate } = useAdminListProvidersetups();
   const { onOpen, isOpen, onClose } = useDisclosure();
   const [loading, setLoading] = useState(false);
 
   const handleCancelSetup = async () => {
     setLoading(true);
-    await deleteProvidersetup(setup.id);
+    await adminDeleteProvidersetup(setup.id);
     const oldSetups = data?.providerSetups ?? [];
     void mutate({
       providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)],

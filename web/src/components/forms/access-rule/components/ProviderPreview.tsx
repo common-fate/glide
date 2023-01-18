@@ -10,11 +10,9 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
-
 import {
-  useGetProvider,
-  useGetProviderArgs,
-  useListProviderArgOptions,
+  useAdminGetProviderArgs,
+  useAdminListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
 import {
   Argument,
@@ -35,7 +33,7 @@ interface ProviderPreviewProps {
 export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
   provider,
 }) => {
-  const { data: providerArgs } = useGetProviderArgs(provider.id ?? "");
+  const { data: providerArgs } = useAdminGetProviderArgs(provider.id ?? "");
 
   if (!provider) return null;
 
@@ -114,7 +112,7 @@ export const ProviderPreviewMultiSelect: React.FC<ProviderArgFieldProps> = ({
 }) => {
   const { formState, watch } = useFormContext<AccessRuleFormData>();
 
-  const { data: argOptions } = useListProviderArgOptions(
+  const { data: argOptions } = useAdminListProviderArgOptions(
     providerId,
     argument.id
   );

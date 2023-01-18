@@ -141,7 +141,7 @@ type CreateUserOpts struct {
 	Email     string
 }
 
-func (c *CognitoSync) CreateUser(ctx context.Context, in CreateUserOpts) (identity.IDPUser, error) {
+func (c *CognitoSync) AdminCreateUser(ctx context.Context, in CreateUserOpts) (identity.IDPUser, error) {
 	res, err := c.client.AdminCreateUser(ctx, &cognitoidentityprovider.AdminCreateUserInput{
 		UserPoolId: aws.String(c.userPoolID.Get()),
 		Username:   &in.Email,
@@ -170,7 +170,7 @@ type CreateGroupOpts struct {
 	Description string
 }
 
-func (c *CognitoSync) CreateGroup(ctx context.Context, in CreateGroupOpts) (identity.IDPGroup, error) {
+func (c *CognitoSync) AdminCreateGroup(ctx context.Context, in CreateGroupOpts) (identity.IDPGroup, error) {
 	res, err := c.client.CreateGroup(ctx, &cognitoidentityprovider.CreateGroupInput{
 		UserPoolId:  aws.String(c.userPoolID.Get()),
 		GroupName:   aws.String(in.Name),
@@ -218,7 +218,7 @@ type UpdateUserGroupsOpts struct {
 	Groups []string
 }
 
-func (c *CognitoSync) UpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) error {
+func (c *CognitoSync) AdminUpdateUserGroups(ctx context.Context, in UpdateUserGroupsOpts) error {
 	existingGroups, err := c.listUserGroups(ctx, in.UserID)
 	if err != nil {
 		return err

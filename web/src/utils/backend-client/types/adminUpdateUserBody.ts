@@ -6,4 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export type GetUsersParams = { nextToken?: string };
+export type AdminUpdateUserBody = {
+  groups: string[];
+};

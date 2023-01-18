@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CancelRequest200 = { [key: string]: any };
+export type AdminListUsersParams = { nextToken?: string };

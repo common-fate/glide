@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
-import { useGetGroup } from "../../../../utils/backend-client/admin/admin";
+import { useAdminGetGroup } from "../../../../utils/backend-client/admin/admin";
 import { GroupSelect, UserSelect } from "../components/Select";
 import { AccessRuleFormData } from "../CreateForm";
 
@@ -105,7 +105,7 @@ export const ApprovalStep: React.FC = () => {
 };
 
 export const GroupDisplay: React.FC<{ groupId: string }> = ({ groupId }) => {
-  const { data } = useGetGroup(encodeURIComponent(groupId));
+  const { data } = useAdminGetGroup(encodeURIComponent(groupId));
   return <Text>{data?.name}</Text>;
 };
 const ApprovalPreview: React.FC = () => {

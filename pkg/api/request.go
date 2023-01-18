@@ -243,7 +243,7 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
-func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
+func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	uid := auth.UserIDFromContext(ctx)
 
@@ -269,7 +269,7 @@ func (a *API) CancelRequest(w http.ResponseWriter, r *http.Request, requestId st
 	apio.JSON(ctx, w, struct{}{}, http.StatusOK)
 }
 
-func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
+func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
 	isAdmin := auth.IsAdmin(ctx)
 	uid := auth.UserIDFromContext(ctx)
@@ -330,7 +330,7 @@ func (a *API) RevokeRequest(w http.ResponseWriter, r *http.Request, requestID st
 
 // Get Access Instructions
 // (GET /api/v1/requests/{requestId}/access-instructions)
-func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requestId string) {
+func (a *API) UserGetAccessInstructions(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	q := storage.GetRequest{ID: requestId}
 	_, err := a.DB.Query(ctx, &q)
@@ -378,7 +378,7 @@ func (a *API) GetAccessInstructions(w http.ResponseWriter, r *http.Request, requ
 
 }
 
-func (a *API) ListRequestEvents(w http.ResponseWriter, r *http.Request, requestId string) {
+func (a *API) UserListRequestEvents(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	canView := auth.IsAdmin(ctx)
@@ -431,7 +431,7 @@ func (a *API) ListRequestEvents(w http.ResponseWriter, r *http.Request, requestI
 }
 
 // (GET /api/v1/requests/{requestId}/access-token)
-func (a *API) GetAccessToken(w http.ResponseWriter, r *http.Request, requestId string) {
+func (a *API) UserGetAccessToken(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 
 	// get user from context

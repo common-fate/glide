@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type ListProviderArgOptionsParams = { refresh?: boolean };
+export type AdminListProviderArgOptionsParams = { refresh?: boolean };

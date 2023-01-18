@@ -16,7 +16,7 @@ import (
 
 // Returns a list of users
 // (GET /api/v1/users/)
-func (a *API) GetUsers(w http.ResponseWriter, r *http.Request, params types.GetUsersParams) {
+func (a *API) AdminListUsers(w http.ResponseWriter, r *http.Request, params types.AdminListUsersParams) {
 	ctx := r.Context()
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
@@ -49,7 +49,7 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request, params types.GetU
 
 // Returns a user based on userId
 // (GET /api/v1/users/{userId})
-func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
+func (a *API) UserGetUser(w http.ResponseWriter, r *http.Request, userId string) {
 	ctx := r.Context()
 
 	q := storage.GetUser{ID: userId}
@@ -69,7 +69,7 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request, userId string) {
 
 // Get details for the current user
 // (GET /api/v1/users/me)
-func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserGetMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	admin := auth.IsAdmin(ctx)
@@ -87,19 +87,19 @@ func (a *API) GetMe(w http.ResponseWriter, r *http.Request) {
 
 // Create User
 // (POST /api/v1/admin/users)
-func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminCreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	if a.Cognito == nil {
 		apio.ErrorString(ctx, w, "api not available", http.StatusBadRequest)
 		return
 	}
-	var createUserRequest types.CreateUserJSONRequestBody
+	var createUserRequest types.AdminCreateUserJSONRequestBody
 	err := apio.DecodeJSONBody(w, r, &createUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	user, err := a.Cognito.CreateUser(ctx, cognitosvc.CreateUserOpts{
+	user, err := a.Cognito.AdminCreateUser(ctx, cognitosvc.CreateUserOpts{
 		FirstName: createUserRequest.FirstName,
 		LastName:  createUserRequest.LastName,
 		IsAdmin:   createUserRequest.IsAdmin,
@@ -116,10 +116,10 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // Update User
 // (POST /api/v1/admin/users/{userId})
-func (a *API) UpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
+func (a *API) AdminUpdateUser(w http.ResponseWriter, r *http.Request, userId string) {
 	ctx := r.Context()
-	var updateUserRequest types.UpdateUserJSONBody
-	err := apio.DecodeJSONBody(w, r, &updateUserRequest)
+	var adminUpdateUserRequest types.AdminUpdateUserJSONBody
+	err := apio.DecodeJSONBody(w, r, &adminUpdateUserRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
@@ -136,7 +136,7 @@ func (a *API) UpdateUser(w http.ResponseWriter, r *http.Request, userId string) 
 		apio.Error(ctx, w, err)
 		return
 	}
-	user, err := a.InternalIdentity.UpdateUserGroups(ctx, *q.Result, updateUserRequest.Groups)
+	user, err := a.InternalIdentity.UpdateUserGroups(ctx, *q.Result, adminUpdateUserRequest.Groups)
 	if err == internalidentitysvc.ErrGroupNotFoundOrNotInternal {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return

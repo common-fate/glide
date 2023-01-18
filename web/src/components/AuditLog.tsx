@@ -19,8 +19,8 @@ import {
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
 import {
-  useGetUser,
-  useListRequestEvents,
+  useUserGetUser,
+  useUserListRequestEvents,
 } from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
 import { renderTiming } from "../utils/renderTiming";
@@ -28,7 +28,7 @@ import { CFTimelineRow } from "./CFTimelineRow";
 export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
-  const { data } = useListRequestEvents(request?.id || "", {
+  const { data } = useUserListRequestEvents(request?.id || "", {
     swr: {
       refreshInterval: 5000,
     },
@@ -254,7 +254,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
 };
 
 const UserText: React.FC<{ userId: string }> = ({ userId }) => {
-  const { data } = useGetUser(userId);
+  const { data } = useUserGetUser(userId);
   if (!data) {
     return <Text></Text>;
   }

@@ -32,13 +32,11 @@ import { UserLayout } from "../../components/Layout";
 import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
 import { RequestStatusDisplay } from "../../components/Request";
 import {
+  useUserListAccessRules,
+  useUserGetAccessRule,
   useUserListFavorites,
   useUserListRequestsPast,
   useUserListRequestsUpcoming,
-} from "../../utils/backend-client/default/default";
-import {
-  useListUserAccessRules,
-  useUserGetAccessRule,
 } from "../../utils/backend-client/end-user/end-user";
 import { Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
@@ -71,7 +69,6 @@ const Home = () => {
   >({
     swrHook: useUserListRequestsPast,
     hookProps: {},
-
     listObjKey: "requests",
   });
 
@@ -252,7 +249,7 @@ const Home = () => {
 };
 
 const Rules = () => {
-  const { data: rules } = useListUserAccessRules();
+  const { data: rules } = useUserListAccessRules();
   const user = useUser();
 
   // loading/standard state needs to be rendered in a Grid container
@@ -268,7 +265,7 @@ const Rules = () => {
         templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
         minW={{ base: "unset", xl: "488px" }}
         gap={6}
-        overflowX={{ base: "scroll" }}
+        overflowX={["scroll", "auto"]}
       >
         {
           // Loading state
@@ -291,6 +288,8 @@ const Rules = () => {
                     w="232px"
                     rounded="md"
                     data-testid={"r_" + i}
+                    pos="relative"
+                    overflow="hidden"
                   >
                     <ProviderIcon
                       shortType={r.target.provider.type}
@@ -299,7 +298,11 @@ const Rules = () => {
                       w="8"
                     />
 
-                    <Text textStyle="Body/SmallBold" color="neutrals.700">
+                    <Text
+                      textStyle="Body/SmallBold"
+                      color="neutrals.700"
+                      noOfLines={3}
+                    >
                       {r.name}
                     </Text>
 
@@ -308,6 +311,8 @@ const Rules = () => {
                       variant="brandSecondary"
                       size="sm"
                       opacity={0}
+                      pos="absolute"
+                      bottom={6}
                       sx={{
                         // This media query ensure always visible for touch screens
                         "@media (hover: none)": {
@@ -315,12 +320,13 @@ const Rules = () => {
                         },
                       }}
                       transition="all .2s ease-in-out"
-                      transform="translateY(8px)"
+                      transform="translate(-50%, 8px)"
                       _groupHover={{
                         bg: "white",
                         opacity: 1,
-                        transform: "translateY(0px)",
+                        transform: "translateY(-50%, 0px)",
                       }}
+                      left="50%"
                     >
                       Request
                     </Button>

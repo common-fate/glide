@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AccessRuleLookupType = typeof AccessRuleLookupType[keyof typeof AccessRuleLookupType];
+export type UserLookupAccessRuleType = typeof UserLookupAccessRuleType[keyof typeof UserLookupAccessRuleType];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const AccessRuleLookupType = {
+export const UserLookupAccessRuleType = {
   'commonfateaws-sso': 'commonfate/aws-sso',
 } as const;

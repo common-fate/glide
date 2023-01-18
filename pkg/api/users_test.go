@@ -192,7 +192,7 @@ func TestPostApiV1AdminUsers(t *testing.T) {
 				m := mocks.NewMockCognitoService(ctrl)
 				if tc.expectCreateUserOpts != nil {
 					a.Cognito = m
-					m.EXPECT().CreateUser(gomock.Any(), gomock.Eq(*tc.expectCreateUserOpts)).Times(1).Return(tc.withCreatedUser, tc.expectCreateUserError)
+					m.EXPECT().AdminCreateUser(gomock.Any(), gomock.Eq(*tc.expectCreateUserOpts)).Times(1).Return(tc.withCreatedUser, tc.expectCreateUserError)
 				}
 			}
 			handler := newTestServer(t, &a)

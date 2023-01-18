@@ -19,7 +19,7 @@ import {
 import axios from "axios";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { createUser } from "../../utils/backend-client/admin/admin";
+import { adminCreateUser } from "../../utils/backend-client/admin/admin";
 
 import { CreateUserRequestBody } from "../../utils/backend-client/types";
 type Props = Omit<ModalProps, "children">;
@@ -36,7 +36,7 @@ const CreateUserModal = (props: Props) => {
 
   const onSubmit = async (data: CreateUserRequestBody) => {
     try {
-      await createUser(data);
+      await adminCreateUser(data);
       toast({
         title: "Created User",
         status: "success",
