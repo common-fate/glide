@@ -18,9 +18,9 @@ import { useInnerHeight } from "../../utils/hooks/useInnerHeight";
 import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateAdminLogo, CommonFateLogo } from "../icons/Logos";
-import { UserAvatarDetails } from "../UserAvatar";
 import { StyledNextButton } from "./AdminNavbar";
 import { StyledButton } from "./Navbar";
+import { CFAvatar } from "../CFAvatar";
 
 type DrawerNavProps = Omit<DrawerProps, "children"> & { isAdmin?: boolean };
 
@@ -152,7 +152,10 @@ export const DrawerNav = ({ isAdmin, ...props }: DrawerNavProps) => {
               </Stack>
 
               <Box mt={2} pl={2}>
-                <UserAvatarDetails size="sm" user={user.user?.id} />
+                <CFAvatar
+                  size="sm"
+                  userId={user.user?.id ? user.user.id : ""}
+                />
               </Box>
             </Box>
           </DrawerBody>

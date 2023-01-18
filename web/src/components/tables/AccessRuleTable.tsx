@@ -28,8 +28,8 @@ import { durationString } from "../../utils/durationString";
 import { ProviderIcon } from "../icons/providerIcon";
 import RuleConfigModal from "../modals/RuleConfigModal";
 import { StatusCell } from "../StatusCell";
-import { UserAvatarDetails } from "../UserAvatar";
 import { TableRenderer } from "./TableRenderer";
+import { CFAvatar } from "../CFAvatar";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -130,12 +130,12 @@ export const AccessRuleTable = () => {
         Cell: ({ cell }) => {
           return (
             <HStack>
-              <UserAvatarDetails
+              <CFAvatar
                 tooltip
-                user={
+                userId={
                   cell.value?.createdBy !== ""
                     ? cell.value?.createdBy
-                    : "Common Fate Terraform Bot"
+                    : "tf_bot"
                 }
                 size="xs"
                 variant="withBorder"

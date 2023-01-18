@@ -5,13 +5,14 @@ import {
   Text,
   TextProps,
   Tooltip,
+  SkeletonCircle,
+  SkeletonText,
 } from "@chakra-ui/react";
 import React from "react";
+import { TerraformIcon } from "./icons/Icons";
 
-import { User } from "src/utils/backend-client/types";
-
-interface UserAvatarProps extends AvatarProps {
-  user: User;
+interface BotAvatarProps extends AvatarProps {
+  botType: string;
   textProps?: TextProps;
   tooltip?: boolean;
 }
@@ -23,8 +24,8 @@ const TooltipAvatar: typeof Avatar = (props: any) => (
 );
 
 // UserAvatar loads a user avatar from a user ID
-export const UserAvatarDetails: React.FC<UserAvatarProps> = ({
-  user,
+export const BotAvatarDetails: React.FC<BotAvatarProps> = ({
+  botType,
   textProps,
   tooltip,
   ...rest
@@ -34,8 +35,8 @@ export const UserAvatarDetails: React.FC<UserAvatarProps> = ({
   // Loading/loaded states
   return (
     <HStack>
-      <Component name={user?.email} {...rest} />
-      <Text {...textProps}>{user?.email}</Text>
+      <Avatar icon={<TerraformIcon fontSize="0.9rem" />} {...rest} bg="white" />
+      <Text {...textProps}>Terraform</Text>
     </HStack>
   );
 };
