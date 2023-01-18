@@ -5,14 +5,16 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { ArgSchema } from './argSchema';
 
 /**
  * Provider 
  * @deprecated
  */
 export interface Provider {
-  id: string;
+  name: string;
+  version: string;
+  schema?: string;
+  url: string;
   type: string;
-  schema: ArgSchema;
+  id: string;
 }

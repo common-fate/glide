@@ -18,15 +18,13 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	prtypes "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 type CacheSyncer struct {
-	DB                     ddb.Storage
-	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
-	Cache                  cachesvc.Service
-	ProviderRegistryClient prtypes.ClientWithResponsesInterface
-	ProviderRegistrySync   bool
+	DB                   ddb.Storage
+	AccessHandlerClient  ahtypes.ClientWithResponsesInterface
+	Cache                cachesvc.Service
+	ProviderRegistrySync bool
 }
 
 // Sync will attempt to sync all argument options for all providers
@@ -85,9 +83,9 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 
 			clio.Info("provider sync lamda invoke response: %s", string(res.Payload))
 
-			provider := provider.Provider{ID: p.ID, Name: p.Name, Version: p.Version, Schema: string(res.Payload), URL: p.URL}
+			p.Schema = string(res.Payload)
 
-			err = s.DB.Put(ctx, &provider)
+			err = s.DB.Put(ctx, &p)
 			if err != nil {
 				return err
 			}

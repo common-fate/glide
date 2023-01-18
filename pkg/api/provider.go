@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry/pkg/provider"
 )
 
 func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
@@ -89,32 +88,4 @@ func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request
 
 type ListProvidersArgFilterResponse struct {
 	Options []ahTypes.Option `json:"options"`
-}
-
-// List providers
-// (GET /api/v1/admin/providersv2)
-func (a *API) AdminListProvidersV2(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
-
-	var providers []provider.Provider
-
-	q := storage.ListProviders{
-		Result: []provider.Provider{},
-	}
-	_, err := a.DB.Query(ctx, &q, queryOpts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	providers = q.Result
-
-	apiResponse := []types.ProviderV2{}
-
-	for _, p := range providers {
-		apiResponse = append(apiResponse, p.ToAPI())
-	}
-
-	apio.JSON(ctx, w, apiResponse, http.StatusOK)
 }

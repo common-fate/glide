@@ -44,10 +44,6 @@ var syncCommand = cli.Command{
 			panic(err)
 		}
 
-		prc, err := internal.ProviderRegistryClient(ctx, internal.BuildProviderRegistryClientOpts{Region: cfg.Region})
-		if err != nil {
-			panic(err)
-		}
 		syncer := cachesync.CacheSyncer{
 			DB:                  db,
 			AccessHandlerClient: ahc,
@@ -55,8 +51,7 @@ var syncCommand = cli.Command{
 				DB:                  db,
 				AccessHandlerClient: ahc,
 			},
-			ProviderRegistryClient: prc,
-			ProviderRegistrySync:   true,
+			ProviderRegistrySync: true,
 		}
 
 		err = syncer.Sync(ctx)

@@ -29,7 +29,6 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
-  ProviderV2,
   AdminListProviderArgOptionsParams,
   IdentityConfigurationResponseResponse
 } from '.././types'
@@ -562,45 +561,6 @@ export const useAdminListProviders = <TError = ErrorType<ErrorResponseResponse>>
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListProvidersKey() : null);
   const swrFn = () => adminListProviders(requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * List providers is used to display a list of providers. Uses the new registry provider paradigm and ProviderV2 type
- * @summary List providers
- */
-export const adminListProvidersV2 = (
-    
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ProviderV2[]>(
-      {url: `/api/v1/admin/providersv2`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getAdminListProvidersV2Key = () => [`/api/v1/admin/providersv2`];
-
-    
-export type AdminListProvidersV2QueryResult = NonNullable<Awaited<ReturnType<typeof adminListProvidersV2>>>
-export type AdminListProvidersV2QueryError = ErrorType<ErrorResponseResponse>
-
-export const useAdminListProvidersV2 = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListProvidersV2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListProvidersV2Key() : null);
-  const swrFn = () => adminListProvidersV2(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

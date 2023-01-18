@@ -59,26 +59,7 @@ export * from './listRequestsResponseResponse';
 export * from './listUserResponseResponse';
 export * from './lookupAccessRule';
 export * from './provider';
-<<<<<<< HEAD
-export * from './providerConfigField';
-export * from './providerConfigValue';
-export * from './providerSetup';
-export * from './providerSetupConfigValues';
-export * from './providerSetupDiagnosticLog';
-export * from './providerSetupDiagnosticLogLevel';
-export * from './providerSetupInstructions';
-export * from './providerSetupResponseResponse';
-export * from './providerSetupStatus';
-export * from './providerSetupStepCompleteRequestBody';
-export * from './providerSetupStepCompleteRequestBodyConfigValues';
-export * from './providerSetupStepDetails';
-export * from './providerSetupStepOverview';
-export * from './providerSetupValidation';
-export * from './providerSetupValidationStatus';
-export * from './providerV2';
-=======
 export * from './providerGroup';
->>>>>>> jordi/cf-349-connect-community-provider-to-common
 export * from './request';
 export * from './requestAccessRule';
 export * from './requestAccessRuleTarget';

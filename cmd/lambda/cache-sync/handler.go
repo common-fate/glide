@@ -10,7 +10,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
@@ -34,11 +33,6 @@ func main() {
 		panic(err)
 	}
 
-	prc, err := providerregistrysdk.NewClientWithResponses("TODO")
-	if err != nil {
-		panic(err)
-	}
-
 	syncer := cachesync.CacheSyncer{
 		DB:                  db,
 		AccessHandlerClient: ahc,
@@ -46,7 +40,6 @@ func main() {
 			DB:                  db,
 			AccessHandlerClient: ahc,
 		},
-		ProviderRegistryClient: prc,
 	}
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {
