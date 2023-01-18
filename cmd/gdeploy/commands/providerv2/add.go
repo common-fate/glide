@@ -1,8 +1,6 @@
 package providerv2
 
 import (
-	"fmt"
-
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/provider"
 	"github.com/common-fate/ddb"
