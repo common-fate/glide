@@ -1,14 +1,19 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext, Validate } from "react-hook-form";
 import ReactSelect, { ActionMeta, components, OptionProps } from "react-select";
 import { Box, Text } from "@chakra-ui/react";
 import {
-  useAdminListGroups,
+  adminListGroups,
+  adminListUsers,
   useAdminListUsers,
 } from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
 import { Option } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
-import { AdminListGroupsSource } from "../../../../utils/backend-client/types";
+import {
+  AdminListGroupsSource,
+  Group,
+  User,
+} from "../../../../utils/backend-client/types";
 interface BaseSelectProps {
   fieldName: string;
   rules?: MultiSelectRules;
@@ -25,31 +30,106 @@ interface GroupSelectProps extends BaseSelectProps {
 
 // UserSelect required defaults to true
 export const UserSelect: React.FC<BaseSelectProps> = (props) => {
-  const { data } = useAdminListUsers();
-  const options = useMemo(() => {
-    return (
-      data?.users
+  const [items, setItems] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchUsers = async (nextInput?: string) => {
+    // if there are items, and no nextInput then we are done
+    if (!nextInput && items.length !== 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const { users, next } = await adminListUsers({
+      // this is to accomodate for type discrepancy on first call
+      nextToken: nextInput ? nextInput : undefined,
+    });
+
+    if (users) {
+      users && setItems((currItems) => [...currItems, ...users]);
+      // setNextToken(next);
+      if (next) {
+        fetchUsers(next);
+      } else {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    return () => {
+      setItems([]);
+      setIsLoading(true);
+    };
+  }, []);
+
+  const options = useMemo(
+    () =>
+      items
         .map((u) => {
           return { value: u.id, label: u.email };
         })
-        .sort((a, b) => a.label.localeCompare(b.label)) ?? []
-    );
-  }, [data]);
-  return <MultiSelect id="user-select" options={options} {...props} />;
+        .sort((a, b) => a.label.localeCompare(b.label)) ?? [],
+    [items]
+  );
+  return (
+    <MultiSelect
+      id="user-select"
+      isLoading={isLoading}
+      options={options}
+      {...props}
+    />
+  );
 };
 
 export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const { shouldShowGroupMembers = false } = props;
-  const { data } = useAdminListGroups({ source: props.source });
+
+  const [items, setItems] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchGroups = async (nextInput?: string) => {
+    // if there are items, and no nextInput then we are done
+    if (!nextInput && items.length !== 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const { groups, next } = await adminListGroups({
+      // this is to accomodate for type discrepancy on first call
+      nextToken: nextInput ? nextInput : undefined,
+      source: props.source,
+    });
+    if (groups) {
+      groups && setItems((currItems) => [...currItems, ...groups]);
+      // setNextToken(next);
+      if (next) {
+        fetchGroups(next);
+      } else {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+    return () => {
+      setItems([]);
+      setIsLoading(true);
+    };
+  }, []);
+
   const options = useMemo(() => {
     return (
-      data?.groups
+      items
         .map((g) => {
           const totalMembersInGroup =
             g.memberCount <= 1
-              ? `${g.memberCount} member`
+              ? g.memberCount == 0
+                ? "No members"
+                : `${g.memberCount} member`
               : `${g.memberCount} members`;
-
           return {
             value: g.id,
             label: shouldShowGroupMembers
@@ -57,15 +137,18 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
               : g.name,
           };
         })
+        // let's run a quick filter to remove any dupes
+        .filter((v, i, a) => a.findIndex((t) => t.value === v.value) === i)
         .sort((a, b) => a.label.localeCompare(b.label)) ?? []
     );
-  }, [data, shouldShowGroupMembers]);
+  }, [items, shouldShowGroupMembers]);
   return (
     <MultiSelect
       id={props.testId}
       options={options}
       {...props}
       onBlurSecondaryAction={props.onBlurSecondaryAction}
+      isLoading={isLoading}
     />
   );
 };
@@ -80,6 +163,7 @@ interface MultiSelectProps extends BaseSelectProps {
   options: Option[];
   id?: string;
   shouldAddSelectAllOption?: boolean;
+  isLoading?: boolean;
 }
 
 export const CustomOption = ({
@@ -131,6 +215,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   isDisabled,
   id,
   shouldAddSelectAllOption = false,
+  isLoading,
   ...rest
 }) => {
   const { control, trigger } = useFormContext();
@@ -150,6 +235,8 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         return (
           <ReactSelect
             id={id}
+            key={id}
+            isLoading={isLoading}
             inputId={id + "-input"}
             isDisabled={isDisabled}
             //getOptionLabel={(option) => `${option.label}  (${option.value})`}
