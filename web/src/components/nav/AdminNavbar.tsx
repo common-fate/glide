@@ -138,7 +138,6 @@ export const AdminNavbar: React.FC = () => {
                         color="gray.800"
                         _hover={{
                           cursor: "auto",
-
                           backgroundColor: "gray.50",
                         }}
                         onClick={(e) => {
@@ -154,7 +153,6 @@ export const AdminNavbar: React.FC = () => {
                         onClick={auth.initiateSignOut}
                         _hover={{
                           cursor: "auto",
-
                           backgroundColor: "gray.50",
                         }}
                       >
