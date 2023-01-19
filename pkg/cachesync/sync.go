@@ -6,7 +6,9 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 )
 
@@ -58,5 +60,40 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 	}
 	log.Info("completed syncing provider options cache")
 
+	log.Info("starting to sync provider v2 schemas")
+	err = s.SyncCommunityProviderSchemas(ctx)
+	if err != nil {
+		log.Info("failed syncing provider v2 schemas")
+		return err
+	}
+	log.Info("completed syncing provider v2 schemas")
+	return nil
+}
+
+func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
+	log := logger.Get(ctx)
+	//list providers registered in database
+	q := storage.ListProviders{}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil {
+		return err
+	}
+
+	// If one of these fails, continue trying the others
+	for _, provider := range q.Result {
+		logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
+		logw.Infow("fetching schema for provider")
+		schema, err := pdk.InvokeSchema(ctx, provider.FunctionARN)
+		if err != nil {
+			logw.Error("failed to fetch schema")
+			continue
+		}
+		provider.Schema = schema
+		err = s.DB.Put(ctx, &provider)
+		if err != nil {
+			logw.Error("failed to update schema in database")
+			continue
+		}
+	}
 	return nil
 }

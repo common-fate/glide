@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/schema"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -24,6 +25,7 @@ func main() {
 			&db.DBCommand,
 			&events.EventsCommand,
 			&slack.SlackCommand,
+			&schema.SchemaCommand,
 		},
 	}
 
