@@ -94,6 +94,7 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 			logw.Error("failed to update schema in database")
 			continue
 		}
+		logw.Infow("successfully fetched schema for provider")
 	}
 	return nil
 }

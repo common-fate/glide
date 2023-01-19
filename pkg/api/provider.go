@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -28,7 +29,20 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
 			return
 		}
-		apio.JSON(ctx, w, res.JSON200, code)
+
+		q := storage.ListProviders{}
+		_, err := a.DB.Query(ctx, &q)
+		if err != nil && err != ddb.ErrNoItems {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+		combinedResponse := *res.JSON200
+		for _, provider := range q.Result {
+			combinedResponse = append(combinedResponse, provider.ToAPI())
+		}
+
+		apio.JSON(ctx, w, combinedResponse, code)
 		return
 	case 500:
 		apio.JSON(ctx, w, res.JSON500, code)

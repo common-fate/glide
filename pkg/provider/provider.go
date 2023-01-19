@@ -3,6 +3,7 @@ package provider
 import (
 	"time"
 
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
@@ -53,6 +54,14 @@ type Provider struct {
 
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+}
+
+// @TODO this is implemented for compatability with existing API
+func (p Provider) ToAPI() ahTypes.Provider {
+	return ahTypes.Provider{
+		Id:   p.ID,
+		Type: p.IconName,
+	}
 }
 
 func (p *Provider) DDBKeys() (ddb.Keys, error) {
