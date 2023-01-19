@@ -33,7 +33,7 @@ export const UserSelect: React.FC<BaseSelectProps> = (props) => {
   const [items, setItems] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUsers = async (nextInput?: string) => {
+  async function fetchUsers(nextInput?: string) {
     // if there are items, and no nextInput then we are done
     if (!nextInput && items.length !== 0) {
       setIsLoading(false);
@@ -47,17 +47,16 @@ export const UserSelect: React.FC<BaseSelectProps> = (props) => {
 
     if (users) {
       users && setItems((currItems) => [...currItems, ...users]);
-      // setNextToken(next);
       if (next) {
-        fetchUsers(next);
+        void fetchUsers(next);
       } else {
         setIsLoading(false);
       }
     }
-  };
+  }
 
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
     return () => {
       setItems([]);
       setIsLoading(true);
@@ -70,6 +69,8 @@ export const UserSelect: React.FC<BaseSelectProps> = (props) => {
         .map((u) => {
           return { value: u.id, label: u.email };
         })
+        // filter out dupes:
+        .filter((v, i, a) => a.findIndex((t) => t.value === v.value) === i)
         .sort((a, b) => a.label.localeCompare(b.label)) ?? [],
     [items]
   );
@@ -89,7 +90,8 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
   const [items, setItems] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchGroups = async (nextInput?: string) => {
+  // const fetchGroups = async (nextInput?: string) => { // recreate but mark as void
+  async function fetchGroups(nextInput?: string) {
     // if there are items, and no nextInput then we are done
     if (!nextInput && items.length !== 0) {
       setIsLoading(false);
@@ -103,17 +105,16 @@ export const GroupSelect: React.FC<GroupSelectProps> = (props) => {
     });
     if (groups) {
       groups && setItems((currItems) => [...currItems, ...groups]);
-      // setNextToken(next);
       if (next) {
-        fetchGroups(next);
+        void fetchGroups(next);
       } else {
         setIsLoading(false);
       }
     }
-  };
+  }
 
   useEffect(() => {
-    fetchGroups();
+    void fetchGroups();
     return () => {
       setItems([]);
       setIsLoading(true);
