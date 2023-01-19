@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/provider"
 )
@@ -40,5 +41,12 @@ func InvokeSchema(ctx context.Context, functionARN string) (schema provider.Sche
 	if err != nil {
 		return schema, err
 	}
-	return schema, json.Unmarshal(out.Payload, &schema)
+	log := logger.Get(ctx)
+
+	err = json.Unmarshal(out.Payload, &schema)
+	if err != nil {
+		return schema, err
+	}
+	log.Infow("schema", "out", string(out.Payload), "schema", schema)
+	return
 }

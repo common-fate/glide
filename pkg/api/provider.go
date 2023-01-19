@@ -56,6 +56,19 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
+	q := storage.GetProvider{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	if err != ddb.ErrNoItems {
+		apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+		return
+	}
+
+	// if its not in the database, fallback to the access handler instead
+
 	res, err := a.AccessHandlerClient.GetProviderWithResponse(ctx, providerId)
 	if err != nil {
 		apio.Error(ctx, w, err)
@@ -83,6 +96,20 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 
 func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
+
+	q := storage.GetProvider{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	if err != ddb.ErrNoItems {
+		apio.JSON(ctx, w, q.Result.Schema.Args, http.StatusOK)
+		return
+	}
+
+	// if its not in the database, fallback to the access handler instead
+
 	res, err := a.AccessHandlerClient.GetProviderArgsWithResponse(ctx, providerId)
 	if err != nil {
 		apio.Error(ctx, w, err)

@@ -88,6 +88,8 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 			logw.Error("failed to fetch schema")
 			continue
 		}
+
+		logw.Infow("recieved schema", "schema", schema)
 		provider.Schema = schema
 		err = s.DB.Put(ctx, &provider)
 		if err != nil {

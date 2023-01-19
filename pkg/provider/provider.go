@@ -15,7 +15,7 @@ type Group struct {
 }
 
 type Schema struct {
-	Target map[string]Argument `json:"target" dynamodbav:"target"`
+	Args map[string]Argument `json:"args" dynamodbav:"args"`
 }
 type Argument struct {
 	ID          string           `json:"id" dynamodbav:"id"`
@@ -27,6 +27,17 @@ type Argument struct {
 	// RequestFormElement *types.ArgumentRequestFormElement `json:"requestFormElement,omitempty" dynamodbav:"requestFormElement"`
 	// RuleFormElement    types.ArgumentRuleFormElement     `json:"ruleFormElement" dynamodbav:"ruleFormElement"`
 
+}
+
+// @TODO this is implemented for compatability with existing API
+func (a Argument) ToAPI() ahTypes.Argument {
+	return ahTypes.Argument{
+		Id:              a.ID,
+		Description:     a.Description,
+		Groups:          nil,
+		RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
+		Title:           a.Title,
+	}
 }
 
 type Provider struct {
@@ -62,6 +73,18 @@ func (p Provider) ToAPI() ahTypes.Provider {
 		Id:   p.ID,
 		Type: p.IconName,
 	}
+}
+
+// @TODO this is implemented for compatability with existing API
+func (p Provider) ArgSchemaToAPI() ahTypes.ArgSchema {
+	as := ahTypes.ArgSchema{
+		AdditionalProperties: make(map[string]ahTypes.Argument),
+	}
+
+	for k, v := range p.Schema.Args {
+		as.AdditionalProperties[k] = v.ToAPI()
+	}
+	return as
 }
 
 func (p *Provider) DDBKeys() (ddb.Keys, error) {

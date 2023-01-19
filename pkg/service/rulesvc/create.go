@@ -11,14 +11,16 @@ import (
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
 )
 
 // validateTargetAgainstSchema checks that all the arguments match the schema of the provider
 // It validates that all required arguments were provided with at least 1 value
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
+func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema ahTypes.ArgSchema) error {
 	if len(providerArgSchema.AdditionalProperties) != len(in.With.AdditionalProperties) {
 		return apio.NewRequestError(errors.New("target is missing required arguments from the provider schema"), http.StatusBadRequest)
 	}
@@ -47,7 +49,7 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 // validateTargetArgumentAgainstCachedOptions checks that all the argument values and argument group values currently exist in the cache.
 // this prevents being able to create an access rule with arguments which are invalid for the provider.
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
+func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema ahTypes.ArgSchema) error {
 	for argumentID, argument := range in.With.AdditionalProperties {
 		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != ahTypes.ArgumentRuleFormElementINPUT {
 			_, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
@@ -90,15 +92,32 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 	return nil
 }
 func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
-	// After verifying the provider, we can save the provider type to the rule for convenience
-	provider, err := s.getProviderByID(ctx, in.ProviderId)
-	if err != nil {
+
+	var provider ahTypes.Provider
+	var providerArgSchema ahTypes.ArgSchema
+
+	q := storage.GetProvider{ID: in.ProviderId}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
 		return rule.Target{}, err
 	}
-	providerArgSchema, err := s.getProviderArgSchemaByID(ctx, in.ProviderId)
-	if err != nil {
-		return rule.Target{}, err
+	if err != ddb.ErrNoItems {
+		provider = q.Result.ToAPI()
+		providerArgSchema = q.Result.ArgSchemaToAPI()
+	} else {
+		// After verifying the provider, we can save the provider type to the rule for convenience
+		p, err := s.getProviderByID(ctx, in.ProviderId)
+		if err != nil {
+			return rule.Target{}, err
+		}
+		pas, err := s.getProviderArgSchemaByID(ctx, in.ProviderId)
+		if err != nil {
+			return rule.Target{}, err
+		}
+		provider = *p
+		providerArgSchema = *pas
 	}
+
 	err = validateTargetAgainstSchema(in, providerArgSchema)
 	if err != nil {
 		return rule.Target{}, err
