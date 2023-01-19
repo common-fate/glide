@@ -17,6 +17,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/provider"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -88,11 +89,17 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 			}
 
 			var schema Schema
+
 			err = json.Unmarshal(res.Payload, &schema)
 			if err != nil {
 				return err
 			}
 
+			// @TODO I have hardcoded the form element type to an input, need to change this
+			for k, v := range schema.Args {
+				v.RuleFormElement = types.ArgumentRuleFormElementINPUT
+				schema.Args[k] = v
+			}
 			p.Schema = schema.Args
 
 			err = s.DB.Put(ctx, &p)

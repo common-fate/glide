@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/common-fate/apikit/logger"
-	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -17,7 +16,13 @@ import (
 func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error) {
 	// prepare request arguments for an access rule
 	// fetch the schema for the provider
-	providerSchema, err := s.getProviderArgSchemaByID(ctx, accessRuleTarget.ProviderID)
+	q := storage.GetProvider{
+		ID: accessRuleTarget.ProviderID,
+	}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		if err == ErrProviderNotFound {
 			logger.Get(ctx).Infow("failed to fetch provider while building request args because the provider no longer exists, falling back to basic request arguments")
@@ -51,7 +56,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 
 	// add the arguments from the schema
 	requestArguments := make(map[string]types.RequestArgument)
-	for k, v := range providerSchema {
+	for k, v := range q.Result.Schema {
 		var requestFormElement *types.RequestArgumentFormElement
 		if v.RequestFormElement != nil {
 			requestFormElement = (*types.RequestArgumentFormElement)(v.RequestFormElement)
@@ -131,7 +136,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 					Label: argValue,
 					// If the field is an input, it won't match any options, but its still valid for selection!
 					// the label and value are the same for an input field
-					Valid: providerSchema[argId].RuleFormElement == ahtypes.ArgumentRuleFormElementINPUT,
+					Valid: q.Result.Schema[argId].RuleFormElement == types.ArgumentRuleFormElementINPUT,
 					Value: argValue,
 				}
 

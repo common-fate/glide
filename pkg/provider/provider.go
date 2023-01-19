@@ -8,10 +8,16 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+type Group struct {
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+}
+
 type Argument struct {
-	Description *string `json:"description,omitempty" dynamodbav:"description,omitempty"`
-	// Groups      *map[string]Group `json:"groups,omitempty"`
-	Id string `json:"id"`
+	Description *string          `json:"description,omitempty" dynamodbav:"description,omitempty"`
+	Groups      map[string]Group `json:"groups,omitempty" dynamodbav:"description,omitempty"`
+	Id          string           `json:"id"`
 
 	// RequestFormElement Optional form element for the request form, if not provided, defaults to multiselect
 	RequestFormElement *types.ArgumentRequestFormElement `json:"requestFormElement,omitempty" dynamodbav:"requestFormElement"`
