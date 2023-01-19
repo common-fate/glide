@@ -185,8 +185,10 @@ func PackageBackend() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
-	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageFrontendDeployer)
+	mg.Deps(PackageBackend, PackageGranter)
+	mg.Deps(PackageAccessHandler, PackageSlackNotifier)
+	mg.Deps(PackageEventHandler, PackageSyncer)
+	mg.Deps(PackageWebhook, PackageFrontendDeployer)
 	mg.Deps(PackageCacheSyncer)
 }
 
