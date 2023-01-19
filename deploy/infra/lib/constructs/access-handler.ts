@@ -43,6 +43,20 @@ export class AccessHandler extends Construct {
       ],
 
       inlinePolicies: {
+        // allow the access handler to invoke tagged lambdas
+        InvokeProviderV2: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["lambda:InvokeFunction"],
+              resources: ["arn:aws:lambda:*"],
+              conditions: {
+                StringEquals: {
+                  "iam:ResourceTag/common-fate-abac-role": "community-provider",
+                },
+              },
+            }),
+          ],
+        }),
         AccessHandlerPolicy: new iam.PolicyDocument({
           statements: [
             new iam.PolicyStatement({

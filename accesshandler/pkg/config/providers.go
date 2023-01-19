@@ -23,6 +23,8 @@ type Provider struct {
 	Provider providers.Accessor `json:"-"`
 }
 
+var CommunityProvider Provider = Provider{}
+
 func (p *Provider) ToAPI() types.Provider {
 	return types.Provider{
 		Id:   p.ID,

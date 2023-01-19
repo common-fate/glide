@@ -136,6 +136,25 @@ export class Granter extends Construct {
       "StateMachineRole",
       cfnStatemachine.roleArn
     );
+
+    smRole.attachInlinePolicy(
+      // allow the access handler to invoke tagged lambdas
+      new iam.Policy(this, "InvokePolicy", {
+        document: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["lambda:InvokeFunction"],
+              resources: ["arn:aws:lambda:*"],
+              conditions: {
+                StringEquals: {
+                  "iam:ResourceTag/common-fate-abac-role": "community-provider",
+                },
+              },
+            }),
+          ],
+        }),
+      })
+    );
     this._lambda.grantInvoke(smRole);
   }
   getStateMachineARN(): string {

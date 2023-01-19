@@ -3,11 +3,13 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/accesshandler/pkg/config"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/community"
 	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/pkg/errors"
 )
@@ -29,15 +31,19 @@ func (a *API) PostGrants(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	_, ok := config.Providers[b.Provider]
-	if !ok {
-		err = apio.NewRequestError(errors.New("provider does not exist"), http.StatusBadRequest)
-		if err != nil {
-			apio.Error(ctx, w, err)
+
+	if !strings.HasPrefix(b.Provider, "arn:aws:lambda") {
+		_, ok := config.Providers[b.Provider]
+		if !ok {
+			err = apio.NewRequestError(errors.New("provider does not exist"), http.StatusBadRequest)
+			if err != nil {
+				apio.Error(ctx, w, err)
+				return
+			}
 			return
 		}
-		return
 	}
+
 	g, err := b.Validate(ctx, a.Clock.Now())
 	if err != nil {
 		// return the error details to the client if validation failed
@@ -107,11 +113,24 @@ func (a *API) ValidateGrant(w http.ResponseWriter, r *http.Request) {
 		log.Errorw("validate grant failed while testing basic parameters", "error", err)
 		return
 	}
-	prov, ok := config.Providers[b.Provider]
-	if !ok {
-		apio.ErrorString(ctx, w, "provider not found", http.StatusBadRequest)
-		log.Errorw("validate grant failed because the provider was not found")
-		return
+	var prov config.Provider
+	var ok bool
+	if strings.HasPrefix(b.Provider, "arn:aws:lambda") {
+		prov = config.Provider{
+			ID:   "community",
+			Type: "community-proxy",
+			Provider: &community.Provider{
+
+				FunctionARN: b.Provider,
+			},
+		}
+	} else {
+		prov, ok = config.Providers[b.Provider]
+		if !ok {
+			apio.ErrorString(ctx, w, "provider not found", http.StatusBadRequest)
+			log.Errorw("validate grant failed because the provider was not found")
+			return
+		}
 	}
 
 	validator, ok := prov.Provider.(providers.GrantValidator)

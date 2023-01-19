@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/benbjohnson/clock"
 	"github.com/segmentio/ksuid"
@@ -189,7 +190,9 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 	if res.JSON201 != nil {
 		now := g.Clock.Now()
 		opts.Request.Grant = &access.Grant{
-			Provider:  res.JSON201.Grant.Provider,
+
+			// @TODO I swapped this around so that we maintain teh correct provider ID rather than the function ARN for community providers due to the cheeky override
+			Provider:  opts.AccessRule.Target.ProviderID,
 			Subject:   string(res.JSON201.Grant.Subject),
 			Start:     res.JSON201.Grant.Start.Time,
 			End:       res.JSON201.Grant.End.Time,
@@ -201,7 +204,7 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 
 		// check whether the Access Provider requires an Access Token to be generated - we'll create one if it does.
 		// check now before we actually provision the access, so that we can return early if we fail.
-		requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, opts.AccessRule.Target.ProviderID)
+		requiresAccessToken, err := g.accessTokenChecker.NeedsAccessToken(ctx, res.JSON201.Grant.Provider)
 		if err != nil {
 			return nil, err
 		}
@@ -249,6 +252,9 @@ func (r registryAccessTokenChecker) NeedsAccessToken(ctx context.Context, provid
 	if err != nil {
 		return false, err
 	}
+	if strings.HasPrefix(providerID, "arn:aws:lambda") {
+		return false, nil
+	}
 	provider, ok := pm[providerID]
 	if !ok {
 		return false, fmt.Errorf("could not find provider %s in deployment config", providerID)
@@ -271,6 +277,19 @@ func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGran
 	_, err := g.DB.Query(ctx, q)
 	if err != nil {
 		return ahTypes.CreateGrant{}, err
+	}
+
+	qp := storage.GetProvider{
+		ID: opts.AccessRule.Target.ProviderID,
+	}
+	_, err = g.DB.Query(ctx, &qp)
+	if err != nil && err != ddb.ErrNoItems {
+		return ahTypes.CreateGrant{}, err
+	}
+
+	// setting the provider to the function arn to use some custom behaviour that will invoke the deployed lambda
+	if err != ddb.ErrNoItems {
+		opts.AccessRule.Target.ProviderID = qp.Result.FunctionARN
 	}
 
 	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))

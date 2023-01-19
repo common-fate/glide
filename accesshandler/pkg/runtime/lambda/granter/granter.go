@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/accesshandler/pkg/config"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/community"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
-
-	"github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -67,9 +68,23 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	grant := in.Grant
 	log := g.rawLog.With("grant.id", grant.ID)
 	log.Infow("Handling event", "event", in)
-	prov, ok := config.Providers[grant.Provider]
-	if !ok {
-		return Output{}, &providers.ProviderNotFoundError{Provider: grant.Provider}
+
+	var prov config.Provider
+	var ok bool
+	if strings.HasPrefix(in.Grant.Provider, "arn:aws:lambda") {
+		prov = config.Provider{
+			ID:   "community",
+			Type: "community-proxy",
+			Provider: &community.Provider{
+
+				FunctionARN: in.Grant.Provider,
+			},
+		}
+	} else {
+		prov, ok = config.Providers[grant.Provider]
+		if !ok {
+			return Output{}, &providers.ProviderNotFoundError{Provider: grant.Provider}
+		}
 	}
 
 	log.Infow("matched provider", "provider", prov)

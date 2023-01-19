@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/common-fate/apikit/logger"
-	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -17,36 +19,49 @@ import (
 func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error) {
 	// prepare request arguments for an access rule
 	// fetch the schema for the provider
-	providerSchema, err := s.getProviderArgSchemaByID(ctx, accessRuleTarget.ProviderID)
-	if err != nil {
-		if err == ErrProviderNotFound {
-			logger.Get(ctx).Infow("failed to fetch provider while building request args because the provider no longer exists, falling back to basic request arguments")
-		} else {
-			logger.Get(ctx).Errorw("failed to fetch provider while building request args, falling back to basic request arguments", "error", err)
-		}
 
-		// Fall back to using keys as labels
-		requestArguments := make(map[string]types.RequestArgument)
-		for k, v := range accessRuleTarget.With {
-			a := requestArguments[k]
-			a.Title = k
-			a.Options = append(a.Options, types.WithOption{Label: v, Value: v})
-			requestArguments[k] = a
-		}
-		for k, v := range accessRuleTarget.WithSelectable {
-			a := requestArguments[k]
-			a.Title = k
-			for _, o := range v {
-				a.Options = append(a.Options, types.WithOption{Label: o, Value: o})
+	var providerSchema ahTypes.ArgSchema
+
+	q := storage.GetProvider{ID: accessRuleTarget.ProviderID}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return nil, err
+	}
+	if err != ddb.ErrNoItems {
+		providerSchema = q.Result.ArgSchemaToAPI()
+	} else {
+		pas, err := s.getProviderArgSchemaByID(ctx, accessRuleTarget.ProviderID)
+		if err != nil {
+			if err == ErrProviderNotFound {
+				logger.Get(ctx).Infow("failed to fetch provider while building request args because the provider no longer exists, falling back to basic request arguments")
+			} else {
+				logger.Get(ctx).Errorw("failed to fetch provider while building request args, falling back to basic request arguments", "error", err)
 			}
-			requestArguments[k] = a
+
+			// Fall back to using keys as labels
+			requestArguments := make(map[string]types.RequestArgument)
+			for k, v := range accessRuleTarget.With {
+				a := requestArguments[k]
+				a.Title = k
+				a.Options = append(a.Options, types.WithOption{Label: v, Value: v})
+				requestArguments[k] = a
+			}
+			for k, v := range accessRuleTarget.WithSelectable {
+				a := requestArguments[k]
+				a.Title = k
+				for _, o := range v {
+					a.Options = append(a.Options, types.WithOption{Label: o, Value: o})
+				}
+				requestArguments[k] = a
+			}
+			for k := range accessRuleTarget.WithArgumentGroupOptions {
+				a := requestArguments[k]
+				a.Title = k
+				requestArguments[k] = a
+			}
+			return requestArguments, nil
 		}
-		for k := range accessRuleTarget.WithArgumentGroupOptions {
-			a := requestArguments[k]
-			a.Title = k
-			requestArguments[k] = a
-		}
-		return requestArguments, nil
+		providerSchema = *pas
 	}
 
 	// add the arguments from the schema
@@ -131,7 +146,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 					Label: argValue,
 					// If the field is an input, it won't match any options, but its still valid for selection!
 					// the label and value are the same for an input field
-					Valid: providerSchema.AdditionalProperties[argId].RuleFormElement == ahtypes.ArgumentRuleFormElementINPUT,
+					Valid: providerSchema.AdditionalProperties[argId].RuleFormElement == ahTypes.ArgumentRuleFormElementINPUT,
 					Value: argValue,
 				}
 
