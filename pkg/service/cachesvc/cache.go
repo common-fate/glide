@@ -78,49 +78,39 @@ func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId s
 
 // refreshProviderArgOptions deletes any cached options and then refetches them from the Access Handler.
 // It updates the cached options.
+// return true if options were refetched, false if they were already cached
 func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 
-	// delete any existing options
-	q := storage.ListCachedProviderOptionsForArg{
+	cachedArgs := storage.ListCachedProviderOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
 
-	_, err := s.DB.Query(ctx, &q)
+	_, err := s.DB.Query(ctx, &cachedArgs)
 	if err != nil && err != ddb.ErrNoItems {
 		return false, nil, nil, err
 	}
-	q2 := storage.ListCachedProviderArgGroupOptionsForArg{
+	cachedArgGroups := storage.ListCachedProviderArgGroupOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
-	_, err = s.DB.Query(ctx, &q)
+	_, err = s.DB.Query(ctx, &cachedArgGroups)
 	if err != nil && err != ddb.ErrNoItems {
 		return false, nil, nil, err
-	}
-	var items []ddb.Keyer
-	for i := range q.Result {
-		items = append(items, &q.Result[i])
-	}
-	for i := range q2.Result {
-		items = append(items, &q.Result[i])
-	}
-	if len(items) > 0 {
-		err = s.DB.DeleteBatch(ctx, items...)
-		if err != nil {
-			return false, nil, nil, err
-		}
 	}
 
 	// fetch new options
-	res, err := s.fetchProviderOptions(ctx, providerId, argId)
+	freshProviderOpts, err := s.fetchProviderOptions(ctx, providerId, argId)
 	if err != nil {
 		return false, nil, nil, err
 	}
 
-	var keyers []ddb.Keyer
-	var cachedOpts []cache.ProviderOption
-	for _, o := range res.Options {
+	// initialize the DDB keys for the new arg/groups
+	var freshArgGroupKeys []ddb.Keyer
+
+	// hydrate the options as ProviderOption
+	var freshArgOpts []cache.ProviderOption
+	for _, o := range freshProviderOpts.Options {
 		op := cache.ProviderOption{
 			Provider:    providerId,
 			Arg:         argId,
@@ -128,13 +118,14 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 			Value:       o.Value,
 			Description: o.Description,
 		}
-		keyers = append(keyers, &op)
-		cachedOpts = append(cachedOpts, op)
+		freshArgGroupKeys = append(freshArgGroupKeys, &op)
+		freshArgOpts = append(freshArgOpts, op)
 	}
 
-	var cachedGroups []cache.ProviderArgGroupOption
-	if res.Groups != nil {
-		for k, v := range res.Groups.AdditionalProperties {
+	// hydrate the group options as cache.ProviderArgGroupOption
+	var freshArgGroups []cache.ProviderArgGroupOption
+	if freshProviderOpts.Groups != nil {
+		for k, v := range freshProviderOpts.Groups.AdditionalProperties {
 			for _, option := range v {
 				op := cache.ProviderArgGroupOption{
 					Provider:    providerId,
@@ -146,18 +137,132 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 					Description: option.Description,
 					LabelPrefix: option.LabelPrefix,
 				}
-				keyers = append(keyers, &op)
-				cachedGroups = append(cachedGroups, op)
+				freshArgGroupKeys = append(freshArgGroupKeys, &op)
+				freshArgGroups = append(freshArgGroups, op)
 			}
 		}
 	}
 
-	err = s.DB.PutBatch(ctx, keyers...)
-	if err != nil {
-		return false, nil, nil, err
-	}
-	return true, cachedOpts, cachedGroups, nil
+	// itterate over cachedArgs and cachedArgGroups to delete any that no longer exist in freshArgOpts & freshArgGroups
+	// var argAndGroupKeysNoLongerExist []ddb.Keyer
+	// for _, cachedArg := range cachedArgs.Result {
+	// 	found := false
+	// 	k1, err := cachedArg.DDBKeys()
+	// 	if err != nil {
+	// 		return false, nil, nil, err
+	// 	}
+	// 	for _, freshArg := range freshArgOpts {
+	// 		k2, err := freshArg.DDBKeys()
+	// 		if err != nil {
+	// 			return false, nil, nil, err
+	// 		}
+	// 		if k1.SK == k2.SK {
+	// 			found = true
+	// 			// do an update here, ddb put
+	// 			err = s.DB.Put(ctx, &freshArg)
+	// 			if err != nil {
+	// 				return false, nil, nil, err
+	// 			}
+	// 			break
+	// 		}
+	// 	}
+	// 	if !found {
+	// 		argAndGroupKeysNoLongerExist = append(argAndGroupKeysNoLongerExist, &cachedArg)
+	// 	}
+	// }
 
+	// rewrite this but itterate over freshArgOpts first, and add an extra condition that inserts any freshArgOpts that are not in cachedArgs
+	var argAndGroupKeysNoLongerExist []ddb.Keyer
+	for _, freshArg := range freshArgOpts {
+		found := false
+		k1, err := freshArg.DDBKeys()
+		if err != nil {
+			return false, nil, nil, err
+		}
+		for _, cachedArg := range cachedArgs.Result {
+			k2, err := cachedArg.DDBKeys()
+			if err != nil {
+				return false, nil, nil, err
+			}
+			if k1.SK == k2.SK {
+				found = true
+				// do an update here
+				err = s.DB.Put(ctx, &freshArg)
+				if err != nil {
+					return false, nil, nil, err
+				}
+				break
+			}
+		}
+		if !found {
+			err = s.DB.Put(ctx, &freshArg)
+			if err != nil {
+				return false, nil, nil, err
+			}
+		}
+	}
+	// to handle the delete of the arg groups, we can just do a delete of the arg groups that are in cachedArgGroups but not in freshArgGroups
+	for _, cachedArg := range cachedArgs.Result {
+		found := false
+		k1, err := cachedArg.DDBKeys()
+		if err != nil {
+			return false, nil, nil, err
+		}
+		for _, freshArg := range freshArgOpts {
+			k2, err := freshArg.DDBKeys()
+			if err != nil {
+				return false, nil, nil, err
+			}
+			if k1.SK == k2.SK {
+				found = true
+				break
+			}
+		}
+		if !found {
+			argAndGroupKeysNoLongerExist = append(argAndGroupKeysNoLongerExist, &cachedArg)
+		}
+	}
+
+	for _, cachedArgGroup := range cachedArgGroups.Result {
+		found := false
+		k1, err := cachedArgGroup.DDBKeys()
+		if err != nil {
+			return false, nil, nil, err
+		}
+		for _, freshArg := range freshArgGroups {
+			k2, err := freshArg.DDBKeys()
+			if err != nil {
+				return false, nil, nil, err
+			}
+			if k1.SK == k2.SK {
+				found = true
+				// do an update here
+				err = s.DB.Put(ctx, &freshArg)
+				if err != nil {
+					return false, nil, nil, err
+				}
+				break
+			}
+		}
+		if !found {
+			argAndGroupKeysNoLongerExist = append(argAndGroupKeysNoLongerExist, &cachedArgGroup)
+		}
+	}
+
+	// Now run the delete
+	if len(argAndGroupKeysNoLongerExist) > 0 {
+		err = s.DB.DeleteBatch(ctx, argAndGroupKeysNoLongerExist...)
+		if err != nil {
+			return false, nil, nil, err
+		}
+	}
+
+	// then update any that do exist
+	// err = s.DB.PutBatch(ctx, freshArgGroupKeys...)
+	// if err != nil {
+	// 	return false, nil, nil, err
+	// }
+	return true, freshArgOpts, freshArgGroups, nil
 }
 
 func (s *Service) fetchProviderOptions(ctx context.Context, providerID, argID string) (ahtypes.ArgOptionsResponse, error) {
