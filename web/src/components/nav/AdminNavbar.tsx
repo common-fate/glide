@@ -15,6 +15,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  LightMode,
   Link as ChakraLink,
   Menu,
   MenuButton,
@@ -134,7 +135,11 @@ export const AdminNavbar: React.FC = () => {
                     </MenuButton>
                     <MenuList _dark={{ borderColor: "gray.500" }}>
                       <MenuItem
-                        _hover={{ cursor: "auto", backgroundColor: "gray.700" }}
+                        color="gray.800"
+                        _hover={{
+                          cursor: "auto",
+                          backgroundColor: "gray.50",
+                        }}
                         onClick={(e) => {
                           e.preventDefault();
                         }}
@@ -142,9 +147,14 @@ export const AdminNavbar: React.FC = () => {
                         {user.user?.email}
                       </MenuItem>
                       <MenuItem
+                        color="gray.800"
                         data-testid="logout-button"
                         icon={<DoorIcon color={"gray.400"} />}
                         onClick={auth.initiateSignOut}
+                        _hover={{
+                          cursor: "auto",
+                          backgroundColor: "gray.50",
+                        }}
                       >
                         Sign out
                       </MenuItem>
