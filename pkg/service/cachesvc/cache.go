@@ -78,6 +78,7 @@ func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId s
 
 // refreshProviderArgOptions deletes any cached options and then refetches them from the Access Handler.
 // It updates the cached options.
+// To prevent an extended period of time where options are unavailable, we only update the items, and delete any that are no longer present (fixes SOL-35)
 // return true if options were refetched, false if they were already cached
 func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 
@@ -104,11 +105,10 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 	if err != nil {
 		return false, nil, nil, err
 	}
-
 	// initialize the DDB keys for the new arg/groups
-	var freshArgGroupKeys []ddb.Keyer
+	// var freshArgGroupKeys []ddb.Keyer
 
-	// hydrate the options as ProviderOption
+	// hydrate the fresh arg options as ProviderOption type
 	var freshArgOpts []cache.ProviderOption
 	for _, o := range freshProviderOpts.Options {
 		op := cache.ProviderOption{
@@ -118,11 +118,11 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 			Value:       o.Value,
 			Description: o.Description,
 		}
-		freshArgGroupKeys = append(freshArgGroupKeys, &op)
+		// freshArgGroupKeys = append(freshArgGroupKeys, &op)
 		freshArgOpts = append(freshArgOpts, op)
 	}
 
-	// hydrate the group options as cache.ProviderArgGroupOption
+	// hydrate the fresh group options as cache.ProviderArgGroupOption
 	var freshArgGroups []cache.ProviderArgGroupOption
 	if freshProviderOpts.Groups != nil {
 		for k, v := range freshProviderOpts.Groups.AdditionalProperties {
@@ -137,14 +137,13 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 					Description: option.Description,
 					LabelPrefix: option.LabelPrefix,
 				}
-				freshArgGroupKeys = append(freshArgGroupKeys, &op)
+				// freshArgGroupKeys = append(freshArgGroupKeys, &op)
 				freshArgGroups = append(freshArgGroups, op)
 			}
 		}
 	}
 
-	// itterate over freshArgOpts and cachedArgGroups to update any that no exist in freshArgOpts & cachedArgs
-	var argAndGroupKeysNoLongerExist []ddb.Keyer
+	// itterate over freshArgOpts and cachedArgs to update any exist in freshArgOpts & cachedArgs
 	for _, freshArg := range freshArgOpts {
 		found := false
 		k1, err := freshArg.DDBKeys()
@@ -166,6 +165,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 				break
 			}
 		}
+		// if the fresh arg is not found in the cache, we need to add it as a new option (no update)
 		if !found {
 			err = s.DB.Put(ctx, &freshArg)
 			if err != nil {
@@ -173,7 +173,8 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 			}
 		}
 	}
-	// to handle the delete of the arg groups, we can just do a delete of the arg groups that are in cachedArgGroups but not in freshArgGroups
+	// to handle the delete of the arg opts, we can just do a delete of the arg opts that are in cachedArgs but not in freshArgOpts
+	var argAndGroupKeysNoLongerExist []ddb.Keyer
 	for _, cachedArg := range cachedArgs.Result {
 		found := false
 		k1, err := cachedArg.DDBKeys()
@@ -195,33 +196,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 		}
 	}
 
-	// for _, cachedArgGroup := range cachedArgGroups.Result {
-	// 	found := false
-	// 	k1, err := cachedArgGroup.DDBKeys()
-	// 	if err != nil {
-	// 		return false, nil, nil, err
-	// 	}
-	// 	for _, freshArg := range freshArgGroups {
-	// 		k2, err := freshArg.DDBKeys()
-	// 		if err != nil {
-	// 			return false, nil, nil, err
-	// 		}
-	// 		if k1.SK == k2.SK {
-	// 			found = true
-	// 			// do an update here
-	// 			err = s.DB.Put(ctx, &freshArg)
-	// 			if err != nil {
-	// 				return false, nil, nil, err
-	// 			}
-	// 			break
-	// 		}
-	// 	}
-	// 	if !found {
-	// 		argAndGroupKeysNoLongerExist = append(argAndGroupKeysNoLongerExist, &cachedArgGroup)
-	// 	}
-	// }
-
-	// rewrite this but itterate over freshArgOpts first, and add an extra condition that inserts any freshArgOpts that are not in cachedArgGroups
+	// itterate over freshArgGroups and cachedArgGroups to update any exist in freshArgGroups & cachedArgGroups
 	for _, freshArgGroup := range freshArgGroups {
 		found := false
 		k1, err := freshArgGroup.DDBKeys()
@@ -243,6 +218,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 				break
 			}
 		}
+		// if the fresh arg group is not found in the cache, we need to add it as a new option (no update)
 		if !found {
 			err = s.DB.Put(ctx, &freshArgGroup)
 			if err != nil {
@@ -250,7 +226,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 			}
 		}
 	}
-	// to handle the delete of the arg groups, we can just do a delete of the arg groups that are in cachedArgGroups but not in freshArgGroups
+	// to handle the delete of arg groups, we can just do a delete of the arg groups that are in cachedArgGroups but not in freshArgGroups
 	for _, cachedArgGroup := range cachedArgGroups.Result {
 		found := false
 		k1, err := cachedArgGroup.DDBKeys()
