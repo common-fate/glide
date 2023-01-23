@@ -45,7 +45,7 @@ var SyncCommand = cli.Command{
 
 		lambdaClient := lambda.NewFromConfig(cfg)
 		res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
-			FunctionName:   &o.IdpSyncFunctionName,
+			FunctionName:   &o.CacheSyncFunctionName,
 			InvocationType: types.InvocationTypeRequestResponse,
 			Payload:        []byte("{}"),
 		})
