@@ -104,7 +104,8 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 		return
 	}
 	if err != ddb.ErrNoItems {
-		apio.JSON(ctx, w, q.Result.Schema.Args, http.StatusOK)
+		// @TODO this needs to be converted suitably to the api type
+		apio.JSON(ctx, w, q.Result.Schema.Target, http.StatusOK)
 		return
 	}
 

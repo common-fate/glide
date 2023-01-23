@@ -6,39 +6,8 @@ import (
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
-
-type Group struct {
-	ID          string  `json:"id" dynamodbav:"id"`
-	Title       string  `json:"title" dynamodbav:"title"`
-	Description *string `json:"description,omitempty" dynamodbav:"description,omitempty"`
-}
-
-type Schema struct {
-	Args map[string]Argument `json:"args" dynamodbav:"args"`
-}
-type Argument struct {
-	ID          string           `json:"id" dynamodbav:"id"`
-	Title       string           `json:"title" dynamodbav:"title"`
-	Description *string          `json:"description,omitempty" dynamodbav:"description,omitempty"`
-	Groups      map[string]Group `json:"groups,omitempty" dynamodbav:"groups,omitempty"`
-
-	// RequestFormElement Optional form element for the request form, if not provided, defaults to multiselect
-	// RequestFormElement *types.ArgumentRequestFormElement `json:"requestFormElement,omitempty" dynamodbav:"requestFormElement"`
-	// RuleFormElement    types.ArgumentRuleFormElement     `json:"ruleFormElement" dynamodbav:"ruleFormElement"`
-
-}
-
-// @TODO this is implemented for compatability with existing API
-func (a Argument) ToAPI() ahTypes.Argument {
-	return ahTypes.Argument{
-		Id:              a.ID,
-		Description:     a.Description,
-		Groups:          nil,
-		RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
-		Title:           a.Title,
-	}
-}
 
 type Provider struct {
 	ID string `json:"id" dynamodbav:"id"`
@@ -59,7 +28,7 @@ type Provider struct {
 	IconName string `json:"iconName" dynamodbav:"iconName"`
 	// Schema contains information about how to invoke the lambda to grant access
 	// it also contains information about the available resources
-	Schema Schema `json:"schema" dynamodbav:"schema"`
+	Schema providerregistrysdk.ProviderSchema `json:"schema" dynamodbav:"schema"`
 
 	// Metadata
 
@@ -81,8 +50,13 @@ func (p Provider) ArgSchemaToAPI() ahTypes.ArgSchema {
 		AdditionalProperties: make(map[string]ahTypes.Argument),
 	}
 
-	for k, v := range p.Schema.Args {
-		as.AdditionalProperties[k] = v.ToAPI()
+	for k, v := range p.Schema.Target.AdditionalProperties {
+		as.AdditionalProperties[k] = ahTypes.Argument{
+			Id:              v.Id,
+			Description:     v.Description,
+			Title:           v.Title,
+			RuleFormElement: ahTypes.ArgumentRuleFormElement(v.RuleFormElement),
+		}
 	}
 	return as
 }

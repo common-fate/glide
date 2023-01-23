@@ -9,7 +9,7 @@ import (
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
-	"github.com/common-fate/common-fate/pkg/provider"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 func Invoke(ctx context.Context, functionARN string, payload payload) (*lambda.InvokeOutput, error) {
@@ -36,7 +36,7 @@ func Invoke(ctx context.Context, functionARN string, payload payload) (*lambda.I
 	return res, nil
 }
 
-func InvokeSchema(ctx context.Context, functionARN string) (schema provider.Schema, err error) {
+func InvokeSchema(ctx context.Context, functionARN string) (schema providerregistrysdk.ProviderSchema, err error) {
 	out, err := Invoke(ctx, functionARN, NewSchemaEvent())
 	if err != nil {
 		return schema, err
