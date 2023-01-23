@@ -43,6 +43,11 @@ export const registeredProviders: RegisteredProvider[] = [
     shortType: "testvault",
     name: "TestVault",
   },
+  {
+    type: "commonfate/datadog",
+    shortType: "datadog",
+    name: "Datadog",
+  },
 ];
 
 /**

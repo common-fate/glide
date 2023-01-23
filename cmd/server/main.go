@@ -8,6 +8,7 @@ import (
 
 	ahConfig "github.com/common-fate/common-fate/accesshandler/pkg/config"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
+	"github.com/pkg/errors"
 
 	"github.com/common-fate/apikit/logger"
 	ahServer "github.com/common-fate/common-fate/accesshandler/pkg/server"
@@ -44,12 +45,12 @@ func run() error {
 	ctx := context.Background()
 	_ = godotenv.Load()
 
-	// override the PROVIDER_CONFIG env var with the contents from granted-deployment.yml.
+	// override the PROVIDER_CONFIG env var with the contents from deployment.yml.
 	// This saves having to round-trip a full cloud redeploy with `mage deploy:dev` just to
 	// update local env vars.
-	localDC, err := deploy.LoadConfig("granted-deployment.yml")
+	localDC, err := deploy.LoadConfig("deployment.yml")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "loading development config")
 	}
 	providerConf, err := json.Marshal(localDC.Deployment.Parameters.ProviderConfiguration)
 	if err != nil {

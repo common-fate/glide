@@ -3,6 +3,7 @@ import React from "react";
 import {
   AWSIcon,
   AzureIcon,
+  DatadogIcon,
   ECSIcon,
   EKSIcon,
   FlaskIcon,
@@ -46,6 +47,8 @@ export const ProviderIcon: React.FC<Props> = ({
       return <ECSIcon {...rest} />;
     case "commonfate/flask":
       return <FlaskIcon {...rest} />;
+    case "commonfate/datadog":
+      return <DatadogIcon {...rest} />;
   }
 
   switch (shortType) {
@@ -61,6 +64,8 @@ export const ProviderIcon: React.FC<Props> = ({
       return <ECSIcon {...rest} />;
     case "flask":
       return <FlaskIcon {...rest} />;
+    case "datadog":
+      return <DatadogIcon {...rest} />;
   }
   return <CommonFateIcon {...rest} />;
 };

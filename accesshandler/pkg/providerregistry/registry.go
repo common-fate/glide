@@ -12,6 +12,7 @@ import (
 	eksrolessso "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/eks-roles-sso"
 	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/azure/ad"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers/datadog"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testgroups"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
@@ -94,6 +95,13 @@ func Registry() ProviderRegistry {
 					DefaultID:   "testgroups",
 					Description: "TestGroups - a provider for integration testing Common Fate",
 					Hidden:      true,
+				},
+			},
+			"commonfate/datadog": {
+				"v1-alpha1": {
+					Provider:    &datadog.Provider{},
+					DefaultID:   "datadog",
+					Description: "Datadog",
 				},
 			},
 		},
