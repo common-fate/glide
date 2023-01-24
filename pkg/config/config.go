@@ -70,3 +70,11 @@ type FrontendDeployerConfig struct {
 	CloudFrontDistributionID             string `env:"COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID,required"`
 	APIURL                               string `env:"COMMONFATE_API_URL,required"`
 }
+
+type ProviderDeploymentCLI struct {
+	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
+	LogLevel               string `env:"COMMONFATE_LOG_LEVEL,default=info"`
+	Host                   string `env:"COMMONFATE_CLI_HOST,default=0.0.0.0:9000"`
+	LocalFrontendURL       string `env:"COMMONFATE_CLI_LOCAL_FRONTEND_URL,default=http://localhost:9000"`
+	Debug                  bool   `env:"COMMONFATE_CLI_DEBUG"`
+}

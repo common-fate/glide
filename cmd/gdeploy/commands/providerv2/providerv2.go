@@ -9,6 +9,7 @@ var Command = cli.Command{
 	Usage:       "Manage your Access Providers",
 	Subcommands: []*cli.Command{
 		&addv2Command,
+		&StartCommand,
 	},
 	Action: cli.ShowSubcommandHelp,
 }
