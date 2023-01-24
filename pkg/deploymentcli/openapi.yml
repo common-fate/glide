@@ -1,487 +1,36 @@
 openapi: 3.0.0
 info:
-  title: Example API
+  title: Deployment CLI
   version: '1.0'
   contact:
     name: Common Fate
     url: 'https://commonfate.io'
-  description: Example API
+  description: Deployment CLI
 servers:
   - url: 'http://localhost:9000'
 paths:
-  /api/v1/health:
+  /api/v1/providers:
     get:
-      summary: Healthcheck
-      tags:
-        - runtime
+      summary: Your GET endpoint
+      tags: []
       responses:
         '200':
-          $ref: '#/components/responses/HealthResponse'
+          $ref: '#/components/responses/ListProvidersResponse'
         '500':
-          $ref: '#/components/responses/HealthResponse'
-      operationId: get-health
-      description: Returns the health of the service. If any healthchecks fail the response code will be 500 (Internal Server Error).
-  /api/v1/providersetups:
-    get:
-      summary: List the provider setups in progress
-      responses:
-        '200':
-          $ref: '#/components/responses/ListProviderSetupsResponse'
-      operationId: list-providersetups
-      description: List providers which are still in the process of being set up.
-    parameters: []
-    post:
-      summary: Begin the setup process for a new Access Provider
-      operationId: create-providersetup
-      responses:
-        '201':
-          $ref: '#/components/responses/ProviderSetupResponse'
-        '400':
           $ref: '#/components/responses/ErrorResponse'
-      description: Begins the guided setup process for a new Access Provider.
-      requestBody:
-        $ref: '#/components/requestBodies/CreateProviderSetupRequest'
-  '/api/v1/providersetups/{providersetupId}':
+      operationId: get-api-v1-providers
+  /api/v1/registry/providers:
     get:
-      summary: Get an in-progress provider setup
+      summary: Your GET endpoint
+      tags: []
       responses:
         '200':
-          $ref: '#/components/responses/ProviderSetupResponse'
-      operationId: get-providersetup
-      description: Get the setup instructions for an Access Provider.
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    delete:
-      summary: Delete an in-progress provider setup
-      operationId: delete-providersetup
-      responses:
-        '200':
-          $ref: '#/components/responses/ProviderSetupResponse'
-      description: |-
-        Removes an in-progress provider setup and deletes all data relating to it.
-
-        Returns the deleted provider.
-  '/api/v1/providersetups/{providersetupId}/instructions':
-    get:
-      summary: Get the setup instructions for an Access Provider
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProviderSetupInstructions'
-      operationId: get-providersetup-instructions
-      description: Get the setup instructions for an Access Provider.
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-  '/api/v1/providersetups/{providersetupId}/validate':
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    post:
-      summary: Validate the configuration for a Provider Setup
-      operationId: validate-providersetup
-      responses:
-        '200':
-          $ref: '#/components/responses/ProviderSetupResponse'
-      description: |-
-        Validates the configuration values for an access provider being setup.
-
-        Will return a HTTP200 OK response even if there are validation errors. The errors can be found by inspecting the validation diagnostics in the `configValidation` field.
-
-        Will return a HTTP400 response if the provider cannot be validated (for example, the config values for the provider are incomplete).
-  '/api/v1/providersetups/{providersetupId}/complete':
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    post:
-      summary: Complete a ProviderSetup
-      operationId: complete-providersetup
-      description: 'If Runtime Configuration is enabled, this will write the Access Provider to the configuration storage and activate it. If Runtime Configuration is disabled, this endpoint does nothing.'
-      responses:
-        '200':
-          $ref: '#/components/responses/CompleteProviderSetupResponse'
-  '/api/v1/providersetups/{providersetupId}/steps/{stepIndex}/complete':
-    parameters:
-      - schema:
-          type: integer
-        name: stepIndex
-        in: path
-        required: true
-        description: The step index to update the completion status for.
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    put:
-      summary: Update the completion status for a Provider setup step
-      operationId: submit-providersetup-step
-      responses:
-        '200':
-          $ref: '#/components/responses/ProviderSetupResponse'
-      description: The updated provider setup.
-      requestBody:
-        $ref: '#/components/requestBodies/ProviderSetupStepCompleteRequest'
+          $ref: '#/components/responses/ListRegistryProvidersResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      operationId: get-api-v1-registry-providers
 components:
-  schemas:
-    ProviderConfigValidation:
-      title: ProviderConfigValidation
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A validation against the configuration values of the Access Provider.
-      properties:
-        id:
-          type: string
-          description: 'The ID of the validation, such as `list-sso-users`.'
-        name:
-          type: string
-        status:
-          type: string
-          enum:
-            - IN_PROGRESS
-            - SUCCESS
-            - PENDING
-            - ERROR
-          description: The status of the validation.
-        fieldsValidated:
-          type: array
-          description: 'The particular config fields validated, if any.'
-          items:
-            type: string
-        logs:
-          type: array
-          items:
-            $ref: '#/components/schemas/Log'
-      required:
-        - id
-        - name
-        - status
-        - fieldsValidated
-        - logs
-    ProviderSetup:
-      title: ProviderSetup
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
-      properties:
-        id:
-          type: string
-          description: A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file.
-        team:
-          type: string
-        name:
-          type: string
-        version:
-          type: string
-          description: The version of the provider.
-        status:
-          type: string
-          enum:
-            - COMPLETE
-            - VALIDATION_FAILED
-            - VALIDATING
-            - INITIAL_CONFIGURATION_IN_PROGRESS
-            - VALIDATION_SUCEEDED
-          description: The status of the setup process.
-        steps:
-          type: array
-          description: An overview of the steps indicating whether they are complete.
-          items:
-            $ref: '#/components/schemas/ProviderSetupStepOverview'
-        configValues:
-          type: object
-          description: The current configuration values.
-          additionalProperties: false
-          x-go-type: 'map[string]string'
-        configValidation:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderConfigValidation'
-      required:
-        - id
-        - team
-        - name
-        - version
-        - status
-        - steps
-        - configValues
-        - configValidation
-    Log:
-      title: Log
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A log entry.
-      properties:
-        level:
-          type: string
-          description: The log level.
-          enum:
-            - INFO
-            - WARNING
-            - ERROR
-        msg:
-          type: string
-          description: The log message.
-      required:
-        - level
-        - msg
-    Provider:
-      title: Provider
-      type: object
-      x-examples:
-        AWS:
-          id: string
-          name: string
-          type: aws
-        Okta:
-          id: string
-          name: string
-          type: okta
-      description: 'Provider '
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-      required:
-        - id
-        - type
-    ProviderSetupInstructions:
-      title: ProviderSetupInstructions
-      x-stoplight:
-        id: w5avwzeow2bj9
-      type: object
-      properties:
-        stepDetails:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderSetupStepDetails'
-      required:
-        - stepDetails
-    ProviderSetupStepOverview:
-      title: ProviderSetupStepOverview
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: Indicates whether a setup step is complete or not.
-      properties:
-        complete:
-          type: boolean
-          description: Whether the step has been completed.
-      required:
-        - complete
-    ProviderSetupStepDetails:
-      title: ProviderSetupStepDetails
-      x-stoplight:
-        id: w5avwzeow2bj9
-      type: object
-      properties:
-        title:
-          type: string
-        instructions:
-          type: string
-        configFields:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderConfigField'
-      required:
-        - title
-        - instructions
-        - configFields
-    ProviderConfigField:
-      title: ProviderConfigField
-      x-stoplight:
-        id: w5avwzeow2bj9
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        isOptional:
-          type: boolean
-          description: Whether the config value is optional.
-        isSecret:
-          type: boolean
-          description: Whether or not the config field is a secret (like an API key or a password)
-        secretPath:
-          type: string
-          description: 'the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store.'
-      required:
-        - id
-        - name
-        - description
-        - isOptional
-        - isSecret
-    ProviderConfigValue:
-      title: ProviderConfigValue
-      x-stoplight:
-        id: fv4rhbdwpfki9
-      type: object
-      properties:
-        id:
-          type: string
-          description: The ID of the config field.
-        value:
-          type: string
-          description: The value entered by the user.
-      required:
-        - id
-        - value
-    ProviderSetupValidation:
-      title: ProviderSetupValidation
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A validation against the configuration values of the Access Provider.
-      properties:
-        id:
-          type: string
-          description: 'The ID of the validation, such as `list-sso-users`.'
-        status:
-          type: string
-          enum:
-            - IN_PROGRESS
-            - SUCCESS
-            - PENDING
-            - ERROR
-          description: The status of the validation.
-        fieldsValidated:
-          type: array
-          description: 'The particular config fields validated, if any.'
-          items: {}
-        logs:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProviderSetupDiagnosticLog'
-      required:
-        - id
-        - status
-        - fieldsValidated
-    ProviderSetupDiagnosticLog:
-      title: ProviderSetupDiagnosticLog
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A log entry related to a provider setup validation.
-      properties:
-        level:
-          type: string
-          description: The log level.
-          enum:
-            - INFO
-            - WARNING
-            - ERROR
-        msg:
-          type: string
-          description: The log message.
-      required:
-        - level
-        - msg
-  requestBodies:
-    ProviderSetupStepCompleteRequest:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              complete:
-                type: boolean
-                description: Whether the step is complete or not.
-              configValues:
-                type: object
-                additionalProperties:
-                  type: string
-                description: The config values entered by the user which correspond to the setup step.
-                x-go-type: 'map[string]string'
-            required:
-              - complete
-              - configValues
-    CreateProviderSetupRequest:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              team:
-                type: string
-                pattern: '[a-zA-Z0-9,.;:()[\]?!\-_`~&/\n\s]'
-                minLength: 0
-                maxLength: 2048
-              name:
-                type: string
-              version:
-                type: string
-            required:
-              - team
-              - name
-              - version
-      description: Begin the guided setup process for a new Access Provider.
   responses:
-    ProviderSetupResponse:
-      description: Returns a ProviderSetup object.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ProviderSetup'
-    ListProviderSetupsResponse:
-      description: A list of in-progress Access Providers being set up by the Common Fate administrators.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              providerSetups:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ProviderSetup'
-            required:
-              - providerSetups
-    CompleteProviderSetupResponse:
-      description: The response when completing an Access Provider guided setup.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              deploymentConfigUpdateRequired:
-                type: boolean
-                description: Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
-            required:
-              - deploymentConfigUpdateRequired
-    HealthResponse:
-      description: Healthcheck response body.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              healthy:
-                type: boolean
-            required:
-              - healthy
-          examples: {}
     ErrorResponse:
       description: An error returned from the API.
       content:
@@ -492,6 +41,71 @@ components:
               error:
                 type: string
           examples: {}
+    ListRegistryProvidersResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              next:
+                type: string
+                nullable: true
+              providers:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegistryProvider'
+            required:
+              - next
+              - providers
+    ListProvidersResponse:
+      description: Providers registered in the Common Fate deployment
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              next:
+                type: string
+                nullable: true
+              providers:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Provider'
+            required:
+              - next
+              - providers
+  schemas:
+    RegistryProvider:
+      title: RegistryProvider
+      x-stoplight:
+        id: nhwc8ubm2f7wa
+      type: object
+      properties:
+        id:
+          type: string
+    Provider:
+      title: Provider
+      x-stoplight:
+        id: iujnfevm5byx0
+      type: object
+      properties:
+        team:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        alias:
+          type: string
+        id:
+          type: string
+      required:
+        - team
+        - name
+        - version
+        - alias
+        - id
 tags:
   - name: grants
   - name: runtime
