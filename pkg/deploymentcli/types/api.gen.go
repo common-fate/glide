@@ -28,7 +28,9 @@ type Provider struct {
 
 // RegistryProvider defines model for RegistryProvider.
 type RegistryProvider struct {
-	Id *string `json:"id,omitempty"`
+	Name    string `json:"name"`
+	Team    string `json:"team"`
+	Version string `json:"version"`
 }
 
 // ErrorResponse defines model for ErrorResponse.
@@ -52,10 +54,10 @@ type ListRegistryProvidersResponse struct {
 type ServerInterface interface {
 	// Your GET endpoint
 	// (GET /api/v1/providers)
-	GetApiV1Providers(w http.ResponseWriter, r *http.Request)
+	ListProviders(w http.ResponseWriter, r *http.Request)
 	// Your GET endpoint
 	// (GET /api/v1/registry/providers)
-	GetApiV1RegistryProviders(w http.ResponseWriter, r *http.Request)
+	ListRegistryProviders(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -67,12 +69,12 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
 
-// GetApiV1Providers operation middleware
-func (siw *ServerInterfaceWrapper) GetApiV1Providers(w http.ResponseWriter, r *http.Request) {
+// ListProviders operation middleware
+func (siw *ServerInterfaceWrapper) ListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetApiV1Providers(w, r)
+		siw.Handler.ListProviders(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -82,12 +84,12 @@ func (siw *ServerInterfaceWrapper) GetApiV1Providers(w http.ResponseWriter, r *h
 	handler(w, r.WithContext(ctx))
 }
 
-// GetApiV1RegistryProviders operation middleware
-func (siw *ServerInterfaceWrapper) GetApiV1RegistryProviders(w http.ResponseWriter, r *http.Request) {
+// ListRegistryProviders operation middleware
+func (siw *ServerInterfaceWrapper) ListRegistryProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetApiV1RegistryProviders(w, r)
+		siw.Handler.ListRegistryProviders(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -211,10 +213,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providers", wrapper.GetApiV1Providers)
+		r.Get(options.BaseURL+"/api/v1/providers", wrapper.ListProviders)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/registry/providers", wrapper.GetApiV1RegistryProviders)
+		r.Get(options.BaseURL+"/api/v1/registry/providers", wrapper.ListRegistryProviders)
 	})
 
 	return r
@@ -223,17 +225,17 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RVTU/bQBD9K9a0Rzc2VKitb4hShMQBoapShThs7Em8yPvR2XFIhPzfq1k7TsBBolU5",
-	"9LaenZ15782HH6F0xjuLlgMUj0AYvLMB48c5kaObwSKG0llGy3JU3je6VKydze6Ds2ILZY1GycmT80is",
-	"+zgoceTAG49QQGDSdgldl24tbn6PJUMnpgpDSdpLZCjg1CbxeULILVmskgU5k3CNyen15Qy6FK504Gty",
-	"K10hhX8A1+I6vrFt06h5g1AwtZg+R5/Ksz6peGtGEw/vCRdQwLtsp2zWpwrZFibsqCsitYlaEP5qNWEF",
-	"xW2PYT/D3Su0GkVICJc6MBJWibZRrDNnjLPJN8WYVOgbtzEizSDfTfSnzX8i43O4byPn+VoZ32CynYkY",
-	"dYAgCMfsE+qq0b3LhKuuDpqtMnjwglGZgxcrpKD7Akynap96jDBk2D1LB4wRkYihWSq04/RcnxTWHwI7",
-	"3+hlHcsqTEC393aBK3My36zzmHpSmok4ByXodhAmEV4HxdYP5ed2bo4Xnx6UlFPUtgu37WBV9t0YlYa9",
-	"cYAUWmqggJrZhyKThjPOLhTjTDuYtMXXcXqSs6tL2AGfXIw1gqNZLoGcR6u8hgI+zvJZLh2puI6qZMrr",
-	"bHWUPRmGJUbMol6cuUsheoF86vWPo3FWIX26to/z/KUBGv2yw0uzS+HkNa+f/hniXLTGKNpAAT9dS8nF",
-	"+fcEbeWdliXTpSM/Gqr7B0Qny+mvCb+85t6KuDggrSLN28e9RiuyrHGlamoXuPiS5zl0MoZq2TsObbok",
-	"JT/mLh0t1FrWBqG7634HAAD//82AMQq8BwAA",
+	"H4sIAAAAAAAC/9RVTWvbQBD9K8u0R9VSUkJb3UKalkAOIfRSQg5raWxt0H50duXYBP33MitZsi0HTGkK",
+	"va1GszPvvfnYFyisdtagCR7yFyD0zhqP8eOayNJ9b2FDYU1AE/gonatVIYOyJn3y1rDNFxVqySdH1iEF",
+	"1cVBjsOHsHEIOfhAyiyhbZOtxc6fsAjQsqlEX5ByHBlyuDQiXheEoSGDpViQ1SJUKC7vbmbQJnCrfLgj",
+	"u1Ilkv8LcA2u4x3T1LWc1wh5oAaTQ/QJX+uSsrcKqOPhPeECcniXjsqmXSqfbmHCSF0SyU3UgvBXowhL",
+	"yB86DLsZHk/QahBBEC6VD0hYCmWiWFdWa2vENxlQlOhqu9EsTS/fffSnzX8i4yHct5Hzei21q1FsZyJG",
+	"7SEwwiH7hLqsVecy4arKo2YjNR79EVDqoz9WSF51BZhO1S71GKHPMF5LeowREYuhAldo5HSoTwLrDz5Y",
+	"V6tlFcvKTEA1T2aBK30x36yzmHpSmmlf/GuuO/Qm6E6jaarn4nMz1+eLT8+SW4UraRZ2Ox2yCCMz2Bk1",
+	"SKChGnKoQnA+T7mZtTULGXCmLExa7uswmeLq9gZG4JMfgyZwNss4kHVopFOQw8dZNsu422WoouKpdCpd",
+	"naV7g7bEiJkrE+f5honurVJI9p+D8yx7bTAHv/T4Mm4TuDjl9v6LE+et0VrSBnL4aRsS369/CDSls4qX",
+	"V5sM3Kiv7IkkJwvvj8m+vjrfijQ7IK0ixYeXnQbL07S2hawr60P+JcsyaLn35bJz7NtzSZIf+zYZLNSY",
+	"oDRC+9j+DgAA//+ryp/LEAgAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

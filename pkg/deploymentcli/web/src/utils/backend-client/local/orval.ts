@@ -41,7 +41,9 @@ export interface Provider {
 }
 
 export interface RegistryProvider {
-  id?: string;
+  team: string;
+  name: string;
+  version: string;
 }
 
 
@@ -59,7 +61,7 @@ export interface RegistryProvider {
 /**
  * @summary Your GET endpoint
  */
-export const getApiV1Providers = (
+export const listProviders = (
     
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<ListProvidersResponseResponse>(
@@ -69,22 +71,22 @@ export const getApiV1Providers = (
     }
   
 
-export const getGetApiV1ProvidersKey = () => [`/api/v1/providers`];
+export const getListProvidersKey = () => [`/api/v1/providers`];
 
     
-export type GetApiV1ProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1Providers>>>
-export type GetApiV1ProvidersQueryError = ErrorType<ErrorResponseResponse>
+export type ListProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof listProviders>>>
+export type ListProvidersQueryError = ErrorType<ErrorResponseResponse>
 
-export const useGetApiV1Providers = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getApiV1Providers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
+export const useListProviders = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listProviders>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetApiV1ProvidersKey() : null);
-  const swrFn = () => getApiV1Providers(requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProvidersKey() : null);
+  const swrFn = () => listProviders(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -98,7 +100,7 @@ export const useGetApiV1Providers = <TError = ErrorType<ErrorResponseResponse>>(
 /**
  * @summary Your GET endpoint
  */
-export const getApiV1RegistryProviders = (
+export const listRegistryProviders = (
     
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<ListRegistryProvidersResponseResponse>(
@@ -108,22 +110,22 @@ export const getApiV1RegistryProviders = (
     }
   
 
-export const getGetApiV1RegistryProvidersKey = () => [`/api/v1/registry/providers`];
+export const getListRegistryProvidersKey = () => [`/api/v1/registry/providers`];
 
     
-export type GetApiV1RegistryProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RegistryProviders>>>
-export type GetApiV1RegistryProvidersQueryError = ErrorType<ErrorResponseResponse>
+export type ListRegistryProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof listRegistryProviders>>>
+export type ListRegistryProvidersQueryError = ErrorType<ErrorResponseResponse>
 
-export const useGetApiV1RegistryProviders = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getApiV1RegistryProviders>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
+export const useListRegistryProviders = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listRegistryProviders>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetApiV1RegistryProvidersKey() : null);
-  const swrFn = () => getApiV1RegistryProviders(requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListRegistryProvidersKey() : null);
+  const swrFn = () => listRegistryProviders(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -136,21 +138,21 @@ export const useGetApiV1RegistryProviders = <TError = ErrorType<ErrorResponseRes
 
 
 
-export const getGetApiV1ProvidersMock = () => ({next: faker.helpers.arrayElement([faker.random.word(), null]), providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), alias: faker.random.word(), id: faker.random.word()}))})
+export const getListProvidersMock = () => ({next: faker.helpers.arrayElement([faker.random.word(), null]), providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), alias: faker.random.word(), id: faker.random.word()}))})
 
-export const getGetApiV1RegistryProvidersMock = () => ({next: faker.helpers.arrayElement([faker.random.word(), null]), providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.random.word(), undefined])}))})
+export const getListRegistryProvidersMock = () => ({next: faker.helpers.arrayElement([faker.random.word(), null]), providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word()}))})
 
 export const getDeploymentCLIMSW = () => [
 rest.get('*/api/v1/providers', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getGetApiV1ProvidersMock()),
+ctx.json(getListProvidersMock()),
         )
       }),rest.get('*/api/v1/registry/providers', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getGetApiV1RegistryProvidersMock()),
+ctx.json(getListRegistryProvidersMock()),
         )
       }),]

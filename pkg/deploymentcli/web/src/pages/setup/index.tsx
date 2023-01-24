@@ -14,34 +14,23 @@ import { Helmet } from "react-helmet";
 import { Link, useNavigate } from "react-location";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-
-import { registeredProviders } from "../../utils/providerRegistry";
-import { createProvidersetup } from "../../utils/backend-client/local/orval";
 import {
   Provider,
-  useListAllProviders,
-} from "../../utils/backend-client/registry/orval";
-import { usePaginatorApi } from "../../utils/usePaginatorApi";
-
-const providerKey = (provider: Provider): string => {
+  RegistryProvider,
+  useListRegistryProviders,
+} from "../../utils/backend-client/local/orval";
+const providerKey = (provider: RegistryProvider | Provider): string => {
   return provider.team + provider.name + provider.version;
 };
 const Page = () => {
   const navigate = useNavigate();
-  const { data } = useListAllProviders();
+  const { data } = useListRegistryProviders();
 
   // used to show a spinner when the provider is being initialised.
   const [providerLoading, setProviderLoading] = useState<string>();
 
   const createProvider = async (provider: Provider) => {
-    setProviderLoading(providerKey(provider));
-    const res = await createProvidersetup({
-      name: provider.name,
-      team: provider.team,
-      version: provider.version,
-    });
-
-    navigate({ to: `/setup/${res.id}` });
+    return;
   };
 
   return (
@@ -83,7 +72,7 @@ const Page = () => {
                 p={6}
                 rounded="md"
                 data-testid={"provider_" + key}
-                onClick={() => createProvider(provider)}
+                // onClick={() => createProvider(provider)}
                 position="relative"
                 disabled={providerLoading !== undefined}
                 _disabled={{

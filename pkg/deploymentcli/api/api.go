@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/common-fate/pkg/deploymentcli/types"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -26,8 +27,7 @@ import (
 // new endpoint. Implement the function on API, ensuring that the function
 // signature matches the ServerInterface interface.
 type API struct {
-	// db     *gorm.DB
-	// PSetup *psetupsvc.Service
+	Registry providerregistrysdk.ClientWithResponsesInterface
 }
 
 // API must meet the generated REST API interface.
@@ -39,23 +39,12 @@ type Opts struct {
 
 // New creates a new API. You can add any additional constructor logic here.
 func New(ctx context.Context, o Opts) (*API, error) {
-	// db, err := storage.NewLocal()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// ahc, err := registryTypes.NewClientWithResponses(o.ProviderRegistryAPIURL)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	registryClient, err := providerregistrysdk.NewClientWithResponses(o.ProviderRegistryAPIURL)
+	if err != nil {
+		return nil, err
+	}
 	a := API{
-		// db: db, PSetup: &psetupsvc.Service{
-		// DB:               db,
-		// DeploymentSuffix: "",
-		// TemplateData: psetup.TemplateData{
-		// 	AccessHandlerExecutionRoleARN: "",
-		// },
-		// Registry: ahc,
-		// }
+		Registry: registryClient,
 	}
 	return &a, nil
 }

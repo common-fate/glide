@@ -18,7 +18,7 @@ paths:
           $ref: '#/components/responses/ListProvidersResponse'
         '500':
           $ref: '#/components/responses/ErrorResponse'
-      operationId: get-api-v1-providers
+      operationId: list-providers
   /api/v1/registry/providers:
     get:
       summary: Your GET endpoint
@@ -28,7 +28,7 @@ paths:
           $ref: '#/components/responses/ListRegistryProvidersResponse'
         '500':
           $ref: '#/components/responses/ErrorResponse'
-      operationId: get-api-v1-registry-providers
+      operationId: list-registry-providers
 components:
   responses:
     ErrorResponse:
@@ -82,8 +82,16 @@ components:
         id: nhwc8ubm2f7wa
       type: object
       properties:
-        id:
+        team:
           type: string
+        name:
+          type: string
+        version:
+          type: string
+      required:
+        - team
+        - name
+        - version
     Provider:
       title: Provider
       x-stoplight:
