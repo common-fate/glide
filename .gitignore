@@ -33,3 +33,6 @@ adminAuthCookies.json
 testOutputs.json
 deployments/
 trace*.zip
+
+prog.go
+prog.bin
