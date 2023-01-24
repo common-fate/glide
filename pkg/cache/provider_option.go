@@ -19,6 +19,10 @@ type ProviderOption struct {
 	Description *string `json:"description" dynamodbav:"description"`
 }
 
+func (r ProviderOption) Key() string {
+	return keys.ProviderOption.SK1(r.Provider, r.Arg, r.Value)
+}
+
 func (r *ProviderOption) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.ProviderOption.PK1,

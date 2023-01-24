@@ -78,49 +78,60 @@ func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId s
 
 // refreshProviderArgOptions deletes any cached options and then refetches them from the Access Handler.
 // It updates the cached options.
+// To prevent an extended period of time where options are unavailable, we only update the items, and delete any that are no longer present (fixes SOL-35)
+// return true if options were refetched, false if they were already cached
 func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
 
-	// delete any existing options
-	q := storage.ListCachedProviderOptionsForArg{
+	cachedArgs := storage.ListCachedProviderOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
 
-	_, err := s.DB.Query(ctx, &q)
+	_, err := s.DB.Query(ctx, &cachedArgs)
 	if err != nil && err != ddb.ErrNoItems {
 		return false, nil, nil, err
 	}
-	q2 := storage.ListCachedProviderArgGroupOptionsForArg{
+	cachedArgGroups := storage.ListCachedProviderArgGroupOptionsForArg{
 		ProviderID: providerId,
 		ArgID:      argId,
 	}
-	_, err = s.DB.Query(ctx, &q)
+	_, err = s.DB.Query(ctx, &cachedArgGroups)
 	if err != nil && err != ddb.ErrNoItems {
 		return false, nil, nil, err
 	}
-	var items []ddb.Keyer
-	for i := range q.Result {
-		items = append(items, &q.Result[i])
+
+	type argOption struct {
+		option       cache.ProviderOption
+		shouldUpsert bool
 	}
-	for i := range q2.Result {
-		items = append(items, &q.Result[i])
+
+	type groupOption struct {
+		option       cache.ProviderArgGroupOption
+		shouldUpsert bool
 	}
-	if len(items) > 0 {
-		err = s.DB.DeleteBatch(ctx, items...)
-		if err != nil {
-			return false, nil, nil, err
+
+	argOptions := map[string]argOption{}
+	groupOptions := map[string]groupOption{}
+
+	for _, opt := range cachedArgs.Result {
+		argOptions[opt.Key()] = argOption{
+			option: opt,
+		}
+	}
+
+	for _, opt := range cachedArgGroups.Result {
+		groupOptions[opt.Key()] = groupOption{
+			option: opt,
 		}
 	}
 
 	// fetch new options
-	res, err := s.fetchProviderOptions(ctx, providerId, argId)
+	freshProviderOpts, err := s.fetchProviderOptions(ctx, providerId, argId)
 	if err != nil {
 		return false, nil, nil, err
 	}
 
-	var keyers []ddb.Keyer
-	var cachedOpts []cache.ProviderOption
-	for _, o := range res.Options {
+	for _, o := range freshProviderOpts.Options {
 		op := cache.ProviderOption{
 			Provider:    providerId,
 			Arg:         argId,
@@ -128,13 +139,14 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 			Value:       o.Value,
 			Description: o.Description,
 		}
-		keyers = append(keyers, &op)
-		cachedOpts = append(cachedOpts, op)
+		argOptions[op.Key()] = argOption{
+			option:       op,
+			shouldUpsert: true,
+		}
 	}
 
-	var cachedGroups []cache.ProviderArgGroupOption
-	if res.Groups != nil {
-		for k, v := range res.Groups.AdditionalProperties {
+	if freshProviderOpts.Groups != nil {
+		for k, v := range freshProviderOpts.Groups.AdditionalProperties {
 			for _, option := range v {
 				op := cache.ProviderArgGroupOption{
 					Provider:    providerId,
@@ -146,18 +158,48 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 					Description: option.Description,
 					LabelPrefix: option.LabelPrefix,
 				}
-				keyers = append(keyers, &op)
-				cachedGroups = append(cachedGroups, op)
+				groupOptions[op.Key()] = groupOption{
+					option:       op,
+					shouldUpsert: true,
+				}
 			}
 		}
 	}
 
-	err = s.DB.PutBatch(ctx, keyers...)
+	freshArgOpts := []cache.ProviderOption{}
+	freshArgGroups := []cache.ProviderArgGroupOption{}
+	upsertItems := []ddb.Keyer{}
+	deleteItems := []ddb.Keyer{}
+	for _, v := range argOptions {
+		if v.shouldUpsert {
+			freshArgOpts = append(freshArgOpts, v.option)
+			upsertItems = append(upsertItems, &v.option)
+		} else {
+			deleteItems = append(deleteItems, &v.option)
+		}
+	}
+	for _, v := range groupOptions {
+		if v.shouldUpsert {
+			freshArgGroups = append(freshArgGroups, v.option)
+			upsertItems = append(upsertItems, &v.option)
+		} else {
+			deleteItems = append(deleteItems, &v.option)
+		}
+	}
+
+	// Will create or update items
+	err = s.DB.PutBatch(ctx, upsertItems...)
 	if err != nil {
 		return false, nil, nil, err
 	}
-	return true, cachedOpts, cachedGroups, nil
 
+	// Only deletes items that no longer exist
+	err = s.DB.DeleteBatch(ctx, deleteItems...)
+	if err != nil {
+		return false, nil, nil, err
+	}
+
+	return true, freshArgOpts, freshArgGroups, nil
 }
 
 func (s *Service) fetchProviderOptions(ctx context.Context, providerID, argID string) (ahtypes.ArgOptionsResponse, error) {

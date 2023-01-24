@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/common-fate/common-fate/cmd/gdeploy/commands/identity/sync"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/cache/sync"
 	"github.com/urfave/cli/v2"
 )
 
