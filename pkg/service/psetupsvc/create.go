@@ -80,7 +80,7 @@ func (s *Service) Create(ctx context.Context, providerType string, existingProvi
 		ID:               newID,
 		ProviderType:     providerType,
 		ProviderVersion:  version,
-		Status:           types.INITIALCONFIGURATIONINPROGRESS,
+		Status:           types.ProviderSetupStatusINITIALCONFIGURATIONINPROGRESS,
 		ConfigValues:     map[string]string{},
 		ConfigValidation: map[string]providersetup.Validation{},
 	}

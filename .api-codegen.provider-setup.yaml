@@ -1,0 +1,7 @@
+package: client
+generate:
+  - types
+  - client
+  - spec
+  - skip-prune
+output: pkg/client/api.gen.go

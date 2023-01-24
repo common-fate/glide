@@ -20,38 +20,38 @@ func TestUpdateValidationStatus(t *testing.T) {
 		{
 			name: "error",
 			give: Setup{
-				Status: types.INITIALCONFIGURATIONINPROGRESS,
+				Status: types.ProviderSetupStatusINITIALCONFIGURATIONINPROGRESS,
 				ConfigValidation: map[string]Validation{
 					"test": {
 						Status: ahtypes.ERROR,
 					},
 				},
 			},
-			want: types.VALIDATIONFAILED,
+			want: types.ProviderSetupStatusVALIDATIONFAILED,
 		},
 		{
 			name: "success",
 			give: Setup{
-				Status: types.INITIALCONFIGURATIONINPROGRESS,
+				Status: types.ProviderSetupStatusINITIALCONFIGURATIONINPROGRESS,
 				ConfigValidation: map[string]Validation{
 					"test": {
 						Status: ahtypes.SUCCESS,
 					},
 				},
 			},
-			want: types.VALIDATIONSUCEEDED,
+			want: types.ProviderSetupStatusVALIDATIONSUCEEDED,
 		},
 		{
 			name: "other",
 			give: Setup{
-				Status: types.INITIALCONFIGURATIONINPROGRESS,
+				Status: types.ProviderSetupStatusINITIALCONFIGURATIONINPROGRESS,
 				ConfigValidation: map[string]Validation{
 					"test": {
 						Status: ahtypes.INPROGRESS,
 					},
 				},
 			},
-			want: types.INITIALCONFIGURATIONINPROGRESS,
+			want: types.ProviderSetupStatusINITIALCONFIGURATIONINPROGRESS,
 		},
 	}
 

@@ -317,7 +317,7 @@ func (a *API) AdminCompleteProvidersetup(w http.ResponseWriter, r *http.Request,
 
 	setup := q.Result
 
-	if setup.Status != types.VALIDATIONSUCEEDED {
+	if setup.Status != types.ProviderSetupStatusVALIDATIONSUCEEDED {
 		apio.ErrorString(ctx, w, "provider must have passed validation to complete setup", http.StatusBadRequest)
 		return
 	}

@@ -3,7 +3,6 @@ generate:
   chi-server: true
   models: true
   embedded-spec: true
-  # client: true
 output-options:
   skip-prune: true
 import-mapping:
