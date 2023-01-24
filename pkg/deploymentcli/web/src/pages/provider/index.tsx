@@ -22,7 +22,6 @@ import {
 export const providerKey = (provider: Provider): string => {
   return provider.team + provider.name + provider.version;
 };
-
 const Page = () => {
   const navigate = useNavigate();
   const { data } = useListAllProviders();
