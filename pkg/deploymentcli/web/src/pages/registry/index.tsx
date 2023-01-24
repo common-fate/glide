@@ -1,14 +1,12 @@
-import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
+import { CloseIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Button,
   Center,
   CircularProgress,
-  Code,
   Container,
   Flex,
-  Heading,
   HStack,
+  Heading,
   IconButton,
   LinkBox,
   LinkOverlay,
@@ -20,28 +18,21 @@ import {
   ModalHeader,
   ModalOverlay,
   SimpleGrid,
-  Spinner,
   Stack,
   Text,
   useDisclosure,
-  VStack,
 } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-location";
-import { Column } from "react-table";
-import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-import { TableRenderer } from "../../components/tables/TableRenderer";
+import { ProviderIcon } from "../../components/icons/providerIcon";
 
 import {
-  Provider,
   ProviderSetup,
   deleteProvidersetup,
   useListProvidersetups,
 } from "../../utils/backend-client/local/orval";
-import { useListAllProviders } from "../../utils/backend-client/registry/orval";
-import { providerKey } from "../setup";
 
 const Providers = () => {
   const { data: setups } = useListProvidersetups();
@@ -50,7 +41,7 @@ const Providers = () => {
 
   // const setups = [];
 
-  // const { data: providers } = useListAllProviders();
+  // const { data: providers } = useListRegistryProviders();
 
   return (
     <UserLayout>

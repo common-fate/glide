@@ -35,21 +35,19 @@ import { TableRenderer } from "../components/tables/TableRenderer";
 
 import {
   ProviderSetup,
+  RegistryProvider,
   deleteProvidersetup,
   useListProvidersetups,
 } from "../utils/backend-client/local/orval";
-import {
-  useListAllProviders,
-  Provider,
-} from "../utils/backend-client/registry/orval";
+import { useListRegistryProviders } from "../utils/backend-client/local/orval";
 import { providerKey } from "./setup";
 
 /** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
-export const uniqueProviderKey = (provider: Provider) =>
+export const uniqueProviderKey = (provider: RegistryProvider) =>
   encodeURIComponent(`${provider.team}/${provider.name}`);
 
 const Providers = () => {
-  const { data: providers } = useListAllProviders();
+  const { data: providers } = useListRegistryProviders();
 
   return (
     <UserLayout>

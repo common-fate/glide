@@ -1,34 +1,18 @@
-import Auth from "@aws-amplify/auth";
-import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
 import {
-  Avatar,
   Box,
   Button,
   ButtonGroup,
   ButtonProps,
-  ColorModeContext,
+  Link as ChakraLink,
   Container,
-  Divider,
   Flex,
   HStack,
-  IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  LightMode,
-  Link as ChakraLink,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   useBreakpointValue,
   useColorModeValue,
-  useDisclosure,
 } from "@chakra-ui/react";
 import * as React from "react";
 import { Link, useNavigate } from "react-location";
-import { DoorIcon } from "./icons/Icons";
-import { CommonFateAdminLogo, CommonFateLogo } from "./icons/Logos";
+import { CommonFateLogo } from "./icons/Logos";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, sm: true }, "800px");

@@ -1,68 +1,8 @@
-import {
-  ArrowBackIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  WarningIcon,
-} from "@chakra-ui/icons";
-import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Badge,
-  Box,
-  Button,
-  Center,
-  Circle,
-  CircularProgress,
-  Code,
-  Container,
-  Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Grid,
-  GridItem,
-  HStack,
-  IconButton,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Popover,
-  PopoverArrow,
-  PopoverBody,
-  PopoverCloseButton,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTrigger,
-  useClipboard,
-  Spinner,
-  Stack,
-  Text,
-  UnorderedList,
-  OrderedList,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import Confetti from "react-confetti";
-import { Helmet } from "react-helmet";
-import { Controller, useForm } from "react-hook-form";
+import { ArrowBackIcon } from "@chakra-ui/icons";
+import { IconButton, Stack } from "@chakra-ui/react";
 import { Link, useMatch, useNavigate } from "react-location";
-import ReactMarkdown from "react-markdown";
-import { Sticky, StickyContainer } from "react-sticky";
 import useWindowSize from "react-use/lib/useWindowSize";
-import {
-  CFCode,
-  CFReactMarkownCode,
-} from "../../../components/CodeInstruction";
-import { ConnectorArrow } from "../../../components/ConnectorArrow";
-import { ExpandingImage } from "../../../components/ExpandingImage";
-import { CommonFateLogo } from "../../../components/icons/Logos";
-import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { UserLayout } from "../../../components/Layout";
-import { useGetProvider } from "../../../utils/backend-client/registry/orval";
 
 const Page = () => {
   const {

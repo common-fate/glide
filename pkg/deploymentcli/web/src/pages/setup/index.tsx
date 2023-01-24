@@ -15,23 +15,23 @@ import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { createProvidersetup } from "../../utils/backend-client/local/orval";
 import {
-  Provider,
-  useListAllProviders,
-} from "../../utils/backend-client/registry/orval";
+  RegistryProvider,
+  useListRegistryProviders,
+} from "../../utils/backend-client/local/orval";
 
-export const providerKey = (provider: Provider): string => {
+export const providerKey = (provider: RegistryProvider): string => {
   return provider.team + provider.name + provider.version;
 };
 
 const Page = () => {
   const navigate = useNavigate();
-  const { data } = useListAllProviders();
+  const { data } = useListRegistryProviders();
 
   // used to show a spinner when the provider is being initialised.
   const [providerLoading, setProviderLoading] = useState<string>();
 
   // @TODO: hook into this logic, but on the detail/[id] page
-  const createProvider = async (provider: Provider) => {
+  const createProvider = async (provider: RegistryProvider) => {
     setProviderLoading(providerKey(provider));
     const res = await createProvidersetup({
       name: provider.name,
