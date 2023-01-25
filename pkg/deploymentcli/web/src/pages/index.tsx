@@ -33,21 +33,15 @@ import { ProviderIcon } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import { TableRenderer } from "../components/tables/TableRenderer";
 
-import {
-  ProviderSetup,
-  RegistryProvider,
-  deleteProvidersetup,
-  useListProvidersetups,
-} from "../utils/backend-client/local/orval";
-import { useListRegistryProviders } from "../utils/backend-client/local/orval";
 import { providerKey } from "./setup";
+import { Provider, useListAllProviders } from "../utils/registry-client/orval";
 
 /** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
-export const uniqueProviderKey = (provider: RegistryProvider) =>
+export const uniqueProviderKey = (provider: Provider) =>
   encodeURIComponent(`${provider.team}/${provider.name}`);
 
 const Providers = () => {
-  const { data: providers } = useListRegistryProviders();
+  const { data: providers } = useListAllProviders();
 
   return (
     <UserLayout>
@@ -160,104 +154,104 @@ const Providers = () => {
   );
 };
 
-interface ProviderSetupBannerProps {
-  setup: ProviderSetup;
-}
+// interface ProviderSetupBannerProps {
+//   setup: ProviderSetup;
+// }
 
-const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
-  const stepsOverview = setup.steps ?? [];
-  const { data, mutate } = useListProvidersetups();
-  const { onOpen, isOpen, onClose } = useDisclosure();
-  const [loading, setLoading] = useState(false);
+// const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
+//   const stepsOverview = setup.steps ?? [];
+//   const { data, mutate } = useListProvidersetups();
+//   const { onOpen, isOpen, onClose } = useDisclosure();
+//   const [loading, setLoading] = useState(false);
 
-  const handleCancelSetup = async () => {
-    setLoading(true);
-    await deleteProvidersetup(setup.id);
-    const oldSetups = data?.providerSetups ?? [];
-    void mutate({
-      providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)],
-    });
-    setLoading(false);
-    onClose();
-  };
+//   const handleCancelSetup = async () => {
+//     setLoading(true);
+//     await deleteProvidersetup(setup.id);
+//     const oldSetups = data?.providerSetups ?? [];
+//     void mutate({
+//       providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)],
+//     });
+//     setLoading(false);
+//     onClose();
+//   };
 
-  const completedSteps = stepsOverview.filter((s) => s.complete).length;
+//   const completedSteps = stepsOverview.filter((s) => s.complete).length;
 
-  const completedPercentage =
-    stepsOverview.length ?? 0 > 0
-      ? (completedSteps / stepsOverview.length) * 100
-      : 0;
+//   const completedPercentage =
+//     stepsOverview.length ?? 0 > 0
+//       ? (completedSteps / stepsOverview.length) * 100
+//       : 0;
 
-  return (
-    <LinkBox
-      as={Flex}
-      position="relative"
-      justify="space-between"
-      bg="neutrals.100"
-      rounded="md"
-      p={8}
-      flexDirection={{ base: "column", md: "row" }}
-    >
-      <LinkOverlay as={Link} to={"/setup/" + setup.id}>
-        <Stack>
-          <Text textStyle={"Body/Medium"}>
-            Continue setting up {`${setup.team}/${setup.name}@${setup.version}`}
-          </Text>
-          <Text>{/* {setup.type}@{setup.version} */}</Text>
-        </Stack>
-      </LinkOverlay>
-      <HStack spacing={3}>
-        <Text>
-          {completedSteps} of {setup.steps.length} steps complete
-        </Text>
-        <CircularProgress value={completedPercentage} color="#449157" />
-      </HStack>
-      <IconButton
-        position="absolute"
-        top={1}
-        right={1}
-        size="xs"
-        variant={"unstyled"}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpen();
-        }}
-        icon={<CloseIcon />}
-        aria-label="Cancel setup"
-      />
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Cancel setting up {setup.id}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to stop setting up this provider? You'll lose
-            any configuration values that we've stored.
-          </ModalBody>
+//   return (
+//     <LinkBox
+//       as={Flex}
+//       position="relative"
+//       justify="space-between"
+//       bg="neutrals.100"
+//       rounded="md"
+//       p={8}
+//       flexDirection={{ base: "column", md: "row" }}
+//     >
+//       <LinkOverlay as={Link} to={"/setup/" + setup.id}>
+//         <Stack>
+//           <Text textStyle={"Body/Medium"}>
+//             Continue setting up {`${setup.team}/${setup.name}@${setup.version}`}
+//           </Text>
+//           <Text>{/* {setup.type}@{setup.version} */}</Text>
+//         </Stack>
+//       </LinkOverlay>
+//       <HStack spacing={3}>
+//         <Text>
+//           {completedSteps} of {setup.steps.length} steps complete
+//         </Text>
+//         <CircularProgress value={completedPercentage} color="#449157" />
+//       </HStack>
+//       <IconButton
+//         position="absolute"
+//         top={1}
+//         right={1}
+//         size="xs"
+//         variant={"unstyled"}
+//         onClick={(e) => {
+//           e.stopPropagation();
+//           onOpen();
+//         }}
+//         icon={<CloseIcon />}
+//         aria-label="Cancel setup"
+//       />
+//       <Modal isOpen={isOpen} onClose={onClose}>
+//         <ModalOverlay />
+//         <ModalContent>
+//           <ModalHeader>Cancel setting up {setup.id}</ModalHeader>
+//           <ModalCloseButton />
+//           <ModalBody>
+//             Are you sure you want to stop setting up this provider? You'll lose
+//             any configuration values that we've stored.
+//           </ModalBody>
 
-          <ModalFooter>
-            <Button
-              variant={"solid"}
-              colorScheme="red"
-              rounded="full"
-              mr={3}
-              onClick={handleCancelSetup}
-              isLoading={loading}
-            >
-              Stop setup
-            </Button>
-            <Button
-              variant={"brandSecondary"}
-              onClick={onClose}
-              isDisabled={loading}
-            >
-              Go back
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </LinkBox>
-  );
-};
+//           <ModalFooter>
+//             <Button
+//               variant={"solid"}
+//               colorScheme="red"
+//               rounded="full"
+//               mr={3}
+//               onClick={handleCancelSetup}
+//               isLoading={loading}
+//             >
+//               Stop setup
+//             </Button>
+//             <Button
+//               variant={"brandSecondary"}
+//               onClick={onClose}
+//               isDisabled={loading}
+//             >
+//               Go back
+//             </Button>
+//           </ModalFooter>
+//         </ModalContent>
+//       </Modal>
+//     </LinkBox>
+//   );
+// };
 
 export default Providers;
