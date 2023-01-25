@@ -39,27 +39,7 @@ export const Navbar: React.FC = () => {
               >
                 <CommonFateLogo h="32px" w="auto" />
               </ChakraLink>
-              {/* <Button
-                size="md"
-                variant="unstyled"
-                bg="neutrals.100"
-                rounded="full"
-                border="1px solid"
-                borderColor="neutrals.200"
-                aria-label="Search"
-                // w="113px"
-                // px={2}
-                textAlign="left"
-                color="neutrals.600"
-                onClick={modal.onOpen}
-              >
-                <SearchIcon color="neutrals.600" boxSize="15px" ml={3} mr={2} />
-                Search
-                <Flex ml={2} mr={3} display="inline-flex">
-                  <Kbd>{actionKey[0]}</Kbd>
-                  <Kbd>k</Kbd>
-                </Flex>
-              </Button> */}
+
               {isDesktop && (
                 <ButtonGroup
                   variant="ghost"
@@ -75,18 +55,18 @@ export const Navbar: React.FC = () => {
                   {/* I've hardcoded widths here to prevent the bold/unbold text from 
                   altering the containing divs width. Reduces *jittering* */}
                   <TabsStyledButton
-                    href="/"
-                    // w={showReqCount ? "190px" : "142px"}
-                    // pr={showReqCount ? 10 : undefined}
-                  >
-                    Providers
-                  </TabsStyledButton>
-                  <TabsStyledButton
                     href="/registry"
                     w="125px"
                     // pr={showReqCount ? 10 : undefined}
                   >
                     Registry
+                  </TabsStyledButton>
+                  <TabsStyledButton
+                    href="/"
+                    // w={showReqCount ? "190px" : "142px"}
+                    // pr={showReqCount ? 10 : undefined}
+                  >
+                    Providers
                   </TabsStyledButton>
                 </ButtonGroup>
               )}

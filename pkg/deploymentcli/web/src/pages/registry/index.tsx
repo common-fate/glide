@@ -1,47 +1,27 @@
-import { CloseIcon } from "@chakra-ui/icons";
 import {
-  Button,
-  Center,
-  CircularProgress,
+  Box,
   Container,
-  Flex,
-  HStack,
   Heading,
-  IconButton,
-  LinkBox,
   LinkOverlay,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   SimpleGrid,
-  Stack,
   Text,
-  useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { UserLayout } from "../../components/Layout";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 
 import {
-  ProviderSetup,
-  deleteProvidersetup,
-  useListProvidersetups,
-} from "../../utils/backend-client/local/orval";
+  Provider,
+  useListAllProviders,
+} from "../../utils/registry-client/orval";
+
+/** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
+export const uniqueProviderKey = (provider: Provider) =>
+  `${provider.team}/${provider.name}/${provider.version}`;
 
 const Providers = () => {
-  const { data: setups } = useListProvidersetups();
-
-  // const setups = setups?.providerSetups ?? [];
-
-  // const setups = [];
-
-  // const { data: providers } = useListRegistryProviders();
+  const { data: providers } = useListAllProviders();
 
   return (
     <UserLayout>
@@ -54,213 +34,42 @@ const Providers = () => {
         minW={{ base: "100%", lg: "container.lg" }}
         overflowX="auto"
       >
-        <Heading>Registry</Heading>
+        <Heading>Deploy a provider</Heading>
         <SimpleGrid columns={2} spacing={4} p={0} mt={6}>
-          {setups && setups?.providerSetups?.length > 0 ? (
-            setups?.providerSetups.map((provider, i) => {
-              return (
-                <LinkBox
-                  // key={key}
-                  key={i}
-                  as="button"
-                  className="group"
-                  textAlign="center"
-                  bg="neutrals.100"
-                  p={6}
-                  rounded="md"
-                  // data-testid={"provider_" + key}
-                  // onClick={() => createProvider(provider)}
-                  position="relative"
-                  // disabled={providerLoading !== undefined}
-                  _disabled={{
-                    opacity: "0.5",
-                  }}
-                >
-                  <LinkOverlay as={Link} to={"/registry/" + provider.id}>
-                    {/* {providerLoading === key && (
-                    <Spinner size="xs" position="absolute" right={2} top={2} />
-                  )} */}
-                    <ProviderIcon
-                      type="commonfate/aws-sso"
-                      mb={3}
-                      h="8"
-                      w="8"
-                    />
-
-                    <Text textStyle="Body/SmallBold" color="neutrals.700">
-                      {`${provider.team}/${provider.name}@${provider.version}`}
-                    </Text>
-                    {/* {provider?.alpha && (
-                  <Badge
-                    variant="outline"
-                    position="absolute"
-                    top={4}
-                    right={4}
-                    colorScheme="gray"
-                  >
-                    ALPHA
-                  </Badge>
-                )} */}
-                  </LinkOverlay>
-                </LinkBox>
-              );
-            })
-          ) : (
-            <Center
-              rounded="md"
-              bg="neutrals.100"
-              minH="200px"
-              flexDir="column"
-            >
-              <Text textStyle="Heading/H3" color="neutrals.700">
-                No providers have been set up yet
-              </Text>
-              {/* <br /> */}
-              <Link to="/">
-                <Text textStyle="Body/Medium" color="neutrals.600" mt={2}>
-                  Browse providers
-                </Text>
-              </Link>
-            </Center>
-          )}
-        </SimpleGrid>
-        {/* <VStack>
-          {providers?.providers.map((provider, i) => {
+          {providers?.providers.map((provider) => {
+            const id = uniqueProviderKey(provider);
             return (
-              <LinkBox key={provider.name + i} as={Flex} w="100%" rounded="md">
-                {provider.name}
-              </LinkBox>
+              <Box
+                key={id}
+                as="button"
+                className="group"
+                textAlign="center"
+                bg="neutrals.100"
+                p={6}
+                rounded="md"
+                data-testid={"provider_" + id}
+                position="relative"
+                _disabled={{
+                  opacity: "0.5",
+                }}
+              >
+                <LinkOverlay
+                  href={`/registry/${id}`}
+                  as={Link}
+                  to={`/registry/${id}`}
+                >
+                  <ProviderIcon type={provider.name} mb={3} h="8" w="8" />
+
+                  <Text textStyle="Body/SmallBold" color="neutrals.700">
+                    {`${provider.team}/${provider.name}@${provider.version}`}
+                  </Text>
+                </LinkOverlay>
+              </Box>
             );
           })}
-        </VStack> */}
-        {/*   {setups.length > 0 && (
-          <Stack p={1}>
-            {setups.map((s) => (
-              <ProviderSetupBanner setup={s} key={s.id} />
-            ))}
-          </Stack>
-        )} */}
-        {/* <Button
-          my={5}
-          size="sm"
-          variant="ghost"
-          leftIcon={<SmallAddIcon />}
-          as={Link}
-          to="//setup"
-          id="new-provider-button"
-        >
-          New Access Provider
-        </Button>
-        <AdminProvidersTable />
-        <HStack mt={2} spacing={1} w="100%" justify={"center"}>
-          <Text textStyle={"Body/ExtraSmall"}>
-            View the full configuration of each access provider in your{" "}
-          </Text>
-          <Code fontSize={"12px"}>deployment.yml</Code>
-          <Text textStyle={"Body/ExtraSmall"}>file.</Text>
-        </HStack> */}
+        </SimpleGrid>
       </Container>
     </UserLayout>
-  );
-};
-
-interface ProviderSetupBannerProps {
-  setup: ProviderSetup;
-}
-
-const ProviderSetupBanner: React.FC<ProviderSetupBannerProps> = ({ setup }) => {
-  const stepsOverview = setup.steps ?? [];
-  const { data, mutate } = useListProvidersetups();
-  const { onOpen, isOpen, onClose } = useDisclosure();
-  const [loading, setLoading] = useState(false);
-
-  const handleCancelSetup = async () => {
-    setLoading(true);
-    await deleteProvidersetup(setup.id);
-    const oldSetups = data?.providerSetups ?? [];
-    void mutate({
-      providerSetups: [...oldSetups.filter((s) => s.id !== setup.id)],
-    });
-    setLoading(false);
-    onClose();
-  };
-
-  const completedSteps = stepsOverview.filter((s) => s.complete).length;
-
-  const completedPercentage =
-    stepsOverview.length ?? 0 > 0
-      ? (completedSteps / stepsOverview.length) * 100
-      : 0;
-
-  return (
-    <LinkBox
-      as={Flex}
-      position="relative"
-      justify="space-between"
-      bg="neutrals.100"
-      rounded="md"
-      p={8}
-      flexDirection={{ base: "column", md: "row" }}
-    >
-      <LinkOverlay as={Link} to={"/setup/" + setup.id}>
-        <Stack>
-          <Text textStyle={"Body/Medium"}>
-            Continue setting up {`${setup.team}/${setup.name}@${setup.version}`}
-          </Text>
-          <Text>{/* {setup.type}@{setup.version} */}</Text>
-        </Stack>
-      </LinkOverlay>
-      <HStack spacing={3}>
-        <Text>
-          {completedSteps} of {setup.steps.length} steps complete
-        </Text>
-        <CircularProgress value={completedPercentage} color="#449157" />
-      </HStack>
-      <IconButton
-        position="absolute"
-        top={1}
-        right={1}
-        size="xs"
-        variant={"unstyled"}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpen();
-        }}
-        icon={<CloseIcon />}
-        aria-label="Cancel setup"
-      />
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Cancel setting up {setup.id}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to stop setting up this provider? You'll lose
-            any configuration values that we've stored.
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              variant={"solid"}
-              colorScheme="red"
-              rounded="full"
-              mr={3}
-              onClick={handleCancelSetup}
-              isLoading={loading}
-            >
-              Stop setup
-            </Button>
-            <Button
-              variant={"brandSecondary"}
-              onClick={onClose}
-              isDisabled={loading}
-            >
-              Go back
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </LinkBox>
   );
 };
 
