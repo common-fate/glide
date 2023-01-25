@@ -6,9 +6,12 @@ package types
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -1335,6 +1338,7904 @@ func (a RequestDetail_Arguments) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// RequestEditorFn  is the function signature for the RequestEditor callback function
+type RequestEditorFn func(ctx context.Context, req *http.Request) error
+
+// Doer performs HTTP requests.
+//
+// The standard http.Client implements this interface.
+type HttpRequestDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// Client which conforms to the OpenAPI3 specification for this service.
+type Client struct {
+	// The endpoint of the server conforming to this interface, with scheme,
+	// https://api.deepmap.com for example. This can contain a path relative
+	// to the server, such as https://api.deepmap.com/dev-test, and all the
+	// paths in the swagger spec will be appended to the server.
+	Server string
+
+	// Doer for performing requests, typically a *http.Client with any
+	// customized settings, such as certificate chains.
+	Client HttpRequestDoer
+
+	// A list of callbacks for modifying requests which are generated before sending over
+	// the network.
+	RequestEditors []RequestEditorFn
+}
+
+// ClientOption allows setting custom parameters during construction
+type ClientOption func(*Client) error
+
+// Creates a new Client, with reasonable defaults
+func NewClient(server string, opts ...ClientOption) (*Client, error) {
+	// create a client with sane default values
+	client := Client{
+		Server: server,
+	}
+	// mutate client and add all optional params
+	for _, o := range opts {
+		if err := o(&client); err != nil {
+			return nil, err
+		}
+	}
+	// ensure the server URL always has a trailing slash
+	if !strings.HasSuffix(client.Server, "/") {
+		client.Server += "/"
+	}
+	// create httpClient, if not already present
+	if client.Client == nil {
+		client.Client = &http.Client{}
+	}
+	return &client, nil
+}
+
+// WithHTTPClient allows overriding the default Doer, which is
+// automatically created using http.Client. This is useful for tests.
+func WithHTTPClient(doer HttpRequestDoer) ClientOption {
+	return func(c *Client) error {
+		c.Client = doer
+		return nil
+	}
+}
+
+// WithRequestEditorFn allows setting up a callback function, which will be
+// called right before sending the request. This can be used to mutate the request.
+func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
+	return func(c *Client) error {
+		c.RequestEditors = append(c.RequestEditors, fn)
+		return nil
+	}
+}
+
+// The interface specification for the client above.
+type ClientInterface interface {
+	// UserListAccessRules request
+	UserListAccessRules(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserLookupAccessRule request
+	UserLookupAccessRule(ctx context.Context, params *UserLookupAccessRuleParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetAccessRule request
+	UserGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetAccessRuleApprovers request
+	UserGetAccessRuleApprovers(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListAccessRules request
+	AdminListAccessRules(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCreateAccessRule request with any body
+	AdminCreateAccessRuleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminCreateAccessRule(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetAccessRule request
+	AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminUpdateAccessRule request with any body
+	AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminArchiveAccessRule request
+	AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetAccessRuleVersions request
+	AdminGetAccessRuleVersions(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetAccessRuleVersion request
+	AdminGetAccessRuleVersion(ctx context.Context, ruleId string, version string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetDeploymentVersion request
+	AdminGetDeploymentVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListGroups request
+	AdminListGroups(ctx context.Context, params *AdminListGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCreateGroup request with any body
+	AdminCreateGroupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminCreateGroup(ctx context.Context, body AdminCreateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminDeleteGroup request
+	AdminDeleteGroup(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetGroup request
+	AdminGetGroup(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminUpdateGroup request with any body
+	AdminUpdateGroupWithBody(ctx context.Context, groupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminUpdateGroup(ctx context.Context, groupId string, body AdminUpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetIdentityConfiguration request
+	AdminGetIdentityConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminSyncIdentity request
+	AdminSyncIdentity(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListProviders request
+	AdminListProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCreateProvider request with any body
+	AdminCreateProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminCreateProvider(ctx context.Context, body AdminCreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetProvider request
+	AdminGetProvider(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetProviderArgs request
+	AdminGetProviderArgs(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListProviderArgOptions request
+	AdminListProviderArgOptions(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListProvidersetups request
+	AdminListProvidersetups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCreateProvidersetup request with any body
+	AdminCreateProvidersetupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminCreateProvidersetup(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminDeleteProvidersetup request
+	AdminDeleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetProvidersetup request
+	AdminGetProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCompleteProvidersetup request
+	AdminCompleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetProvidersetupInstructions request
+	AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminSubmitProvidersetupStep request with any body
+	AdminSubmitProvidersetupStepWithBody(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminSubmitProvidersetupStep(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminValidateProvidersetup request
+	AdminValidateProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListProvidersv2 request
+	AdminListProvidersv2(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCreateProviderv2 request with any body
+	AdminCreateProviderv2WithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminCreateProviderv2(ctx context.Context, body AdminCreateProviderv2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetProviderv2 request
+	AdminGetProviderv2(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListRequests request
+	AdminListRequests(ctx context.Context, params *AdminListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetRequest request
+	AdminGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminListUsers request
+	AdminListUsers(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminCreateUser request with any body
+	AdminCreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminCreateUser(ctx context.Context, body AdminCreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminUpdateUser request with any body
+	AdminUpdateUserWithBody(ctx context.Context, userId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminUpdateUser(ctx context.Context, userId string, body AdminUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserListFavorites request
+	UserListFavorites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserCreateFavorite request with any body
+	UserCreateFavoriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserCreateFavorite(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserDeleteFavorite request
+	UserDeleteFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetFavorite request
+	UserGetFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserUpdateFavorite request with any body
+	UserUpdateFavoriteWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserUpdateFavorite(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserListRequests request
+	UserListRequests(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserCreateRequest request with any body
+	UserCreateRequestWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserCreateRequest(ctx context.Context, body UserCreateRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserListRequestsPast request
+	UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserListRequestsUpcoming request
+	UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetRequest request
+	UserGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetAccessInstructions request
+	UserGetAccessInstructions(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetAccessToken request
+	UserGetAccessToken(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserCancelRequest request
+	UserCancelRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserListRequestEvents request
+	UserListRequestEvents(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserReviewRequest request with any body
+	UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserReviewRequest(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserRevokeRequest request
+	UserRevokeRequest(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetMe request
+	UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserGetUser request
+	UserGetUser(ctx context.Context, userId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) UserListAccessRules(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListAccessRulesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserLookupAccessRule(ctx context.Context, params *UserLookupAccessRuleParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserLookupAccessRuleRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetAccessRuleRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetAccessRuleApprovers(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetAccessRuleApproversRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListAccessRules(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListAccessRulesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateAccessRuleWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateAccessRuleRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateAccessRule(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateAccessRuleRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetAccessRuleRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminUpdateAccessRuleRequestWithBody(c.Server, ruleId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminUpdateAccessRuleRequest(c.Server, ruleId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminArchiveAccessRuleRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetAccessRuleVersions(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetAccessRuleVersionsRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetAccessRuleVersion(ctx context.Context, ruleId string, version string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetAccessRuleVersionRequest(c.Server, ruleId, version)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetDeploymentVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetDeploymentVersionRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListGroups(ctx context.Context, params *AdminListGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListGroupsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateGroupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateGroupRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateGroup(ctx context.Context, body AdminCreateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateGroupRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminDeleteGroup(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteGroupRequest(c.Server, groupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetGroup(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetGroupRequest(c.Server, groupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminUpdateGroupWithBody(ctx context.Context, groupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminUpdateGroupRequestWithBody(c.Server, groupId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminUpdateGroup(ctx context.Context, groupId string, body AdminUpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminUpdateGroupRequest(c.Server, groupId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetIdentityConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetIdentityConfigurationRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminSyncIdentity(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminSyncIdentityRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListProvidersRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateProviderRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateProvider(ctx context.Context, body AdminCreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateProviderRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetProvider(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetProviderRequest(c.Server, providerId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetProviderArgs(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetProviderArgsRequest(c.Server, providerId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListProviderArgOptions(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListProviderArgOptionsRequest(c.Server, providerId, argId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListProvidersetups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListProvidersetupsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateProvidersetupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateProvidersetupRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateProvidersetup(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateProvidersetupRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminDeleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteProvidersetupRequest(c.Server, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetProvidersetupRequest(c.Server, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCompleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCompleteProvidersetupRequest(c.Server, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetProvidersetupInstructionsRequest(c.Server, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminSubmitProvidersetupStepWithBody(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminSubmitProvidersetupStepRequestWithBody(c.Server, providersetupId, stepIndex, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminSubmitProvidersetupStep(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminSubmitProvidersetupStepRequest(c.Server, providersetupId, stepIndex, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminValidateProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminValidateProvidersetupRequest(c.Server, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListProvidersv2(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListProvidersv2Request(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateProviderv2WithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateProviderv2RequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateProviderv2(ctx context.Context, body AdminCreateProviderv2JSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateProviderv2Request(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetProviderv2(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetProviderv2Request(c.Server, providerId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListRequests(ctx context.Context, params *AdminListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListRequestsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetRequestRequest(c.Server, requestId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminListUsers(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListUsersRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateUserRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminCreateUser(ctx context.Context, body AdminCreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminCreateUserRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminUpdateUserWithBody(ctx context.Context, userId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminUpdateUserRequestWithBody(c.Server, userId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminUpdateUser(ctx context.Context, userId string, body AdminUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminUpdateUserRequest(c.Server, userId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserListFavorites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListFavoritesRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreateFavoriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreateFavoriteRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreateFavorite(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreateFavoriteRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserDeleteFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserDeleteFavoriteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetFavoriteRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserUpdateFavoriteWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserUpdateFavoriteRequestWithBody(c.Server, id, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserUpdateFavorite(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserUpdateFavoriteRequest(c.Server, id, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserListRequests(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListRequestsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreateRequestWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreateRequestRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCreateRequest(ctx context.Context, body UserCreateRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCreateRequestRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListRequestsPastRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListRequestsUpcomingRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetRequestRequest(c.Server, requestId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetAccessInstructions(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetAccessInstructionsRequest(c.Server, requestId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetAccessToken(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetAccessTokenRequest(c.Server, requestId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserCancelRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserCancelRequestRequest(c.Server, requestId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserListRequestEvents(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListRequestEventsRequest(c.Server, requestId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserReviewRequestRequestWithBody(c.Server, requestId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserReviewRequest(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserReviewRequestRequest(c.Server, requestId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserRevokeRequest(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserRevokeRequestRequest(c.Server, requestid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetMeRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserGetUser(ctx context.Context, userId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserGetUserRequest(c.Server, userId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewUserListAccessRulesRequest generates requests for UserListAccessRules
+func NewUserListAccessRulesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/access-rules")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserLookupAccessRuleRequest generates requests for UserLookupAccessRule
+func NewUserLookupAccessRuleRequest(server string, params *UserLookupAccessRuleParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/access-rules/lookup")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Type != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "type", runtime.ParamLocationQuery, *params.Type); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.PermissionSetArnLabel != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "permissionSetArn.label", runtime.ParamLocationQuery, *params.PermissionSetArnLabel); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.AccountId != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "accountId", runtime.ParamLocationQuery, *params.AccountId); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetAccessRuleRequest generates requests for UserGetAccessRule
+func NewUserGetAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/access-rules/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetAccessRuleApproversRequest generates requests for UserGetAccessRuleApprovers
+func NewUserGetAccessRuleApproversRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/access-rules/%s/approvers", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListAccessRulesRequest generates requests for AdminListAccessRules
+func NewAdminListAccessRulesRequest(server string, params *AdminListAccessRulesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Status != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCreateAccessRuleRequest calls the generic AdminCreateAccessRule builder with application/json body
+func NewAdminCreateAccessRuleRequest(server string, body AdminCreateAccessRuleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminCreateAccessRuleRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminCreateAccessRuleRequestWithBody generates requests for AdminCreateAccessRule with any type of body
+func NewAdminCreateAccessRuleRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminGetAccessRuleRequest generates requests for AdminGetAccessRule
+func NewAdminGetAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminUpdateAccessRuleRequest calls the generic AdminUpdateAccessRule builder with application/json body
+func NewAdminUpdateAccessRuleRequest(server string, ruleId string, body AdminUpdateAccessRuleJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminUpdateAccessRuleRequestWithBody(server, ruleId, "application/json", bodyReader)
+}
+
+// NewAdminUpdateAccessRuleRequestWithBody generates requests for AdminUpdateAccessRule with any type of body
+func NewAdminUpdateAccessRuleRequestWithBody(server string, ruleId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminArchiveAccessRuleRequest generates requests for AdminArchiveAccessRule
+func NewAdminArchiveAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s/archive", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetAccessRuleVersionsRequest generates requests for AdminGetAccessRuleVersions
+func NewAdminGetAccessRuleVersionsRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s/versions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetAccessRuleVersionRequest generates requests for AdminGetAccessRuleVersion
+func NewAdminGetAccessRuleVersionRequest(server string, ruleId string, version string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s/versions/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetDeploymentVersionRequest generates requests for AdminGetDeploymentVersion
+func NewAdminGetDeploymentVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/deployment/version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListGroupsRequest generates requests for AdminListGroups
+func NewAdminListGroupsRequest(server string, params *AdminListGroupsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/groups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Source != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "source", runtime.ParamLocationQuery, *params.Source); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCreateGroupRequest calls the generic AdminCreateGroup builder with application/json body
+func NewAdminCreateGroupRequest(server string, body AdminCreateGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminCreateGroupRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminCreateGroupRequestWithBody generates requests for AdminCreateGroup with any type of body
+func NewAdminCreateGroupRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/groups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminDeleteGroupRequest generates requests for AdminDeleteGroup
+func NewAdminDeleteGroupRequest(server string, groupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetGroupRequest generates requests for AdminGetGroup
+func NewAdminGetGroupRequest(server string, groupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminUpdateGroupRequest calls the generic AdminUpdateGroup builder with application/json body
+func NewAdminUpdateGroupRequest(server string, groupId string, body AdminUpdateGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminUpdateGroupRequestWithBody(server, groupId, "application/json", bodyReader)
+}
+
+// NewAdminUpdateGroupRequestWithBody generates requests for AdminUpdateGroup with any type of body
+func NewAdminUpdateGroupRequestWithBody(server string, groupId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminGetIdentityConfigurationRequest generates requests for AdminGetIdentityConfiguration
+func NewAdminGetIdentityConfigurationRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/identity")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminSyncIdentityRequest generates requests for AdminSyncIdentity
+func NewAdminSyncIdentityRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/identity/sync")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListProvidersRequest generates requests for AdminListProviders
+func NewAdminListProvidersRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCreateProviderRequest calls the generic AdminCreateProvider builder with application/json body
+func NewAdminCreateProviderRequest(server string, body AdminCreateProviderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminCreateProviderRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminCreateProviderRequestWithBody generates requests for AdminCreateProvider with any type of body
+func NewAdminCreateProviderRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminGetProviderRequest generates requests for AdminGetProvider
+func NewAdminGetProviderRequest(server string, providerId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providers/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetProviderArgsRequest generates requests for AdminGetProviderArgs
+func NewAdminGetProviderArgsRequest(server string, providerId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providers/%s/args", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListProviderArgOptionsRequest generates requests for AdminListProviderArgOptions
+func NewAdminListProviderArgOptionsRequest(server string, providerId string, argId string, params *AdminListProviderArgOptionsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "argId", runtime.ParamLocationPath, argId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providers/%s/args/%s/options", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Refresh != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "refresh", runtime.ParamLocationQuery, *params.Refresh); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListProvidersetupsRequest generates requests for AdminListProvidersetups
+func NewAdminListProvidersetupsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCreateProvidersetupRequest calls the generic AdminCreateProvidersetup builder with application/json body
+func NewAdminCreateProvidersetupRequest(server string, body AdminCreateProvidersetupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminCreateProvidersetupRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminCreateProvidersetupRequestWithBody generates requests for AdminCreateProvidersetup with any type of body
+func NewAdminCreateProvidersetupRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminDeleteProvidersetupRequest generates requests for AdminDeleteProvidersetup
+func NewAdminDeleteProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetProvidersetupRequest generates requests for AdminGetProvidersetup
+func NewAdminGetProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCompleteProvidersetupRequest generates requests for AdminCompleteProvidersetup
+func NewAdminCompleteProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/complete", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetProvidersetupInstructionsRequest generates requests for AdminGetProvidersetupInstructions
+func NewAdminGetProvidersetupInstructionsRequest(server string, providersetupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/instructions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminSubmitProvidersetupStepRequest calls the generic AdminSubmitProvidersetupStep builder with application/json body
+func NewAdminSubmitProvidersetupStepRequest(server string, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminSubmitProvidersetupStepRequestWithBody(server, providersetupId, stepIndex, "application/json", bodyReader)
+}
+
+// NewAdminSubmitProvidersetupStepRequestWithBody generates requests for AdminSubmitProvidersetupStep with any type of body
+func NewAdminSubmitProvidersetupStepRequestWithBody(server string, providersetupId string, stepIndex int, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "stepIndex", runtime.ParamLocationPath, stepIndex)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/steps/%s/complete", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminValidateProvidersetupRequest generates requests for AdminValidateProvidersetup
+func NewAdminValidateProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/validate", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListProvidersv2Request generates requests for AdminListProvidersv2
+func NewAdminListProvidersv2Request(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersv2")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCreateProviderv2Request calls the generic AdminCreateProviderv2 builder with application/json body
+func NewAdminCreateProviderv2Request(server string, body AdminCreateProviderv2JSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminCreateProviderv2RequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminCreateProviderv2RequestWithBody generates requests for AdminCreateProviderv2 with any type of body
+func NewAdminCreateProviderv2RequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersv2")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminGetProviderv2Request generates requests for AdminGetProviderv2
+func NewAdminGetProviderv2Request(server string, providerId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/providersv2/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListRequestsRequest generates requests for AdminListRequests
+func NewAdminListRequestsRequest(server string, params *AdminListRequestsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/requests")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Status != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminGetRequestRequest generates requests for AdminGetRequest
+func NewAdminGetRequestRequest(server string, requestId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/requests/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminListUsersRequest generates requests for AdminListUsers
+func NewAdminListUsersRequest(server string, params *AdminListUsersParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/users")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminCreateUserRequest calls the generic AdminCreateUser builder with application/json body
+func NewAdminCreateUserRequest(server string, body AdminCreateUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminCreateUserRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminCreateUserRequestWithBody generates requests for AdminCreateUser with any type of body
+func NewAdminCreateUserRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/users")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminUpdateUserRequest calls the generic AdminUpdateUser builder with application/json body
+func NewAdminUpdateUserRequest(server string, userId string, body AdminUpdateUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminUpdateUserRequestWithBody(server, userId, "application/json", bodyReader)
+}
+
+// NewAdminUpdateUserRequestWithBody generates requests for AdminUpdateUser with any type of body
+func NewAdminUpdateUserRequestWithBody(server string, userId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/users/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserListFavoritesRequest generates requests for UserListFavorites
+func NewUserListFavoritesRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/favorites")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserCreateFavoriteRequest calls the generic UserCreateFavorite builder with application/json body
+func NewUserCreateFavoriteRequest(server string, body UserCreateFavoriteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserCreateFavoriteRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserCreateFavoriteRequestWithBody generates requests for UserCreateFavorite with any type of body
+func NewUserCreateFavoriteRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/favorites")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserDeleteFavoriteRequest generates requests for UserDeleteFavorite
+func NewUserDeleteFavoriteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/favorites/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetFavoriteRequest generates requests for UserGetFavorite
+func NewUserGetFavoriteRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/favorites/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserUpdateFavoriteRequest calls the generic UserUpdateFavorite builder with application/json body
+func NewUserUpdateFavoriteRequest(server string, id string, body UserUpdateFavoriteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserUpdateFavoriteRequestWithBody(server, id, "application/json", bodyReader)
+}
+
+// NewUserUpdateFavoriteRequestWithBody generates requests for UserUpdateFavorite with any type of body
+func NewUserUpdateFavoriteRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/favorites/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserListRequestsRequest generates requests for UserListRequests
+func NewUserListRequestsRequest(server string, params *UserListRequestsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Status != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Reviewer != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "reviewer", runtime.ParamLocationQuery, *params.Reviewer); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserCreateRequestRequest calls the generic UserCreateRequest builder with application/json body
+func NewUserCreateRequestRequest(server string, body UserCreateRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserCreateRequestRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserCreateRequestRequestWithBody generates requests for UserCreateRequest with any type of body
+func NewUserCreateRequestRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserListRequestsPastRequest generates requests for UserListRequestsPast
+func NewUserListRequestsPastRequest(server string, params *UserListRequestsPastParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/past")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserListRequestsUpcomingRequest generates requests for UserListRequestsUpcoming
+func NewUserListRequestsUpcomingRequest(server string, params *UserListRequestsUpcomingParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/upcoming")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetRequestRequest generates requests for UserGetRequest
+func NewUserGetRequestRequest(server string, requestId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetAccessInstructionsRequest generates requests for UserGetAccessInstructions
+func NewUserGetAccessInstructionsRequest(server string, requestId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/access-instructions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetAccessTokenRequest generates requests for UserGetAccessToken
+func NewUserGetAccessTokenRequest(server string, requestId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/access-token", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserCancelRequestRequest generates requests for UserCancelRequest
+func NewUserCancelRequestRequest(server string, requestId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/cancel", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserListRequestEventsRequest generates requests for UserListRequestEvents
+func NewUserListRequestEventsRequest(server string, requestId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/events", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserReviewRequestRequest calls the generic UserReviewRequest builder with application/json body
+func NewUserReviewRequestRequest(server string, requestId string, body UserReviewRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserReviewRequestRequestWithBody(server, requestId, "application/json", bodyReader)
+}
+
+// NewUserReviewRequestRequestWithBody generates requests for UserReviewRequest with any type of body
+func NewUserReviewRequestRequestWithBody(server string, requestId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/review", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUserRevokeRequestRequest generates requests for UserRevokeRequest
+func NewUserRevokeRequestRequest(server string, requestid string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestid", runtime.ParamLocationPath, requestid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/revoke", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetMeRequest generates requests for UserGetMe
+func NewUserGetMeRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/users/me")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserGetUserRequest generates requests for UserGetUser
+func NewUserGetUserRequest(server string, userId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "userId", runtime.ParamLocationPath, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/users/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
+	for _, r := range c.RequestEditors {
+		if err := r(ctx, req); err != nil {
+			return err
+		}
+	}
+	for _, r := range additionalEditors {
+		if err := r(ctx, req); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ClientWithResponses builds on ClientInterface to offer response payloads
+type ClientWithResponses struct {
+	ClientInterface
+}
+
+// NewClientWithResponses creates a new ClientWithResponses, which wraps
+// Client with return type handling
+func NewClientWithResponses(server string, opts ...ClientOption) (*ClientWithResponses, error) {
+	client, err := NewClient(server, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &ClientWithResponses{client}, nil
+}
+
+// WithBaseURL overrides the baseURL.
+func WithBaseURL(baseURL string) ClientOption {
+	return func(c *Client) error {
+		newBaseURL, err := url.Parse(baseURL)
+		if err != nil {
+			return err
+		}
+		c.Server = newBaseURL.String()
+		return nil
+	}
+}
+
+// ClientWithResponsesInterface is the interface specification for the client with responses above.
+type ClientWithResponsesInterface interface {
+	// UserListAccessRules request
+	UserListAccessRulesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListAccessRulesResponse, error)
+
+	// UserLookupAccessRule request
+	UserLookupAccessRuleWithResponse(ctx context.Context, params *UserLookupAccessRuleParams, reqEditors ...RequestEditorFn) (*UserLookupAccessRuleResponse, error)
+
+	// UserGetAccessRule request
+	UserGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*UserGetAccessRuleResponse, error)
+
+	// UserGetAccessRuleApprovers request
+	UserGetAccessRuleApproversWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*UserGetAccessRuleApproversResponse, error)
+
+	// AdminListAccessRules request
+	AdminListAccessRulesWithResponse(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*AdminListAccessRulesResponse, error)
+
+	// AdminCreateAccessRule request with any body
+	AdminCreateAccessRuleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error)
+
+	AdminCreateAccessRuleWithResponse(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error)
+
+	// AdminGetAccessRule request
+	AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error)
+
+	// AdminUpdateAccessRule request with any body
+	AdminUpdateAccessRuleWithBodyWithResponse(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
+
+	AdminUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
+
+	// AdminArchiveAccessRule request
+	AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error)
+
+	// AdminGetAccessRuleVersions request
+	AdminGetAccessRuleVersionsWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleVersionsResponse, error)
+
+	// AdminGetAccessRuleVersion request
+	AdminGetAccessRuleVersionWithResponse(ctx context.Context, ruleId string, version string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleVersionResponse, error)
+
+	// AdminGetDeploymentVersion request
+	AdminGetDeploymentVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetDeploymentVersionResponse, error)
+
+	// AdminListGroups request
+	AdminListGroupsWithResponse(ctx context.Context, params *AdminListGroupsParams, reqEditors ...RequestEditorFn) (*AdminListGroupsResponse, error)
+
+	// AdminCreateGroup request with any body
+	AdminCreateGroupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateGroupResponse, error)
+
+	AdminCreateGroupWithResponse(ctx context.Context, body AdminCreateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateGroupResponse, error)
+
+	// AdminDeleteGroup request
+	AdminDeleteGroupWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*AdminDeleteGroupResponse, error)
+
+	// AdminGetGroup request
+	AdminGetGroupWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*AdminGetGroupResponse, error)
+
+	// AdminUpdateGroup request with any body
+	AdminUpdateGroupWithBodyWithResponse(ctx context.Context, groupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateGroupResponse, error)
+
+	AdminUpdateGroupWithResponse(ctx context.Context, groupId string, body AdminUpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateGroupResponse, error)
+
+	// AdminGetIdentityConfiguration request
+	AdminGetIdentityConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetIdentityConfigurationResponse, error)
+
+	// AdminSyncIdentity request
+	AdminSyncIdentityWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminSyncIdentityResponse, error)
+
+	// AdminListProviders request
+	AdminListProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersResponse, error)
+
+	// AdminCreateProvider request with any body
+	AdminCreateProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProviderResponse, error)
+
+	AdminCreateProviderWithResponse(ctx context.Context, body AdminCreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProviderResponse, error)
+
+	// AdminGetProvider request
+	AdminGetProviderWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*AdminGetProviderResponse, error)
+
+	// AdminGetProviderArgs request
+	AdminGetProviderArgsWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*AdminGetProviderArgsResponse, error)
+
+	// AdminListProviderArgOptions request
+	AdminListProviderArgOptionsWithResponse(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*AdminListProviderArgOptionsResponse, error)
+
+	// AdminListProvidersetups request
+	AdminListProvidersetupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersetupsResponse, error)
+
+	// AdminCreateProvidersetup request with any body
+	AdminCreateProvidersetupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error)
+
+	AdminCreateProvidersetupWithResponse(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error)
+
+	// AdminDeleteProvidersetup request
+	AdminDeleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminDeleteProvidersetupResponse, error)
+
+	// AdminGetProvidersetup request
+	AdminGetProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupResponse, error)
+
+	// AdminCompleteProvidersetup request
+	AdminCompleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminCompleteProvidersetupResponse, error)
+
+	// AdminGetProvidersetupInstructions request
+	AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error)
+
+	// AdminSubmitProvidersetupStep request with any body
+	AdminSubmitProvidersetupStepWithBodyWithResponse(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error)
+
+	AdminSubmitProvidersetupStepWithResponse(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error)
+
+	// AdminValidateProvidersetup request
+	AdminValidateProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminValidateProvidersetupResponse, error)
+
+	// AdminListProvidersv2 request
+	AdminListProvidersv2WithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersv2Response, error)
+
+	// AdminCreateProviderv2 request with any body
+	AdminCreateProviderv2WithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProviderv2Response, error)
+
+	AdminCreateProviderv2WithResponse(ctx context.Context, body AdminCreateProviderv2JSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProviderv2Response, error)
+
+	// AdminGetProviderv2 request
+	AdminGetProviderv2WithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*AdminGetProviderv2Response, error)
+
+	// AdminListRequests request
+	AdminListRequestsWithResponse(ctx context.Context, params *AdminListRequestsParams, reqEditors ...RequestEditorFn) (*AdminListRequestsResponse, error)
+
+	// AdminGetRequest request
+	AdminGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*AdminGetRequestResponse, error)
+
+	// AdminListUsers request
+	AdminListUsersWithResponse(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*AdminListUsersResponse, error)
+
+	// AdminCreateUser request with any body
+	AdminCreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateUserResponse, error)
+
+	AdminCreateUserWithResponse(ctx context.Context, body AdminCreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateUserResponse, error)
+
+	// AdminUpdateUser request with any body
+	AdminUpdateUserWithBodyWithResponse(ctx context.Context, userId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateUserResponse, error)
+
+	AdminUpdateUserWithResponse(ctx context.Context, userId string, body AdminUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateUserResponse, error)
+
+	// UserListFavorites request
+	UserListFavoritesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListFavoritesResponse, error)
+
+	// UserCreateFavorite request with any body
+	UserCreateFavoriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error)
+
+	UserCreateFavoriteWithResponse(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error)
+
+	// UserDeleteFavorite request
+	UserDeleteFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserDeleteFavoriteResponse, error)
+
+	// UserGetFavorite request
+	UserGetFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserGetFavoriteResponse, error)
+
+	// UserUpdateFavorite request with any body
+	UserUpdateFavoriteWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error)
+
+	UserUpdateFavoriteWithResponse(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error)
+
+	// UserListRequests request
+	UserListRequestsWithResponse(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*UserListRequestsResponse, error)
+
+	// UserCreateRequest request with any body
+	UserCreateRequestWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreateRequestResponse, error)
+
+	UserCreateRequestWithResponse(ctx context.Context, body UserCreateRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreateRequestResponse, error)
+
+	// UserListRequestsPast request
+	UserListRequestsPastWithResponse(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*UserListRequestsPastResponse, error)
+
+	// UserListRequestsUpcoming request
+	UserListRequestsUpcomingWithResponse(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*UserListRequestsUpcomingResponse, error)
+
+	// UserGetRequest request
+	UserGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetRequestResponse, error)
+
+	// UserGetAccessInstructions request
+	UserGetAccessInstructionsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetAccessInstructionsResponse, error)
+
+	// UserGetAccessToken request
+	UserGetAccessTokenWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetAccessTokenResponse, error)
+
+	// UserCancelRequest request
+	UserCancelRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserCancelRequestResponse, error)
+
+	// UserListRequestEvents request
+	UserListRequestEventsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserListRequestEventsResponse, error)
+
+	// UserReviewRequest request with any body
+	UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
+
+	UserReviewRequestWithResponse(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
+
+	// UserRevokeRequest request
+	UserRevokeRequestWithResponse(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*UserRevokeRequestResponse, error)
+
+	// UserGetMe request
+	UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error)
+
+	// UserGetUser request
+	UserGetUserWithResponse(ctx context.Context, userId string, reqEditors ...RequestEditorFn) (*UserGetUserResponse, error)
+}
+
+type UserListAccessRulesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AccessRules []AccessRule `json:"accessRules"`
+		Next        *string      `json:"next"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListAccessRulesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListAccessRulesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserLookupAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]LookupAccessRule
+	JSON404      *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserLookupAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserLookupAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RequestAccessRule
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetAccessRuleApproversResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next  *string  `json:"next"`
+		Users []string `json:"users"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetAccessRuleApproversResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetAccessRuleApproversResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListAccessRulesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AccessRules []AccessRuleDetail `json:"accessRules"`
+		Next        *string            `json:"next"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListAccessRulesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListAccessRulesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCreateAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *AccessRuleDetail
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCreateAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCreateAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AccessRuleDetail
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminUpdateAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AccessRuleDetail
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminUpdateAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminUpdateAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminArchiveAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AccessRuleDetail
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminArchiveAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminArchiveAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetAccessRuleVersionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AccessRules []AccessRuleDetail `json:"accessRules"`
+		Next        *string            `json:"next"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetAccessRuleVersionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetAccessRuleVersionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetAccessRuleVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AccessRuleDetail
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetAccessRuleVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetAccessRuleVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetDeploymentVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.
+		Version string `json:"version"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetDeploymentVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetDeploymentVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Groups []Group `json:"groups"`
+		Next   *string `json:"next"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCreateGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *Group
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCreateGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCreateGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminDeleteGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON404      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Group
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminUpdateGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Group
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminUpdateGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminUpdateGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetIdentityConfigurationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		AdministratorGroupId string `json:"administratorGroupId"`
+		IdentityProvider     string `json:"identityProvider"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetIdentityConfigurationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetIdentityConfigurationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminSyncIdentityResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminSyncIdentityResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminSyncIdentityResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListProvidersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Provider
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListProvidersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListProvidersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCreateProviderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCreateProviderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCreateProviderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetProviderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Provider
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetProviderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetProviderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetProviderArgsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.ArgSchema
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetProviderArgsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetProviderArgsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListProviderArgOptionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.ArgOptions
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListProviderArgOptionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListProviderArgOptionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListProvidersetupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		ProviderSetups []ProviderSetup `json:"providerSetups"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListProvidersetupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListProvidersetupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCreateProvidersetupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *ProviderSetup
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCreateProvidersetupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCreateProvidersetupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminDeleteProvidersetupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ProviderSetup
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteProvidersetupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteProvidersetupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetProvidersetupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ProviderSetup
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetProvidersetupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetProvidersetupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCompleteProvidersetupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
+		DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCompleteProvidersetupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCompleteProvidersetupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetProvidersetupInstructionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ProviderSetupInstructions
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetProvidersetupInstructionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetProvidersetupInstructionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminSubmitProvidersetupStepResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ProviderSetup
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminSubmitProvidersetupStepResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminSubmitProvidersetupStepResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminValidateProvidersetupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ProviderSetup
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminValidateProvidersetupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminValidateProvidersetupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListProvidersv2Response struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]Provider
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListProvidersv2Response) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListProvidersv2Response) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCreateProviderv2Response struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCreateProviderv2Response) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCreateProviderv2Response) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetProviderv2Response struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Provider
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetProviderv2Response) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetProviderv2Response) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListRequestsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListRequestsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListRequestsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RequestDetail
+	JSON404      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminListUsersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next  *string `json:"next"`
+		Users []User  `json:"users"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListUsersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListUsersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminCreateUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *User
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminCreateUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminCreateUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminUpdateUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminUpdateUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminUpdateUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserListFavoritesResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Favorites []Favorite `json:"favorites"`
+		Next      *string    `json:"next"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListFavoritesResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListFavoritesResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserCreateFavoriteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *FavoriteDetail
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserCreateFavoriteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserCreateFavoriteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserDeleteFavoriteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UserDeleteFavoriteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserDeleteFavoriteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetFavoriteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *FavoriteDetail
+	JSON404      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetFavoriteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetFavoriteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserUpdateFavoriteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *FavoriteDetail
+}
+
+// Status returns HTTPResponse.Status
+func (r UserUpdateFavoriteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserUpdateFavoriteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserListRequestsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListRequestsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListRequestsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserCreateRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r UserCreateRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserCreateRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserListRequestsPastResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListRequestsPastResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListRequestsPastResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserListRequestsUpcomingResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListRequestsUpcomingResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListRequestsUpcomingResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *RequestDetail
+	JSON404      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetAccessInstructionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.AccessInstructions
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetAccessInstructionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetAccessInstructionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetAccessTokenResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		HasToken bool    `json:"hasToken"`
+		Token    *string `json:"token,omitempty"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetAccessTokenResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetAccessTokenResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserCancelRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserCancelRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserCancelRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserListRequestEventsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Events []RequestEvent `json:"events"`
+		Next   *string        `json:"next"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListRequestEventsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListRequestEventsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserReviewRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// A request to access something made by an end user in Common Fate.
+		Request *Request `json:"request,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserReviewRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserReviewRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserRevokeRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserRevokeRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserRevokeRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetMeResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// Whether the user is an administrator of Common Fate.
+		IsAdmin bool `json:"isAdmin"`
+		User    User `json:"user"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetMeResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetMeResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserGetUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *User
+}
+
+// Status returns HTTPResponse.Status
+func (r UserGetUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserGetUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// UserListAccessRulesWithResponse request returning *UserListAccessRulesResponse
+func (c *ClientWithResponses) UserListAccessRulesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListAccessRulesResponse, error) {
+	rsp, err := c.UserListAccessRules(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListAccessRulesResponse(rsp)
+}
+
+// UserLookupAccessRuleWithResponse request returning *UserLookupAccessRuleResponse
+func (c *ClientWithResponses) UserLookupAccessRuleWithResponse(ctx context.Context, params *UserLookupAccessRuleParams, reqEditors ...RequestEditorFn) (*UserLookupAccessRuleResponse, error) {
+	rsp, err := c.UserLookupAccessRule(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserLookupAccessRuleResponse(rsp)
+}
+
+// UserGetAccessRuleWithResponse request returning *UserGetAccessRuleResponse
+func (c *ClientWithResponses) UserGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*UserGetAccessRuleResponse, error) {
+	rsp, err := c.UserGetAccessRule(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetAccessRuleResponse(rsp)
+}
+
+// UserGetAccessRuleApproversWithResponse request returning *UserGetAccessRuleApproversResponse
+func (c *ClientWithResponses) UserGetAccessRuleApproversWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*UserGetAccessRuleApproversResponse, error) {
+	rsp, err := c.UserGetAccessRuleApprovers(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetAccessRuleApproversResponse(rsp)
+}
+
+// AdminListAccessRulesWithResponse request returning *AdminListAccessRulesResponse
+func (c *ClientWithResponses) AdminListAccessRulesWithResponse(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*AdminListAccessRulesResponse, error) {
+	rsp, err := c.AdminListAccessRules(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListAccessRulesResponse(rsp)
+}
+
+// AdminCreateAccessRuleWithBodyWithResponse request with arbitrary body returning *AdminCreateAccessRuleResponse
+func (c *ClientWithResponses) AdminCreateAccessRuleWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error) {
+	rsp, err := c.AdminCreateAccessRuleWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateAccessRuleResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminCreateAccessRuleWithResponse(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error) {
+	rsp, err := c.AdminCreateAccessRule(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateAccessRuleResponse(rsp)
+}
+
+// AdminGetAccessRuleWithResponse request returning *AdminGetAccessRuleResponse
+func (c *ClientWithResponses) AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error) {
+	rsp, err := c.AdminGetAccessRule(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetAccessRuleResponse(rsp)
+}
+
+// AdminUpdateAccessRuleWithBodyWithResponse request with arbitrary body returning *AdminUpdateAccessRuleResponse
+func (c *ClientWithResponses) AdminUpdateAccessRuleWithBodyWithResponse(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error) {
+	rsp, err := c.AdminUpdateAccessRuleWithBody(ctx, ruleId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminUpdateAccessRuleResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error) {
+	rsp, err := c.AdminUpdateAccessRule(ctx, ruleId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminUpdateAccessRuleResponse(rsp)
+}
+
+// AdminArchiveAccessRuleWithResponse request returning *AdminArchiveAccessRuleResponse
+func (c *ClientWithResponses) AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error) {
+	rsp, err := c.AdminArchiveAccessRule(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminArchiveAccessRuleResponse(rsp)
+}
+
+// AdminGetAccessRuleVersionsWithResponse request returning *AdminGetAccessRuleVersionsResponse
+func (c *ClientWithResponses) AdminGetAccessRuleVersionsWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleVersionsResponse, error) {
+	rsp, err := c.AdminGetAccessRuleVersions(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetAccessRuleVersionsResponse(rsp)
+}
+
+// AdminGetAccessRuleVersionWithResponse request returning *AdminGetAccessRuleVersionResponse
+func (c *ClientWithResponses) AdminGetAccessRuleVersionWithResponse(ctx context.Context, ruleId string, version string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleVersionResponse, error) {
+	rsp, err := c.AdminGetAccessRuleVersion(ctx, ruleId, version, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetAccessRuleVersionResponse(rsp)
+}
+
+// AdminGetDeploymentVersionWithResponse request returning *AdminGetDeploymentVersionResponse
+func (c *ClientWithResponses) AdminGetDeploymentVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetDeploymentVersionResponse, error) {
+	rsp, err := c.AdminGetDeploymentVersion(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetDeploymentVersionResponse(rsp)
+}
+
+// AdminListGroupsWithResponse request returning *AdminListGroupsResponse
+func (c *ClientWithResponses) AdminListGroupsWithResponse(ctx context.Context, params *AdminListGroupsParams, reqEditors ...RequestEditorFn) (*AdminListGroupsResponse, error) {
+	rsp, err := c.AdminListGroups(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListGroupsResponse(rsp)
+}
+
+// AdminCreateGroupWithBodyWithResponse request with arbitrary body returning *AdminCreateGroupResponse
+func (c *ClientWithResponses) AdminCreateGroupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateGroupResponse, error) {
+	rsp, err := c.AdminCreateGroupWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateGroupResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminCreateGroupWithResponse(ctx context.Context, body AdminCreateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateGroupResponse, error) {
+	rsp, err := c.AdminCreateGroup(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateGroupResponse(rsp)
+}
+
+// AdminDeleteGroupWithResponse request returning *AdminDeleteGroupResponse
+func (c *ClientWithResponses) AdminDeleteGroupWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*AdminDeleteGroupResponse, error) {
+	rsp, err := c.AdminDeleteGroup(ctx, groupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteGroupResponse(rsp)
+}
+
+// AdminGetGroupWithResponse request returning *AdminGetGroupResponse
+func (c *ClientWithResponses) AdminGetGroupWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*AdminGetGroupResponse, error) {
+	rsp, err := c.AdminGetGroup(ctx, groupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetGroupResponse(rsp)
+}
+
+// AdminUpdateGroupWithBodyWithResponse request with arbitrary body returning *AdminUpdateGroupResponse
+func (c *ClientWithResponses) AdminUpdateGroupWithBodyWithResponse(ctx context.Context, groupId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateGroupResponse, error) {
+	rsp, err := c.AdminUpdateGroupWithBody(ctx, groupId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminUpdateGroupResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminUpdateGroupWithResponse(ctx context.Context, groupId string, body AdminUpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateGroupResponse, error) {
+	rsp, err := c.AdminUpdateGroup(ctx, groupId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminUpdateGroupResponse(rsp)
+}
+
+// AdminGetIdentityConfigurationWithResponse request returning *AdminGetIdentityConfigurationResponse
+func (c *ClientWithResponses) AdminGetIdentityConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetIdentityConfigurationResponse, error) {
+	rsp, err := c.AdminGetIdentityConfiguration(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetIdentityConfigurationResponse(rsp)
+}
+
+// AdminSyncIdentityWithResponse request returning *AdminSyncIdentityResponse
+func (c *ClientWithResponses) AdminSyncIdentityWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminSyncIdentityResponse, error) {
+	rsp, err := c.AdminSyncIdentity(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminSyncIdentityResponse(rsp)
+}
+
+// AdminListProvidersWithResponse request returning *AdminListProvidersResponse
+func (c *ClientWithResponses) AdminListProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersResponse, error) {
+	rsp, err := c.AdminListProviders(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListProvidersResponse(rsp)
+}
+
+// AdminCreateProviderWithBodyWithResponse request with arbitrary body returning *AdminCreateProviderResponse
+func (c *ClientWithResponses) AdminCreateProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProviderResponse, error) {
+	rsp, err := c.AdminCreateProviderWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateProviderResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminCreateProviderWithResponse(ctx context.Context, body AdminCreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProviderResponse, error) {
+	rsp, err := c.AdminCreateProvider(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateProviderResponse(rsp)
+}
+
+// AdminGetProviderWithResponse request returning *AdminGetProviderResponse
+func (c *ClientWithResponses) AdminGetProviderWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*AdminGetProviderResponse, error) {
+	rsp, err := c.AdminGetProvider(ctx, providerId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetProviderResponse(rsp)
+}
+
+// AdminGetProviderArgsWithResponse request returning *AdminGetProviderArgsResponse
+func (c *ClientWithResponses) AdminGetProviderArgsWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*AdminGetProviderArgsResponse, error) {
+	rsp, err := c.AdminGetProviderArgs(ctx, providerId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetProviderArgsResponse(rsp)
+}
+
+// AdminListProviderArgOptionsWithResponse request returning *AdminListProviderArgOptionsResponse
+func (c *ClientWithResponses) AdminListProviderArgOptionsWithResponse(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*AdminListProviderArgOptionsResponse, error) {
+	rsp, err := c.AdminListProviderArgOptions(ctx, providerId, argId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListProviderArgOptionsResponse(rsp)
+}
+
+// AdminListProvidersetupsWithResponse request returning *AdminListProvidersetupsResponse
+func (c *ClientWithResponses) AdminListProvidersetupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersetupsResponse, error) {
+	rsp, err := c.AdminListProvidersetups(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListProvidersetupsResponse(rsp)
+}
+
+// AdminCreateProvidersetupWithBodyWithResponse request with arbitrary body returning *AdminCreateProvidersetupResponse
+func (c *ClientWithResponses) AdminCreateProvidersetupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error) {
+	rsp, err := c.AdminCreateProvidersetupWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateProvidersetupResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminCreateProvidersetupWithResponse(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error) {
+	rsp, err := c.AdminCreateProvidersetup(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateProvidersetupResponse(rsp)
+}
+
+// AdminDeleteProvidersetupWithResponse request returning *AdminDeleteProvidersetupResponse
+func (c *ClientWithResponses) AdminDeleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminDeleteProvidersetupResponse, error) {
+	rsp, err := c.AdminDeleteProvidersetup(ctx, providersetupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteProvidersetupResponse(rsp)
+}
+
+// AdminGetProvidersetupWithResponse request returning *AdminGetProvidersetupResponse
+func (c *ClientWithResponses) AdminGetProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupResponse, error) {
+	rsp, err := c.AdminGetProvidersetup(ctx, providersetupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetProvidersetupResponse(rsp)
+}
+
+// AdminCompleteProvidersetupWithResponse request returning *AdminCompleteProvidersetupResponse
+func (c *ClientWithResponses) AdminCompleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminCompleteProvidersetupResponse, error) {
+	rsp, err := c.AdminCompleteProvidersetup(ctx, providersetupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCompleteProvidersetupResponse(rsp)
+}
+
+// AdminGetProvidersetupInstructionsWithResponse request returning *AdminGetProvidersetupInstructionsResponse
+func (c *ClientWithResponses) AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error) {
+	rsp, err := c.AdminGetProvidersetupInstructions(ctx, providersetupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetProvidersetupInstructionsResponse(rsp)
+}
+
+// AdminSubmitProvidersetupStepWithBodyWithResponse request with arbitrary body returning *AdminSubmitProvidersetupStepResponse
+func (c *ClientWithResponses) AdminSubmitProvidersetupStepWithBodyWithResponse(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error) {
+	rsp, err := c.AdminSubmitProvidersetupStepWithBody(ctx, providersetupId, stepIndex, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminSubmitProvidersetupStepResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminSubmitProvidersetupStepWithResponse(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error) {
+	rsp, err := c.AdminSubmitProvidersetupStep(ctx, providersetupId, stepIndex, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminSubmitProvidersetupStepResponse(rsp)
+}
+
+// AdminValidateProvidersetupWithResponse request returning *AdminValidateProvidersetupResponse
+func (c *ClientWithResponses) AdminValidateProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminValidateProvidersetupResponse, error) {
+	rsp, err := c.AdminValidateProvidersetup(ctx, providersetupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminValidateProvidersetupResponse(rsp)
+}
+
+// AdminListProvidersv2WithResponse request returning *AdminListProvidersv2Response
+func (c *ClientWithResponses) AdminListProvidersv2WithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersv2Response, error) {
+	rsp, err := c.AdminListProvidersv2(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListProvidersv2Response(rsp)
+}
+
+// AdminCreateProviderv2WithBodyWithResponse request with arbitrary body returning *AdminCreateProviderv2Response
+func (c *ClientWithResponses) AdminCreateProviderv2WithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProviderv2Response, error) {
+	rsp, err := c.AdminCreateProviderv2WithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateProviderv2Response(rsp)
+}
+
+func (c *ClientWithResponses) AdminCreateProviderv2WithResponse(ctx context.Context, body AdminCreateProviderv2JSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProviderv2Response, error) {
+	rsp, err := c.AdminCreateProviderv2(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateProviderv2Response(rsp)
+}
+
+// AdminGetProviderv2WithResponse request returning *AdminGetProviderv2Response
+func (c *ClientWithResponses) AdminGetProviderv2WithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*AdminGetProviderv2Response, error) {
+	rsp, err := c.AdminGetProviderv2(ctx, providerId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetProviderv2Response(rsp)
+}
+
+// AdminListRequestsWithResponse request returning *AdminListRequestsResponse
+func (c *ClientWithResponses) AdminListRequestsWithResponse(ctx context.Context, params *AdminListRequestsParams, reqEditors ...RequestEditorFn) (*AdminListRequestsResponse, error) {
+	rsp, err := c.AdminListRequests(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListRequestsResponse(rsp)
+}
+
+// AdminGetRequestWithResponse request returning *AdminGetRequestResponse
+func (c *ClientWithResponses) AdminGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*AdminGetRequestResponse, error) {
+	rsp, err := c.AdminGetRequest(ctx, requestId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetRequestResponse(rsp)
+}
+
+// AdminListUsersWithResponse request returning *AdminListUsersResponse
+func (c *ClientWithResponses) AdminListUsersWithResponse(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*AdminListUsersResponse, error) {
+	rsp, err := c.AdminListUsers(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListUsersResponse(rsp)
+}
+
+// AdminCreateUserWithBodyWithResponse request with arbitrary body returning *AdminCreateUserResponse
+func (c *ClientWithResponses) AdminCreateUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateUserResponse, error) {
+	rsp, err := c.AdminCreateUserWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminCreateUserWithResponse(ctx context.Context, body AdminCreateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateUserResponse, error) {
+	rsp, err := c.AdminCreateUser(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminCreateUserResponse(rsp)
+}
+
+// AdminUpdateUserWithBodyWithResponse request with arbitrary body returning *AdminUpdateUserResponse
+func (c *ClientWithResponses) AdminUpdateUserWithBodyWithResponse(ctx context.Context, userId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateUserResponse, error) {
+	rsp, err := c.AdminUpdateUserWithBody(ctx, userId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminUpdateUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminUpdateUserWithResponse(ctx context.Context, userId string, body AdminUpdateUserJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateUserResponse, error) {
+	rsp, err := c.AdminUpdateUser(ctx, userId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminUpdateUserResponse(rsp)
+}
+
+// UserListFavoritesWithResponse request returning *UserListFavoritesResponse
+func (c *ClientWithResponses) UserListFavoritesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListFavoritesResponse, error) {
+	rsp, err := c.UserListFavorites(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListFavoritesResponse(rsp)
+}
+
+// UserCreateFavoriteWithBodyWithResponse request with arbitrary body returning *UserCreateFavoriteResponse
+func (c *ClientWithResponses) UserCreateFavoriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error) {
+	rsp, err := c.UserCreateFavoriteWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreateFavoriteResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserCreateFavoriteWithResponse(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error) {
+	rsp, err := c.UserCreateFavorite(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreateFavoriteResponse(rsp)
+}
+
+// UserDeleteFavoriteWithResponse request returning *UserDeleteFavoriteResponse
+func (c *ClientWithResponses) UserDeleteFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserDeleteFavoriteResponse, error) {
+	rsp, err := c.UserDeleteFavorite(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserDeleteFavoriteResponse(rsp)
+}
+
+// UserGetFavoriteWithResponse request returning *UserGetFavoriteResponse
+func (c *ClientWithResponses) UserGetFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserGetFavoriteResponse, error) {
+	rsp, err := c.UserGetFavorite(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetFavoriteResponse(rsp)
+}
+
+// UserUpdateFavoriteWithBodyWithResponse request with arbitrary body returning *UserUpdateFavoriteResponse
+func (c *ClientWithResponses) UserUpdateFavoriteWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error) {
+	rsp, err := c.UserUpdateFavoriteWithBody(ctx, id, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserUpdateFavoriteResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserUpdateFavoriteWithResponse(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error) {
+	rsp, err := c.UserUpdateFavorite(ctx, id, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserUpdateFavoriteResponse(rsp)
+}
+
+// UserListRequestsWithResponse request returning *UserListRequestsResponse
+func (c *ClientWithResponses) UserListRequestsWithResponse(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*UserListRequestsResponse, error) {
+	rsp, err := c.UserListRequests(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListRequestsResponse(rsp)
+}
+
+// UserCreateRequestWithBodyWithResponse request with arbitrary body returning *UserCreateRequestResponse
+func (c *ClientWithResponses) UserCreateRequestWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreateRequestResponse, error) {
+	rsp, err := c.UserCreateRequestWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreateRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserCreateRequestWithResponse(ctx context.Context, body UserCreateRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreateRequestResponse, error) {
+	rsp, err := c.UserCreateRequest(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCreateRequestResponse(rsp)
+}
+
+// UserListRequestsPastWithResponse request returning *UserListRequestsPastResponse
+func (c *ClientWithResponses) UserListRequestsPastWithResponse(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*UserListRequestsPastResponse, error) {
+	rsp, err := c.UserListRequestsPast(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListRequestsPastResponse(rsp)
+}
+
+// UserListRequestsUpcomingWithResponse request returning *UserListRequestsUpcomingResponse
+func (c *ClientWithResponses) UserListRequestsUpcomingWithResponse(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*UserListRequestsUpcomingResponse, error) {
+	rsp, err := c.UserListRequestsUpcoming(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListRequestsUpcomingResponse(rsp)
+}
+
+// UserGetRequestWithResponse request returning *UserGetRequestResponse
+func (c *ClientWithResponses) UserGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetRequestResponse, error) {
+	rsp, err := c.UserGetRequest(ctx, requestId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetRequestResponse(rsp)
+}
+
+// UserGetAccessInstructionsWithResponse request returning *UserGetAccessInstructionsResponse
+func (c *ClientWithResponses) UserGetAccessInstructionsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetAccessInstructionsResponse, error) {
+	rsp, err := c.UserGetAccessInstructions(ctx, requestId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetAccessInstructionsResponse(rsp)
+}
+
+// UserGetAccessTokenWithResponse request returning *UserGetAccessTokenResponse
+func (c *ClientWithResponses) UserGetAccessTokenWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetAccessTokenResponse, error) {
+	rsp, err := c.UserGetAccessToken(ctx, requestId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetAccessTokenResponse(rsp)
+}
+
+// UserCancelRequestWithResponse request returning *UserCancelRequestResponse
+func (c *ClientWithResponses) UserCancelRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserCancelRequestResponse, error) {
+	rsp, err := c.UserCancelRequest(ctx, requestId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserCancelRequestResponse(rsp)
+}
+
+// UserListRequestEventsWithResponse request returning *UserListRequestEventsResponse
+func (c *ClientWithResponses) UserListRequestEventsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserListRequestEventsResponse, error) {
+	rsp, err := c.UserListRequestEvents(ctx, requestId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListRequestEventsResponse(rsp)
+}
+
+// UserReviewRequestWithBodyWithResponse request with arbitrary body returning *UserReviewRequestResponse
+func (c *ClientWithResponses) UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
+	rsp, err := c.UserReviewRequestWithBody(ctx, requestId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserReviewRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserReviewRequestWithResponse(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
+	rsp, err := c.UserReviewRequest(ctx, requestId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserReviewRequestResponse(rsp)
+}
+
+// UserRevokeRequestWithResponse request returning *UserRevokeRequestResponse
+func (c *ClientWithResponses) UserRevokeRequestWithResponse(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*UserRevokeRequestResponse, error) {
+	rsp, err := c.UserRevokeRequest(ctx, requestid, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserRevokeRequestResponse(rsp)
+}
+
+// UserGetMeWithResponse request returning *UserGetMeResponse
+func (c *ClientWithResponses) UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error) {
+	rsp, err := c.UserGetMe(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetMeResponse(rsp)
+}
+
+// UserGetUserWithResponse request returning *UserGetUserResponse
+func (c *ClientWithResponses) UserGetUserWithResponse(ctx context.Context, userId string, reqEditors ...RequestEditorFn) (*UserGetUserResponse, error) {
+	rsp, err := c.UserGetUser(ctx, userId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserGetUserResponse(rsp)
+}
+
+// ParseUserListAccessRulesResponse parses an HTTP response from a UserListAccessRulesWithResponse call
+func ParseUserListAccessRulesResponse(rsp *http.Response) (*UserListAccessRulesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListAccessRulesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AccessRules []AccessRule `json:"accessRules"`
+			Next        *string      `json:"next"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserLookupAccessRuleResponse parses an HTTP response from a UserLookupAccessRuleWithResponse call
+func ParseUserLookupAccessRuleResponse(rsp *http.Response) (*UserLookupAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserLookupAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []LookupAccessRule
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetAccessRuleResponse parses an HTTP response from a UserGetAccessRuleWithResponse call
+func ParseUserGetAccessRuleResponse(rsp *http.Response) (*UserGetAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RequestAccessRule
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetAccessRuleApproversResponse parses an HTTP response from a UserGetAccessRuleApproversWithResponse call
+func ParseUserGetAccessRuleApproversResponse(rsp *http.Response) (*UserGetAccessRuleApproversResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetAccessRuleApproversResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next  *string  `json:"next"`
+			Users []string `json:"users"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListAccessRulesResponse parses an HTTP response from a AdminListAccessRulesWithResponse call
+func ParseAdminListAccessRulesResponse(rsp *http.Response) (*AdminListAccessRulesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListAccessRulesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AccessRules []AccessRuleDetail `json:"accessRules"`
+			Next        *string            `json:"next"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCreateAccessRuleResponse parses an HTTP response from a AdminCreateAccessRuleWithResponse call
+func ParseAdminCreateAccessRuleResponse(rsp *http.Response) (*AdminCreateAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCreateAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest AccessRuleDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetAccessRuleResponse parses an HTTP response from a AdminGetAccessRuleWithResponse call
+func ParseAdminGetAccessRuleResponse(rsp *http.Response) (*AdminGetAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AccessRuleDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminUpdateAccessRuleResponse parses an HTTP response from a AdminUpdateAccessRuleWithResponse call
+func ParseAdminUpdateAccessRuleResponse(rsp *http.Response) (*AdminUpdateAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminUpdateAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AccessRuleDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminArchiveAccessRuleResponse parses an HTTP response from a AdminArchiveAccessRuleWithResponse call
+func ParseAdminArchiveAccessRuleResponse(rsp *http.Response) (*AdminArchiveAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminArchiveAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AccessRuleDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetAccessRuleVersionsResponse parses an HTTP response from a AdminGetAccessRuleVersionsWithResponse call
+func ParseAdminGetAccessRuleVersionsResponse(rsp *http.Response) (*AdminGetAccessRuleVersionsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetAccessRuleVersionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AccessRules []AccessRuleDetail `json:"accessRules"`
+			Next        *string            `json:"next"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetAccessRuleVersionResponse parses an HTTP response from a AdminGetAccessRuleVersionWithResponse call
+func ParseAdminGetAccessRuleVersionResponse(rsp *http.Response) (*AdminGetAccessRuleVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetAccessRuleVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AccessRuleDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetDeploymentVersionResponse parses an HTTP response from a AdminGetDeploymentVersionWithResponse call
+func ParseAdminGetDeploymentVersionResponse(rsp *http.Response) (*AdminGetDeploymentVersionResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetDeploymentVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds.
+			Version string `json:"version"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListGroupsResponse parses an HTTP response from a AdminListGroupsWithResponse call
+func ParseAdminListGroupsResponse(rsp *http.Response) (*AdminListGroupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Groups []Group `json:"groups"`
+			Next   *string `json:"next"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCreateGroupResponse parses an HTTP response from a AdminCreateGroupWithResponse call
+func ParseAdminCreateGroupResponse(rsp *http.Response) (*AdminCreateGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCreateGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest Group
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminDeleteGroupResponse parses an HTTP response from a AdminDeleteGroupWithResponse call
+func ParseAdminDeleteGroupResponse(rsp *http.Response) (*AdminDeleteGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetGroupResponse parses an HTTP response from a AdminGetGroupWithResponse call
+func ParseAdminGetGroupResponse(rsp *http.Response) (*AdminGetGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Group
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminUpdateGroupResponse parses an HTTP response from a AdminUpdateGroupWithResponse call
+func ParseAdminUpdateGroupResponse(rsp *http.Response) (*AdminUpdateGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminUpdateGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Group
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetIdentityConfigurationResponse parses an HTTP response from a AdminGetIdentityConfigurationWithResponse call
+func ParseAdminGetIdentityConfigurationResponse(rsp *http.Response) (*AdminGetIdentityConfigurationResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetIdentityConfigurationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			AdministratorGroupId string `json:"administratorGroupId"`
+			IdentityProvider     string `json:"identityProvider"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminSyncIdentityResponse parses an HTTP response from a AdminSyncIdentityWithResponse call
+func ParseAdminSyncIdentityResponse(rsp *http.Response) (*AdminSyncIdentityResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminSyncIdentityResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListProvidersResponse parses an HTTP response from a AdminListProvidersWithResponse call
+func ParseAdminListProvidersResponse(rsp *http.Response) (*AdminListProvidersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListProvidersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Provider
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCreateProviderResponse parses an HTTP response from a AdminCreateProviderWithResponse call
+func ParseAdminCreateProviderResponse(rsp *http.Response) (*AdminCreateProviderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCreateProviderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetProviderResponse parses an HTTP response from a AdminGetProviderWithResponse call
+func ParseAdminGetProviderResponse(rsp *http.Response) (*AdminGetProviderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetProviderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Provider
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetProviderArgsResponse parses an HTTP response from a AdminGetProviderArgsWithResponse call
+func ParseAdminGetProviderArgsResponse(rsp *http.Response) (*AdminGetProviderArgsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetProviderArgsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.ArgSchema
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListProviderArgOptionsResponse parses an HTTP response from a AdminListProviderArgOptionsWithResponse call
+func ParseAdminListProviderArgOptionsResponse(rsp *http.Response) (*AdminListProviderArgOptionsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListProviderArgOptionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.ArgOptions
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListProvidersetupsResponse parses an HTTP response from a AdminListProvidersetupsWithResponse call
+func ParseAdminListProvidersetupsResponse(rsp *http.Response) (*AdminListProvidersetupsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListProvidersetupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			ProviderSetups []ProviderSetup `json:"providerSetups"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCreateProvidersetupResponse parses an HTTP response from a AdminCreateProvidersetupWithResponse call
+func ParseAdminCreateProvidersetupResponse(rsp *http.Response) (*AdminCreateProvidersetupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCreateProvidersetupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest ProviderSetup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminDeleteProvidersetupResponse parses an HTTP response from a AdminDeleteProvidersetupWithResponse call
+func ParseAdminDeleteProvidersetupResponse(rsp *http.Response) (*AdminDeleteProvidersetupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteProvidersetupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProviderSetup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetProvidersetupResponse parses an HTTP response from a AdminGetProvidersetupWithResponse call
+func ParseAdminGetProvidersetupResponse(rsp *http.Response) (*AdminGetProvidersetupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetProvidersetupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProviderSetup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCompleteProvidersetupResponse parses an HTTP response from a AdminCompleteProvidersetupWithResponse call
+func ParseAdminCompleteProvidersetupResponse(rsp *http.Response) (*AdminCompleteProvidersetupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCompleteProvidersetupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
+			DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetProvidersetupInstructionsResponse parses an HTTP response from a AdminGetProvidersetupInstructionsWithResponse call
+func ParseAdminGetProvidersetupInstructionsResponse(rsp *http.Response) (*AdminGetProvidersetupInstructionsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetProvidersetupInstructionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProviderSetupInstructions
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminSubmitProvidersetupStepResponse parses an HTTP response from a AdminSubmitProvidersetupStepWithResponse call
+func ParseAdminSubmitProvidersetupStepResponse(rsp *http.Response) (*AdminSubmitProvidersetupStepResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminSubmitProvidersetupStepResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProviderSetup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminValidateProvidersetupResponse parses an HTTP response from a AdminValidateProvidersetupWithResponse call
+func ParseAdminValidateProvidersetupResponse(rsp *http.Response) (*AdminValidateProvidersetupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminValidateProvidersetupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ProviderSetup
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListProvidersv2Response parses an HTTP response from a AdminListProvidersv2WithResponse call
+func ParseAdminListProvidersv2Response(rsp *http.Response) (*AdminListProvidersv2Response, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListProvidersv2Response{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []Provider
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCreateProviderv2Response parses an HTTP response from a AdminCreateProviderv2WithResponse call
+func ParseAdminCreateProviderv2Response(rsp *http.Response) (*AdminCreateProviderv2Response, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCreateProviderv2Response{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetProviderv2Response parses an HTTP response from a AdminGetProviderv2WithResponse call
+func ParseAdminGetProviderv2Response(rsp *http.Response) (*AdminGetProviderv2Response, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetProviderv2Response{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Provider
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListRequestsResponse parses an HTTP response from a AdminListRequestsWithResponse call
+func ParseAdminListRequestsResponse(rsp *http.Response) (*AdminListRequestsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListRequestsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetRequestResponse parses an HTTP response from a AdminGetRequestWithResponse call
+func ParseAdminGetRequestResponse(rsp *http.Response) (*AdminGetRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RequestDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminListUsersResponse parses an HTTP response from a AdminListUsersWithResponse call
+func ParseAdminListUsersResponse(rsp *http.Response) (*AdminListUsersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListUsersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next  *string `json:"next"`
+			Users []User  `json:"users"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminCreateUserResponse parses an HTTP response from a AdminCreateUserWithResponse call
+func ParseAdminCreateUserResponse(rsp *http.Response) (*AdminCreateUserResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminCreateUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminUpdateUserResponse parses an HTTP response from a AdminUpdateUserWithResponse call
+func ParseAdminUpdateUserResponse(rsp *http.Response) (*AdminUpdateUserResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminUpdateUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserListFavoritesResponse parses an HTTP response from a UserListFavoritesWithResponse call
+func ParseUserListFavoritesResponse(rsp *http.Response) (*UserListFavoritesResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListFavoritesResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Favorites []Favorite `json:"favorites"`
+			Next      *string    `json:"next"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserCreateFavoriteResponse parses an HTTP response from a UserCreateFavoriteWithResponse call
+func ParseUserCreateFavoriteResponse(rsp *http.Response) (*UserCreateFavoriteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserCreateFavoriteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest FavoriteDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserDeleteFavoriteResponse parses an HTTP response from a UserDeleteFavoriteWithResponse call
+func ParseUserDeleteFavoriteResponse(rsp *http.Response) (*UserDeleteFavoriteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserDeleteFavoriteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUserGetFavoriteResponse parses an HTTP response from a UserGetFavoriteWithResponse call
+func ParseUserGetFavoriteResponse(rsp *http.Response) (*UserGetFavoriteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetFavoriteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest FavoriteDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserUpdateFavoriteResponse parses an HTTP response from a UserUpdateFavoriteWithResponse call
+func ParseUserUpdateFavoriteResponse(rsp *http.Response) (*UserUpdateFavoriteResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserUpdateFavoriteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest FavoriteDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserListRequestsResponse parses an HTTP response from a UserListRequestsWithResponse call
+func ParseUserListRequestsResponse(rsp *http.Response) (*UserListRequestsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListRequestsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserCreateRequestResponse parses an HTTP response from a UserCreateRequestWithResponse call
+func ParseUserCreateRequestResponse(rsp *http.Response) (*UserCreateRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserCreateRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseUserListRequestsPastResponse parses an HTTP response from a UserListRequestsPastWithResponse call
+func ParseUserListRequestsPastResponse(rsp *http.Response) (*UserListRequestsPastResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListRequestsPastResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserListRequestsUpcomingResponse parses an HTTP response from a UserListRequestsUpcomingWithResponse call
+func ParseUserListRequestsUpcomingResponse(rsp *http.Response) (*UserListRequestsUpcomingResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListRequestsUpcomingResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetRequestResponse parses an HTTP response from a UserGetRequestWithResponse call
+func ParseUserGetRequestResponse(rsp *http.Response) (*UserGetRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RequestDetail
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetAccessInstructionsResponse parses an HTTP response from a UserGetAccessInstructionsWithResponse call
+func ParseUserGetAccessInstructionsResponse(rsp *http.Response) (*UserGetAccessInstructionsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetAccessInstructionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.AccessInstructions
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetAccessTokenResponse parses an HTTP response from a UserGetAccessTokenWithResponse call
+func ParseUserGetAccessTokenResponse(rsp *http.Response) (*UserGetAccessTokenResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetAccessTokenResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			HasToken bool    `json:"hasToken"`
+			Token    *string `json:"token,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserCancelRequestResponse parses an HTTP response from a UserCancelRequestWithResponse call
+func ParseUserCancelRequestResponse(rsp *http.Response) (*UserCancelRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserCancelRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserListRequestEventsResponse parses an HTTP response from a UserListRequestEventsWithResponse call
+func ParseUserListRequestEventsResponse(rsp *http.Response) (*UserListRequestEventsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListRequestEventsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Events []RequestEvent `json:"events"`
+			Next   *string        `json:"next"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserReviewRequestResponse parses an HTTP response from a UserReviewRequestWithResponse call
+func ParseUserReviewRequestResponse(rsp *http.Response) (*UserReviewRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserReviewRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// A request to access something made by an end user in Common Fate.
+			Request *Request `json:"request,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserRevokeRequestResponse parses an HTTP response from a UserRevokeRequestWithResponse call
+func ParseUserRevokeRequestResponse(rsp *http.Response) (*UserRevokeRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserRevokeRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetMeResponse parses an HTTP response from a UserGetMeWithResponse call
+func ParseUserGetMeResponse(rsp *http.Response) (*UserGetMeResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetMeResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// Whether the user is an administrator of Common Fate.
+			IsAdmin bool `json:"isAdmin"`
+			User    User `json:"user"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserGetUserResponse parses an HTTP response from a UserGetUserWithResponse call
+func ParseUserGetUserResponse(rsp *http.Response) (*UserGetUserResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserGetUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest User
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ServerInterface represents all server handlers.
@@ -3297,154 +11198,154 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
