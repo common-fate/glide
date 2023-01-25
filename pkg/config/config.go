@@ -23,6 +23,7 @@ type Config struct {
 	AccessHandlerExecutionRoleARN string `env:"COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN,required"`
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
+	NoAuthEmail                   string `env:"NO_AUTH_EMAIL"`
 }
 
 type NotificationsConfig struct {

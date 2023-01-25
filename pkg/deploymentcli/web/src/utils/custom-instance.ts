@@ -35,10 +35,12 @@ export const customInstanceCommonfate = async <T>(
   const baseURL = apiURL;
 
   const promise = instance({
-    baseURL,
+    baseURL: "http://localhost:8080",
+
     headers: {
+      "Access-Control-Allow-Origin": "*",
       ...config.headers,
-      Authorization: token,
+      "Authorization": token,
     },
     ...config,
     ...runtimeConfig,

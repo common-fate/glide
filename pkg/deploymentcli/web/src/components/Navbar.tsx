@@ -62,7 +62,7 @@ export const Navbar: React.FC = () => {
                     Registry
                   </TabsStyledButton>
                   <TabsStyledButton
-                    href="/"
+                    href="/providers"
                     // w={showReqCount ? "190px" : "142px"}
                     // pr={showReqCount ? 10 : undefined}
                   >

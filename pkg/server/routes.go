@@ -21,9 +21,9 @@ func (c *Server) Handler() http.Handler {
 	r.Use(analyticsMiddleware(c.db, c.log))
 	r.Use(sentryMiddleware)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{c.cfg.FrontendURL},
+		AllowedOrigins:   []string{c.cfg.FrontendURL, "http://localhost:9000", "http://localhost:3001"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "Access-Control-Allow-Origin"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
