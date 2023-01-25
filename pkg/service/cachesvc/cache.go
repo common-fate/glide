@@ -182,7 +182,7 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 	for _, v := range groupOptions {
 		cp := v
 		if v.shouldUpsert {
-			freshArgGroups = append(freshArgGroups, v.option)
+			freshArgGroups = append(freshArgGroups, cp.option)
 			upsertItems = append(upsertItems, &cp.option)
 		} else {
 			deleteItems = append(deleteItems, &cp.option)
