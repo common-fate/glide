@@ -33,6 +33,8 @@ import type {
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
   CreateProviderSetupRequestBody,
+  ListProviderSetupsV2ResponseResponse,
+  ProviderSetupV2ResponseResponse,
   ProviderSetupInstructions,
   CompleteProviderSetupResponseResponse,
   ProviderSetupStepCompleteRequestBody,
@@ -760,10 +762,65 @@ export const adminCreateProvidersetup = (
   
 
 /**
+ * List providers which are still in the process of being set up.
+ * @summary List the provider setups in progress
+ */
+export const adminListProvidersetupsv2 = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListProviderSetupsV2ResponseResponse>(
+      {url: `/api/v1/admin/providersetupsv2`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminListProvidersetupsv2Key = () => [`/api/v1/admin/providersetupsv2`];
+
+    
+export type AdminListProvidersetupsv2QueryResult = NonNullable<Awaited<ReturnType<typeof adminListProvidersetupsv2>>>
+export type AdminListProvidersetupsv2QueryError = ErrorType<unknown>
+
+export const useAdminListProvidersetupsv2 = <TError = ErrorType<unknown>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListProvidersetupsv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListProvidersetupsv2Key() : null);
+  const swrFn = () => adminListProvidersetupsv2(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Begins the guided setup process for a new Access Provider.
+ * @summary Begin the setup process for a new Access Provider
+ */
+export const adminCreateProvidersetupv2 = (
+    createProviderSetupRequestBody: CreateProviderSetupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetupsv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderSetupRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * Get the setup instructions for an Access Provider.
  * @summary Get an in-progress provider setup
  */
-export const adminGetProvidersetup = (
+export const adminGetProvidersetupv2 = (
     providersetupId: string,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ProviderSetupResponseResponse>(
@@ -773,7 +830,62 @@ export const adminGetProvidersetup = (
     }
   
 
-export const getAdminGetProvidersetupKey = (providersetupId: string,) => [`/api/v1/admin/providersetups/${providersetupId}`];
+export const getAdminGetProvidersetupv2Key = (providersetupId: string,) => [`/api/v1/admin/providersetups/${providersetupId}`];
+
+    
+export type AdminGetProvidersetupv2QueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProvidersetupv2>>>
+export type AdminGetProvidersetupv2QueryError = ErrorType<unknown>
+
+export const useAdminGetProvidersetupv2 = <TError = ErrorType<unknown>>(
+ providersetupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetProvidersetupv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(providersetupId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProvidersetupv2Key(providersetupId) : null);
+  const swrFn = () => adminGetProvidersetupv2(providersetupId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Removes an in-progress provider setup and deletes all data relating to it.
+
+Returns the deleted provider.
+ * @summary Delete an in-progress provider setup
+ */
+export const adminDeleteProvidersetupv2 = (
+    providersetupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderSetupResponseResponse>(
+      {url: `/api/v1/admin/providersetups/${providersetupId}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
+ * Get the setup instructions for an Access Provider.
+ * @summary Get an in-progress provider setup
+ */
+export const adminGetProvidersetup = (
+    providersetupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderSetupV2ResponseResponse>(
+      {url: `/api/v1/admin/providersetupsv2/${providersetupId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetProvidersetupKey = (providersetupId: string,) => [`/api/v1/admin/providersetupsv2/${providersetupId}`];
 
     
 export type AdminGetProvidersetupQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProvidersetup>>>
@@ -807,8 +919,8 @@ Returns the deleted provider.
 export const adminDeleteProvidersetup = (
     providersetupId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ProviderSetupResponseResponse>(
-      {url: `/api/v1/admin/providersetups/${providersetupId}`, method: 'delete'
+      return customInstance<ProviderSetupV2ResponseResponse>(
+      {url: `/api/v1/admin/providersetupsv2/${providersetupId}`, method: 'delete'
     },
       options);
     }

@@ -9,7 +9,7 @@
     "lint": "eslint --ext ts --ext tsx --quiet --fix .",
     "lint:ci": "eslint '*/**/*.{ts,tsx}' --quiet",
     "prettier": "prettier --write ./src",
-    "clienttypegen": "orval --config ./src/utils/local.orval.config.js"
+    "clienttypegen": "orval --config ./src/utils/local.orval.config.js && orval --config ./src/utils/commonfate.orval.config.js && orval --config ./src/utils/registry.orval.config.js"
   },
   "keywords": [],
   "author": "",

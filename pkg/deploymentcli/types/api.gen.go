@@ -13,281 +13,29 @@ import (
 	"path"
 	"strings"
 
-	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 )
-
-// Defines values for LogLevel.
-const (
-	LogLevelERROR   LogLevel = "ERROR"
-	LogLevelINFO    LogLevel = "INFO"
-	LogLevelWARNING LogLevel = "WARNING"
-)
-
-// Defines values for ProviderConfigValidationStatus.
-const (
-	ProviderConfigValidationStatusERROR      ProviderConfigValidationStatus = "ERROR"
-	ProviderConfigValidationStatusINPROGRESS ProviderConfigValidationStatus = "IN_PROGRESS"
-	ProviderConfigValidationStatusPENDING    ProviderConfigValidationStatus = "PENDING"
-	ProviderConfigValidationStatusSUCCESS    ProviderConfigValidationStatus = "SUCCESS"
-)
-
-// Defines values for ProviderSetupStatus.
-const (
-	COMPLETE                       ProviderSetupStatus = "COMPLETE"
-	INITIALCONFIGURATIONINPROGRESS ProviderSetupStatus = "INITIAL_CONFIGURATION_IN_PROGRESS"
-	VALIDATING                     ProviderSetupStatus = "VALIDATING"
-	VALIDATIONFAILED               ProviderSetupStatus = "VALIDATION_FAILED"
-	VALIDATIONSUCEEDED             ProviderSetupStatus = "VALIDATION_SUCEEDED"
-)
-
-// Defines values for ProviderSetupDiagnosticLogLevel.
-const (
-	ProviderSetupDiagnosticLogLevelERROR   ProviderSetupDiagnosticLogLevel = "ERROR"
-	ProviderSetupDiagnosticLogLevelINFO    ProviderSetupDiagnosticLogLevel = "INFO"
-	ProviderSetupDiagnosticLogLevelWARNING ProviderSetupDiagnosticLogLevel = "WARNING"
-)
-
-// Defines values for ProviderSetupValidationStatus.
-const (
-	ProviderSetupValidationStatusERROR      ProviderSetupValidationStatus = "ERROR"
-	ProviderSetupValidationStatusINPROGRESS ProviderSetupValidationStatus = "IN_PROGRESS"
-	ProviderSetupValidationStatusPENDING    ProviderSetupValidationStatus = "PENDING"
-	ProviderSetupValidationStatusSUCCESS    ProviderSetupValidationStatus = "SUCCESS"
-)
-
-// A log entry.
-type Log struct {
-	// The log level.
-	Level LogLevel `json:"level"`
-
-	// The log message.
-	Msg string `json:"msg"`
-}
-
-// The log level.
-type LogLevel string
-
-// Provider
-type Provider struct {
-	Id   string `json:"id"`
-	Type string `json:"type"`
-}
-
-// ProviderConfigField defines model for ProviderConfigField.
-type ProviderConfigField struct {
-	Description string `json:"description"`
-	Id          string `json:"id"`
-
-	// Whether the config value is optional.
-	IsOptional bool `json:"isOptional"`
-
-	// Whether or not the config field is a secret (like an API key or a password)
-	IsSecret bool   `json:"isSecret"`
-	Name     string `json:"name"`
-
-	// the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store.
-	SecretPath *string `json:"secretPath,omitempty"`
-}
-
-// A validation against the configuration values of the Access Provider.
-type ProviderConfigValidation struct {
-	// The particular config fields validated, if any.
-	FieldsValidated []string `json:"fieldsValidated"`
-
-	// The ID of the validation, such as `list-sso-users`.
-	Id   string `json:"id"`
-	Logs []Log  `json:"logs"`
-	Name string `json:"name"`
-
-	// The status of the validation.
-	Status ProviderConfigValidationStatus `json:"status"`
-}
-
-// The status of the validation.
-type ProviderConfigValidationStatus string
-
-// ProviderConfigValue defines model for ProviderConfigValue.
-type ProviderConfigValue struct {
-	// The ID of the config field.
-	Id string `json:"id"`
-
-	// The value entered by the user.
-	Value string `json:"value"`
-}
-
-// A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
-type ProviderSetup struct {
-	ConfigValidation []ProviderConfigValidation `json:"configValidation"`
-
-	// The current configuration values.
-	ConfigValues map[string]string `json:"configValues"`
-
-	// A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file.
-	Id   string `json:"id"`
-	Name string `json:"name"`
-
-	// The status of the setup process.
-	Status ProviderSetupStatus `json:"status"`
-
-	// An overview of the steps indicating whether they are complete.
-	Steps []ProviderSetupStepOverview `json:"steps"`
-	Team  string                      `json:"team"`
-
-	// The version of the provider.
-	Version string `json:"version"`
-}
-
-// The status of the setup process.
-type ProviderSetupStatus string
-
-// A log entry related to a provider setup validation.
-type ProviderSetupDiagnosticLog struct {
-	// The log level.
-	Level ProviderSetupDiagnosticLogLevel `json:"level"`
-
-	// The log message.
-	Msg string `json:"msg"`
-}
-
-// The log level.
-type ProviderSetupDiagnosticLogLevel string
-
-// ProviderSetupInstructions defines model for ProviderSetupInstructions.
-type ProviderSetupInstructions struct {
-	StepDetails []ProviderSetupStepDetails `json:"stepDetails"`
-}
-
-// ProviderSetupStepDetails defines model for ProviderSetupStepDetails.
-type ProviderSetupStepDetails struct {
-	ConfigFields []ProviderConfigField `json:"configFields"`
-	Instructions string                `json:"instructions"`
-	Title        string                `json:"title"`
-}
-
-// Indicates whether a setup step is complete or not.
-type ProviderSetupStepOverview struct {
-	// Whether the step has been completed.
-	Complete bool `json:"complete"`
-}
-
-// A validation against the configuration values of the Access Provider.
-type ProviderSetupValidation struct {
-	// The particular config fields validated, if any.
-	FieldsValidated []interface{} `json:"fieldsValidated"`
-
-	// The ID of the validation, such as `list-sso-users`.
-	Id   string                        `json:"id"`
-	Logs *[]ProviderSetupDiagnosticLog `json:"logs,omitempty"`
-
-	// The status of the validation.
-	Status ProviderSetupValidationStatus `json:"status"`
-}
-
-// The status of the validation.
-type ProviderSetupValidationStatus string
-
-// RegistryProvider defines model for RegistryProvider.
-type RegistryProvider struct {
-	Name    string `json:"name"`
-	Team    string `json:"team"`
-	Version string `json:"version"`
-}
-
-// CompleteProviderSetupResponse defines model for CompleteProviderSetupResponse.
-type CompleteProviderSetupResponse struct {
-	// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
-	DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
-}
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error *string `json:"error,omitempty"`
 }
 
-// HealthResponse defines model for HealthResponse.
-type HealthResponse struct {
-	Healthy bool `json:"healthy"`
-}
-
-// ListProviderSetupsResponse defines model for ListProviderSetupsResponse.
-type ListProviderSetupsResponse struct {
-	ProviderSetups []ProviderSetup `json:"providerSetups"`
-}
-
-// ListProvidersResponse defines model for ListProvidersResponse.
-type ListProvidersResponse struct {
-	Next      *string    `json:"next"`
-	Providers []Provider `json:"providers"`
-}
-
-// ListRegistryProvidersResponse defines model for ListRegistryProvidersResponse.
-type ListRegistryProvidersResponse struct {
-	Next      *string            `json:"next"`
-	Providers []RegistryProvider `json:"providers"`
-}
-
-// A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
-type ProviderSetupResponse = ProviderSetup
-
-// CreateProviderSetupRequest defines model for CreateProviderSetupRequest.
-type CreateProviderSetupRequest struct {
-	Name    string `json:"name"`
-	Team    string `json:"team"`
-	Version string `json:"version"`
-}
-
-// ProviderSetupStepCompleteRequest defines model for ProviderSetupStepCompleteRequest.
-type ProviderSetupStepCompleteRequest struct {
-	// Whether the step is complete or not.
-	Complete bool `json:"complete"`
-
-	// The config values entered by the user which correspond to the setup step.
-	ConfigValues map[string]string `json:"configValues"`
-}
-
-// CreateProvidersetupJSONRequestBody defines body for CreateProvidersetup for application/json ContentType.
-type CreateProvidersetupJSONRequestBody CreateProviderSetupRequest
-
-// SubmitProvidersetupStepJSONRequestBody defines body for SubmitProvidersetupStep for application/json ContentType.
-type SubmitProvidersetupStepJSONRequestBody ProviderSetupStepCompleteRequest
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Healthcheck
-	// (GET /api/v1/health)
-	GetHealth(w http.ResponseWriter, r *http.Request)
 	// Your GET endpoint
-	// (GET /api/v1/providers)
-	ListProviders(w http.ResponseWriter, r *http.Request)
-	// List the provider setups in progress
-	// (GET /api/v1/providersetups)
-	ListProvidersetups(w http.ResponseWriter, r *http.Request)
-	// Begin the setup process for a new Access Provider
-	// (POST /api/v1/providersetups)
-	CreateProvidersetup(w http.ResponseWriter, r *http.Request)
-	// Delete an in-progress provider setup
-	// (DELETE /api/v1/providersetups/{providersetupId})
-	DeleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Get an in-progress provider setup
-	// (GET /api/v1/providersetups/{providersetupId})
-	GetProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Complete a ProviderSetup
-	// (POST /api/v1/providersetups/{providersetupId}/complete)
-	CompleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Get the setup instructions for an Access Provider
-	// (GET /api/v1/providersetups/{providersetupId}/instructions)
-	GetProvidersetupInstructions(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Update the completion status for a Provider setup step
-	// (PUT /api/v1/providersetups/{providersetupId}/steps/{stepIndex}/complete)
-	SubmitProvidersetupStep(w http.ResponseWriter, r *http.Request, providersetupId string, stepIndex int)
-	// Validate the configuration for a Provider Setup
-	// (POST /api/v1/providersetups/{providersetupId}/validate)
-	ValidateProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
+	// (GET /api/v1/deployments)
+	GetDeployment(w http.ResponseWriter, r *http.Request)
+
+	// (POST /api/v1/deployments)
+	PostDeployment(w http.ResponseWriter, r *http.Request)
 	// Your GET endpoint
-	// (GET /api/v1/registry/providers)
-	ListRegistryProviders(w http.ResponseWriter, r *http.Request)
+	// (GET /api/v1/secrets)
+	GetSecret(w http.ResponseWriter, r *http.Request)
+
+	// (POST /api/v1/secrets)
+	PostSecret(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -299,12 +47,12 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
 
-// GetHealth operation middleware
-func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
+// GetDeployment operation middleware
+func (siw *ServerInterfaceWrapper) GetDeployment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetHealth(w, r)
+		siw.Handler.GetDeployment(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -314,12 +62,12 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 	handler(w, r.WithContext(ctx))
 }
 
-// ListProviders operation middleware
-func (siw *ServerInterfaceWrapper) ListProviders(w http.ResponseWriter, r *http.Request) {
+// PostDeployment operation middleware
+func (siw *ServerInterfaceWrapper) PostDeployment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListProviders(w, r)
+		siw.Handler.PostDeployment(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -329,12 +77,12 @@ func (siw *ServerInterfaceWrapper) ListProviders(w http.ResponseWriter, r *http.
 	handler(w, r.WithContext(ctx))
 }
 
-// ListProvidersetups operation middleware
-func (siw *ServerInterfaceWrapper) ListProvidersetups(w http.ResponseWriter, r *http.Request) {
+// GetSecret operation middleware
+func (siw *ServerInterfaceWrapper) GetSecret(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListProvidersetups(w, r)
+		siw.Handler.GetSecret(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -344,192 +92,12 @@ func (siw *ServerInterfaceWrapper) ListProvidersetups(w http.ResponseWriter, r *
 	handler(w, r.WithContext(ctx))
 }
 
-// CreateProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) CreateProvidersetup(w http.ResponseWriter, r *http.Request) {
+// PostSecret operation middleware
+func (siw *ServerInterfaceWrapper) PostSecret(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CreateProvidersetup(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// DeleteProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) DeleteProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// GetProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) GetProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// CompleteProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) CompleteProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CompleteProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// GetProvidersetupInstructions operation middleware
-func (siw *ServerInterfaceWrapper) GetProvidersetupInstructions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetProvidersetupInstructions(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// SubmitProvidersetupStep operation middleware
-func (siw *ServerInterfaceWrapper) SubmitProvidersetupStep(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "stepIndex" -------------
-	var stepIndex int
-
-	err = runtime.BindStyledParameter("simple", false, "stepIndex", chi.URLParam(r, "stepIndex"), &stepIndex)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "stepIndex", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SubmitProvidersetupStep(w, r, providersetupId, stepIndex)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// ValidateProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) ValidateProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ValidateProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// ListRegistryProviders operation middleware
-func (siw *ServerInterfaceWrapper) ListRegistryProviders(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListRegistryProviders(w, r)
+		siw.Handler.PostSecret(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -653,37 +221,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/health", wrapper.GetHealth)
+		r.Get(options.BaseURL+"/api/v1/deployments", wrapper.GetDeployment)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providers", wrapper.ListProviders)
+		r.Post(options.BaseURL+"/api/v1/deployments", wrapper.PostDeployment)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providersetups", wrapper.ListProvidersetups)
+		r.Get(options.BaseURL+"/api/v1/secrets", wrapper.GetSecret)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/providersetups", wrapper.CreateProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/providersetups/{providersetupId}", wrapper.DeleteProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providersetups/{providersetupId}", wrapper.GetProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/providersetups/{providersetupId}/complete", wrapper.CompleteProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providersetups/{providersetupId}/instructions", wrapper.GetProvidersetupInstructions)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/api/v1/providersetups/{providersetupId}/steps/{stepIndex}/complete", wrapper.SubmitProvidersetupStep)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/providersetups/{providersetupId}/validate", wrapper.ValidateProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/registry/providers", wrapper.ListRegistryProviders)
+		r.Post(options.BaseURL+"/api/v1/secrets", wrapper.PostSecret)
 	})
 
 	return r
@@ -692,53 +239,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9xaW3PbuPX/Kvjj34ckI0uKN9tu1IeO1la8mvXaHslOpo09MUQekYhJgAFAyUrG/ewd",
-	"ALwTuviWpvtkmSQOfueKc8E37PE44QyYknjwDQv4koJUv3KfgnlwIIAoOBN8QX0QU1BpMrHf6LceZwqY",
-	"+UmSJKIeUZSz3mfJmX4mvRBion8lgicgVEaUkRj0X7VKAA+wVIKyAN91sAIS6xcxuT0GFqgQD/b7b37p",
-	"4IQoBYLhAf5I9r4O9/7V33vb6f598OLlx8vLq3/83+Xl3qfrf1+m/f7+X3uXl+zyUl7hTnuDBQhJLbjG",
-	"u7uOYZ4K8PHgo0XSsUjLZVcFST77DJ7Cd3qdD9ITNFGGMP4VAsqQCgEFKfXBR1ILDSWCeyAlmnOBCGKw",
-	"REPPPMhl29X4aoKeKkgOeJxEoODxQvcySvp3HfGHEFQIwmCWChJEJcq/RlwgxlW3FOaM8wgI02g9zuY0",
-	"eE+i1G5BfJ9qmiQ6q23dUkN9//MQkCWFFoYWAqZAgI9mKwMqlSDQMqReiDwuBMiEMx8pbhEb8WrcFZCZ",
-	"ejr4di/ge9nDmCQfLYarNVovZNTgzaV3u1ZDkZmrZIsbzmK/eITifEgivoqBqQOD6SLxiTUIC3udOgmK",
-	"CUtJhFKzQGs15zWX3QGPY87QO/263CZTRioMPvTiunzVXcXR9Uu9nHiKLvQ6TScpbLhtJg0Rb+FmFw/T",
-	"9pJLHi1DYLm1UhYgwpqOVfND42UjIbh4As2ApuOOJVuZGDJkliMBKhUMfDQXPDbSHJ6NDczfgEQqfAKc",
-	"oSG0qiBdp538y13UYOF5IXg3pTpm3F8Z8MdUqponyCdgJKkR1E+ogtj8+IuAOR7g/++VB1rPkpG9Gg5c",
-	"aocIQVYtGTQ22UUUQxRRqRCfI8r2EsEDoQ2wYYcSzUBbqASF0iSPbVUXJH5MGZVKEMWFbInxKSTI4Nas",
-	"YWkUkVkEeKBECo6TMpfC/aW8VcAGQ3WHXURcSlFAQKU9H7KD1h3GcvFNzPdi9T8ixibc5xHn6JbokFk4",
-	"biv5eJCQ7uGEbUgTEwglIqj2KbJMdA3fGTG91zEP2mffEEU80OmDWHWtTCpKi2ABUXuNPk70KvNarwKW",
-	"xlqw45N3p7iDPwwnJ+OTI9zBo8nkdFIRb6nmWAbrCccgJQmg205IG5q0AC01vQtV2rIMp67MRiqeRDQI",
-	"jWKojwf4NYt/ErB4+wW+vp0Z8oUVtdAVx2NLTtR3J+fmwbbEmfo51goHBQoXG2BN0Ww9/DAtmMk2yJLw",
-	"yv+5NyylhnV6o8jOa7j++K4qGJuFvKMQ+a7UqyIxh0jWSIrK08TmwZuT7WrSq9Mznq1yZ9tUTsEToNbT",
-	"tLl6lfRc86VJEyTNYvQiojdgsqSzMbqBFTL1SEKkXHLhv3TuvLZeszTPiC7UmqBMXkhUqJPFZQgCsmzd",
-	"oFjSKEIzXW5wAX5HB/IcodRpKwlAIIN0+GGKptM/0BkRJAYFAk31mu3OZAwxq9+qyGrqqUjVYa5V29jN",
-	"AZc/k8XyK/Dl/uzzW9y2s/ckoj7J7akZuxbFW0QCQpms6jJPx7MSic9trtgsIpvObCxAZvu6yoVzoyeh",
-	"qJdGRNQMR+aIjIrmiDATVYtjbE2IyM+p3D/a+40Pc/wlyx0kUy9ERKJrnUztScn3dOEnr7uuSj7iwe5n",
-	"qo6gDnjr7VoRlUo3dvuujb9+cnw6m5weTUbTKe7g6cXBgf11Njo53HyUbDDiDFSnpdJMGGsNuGJ0jz1G",
-	"DsqquB0tt2u7alxOrS5yym0qNko6OgM7hgJLepOQUthRPvPFGxHO/GUyv6F1L7fJjcO18+wsT1nzdhCf",
-	"16sCFQqeBmG7f7Tk4mYe8aUmUMl3u+g8BFlW4BIRAejVK8bVq1doBcoW6tAODJ4jIN0rz28Zl8PDdusQ",
-	"zUkkwdkVSoVoNyRsBHxAt8cdkIYoZfRLaux0zkWtoZE1DdB5SKU9RgVhPo/R79OL8aHpgyw49VHCdYJM",
-	"SWSgRtRTEi2pCo2B7skEPDqn4Jd0x4cyN4VmewXNaQRO73iCeFVrRlZD1sHpH2fHo/MR7uD3w+Px4fB8",
-	"fHry6d1wfDw6rDwzwWt8Mj4fD48/HZyevBsfXUzst/WgVyEyvTgYjQ5Hh87MWSpIHMiHDPEFiAWFZQFd",
-	"f4ko8039wQKdVeSp1MqYfd6+qx1SO9ckUwXJabany5bz5vSmprIjbNmXOROOTtnGRNrZhq6cBVZ8DUfr",
-	"tJ3bEfdsrHrsiWCoHFISMC4V9bZVZUhApA8t4zoNN2scpn+O4m2DnJ5E9GMmlUg9jVq2j2RtHoegCI0e",
-	"2C2bVghsa0RUN1sngRrcx+bULYSOoUeRwcsHHnA2/Xcltw3Jt7NhK4CtoybzWYNepw59nTirzD+ZNIsg",
-	"2HKKsQ2+IIvYSyrzlzVzowePoUIi0QzK9j74O8wXCvqbRFZw+CQu+Kcq6n7gKm5DKHWg/rFquLXF2zoz",
-	"fYKirdVJvv8g/jkG6Bm3LXS7scnCpfdLOov3539bmlaeicRznvepiadKznClUsIdnIoID3CoVCIHPW1h",
-	"MWdzXURRjtd2yIdnY1yirj8tpIFfd/uaBE+AkYTiAf6p2+/2sbm5EBpZ90hCe4vXPTti008CVy8v74Jr",
-	"w7Sflqm7WFAPumhsnDZ7a+ZvEs0JjcxXxSTO4z4Ufbaf+330YqxrZ0YiNAWxAIHMGPSltnltE8bWxlrE",
-	"R6DsbA83Jtz7/f46Hy2+6zWmlncd/PNDlmkPTuOYiFV91Kh1QXTQ+IhFyhSNAV/pj3Px1gYumYTr7NVG",
-	"ag9i0T2U25XT+vS5zug/eSrQ0egcAfMTTpnCTt6K8afThDS8SkPAXpzQ9ZFU2hw2dyDa5lDj1u78WKE1",
-	"BsJ1GRj47SLc1Mv5bNWM1rh0MG+u38gH3b9pMl6/+ySzcqm8IrVaz3TlFlVvwxWqu5YgX28XpHtMd9fB",
-	"bx5rfeXVpR1ltsE6e99q/4/9O6srd+43gZgvQCLCahP0Rn1ImI8sBYlIFCGfKGILSm2/iiOqupfsklVj",
-	"qP3erxXedTUfQvXWTqnm+xr4Gr3UJGz32symVqXTr49AVZRTLReshth2kz4C9X0Y1Vi3cpnkMx0dzr9h",
-	"qpnU52U5v2vYEK7mGHbiXg6fm/nI1T1ss1ctS54Z1rrINZ6jiT3R0EGtOKASASOzSCfsKqTSnupLQbPb",
-	"V837TtnlrnqFIRUXJADjQ8XdLapMNrF2W5/K6r75oYR8DlKXdyFlgSNuNi7CPdzSNl+pq1tc/m3z/sC9",
-	"YlSvWdR/L0ds9EVconr6Wxi1TR03Mk5/d3j1vRj/wbzcdEt73/SfMfPhdqPfu8pG0Fz7cKt9LLtWaV3N",
-	"3j80fmZKyzk3SncwW2y+C5uUKQjsOfssgShV7gLZ8uY35yAtM56ms5jWLXmq4EFp0tarz3fPdVZdbFFk",
-	"JaJUul33iyt5z+W/eL7kPQe5vv+UOTGxTlwov6gP0sTkVx/0+WPvrSKCfjs/P9vv99Hp72XxCQtgiJq6",
-	"VYCpPSptMHPvVZrJZfYbeYTpMnXOU2Zmu5TJBDyb1tU6NMgv+j7lAK057bjOJsxurG/6/RIorY9lNBDG",
-	"lcZSdMnQCy2W7JZSp3VxR7aHhppfyvLQ4qiwc1V8n1ws382h94Z1tw9MkXVpdqyrW3ctH1wqrr+1+Vx1",
-	"trnPJBa5W5bNokGvF3GPRCGXavC23+9j7WRZF6JoNQWCMKUL0+JJ3p+4u7r7TwAAAP//TdjQamgzAAA=",
+	"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",
+	"Zwf1ZZ9r+4zoQhYTwnq//gwAAP//OeTibWUDAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

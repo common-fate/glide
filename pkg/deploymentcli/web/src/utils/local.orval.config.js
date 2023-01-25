@@ -3,7 +3,7 @@ module.exports = {
     output: {
       clean: true,
       mode: "single",
-      target: "./backend-client/local/orval.ts",
+      target: "./local-client/orval.ts",
       client: "swr",
       mock: true,
       override: {
