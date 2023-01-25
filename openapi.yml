@@ -840,7 +840,11 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgOptions
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
