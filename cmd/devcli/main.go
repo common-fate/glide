@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/common-fate/common-fate/cmd/devcli/commands"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
@@ -24,6 +25,7 @@ func main() {
 			&db.DBCommand,
 			&events.EventsCommand,
 			&slack.SlackCommand,
+			&commands.CacheCommand,
 		},
 	}
 

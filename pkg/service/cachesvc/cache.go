@@ -171,19 +171,21 @@ func (s *Service) RefreshCachedProviderArgOptions(ctx context.Context, providerI
 	upsertItems := []ddb.Keyer{}
 	deleteItems := []ddb.Keyer{}
 	for _, v := range argOptions {
+		cp := v
 		if v.shouldUpsert {
-			freshArgOpts = append(freshArgOpts, v.option)
-			upsertItems = append(upsertItems, &v.option)
+			freshArgOpts = append(freshArgOpts, cp.option)
+			upsertItems = append(upsertItems, &cp.option)
 		} else {
-			deleteItems = append(deleteItems, &v.option)
+			deleteItems = append(deleteItems, &cp.option)
 		}
 	}
 	for _, v := range groupOptions {
+		cp := v
 		if v.shouldUpsert {
-			freshArgGroups = append(freshArgGroups, v.option)
-			upsertItems = append(upsertItems, &v.option)
+			freshArgGroups = append(freshArgGroups, cp.option)
+			upsertItems = append(upsertItems, &cp.option)
 		} else {
-			deleteItems = append(deleteItems, &v.option)
+			deleteItems = append(deleteItems, &cp.option)
 		}
 	}
 
