@@ -67,8 +67,9 @@ type API struct {
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito          CognitoService
-	InternalIdentity InternalIdentityService
+	Cognito                CognitoService
+	InternalIdentity       InternalIdentityService
+	ProviderRegistryAPIURL string
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -125,19 +126,20 @@ type InternalIdentityService interface {
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                 *zap.SugaredLogger
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	EventSender         *gevent.Sender
-	IdentitySyncer      auth.IdentitySyncer
-	DeploymentConfig    deploy.DeployConfigReader
-	DynamoTable         string
-	PaginationKMSKeyARN string
-	AdminGroup          string
-	TemplateData        psetup.TemplateData
-	DeploymentSuffix    string
-	CognitoUserPoolID   string
-	IDPType             string
-	AdminGroupID        string
+	Log                    *zap.SugaredLogger
+	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
+	EventSender            *gevent.Sender
+	IdentitySyncer         auth.IdentitySyncer
+	DeploymentConfig       deploy.DeployConfigReader
+	DynamoTable            string
+	PaginationKMSKeyARN    string
+	AdminGroup             string
+	TemplateData           psetup.TemplateData
+	DeploymentSuffix       string
+	CognitoUserPoolID      string
+	IDPType                string
+	AdminGroupID           string
+	ProviderRegistryAPIURL string
 }
 
 // New creates a new API.
@@ -217,11 +219,12 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			TemplateData:     opts.TemplateData,
 			DeploymentSuffix: opts.DeploymentSuffix,
 		},
-		AccessHandlerClient: opts.AccessHandlerClient,
-		DB:                  db,
-		Granter:             granter,
-		IdentitySyncer:      opts.IdentitySyncer,
-		IdentityProvider:    opts.IDPType,
+		AccessHandlerClient:    opts.AccessHandlerClient,
+		DB:                     db,
+		Granter:                granter,
+		IdentitySyncer:         opts.IdentitySyncer,
+		IdentityProvider:       opts.IDPType,
+		ProviderRegistryAPIURL: opts.ProviderRegistryAPIURL,
 	}
 
 	// only initialise this if cognito is the IDP

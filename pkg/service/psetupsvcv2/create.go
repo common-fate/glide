@@ -29,7 +29,7 @@ var (
 // Create a new provider setup.
 // Checks that the provider type matches one in our registry.
 func (s *Service) Create(ctx context.Context, team, name, version string) (*providersetupv2.Setup, error) {
-	getProviderResponse, err := s.Registry.GetProviderWithResponse(ctx, name, team, version)
+	getProviderResponse, err := s.Registry.GetProviderWithResponse(ctx, team, name, version)
 	if err != nil {
 		return nil, err
 	}

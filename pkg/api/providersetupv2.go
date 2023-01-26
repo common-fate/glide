@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvcv2"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // List the provider setups in progress
@@ -38,9 +40,13 @@ func (a *API) AdminCreateProvidersetupv2(w http.ResponseWriter, r *http.Request)
 		apio.Error(ctx, w, err)
 		return
 	}
-
+	registryClient, err := providerregistrysdk.NewClientWithResponses(a.ProviderRegistryAPIURL)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 	// Leverage service to create the provider setup
-	providerSvc := psetupsvcv2.Service{}
+	providerSvc := psetupsvcv2.Service{DB: a.DB, Registry: registryClient, DeploymentSuffix: "", TemplateData: psetup.TemplateData{}}
 	setup, err := providerSvc.Create(ctx, b.Team, b.Name, b.Version)
 	if err != nil {
 		apio.Error(ctx, w, err)

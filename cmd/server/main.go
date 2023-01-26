@@ -120,19 +120,20 @@ func run() error {
 	}
 
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		DeploymentSuffix:    cfg.DeploymentSuffix,
-		IdentitySyncer:      idsync,
-		CognitoUserPoolID:   cfg.CognitoUserPoolID,
-		IDPType:             cfg.IdpProvider,
-		AdminGroupID:        cfg.AdminGroup,
-		DeploymentConfig:    dc,
-		TemplateData:        td,
+		Log:                    log,
+		DynamoTable:            cfg.DynamoTable,
+		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
+		AccessHandlerClient:    ahc,
+		EventSender:            eventBus,
+		AdminGroup:             cfg.AdminGroup,
+		DeploymentSuffix:       cfg.DeploymentSuffix,
+		IdentitySyncer:         idsync,
+		CognitoUserPoolID:      cfg.CognitoUserPoolID,
+		IDPType:                cfg.IdpProvider,
+		AdminGroupID:           cfg.AdminGroup,
+		DeploymentConfig:       dc,
+		TemplateData:           td,
+		ProviderRegistryAPIURL: cfg.ProviderRegistryAPIURL,
 	})
 	if err != nil {
 		return err
