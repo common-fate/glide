@@ -15,14 +15,14 @@ import {
   Provider,
   useListAllProviders,
 } from "../../utils/registry-client/orval";
-import { useAdminListProviders } from "../../utils/common-fate-client/admin/admin";
+import { useAdminListProvidersetupsv2 } from "../../utils/common-fate-client/provider-setup/provider-setup";
 
 /** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
 export const uniqueProviderKey = (provider: Provider) =>
   `${provider.team}/${provider.name}/${provider.version}`;
 
 const Providers = () => {
-  const { data: providers } = useAdminListProviders();
+  const { data: providers } = useAdminListProvidersetupsv2();
 
   return (
     <UserLayout>
@@ -37,7 +37,7 @@ const Providers = () => {
       >
         <Heading>My Providers</Heading>
         <SimpleGrid columns={2} spacing={4} p={0} mt={6}>
-          {providers?.map((provider) => {
+          {providers?.providerSetups?.map((provider) => {
             return (
               <Box
                 key={provider.id}
@@ -61,7 +61,7 @@ const Providers = () => {
                   {/* <ProviderIcon type={provider.name} mb={3} h="8" w="8" /> */}
 
                   <Text textStyle="Body/SmallBold" color="neutrals.700">
-                    {provider.id} {provider.type}
+                    {provider.id}
                   </Text>
                 </LinkOverlay>
               </Box>

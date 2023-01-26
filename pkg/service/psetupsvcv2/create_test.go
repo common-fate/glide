@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/providersetupv2"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -12,14 +11,14 @@ import (
 
 func TestCreate(t *testing.T) {
 	type testcase struct {
-		name                   string
-		providerType           string
-		existingProviders      deploy.ProviderMap
-		templateData           psetup.TemplateData
+		name              string
+		providerType      string
+		existingProviders deploy.ProviderMap
+		// templateData           psetup.TemplateData
 		registry               providerregistry.ProviderRegistry
 		existingProviderSetups []providersetupv2.Setup
 		want                   *providersetupv2.Setup
-		wantErr                error
+		// wantErr                error
 	}
 
 	testcases := []testcase{

@@ -51,6 +51,9 @@ func run() error {
 	}
 
 	log.Infow("starting server", "config", cfg)
-	go browser.OpenURL(cfg.LocalFrontendURL)
+	err = browser.OpenURL(cfg.LocalFrontendURL)
+	if err != nil {
+		return err
+	}
 	return s.Start(ctx)
 }

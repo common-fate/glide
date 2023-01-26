@@ -22,9 +22,12 @@ func (a *API) AdminListProvidersetupsv2(w http.ResponseWriter, r *http.Request) 
 		apio.Error(ctx, w, err)
 		return
 	}
-	res := types.ListProviderSetupsV2Response{
-		ProviderSetups: []types.ProviderSetupV2{},
+	res := types.ListProviderSetupsV2Response{}
+
+	for _, p := range q.Result {
+		res.ProviderSetups = append(res.ProviderSetups, p.ToAPI())
 	}
+
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
@@ -63,4 +66,14 @@ func (a *API) AdminDeleteProvidersetupv2(w http.ResponseWriter, r *http.Request,
 // Get an in-progress provider setup
 // (GET /api/v1/admin/providersetups/{providersetupId})
 func (a *API) AdminGetProvidersetupv2(w http.ResponseWriter, r *http.Request, providersetupId string) {
+	ctx := r.Context()
+	q := storage.GetProviderSetupV2{ID: providersetupId}
+
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }

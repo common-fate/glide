@@ -5,6 +5,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	cf_types "github.com/common-fate/common-fate/pkg/types"
+
 	"github.com/common-fate/common-fate/pkg/providersetupv2"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
@@ -33,4 +35,19 @@ func (g *GetProviderSetupV2) UnmarshalQueryOutput(out *dynamodb.QueryOutput) err
 	}
 
 	return attributevalue.UnmarshalMap(out.Items[0], &g.Result)
+}
+
+func (g *GetProviderSetupV2) ToAPI() cf_types.ProviderSetupV2 {
+	return cf_types.ProviderSetupV2{
+		Id:           g.Result.ID,
+		Name:         g.Result.ProviderName,
+		Team:         g.Result.ProviderTeam,
+		Status:       g.Result.Status,
+		Version:      g.Result.ProviderVersion,
+		ConfigValues: g.Result.ConfigValues,
+		// Steps:        g.Result.Steps,
+	}
+
+	//todo manually loop through steps and configvalidation
+
 }

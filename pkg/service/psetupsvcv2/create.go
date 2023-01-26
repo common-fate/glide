@@ -7,10 +7,7 @@ import (
 	"path"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-	"github.com/common-fate/common-fate/pkg/gconfig"
-	"github.com/common-fate/common-fate/pkg/providersetup"
 	"github.com/common-fate/common-fate/pkg/providersetupv2"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -112,42 +109,42 @@ func (s *Service) Create(ctx context.Context, team, name, version string) (*prov
 }
 
 // Retrieves setup instructions for a particular access provider
-func buildSetupInstructions(setupID string, p providers.Accessor, td psetup.TemplateData) ([]providersetup.Step, error) {
-	var cfg gconfig.Config
-	var hasConfig bool
+// func buildSetupInstructions(setupID string, p providers.Accessor, td psetup.TemplateData) ([]providersetup.Step, error) {
+// 	var cfg gconfig.Config
+// 	var hasConfig bool
 
-	// try and load the configuration from the provider.
-	if configer, ok := p.(gconfig.Configer); ok {
-		cfg = configer.Config()
-		hasConfig = true
-	}
+// 	// try and load the configuration from the provider.
+// 	if configer, ok := p.(gconfig.Configer); ok {
+// 		cfg = configer.Config()
+// 		hasConfig = true
+// 	}
 
-	setuper, ok := p.(providers.SetupDocer)
-	if !ok && !hasConfig {
-		// the provider doesn't have any setup documentation and it doesn't support configuration.
-		return nil, nil
-	} else if !ok {
-		// return some placeholder documentation for the provider.
-		fallback := psetup.Step{
-			Title:        "Configure the provider",
-			Instructions: "This Access Provider does not include any setup documentation.",
-			ConfigFields: cfg,
-		}
+// 	setuper, ok := p.(providers.SetupDocer)
+// 	if !ok && !hasConfig {
+// 		// the provider doesn't have any setup documentation and it doesn't support configuration.
+// 		return nil, nil
+// 	} else if !ok {
+// 		// return some placeholder documentation for the provider.
+// 		fallback := psetup.Step{
+// 			Title:        "Configure the provider",
+// 			Instructions: "This Access Provider does not include any setup documentation.",
+// 			ConfigFields: cfg,
+// 		}
 
-		result := providersetup.BuildStepFromParsedInstructions(setupID, 0, fallback)
-		return []providersetup.Step{result}, nil
-	}
+// 		result := providersetup.BuildStepFromParsedInstructions(setupID, 0, fallback)
+// 		return []providersetup.Step{result}, nil
+// 	}
 
-	instructions, err := psetup.ParseDocsFS(setuper.SetupDocs(), cfg, td)
-	if err != nil {
-		return nil, err
-	}
+// 	instructions, err := psetup.ParseDocsFS(setuper.SetupDocs(), cfg, td)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	steps := make([]providersetup.Step, len(instructions))
-	// transform the resulting instructions into our database format.
-	for i, step := range instructions {
-		steps[i] = providersetup.BuildStepFromParsedInstructions(setupID, i, step)
-	}
+// 	steps := make([]providersetup.Step, len(instructions))
+// 	// transform the resulting instructions into our database format.
+// 	for i, step := range instructions {
+// 		steps[i] = providersetup.BuildStepFromParsedInstructions(setupID, i, step)
+// 	}
 
-	return steps, nil
-}
+// 	return steps, nil
+// }
