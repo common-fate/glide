@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"path"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	"github.com/common-fate/common-fate/pkg/gconfig"
@@ -29,12 +31,12 @@ var (
 // Create a new provider setup.
 // Checks that the provider type matches one in our registry.
 func (s *Service) Create(ctx context.Context, team, name, version string) (*providersetupv2.Setup, error) {
-	getProviderResponse, err := s.Registry.GetProviderWithResponse(ctx, team, name, version)
+	res, err := s.Registry.GetProviderWithResponse(ctx, team, name, version)
 	if err != nil {
 		return nil, err
 	}
-	if getProviderResponse.StatusCode() != http.StatusOK {
-		return nil, errors.New("unhandled registry error")
+	if res.StatusCode() != http.StatusOK {
+		return nil, errors.New("error fetching provider setup")
 	}
 
 	ps := providersetupv2.Setup{
@@ -46,6 +48,24 @@ func (s *Service) Create(ctx context.Context, team, name, version string) (*prov
 		ConfigValues:     map[string]string{},
 		ConfigValidation: map[string]providersetupv2.Validation{},
 	}
+
+	bootstrapBucket, err := GetBootstrapBucketName(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	lambdaAssetPath := path.Join(team, name, version)
+
+	err = CopyProviderAsset(ctx, res.JSON200.LambdaAssetS3Arn, lambdaAssetPath, bootstrapBucket)
+	if err != nil {
+		return nil, err
+	}
+
+	providerStack, err := DeployProviderStack(ctx, bootstrapBucket, lambdaAssetPath, team, name, version)
+	if err != nil {
+		return nil, err
+	}
+	ps.StackName = aws.ToString(providerStack.StackName)
 
 	// // initialise the config values if the provider supports it.
 	// if configer, ok := reg.Provider.(gconfig.Configer); ok {

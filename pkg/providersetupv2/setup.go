@@ -18,6 +18,7 @@ type Setup struct {
 	Steps            []StepOverview              `json:"steps" dynamodbav:"steps"`
 	ConfigValues     map[string]string           `json:"configValues" dynamodbav:"configValues"`
 	ConfigValidation map[string]Validation       `json:"configValidation" dynamodbav:"configValidation"`
+	StackName        string                      `json:"stackName" dynamodbav:"stackName"`
 }
 
 type Validation struct {
