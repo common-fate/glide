@@ -88,7 +88,7 @@ export const adminCreateProvidersetupv2 = (
  * Get the setup instructions for an Access Provider.
  * @summary Get an in-progress provider setup
  */
-export const adminGetProvidersetup = (
+export const adminGetProvidersetupv2 = (
     providersetupId: string,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ProviderSetupV2ResponseResponse>(
@@ -98,22 +98,22 @@ export const adminGetProvidersetup = (
     }
   
 
-export const getAdminGetProvidersetupKey = (providersetupId: string,) => [`/api/v1/admin/providersetupsv2/${providersetupId}`];
+export const getAdminGetProvidersetupv2Key = (providersetupId: string,) => [`/api/v1/admin/providersetupsv2/${providersetupId}`];
 
     
-export type AdminGetProvidersetupQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProvidersetup>>>
-export type AdminGetProvidersetupQueryError = ErrorType<unknown>
+export type AdminGetProvidersetupv2QueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProvidersetupv2>>>
+export type AdminGetProvidersetupv2QueryError = ErrorType<unknown>
 
-export const useAdminGetProvidersetup = <TError = ErrorType<unknown>>(
- providersetupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetProvidersetup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+export const useAdminGetProvidersetupv2 = <TError = ErrorType<unknown>>(
+ providersetupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetProvidersetupv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false && !!(providersetupId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProvidersetupKey(providersetupId) : null);
-  const swrFn = () => adminGetProvidersetup(providersetupId, requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProvidersetupv2Key(providersetupId) : null);
+  const swrFn = () => adminGetProvidersetupv2(providersetupId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
