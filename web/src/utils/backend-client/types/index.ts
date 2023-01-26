@@ -30,6 +30,7 @@ export * from './createAccessRuleTargetWith';
 export * from './createFavoriteRequestBody';
 export * from './createGroupRequestBody';
 export * from './createProviderSetupRequestBody';
+export * from './createProviderSetupRequestV2Body';
 export * from './createRequestRequestBody';
 export * from './createRequestWith';
 export * from './createRequestWithSubRequest';

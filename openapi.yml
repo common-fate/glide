@@ -902,7 +902,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       description: Begins the guided setup process for a new Access Provider.
       requestBody:
-        $ref: "#/components/requestBodies/CreateProviderSetupRequest"
+        $ref: "#/components/requestBodies/CreateProviderSetupRequestV2"
   "/api/v1/admin/providersetups/{providersetupId}":
     get:
       summary: Get an in-progress provider setup
@@ -2574,6 +2574,26 @@ components:
                 maxLength: 2048
             required:
               - providerType
+      description: Begin the guided setup process for a new Access Provider.
+    CreateProviderSetupRequestV2:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              team:
+                type: string
+                description: the team name of the provider
+              version:
+                type: string
+                description: "the version id of the provider, if `any|latest` is used, then it will fetch the latest version"
+              name:
+                type: string
+                description: "the name of the provider "
+            required:
+              - team
+              - version
+              - name
       description: Begin the guided setup process for a new Access Provider.
     CreateGroupRequest:
       content:

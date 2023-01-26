@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/service/psetupsvcv2"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 )
@@ -27,7 +28,26 @@ func (a *API) AdminListProvidersetupsv2(w http.ResponseWriter, r *http.Request) 
 
 // Begin the setup process for a new Access Provider
 // (POST /api/v1/admin/providersetupsv2)
-func (a *API) AdminCreateProvidersetupv2(w http.ResponseWriter, r *http.Request) {}
+func (a *API) AdminCreateProvidersetupv2(w http.ResponseWriter, r *http.Request) {
+	// extract the request body
+	ctx := r.Context()
+	var b types.AdminCreateProvidersetupv2JSONRequestBody
+
+	err := apio.DecodeJSONBody(w, r, &b)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	// Leverage service to create the provider setup
+	providerSvc := psetupsvcv2.Service{}
+	setup, err := providerSvc.Create(ctx, b.Team, b.Name, b.Version)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, setup, http.StatusOK)
+}
 
 // Delete an in-progress provider setup
 // (DELETE /api/v1/admin/providersetups/{providersetupId})

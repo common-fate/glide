@@ -13,7 +13,7 @@ import type {
 import type {
   ListProviderSetupsV2ResponseResponse,
   ProviderSetupResponseResponse,
-  CreateProviderSetupRequestBody,
+  CreateProviderSetupRequestV2Body,
   ProviderSetupV2ResponseResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
@@ -73,12 +73,12 @@ export const useAdminListProvidersetupsv2 = <TError = ErrorType<unknown>>(
  * @summary Begin the setup process for a new Access Provider
  */
 export const adminCreateProvidersetupv2 = (
-    createProviderSetupRequestBody: CreateProviderSetupRequestBody,
+    createProviderSetupRequestV2Body: CreateProviderSetupRequestV2Body,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ProviderSetupResponseResponse>(
       {url: `/api/v1/admin/providersetupsv2`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: createProviderSetupRequestBody
+      data: createProviderSetupRequestV2Body
     },
       options);
     }
