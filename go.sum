@@ -282,6 +282,8 @@ github.com/common-fate/clio v1.0.0 h1:jUyXGfN4/oqDn6DvrOpTUVBLdjczxFonzJC2ee0Ash
 github.com/common-fate/clio v1.0.0/go.mod h1:BYm9XmDIsmpQQdw+xbhQO5hbpUhH03Lk6gQmQ6Wpu1k=
 github.com/common-fate/cloudform v0.3.0 h1:dl0dLX4trbj+fAZexZ+jMVto/TyamCRJ28pB/+9uxTM=
 github.com/common-fate/cloudform v0.3.0/go.mod h1:a9sj6SQK4zNb7Ef/Y/5y83qYrHJ8jtWpjAiQXbNyT3g=
+github.com/common-fate/cloudproof v0.0.0-20211216235511-30b36230aa40 h1:yF+6PEMnstmQ5nrAGB3Jr5WJFfFE3D6UWoOaSlZjCFI=
+github.com/common-fate/cloudproof v0.0.0-20211216235511-30b36230aa40/go.mod h1:3qfpJZiBK0F4ahZD2bkhazwWMxZT64SUSRul69yEDcU=
 github.com/common-fate/ddb v0.15.0 h1:JZTI5rb7Roogf+dPnF2rUo9RTfH5WYvOafD3mdRxBHs=
 github.com/common-fate/ddb v0.15.0/go.mod h1:W68x78n2NUERIGjYyl6nPTyvLSlqYSdVO3Fk1gMGaKE=
 github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73 h1:JZt+aGTp9AghUxzIQ5M1sDvpiyAi857P2DkbmY19KpI=
