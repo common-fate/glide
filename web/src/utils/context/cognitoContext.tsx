@@ -3,10 +3,10 @@ import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth/lib-esm/types
 import { Amplify, Hub, HubCallback, ICredentials } from "@aws-amplify/core";
 import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { useErrorHandler } from "react-error-boundary";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import CFSpinner from "../../components/CFSpinner";
 import awsExports from "../aws-exports";
-import { AccessRuleStatus } from "../backend-client/types";
 import { setAPIURL } from "../custom-instance";
 import { createCtx } from "./createCtx";
 
@@ -37,6 +37,8 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
   const loading = amplifyInitialising || loadingCurrentUser;
   const navigate = useNavigate();
   const search = useSearch<MyLocationGenerics>();
+  const handleError = useErrorHandler();
+
   // this can be improved in future with a more graceful error page if the AWS config doesn't load.
   // The following effect will run on first load of the app, in production, this will fetch a config file from the server to hydrate the amplify configuration
   // in local dev, this is imported from a local file
@@ -72,7 +74,7 @@ const CognitoProvider: React.FC<Props> = ({ children }) => {
             setAmplifyInitializing(false);
           })
         )
-        .catch((e) => console.error(e));
+        .catch((err) => handleError(err));
     }
   }, []);
 

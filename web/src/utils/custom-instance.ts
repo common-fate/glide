@@ -34,6 +34,18 @@ export const customInstance = async <T>(
     }
   );
 
+  instance.interceptors.response.use(
+    (response) => response,
+    (err: AxiosError) => {
+      const data = err.response?.data as any;
+      if (data?.error) {
+        err.message = data.error;
+      }
+
+      return Promise.reject(err);
+    }
+  );
+
   const baseURL = apiURL;
 
   const promise = instance({

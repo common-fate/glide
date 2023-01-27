@@ -27,7 +27,7 @@ func (c *Server) Handler() http.Handler {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
-	r.Use(auth.Middleware(c.authenticator, c.db, c.identitySyncer))
+	r.Use(auth.Middleware(c.authenticator, c.db))
 	r.Use(auth.AdminAuthorizer(c.cfg.AdminGroup))
 	r.Use(openapi.Validator(c.swagger))
 

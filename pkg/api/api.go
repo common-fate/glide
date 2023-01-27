@@ -12,7 +12,6 @@ import (
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gconfig"
@@ -65,7 +64,7 @@ type API struct {
 	IdentityProvider    string
 	Granter             accesssvc.Granter
 	Cache               CacheService
-	IdentitySyncer      auth.IdentitySyncer
+	IdentitySyncer      cognitosvc.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito          CognitoService
 	InternalIdentity InternalIdentityService
@@ -128,7 +127,7 @@ type Opts struct {
 	Log                 *zap.SugaredLogger
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	EventSender         *gevent.Sender
-	IdentitySyncer      auth.IdentitySyncer
+	IdentitySyncer      cognitosvc.IdentitySyncer
 	DeploymentConfig    deploy.DeployConfigReader
 	DynamoTable         string
 	PaginationKMSKeyARN string

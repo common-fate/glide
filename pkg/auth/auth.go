@@ -38,19 +38,12 @@ type Authenticator interface {
 	Authenticate(r *http.Request) (*Claims, error)
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mock_identitysyncer.go -package=auth . IdentitySyncer
-
-// IdentitySyncer syncs the users with the external identity provider, like Okta or Google Workspaces.
-type IdentitySyncer interface {
-	Sync(ctx context.Context) error
-}
-
 // Middleware is authentication middleware for the Common Fate API.
 //
 // It takes an Authenticator which knows how to extract the user's identity from the incoming request.
 // If the user doesn't exist in the database the middleware will attempt to sync it from the
 // connected identity provider.
-func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer) func(next http.Handler) http.Handler {
+func Middleware(authenticator Authenticator, db ddb.Storage) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -82,21 +75,9 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 			// Note: this approach isn't very performant. In future this can be replaced with an incremental sync,
 			// which we can use for handling IDP webhook notifications rather than polling.
 			if err == ddb.ErrNoItems {
-				log.Info("user does not exist in database - running an IDP sync and trying again", "user", claims)
-				err = idp.Sync(ctx)
-				if err != nil {
-					log.Infow("error syncing IDP", zap.Error(err))
-					apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-					return
-				}
-				log.Info("looking up user again")
-				// reuse the same query, so that we can access the results later if it's successful.
-				_, err = db.Query(ctx, q)
-				if err != nil {
-					log.Infow("authentication error", zap.Error(err))
-					apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-					return
-				}
+				log.Info("user does not exist in database", "user", claims)
+				apio.ErrorString(ctx, w, "Your user account does not exist in Common Fate. If this is your first time accessing Common Fate, wait for 10 minutes and try again. Otherwise, contact your Common Fate administrator.", http.StatusUnauthorized)
+				return
 			}
 
 			ctx = context.WithValue(ctx, userContext, q.Result)

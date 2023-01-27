@@ -196,10 +196,7 @@ func TestMiddleware(t *testing.T) {
 			m := NewMockAuthenticator(ctrl)
 			m.EXPECT().Authenticate(gomock.Any()).Return(tc.claims, tc.authErr)
 
-			mis := NewMockIdentitySyncer(ctrl)
-			mis.EXPECT().Sync(gomock.Any()).Return(tc.idpSyncErr).AnyTimes()
-
-			r.Use(Middleware(m, c, mis))
+			r.Use(Middleware(m, c))
 			r.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 				_, _ = w.Write([]byte("ok"))
 				w.WriteHeader(http.StatusOK)

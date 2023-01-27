@@ -1,5 +1,6 @@
 import { Center } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { useErrorHandler } from "react-error-boundary";
 import CFSpinner from "../../components/CFSpinner";
 import NoUser from "../../pages/noUserPage";
 import { userGetMe } from "../backend-client/end-user/end-user";
@@ -21,6 +22,7 @@ const UserProvider: React.FC<Props> = ({ children }) => {
   const [loadingMe, setLoadingMe] = useState<boolean>(true);
   const [user, setUser] = useState<User | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState<boolean>();
+  const handleError = useErrorHandler();
 
   useEffect(() => {
     setLoadingMe(true);
@@ -36,7 +38,7 @@ const UserProvider: React.FC<Props> = ({ children }) => {
           setLoadingMe(false);
         }
       })
-      .catch((e) => console.error(e));
+      .catch((err) => handleError(err));
   }, []);
 
   if (loadingMe && user === undefined) {

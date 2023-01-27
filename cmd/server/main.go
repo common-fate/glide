@@ -127,11 +127,10 @@ func run() error {
 		return err
 	}
 	s, err := server.New(ctx, server.Config{
-		Config:         cfg,
-		Log:            log,
-		Authenticator:  auth,
-		API:            api,
-		IdentitySyncer: idsync,
+		Config:        cfg,
+		Log:           log,
+		Authenticator: auth,
+		API:           api,
 	})
 	if err != nil {
 		return err

@@ -105,11 +105,10 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 	srvconf := server.Config{
-		Config:         cfg,
-		API:            api,
-		Log:            log,
-		Authenticator:  auth,
-		IdentitySyncer: idsync,
+		Config:        cfg,
+		API:           api,
+		Log:           log,
+		Authenticator: auth,
 	}
 
 	s, err := server.New(ctx, srvconf, server.WithRequestIDMiddleware(requestIDMiddleware))

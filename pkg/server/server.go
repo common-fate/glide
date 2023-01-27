@@ -22,7 +22,6 @@ type Server struct {
 	authenticator       auth.Authenticator
 	swagger             *openapi3.T
 	api                 API
-	identitySyncer      auth.IdentitySyncer
 	requestIDMiddleware func(next http.Handler) http.Handler
 	db                  ddb.Storage
 }
@@ -31,11 +30,7 @@ type Config struct {
 	Config        config.Config
 	Log           *zap.SugaredLogger
 	Authenticator auth.Authenticator
-	// IdentitySyncer is piped through to the auth middleware,
-	// so that we can sync the IDP if we get an authenticated user
-	// which doesn't yet exist in our database.
-	IdentitySyncer auth.IdentitySyncer
-	API            API
+	API           API
 }
 
 // APIs can provider HTTP Handlers
@@ -55,9 +50,6 @@ func New(ctx context.Context, cfg Config, opts ...func(*Server)) (*Server, error
 
 	if cfg.Authenticator == nil {
 		return nil, errors.New("authenticator must be provided")
-	}
-	if cfg.IdentitySyncer == nil {
-		return nil, errors.New("IdentitySyncer must be provided")
 	}
 
 	tokenizer, err := ddb.NewKMSTokenizer(ctx, cfg.Config.PaginationKMSKeyARN)
@@ -82,7 +74,6 @@ func New(ctx context.Context, cfg Config, opts ...func(*Server)) (*Server, error
 		cfg:                 cfg.Config,
 		api:                 cfg.API,
 		requestIDMiddleware: chiMiddleware.RequestID,
-		identitySyncer:      cfg.IdentitySyncer,
 		db:                  db,
 	}
 
