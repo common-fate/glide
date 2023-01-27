@@ -96,7 +96,7 @@ export const postSecret = (
 
 
 /**
- * Create or update a deploymen
+ * Create or update a deployment
  */
 export const postDeployment = (
     deploymentRequestBody: DeploymentRequestBody,

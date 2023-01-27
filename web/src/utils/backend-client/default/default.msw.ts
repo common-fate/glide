@@ -15,4 +15,9 @@ rest.post('*/api/v1/admin/providers', (_req, res, ctx) => {
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
         )
+      }),rest.post('*/api/v1/admin/providersv2', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+        )
       }),]

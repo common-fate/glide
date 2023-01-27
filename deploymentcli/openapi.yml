@@ -30,7 +30,7 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/DeploymentResponse"
-      description: Create or update a deploymen
+      description: Create or update a deployment
       requestBody:
         $ref: "#/components/requestBodies/DeploymentRequest"
 components:

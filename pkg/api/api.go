@@ -26,6 +26,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/service/providersvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 
@@ -70,6 +71,7 @@ type API struct {
 	Cognito                CognitoService
 	InternalIdentity       InternalIdentityService
 	ProviderRegistryAPIURL string
+	ProviderService        providersvc.Service
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -225,6 +227,9 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		IdentitySyncer:         opts.IdentitySyncer,
 		IdentityProvider:       opts.IDPType,
 		ProviderRegistryAPIURL: opts.ProviderRegistryAPIURL,
+		ProviderService: providersvc.Service{
+			DB: db,
+		},
 	}
 
 	// only initialise this if cognito is the IDP

@@ -1,8 +1,10 @@
 import { Button, Container, Heading, Text } from "@chakra-ui/react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../../../components/Layout";
 import { adminCreateProvidersetupv2 } from "../../../../utils/common-fate-client/admin/admin";
+import { postDeployment } from "../../../../utils/local-client/orval";
 import { useGetProvider } from "../../../../utils/registry-client/orval";
 
 const RegistryProvider = () => {
@@ -12,9 +14,27 @@ const RegistryProvider = () => {
 
   const provider = useGetProvider(team, name, version);
 
-  const handleClick = () => {
-    // call CLI
-    adminCreateProvidersetupv2({ team, name, version });
+  // deployment loading state
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    // call deployment CLI, get the stack id...
+    // stackId = await deployCLI.create()
+    setLoading(true);
+    postDeployment({ name, team, version })
+      .then(({ stackId }) => {
+        adminCreateProvidersetupv2({ team, name, version, stackId }).then(
+          () => {
+            setLoading(false);
+            // navigate to the provider page
+          }
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    // now call CF to create the provider
   };
   return (
     <UserLayout>

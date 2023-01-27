@@ -35,3 +35,18 @@ export const adminCreateProvider = (
     }
   
 
+/**
+ * create a v2 provider, this method is called once the 
+ */
+export const adminCreateProviderv2 = (
+    createProviderRequestBody: CreateProviderRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/providersv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderRequestBody
+    },
+      options);
+    }
+  
+

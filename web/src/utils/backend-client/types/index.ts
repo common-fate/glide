@@ -74,6 +74,8 @@ export * from './providerSetupV2ConfigValues';
 export * from './providerSetupV2Status';
 export * from './providerSetupValidation';
 export * from './providerSetupValidationStatus';
+export * from './providerV2';
+export * from './providerV2Status';
 export * from './request';
 export * from './requestAccessRule';
 export * from './requestAccessRuleTarget';
