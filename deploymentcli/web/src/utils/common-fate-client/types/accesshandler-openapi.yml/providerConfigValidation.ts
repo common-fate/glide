@@ -5,8 +5,8 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { ProviderConfigValidationStatus } from "./providerConfigValidationStatus";
-import type { Log } from "./log";
+import type { ProviderConfigValidationStatus } from './providerConfigValidationStatus';
+import type { Log } from '../accesshandler-openapi.yml/log';
 
 /**
  * A validation against the configuration values of the Access Provider.

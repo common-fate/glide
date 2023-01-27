@@ -8,7 +8,7 @@
 import type {
   CreateProviderRequestBody
 } from '.././types'
-import { customInstance } from '../../custom-instance'
+import { customInstanceCommonfate } from '../../custom-instance'
 
 
   
@@ -25,8 +25,8 @@ import { customInstance } from '../../custom-instance'
  */
 export const adminCreateProvider = (
     createProviderRequestBody: CreateProviderRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
+ options?: SecondParameter<typeof customInstanceCommonfate>) => {
+      return customInstanceCommonfate<void>(
       {url: `/api/v1/admin/providers`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createProviderRequestBody

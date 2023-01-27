@@ -13,8 +13,22 @@ import type {
 import {
   rest
 } from 'msw'
+import {
+  faker
+} from '@faker-js/faker'
 import { customInstanceLocal } from '../custom-instance'
 import type { ErrorType } from '../custom-instance'
+export type DeploymentRequestBody = {
+  stackId?: string;
+  team: string;
+  name: string;
+  version: string;
+};
+
+export type DeploymentResponseResponse = {
+  stackId: string;
+};
+
 export type ErrorResponseResponse = {
   error?: string;
 };
@@ -82,49 +96,15 @@ export const postSecret = (
 
 
 /**
- * @summary Your GET endpoint
+ * Create or update a deploymen
  */
-export const getDeployment = (
-    
- options?: SecondParameter<typeof customInstanceLocal>) => {
-      return customInstanceLocal<void>(
-      {url: `/api/v1/deployments`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getGetDeploymentKey = () => [`/api/v1/deployments`];
-
-    
-export type GetDeploymentQueryResult = NonNullable<Awaited<ReturnType<typeof getDeployment>>>
-export type GetDeploymentQueryError = ErrorType<unknown>
-
-export const useGetDeployment = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getDeployment>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDeploymentKey() : null);
-  const swrFn = () => getDeployment(requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-
 export const postDeployment = (
-    
+    deploymentRequestBody: DeploymentRequestBody,
  options?: SecondParameter<typeof customInstanceLocal>) => {
-      return customInstanceLocal<void>(
-      {url: `/api/v1/deployments`, method: 'post'
+      return customInstanceLocal<DeploymentResponseResponse>(
+      {url: `/api/v1/deployments`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: deploymentRequestBody
     },
       options);
     }
@@ -132,6 +112,8 @@ export const postDeployment = (
 
 
 
+
+export const getPostDeploymentMock = () => ({stackId: faker.random.word()})
 
 export const getExampleAPIMSW = () => [
 rest.get('*/api/v1/secrets', (_req, res, ctx) => {
@@ -144,14 +126,10 @@ rest.get('*/api/v1/secrets', (_req, res, ctx) => {
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
         )
-      }),rest.get('*/api/v1/deployments', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-        )
       }),rest.post('*/api/v1/deployments', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
+ctx.json(getPostDeploymentMock()),
         )
       }),]

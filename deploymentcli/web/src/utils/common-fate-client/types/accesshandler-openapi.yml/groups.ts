@@ -5,8 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { GroupOption } from "./groupOption";
+import type { GroupOption } from '../accesshandler-openapi.yml/groupOption';
 
-export interface Groups {
-  [key: string]: GroupOption[];
-}
+export interface Groups {[key: string]: GroupOption[]}

@@ -5,7 +5,7 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { ProviderHealth } from "./providerHealth";
+import type { ProviderHealth } from '../accesshandler-openapi.yml/providerHealth';
 
 export type HealthResponseResponse = {
   health?: ProviderHealth;

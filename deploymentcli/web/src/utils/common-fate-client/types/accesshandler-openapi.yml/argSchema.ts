@@ -5,8 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Argument } from "./argument";
+import type { Argument } from '../accesshandler-openapi.yml/argument';
 
-export interface ArgSchema {
-  [key: string]: Argument;
-}
+export interface ArgSchema {[key: string]: Argument}

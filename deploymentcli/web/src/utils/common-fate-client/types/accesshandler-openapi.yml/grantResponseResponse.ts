@@ -5,7 +5,7 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Grant } from "./grant";
+import type { Grant } from '../accesshandler-openapi.yml/grant';
 
 export type GrantResponseResponse = {
   grant: Grant;

@@ -29,6 +29,7 @@ export * from './createAccessRuleTargetDetailArgumentsGroupings';
 export * from './createAccessRuleTargetWith';
 export * from './createFavoriteRequestBody';
 export * from './createGroupRequestBody';
+export * from './createProviderRequestBody';
 export * from './createProviderSetupRequestBody';
 export * from './createRequestRequestBody';
 export * from './createRequestWith';

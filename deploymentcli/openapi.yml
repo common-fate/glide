@@ -1,38 +1,38 @@
 openapi: 3.0.0
 info:
   title: Example API
-  version: '1.0'
+  version: "1.0"
   contact:
     name: Common Fate
-    url: 'https://commonfate.io'
+    url: "https://commonfate.io"
   description: Example API
 servers:
-  - url: 'http://localhost:9000'
+  - url: "http://localhost:9000"
 paths:
   /api/v1/secrets:
     get:
       summary: Your GET endpoint
       tags: []
       responses:
-        '200':
+        "200":
           description: OK
       operationId: get-secret
     post:
-      summary: ''
+      summary: ""
       operationId: post-secret
       responses:
-        '200':
+        "200":
           description: OK
   /api/v1/deployments:
     post:
-      summary: ''
+      summary: ""
       operationId: post-deployment
       responses:
-        '200':
-          $ref: '#/components/responses/DeploymentResponse'
+        "200":
+          $ref: "#/components/responses/DeploymentResponse"
       description: Create or update a deploymen
       requestBody:
-        $ref: '#/components/requestBodies/DeploymentRequest'
+        $ref: "#/components/requestBodies/DeploymentRequest"
 components:
   responses:
     ErrorResponse:

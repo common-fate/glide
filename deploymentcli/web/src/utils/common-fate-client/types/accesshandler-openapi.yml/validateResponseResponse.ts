@@ -5,7 +5,7 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { ProviderConfigValidation } from "./providerConfigValidation";
+import type { ProviderConfigValidation } from '../accesshandler-openapi.yml/providerConfigValidation';
 
 export type ValidateResponseResponse = {
   validations: ProviderConfigValidation[];

@@ -5,6 +5,11 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Group } from '../accesshandler-openapi.yml/group';
 
-export type ArgumentGroups = {[key: string]: Group};
+export type CreateProviderRequestBody = {
+  stackId: string;
+  team: string;
+  name: string;
+  version: string;
+  alias: string;
+};
