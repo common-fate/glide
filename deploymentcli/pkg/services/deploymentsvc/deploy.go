@@ -1,4 +1,4 @@
-package psetupsvcv2
+package deploymentsvc
 
 import (
 	"context"
@@ -150,16 +150,16 @@ func CleanName(name string) string {
 	return re.ReplaceAllString(name, "-")
 }
 
-func DeployProviderStack(ctx context.Context, bootstrapBucketName, lambdaPath, team, name, version string) (*types.Stack, error) {
+func DeployProviderStack(ctx context.Context, bootstrapBucketName, lambdaPath, team, name, version string) (string, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	client := cloudformation.NewFromConfig(cfg)
 
 	template, err := cloudformationTemplates.ReadFile("cloudformation/provider.json")
 	if err != nil {
-		return nil, errors.Wrap(err, "error while loading template from embedded filesystem")
+		return "", errors.Wrap(err, "error while loading template from embedded filesystem")
 	}
 
 	hardcodedConfig := map[string]string{
@@ -168,10 +168,10 @@ func DeployProviderStack(ctx context.Context, bootstrapBucketName, lambdaPath, t
 	}
 	b, err := json.Marshal(hardcodedConfig)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	stackName := CleanName(strings.Join([]string{"CommonFateProvider", "team", name, ksuid.New().String()}, "-"))
-	_, err = client.CreateStack(ctx, &cloudformation.CreateStackInput{
+	out, err := client.CreateStack(ctx, &cloudformation.CreateStackInput{
 		StackName:    aws.String(stackName),
 		Capabilities: []types.Capability{types.CapabilityCapabilityIam},
 		TemplateBody: aws.String(string(template)),
@@ -191,25 +191,70 @@ func DeployProviderStack(ctx context.Context, bootstrapBucketName, lambdaPath, t
 		},
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	for {
-		stacks, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
-			StackName: aws.String(stackName),
-		})
-		if err != nil {
-			return nil, err
-		}
-		if len(stacks.Stacks) != 1 {
-			return nil, fmt.Errorf("expected 1 stack but got %d", len(stacks.Stacks))
-		}
-		if strings.HasSuffix(string(stacks.Stacks[0].StackStatus), "COMPLETE") {
-			return &stacks.Stacks[0], nil
-		}
-		if strings.Contains(string(stacks.Stacks[0].StackStatus), "FAILED") {
-			return nil, fmt.Errorf("bootstrap stack is in a failed state and needs to be deleted manually. %s %s", stacks.Stacks[0].StackStatus, aws.ToString(stacks.Stacks[0].StackStatusReason))
-		}
-		time.Sleep(time.Second * 2)
+	return aws.ToString(out.StackId), nil
+
+	// for {
+	// 	stacks, err := client.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{
+	// 		StackName: aws.String(stackName),
+	// 	})
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(stacks.Stacks) != 1 {
+	// 		return nil, fmt.Errorf("expected 1 stack but got %d", len(stacks.Stacks))
+	// 	}
+	// 	if strings.HasSuffix(string(stacks.Stacks[0].StackStatus), "COMPLETE") {
+	// 		return &stacks.Stacks[0], nil
+	// 	}
+	// 	if strings.Contains(string(stacks.Stacks[0].StackStatus), "FAILED") {
+	// 		return nil, fmt.Errorf("bootstrap stack is in a failed state and needs to be deleted manually. %s %s", stacks.Stacks[0].StackStatus, aws.ToString(stacks.Stacks[0].StackStatusReason))
+	// 	}
+	// 	time.Sleep(time.Second * 2)
+	// }
+}
+
+func UpdateProviderStack(ctx context.Context, bootstrapBucketName, lambdaPath, stackID string) error {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return err
 	}
+	client := cloudformation.NewFromConfig(cfg)
+
+	template, err := cloudformationTemplates.ReadFile("cloudformation/provider.json")
+	if err != nil {
+		return errors.Wrap(err, "error while loading template from embedded filesystem")
+	}
+
+	hardcodedConfig := map[string]string{
+		"api_URL":         "https://prod.testvault.granted.run",
+		"unique_vault_id": "2FeRHElazlJsHYmkaV5Xtg53r8R",
+	}
+	b, err := json.Marshal(hardcodedConfig)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.UpdateStack(ctx, &cloudformation.UpdateStackInput{
+		StackName:    &stackID,
+		Capabilities: []types.Capability{types.CapabilityCapabilityIam},
+		TemplateBody: aws.String(string(template)),
+		Parameters: []types.Parameter{
+			{
+				ParameterKey:   aws.String("BootstrapBucketName"),
+				ParameterValue: aws.String(bootstrapBucketName),
+			},
+			{
+				ParameterKey:   aws.String("AssetPath"),
+				ParameterValue: aws.String(lambdaPath),
+			},
+			{
+				ParameterKey:   aws.String("Configuration"),
+				ParameterValue: aws.String(string(b)),
+			},
+		},
+	})
+	return err
 }

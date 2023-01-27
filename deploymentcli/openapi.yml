@@ -24,19 +24,15 @@ paths:
         '200':
           description: OK
   /api/v1/deployments:
-    get:
-      summary: Your GET endpoint
-      tags: []
-      responses:
-        '200':
-          description: OK
-      operationId: get-deployment
     post:
       summary: ''
       operationId: post-deployment
       responses:
         '200':
-          description: OK
+          $ref: '#/components/responses/DeploymentResponse'
+      description: Create or update a deploymen
+      requestBody:
+        $ref: '#/components/requestBodies/DeploymentRequest'
 components:
   responses:
     ErrorResponse:
@@ -49,6 +45,36 @@ components:
               error:
                 type: string
           examples: {}
+    DeploymentResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              stackId:
+                type: string
+            required:
+              - stackId
+  requestBodies:
+    DeploymentRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              stackId:
+                type: string
+              team:
+                type: string
+              name:
+                type: string
+              version:
+                type: string
+            required:
+              - team
+              - name
+              - version
 tags:
   - name: grants
   - name: runtime

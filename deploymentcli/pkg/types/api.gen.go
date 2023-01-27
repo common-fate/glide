@@ -17,16 +17,29 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// DeploymentResponse defines model for DeploymentResponse.
+type DeploymentResponse struct {
+	StackId string `json:"stackId"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error *string `json:"error,omitempty"`
 }
 
+// DeploymentRequest defines model for DeploymentRequest.
+type DeploymentRequest struct {
+	Name    string  `json:"name"`
+	StackId *string `json:"stackId,omitempty"`
+	Team    string  `json:"team"`
+	Version string  `json:"version"`
+}
+
+// PostDeploymentJSONRequestBody defines body for PostDeployment for application/json ContentType.
+type PostDeploymentJSONRequestBody DeploymentRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Your GET endpoint
-	// (GET /api/v1/deployments)
-	GetDeployment(w http.ResponseWriter, r *http.Request)
 
 	// (POST /api/v1/deployments)
 	PostDeployment(w http.ResponseWriter, r *http.Request)
@@ -46,21 +59,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
-
-// GetDeployment operation middleware
-func (siw *ServerInterfaceWrapper) GetDeployment(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetDeployment(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
 
 // PostDeployment operation middleware
 func (siw *ServerInterfaceWrapper) PostDeployment(w http.ResponseWriter, r *http.Request) {
@@ -221,9 +219,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/deployments", wrapper.GetDeployment)
-	})
-	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/deployments", wrapper.PostDeployment)
 	})
 	r.Group(func(r chi.Router) {
@@ -239,13 +234,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7xSwW7UMBD9lWjOUZLCCd8qWKqKAxVwQagH48xuXMUzo/GkYrXKvyN7m4pqERIcOGXy",
-	"PH7vzRufIHASJiTL4E6gmIUpY/3ZqbJ+ekIKEJgMyUrpReYYvEWm/iEzFSyHCZMvlSgLqsUzDxaeUthR",
-	"EBxk00gHWNd2Q/j7AwaDtUAj5qBRCjM4uKamXm8UbVHCsdkrp8YmbK7vbrvzlUh73vz5UP2RT4X4LafE",
-	"1Lz3htDCojM4mMwku74P9WzvDbvIcKG8++GTzFUGWrBoM16gj6j53H3VDYWCBclLBAevu6EboAXxNtUU",
-	"ei+xf7zqR5SZj2lL/IDVb8mrpnk7goMbtHfPbdC+XMurYSifl24/fqh55iUlr0dw8JUXbW52XxqkUTiS",
-	"FXvC+Tdqd5z/Sa4IblNlDIp/nuhzbfkv0/ytVB0lo5Z9gvt2+uWluL6fOfh54mzuzTAMsN63YP5wbnx6",
-	"Zwf1ZZ9r+4zoQhYTwnq//gwAAP//OeTibWUDAAA=",
+	"H4sIAAAAAAAC/6xTT4/TPhD9Ktb8fseozsKJ3JalrCoOVMAFrfZgkmnrJfaY8WRFVeW7IztNu21TIQS5",
+	"xJrx/HnP7+2gJhfIo5cI1Q4Yf3QY5S01FnPgHYaWtg69fBpSKViTF/T5aEJobW3EktdPkXyKxXqDzqRT",
+	"YArIsu/ljcP0l21AqCAKW7+GvoAopv6+aCZzgsZNJp6Rox0GnuX6IuOwjA1UD0OHYph+LHssxjL69oS1",
+	"QJ++VBkD+XiJfgj/BfzrKM8WHi9OrVhAg7FmGyRjh/lP40KLalw7MTNnJv4HC2PqM73ub/e69SqXK0bp",
+	"2GOjVkxOyQbV7XIxG0qsX9G4n6nlqBG4I+fIq/dG0pt13EIFG5EQK63rnFsZwZkluMrI7XIBBYiVFi+i",
+	"B+3AzaxMLSigN8FCBa9n5ayEAoKRTWZBm2D1841uDlrI4UCDF06H3zEaQUWsutCkk1GHOshjOHOfZABL",
+	"inJUGBQv3LdNrf9nXEEF/+mjR/WJQfWlO88V/Kosr7fa39MTMh/MMGKPWDMOuNeYYZ8iuUf5nK/A9PhT",
+	"kj5+yBqKnXOGt1DBV+pY3c+/KPRNIOszjJHgS87+dFSGEpHTq0P1sHuhp0rrlmrTbihK9aYsS+iT68x6",
+	"uLhX45pNevW+OES482IdQv/Y/woAAP//09Sj5EMFAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

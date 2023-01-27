@@ -9,6 +9,6 @@ gdeploy:
 generate:
 	go generate ./...
 	cd web && pnpm clienttypegen 
-	cd pkg/deploymentcli/web && pnpm clienttypegen
+	cd deploymentcli/web && pnpm clienttypegen
 	pnpm prettier  --write **/openapi.yml
 	
