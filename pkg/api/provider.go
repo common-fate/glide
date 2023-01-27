@@ -13,6 +13,8 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+// (POST /api/v1/admin/providers)
+func (a *API) AdminCreateProvider(w http.ResponseWriter, r *http.Request) {}
 func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	res, err := a.AccessHandlerClient.ListProvidersWithResponse(ctx)

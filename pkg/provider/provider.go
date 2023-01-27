@@ -30,6 +30,8 @@ type Provider struct {
 	// it also contains information about the available resources
 	Schema providerregistrysdk.ProviderSchema `json:"schema" dynamodbav:"schema"`
 
+	StackID string `json:"stackId" dynamodbav:"stackId"`
+
 	// Metadata
 
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`

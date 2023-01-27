@@ -774,6 +774,15 @@ paths:
       operationId: admin-list-providers
       description: List providers
     parameters: []
+    post:
+      summary: ""
+      operationId: admin-create-provider
+      responses:
+        "200":
+          description: OK
+      description: create a v2 provider
+      requestBody:
+        $ref: "#/components/requestBodies/CreateProviderRequest"
   "/api/v1/admin/providers/{providerId}":
     get:
       summary: List providers
@@ -877,32 +886,6 @@ paths:
       description: Begins the guided setup process for a new Access Provider.
       requestBody:
         $ref: "#/components/requestBodies/CreateProviderSetupRequest"
-  /api/v1/admin/providersetupsv2:
-    get:
-      summary: List the provider setups in progress
-      tags:
-        - Admin
-        - ProviderSetup
-      responses:
-        "200":
-          $ref: "#/components/responses/ListProviderSetupsV2Response"
-      operationId: admin-list-providersetupsv2
-      description: List providers which are still in the process of being set up.
-    parameters: []
-    post:
-      summary: Begin the setup process for a new Access Provider
-      operationId: admin-create-providersetupv2
-      tags:
-        - Admin
-        - ProviderSetup
-      responses:
-        "201":
-          $ref: "#/components/responses/ProviderSetupResponse"
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-      description: Begins the guided setup process for a new Access Provider.
-      requestBody:
-        $ref: "#/components/requestBodies/CreateProviderSetupRequestV2"
   "/api/v1/admin/providersetups/{providersetupId}":
     get:
       summary: Get an in-progress provider setup
@@ -921,42 +904,12 @@ paths:
         required: true
     delete:
       summary: Delete an in-progress provider setup
-      operationId: admin-delete-providersetupv2
+      operationId: admin-delete-providersetup
       tags:
         - Admin
       responses:
         "200":
           $ref: "#/components/responses/ProviderSetupResponse"
-      description: |-
-        Removes an in-progress provider setup and deletes all data relating to it.
-
-        Returns the deleted provider.
-  "/api/v1/admin/providersetupsv2/{providersetupId}":
-    get:
-      summary: Get an in-progress provider setup
-      tags:
-        - Admin
-        - ProviderSetup
-      responses:
-        "200":
-          $ref: "#/components/responses/ProviderSetupV2Response"
-      operationId: admin-get-providersetupv2
-      description: Get the setup instructions for an Access Provider.
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    delete:
-      summary: Delete an in-progress provider setup
-      operationId: admin-delete-providersetup
-      tags:
-        - Admin
-        - ProviderSetup
-      responses:
-        "200":
-          $ref: "#/components/responses/ProviderSetupV2Response"
       description: |-
         Removes an in-progress provider setup and deletes all data relating to it.
 
@@ -2412,25 +2365,6 @@ components:
                 type: string
             required:
               - hasToken
-    ProviderSetupV2Response:
-      description: Example response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ProviderSetupV2"
-    ListProviderSetupsV2Response:
-      description: Example response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              providerSetups:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ProviderSetupV2"
-            required:
-              - providerSetups
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2575,26 +2509,6 @@ components:
             required:
               - providerType
       description: Begin the guided setup process for a new Access Provider.
-    CreateProviderSetupRequestV2:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              team:
-                type: string
-                description: the team name of the provider
-              version:
-                type: string
-                description: "the version id of the provider, if `any|latest` is used, then it will fetch the latest version"
-              name:
-                type: string
-                description: "the name of the provider "
-            required:
-              - team
-              - version
-              - name
-      description: Begin the guided setup process for a new Access Provider.
     CreateGroupRequest:
       content:
         application/json:
@@ -2643,6 +2557,28 @@ components:
               - accessRuleId
               - timing
               - name
+    CreateProviderRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              stackId:
+                type: string
+              team:
+                type: string
+              name:
+                type: string
+              version:
+                type: string
+              alias:
+                type: string
+            required:
+              - stackId
+              - team
+              - name
+              - version
+              - alias
 tags:
   - name: Admin
   - name: End User

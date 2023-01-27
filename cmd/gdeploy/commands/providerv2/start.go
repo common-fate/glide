@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/deploymentcli/pkg/server"
 	"github.com/common-fate/common-fate/pkg/config"
-	"github.com/common-fate/common-fate/pkg/deploymentcli/server"
 
 	"github.com/joho/godotenv"
 	"github.com/pkg/browser"

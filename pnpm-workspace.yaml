@@ -1,4 +1,4 @@
 packages:
   - "deploy/**"
   - "web"
-  - "pkg/deploymentcli/web"
+  - "deploymentcli/web"
