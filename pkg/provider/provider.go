@@ -31,6 +31,7 @@ type Provider struct {
 	Schema providerregistrysdk.ProviderSchema `json:"schema" dynamodbav:"schema"`
 
 	StackID string `json:"stackId" dynamodbav:"stackId"`
+	Status  string `json:"status" dynamodbav:"status"`
 
 	// Metadata
 
