@@ -20,7 +20,7 @@ func (s *Service) Create(ctx context.Context, req types.CreateProviderRequest) (
 		return nil, err
 	}
 
-	providerRes := types.ProviderV2{Team: provider.Team, StackId: &provider.StackID, Status: (*types.ProviderV2Status)(&provider.Status), Version: provider.Version}
+	providerRes := types.ProviderV2{Team: provider.Team, StackId: provider.StackID, Status: types.ProviderV2Status(provider.Status), Version: provider.Version}
 	return &providerRes, nil
 
 }

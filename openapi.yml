@@ -774,15 +774,6 @@ paths:
       operationId: admin-list-providers
       description: List providers
     parameters: []
-    post:
-      summary: ''
-      operationId: admin-create-provider
-      responses:
-        '200':
-          description: OK
-      description: create a v2 provider
-      requestBody:
-        $ref: '#/components/requestBodies/CreateProviderRequest'
   /api/v1/admin/providersv2:
     get:
       summary: List providers2
@@ -848,7 +839,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Provider'
+                $ref: '#/components/schemas/ProviderV2'
         '401':
           $ref: '#/components/responses/ErrorResponse'
         '500':
@@ -1588,10 +1579,18 @@ components:
             - configuring
             - updating
             - deleting
+        type:
+          type: string
+        id:
+          type: string
       required:
         - name
         - team
         - version
+        - stackId
+        - status
+        - type
+        - id
     Provider:
       title: Provider
       type: object

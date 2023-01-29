@@ -5,6 +5,7 @@ import (
 
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
@@ -44,6 +45,18 @@ func (p Provider) ToAPI() ahTypes.Provider {
 	return ahTypes.Provider{
 		Id:   p.ID,
 		Type: p.IconName,
+	}
+}
+
+func (p Provider) ToDeploymentAPI() types.ProviderV2 {
+	return types.ProviderV2{
+		Id:      p.ID,
+		Type:    p.IconName,
+		Name:    p.Name,
+		Status:  types.ProviderV2Status(p.Status),
+		StackId: p.StackID,
+		Version: p.Version,
+		Team:    p.Team,
 	}
 }
 
