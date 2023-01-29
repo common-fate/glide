@@ -16,6 +16,7 @@ import { Notifiers } from "./notifiers";
 import { AccessHandler } from "./access-handler";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { CacheSync } from "./cache-sync";
+import { CFService } from "../helpers/service";
 
 interface Props {
   appName: string;
@@ -120,7 +121,8 @@ export class AppBackend extends Construct {
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
         COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
+          props.accessHandler.getAccessHandlerExecutionRoleArn(),
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
@@ -164,6 +166,8 @@ export class AppBackend extends Construct {
         ],
       })
     );
+
+    this._lambda.metricErrors();
 
     // allow the Common Fate API to write SSM parameters as part of the guided setup workflow.
     this._lambda.addToRolePolicy(
@@ -333,7 +337,8 @@ export class AppBackend extends Construct {
           webAclArn: apiGatewayWafAclArn,
         }
       );
-      apiGatewayWafAclAssociation.cfnOptions.condition = createApiGatewayWafAssociation;
+      apiGatewayWafAclAssociation.cfnOptions.condition =
+        createApiGatewayWafAssociation;
     }
   }
 
@@ -379,5 +384,27 @@ export class AppBackend extends Construct {
   }
   getExecutionRoleArn(): string {
     return this._lambda.role?.roleArn || "";
+  }
+
+  getServices(): CFService[] {
+    return [
+      {
+        id: "commonfate",
+        label: "Common Fate API",
+        description: "User-facing REST API",
+        failureImpact:
+          "Users are unable to access the web dashboard or make Access Requests",
+        function: this._lambda,
+      },
+      {
+        id: "webhook",
+        label: "Webhook API",
+        description: "Handles webhooks for external services such as Slack",
+        failureImpact: "No functional impact",
+        function: this._lambda,
+      },
+      this._cacheSync.getService(),
+      this._idpSync.getService(),
+    ];
   }
 }

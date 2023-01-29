@@ -8,9 +8,11 @@ import { WebUserPool } from "./constructs/app-user-pool";
 import { Database } from "./constructs/database";
 
 import { EventBus } from "./constructs/events";
+import { Monitoring } from "./constructs/monitoring";
 import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
+import { CFService, getServices } from "./helpers/service";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -113,6 +115,14 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsLogLevel,
       analyticsDeploymentStage,
     });
+
+    const services = getServices({ accessHandler, appBackend });
+
+    const monitoring = new Monitoring(this, "Monitoring", {
+      deploymentSuffix: stage,
+      services,
+    });
+
     /* Outputs */
     generateOutputs(this, {
       CognitoClientID: webUserPool.getUserPoolClientId(),
@@ -143,7 +153,8 @@ export class CommonFateStackDev extends cdk.Stack {
         webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

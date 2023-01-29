@@ -1,11 +1,12 @@
 import { Duration, Stack } from "aws-cdk-lib";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import * as events from "aws-cdk-lib/aws-events";
-import * as targets from "aws-cdk-lib/aws-events-targets";
-import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { CFService } from "../helpers/service";
 import { WebUserPool } from "./app-user-pool";
 
 interface Props {
@@ -107,5 +108,17 @@ export class IdpSync extends Construct {
   }
   getExecutionRoleArn(): string {
     return this._lambda.role?.roleArn || "";
+  }
+
+  getService(): CFService {
+    return {
+      id: "syncer",
+      label: "IDP Sync",
+      description:
+        "Syncs users from the connected identity provider to Common Fate's internal database",
+      failureImpact:
+        "New users will not be able to access Common Fate web dashboards or make Access Requests. Removed users will still be shown in Common Fate's user list, although they will not be able to access Common Fate (as long as SAML SSO is enabled).",
+      function: this._lambda,
+    };
   }
 }

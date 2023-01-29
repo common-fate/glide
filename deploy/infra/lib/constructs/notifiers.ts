@@ -7,6 +7,7 @@ import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
+import { CFService } from "../helpers/service";
 import { WebUserPool } from "./app-user-pool";
 
 interface Props {
@@ -76,5 +77,15 @@ export class Notifiers extends Construct {
   }
   getSlackLogGroupName(): string {
     return this._slackLambda.logGroup.logGroupName;
+  }
+
+  getService(): CFService {
+    return {
+      id: "slack-notifier",
+      label: "Notifier",
+      description: "Sends Access Request notifications via Slack",
+      failureImpact: "Users and approvers will not receive notifications",
+      function: this._slackLambda,
+    };
   }
 }

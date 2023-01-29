@@ -15,6 +15,8 @@ import {
   IdentityProviderTypes,
 } from "./helpers/registry";
 import { Database } from "./constructs/database";
+import { Monitoring } from "./constructs/monitoring";
+import { CFService, getServices } from "./helpers/service";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -235,6 +237,13 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
     });
 
+    const services = getServices({ accessHandler, appBackend });
+
+    const monitoring = new Monitoring(this, "Monitoring", {
+      deploymentSuffix: suffix.valueAsString,
+      services,
+    });
+
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
       apiUrl: appBackend.getRestApiURL(),
       cloudfrontDistributionId: appFrontend.getDistributionId(),
@@ -278,7 +287,8 @@ export class CommonFateStackProd extends cdk.Stack {
         webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

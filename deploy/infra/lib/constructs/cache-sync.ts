@@ -6,6 +6,7 @@ import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
+import { CFService } from "../helpers/service";
 import { AccessHandler } from "./access-handler";
 
 interface Props {
@@ -60,5 +61,17 @@ export class CacheSync extends Construct {
   }
   getFunctionName(): string {
     return this._lambda.functionName;
+  }
+
+  getService(): CFService {
+    return {
+      id: "cache-sync",
+      label: "Cache Syncer",
+      description:
+        "Syncs resources from Access Providers into Common Fate's internal database",
+      failureImpact:
+        "New resources will not appear available for users to request access to, or for admins to write Access Rules for.",
+      function: this._lambda,
+    };
   }
 }

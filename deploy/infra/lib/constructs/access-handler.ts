@@ -6,6 +6,7 @@ import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
+import { CFService } from "../helpers/service";
 import { Granter } from "./granter";
 interface Props {
   appName: string;
@@ -137,5 +138,17 @@ export class AccessHandler extends Construct {
   }
   getAccessHandlerExecutionRoleArn(): string {
     return this._executionRole.roleArn;
+  }
+
+  getService(): CFService {
+    return {
+      id: "access-handler",
+      label: "Access Handler",
+      description:
+        "Serves Access Provider data. Triggers workflows for granting access.",
+      failureImpact:
+        "Granting and revoking access will fail. New resources will not appear available for users to request access to, or for admins to write Access Rules for.",
+      function: this._lambda,
+    };
   }
 }
