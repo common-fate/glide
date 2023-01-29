@@ -29,6 +29,7 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
+  ProviderV2,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -626,7 +627,7 @@ export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse
 export const adminGetProviderv2 = (
     providerId: string,
  options?: SecondParameter<typeof customInstanceCommonfate>) => {
-      return customInstanceCommonfate<Provider>(
+      return customInstanceCommonfate<ProviderV2>(
       {url: `/api/v1/admin/providersv2/${providerId}`, method: 'get'
     },
       options);
@@ -665,7 +666,7 @@ export const useAdminGetProviderv2 = <TError = ErrorType<ErrorResponseResponse>>
 export const adminGetProvider = (
     providerId: string,
  options?: SecondParameter<typeof customInstanceCommonfate>) => {
-      return customInstanceCommonfate<Provider>(
+      return customInstanceCommonfate<ProviderV2>(
       {url: `/api/v1/admin/providers/${providerId}`, method: 'get'
     },
       options);

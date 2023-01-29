@@ -2,14 +2,17 @@ import { Button, Container, Heading, Text } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../components/Layout";
-import { useAdminGetProvider } from "../../utils/common-fate-client/admin/admin";
+import {
+  useAdminGetProvider,
+  useAdminGetProviderv2,
+} from "../../utils/common-fate-client/admin/admin";
 
 const Provider = () => {
   const {
     params: { id },
   } = useMatch();
 
-  const provider = useAdminGetProvider(id);
+  const provider = useAdminGetProviderv2(id);
 
   return (
     <UserLayout>
@@ -26,6 +29,7 @@ const Provider = () => {
         <Heading>{provider.data?.team}</Heading>
         <Heading>{provider.data?.status}</Heading>
         <Heading>{provider.data?.version}</Heading>
+        <Heading>{provider.data?.stackId}</Heading>
       </Container>
     </UserLayout>
   );

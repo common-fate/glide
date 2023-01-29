@@ -21,21 +21,6 @@ import { customInstance } from '../../custom-instance'
   : never;
 
 /**
- * create a v2 provider
- */
-export const adminCreateProvider = (
-    createProviderRequestBody: CreateProviderRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/admin/providers`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: createProviderRequestBody
-    },
-      options);
-    }
-  
-
-/**
  * create a v2 provider, this method is called once the 
  */
 export const adminCreateProviderv2 = (

@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/common-fate/common-fate/deploymentcli/pkg/services/deploymentsvc"
 	"github.com/common-fate/common-fate/deploymentcli/pkg/types"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/go-chi/chi/v5"
@@ -27,7 +28,8 @@ import (
 // new endpoint. Implement the function on API, ensuring that the function
 // signature matches the ServerInterface interface.
 type API struct {
-	Registry providerregistrysdk.ClientWithResponsesInterface
+	Registry          providerregistrysdk.ClientWithResponsesInterface
+	DeploymentService deploymentsvc.Service
 }
 
 // API must meet the generated REST API interface.
@@ -45,6 +47,9 @@ func New(ctx context.Context, o Opts) (*API, error) {
 	}
 	a := API{
 		Registry: registryClient,
+		DeploymentService: deploymentsvc.Service{
+			Registry: registryClient,
+		},
 	}
 	return &a, nil
 }
