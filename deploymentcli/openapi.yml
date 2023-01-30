@@ -33,6 +33,19 @@ paths:
       description: Create or update a deployment
       requestBody:
         $ref: "#/components/requestBodies/DeploymentRequest"
+    delete:
+      summary: ""
+      operationId: delete-deployment
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentResponse"
+      description: Delete a deployment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              description: the stack id to be deleted
 components:
   responses:
     ErrorResponse:

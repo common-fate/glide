@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../../../components/Layout";
-import { adminCreateProvidersetupv2 } from "../../../../utils/common-fate-client/admin/admin";
 import { postDeployment } from "../../../../utils/local-client/orval";
 import { useGetProvider } from "../../../../utils/registry-client/orval";
+import { adminCreateProviderv2 } from "../../../..//utils/common-fate-client/default/default";
 
 const RegistryProvider = () => {
   const {
@@ -23,12 +23,20 @@ const RegistryProvider = () => {
     setLoading(true);
     postDeployment({ name, team, version })
       .then(({ stackId }) => {
-        adminCreateProvidersetupv2({ team, name, version, stackId }).then(
-          () => {
+        adminCreateProviderv2({
+          team,
+          name,
+          version,
+          stackId,
+          alias: "",
+        })
+          .then(() => {
             setLoading(false);
             // navigate to the provider page
-          }
-        );
+          })
+          .catch((e) => {
+            console.log(e);
+          });
       })
       .finally(() => {
         setLoading(false);

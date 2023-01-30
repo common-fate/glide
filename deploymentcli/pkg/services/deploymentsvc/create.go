@@ -6,19 +6,13 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-
 	// "github.com/common-fate/common-fate/pkg/providersetupv2"
 
-	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 type Service struct {
-	DB               ddb.Storage
-	DeploymentSuffix string
-	TemplateData     psetup.TemplateData
-	Registry         providerregistrysdk.ClientWithResponsesInterface
+	Registry providerregistrysdk.ClientWithResponsesInterface
 }
 
 var (
