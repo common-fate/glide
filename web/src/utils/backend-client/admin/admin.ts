@@ -29,6 +29,7 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
+  CreateProviderRequestBody,
   ProviderV2,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
@@ -41,7 +42,7 @@ import type {
 } from '.././types'
 import type {
   ArgSchema,
-  ArgOptionsResponseResponse
+  ArgOptions
 } from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -621,6 +622,33 @@ export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse
 }
 
 /**
+ * create a v2 provider, this method is called once the 
+ */
+export const adminCreateProviderv2 = (
+    createProviderRequestBody: CreateProviderRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/providersv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderRequestBody
+    },
+      options);
+    }
+  
+
+export const adminDeleteProviderv2 = (
+    providerV2: ProviderV2,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/providersv2`, method: 'delete',
+      headers: {'Content-Type': 'application/json', },
+      data: providerV2
+    },
+      options);
+    }
+  
+
+/**
  * Get provider by id
  * @summary Get provider detailed
  */
@@ -746,7 +774,7 @@ export const adminListProviderArgOptions = (
     argId: string,
     params?: AdminListProviderArgOptionsParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgOptionsResponseResponse>(
+      return customInstance<ArgOptions>(
       {url: `/api/v1/admin/providers/${providerId}/args/${argId}/options`, method: 'get',
         params
     },

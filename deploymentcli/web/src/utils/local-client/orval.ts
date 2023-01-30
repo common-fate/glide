@@ -18,6 +18,1010 @@ import {
 } from '@faker-js/faker'
 import { customInstanceLocal } from '../custom-instance'
 import type { ErrorType } from '../custom-instance'
+/**
+ * The provider's configuration.
+ */
+export type ValidateRequestBodyWith = {[key: string]: string};
+
+export type ValidateRequestBody = {
+  /** The full type definition of the provider */
+  uses: string;
+  /** The provider's configuration. */
+  with: ValidateRequestBodyWith;
+};
+
+export type ValidateResponseResponse = {
+  validations: ProviderConfigValidation[];
+};
+
+/**
+ * Options for an Grant argument.
+ */
+export type ArgOptionsResponseResponse = ArgOptions;
+
+export type GrantResponseResponse = {
+  grant: Grant;
+};
+
+export type ErrorResponseResponse = {
+  error?: string;
+};
+
+export type HealthResponseResponse = {
+  health?: ProviderHealth;
+};
+
+export interface GroupOption {
+  label: string;
+  description?: string;
+  value: string;
+  children: string[];
+  /** A label prefix allows additional context to be prefixed to the label when displayed in a form */
+  labelPrefix?: string;
+}
+
+export interface Group {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface Groups {[key: string]: GroupOption[]}
+
+export type ArgumentGroups = {[key: string]: Group};
+
+/**
+ * Optional form element for the request form, if not provided, defaults to multiselect
+ */
+export type ArgumentRequestFormElement = typeof ArgumentRequestFormElement[keyof typeof ArgumentRequestFormElement];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ArgumentRequestFormElement = {
+  SELECT: 'SELECT',
+} as const;
+
+export type ArgumentRuleFormElement = typeof ArgumentRuleFormElement[keyof typeof ArgumentRuleFormElement];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ArgumentRuleFormElement = {
+  INPUT: 'INPUT',
+  MULTISELECT: 'MULTISELECT',
+  SELECT: 'SELECT',
+} as const;
+
+export interface Argument {
+  id: string;
+  title: string;
+  description?: string;
+  ruleFormElement: ArgumentRuleFormElement;
+  /** Optional form element for the request form, if not provided, defaults to multiselect */
+  requestFormElement?: ArgumentRequestFormElement;
+  groups?: ArgumentGroups;
+}
+
+export interface ArgSchema {[key: string]: Argument}
+
+/**
+ * The log level.
+ */
+export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const LogLevel = {
+  INFO: 'INFO',
+  WARNING: 'WARNING',
+  ERROR: 'ERROR',
+} as const;
+
+/**
+ * A log entry.
+ */
+export interface Log {
+  /** The log level. */
+  level: LogLevel;
+  /** The log message. */
+  msg: string;
+}
+
+/**
+ * The status of the validation.
+ */
+export type ProviderConfigValidationStatus = typeof ProviderConfigValidationStatus[keyof typeof ProviderConfigValidationStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderConfigValidationStatus = {
+  IN_PROGRESS: 'IN_PROGRESS',
+  SUCCESS: 'SUCCESS',
+  PENDING: 'PENDING',
+  ERROR: 'ERROR',
+} as const;
+
+/**
+ * A validation against the configuration values of the Access Provider.
+ */
+export interface ProviderConfigValidation {
+  /** The ID of the validation, such as `list-sso-users`. */
+  id: string;
+  name: string;
+  /** The status of the validation. */
+  status: ProviderConfigValidationStatus;
+  /** The particular config fields validated, if any. */
+  fieldsValidated: string[];
+  logs: Log[];
+}
+
+/**
+ * Instructions on how to access the requested resource.
+
+The `instructions` field will be null if no instructions are available.
+ */
+export interface AccessInstructions {
+  /** Instructions on how to access the role or resource. */
+  instructions?: string;
+}
+
+export interface Option {
+  label: string;
+  value: string;
+  description?: string;
+}
+
+export interface ArgOptions {
+  /** The suggested options. */
+  options: Option[];
+  groups?: Groups;
+}
+
+/**
+ * Provider
+ */
+export interface Provider {
+  id: string;
+  type: string;
+}
+
+export interface ProviderHealth {
+  /** The provider ID. */
+  id: string;
+  /** Whether the provider is healthy. */
+  healthy: boolean;
+  /** A descriptive error message, if the provider isn't healthy. */
+  error?: string | null;
+}
+
+/**
+ * Provider-specific grant data. Must match the provider's schema.
+ */
+export type CreateGrantWith = {[key: string]: string};
+
+/**
+ * A grant to be created.
+ */
+export interface CreateGrant {
+  /** The email address of the user to grant access to. */
+  subject: string;
+  /** The ID of the provider to grant access to. */
+  provider: string;
+  /** Provider-specific grant data. Must match the provider's schema. */
+  with: CreateGrantWith;
+  /** The start time of the grant in ISO8601 format. */
+  start: string;
+  /** The end time of the grant in ISO8601 format. */
+  end: string;
+  /** An id to assign to this new grant */
+  id: string;
+}
+
+/**
+ * Provider-specific grant data. Must match the provider's schema.
+ */
+export type GrantWith = {[key: string]: string};
+
+/**
+ * The current state of the grant.
+ */
+export type GrantStatus = typeof GrantStatus[keyof typeof GrantStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GrantStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED',
+  ERROR: 'ERROR',
+} as const;
+
+/**
+ * A temporary assignment of a user to a principal.
+ */
+export interface Grant {
+  id: string;
+  /** The current state of the grant. */
+  status: GrantStatus;
+  /** The email address of the user to grant access to. */
+  subject: string;
+  /** The ID of the provider to grant access to. */
+  provider: string;
+  /** Provider-specific grant data. Must match the provider's schema. */
+  with: GrantWith;
+  /** The start time of the grant in ISO8601 format. */
+  start: string;
+  /** The end time of the grant in ISO8601 format. */
+  end: string;
+}
+
+export type CreateProviderRequestBody = {
+  stackId: string;
+  team: string;
+  name: string;
+  version: string;
+  alias: string;
+};
+
+export type CreateFavoriteRequestBody = {
+  accessRuleId: string;
+  reason?: string;
+  timing: RequestTiming;
+  with?: CreateRequestWithSubRequest;
+  name: string;
+};
+
+export type CreateGroupRequestBody = {
+  name: string;
+  description?: string;
+  members: string[];
+};
+
+export type CreateProviderSetupRequestBody = {
+  /** The type of the provider to set up. */
+  providerType: string;
+};
+
+/**
+ * The config values entered by the user which correspond to the setup step.
+ */
+export type ProviderSetupStepCompleteRequestBodyConfigValues = {[key: string]: string};
+
+export type ProviderSetupStepCompleteRequestBody = {
+  /** Whether the step is complete or not. */
+  complete: boolean;
+  /** The config values entered by the user which correspond to the setup step. */
+  configValues: ProviderSetupStepCompleteRequestBodyConfigValues;
+};
+
+export type ReviewRequestBody = {
+  decision: ReviewDecision;
+  comment?: string;
+  overrideTiming?: RequestTiming;
+};
+
+export type CreateRequestRequestBody = {
+  accessRuleId: string;
+  reason?: string;
+  timing: RequestTiming;
+  with?: CreateRequestWithSubRequest;
+};
+
+export type CreateUserRequestBody = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  isAdmin: boolean;
+};
+
+export type CreateAccessRuleRequestBody = {
+  /** The group IDs that the access rule applies to. */
+  groups: string[];
+  approval: ApproverConfig;
+  name: string;
+  description: string;
+  target: CreateAccessRuleTarget;
+  timeConstraints: TimeConstraints;
+};
+
+export type AccessTokenResponseResponse = {
+  hasToken: boolean;
+  token?: string;
+};
+
+export type ListFavoritesResponseResponse = {
+  next: string | null;
+  favorites: Favorite[];
+};
+
+export type DeploymentVersionResponseResponse = {
+  /** The deployment version. Will be a semver, such as "v0.9.0" for official releases, or "dev+GIT_HASH" for pre-release builds. */
+  version: string;
+};
+
+export type IdentityConfigurationResponseResponse = {
+  identityProvider: string;
+  administratorGroupId: string;
+};
+
+export type CompleteProviderSetupResponseResponse = {
+  /** Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider. */
+  deploymentConfigUpdateRequired: boolean;
+};
+
+export type ListProviderSetupsResponseResponse = {
+  providerSetups: ProviderSetup[];
+};
+
+/**
+ * Returns a ProviderSetup object.
+ */
+export type ProviderSetupResponseResponse = ProviderSetup;
+
+export type ListRequestEventsResponseResponse = {
+  events: RequestEvent[];
+  next: string | null;
+};
+
+export type AuthUserResponseResponse = {
+  user: User;
+  /** Whether the user is an administrator of Common Fate. */
+  isAdmin: boolean;
+};
+
+export type ListAccessRulesDetailResponseResponse = {
+  accessRules: AccessRuleDetail[];
+  next: string | null;
+};
+
+export type ListAccessRuleApproversResponseResponse = {
+  users: string[];
+  next: string | null;
+};
+
+export type ReviewResponseResponse = {
+  request?: Request;
+};
+
+export type ListGroupsResponseResponse = {
+  groups: Group[];
+  next: string | null;
+};
+
+export type ListRequestsResponseResponse = {
+  requests: Request[];
+  next: string | null;
+};
+
+export type ListAccessRulesResponseResponse = {
+  accessRules: AccessRule[];
+  next: string | null;
+};
+
+export type ListUserResponseResponse = {
+  users: User[];
+  next: string | null;
+};
+
+export type ErrorResponseResponse = {
+  error: string;
+};
+
+/**
+ * Detailed object for a Favorite. 
+ */
+export interface FavoriteDetail {
+  id: string;
+  name: string;
+  with: CreateRequestWithSubRequest;
+  reason?: string;
+  timing: RequestTiming;
+}
+
+export interface Favorite {
+  id: string;
+  name: string;
+  ruleId: string;
+}
+
+export type CreateAccessRuleTargetDetailArgumentsGroupings = {[key: string]: string[]};
+
+export interface CreateAccessRuleTargetDetailArguments {
+  values: string[];
+  groupings: CreateAccessRuleTargetDetailArgumentsGroupings;
+}
+
+export type AccessRuleTargetDetailArgumentsFormElement = typeof AccessRuleTargetDetailArgumentsFormElement[keyof typeof AccessRuleTargetDetailArgumentsFormElement];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AccessRuleTargetDetailArgumentsFormElement = {
+  INPUT: 'INPUT',
+  MULTISELECT: 'MULTISELECT',
+} as const;
+
+export type AccessRuleTargetDetailArgumentsGroupings = {[key: string]: string[]};
+
+export interface AccessRuleTargetDetailArguments {
+  values: string[];
+  groupings: AccessRuleTargetDetailArgumentsGroupings;
+  formElement: AccessRuleTargetDetailArgumentsFormElement;
+}
+
+export interface KeyValue {
+  key: string;
+  value: string;
+}
+
+/**
+ * A matched access rule with option values if they are required for the access rule request
+ */
+export interface LookupAccessRule {
+  accessRule: AccessRule;
+  /** If the matched access rule has selectable fields, this array will contain the matched values to be used to prefill the form when requesting */
+  selectableWithOptionValues?: KeyValue[];
+}
+
+/**
+ * The log level.
+ */
+export type ProviderSetupDiagnosticLogLevel = typeof ProviderSetupDiagnosticLogLevel[keyof typeof ProviderSetupDiagnosticLogLevel];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderSetupDiagnosticLogLevel = {
+  INFO: 'INFO',
+  WARNING: 'WARNING',
+  ERROR: 'ERROR',
+} as const;
+
+/**
+ * A log entry related to a provider setup validation.
+ */
+export interface ProviderSetupDiagnosticLog {
+  /** The log level. */
+  level: ProviderSetupDiagnosticLogLevel;
+  /** The log message. */
+  msg: string;
+}
+
+/**
+ * The status of the validation.
+ */
+export type ProviderSetupValidationStatus = typeof ProviderSetupValidationStatus[keyof typeof ProviderSetupValidationStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderSetupValidationStatus = {
+  IN_PROGRESS: 'IN_PROGRESS',
+  SUCCESS: 'SUCCESS',
+  PENDING: 'PENDING',
+  ERROR: 'ERROR',
+} as const;
+
+/**
+ * A validation against the configuration values of the Access Provider.
+ */
+export interface ProviderSetupValidation {
+  /** The ID of the validation, such as `list-sso-users`. */
+  id: string;
+  /** The status of the validation. */
+  status: ProviderSetupValidationStatus;
+  /** The particular config fields validated, if any. */
+  fieldsValidated: unknown[];
+  logs?: ProviderSetupDiagnosticLog[];
+}
+
+export interface ProviderConfigValue {
+  /** The ID of the config field. */
+  id: string;
+  /** The value entered by the user. */
+  value: string;
+}
+
+export interface ProviderConfigField {
+  id: string;
+  name: string;
+  description: string;
+  /** Whether the config value is optional. */
+  isOptional: boolean;
+  /** Whether or not the config field is a secret (like an API key or a password) */
+  isSecret: boolean;
+  /** the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store. */
+  secretPath?: string;
+}
+
+export interface ProviderSetupStepDetails {
+  title: string;
+  instructions: string;
+  configFields: ProviderConfigField[];
+}
+
+/**
+ * Indicates whether a setup step is complete or not.
+ */
+export interface ProviderSetupStepOverview {
+  /** Whether the step has been completed. */
+  complete: boolean;
+}
+
+export interface ProviderSetupInstructions {
+  stepDetails: ProviderSetupStepDetails[];
+}
+
+/**
+ * The current configuration values.
+ */
+export type ProviderSetupV2ConfigValues = { [key: string]: any };
+
+/**
+ * The status of the setup process.
+ */
+export type ProviderSetupV2Status = typeof ProviderSetupV2Status[keyof typeof ProviderSetupV2Status];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderSetupV2Status = {
+  COMPLETE: 'COMPLETE',
+  VALIDATION_FAILED: 'VALIDATION_FAILED',
+  VALIDATING: 'VALIDATING',
+  INITIAL_CONFIGURATION_IN_PROGRESS: 'INITIAL_CONFIGURATION_IN_PROGRESS',
+  VALIDATION_SUCEEDED: 'VALIDATION_SUCEEDED',
+} as const;
+
+/**
+ * A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
+ */
+export interface ProviderSetupV2 {
+  /** A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file. */
+  id: string;
+  /** The type of the Access Provider being set up. */
+  team: string;
+  name: string;
+  /** The version of the provider. */
+  version: string;
+  /** The status of the setup process. */
+  status: ProviderSetupV2Status;
+  /** An overview of the steps indicating whether they are complete. */
+  steps: ProviderSetupStepOverview[];
+  /** The current configuration values. */
+  configValues: ProviderSetupV2ConfigValues;
+  configValidation: ProviderConfigValidation[];
+}
+
+/**
+ * The current configuration values.
+ */
+export type ProviderSetupConfigValues = { [key: string]: any };
+
+/**
+ * The status of the setup process.
+ */
+export type ProviderSetupStatus = typeof ProviderSetupStatus[keyof typeof ProviderSetupStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderSetupStatus = {
+  COMPLETE: 'COMPLETE',
+  VALIDATION_FAILED: 'VALIDATION_FAILED',
+  VALIDATING: 'VALIDATING',
+  INITIAL_CONFIGURATION_IN_PROGRESS: 'INITIAL_CONFIGURATION_IN_PROGRESS',
+  VALIDATION_SUCEEDED: 'VALIDATION_SUCEEDED',
+} as const;
+
+/**
+ * A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
+ */
+export interface ProviderSetup {
+  /** A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file. */
+  id: string;
+  /** The type of the Access Provider being set up. */
+  type: string;
+  /** The version of the provider. */
+  version: string;
+  /** The status of the setup process. */
+  status: ProviderSetupStatus;
+  /** An overview of the steps indicating whether they are complete. */
+  steps: ProviderSetupStepOverview[];
+  /** The current configuration values. */
+  configValues: ProviderSetupConfigValues;
+  configValidation: ProviderConfigValidation[];
+}
+
+export interface CreateRequestWith {[key: string]: string[]}
+
+export type CreateRequestWithSubRequest = CreateRequestWith[];
+
+export interface WithOption {
+  value: string;
+  label: string;
+  valid: boolean;
+  description?: string;
+}
+
+export interface With {
+  title: string;
+  label: string;
+  value: string;
+  optionDescription?: string;
+  fieldDescription?: string;
+}
+
+export type RequestArgumentFormElement = typeof RequestArgumentFormElement[keyof typeof RequestArgumentFormElement];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RequestArgumentFormElement = {
+  SELECT: 'SELECT',
+} as const;
+
+export interface RequestArgument {
+  title: string;
+  options: WithOption[];
+  description?: string;
+  /** This will be true if a selection is require when creating a request */
+  requiresSelection: boolean;
+  formElement?: RequestArgumentFormElement;
+}
+
+/**
+ * Describes whether a request has been approved automatically or from a review 
+ */
+export type ApprovalMethod = typeof ApprovalMethod[keyof typeof ApprovalMethod];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ApprovalMethod = {
+  AUTOMATIC: 'AUTOMATIC',
+  REVIEWED: 'REVIEWED',
+} as const;
+
+export interface RequestTiming {
+  durationSeconds: number;
+  /** iso8601 timestamp in UTC timezone */
+  startTime?: string;
+}
+
+/**
+ * An event which was recorded relating to the grant.
+ */
+export type RequestEventRecordedEvent = { [key: string]: any };
+
+/**
+ * The current state of the grant.
+ */
+export type RequestEventToGrantStatus = typeof RequestEventToGrantStatus[keyof typeof RequestEventToGrantStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RequestEventToGrantStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  ERROR: 'ERROR',
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+/**
+ * The current state of the grant.
+ */
+export type RequestEventFromGrantStatus = typeof RequestEventFromGrantStatus[keyof typeof RequestEventFromGrantStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RequestEventFromGrantStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  ERROR: 'ERROR',
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+export interface RequestEvent {
+  id: string;
+  requestId: string;
+  createdAt: string;
+  actor?: string;
+  fromStatus?: RequestStatus;
+  toStatus?: RequestStatus;
+  fromTiming?: RequestTiming;
+  toTiming?: RequestTiming;
+  /** The current state of the grant. */
+  fromGrantStatus?: RequestEventFromGrantStatus;
+  /** The current state of the grant. */
+  toGrantStatus?: RequestEventToGrantStatus;
+  grantCreated?: boolean;
+  requestCreated?: boolean;
+  grantFailureReason?: string;
+  /** An event which was recorded relating to the grant. */
+  recordedEvent?: RequestEventRecordedEvent;
+}
+
+/**
+ * The current state of the grant.
+ */
+export type GrantStatus = typeof GrantStatus[keyof typeof GrantStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const GrantStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  ERROR: 'ERROR',
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+/**
+ * A temporary assignment of a user to a principal.
+ */
+export interface Grant {
+  /** The current state of the grant. */
+  status: GrantStatus;
+  /** The email address of the user to grant access to. */
+  subject: string;
+  /** The ID of the provider to grant access to. */
+  provider: string;
+  /** The start time of the grant. */
+  start: string;
+  /** The end time of the grant. */
+  end: string;
+}
+
+/**
+ * A decision made on an Access Request.
+ */
+export type ReviewDecision = typeof ReviewDecision[keyof typeof ReviewDecision];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ReviewDecision = {
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED',
+} as const;
+
+export type IdpStatus = typeof IdpStatus[keyof typeof IdpStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const IdpStatus = {
+  ARCHIVED: 'ARCHIVED',
+  ACTIVE: 'ACTIVE',
+} as const;
+
+export interface Group {
+  name: string;
+  description: string;
+  id: string;
+  memberCount: number;
+  members: string[];
+  source: string;
+}
+
+/**
+ * Provider 
+ */
+export interface Provider {
+  id: string;
+  type: string;
+}
+
+export type ProviderV2Status = typeof ProviderV2Status[keyof typeof ProviderV2Status];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderV2Status = {
+  creating: 'creating',
+  configuring: 'configuring',
+  updating: 'updating',
+  deleting: 'deleting',
+} as const;
+
+/**
+ * ProviderV2
+ */
+export interface ProviderV2 {
+  name: string;
+  team: string;
+  version: string;
+  stackId: string;
+  status: ProviderV2Status;
+  type: string;
+  id: string;
+}
+
+/**
+ * Time configuration for an Access Rule.
+ */
+export interface TimeConstraints {
+  /** The maximum duration in seconds the access is allowed for. */
+  maxDurationSeconds: number;
+}
+
+/**
+ * Approver config for access rules
+ */
+export interface ApproverConfig {
+  /** The user IDs of the approvers for the request. */
+  users: string[];
+  groups: string[];
+}
+
+export interface AccessRuleMetadata {
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
+  updateMessage?: string;
+}
+
+/**
+ * The status of an Access Rule.
+ */
+export type AccessRuleStatus = typeof AccessRuleStatus[keyof typeof AccessRuleStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AccessRuleStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export type RequestAccessRuleTargetArguments = {[key: string]: RequestArgument};
+
+/**
+ * A detailed target for an access rule request
+ */
+export interface RequestAccessRuleTarget {
+  provider: Provider;
+  arguments: RequestAccessRuleTargetArguments;
+}
+
+export type CreateAccessRuleTargetWith = {[key: string]: CreateAccessRuleTargetDetailArguments};
+
+/**
+ * a request body for creating a Access Rule Target
+ */
+export interface CreateAccessRuleTarget {
+  providerId: string;
+  with: CreateAccessRuleTargetWith;
+}
+
+export type AccessRuleTargetDetailWith = {[key: string]: AccessRuleTargetDetailArguments};
+
+/**
+ * A detailed target for an access rule
+ */
+export interface AccessRuleTargetDetail {
+  provider: Provider;
+  with: AccessRuleTargetDetailWith;
+}
+
+/**
+ * A target for an access rule
+ */
+export interface AccessRuleTarget {
+  provider: Provider;
+}
+
+/**
+ * Access Rule contains information for an end user to make a request for access.
+ */
+export interface RequestAccessRule {
+  id: string;
+  /** A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+When a rule is updated, it's ID remains consistent.
+ */
+  version: string;
+  name: string;
+  description: string;
+  target: RequestAccessRuleTarget;
+  timeConstraints: TimeConstraints;
+  isCurrent: boolean;
+  canRequest: boolean;
+}
+
+/**
+ * AccessRuleDetail contains detailed information about a rule and is used in administrative apis.
+ */
+export interface AccessRuleDetail {
+  id: string;
+  /** A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+When a rule is updated, it's ID remains consistent.
+ */
+  version: string;
+  status: AccessRuleStatus;
+  /** The group IDs that the access rule applies to. */
+  groups: string[];
+  approval: ApproverConfig;
+  name: string;
+  description: string;
+  metadata: AccessRuleMetadata;
+  target: AccessRuleTargetDetail;
+  timeConstraints: TimeConstraints;
+  isCurrent: boolean;
+}
+
+/**
+ * Access Rule contains information for an end user to make a request for access.
+ */
+export interface AccessRule {
+  id: string;
+  /** A unique version identifier for the Access Rule. Updating a rule creates a new version. 
+When a rule is updated, it's ID remains consistent.
+ */
+  version: string;
+  name: string;
+  description: string;
+  target: AccessRuleTarget;
+  timeConstraints: TimeConstraints;
+  isCurrent: boolean;
+}
+
+/**
+ * The status of an Access Request.
+
+ */
+export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const RequestStatus = {
+  APPROVED: 'APPROVED',
+  PENDING: 'PENDING',
+  CANCELLED: 'CANCELLED',
+  DECLINED: 'DECLINED',
+} as const;
+
+export type RequestDetailArguments = {[key: string]: With};
+
+/**
+ * A request to access something made by an end user in Common Fate.
+ */
+export interface RequestDetail {
+  id: string;
+  requestor: string;
+  status: RequestStatus;
+  reason?: string;
+  timing: RequestTiming;
+  requestedAt: string;
+  accessRule: AccessRule;
+  updatedAt: string;
+  grant?: Grant;
+  /** true if the requesting user is a reviewer of this request. */
+  canReview: boolean;
+  approvalMethod?: ApprovalMethod;
+  arguments: RequestDetailArguments;
+}
+
+/**
+ * A request to access something made by an end user in Common Fate.
+ */
+export interface Request {
+  id: string;
+  requestor: string;
+  status: RequestStatus;
+  reason?: string;
+  timing: RequestTiming;
+  requestedAt: string;
+  accessRuleId: string;
+  accessRuleVersion: string;
+  updatedAt: string;
+  grant?: Grant;
+  approvalMethod?: ApprovalMethod;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  picture: string;
+  status: IdpStatus;
+  lastName: string;
+  updatedAt: string;
+  groups: string[];
+}
+
 export type DeploymentRequestBody = {
   stackId?: string;
   team: string;
@@ -115,12 +1119,12 @@ export const postDeployment = (
  * Delete a deployment
  */
 export const deleteDeployment = (
-    deleteDeploymentBody: string,
+    providerV2: ProviderV2,
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<DeploymentResponseResponse>(
       {url: `/api/v1/deployments`, method: 'delete',
       headers: {'Content-Type': 'application/json', },
-      data: deleteDeploymentBody
+      data: providerV2
     },
       options);
     }

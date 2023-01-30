@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../../../components/Layout";
+import { adminCreateProviderv2 } from "../../../../utils/common-fate-client/admin/admin";
 import { postDeployment } from "../../../../utils/local-client/orval";
 import { useGetProvider } from "../../../../utils/registry-client/orval";
-import { adminCreateProviderv2 } from "../../../..//utils/common-fate-client/default/default";
 
 const RegistryProvider = () => {
   const {

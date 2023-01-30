@@ -1,4 +1,5 @@
 export * from './accessInstructions';
+export * from './argOptions';
 export * from './argOptionsResponseResponse';
 export * from './argSchema';
 export * from './argument';

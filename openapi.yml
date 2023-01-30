@@ -804,6 +804,21 @@ paths:
       description: "create a v2 provider, this method is called once the "
       requestBody:
         $ref: "#/components/requestBodies/CreateProviderRequest"
+      tags:
+        - Admin
+    delete:
+      summary: ""
+      operationId: admin-delete-providerv2
+      responses:
+        "200":
+          description: OK
+      tags:
+        - Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderV2"
   "/api/v1/admin/providersv2/{providerId}":
     get:
       summary: Get provider detailed
@@ -894,7 +909,11 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgOptions
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":

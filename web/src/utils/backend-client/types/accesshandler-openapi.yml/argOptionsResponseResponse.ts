@@ -5,11 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Option } from '../accesshandler-openapi.yml/option';
-import type { Groups } from '../accesshandler-openapi.yml/groups';
+import type { ArgOptions } from '../accesshandler-openapi.yml/argOptions';
 
-export type ArgOptionsResponseResponse = {
-  /** The suggested options. */
-  options: Option[];
-  groups?: Groups;
-};
+/**
+ * Options for an Grant argument.
+ */
+export type ArgOptionsResponseResponse = ArgOptions;
