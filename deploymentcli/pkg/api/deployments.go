@@ -5,6 +5,10 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/deploymentcli/pkg/types"
+	"github.com/common-fate/common-fate/pkg/config"
+	cfTypes "github.com/common-fate/common-fate/pkg/types"
+	"github.com/joho/godotenv"
+	"github.com/sethvargo/go-envconfig"
 )
 
 // Your GET endpoint
@@ -53,8 +57,34 @@ func (a *API) DeleteDeployment(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	apio.JSON(ctx, w, nil, http.StatusOK)
 
-	// @TODO: CDK Delete
 	// @TODO: dynamo db delete
+	var cfg config.FrontendDeployerConfig
+	_ = godotenv.Load()
+	err = envconfig.Process(ctx, &cfg)
+	if err != nil {
+		return
+	}
+	cf, err := cfTypes.NewClient(cfg.APIURL)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	resp, err := cf.AdminDeleteProviderv2(ctx, cfTypes.AdminDeleteProviderv2JSONRequestBody{StackId: stackID})
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	apiResType, err := cfTypes.ParseAdminDeleteProviderv2Response(resp)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+
+	if apiResType.Body != nil {
+		apio.JSON(ctx, w, apiResType.Body, http.StatusOK)
+		return
+	}
+
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }

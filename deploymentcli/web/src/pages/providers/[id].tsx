@@ -22,7 +22,12 @@ const Provider = () => {
 
   const handleDelete = () => {
     setLoading(true);
-    deleteDeployment(id).finally(() => setLoading(false));
+    deleteDeployment({
+      stackId: provider.data?.stackId,
+      team: provider.data?.team,
+      name: provider.data?.name,
+      version: provider.data?.version,
+    }).finally(() => setLoading(false));
   };
 
   return (

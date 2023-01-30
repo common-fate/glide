@@ -29,6 +29,7 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
+  CreateProviderRequestBody,
   ProviderV2,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
@@ -619,6 +620,33 @@ export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse
     ...query
   }
 }
+
+/**
+ * create a v2 provider, this method is called once the 
+ */
+export const adminCreateProviderv2 = (
+    createProviderRequestBody: CreateProviderRequestBody,
+ options?: SecondParameter<typeof customInstanceCommonfate>) => {
+      return customInstanceCommonfate<void>(
+      {url: `/api/v1/admin/providersv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderRequestBody
+    },
+      options);
+    }
+  
+
+export const adminDeleteProviderv2 = (
+    providerV2: ProviderV2,
+ options?: SecondParameter<typeof customInstanceCommonfate>) => {
+      return customInstanceCommonfate<void>(
+      {url: `/api/v1/admin/providersv2`, method: 'delete',
+      headers: {'Content-Type': 'application/json', },
+      data: providerV2
+    },
+      options);
+    }
+  
 
 /**
  * Get provider by id

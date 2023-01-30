@@ -44,8 +44,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
-              description: the stack id to be deleted
+              $ref: ../openapi.yml#/components/schemas/ProviderV2
 components:
   responses:
     ErrorResponse:
