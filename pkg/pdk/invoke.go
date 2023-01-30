@@ -36,6 +36,11 @@ func Invoke(ctx context.Context, functionARN string, payload payload) (*lambda.I
 	return res, nil
 }
 
+type SchemaResponse struct {
+	Version string                             `json:"version"`
+	Schema  providerregistrysdk.ProviderSchema `json:"schema"`
+}
+
 func InvokeSchema(ctx context.Context, functionARN string) (schema providerregistrysdk.ProviderSchema, err error) {
 	out, err := Invoke(ctx, functionARN, NewSchemaEvent())
 	if err != nil {
@@ -43,10 +48,12 @@ func InvokeSchema(ctx context.Context, functionARN string) (schema providerregis
 	}
 	log := logger.Get(ctx)
 
-	err = json.Unmarshal(out.Payload, &schema)
+	invokeResponse := SchemaResponse{}
+
+	err = json.Unmarshal(out.Payload, &invokeResponse)
 	if err != nil {
 		return schema, err
 	}
-	log.Infow("schema", "out", string(out.Payload), "schema", schema)
+	log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse.Schema)
 	return
 }
