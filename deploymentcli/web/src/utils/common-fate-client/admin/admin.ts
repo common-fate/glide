@@ -41,7 +41,7 @@ import type {
 } from '.././types'
 import type {
   ArgSchema,
-  ArgOptionsResponseResponse
+  ArgOptions
 } from '.././types/accesshandler-openapi.yml'
 import { customInstanceCommonfate } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -746,7 +746,7 @@ export const adminListProviderArgOptions = (
     argId: string,
     params?: AdminListProviderArgOptionsParams,
  options?: SecondParameter<typeof customInstanceCommonfate>) => {
-      return customInstanceCommonfate<ArgOptionsResponseResponse>(
+      return customInstanceCommonfate<ArgOptions>(
       {url: `/api/v1/admin/providers/${providerId}/args/${argId}/options`, method: 'get',
         params
     },
