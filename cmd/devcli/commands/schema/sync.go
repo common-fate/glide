@@ -3,6 +3,7 @@ package schema
 import (
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
@@ -37,6 +38,9 @@ var syncCommand = cli.Command{
 
 		syncer := cachesync.CacheSyncer{
 			DB: db,
+			ProviderRuntime: &pdk.LocalRuntime{
+				Path: "../testvault-provider",
+			},
 		}
 
 		err = syncer.SyncCommunityProviderSchemas(ctx)

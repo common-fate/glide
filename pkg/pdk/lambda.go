@@ -12,20 +12,27 @@ import (
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
-func Invoke(ctx context.Context, functionARN string, payload payload) (*lambda.InvokeOutput, error) {
+type LambdaRuntime struct {
+	FunctionARN  string
+	lambdaClient *lambda.Client
+}
+
+func NewLambdaRuntime(ctx context.Context, functionARN string) (*LambdaRuntime, error) {
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
+	lambdaClient := lambda.NewFromConfig(cfg)
+	return &LambdaRuntime{FunctionARN: functionARN, lambdaClient: lambdaClient}, nil
+}
 
+func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.InvokeOutput, error) {
 	payloadbytes, err := payload.Marshal()
 	if err != nil {
 		return nil, err
 	}
-	lambdaClient := lambda.NewFromConfig(cfg)
-
-	res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
-		FunctionName:   aws.String(functionARN),
+	res, err := l.lambdaClient.Invoke(ctx, &lambda.InvokeInput{
+		FunctionName:   aws.String(l.FunctionARN),
 		InvocationType: lambdatypes.InvocationTypeRequestResponse,
 		Payload:        payloadbytes,
 		LogType:        lambdatypes.LogTypeTail,
@@ -36,13 +43,12 @@ func Invoke(ctx context.Context, functionARN string, payload payload) (*lambda.I
 	return res, nil
 }
 
-func InvokeSchema(ctx context.Context, functionARN string) (schema providerregistrysdk.ProviderSchema, err error) {
-	out, err := Invoke(ctx, functionARN, NewSchemaEvent())
+func (l *LambdaRuntime) Schema(ctx context.Context) (schema providerregistrysdk.ProviderSchema, err error) {
+	out, err := l.Invoke(ctx, NewSchemaEvent())
 	if err != nil {
 		return schema, err
 	}
 	log := logger.Get(ctx)
-
 	err = json.Unmarshal(out.Payload, &schema)
 	if err != nil {
 		return schema, err

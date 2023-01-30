@@ -16,6 +16,7 @@ type CacheSyncer struct {
 	DB                  ddb.Storage
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	Cache               cachesvc.Service
+	ProviderRuntime     pdk.ProviderRuntime
 }
 
 // Sync will attempt to sync all argument options for all providers
@@ -83,7 +84,7 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 	for _, provider := range q.Result {
 		logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
 		logw.Infow("fetching schema for provider")
-		schema, err := pdk.InvokeSchema(ctx, provider.FunctionARN)
+		schema, err := s.ProviderRuntime.Schema(ctx)
 		if err != nil {
 			logw.Error("failed to fetch schema")
 			continue
