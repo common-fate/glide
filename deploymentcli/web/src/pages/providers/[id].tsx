@@ -7,6 +7,7 @@ import {
   useAdminGetProvider,
   useAdminGetProviderv2,
 } from "../../utils/common-fate-client/admin/admin";
+import { deleteDeployment } from "../../utils/local-client/orval";
 
 const Provider = () => {
   const {
@@ -21,10 +22,7 @@ const Provider = () => {
 
   const handleDelete = () => {
     setLoading(true);
-
-    // adminDelete? ⭐
-
-    setLoading(false);
+    deleteDeployment(id).finally(() => setLoading(false));
   };
 
   return (
@@ -38,8 +36,9 @@ const Provider = () => {
         minW={{ base: "100%", lg: "container.lg" }}
         overflowX="auto"
       >
-        {/* delete button */}
-        <Button onClick={handleDelete}>Delete</Button>
+        <Button onClick={handleDelete} isLoading={loading}>
+          Delete
+        </Button>
         <Heading>{provider.data?.name}</Heading>
         <Heading>{provider.data?.team}</Heading>
         <Heading>{provider.data?.status}</Heading>

@@ -258,3 +258,16 @@ func UpdateProviderStack(ctx context.Context, bootstrapBucketName, lambdaPath, s
 	})
 	return err
 }
+
+func DeleteProviderStack(ctx context.Context, stackID string) error {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return err
+	}
+	client := cloudformation.NewFromConfig(cfg)
+
+	_, err = client.DeleteStack(ctx, &cloudformation.DeleteStackInput{
+		StackName: &stackID,
+	})
+	return err
+}

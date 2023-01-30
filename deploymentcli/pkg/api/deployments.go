@@ -41,12 +41,19 @@ func (a *API) PostSecret(w http.ResponseWriter, r *http.Request) {}
 // (DELETE /api/v1/deployments)
 func (a *API) DeleteDeployment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var deleteRequest types.DeleteDeploymentJSONRequestBody
-	err := apio.DecodeJSONBody(w, r, &deleteRequest)
+	var stackID types.DeleteDeploymentJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &stackID)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
+
+	err = a.DeploymentService.Delete(ctx, stackID)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusOK)
 
 	// @TODO: CDK Delete
 	// @TODO: dynamo db delete
