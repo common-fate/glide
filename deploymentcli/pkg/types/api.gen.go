@@ -41,7 +41,7 @@ type DeploymentRequest struct {
 }
 
 // DeleteDeploymentJSONBody defines parameters for DeleteDeployment.
-type DeleteDeploymentJSONBody = map[string]interface{}
+type DeleteDeploymentJSONBody = externalRef0.ProviderV2
 
 // DeleteDeploymentJSONRequestBody defines body for DeleteDeployment for application/json ContentType.
 type DeleteDeploymentJSONRequestBody = DeleteDeploymentJSONBody
@@ -852,15 +852,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6xUTW/UMBD9K9bAMVqncCK30pZqxYEVcEFVDyaZ3XWJPWY8qVit8t+Rnf3elKqiucQa",
-	"z8d7M2+8hppcII9eIlRrYPzdYZSP1FjMhmsMLa0cevk6XCVjTV7Q56MJobW1EUteP0TyyRbrJTqTToEp",
-	"IMsmlzcO019WAaGCKGz9AvoCopj617QZvRM0bvTiETnaoeDJXV9kHpaxgepuyFAM1fdh98U2jH4+YC3Q",
-	"py9FxkA+nrMfzP9B/2mWJ4C3jmMQC2gw1myDZO5w88e40KLawk6duWEmfgXAmPKMw30W16VXOVwxSsce",
-	"GzVnckqWqC5n08kQYv2ctvhMLXuNwBU5R159MpJm1nELFSxFQqy0rvPd3AhOLMGTHbmcTaEAsdLimXWn",
-	"HbiYlCkFBfQmWKjg/aSclFBAMLLMXdAmWP14oZudFrK5wRYFh9Nh+etsV0bt/SHn59z0NP+Nz/Whw37x",
-	"Vi+a2LmGTyT8rizT7y3jHCp4o/f7rnd+ekTnOVOgYeGPKV4xGkFFrLrQmOfIzijKv6iOIzt4hvT5G/SK",
-	"JPtiN+GINeMw3QVm3sdMblG+ZRcYL3/cpS+f86bEzjnDK6jgB3Wsbm++K/RNIOszjW2Hz3v20lKZSkRO",
-	"2obqbn2wNZXWLdWmXVKU6kNZltCnt8UsBsfNzi3YJG33xc7CnRfrEPr7/m8AAAD//3UgQs4pBgAA",
+	"H4sIAAAAAAAC/6xUTW/UMBD9K9bAMYrTciK30paq4sAKEBKqejDJ7K5L7DHjScWqyn9Hdvazm1JVNJdY",
+	"8/2e5/kBGnKBPHqJUD8A4+8eo3yg1mI2XGDoaOXQy5fRlYwNeUGfjyaEzjZGLHl9F8knW2yW6Ew6BaaA",
+	"LOta3jhMf1kFhBqisPULGAqIYppf1+2kT9C4Scc9crRjw0e+ocg4LGML9c1YoRi779Jui00a/bzDRmBI",
+	"X8qMgXw8Rj+a/wP+0ygfDbwJnBqxgBZjwzZIxg6Xf4wLHarN2ImZS2biVxgYU53pcZ+d68yrnK4YpWeP",
+	"rZozOSVLVGez63JMsX5Om/lMI7sdgXNyjrz6aCTdWc8d1LAUCbHWusm+uREsLcGTjJzNrqEAsdLhkXW7",
+	"O3BSVqkEBfQmWKjhXVmVFRQQjCwzC9oEq+9PdLvdhWxusUPB8bTf/iLblVG7eMj1OZOe7n8dc7EfsBPe",
+	"6kU39pZxDjWUeo2gXLnujd6JWo+hUc+Y7m2L/P0UJhb9tKr2qh0U2MbpCTXkSoHGZ+GQiHNGI6iIVR9a",
+	"8xwlM4ryL0KmJ9t7rPTxS/WKIIdiuwcRG8ZxBxaYcR8iuUL5mkNguv0hS58/ZT3F3jnDK6jhB/Wsri6/",
+	"KfRtIOszjA3Dx5y9tFWGEpGTAqC+edjTVq11R43plhSlfl9VFQzpBTKLMXCtzAWbpICh2Fq492IdwnA7",
+	"/A0AAP//X130M08GAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
@@ -902,7 +903,7 @@ func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
 
 	pathPrefix := path.Dir(pathToFile)
 
-	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "../openapi.yml")) {
+	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "./openapi.yml")) {
 		if _, ok := res[rawPath]; ok {
 			// it is not possible to compare functions in golang, so always overwrite the old value
 		}

@@ -45,14 +45,14 @@ func (a *API) PostSecret(w http.ResponseWriter, r *http.Request) {}
 // (DELETE /api/v1/deployments)
 func (a *API) DeleteDeployment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var stackID types.DeleteDeploymentJSONRequestBody
-	err := apio.DecodeJSONBody(w, r, &stackID)
+	var provv2 types.DeleteDeploymentJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &provv2)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
 
-	err = a.DeploymentService.Delete(ctx, stackID)
+	err = a.DeploymentService.Delete(ctx, provv2.StackId)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
@@ -70,7 +70,7 @@ func (a *API) DeleteDeployment(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	resp, err := cf.AdminDeleteProviderv2(ctx, cfTypes.AdminDeleteProviderv2JSONRequestBody{StackId: stackID})
+	resp, err := cf.AdminDeleteProviderv2(ctx, cfTypes.AdminDeleteProviderv2JSONRequestBody{StackId: provv2.Id})
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return

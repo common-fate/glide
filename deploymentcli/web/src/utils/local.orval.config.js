@@ -14,7 +14,7 @@ module.exports = {
       },
     },
     input: {
-      target: "../../../openapi.yml",
+      target: "../../../../deploymentcli.openapi.yml",
     },
   },
 };

@@ -44,7 +44,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../openapi.yml#/components/schemas/ProviderV2
+              $ref: ./openapi.yml#/components/schemas/ProviderV2
 components:
   responses:
     ErrorResponse:
