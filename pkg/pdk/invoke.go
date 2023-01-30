@@ -41,7 +41,7 @@ type SchemaResponse struct {
 	Schema  providerregistrysdk.ProviderSchema `json:"schema"`
 }
 
-func InvokeSchema(ctx context.Context, functionARN string) (schema providerregistrysdk.ProviderSchema, err error) {
+func InvokeSchema(ctx context.Context, functionARN string) (schema SchemaResponse, err error) {
 	out, err := Invoke(ctx, functionARN, NewSchemaEvent())
 	if err != nil {
 		return schema, err
@@ -52,8 +52,8 @@ func InvokeSchema(ctx context.Context, functionARN string) (schema providerregis
 
 	err = json.Unmarshal(out.Payload, &invokeResponse)
 	if err != nil {
-		return schema, err
+		return invokeResponse, err
 	}
-	log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse.Schema)
+	log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse)
 	return
 }
