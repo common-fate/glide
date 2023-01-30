@@ -111,9 +111,27 @@ export const postDeployment = (
   
 
 
+/**
+ * Delete a deployment
+ */
+export const deleteDeployment = (
+    deleteDeploymentBody: string,
+ options?: SecondParameter<typeof customInstanceLocal>) => {
+      return customInstanceLocal<DeploymentResponseResponse>(
+      {url: `/api/v1/deployments`, method: 'delete',
+      headers: {'Content-Type': 'application/json', },
+      data: deleteDeploymentBody
+    },
+      options);
+    }
+  
+
+
 
 
 export const getPostDeploymentMock = () => ({stackId: faker.random.word()})
+
+export const getDeleteDeploymentMock = () => ({stackId: faker.random.word()})
 
 export const getExampleAPIMSW = () => [
 rest.get('*/api/v1/secrets', (_req, res, ctx) => {
@@ -131,5 +149,11 @@ rest.get('*/api/v1/secrets', (_req, res, ctx) => {
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
 ctx.json(getPostDeploymentMock()),
+        )
+      }),rest.delete('*/api/v1/deployments', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getDeleteDeploymentMock()),
         )
       }),]
