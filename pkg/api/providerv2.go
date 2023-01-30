@@ -12,18 +12,24 @@ import (
 // List providers2
 // (GET /api/v1/admin/providersv2)
 func (a *API) AdminListProvidersv2(w http.ResponseWriter, r *http.Request) {
-	// ctx := r.Context()
-	// q := storage.ListProviders{}
-	// _, err := a.DB.Query(ctx, &q)
-	// if err != nil && err != ddb.ErrNoItems {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	ctx := r.Context()
+	q := storage.ListProviders{}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// if err != ddb.ErrNoItems {
-	// 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
-	// 	return
-	// }
+	res := []types.ProviderV2{}
+
+	for _, p := range q.Result {
+		res = append(res, p.ToDeploymentAPI())
+	}
+
+	if err != ddb.ErrNoItems {
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
 }
 
 // (POST /api/v1/admin/providersv2)

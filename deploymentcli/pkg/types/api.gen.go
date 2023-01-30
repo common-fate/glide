@@ -35,11 +35,20 @@ type DeploymentRequest struct {
 	Version string  `json:"version"`
 }
 
+// DeleteDeploymentJSONBody defines parameters for DeleteDeployment.
+type DeleteDeploymentJSONBody = string
+
+// DeleteDeploymentJSONRequestBody defines body for DeleteDeployment for application/json ContentType.
+type DeleteDeploymentJSONRequestBody = DeleteDeploymentJSONBody
+
 // PostDeploymentJSONRequestBody defines body for PostDeployment for application/json ContentType.
 type PostDeploymentJSONRequestBody DeploymentRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (DELETE /api/v1/deployments)
+	DeleteDeployment(w http.ResponseWriter, r *http.Request)
 
 	// (POST /api/v1/deployments)
 	PostDeployment(w http.ResponseWriter, r *http.Request)
@@ -59,6 +68,21 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+
+// DeleteDeployment operation middleware
+func (siw *ServerInterfaceWrapper) DeleteDeployment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteDeployment(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
 
 // PostDeployment operation middleware
 func (siw *ServerInterfaceWrapper) PostDeployment(w http.ResponseWriter, r *http.Request) {
@@ -219,6 +243,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/deployments", wrapper.DeleteDeployment)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/deployments", wrapper.PostDeployment)
 	})
 	r.Group(func(r chi.Router) {
@@ -234,15 +261,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6xTTY/TMBD9K9bAMaqzcCK3ZXdZVRyogAta7cEk09ZL7DHjyYqqyn9Hdpp226ZCCHKJ",
-	"NeP5eM/vbaEmF8ijlwjVFhh/dhjlPTUWc+AWQ0sbh14+D6kUrMkL+nw0IbS2NmLJ66dIPsVivUZn0ikw",
-	"BWTZ9fLGYfrLJiBUEIWtX0FfQBRT/5g3kzlB4yYTz8jRDgNPcn2RcVjGBqqHoUMxTD+UPRZjGX1/wlqg",
-	"T1+qjIF8PEc/hP8B/mWUJwuPF6dWLKDBWLMNkrHD3S/jQotqXDsxc8dM/B8WxtRnet0/7nXtVS5XjNKx",
-	"x0YtmZySNarrxXw2lFi/pHE/U8tBI3BDzpFXH4ykN+u4hQrWIiFWWtc5tzSCM0twkZHrxRwKECstnkX3",
-	"2oGrWZlaUEBvgoUK3s7KWQkFBCPrzII2wernK93stZDDgQYvHA+/YTSCilh1oUknow51kOdwJj/pABYU",
-	"5fZl+mC/Ter9mnEJFbzSB5PqI4fqc3ueSvhNWV5utbunJ3Q+uGEEH7FmHICvMOM+RnKP8iVfgenxxyx9",
-	"+phFFDvnDG+ggm/Usbq/+6rQN4GszzBGhs85+9tRGUpETs8O1cP2haAqrVuqTbumKNW7siyhT7Yzq+Hi",
-	"To4rNunZ+2If4c6LdQj9Y/87AAD///uPKQFEBQAA",
+	"H4sIAAAAAAAC/6xUy27cOgz9FYH3Lo2R067qXZqkQdBFB203RZCFYnNmlFqiStFBBwP/eyF5nrHTIGi8",
+	"sUDxcc4RyQ3U5AJ59BKh2gDjrw6jfKTGYjZcYmhp7dDL1+EqGWvygj4fTQitrY1Y8vohkk+2WK/QmXQK",
+	"TAFZtrm8cZj+sg4IFURh65fQFxDF1D9vmsk7QeMmLx6Rox0KPrnri8zDMjZQ3Q4ZiqH6Ieyu2IXR/QPW",
+	"An36UmQM5OOY/WD+B/rPs3wCeOc4BbGABmPNNkjmDle/jQstqh3spMwVM/EbAMaUZxrui7jOvcrhilE6",
+	"9tioBZNTskJ1Pr+ZDSHWL2iHz9Ry6BG4IOfIq09G0pt13EIFK5EQK63rfLcwgjNL8Kwi5/MbKECstDiy",
+	"7nsHzmZlSkEBvQkWKng/K2clFBCMrLIK2gSrH890s++FbG6wRcHhdFz+MtuVUQd/yPk5i57ef+tzeexw",
+	"GLz1q17stHiSN3ePso0SUveoBpwNFKNXHHX7u7JMv/8ZF1DBf/qwGvTeT0+MRM4UaNgNp4AuGI2gIlZd",
+	"aMxLuswpyt9UmUZ2tLH0eF29Icm+2DdDxJpxaIQlZt6nTK5RvmUXmC5/qtKXz3moYuec4TVU8IM6VtdX",
+	"3xX6JpD1mcZO4bFmry2VqUTkNAZQ3W6OBqzSuqXatCuKUn0oyxL6tIbMcnDcjueSTRqDvthbuPNiHUJ/",
+	"1/8JAAD//6pescBUBgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -22,7 +22,7 @@ export const uniqueProviderKey = (provider: ProviderV2) =>
   `${provider.team}/${provider.name}/${provider.version}`;
 
 const Providers = () => {
-  const { data: providers } = useAdminListProviders();
+  const { data: providers } = useAdminListProvidersv2();
 
   return (
     <UserLayout>
