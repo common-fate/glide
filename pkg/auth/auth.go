@@ -57,7 +57,7 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 			log := logger.Get(ctx)
 			claims, err := authenticator.Authenticate(r)
 			if err != nil {
-				log.Infow("authentication error", zap.Error(err))
+				log.Errorw("authentication error", zap.Error(err))
 				apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
@@ -72,7 +72,7 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 
 			// log an error and return an unauthorized response if we can't handle the error from the DB.
 			if err != nil && err != ddb.ErrNoItems {
-				log.Infow("authentication error", zap.Error(err))
+				log.Errorw("authentication error", zap.Error(err))
 				apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
@@ -85,7 +85,7 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 				log.Info("user does not exist in database - running an IDP sync and trying again", "user", claims)
 				err = idp.Sync(ctx)
 				if err != nil {
-					log.Infow("error syncing IDP", zap.Error(err))
+					log.Errorw("error syncing IDP", zap.Error(err))
 					apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 					return
 				}
@@ -93,7 +93,7 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 				// reuse the same query, so that we can access the results later if it's successful.
 				_, err = db.Query(ctx, q)
 				if err != nil {
-					log.Infow("authentication error", zap.Error(err))
+					log.Errorw("authentication error", zap.Error(err))
 					apio.ErrorString(ctx, w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 					return
 				}
