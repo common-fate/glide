@@ -81,29 +81,23 @@ func (a *API) AdminGetProviderv2(w http.ResponseWriter, r *http.Request, provide
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result.ToAPIV2(), http.StatusCreated)
+	apio.JSON(ctx, w, q.Result.ToAPIV2(), http.StatusOK)
 
 }
 
 // (DELETE /api/v1/admin/providersv2)
 func (a *API) AdminDeleteProviderv2(w http.ResponseWriter, r *http.Request, providerId string) {
-	// ctx := r.Context()
+	ctx := r.Context()
 
-	// q := storage.GetProvider{ID: providerId}
-	// // _, err = a.DB.Query(ctx, &q)
-	// // if err != nil && err != ddb.ErrNoItems {
-	// // 	apio.Error(ctx, w, err)
-	// // 	return
-	// // }
-	// // @TODO: test this whole method
+	q := storage.GetProvider{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	q.Result.Status = types.DELETED
 
-	// // assign q to ddb.Keyer interface
-	// var item = ddb.Keyer(q.Result)
-	// err = a.DB.Delete(ctx, item)
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	a.DB.Put(ctx, q.Result)
 
-	// apio.JSON(ctx, w, q.Result.ToDeploymentAPI(), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPIV2(), http.StatusOK)
 }

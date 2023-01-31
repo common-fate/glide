@@ -41,7 +41,9 @@ const RegistryProvider = () => {
         <Heading>
           {team}/{name}/{version}
         </Heading>
-        <Button onClick={handleClick}>Create/Deploy Provider</Button>
+        <Button isLoading={loading} onClick={handleClick}>
+          Create/Deploy Provider
+        </Button>
         <Text>Schema</Text>
         <Text whiteSpace={"pre-wrap"} as={"pre"}>
           {JSON.stringify(provider.data?.schema, undefined, 2)}

@@ -44,10 +44,10 @@ func (s *Service) buildSetupInstructions(ctx context.Context, prov provider.Prov
 // Create provider
 func (s *Service) Create(ctx context.Context, req types.CreateProviderRequest) (*provider.Provider, error) {
 	// gets called from the deployment cli, after the provider has been deployed
-	// adds the stack id, lambda url etc.
+	// adds the stack id
 	// creat the provider in the db
 
-	prov := provider.Provider{ID: types.NewProviderID(), Team: req.Team, Name: req.Name, Version: req.Version, StackID: req.StackId}
+	prov := provider.Provider{ID: types.NewProviderID(), Team: req.Team, Name: req.Name, Version: req.Version, StackID: req.StackId, Alias: req.Alias, Status: types.CREATING}
 
 	err := s.DB.Put(ctx, &prov)
 	if err != nil {
@@ -67,15 +67,15 @@ func (s *Service) Update(ctx context.Context, providerId string, req types.Updat
 	}
 
 	provider := q.Result
-	originalStatus := types.ProviderV2Status(provider.Status)
-	provider.Status = string(req.Status)
-	provider.Version = string(req.Version)
-	provider.Alias = string(req.Alias)
+	// originalStatus := types.ProviderV2Status(provider.Status)
+	provider.Status = req.Status
+	provider.Version = req.Version
+	provider.Alias = req.Alias
 	provider.FunctionARN = req.FunctionArn
 	provider.FunctionRoleARN = req.FunctionRoleArn
-	if originalStatus == types.CREATING && req.Status == types.DEPLOYED {
-		s.CreateProviderConfigForTheFirstTime(ctx, *provider)
-	}
+	// if originalStatus == types.CREATING && req.Status == types.DEPLOYED {
+	// 	// s.CreateProviderConfigForTheFirstTime(ctx, *provider)
+	// }
 	err = s.DB.Put(ctx, provider)
 	if err != nil {
 		return nil, err

@@ -162,6 +162,11 @@ func (a *API) UpdateProvider(w http.ResponseWriter, r *http.Request, providerId 
 			return
 		}
 		status = cfTypes.UPDATING
+
+		// @TODO the async updater needs to be able to update the status only without affecting other values of the provider
+		p := *prov.JSON200
+		p.Version = updateRequest.Version
+		p.Alias = updateRequest.Alias
 		a.BackgroundService.StartPollForDeploymentStatus(prov.JSON200.StackId, *prov.JSON200)
 	}
 	prov1, err := a.CommonFate.AdminUpdateProviderv2WithResponse(ctx, providerId, cfTypes.AdminUpdateProviderv2JSONRequestBody{Alias: updateRequest.Alias, Version: updateRequest.Version, Status: status})
