@@ -9,7 +9,7 @@ info:
 servers:
   - url: "http://localhost:9000"
 paths:
-  /api/v1/providers:
+  /api/providers:
     get:
       summary: List providers
       responses:
@@ -47,7 +47,8 @@ paths:
               $ref: "#/components/schemas/CreateProviderDeployment"
       tags:
         - deploymentcli
-  "/api/v1/providers/{providerId}":
+    parameters: []
+  "/api/providers/{providerId}":
     get:
       summary: Get provider detailed
       responses:

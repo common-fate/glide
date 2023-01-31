@@ -42,7 +42,7 @@ func (s *Service) buildSetupInstructions(ctx context.Context, prov provider.Prov
 }
 
 // Create provider
-func (s *Service) Create(ctx context.Context, req types.CreateProviderRequest) (*types.ProviderV2, error) {
+func (s *Service) Create(ctx context.Context, req types.CreateProviderRequest) (*provider.Provider, error) {
 	// gets called from the deployment cli, after the provider has been deployed
 	// adds the stack id, lambda url etc.
 	// creat the provider in the db
@@ -54,12 +54,11 @@ func (s *Service) Create(ctx context.Context, req types.CreateProviderRequest) (
 		return nil, err
 	}
 
-	providerRes := types.ProviderV2{Team: prov.Team, StackId: prov.StackID, Status: types.ProviderV2Status(prov.Status), Version: prov.Version}
-	return &providerRes, nil
+	return &prov, nil
 
 }
 
-func (s *Service) Update(ctx context.Context, providerId string, req types.UpdateProviderV2) (*types.ProviderV2, error) {
+func (s *Service) Update(ctx context.Context, providerId string, req types.UpdateProviderV2) (*provider.Provider, error) {
 
 	q := storage.GetProvider{ID: providerId}
 	_, err := s.DB.Query(ctx, &q)
@@ -82,8 +81,7 @@ func (s *Service) Update(ctx context.Context, providerId string, req types.Updat
 		return nil, err
 	}
 
-	providerRes := types.ProviderV2{Team: provider.Team, StackId: provider.StackID, Status: types.ProviderV2Status(provider.Status), Version: provider.Version}
-	return &providerRes, nil
+	return provider, nil
 
 }
 

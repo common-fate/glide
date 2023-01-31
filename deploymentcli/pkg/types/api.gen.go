@@ -249,7 +249,7 @@ func NewListProvidersRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/providers")
+	operationPath := fmt.Sprintf("/api/providers")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -287,7 +287,7 @@ func NewCreateProviderRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/providers")
+	operationPath := fmt.Sprintf("/api/providers")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -323,7 +323,7 @@ func NewDeleteProviderRequest(server string, providerId string) (*http.Request, 
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/providers/%s", pathParam0)
+	operationPath := fmt.Sprintf("/api/providers/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -357,7 +357,7 @@ func NewGetProviderRequest(server string, providerId string) (*http.Request, err
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/providers/%s", pathParam0)
+	operationPath := fmt.Sprintf("/api/providers/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -402,7 +402,7 @@ func NewUpdateProviderRequestWithBody(server string, providerId string, contentT
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/providers/%s", pathParam0)
+	operationPath := fmt.Sprintf("/api/providers/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -877,19 +877,19 @@ func ParseUpdateProviderResponse(rsp *http.Response) (*UpdateProviderResponse, e
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// List providers
-	// (GET /api/v1/providers)
+	// (GET /api/providers)
 	ListProviders(w http.ResponseWriter, r *http.Request)
 	// Create provider
-	// (POST /api/v1/providers)
+	// (POST /api/providers)
 	CreateProvider(w http.ResponseWriter, r *http.Request)
 	// Delete provider
-	// (DELETE /api/v1/providers/{providerId})
+	// (DELETE /api/providers/{providerId})
 	DeleteProvider(w http.ResponseWriter, r *http.Request, providerId string)
 	// Get provider detailed
-	// (GET /api/v1/providers/{providerId})
+	// (GET /api/providers/{providerId})
 	GetProvider(w http.ResponseWriter, r *http.Request, providerId string)
 	// Update provider
-	// (POST /api/v1/providers/{providerId})
+	// (POST /api/providers/{providerId})
 	UpdateProvider(w http.ResponseWriter, r *http.Request, providerId string)
 }
 
@@ -1124,19 +1124,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providers", wrapper.ListProviders)
+		r.Get(options.BaseURL+"/api/providers", wrapper.ListProviders)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/providers", wrapper.CreateProvider)
+		r.Post(options.BaseURL+"/api/providers", wrapper.CreateProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/providers/{providerId}", wrapper.DeleteProvider)
+		r.Delete(options.BaseURL+"/api/providers/{providerId}", wrapper.DeleteProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/providers/{providerId}", wrapper.GetProvider)
+		r.Get(options.BaseURL+"/api/providers/{providerId}", wrapper.GetProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/providers/{providerId}", wrapper.UpdateProvider)
+		r.Post(options.BaseURL+"/api/providers/{providerId}", wrapper.UpdateProvider)
 	})
 
 	return r
@@ -1145,20 +1145,20 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8RXTW/kNgz9KwJboBd37Mwmh/rW7m4XQQt0UaC9LHLQ2pyxUllSJE4SI/B/LyT5I47t",
-	"dpJM2lxiUCbF90g+eh6g0LXRChU5yB/A4s0BHf2kS4HB8AGN1E2Nin6PR95YaEWowiM3RoqCk9AqvXZa",
-	"eZsrKqy5fzJWG7TUxVK8Rv+fGoOQgyMr1B7aBBzx4q/LcvGMkNeLB7donYgXPjlrk4BDWCwh/xIjJPH2",
-	"0e0q6d3012ssCFr/5z2d0crN0UfzK+Cvo3yScP/iUooJlOgKKwwF7PDxntdGIuvTDsFiBuHS9xY54Wer",
-	"b0WJdsQzT49LEV2mF9xVnFijD6zgUjKqkJVDEKZ3wWK68JDMy7Ra9LcqbNIh8ewJkt5/lYSnBCdw/70j",
-	"baTYV4EiUUIO9zdbeyHvqmt7oW9CFn+Y8rmsvhxmDDHt3A7Yah7HAduJ+ppfvDsX51tzA7H/hdrpvsl5",
-	"QePcwntd11qxnzl5ug9WQg4VkXF5mhbhbMcJN0LDapf++PkSxuyn1oEPONtkPoQ2qLgRkMO7TbbJIAHD",
-	"qQpkptyI9PYs7RsvGPdI8/b9VThyoUl7lhwTyhGXEktGmnHFtN1/59gjeIwXhT4EGn0tw3j7wQ3Rhjjw",
-	"RCy2WfYsdRCEdXD81uIOctikHeJNU8tv0lGY026e0/7qP7dhgGKFubW8WZKG337xb51nZ0fdMUBJP1qr",
-	"7aB3IcT5a0NcRG5eHsKr2qGuuW26MjDzqA7E986PyihNhRRw1SZgdFxZ0zpOBQGSR3uveVYNO0CL1VpV",
-	"nYVFs41VmhYwBihPz18MPJHtFQLbZD5r6UP/eFm2MWuJhHOWPwT7hOVXjMu/rsLY76dlKkI4hqlkWX8+",
-	"4dip7GvDRDkTlU9Ip+LoRUryhspx2mJMuCyRuJBY/vP0c8trpLAgvjyA8OD8Eum/GnIYWxkeb12yB0zm",
-	"zTds6Ks1ZZlu5DdSltW1v6gs/2ML/beyFmk5Sta8H9rbvjHGj5k8TaUuuKy0o/yHLMvA17qLM3wK7S33",
-	"P5jaZLDYgyJRI7RX7d8BAAD//wevsOlUDQAA",
+	"H4sIAAAAAAAC/8RXTW/jNhD9K8S0QC+qpfUmh+rW7m4XQQt0UaC9LHLgSmOLKUUy5DgbwdB/L0jqw7Kl",
+	"1kmcNpcIQ81w3puZN/IeCl0brVCRg3wPFu936OgnXQoMhvdopG5qVPR7PPLGQitCFR65MVIUnIRW6Z3T",
+	"yttcUWHN/ZOx2qClLpbiNfr/1BiEHBxZobbQJuCIF3/dlLNnhLyePXhA60S88OisTQIOYbGE/HOMkMTb",
+	"R7fbpHfTX+6wIGj9n/d0Rit3ij6aXwB/GeVRwv2LcykmUKIrrDAUsMOHR14biaxPOwSLGYRL31nkhJ+s",
+	"fhAl2hHPaXpciugyveBrxYk1escKLiWjClk5BGF6EyymCw/JaZkWi/5ahU06JJ49QdL7L5JwTHACj987",
+	"0kaKbRUoEiXk8Hi/ttfya3Vnr/V9yOIPUz6V1efDjCGmndsBW8zjPGAbUd/x67dX4mpt7iH2v1Ab3Tc5",
+	"L2icW3in61or9jMnT/fOSsihIjIuT9MinG044UpoWOzSHz/dwJj91DrwAW9WmQ+hDSpuBOTwdpWtMkjA",
+	"cKoCmSk3Iu27Lli2SKe9+6tw5EKH9hQ5JpQjLiWWjDTjimm7/c6xA2yMF4XeBQ59IcNs+6kN0YY4cKQU",
+	"6yx7kjQIwjo4fmtxAzms0g7uqqnlN+moymk3zGl/9Z/rMD2xvNxa3szpwm+/+Leusjdn3TFAST9Yq+0g",
+	"diHE1UtDXEdunh/CS9qurrltujIwc1AH4lvn52TUpUIKuG0TMDruq2kdp2oAycHSa55Uww7QbLUWJWdm",
+	"y6xjlaYFjAHKy/MXA080e4HANjkatHTfP96UbUxZIuEpxe+DfULxC2blX5dgbPbL0hQhnENTMi8+H3Fs",
+	"U/alYaI8UZSPSJfi6Fky8oqycdliTLgskbiQWP7z6HPLa6SwHT7vQXhwfn303ws5jK0Mh/uW7A6T0+Yb",
+	"dvPtkqxMd/Erycriwp+Vlf+xhf5bTYu0nKVp3g/tQ98Y42dMnqZSF1xW2lH+Q5Zl4GvdxRk+graW+59K",
+	"bTJY7E6RqBHa2/bvAAAA//+h9GVqTg0AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

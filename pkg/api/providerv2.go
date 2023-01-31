@@ -26,10 +26,7 @@ func (a *API) AdminListProvidersv2(w http.ResponseWriter, r *http.Request) {
 		res = append(res, p.ToAPIV2())
 	}
 
-	if err != ddb.ErrNoItems {
-		apio.JSON(ctx, w, res, http.StatusOK)
-		return
-	}
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // (POST /api/v1/admin/providersv2)
@@ -49,7 +46,7 @@ func (a *API) AdminCreateProviderv2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apio.JSON(ctx, w, providerRes, http.StatusCreated)
+	apio.JSON(ctx, w, providerRes.ToAPIV2(), http.StatusOK)
 
 }
 
@@ -70,7 +67,7 @@ func (a *API) AdminUpdateProviderv2(w http.ResponseWriter, r *http.Request, prov
 		return
 	}
 
-	apio.JSON(ctx, w, providerRes, http.StatusOK)
+	apio.JSON(ctx, w, providerRes.ToAPIV2(), http.StatusOK)
 }
 
 // Get provider detailed

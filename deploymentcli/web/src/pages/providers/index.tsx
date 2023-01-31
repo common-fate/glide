@@ -19,7 +19,6 @@ export const uniqueProviderKey = (provider: ProviderV2) =>
 
 const Providers = () => {
   const { data: providers } = useListProviders();
-
   return (
     <UserLayout>
       <Helmet>
@@ -56,8 +55,13 @@ const Providers = () => {
                     to={`/providers/${provider.id}`}
                   >
                     {/* <ProviderIcon type={provider.name} mb={3} h="8" w="8" /> */}
-                    <Text textStyle="Body/SmallBold" color="neutrals.700">
-                      {provider.id}
+                    <Text
+                      as={"pre"}
+                      textStyle="Body/SmallBold"
+                      color="neutrals.700"
+                      whiteSpace={"pre-wrap"}
+                    >
+                      {JSON.stringify(provider, undefined, 2)}
                     </Text>
                   </LinkOverlay>
                 </Box>

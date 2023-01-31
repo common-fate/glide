@@ -10,15 +10,18 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { UserLayout } from "../../components/Layout";
 import { ProviderIcon } from "../../components/icons/providerIcon";
-import { useListProviders } from "../../utils/local-client/deploymentcli/deploymentcli";
-import { ProviderV2 } from "../../utils/local-client/types/openapi.yml";
+import {
+  Provider,
+  useListAllProviders,
+} from "../../utils/registry-client/orval";
 
 /** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
-export const uniqueProviderKey = (provider: ProviderV2) =>
+export const uniqueProviderKey = (provider: Provider) =>
   `${provider.team}/${provider.name}/${provider.version}`;
 
 const Providers = () => {
-  const { data: providers } = useListProviders();
+  useListAllProviders;
+  const { data: providers } = useListAllProviders();
 
   return (
     <UserLayout>
@@ -34,7 +37,7 @@ const Providers = () => {
         <Heading>Deploy a provider</Heading>
         <SimpleGrid columns={2} spacing={4} p={0} mt={6}>
           {providers &&
-            providers.map((provider) => {
+            providers.providers.map((provider) => {
               const id = uniqueProviderKey(provider);
               return (
                 <Box

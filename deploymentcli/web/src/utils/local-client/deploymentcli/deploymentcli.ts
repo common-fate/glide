@@ -40,13 +40,13 @@ export const listProviders = (
     
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<ProviderV2[]>(
-      {url: `/api/v1/providers`, method: 'get'
+      {url: `/api/providers`, method: 'get'
     },
       options);
     }
   
 
-export const getListProvidersKey = () => [`/api/v1/providers`];
+export const getListProvidersKey = () => [`/api/providers`];
 
     
 export type ListProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof listProviders>>>
@@ -78,7 +78,7 @@ export const createProvider = (
     createProviderDeployment: CreateProviderDeployment,
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<void>(
-      {url: `/api/v1/providers`, method: 'post',
+      {url: `/api/providers`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createProviderDeployment
     },
@@ -94,13 +94,13 @@ export const getProvider = (
     providerId: string,
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<ProviderV2>(
-      {url: `/api/v1/providers/${providerId}`, method: 'get'
+      {url: `/api/providers/${providerId}`, method: 'get'
     },
       options);
     }
   
 
-export const getGetProviderKey = (providerId: string,) => [`/api/v1/providers/${providerId}`];
+export const getGetProviderKey = (providerId: string,) => [`/api/providers/${providerId}`];
 
     
 export type GetProviderQueryResult = NonNullable<Awaited<ReturnType<typeof getProvider>>>
@@ -132,7 +132,7 @@ export const deleteProvider = (
     providerId: string,
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<DeleteProvider200>(
-      {url: `/api/v1/providers/${providerId}`, method: 'delete'
+      {url: `/api/providers/${providerId}`, method: 'delete'
     },
       options);
     }
@@ -146,7 +146,7 @@ export const updateProvider = (
     updateProviderDeployment: UpdateProviderDeployment,
  options?: SecondParameter<typeof customInstanceLocal>) => {
       return customInstanceLocal<ProviderV2 | void>(
-      {url: `/api/v1/providers/${providerId}`, method: 'post',
+      {url: `/api/providers/${providerId}`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: updateProviderDeployment
     },
