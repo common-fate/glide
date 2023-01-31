@@ -13,3 +13,6 @@ generate:
 	pnpm prettier  --write **/openapi.yml
 	pnpm prettier  --write ./deploymentcli.openapi.yml
 	
+clean:
+	pnpm prettier  --write **/openapi.yml
+	pnpm prettier  --write ./deploymentcli.openapi.yml

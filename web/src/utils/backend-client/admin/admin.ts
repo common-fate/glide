@@ -29,8 +29,8 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
-  CreateProviderRequestBody,
   ProviderV2,
+  CreateProviderRequestBody,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -589,7 +589,7 @@ export const useAdminListProviders = <TError = ErrorType<ErrorResponseResponse>>
 export const adminListProvidersv2 = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider[]>(
+      return customInstance<ProviderV2[]>(
       {url: `/api/v1/admin/providersv2`, method: 'get'
     },
       options);

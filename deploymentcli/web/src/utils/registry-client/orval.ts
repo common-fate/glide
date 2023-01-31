@@ -10,12 +10,6 @@ import type {
   SWRConfiguration,
   Key
 } from 'swr'
-import {
-  rest
-} from 'msw'
-import {
-  faker
-} from '@faker-js/faker'
 import { customInstanceRegistry } from '../custom-instance';
 import type { ErrorType } from '../custom-instance';
 export type RegisterProvidersResponseResponse = {
@@ -276,43 +270,3 @@ export const useListAllProviders = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 
-
-
-export const getGetHealthMock = () => ({healthy: faker.datatype.boolean()})
-
-export const getGetProviderMock = () => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'cldjojnqa0000tss7bv2fgw9a': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
-      }, audit: {}, target: {
-        'cldjojnqb0002tss75hh6cdgg': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'cldjojnqb0001tss7awg780i7': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
-      }}
-      }}})
-
-export const getListAllProvidersMock = () => ({providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'cldjojnqh0003tss71iaf8a61': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
-      }, audit: {}, target: {
-        'cldjojnqi0005tss78p4a3auv': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'cldjojnqi0004tss74n99cgjh': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
-      }}
-      }}})), next: faker.helpers.arrayElement([faker.random.word(), null])})
-
-export const getExampleAPIMSW = () => [
-rest.get('*/api/v1/health', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetHealthMock()),
-        )
-      }),rest.get('*/api/v1/team/:team/providers/:name/:version', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProviderMock()),
-        )
-      }),rest.get('*/api/v1/providers', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getListAllProvidersMock()),
-        )
-      }),]

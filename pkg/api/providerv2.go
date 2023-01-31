@@ -70,7 +70,7 @@ func (a *API) AdminGetProviderv2(w http.ResponseWriter, r *http.Request, provide
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result.ToDeploymentAPI(), http.StatusCreated)
+	apio.JSON(ctx, w, q.Result.ToDeploymentAPI(), http.StatusOK)
 
 }
 

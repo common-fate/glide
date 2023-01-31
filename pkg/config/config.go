@@ -79,4 +79,5 @@ type ProviderDeploymentCLI struct {
 	Host                   string `env:"COMMONFATE_CLI_HOST,default=0.0.0.0:9000"`
 	LocalFrontendURL       string `env:"COMMONFATE_CLI_LOCAL_FRONTEND_URL,default=http://localhost:9000"`
 	Debug                  bool   `env:"COMMONFATE_CLI_DEBUG"`
+	CommonFateAPIURL       string `env:"COMMONFATE_HOST,default=http://0.0.0.0:8080"`
 }

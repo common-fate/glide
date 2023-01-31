@@ -17,10 +17,11 @@ func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, res, res.StatusCode())
+
+	apio.JSON(ctx, w, res.JSON200, res.StatusCode())
 }
 
-// Create provider
+// Create provider deployment in Common Fate
 // (POST /api/v1/providers)
 func (a *API) CreateProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -77,7 +78,7 @@ func (a *API) GetProvider(w http.ResponseWriter, r *http.Request, providerId str
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, res, res.StatusCode())
+	apio.JSON(ctx, w, res.JSON200, res.StatusCode())
 }
 
 // Update provider

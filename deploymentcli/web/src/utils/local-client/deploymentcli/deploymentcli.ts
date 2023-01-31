@@ -33,7 +33,7 @@ import type { ErrorType } from '../../custom-instance';
   : never;
 
 /**
- * List providers
+ * Lists the Providers installed to an org's Common Fate account
  * @summary List providers
  */
 export const listProviders = (

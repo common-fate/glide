@@ -22,11 +22,11 @@ paths:
                 items:
                   $ref: ./openapi.yml#/components/schemas/ProviderV2
         "401":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
         "404":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       operationId: list-providers
       description: Lists the Providers installed to an org's Common Fate account
       tags:
@@ -38,7 +38,7 @@ paths:
         "201":
           description: Created
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       description: ""
       requestBody:
         content:
@@ -58,9 +58,9 @@ paths:
               schema:
                 $ref: ./openapi.yml#/components/schemas/ProviderV2
         "401":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       operationId: get-provider
       description: Get provider by id
       tags:
@@ -83,7 +83,7 @@ paths:
                 type: object
                 properties: {}
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       tags:
         - deploymentcli
     post:
@@ -99,7 +99,7 @@ paths:
         "201":
           description: Created
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       requestBody:
         content:
           application/json:
