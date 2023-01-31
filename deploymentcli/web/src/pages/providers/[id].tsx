@@ -4,31 +4,24 @@ import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../components/Layout";
 import {
-  useAdminGetProvider,
-  useAdminGetProviderv2,
-} from "../../utils/common-fate-client/admin/admin";
-import { deleteDeployment } from "../../utils/local-client/orval";
+  deleteProvider,
+  useGetProvider,
+} from "../../utils/local-client/deploymentcli/deploymentcli";
 
 const Provider = () => {
   const {
     params: { id },
   } = useMatch();
 
-  const provider = useAdminGetProviderv2(id);
+  const provider = useGetProvider(id);
 
-  // handleDelete
-  // loading state
   const [loading, setLoading] = useState(false);
 
   const handleDelete = () => {
     setLoading(true);
-    // deleteDeployment({
-
-    //   stackId: provider.data?.stackId ?? "",
-    //   team: provider.data?.team ?? "",
-    //   name: provider.data?.name ?? "",
-    //   version: provider.data?.version ?? "",
-    // }).finally(() => setLoading(false));
+    deleteProvider(id).finally(() => {
+      setLoading(false);
+    });
   };
 
   return (

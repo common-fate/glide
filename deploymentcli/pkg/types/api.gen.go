@@ -43,11 +43,6 @@ type DeploymentResponse struct {
 	StackId string `json:"stackId"`
 }
 
-// ErrorResponse defines model for ErrorResponse.
-type ErrorResponse struct {
-	Error *string `json:"error,omitempty"`
-}
-
 // DeploymentRequest defines model for DeploymentRequest.
 type DeploymentRequest struct {
 	Name    string  `json:"name"`
@@ -495,13 +490,13 @@ type ListProvidersResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *[]externalRef0.ProviderV2
 	JSON401      *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 	JSON404 *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 	JSON500 *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 }
 
@@ -524,9 +519,8 @@ func (r ListProvidersResponse) StatusCode() int {
 type CreateProviderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *map[string]interface{}
 	JSON500      *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 }
 
@@ -551,7 +545,7 @@ type DeleteProviderResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *map[string]interface{}
 	JSON500      *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 }
 
@@ -576,10 +570,10 @@ type GetProviderResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.ProviderV2
 	JSON401      *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 	JSON500 *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 }
 
@@ -604,7 +598,7 @@ type UpdateProviderResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.ProviderV2
 	JSON500      *struct {
-		Error *string `json:"error,omitempty"`
+		Error string `json:"error"`
 	}
 }
 
@@ -708,7 +702,7 @@ func ParseListProvidersResponse(rsp *http.Response) (*ListProvidersResponse, err
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -717,7 +711,7 @@ func ParseListProvidersResponse(rsp *http.Response) (*ListProvidersResponse, err
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -726,7 +720,7 @@ func ParseListProvidersResponse(rsp *http.Response) (*ListProvidersResponse, err
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -752,16 +746,9 @@ func ParseCreateProviderResponse(rsp *http.Response) (*CreateProviderResponse, e
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest map[string]interface{}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -796,7 +783,7 @@ func ParseDeleteProviderResponse(rsp *http.Response) (*DeleteProviderResponse, e
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -831,7 +818,7 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -840,7 +827,7 @@ func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) 
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -875,7 +862,7 @@ func ParseUpdateProviderResponse(rsp *http.Response) (*UpdateProviderResponse, e
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
-			Error *string `json:"error,omitempty"`
+			Error string `json:"error"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -1158,20 +1145,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7RXzY7iRhB+FauSo4M9LBziG9ndrFAiBUVKLisOvXaBm7h/aBfsWMjvHnU3xnhsa5YZ",
-	"mMtYVa6/r6q+MidIldBKoqQSkhMY3B+wpN9UxtEJPqEuVCVQ0t9eZYWpkoTSPTKtC54y4kpGu1JJKyvT",
-	"HAWzT9oojYbOviQTaP9TpRESKMlwuYU6hJJY+t8yG9QRMjGoOKIpuQ/4QleHrg5uMIPkq/cQ+uit2Tps",
-	"zNS3HaYEtf2zlqVWsuxX78XvKH+8yhcJNy8OpRhChmVquCZXO3x+ZkIXGDRpW2Q+G6PMHRJG62c43Vfz",
-	"WsjAmQcG6WAkZsHGKBFQjsFitZw4Jz6uC/XRICNcGXXkGZoW9n5SrODepBvve84oqNQhSFlRuDDZxUmg",
-	"Nk6iz+4h7E/T6Gw+av7CcyW2yZwKaz8Kwku8Q3j+pSSlC77NHUQ8gwSe91MzL77nOzNXe5fFPzq7FdW3",
-	"l+lddBfsXNhoHj9W2IaLHZt/mPHZVO/BrymXG9WMNkuppRf4qIRQMvidkYX7YApIICfSZRJFqdNtGOGE",
-	"KxhdpsVqCW32XekFD3iaxNaF0iiZ5pDAh0k8iSEEzSh3YEZM8+j4FDWD54RbpP74/slLCtrXnFfjttQS",
-	"hlOvrrQdkprG8U1LzgmFM/zZ4AYSmETnEiaVKH6K2oMQnRc0akL/O4V295kxrBpa/b/+sG/N4qerGB23",
-	"l+yjLlM5q9kbrOYegZusLP8chGCm6sNfh6CVP3XdPnQ3FMKre1nd1IOhVBu0R2lg4EDd2vtXeds3b+qb",
-	"11X5vLK7AO59tYxstb1tiU7N4zKrfT4FEvbb8snJO215PEbvxsBnfYVBOMwNX7CdzeBbFfCsxw9fkO5V",
-	"/ZtI4b4k8G5kO4hlSIwXaEEjti3tqVpkgktY2zVnhgkkR81fT8Bt6pa+m3udQDuCcH3vyBww7A/N5Tau",
-	"xyikewsfRCGjB/cOFHLXAXk40XgkronGqtEcm5a3HwhJFBUqZUWuSkp+jeMYbBfPM3P5vNgaZn8r1eFF",
-	"Yg6SuECo1/X/AQAA//8FWQBKTw0AAA==",
+	"H4sIAAAAAAAC/8RXQW+bShD+K2jeO/IMcezD4/ZekkZRKzWq1F4iHzYwNusu7HoZO0EW/73aXTAhQOsk",
+	"TptL0CwzO983M9/gPcQyUzLHnAqI9qBxs8WC/pcJR2u4RCVkmWFOX9yRMcYyJ8ztI1NK8JgRl3mwLmRu",
+	"bEWcYsbMk9JSoaY6Vs4yNP+pVAgRFKR5voLKh4JY/P0mGTwjZNngwQ51wd2Fz84q3+LgGhOI7lwE393e",
+	"ui38xk3erzEmqMyf8SyUzIs+emd+A/xxlM8Sbl4cStGHBItYc0UWO1w9skwJ9Jq0bTCXgb30QiMjvNVy",
+	"xxPULZ5+ekxw59K94CFl5JVy68VMCI9S9JJDEE8urUXV4cHvl2m06O9VWL9GYtjjJIz/KAnPCfbh8Z+C",
+	"pBJ8lVqKeAIRPG6mei4e0rWey43N4qtKXsrq62G6EN3OrYGN5nEcsCXP1mx+PuOzqdqA63+eL2XT5Cym",
+	"dm7hQmaZzL0PjAzdWy0ggpRIFVEQxPZsyQgnXMJol/53ewNt9l3rgQ84m4QmhFSYM8UhgvNJOAnBB8Uo",
+	"tWQGTPFgdxY0jWeNK6R++37iBXntazaqtvNqJtEe3z457Uz/NAxfNO6cMLOOf2tcQgSToIYwKTPxV9Aq",
+	"bVAPaNBc/W1qJ8KVjGnNyqFZ//zRvDULz4664wAluNJa6oOA2RCzt4aYO25eH8LI1DbLmC6HqkRsVZje",
+	"b7UmFhwWlQ9Kuh3UrWN3wsF/ssjKF9WwBjRYrVEZGdgcU1elbgFdgOT0/LnAHR0eIbDy+8MT7JvHm6Ry",
+	"WQsk7LN8ae0dlt8wLr/cba7fT8uUg3AMU/6woFxj26nefenxpCcq10in4uhVSvKOynHaYnS4TJAYF5j8",
+	"fPqZZhmSVfy7PXADzmyF5jMggraV4ekaJb1Fv998h5W7GFOW7op9J2UZ3eODyvIHW+j3ypqj5ShZM36o",
+	"d01jtF8nURAIGTORyoKif8MwBFPrOs7h22almfkFVPkHi97mxDOEalH9CAAA//9brG+HJQ0AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
