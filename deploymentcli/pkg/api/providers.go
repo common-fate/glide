@@ -1,7 +1,9 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"reflect"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/deploymentcli/pkg/types"
@@ -24,19 +26,35 @@ func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/providers)
 func (a *API) CreateProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var updateRequest types.CreateProviderJSONRequestBody
-	err := apio.DecodeJSONBody(w, r, &updateRequest)
+	var createRequest types.CreateProviderJSONRequestBody
+	err := apio.DecodeJSONBody(w, r, &createRequest)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	stackID, err := a.DeploymentService.Create(ctx, updateRequest.Team, updateRequest.Name, updateRequest.Version)
+	stackID, err := a.DeploymentService.Create(ctx, createRequest.Team, createRequest.Name, createRequest.Version)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	res := types.DeploymentResponse{StackId: stackID}
-	apio.JSON(ctx, w, res, http.StatusCreated)
+
+	prov, err := a.CommonFate.AdminCreateProviderv2WithResponse(ctx, cfTypes.AdminCreateProviderv2JSONRequestBody{
+		Alias:   createRequest.Alias,
+		Name:    createRequest.Name,
+		StackId: stackID,
+		Team:    createRequest.Team,
+		Version: createRequest.Version,
+	})
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+
+	if prov.JSON200 == nil {
+		apio.JSON(ctx, w, prov.Body, prov.StatusCode())
+	}
+	a.BackgroundService.StartPollForDeploymentStatus(stackID, *prov.JSON200)
+	apio.JSON(ctx, w, prov.Body, prov.StatusCode())
 }
 
 // Delete provider
@@ -97,20 +115,55 @@ func (a *API) UpdateProvider(w http.ResponseWriter, r *http.Request, providerId 
 	}
 	if prov.StatusCode() != http.StatusOK {
 		apio.JSON(ctx, w, prov.Body, prov.StatusCode())
+		return
 	}
 	// TODO: status enum for provider updating
+
+	status := prov.JSON200.Status
 
 	// if the version has changed, run a stack update
 	// @TODO move this to a service package when we add configuration handling
 	if prov.JSON200.Version != updateRequest.Version {
+
+		//look up both versions of the provider in the registry and get out both of the schemas
+
+		oldProvider, err := a.Registry.GetProviderWithResponse(ctx, prov.JSON200.Team, prov.JSON200.Name, prov.JSON200.Version)
+		if err != nil {
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+			return
+		}
+		if oldProvider.StatusCode() != http.StatusOK {
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+			return
+		}
+
+		newProvider, err := a.Registry.GetProviderWithResponse(ctx, prov.JSON200.Team, prov.JSON200.Name, updateRequest.Version)
+		if err != nil {
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+			return
+		}
+		if newProvider.StatusCode() != http.StatusOK {
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+			return
+		}
+
+		//compare the targets of both the schemas, if they are different we shouldnt be able to update.
+		//todo: check here if we want more nuanced checks to determine if a provider target arguments are incompatible
+		//could check types / values here. For now a deepequal will do for checking
+		if !reflect.DeepEqual(oldProvider.JSON200.Schema.Target, newProvider.JSON200.Schema.Target) {
+			apio.Error(ctx, w, apio.NewRequestError(errors.New("Schema in updated version is not compatible with this provider."), http.StatusBadRequest))
+			return
+		}
+
 		err = a.DeploymentService.Update(ctx, prov.JSON200.Team, prov.JSON200.Name, updateRequest.Version, prov.JSON200.StackId)
 		if err != nil {
 			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 			return
 		}
+		status = cfTypes.UPDATING
+		a.BackgroundService.StartPollForDeploymentStatus(prov.JSON200.StackId, *prov.JSON200)
 	}
-
-	prov1, err := a.CommonFate.AdminUpdateProviderv2WithResponse(ctx, providerId, cfTypes.AdminUpdateProviderv2JSONRequestBody{Alias: updateRequest.Alias, Version: updateRequest.Version, Status: cfTypes.DEPLOYED})
+	prov1, err := a.CommonFate.AdminUpdateProviderv2WithResponse(ctx, providerId, cfTypes.AdminUpdateProviderv2JSONRequestBody{Alias: updateRequest.Alias, Version: updateRequest.Version, Status: status})
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return

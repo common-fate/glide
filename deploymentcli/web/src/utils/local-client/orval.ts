@@ -422,6 +422,8 @@ export interface UpdateProviderV2 {
   alias: string;
   version: string;
   status: ProviderV2Status;
+  functionArn?: string;
+  functionRoleArn?: string;
 }
 
 /**
@@ -834,6 +836,9 @@ export interface ProviderV2 {
   status: ProviderV2Status;
   type: string;
   id: string;
+  alias: string;
+  functionArn?: string;
+  functionRoleArn?: string;
 }
 
 /**
@@ -1201,15 +1206,15 @@ export const updateProvider = (
 
 
 
-export const getListProvidersMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word()})))
+export const getListProvidersMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word(), alias: faker.random.word(), functionArn: faker.helpers.arrayElement([faker.random.word(), undefined]), functionRoleArn: faker.helpers.arrayElement([faker.random.word(), undefined])})))
 
 export const getCreateProviderMock = () => ({})
 
-export const getGetProviderMock = () => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word()})
+export const getGetProviderMock = () => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word(), alias: faker.random.word(), functionArn: faker.helpers.arrayElement([faker.random.word(), undefined]), functionRoleArn: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getDeleteProviderMock = () => ({})
 
-export const getUpdateProviderMock = () => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word()})
+export const getUpdateProviderMock = () => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word(), alias: faker.random.word(), functionArn: faker.helpers.arrayElement([faker.random.word(), undefined]), functionRoleArn: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getExampleAPIMSW = () => [
 rest.get('*/api/v1/providers', (_req, res, ctx) => {

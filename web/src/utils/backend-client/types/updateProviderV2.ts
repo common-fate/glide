@@ -11,4 +11,6 @@ export interface UpdateProviderV2 {
   alias: string;
   version: string;
   status: ProviderV2Status;
+  functionArn?: string;
+  functionRoleArn?: string;
 }

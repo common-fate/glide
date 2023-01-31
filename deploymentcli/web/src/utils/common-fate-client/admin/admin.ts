@@ -29,8 +29,8 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
-  CreateProviderRequestBody,
   ProviderV2,
+  CreateProviderRequestBody,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -627,7 +627,7 @@ export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse
 export const adminCreateProviderv2 = (
     createProviderRequestBody: CreateProviderRequestBody,
  options?: SecondParameter<typeof customInstanceCommonfate>) => {
-      return customInstanceCommonfate<void>(
+      return customInstanceCommonfate<ProviderV2>(
       {url: `/api/v1/admin/providersv2`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createProviderRequestBody

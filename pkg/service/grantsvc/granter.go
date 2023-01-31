@@ -287,9 +287,13 @@ func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGran
 		return ahTypes.CreateGrant{}, err
 	}
 
+	if qp.Result.FunctionARN == nil {
+		return ahTypes.CreateGrant{}, errors.New("expected function arn to be non nil")
+	}
+
 	// setting the provider to the function arn to use some custom behaviour that will invoke the deployed lambda
 	if err != ddb.ErrNoItems {
-		opts.AccessRule.Target.ProviderID = qp.Result.FunctionARN
+		opts.AccessRule.Target.ProviderID = *qp.Result.FunctionARN
 	}
 
 	start, end := opts.Request.GetInterval(access.WithNow(g.Clock.Now()))

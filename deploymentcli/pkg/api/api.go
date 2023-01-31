@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/common-fate/common-fate/deploymentcli/pkg/services/backgroundtasks"
 	"github.com/common-fate/common-fate/deploymentcli/pkg/services/deploymentsvc"
 	"github.com/common-fate/common-fate/deploymentcli/pkg/types"
 	cfTypes "github.com/common-fate/common-fate/pkg/types"
@@ -32,6 +33,7 @@ type API struct {
 	Registry          providerregistrysdk.ClientWithResponsesInterface
 	CommonFate        cfTypes.ClientWithResponsesInterface
 	DeploymentService deploymentsvc.Service
+	BackgroundService *backgroundtasks.Service
 }
 
 // API must meet the generated REST API interface.
@@ -58,6 +60,9 @@ func New(ctx context.Context, o Opts) (*API, error) {
 			Registry: registryClient,
 		},
 		CommonFate: commonfate,
+		BackgroundService: &backgroundtasks.Service{
+			CommonFate: commonfate,
+		},
 	}
 	return &a, nil
 }

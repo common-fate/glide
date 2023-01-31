@@ -81,30 +81,32 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 
 	// If one of these fails, continue trying the others
 	for _, provider := range q.Result {
-		logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
-		logw.Infow("fetching schema for provider")
-		schemaResponse, err := pdk.InvokeSchema(ctx, provider.FunctionARN)
-		if err != nil {
-			logw.Error("failed to fetch schema")
-			continue
-		}
-		schema := schemaResponse.Schema
+		if provider.FunctionARN != nil {
+			logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
+			logw.Infow("fetching schema for provider")
+			schemaResponse, err := pdk.InvokeSchema(ctx, *provider.FunctionARN)
+			if err != nil {
+				logw.Error("failed to fetch schema")
+				continue
+			}
+			schema := schemaResponse.Schema
 
-		logw.Infow("recieved schema", "schema", schema)
+			logw.Infow("recieved schema", "schema", schema)
 
-		//validate that the version of the provider matches the version of the schema
-		if provider.Version != schemaResponse.Version {
-			logw.Error("Provider schema version out of sync")
-			return nil
-		}
+			//validate that the version of the provider matches the version of the schema
+			if provider.Version != schemaResponse.Version {
+				logw.Error("Provider schema version out of sync")
+				return nil
+			}
 
-		provider.Schema = schema
-		err = s.DB.Put(ctx, &provider)
-		if err != nil {
-			logw.Error("failed to update schema in database")
-			continue
+			provider.Schema = schema
+			err = s.DB.Put(ctx, &provider)
+			if err != nil {
+				logw.Error("failed to update schema in database")
+				continue
+			}
+			logw.Infow("successfully fetched schema for provider")
 		}
-		logw.Infow("successfully fetched schema for provider")
 	}
 	return nil
 }
