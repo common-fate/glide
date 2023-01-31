@@ -9,6 +9,7 @@ type Config struct {
 	AdminGroup        string `env:"COMMONFATE_ADMIN_GROUP,required"`
 	FrontendURL       string `env:"COMMONFATE_FRONTEND_URL,required"`
 	AccessHandlerURL  string `env:"COMMONFATE_ACCESS_HANDLER_URL,default=http://0.0.0.0:9092"`
+	GovernanceURL     string `env:"COMMONFATE_GOVERNANCE_URL,default=0.0.0.0:8889"`
 	RunAccessHandler  bool   `env:"COMMONFATE_RUN_ACCESS_HANDLER,default=true"`
 	MockAccessHandler bool   `env:"COMMONFATE_MOCK_ACCESS_HANDLER,default=false"`
 	SentryDSN         string `env:"COMMONFATE_SENTRY_DSN"`

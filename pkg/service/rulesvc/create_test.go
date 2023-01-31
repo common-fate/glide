@@ -12,7 +12,6 @@ import (
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
 	"github.com/common-fate/common-fate/pkg/cache"
-	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -25,7 +24,7 @@ import (
 func TestCreateAccessRule(t *testing.T) {
 	type testcase struct {
 		name                 string
-		givenUserID          identity.User
+		givenUserID          string
 		give                 types.CreateAccessRuleRequest
 		wantErr              error
 		withProviderResponse ahTypes.Provider
@@ -77,7 +76,7 @@ func TestCreateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name:        "ok",
-			givenUserID: identity.User{ID: userID},
+			givenUserID: userID,
 			give:        in,
 			want:        &mockRule,
 			withProviderResponse: ahTypes.Provider{
@@ -87,7 +86,7 @@ func TestCreateAccessRule(t *testing.T) {
 		},
 		{
 			name:        "max duration seconds > 6 months",
-			givenUserID: identity.User{ID: userID},
+			givenUserID: userID,
 			give:        mockRuleLongerThan6months,
 			withProviderResponse: ahTypes.Provider{
 				Id:   in.Target.ProviderId,
@@ -114,7 +113,7 @@ func TestCreateAccessRule(t *testing.T) {
 			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&ahTypes.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &ahTypes.ArgSchema{}}, nil)
 
 			cm := mocks.NewMockCacheService(ctrl)
-			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+			cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
 
 			s := Service{
 				Clock:    clk,
@@ -123,7 +122,7 @@ func TestCreateAccessRule(t *testing.T) {
 				Cache:    cm,
 			}
 
-			got, err := s.CreateAccessRule(context.Background(), &tc.givenUserID, tc.give)
+			got, err := s.CreateAccessRule(context.Background(), tc.givenUserID, tc.give)
 
 			// This is the only thing from service layer that we can't mock yet, hence the override
 			if err == nil {
@@ -349,7 +348,7 @@ func TestProcessTarget(t *testing.T) {
 
 			cm := mocks.NewMockCacheService(ctrl)
 			if !tc.dontExpectCacheCall {
-				cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+				cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
 			}
 			s := Service{
 				Clock:    clk,

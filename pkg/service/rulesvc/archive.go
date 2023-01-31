@@ -5,7 +5,6 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
@@ -13,7 +12,7 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-func (s *Service) ArchiveAccessRule(ctx context.Context, user *identity.User, in rule.AccessRule) (*rule.AccessRule, error) {
+func (s *Service) ArchiveAccessRule(ctx context.Context, userId string, in rule.AccessRule) (*rule.AccessRule, error) {
 	if in.Status == rule.ARCHIVED {
 		return nil, ErrAccessRuleAlreadyArchived
 	}
@@ -70,7 +69,7 @@ func (s *Service) ArchiveAccessRule(ctx context.Context, user *identity.User, in
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleArchived{
-		ArchivedBy: user.ID,
+		ArchivedBy: userId,
 		RuleID:     in.ID,
 	})
 

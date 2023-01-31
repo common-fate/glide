@@ -11,6 +11,7 @@
     "cdk": "cdk"
   },
   "devDependencies": {
+    "@aws-cdk/aws-apigatewayv2-authorizers-alpha": "2.55.1-alpha.0",
     "@aws-cdk/cloud-assembly-schema": "^2.29.1",
     "@aws-cdk/cx-api": "^2.29.1",
     "@types/jest": "^26.0.10",

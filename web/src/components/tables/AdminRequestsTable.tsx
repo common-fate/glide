@@ -9,9 +9,9 @@ import { durationString } from "../../utils/durationString";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { RuleNameCell } from "../AccessRuleNameCell";
 import { RequestStatusDisplay } from "../Request";
-import { UserAvatarDetails } from "../UserAvatar";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
+import { CFAvatar } from "../CFAvatar";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -60,7 +60,7 @@ export const AdminRequestsTable = () => {
         Header: "Requested by",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
-            <UserAvatarDetails
+            <CFAvatar
               textProps={{
                 maxW: "20ch",
                 noOfLines: 1,
@@ -69,7 +69,7 @@ export const AdminRequestsTable = () => {
               variant="withBorder"
               mr={0}
               size="xs"
-              user={cell.value}
+              userId={cell.value}
             />
           </Flex>
         ),

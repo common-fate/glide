@@ -2313,7 +2313,6 @@ components:
       content:
         application/json:
           schema:
-            description: ""
             type: object
             properties:
               groups:

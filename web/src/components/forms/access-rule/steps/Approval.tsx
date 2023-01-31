@@ -14,11 +14,11 @@ import {
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { useAdminGetGroup } from "../../../../utils/backend-client/admin/admin";
-import { UserAvatarDetails } from "../../../UserAvatar";
 import { GroupSelect, UserSelect } from "../components/Select";
 import { AccessRuleFormData } from "../CreateForm";
 
 import { FormStep } from "./FormStep";
+import { CFAvatar } from "../../../CFAvatar";
 
 export const ApprovalStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
@@ -122,7 +122,7 @@ const ApprovalPreview: React.FC = () => {
           {approval?.users?.map((u: string) => {
             return (
               <WrapItem key={"wrap" + u}>
-                <UserAvatarDetails user={u} size="xs" />
+                <CFAvatar userId={u} size="xs" />
               </WrapItem>
             );
           })}

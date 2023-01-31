@@ -81,7 +81,6 @@ import {
 import { ProviderIcon } from "../../../components/icons/providerIcon";
 import { InfoOption } from "../../../components/InfoOption";
 import { UserLayout } from "../../../components/Layout";
-import { UserAvatarDetails } from "../../../components/UserAvatar";
 import {
   getUserGetAccessRuleApproversKey,
   userCreateFavorite,
@@ -105,6 +104,7 @@ import {
 } from "../../../utils/backend-client/types";
 import { durationString } from "../../../utils/durationString";
 import { colors } from "../../../utils/theme/colors";
+import { CFAvatar } from "../../../components/CFAvatar";
 export type When = "asap" | "scheduled";
 
 /**
@@ -831,9 +831,9 @@ const Approvers: React.FC<{ approvers?: string[] }> = ({ approvers }) => {
         <Wrap spacing={2}>
           {approvers?.map((approver) => (
             // Using style props, we're able to more closely match the figma designs
-            <UserAvatarDetails
-              key={approver}
-              user={approver}
+            <CFAvatar
+              // key={approver}
+              userId={approver}
               size="xs"
               textProps={{
                 textStyle: "Body/Small",

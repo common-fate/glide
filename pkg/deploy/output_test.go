@@ -66,6 +66,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		RestAPIExecutionRoleARN:       "abcdefg",
 		IDPSyncExecutionRoleARN:       "abcdefg",
 		CacheSyncFunctionName:         "abcdefg",
+		GovernanceURL:                 "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {

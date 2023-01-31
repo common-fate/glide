@@ -2,26 +2,27 @@ import * as cdk from "aws-cdk-lib";
 import { CfnCondition, Duration, Stack } from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import * as kms from "aws-cdk-lib/aws-kms";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { Construct } from "constructs";
 import * as path from "path";
+import { AccessHandler } from "./access-handler";
 import { WebUserPool } from "./app-user-pool";
+import { CacheSync } from "./cache-sync";
 import { EventHandler } from "./event-handler";
+import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
-import { AccessHandler } from "./access-handler";
-import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
-import { CacheSync } from "./cache-sync";
 
 interface Props {
   appName: string;
   userPool: WebUserPool;
   frontendUrl: string;
   accessHandler: AccessHandler;
+  governanceHandler: Governance;
   eventBusSourceName: string;
   eventBus: EventBus;
   adminGroupId: string;
@@ -37,6 +38,7 @@ interface Props {
   analyticsDeploymentStage: string;
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
+  kmsKey: cdk.aws_kms.Key;
 }
 
 export class AppBackend extends Construct {
@@ -48,6 +50,7 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
+
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
   private _webhookLambda: lambda.Function;
@@ -59,13 +62,7 @@ export class AppBackend extends Construct {
 
     this._dynamoTable = props.dynamoTable;
 
-    this._KMSkey = new kms.Key(this, "PaginationKMSKey", {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      pendingWindow: cdk.Duration.days(7),
-      enableKeyRotation: true,
-      description:
-        "Used for encrypting and decrypting pagination tokens for Common Fate",
-    });
+    this._KMSkey = props.kmsKey;
 
     // used to handle webhook events from third party integrations such as Slack
     this._webhookLambda = new lambda.Function(this, "WebhookHandlerFunction", {
@@ -85,6 +82,8 @@ export class AppBackend extends Construct {
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._appName,
     });
+
+    //webhook
 
     const webhook = this._apigateway.root.addResource("webhook");
     const webhookv1 = webhook.addResource("v1");
@@ -120,7 +119,8 @@ export class AppBackend extends Construct {
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
         COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN: props.accessHandler.getAccessHandlerExecutionRoleArn(),
+        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
+          props.accessHandler.getAccessHandlerExecutionRoleArn(),
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
@@ -333,7 +333,8 @@ export class AppBackend extends Construct {
           webAclArn: apiGatewayWafAclArn,
         }
       );
-      apiGatewayWafAclAssociation.cfnOptions.condition = createApiGatewayWafAssociation;
+      apiGatewayWafAclAssociation.cfnOptions.condition =
+        createApiGatewayWafAssociation;
     }
   }
 

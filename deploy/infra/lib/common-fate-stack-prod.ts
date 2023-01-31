@@ -5,6 +5,7 @@ import { AccessHandler } from "./constructs/access-handler";
 import { AppBackend } from "./constructs/app-backend";
 import { AppFrontend } from "./constructs/app-frontend";
 import { WebUserPool } from "./constructs/app-user-pool";
+import * as kms from "aws-cdk-lib/aws-kms";
 
 import { CfnParameter } from "aws-cdk-lib";
 import { EventBus } from "./constructs/events";
@@ -15,6 +16,7 @@ import {
   IdentityProviderTypes,
 } from "./helpers/registry";
 import { Database } from "./constructs/database";
+import { Governance } from "./constructs/governance";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -213,11 +215,29 @@ export class CommonFateStackProd extends cdk.Stack {
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
     });
 
+    //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
+    const kmsKey = new kms.Key(this, "PaginationKMSKey", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pendingWindow: cdk.Duration.days(7),
+      enableKeyRotation: true,
+      description:
+        "Used for encrypting and decrypting pagination tokens for Common Fate",
+    });
+
+    const governance = new Governance(this, "Governance", {
+      appName,
+      accessHandler: accessHandler,
+      kmsKey: kmsKey,
+      providerConfig: providerConfig.valueAsString,
+      dynamoTable: db.getTable(),
+    });
+
     const appBackend = new AppBackend(this, "API", {
       appName,
       userPool: webUserPool,
       frontendUrl: "https://" + appFrontend.getDomainName(),
       accessHandler: accessHandler,
+      governanceHandler: governance,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
       adminGroupId: administratorGroupId.valueAsString,
@@ -233,6 +253,7 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsUrl: analyticsUrl.valueAsString,
       analyticsLogLevel: analyticsLogLevel.valueAsString,
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
+      kmsKey: kmsKey,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
@@ -259,6 +280,7 @@ export class CommonFateStackProd extends cdk.Stack {
       UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getRestApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
+      GovernanceURL: governance.getGovernanceApiURL(),
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
@@ -278,7 +300,8 @@ export class CommonFateStackProd extends cdk.Stack {
         webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN: accessHandler.getAccessHandlerExecutionRoleArn(),
+      AccessHandlerExecutionRoleARN:
+        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

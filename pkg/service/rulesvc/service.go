@@ -20,4 +20,5 @@ type Service struct {
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/cache.go -package=mocks . CacheService
 type CacheService interface {
 	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
+	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
 }

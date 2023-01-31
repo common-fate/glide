@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
-	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/pkg/errors"
@@ -50,7 +49,8 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
 	for argumentID, argument := range in.With.AdditionalProperties {
 		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != ahTypes.ArgumentRuleFormElementINPUT {
-			_, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
+			_, argOptions, groupOptions, err := s.Cache.RefreshCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
+			// _, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
 			if err != nil {
 				return err
 			}
@@ -137,10 +137,10 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 	return target, nil
 }
 
-func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
+func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
 	id := types.NewAccessRuleID()
 
-	log := logger.Get(ctx).With("user.id", user.ID, "access_rule.id", id)
+	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
 
 	target, err := s.ProcessTarget(ctx, in.Target)
@@ -162,9 +162,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 		Groups:      in.Groups,
 		Metadata: rule.AccessRuleMetadata{
 			CreatedAt: now,
-			CreatedBy: user.ID,
+			CreatedBy: userID,
 			UpdatedAt: now,
-			UpdatedBy: user.ID,
+			UpdatedBy: userID,
 		},
 		Target:          target,
 		TimeConstraints: in.TimeConstraints,
@@ -182,7 +182,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, user *identity.User, in 
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
-		CreatedBy:             user.ID,
+		CreatedBy:             userID,
 		RuleID:                rul.ID,
 		Provider:              rul.Target.ProviderType,
 		MaxDurationSeconds:    in.TimeConstraints.MaxDurationSeconds,

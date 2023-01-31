@@ -301,6 +301,29 @@ export const BoltIcon = createIcon({
   ),
 });
 
+export const TerraformIcon = createIcon({
+  displayName: "TerraformIcon",
+  viewBox: "0 0 291 291",
+  path: (
+    <svg
+      width={291}
+      height={291}
+      viewBox="-17.5 0 291 291"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid"
+    >
+      <path
+        fill="#4040B2"
+        d="M176.485 188.994 256 143.127V51.25l-79.515 45.963z"
+      />
+      <path
+        d="m88.243 51.249 79.515 45.963v91.782L88.243 143.08M0 91.83l79.515 45.916v-91.83L0 0m88.243 244.994 79.515 45.915v-91.83l-79.515-45.915"
+        fill="#5C4EE5"
+      />
+    </svg>
+  ),
+});
+
 export const GitCompareOutline = createIcon({
   displayName: "GitCompareOutline",
   viewBox: "0 0 24 24",

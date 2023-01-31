@@ -1,18 +1,19 @@
 import {
-  AvatarProps,
   Avatar,
+  AvatarProps,
   HStack,
+  SkeletonCircle,
+  SkeletonText,
   Text,
   TextProps,
   Tooltip,
-  SkeletonCircle,
-  SkeletonText,
 } from "@chakra-ui/react";
 import React from "react";
+
 import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 
 interface UserAvatarProps extends AvatarProps {
-  user: string | undefined;
+  userId: string;
   textProps?: TextProps;
   tooltip?: boolean;
 }
@@ -24,43 +25,27 @@ const TooltipAvatar: typeof Avatar = (props: any) => (
 );
 
 // UserAvatar loads a user avatar from a user ID
-export const UserAvatar: React.FC<UserAvatarProps> = ({
-  user,
-  tooltip,
-  ...rest
-}) => {
-  // @ts-ignore, swr should handle this fine
-  const { data, isValidating } = useUserGetUser(user);
-  if (!data && isValidating) {
-    return <SkeletonCircle size="6" />;
-  }
-  const Component = tooltip ? TooltipAvatar : Avatar;
-  return <Component name={data?.email} {...rest} />;
-};
-
-// UserAvatar loads a user avatar from a user ID
 export const UserAvatarDetails: React.FC<UserAvatarProps> = ({
-  user,
+  userId,
   textProps,
   tooltip,
   ...rest
 }) => {
-  // @ts-ignore
-  const { data, isValidating } = useUserGetUser(user);
+  const { data, isValidating } = useUserGetUser(userId);
 
-  if (!data) {
-    return <Avatar {...rest} />;
+  if (!data && isValidating) {
+    return (
+      <HStack>
+        <SkeletonCircle size="6" />
+        <SkeletonText noOfLines={1} w="12ch" />
+      </HStack>
+    );
   }
 
   const Component = tooltip ? TooltipAvatar : Avatar;
 
   // Loading/loaded states
-  return !data && isValidating ? (
-    <HStack>
-      <SkeletonCircle size="6" />
-      <SkeletonText noOfLines={1} w="12ch" />
-    </HStack>
-  ) : (
+  return (
     <HStack>
       <Component name={data?.email} {...rest} />
       <Text {...textProps}>{data?.email}</Text>
