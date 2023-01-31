@@ -281,18 +281,18 @@ export const useListAllProviders = <TError = ErrorType<ErrorResponseResponse>>(
 export const getGetHealthMock = () => ({healthy: faker.datatype.boolean()})
 
 export const getGetProviderMock = () => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'cldjd4wq90000apon98422ed6': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
+        'cldjjaoy30000wcs723iqfzft': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
       }, audit: {}, target: {
-        'cldjd4wq90002apon4k160ana': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'cldjd4wq90001apong0ir1vub': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+        'cldjjaoy40002wcs7anfs9tnh': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'cldjjaoy40001wcs71puuexg6': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
       }}})
 
 export const getListAllProvidersMock = () => ({providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'cldjd4wqf0003apon80kpf7tk': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
+        'cldjjaoyd0003wcs7gozfhosa': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
       }, audit: {}, target: {
-        'cldjd4wqg0005apon0so3enh1': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'cldjd4wqg0004aponez8dhqqp': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+        'cldjjaoye0005wcs78lxh938a': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'cldjjaoye0004wcs7eg2f0eow': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
       }}})), next: faker.helpers.arrayElement([faker.random.word(), null])})
 

@@ -636,18 +636,6 @@ export const adminCreateProviderv2 = (
     }
   
 
-export const adminDeleteProviderv2 = (
-    providerV2: ProviderV2,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/admin/providersv2`, method: 'delete',
-      headers: {'Content-Type': 'application/json', },
-      data: providerV2
-    },
-      options);
-    }
-  
-
 /**
  * Get provider by id
  * @summary Get provider detailed

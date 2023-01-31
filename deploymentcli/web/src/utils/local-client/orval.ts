@@ -30,10 +30,6 @@ export type ValidateRequestBody = {
   with: ValidateRequestBodyWith;
 };
 
-export type ValidateResponseResponse = {
-  validations: ProviderConfigValidation[];
-};
-
 /**
  * Options for an Grant argument.
  */
@@ -153,6 +149,10 @@ export interface ProviderConfigValidation {
   fieldsValidated: string[];
   logs: Log[];
 }
+
+export type ValidateResponseResponse = {
+  validations: ProviderConfigValidation[];
+};
 
 /**
  * Instructions on how to access the requested resource.
@@ -406,6 +406,23 @@ export type ListUserResponseResponse = {
 export type ErrorResponseResponse = {
   error: string;
 };
+
+export type ProviderV2Status = typeof ProviderV2Status[keyof typeof ProviderV2Status];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProviderV2Status = {
+  CREATING: 'CREATING',
+  UPDATING: 'UPDATING',
+  DEPLOYED: 'DEPLOYED',
+  DELETED: 'DELETED',
+} as const;
+
+export interface UpdateProviderV2 {
+  alias: string;
+  version: string;
+  status: ProviderV2Status;
+}
 
 /**
  * Detailed object for a Favorite. 
@@ -806,17 +823,6 @@ export interface Provider {
   type: string;
 }
 
-export type ProviderV2Status = typeof ProviderV2Status[keyof typeof ProviderV2Status];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ProviderV2Status = {
-  creating: 'creating',
-  configuring: 'configuring',
-  updating: 'updating',
-  deleting: 'deleting',
-} as const;
-
 /**
  * ProviderV2
  */
@@ -1022,6 +1028,10 @@ export interface User {
   groups: string[];
 }
 
+export type DeleteProvider200 = { [key: string]: any };
+
+export type CreateProvider200 = { [key: string]: any };
+
 export type DeploymentRequestBody = {
   stackId?: string;
   team: string;
@@ -1037,6 +1047,19 @@ export type ErrorResponseResponse = {
   error?: string;
 };
 
+export interface UpdateProviderDeployment {
+  alias: string;
+  version: string;
+}
+
+export interface CreateProviderDeployment {
+  team: string;
+  name: string;
+  version: string;
+  /** what you call the deployment of the provider */
+  alias: string;
+}
+
 
 
 
@@ -1050,34 +1073,35 @@ export type ErrorResponseResponse = {
   : never;
 
 /**
- * @summary Your GET endpoint
+ * List providers
+ * @summary List providers
  */
-export const getSecret = (
+export const listProviders = (
     
  options?: SecondParameter<typeof customInstanceLocal>) => {
-      return customInstanceLocal<void>(
-      {url: `/api/v1/secrets`, method: 'get'
+      return customInstanceLocal<ProviderV2[]>(
+      {url: `/api/v1/providers`, method: 'get'
     },
       options);
     }
   
 
-export const getGetSecretKey = () => [`/api/v1/secrets`];
+export const getListProvidersKey = () => [`/api/v1/providers`];
 
     
-export type GetSecretQueryResult = NonNullable<Awaited<ReturnType<typeof getSecret>>>
-export type GetSecretQueryError = ErrorType<unknown>
+export type ListProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof listProviders>>>
+export type ListProvidersQueryError = ErrorType<ErrorResponseResponse>
 
-export const useGetSecret = <TError = ErrorType<unknown>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSecret>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
+export const useListProviders = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof listProviders>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
 
   ) => {
 
   const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSecretKey() : null);
-  const swrFn = () => getSecret(requestOptions);
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListProvidersKey() : null);
+  const swrFn = () => listProviders(requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -1088,11 +1112,70 @@ export const useGetSecret = <TError = ErrorType<unknown>>(
 }
 
 
-export const postSecret = (
+/**
+ * @summary Create provider
+ */
+export const createProvider = (
+    createProviderDeployment: CreateProviderDeployment,
+ options?: SecondParameter<typeof customInstanceLocal>) => {
+      return customInstanceLocal<CreateProvider200 | void>(
+      {url: `/api/v1/providers`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderDeployment
+    },
+      options);
+    }
+  
+
+
+/**
+ * Get provider by id
+ * @summary Get provider detailed
+ */
+export const getProvider = (
+    providerId: string,
+ options?: SecondParameter<typeof customInstanceLocal>) => {
+      return customInstanceLocal<ProviderV2>(
+      {url: `/api/v1/providers/${providerId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetProviderKey = (providerId: string,) => [`/api/v1/providers/${providerId}`];
+
     
+export type GetProviderQueryResult = NonNullable<Awaited<ReturnType<typeof getProvider>>>
+export type GetProviderQueryError = ErrorType<ErrorResponseResponse>
+
+export const useGetProvider = <TError = ErrorType<ErrorResponseResponse>>(
+ providerId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProvider>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceLocal> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(providerId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderKey(providerId) : null);
+  const swrFn = () => getProvider(providerId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+
+/**
+ * @summary Delete provider
+ */
+export const deleteProvider = (
+    providerId: string,
  options?: SecondParameter<typeof customInstanceLocal>) => {
-      return customInstanceLocal<void>(
-      {url: `/api/v1/secrets`, method: 'post'
+      return customInstanceLocal<DeleteProvider200>(
+      {url: `/api/v1/providers/${providerId}`, method: 'delete'
     },
       options);
     }
@@ -1100,31 +1183,16 @@ export const postSecret = (
 
 
 /**
- * Create or update a deployment
+ * @summary Update provider
  */
-export const postDeployment = (
-    deploymentRequestBody: DeploymentRequestBody,
+export const updateProvider = (
+    providerId: string,
+    updateProviderDeployment: UpdateProviderDeployment,
  options?: SecondParameter<typeof customInstanceLocal>) => {
-      return customInstanceLocal<DeploymentResponseResponse>(
-      {url: `/api/v1/deployments`, method: 'post',
+      return customInstanceLocal<ProviderV2 | void>(
+      {url: `/api/v1/providers/${providerId}`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: deploymentRequestBody
-    },
-      options);
-    }
-  
-
-
-/**
- * Delete a deployment
- */
-export const deleteDeployment = (
-    providerV2: ProviderV2,
- options?: SecondParameter<typeof customInstanceLocal>) => {
-      return customInstanceLocal<DeploymentResponseResponse>(
-      {url: `/api/v1/deployments`, method: 'delete',
-      headers: {'Content-Type': 'application/json', },
-      data: providerV2
+      data: updateProviderDeployment
     },
       options);
     }
@@ -1133,31 +1201,45 @@ export const deleteDeployment = (
 
 
 
-export const getPostDeploymentMock = () => ({stackId: faker.random.word()})
+export const getListProvidersMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word()})))
 
-export const getDeleteDeploymentMock = () => ({stackId: faker.random.word()})
+export const getCreateProviderMock = () => ({})
+
+export const getGetProviderMock = () => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word()})
+
+export const getDeleteProviderMock = () => ({})
+
+export const getUpdateProviderMock = () => ({name: faker.random.word(), team: faker.random.word(), version: faker.random.word(), stackId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(ProviderV2Status)), type: faker.random.word(), id: faker.random.word()})
 
 export const getExampleAPIMSW = () => [
-rest.get('*/api/v1/secrets', (_req, res, ctx) => {
+rest.get('*/api/v1/providers', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
+ctx.json(getListProvidersMock()),
         )
-      }),rest.post('*/api/v1/secrets', (_req, res, ctx) => {
+      }),rest.post('*/api/v1/providers', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
+ctx.json(getCreateProviderMock()),
         )
-      }),rest.post('*/api/v1/deployments', (_req, res, ctx) => {
+      }),rest.get('*/api/v1/providers/:providerId', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getPostDeploymentMock()),
+ctx.json(getGetProviderMock()),
         )
-      }),rest.delete('*/api/v1/deployments', (_req, res, ctx) => {
+      }),rest.delete('*/api/v1/providers/:providerId', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getDeleteDeploymentMock()),
+ctx.json(getDeleteProviderMock()),
+        )
+      }),rest.post('*/api/v1/providers/:providerId', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUpdateProviderMock()),
         )
       }),]

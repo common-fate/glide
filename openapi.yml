@@ -806,19 +806,6 @@ paths:
         $ref: "#/components/requestBodies/CreateProviderRequest"
       tags:
         - Admin
-    delete:
-      summary: ""
-      operationId: admin-delete-providerv2
-      responses:
-        "200":
-          description: OK
-      tags:
-        - Admin
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ProviderV2"
   "/api/v1/admin/providersv2/{providerId}":
     get:
       summary: Get provider detailed
@@ -843,6 +830,23 @@ paths:
         name: providerId
         in: path
         required: true
+    delete:
+      summary: Delete providerv2
+      operationId: admin-delete-providerv2
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Update providerv2
+      operationId: admin-update-providerv2
+      responses:
+        "200":
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProviderV2"
   "/api/v1/admin/providers/{providerId}":
     get:
       summary: List providers
@@ -1592,12 +1596,7 @@ components:
         stackId:
           type: string
         status:
-          type: string
-          enum:
-            - creating
-            - configuring
-            - updating
-            - deleting
+          $ref: "#/components/schemas/ProviderV2Status"
         type:
           type: string
         id:
@@ -2217,6 +2216,32 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
+    UpdateProviderV2:
+      title: UpdateProviderV2
+      x-stoplight:
+        id: 8bpot4cenqzjb
+      type: object
+      properties:
+        alias:
+          type: string
+        version:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProviderV2Status"
+      required:
+        - alias
+        - version
+        - status
+    ProviderV2Status:
+      title: ProviderV2Status
+      x-stoplight:
+        id: oz90w79dp4kph
+      type: string
+      enum:
+        - CREATING
+        - UPDATING
+        - DEPLOYED
+        - DELETED
   responses:
     ErrorResponse:
       description: An error returned from the service.

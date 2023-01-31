@@ -18,9 +18,25 @@ import (
 	"strings"
 
 	externalRef0 "github.com/common-fate/common-fate/pkg/types"
+	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 )
+
+// CreateProviderDeployment defines model for CreateProviderDeployment.
+type CreateProviderDeployment struct {
+	// what you call the deployment of the provider
+	Alias   string `json:"alias"`
+	Name    string `json:"name"`
+	Team    string `json:"team"`
+	Version string `json:"version"`
+}
+
+// UpdateProviderDeployment defines model for UpdateProviderDeployment.
+type UpdateProviderDeployment struct {
+	Alias   string `json:"alias"`
+	Version string `json:"version"`
+}
 
 // DeploymentResponse defines model for DeploymentResponse.
 type DeploymentResponse struct {
@@ -40,14 +56,17 @@ type DeploymentRequest struct {
 	Version string  `json:"version"`
 }
 
-// DeleteDeploymentJSONBody defines parameters for DeleteDeployment.
-type DeleteDeploymentJSONBody = externalRef0.ProviderV2
+// CreateProviderJSONBody defines parameters for CreateProvider.
+type CreateProviderJSONBody = CreateProviderDeployment
 
-// DeleteDeploymentJSONRequestBody defines body for DeleteDeployment for application/json ContentType.
-type DeleteDeploymentJSONRequestBody = DeleteDeploymentJSONBody
+// UpdateProviderJSONBody defines parameters for UpdateProvider.
+type UpdateProviderJSONBody = UpdateProviderDeployment
 
-// PostDeploymentJSONRequestBody defines body for PostDeployment for application/json ContentType.
-type PostDeploymentJSONRequestBody DeploymentRequest
+// CreateProviderJSONRequestBody defines body for CreateProvider for application/json ContentType.
+type CreateProviderJSONRequestBody = CreateProviderJSONBody
+
+// UpdateProviderJSONRequestBody defines body for UpdateProvider for application/json ContentType.
+type UpdateProviderJSONRequestBody = UpdateProviderJSONBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -122,25 +141,28 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// DeleteDeployment request with any body
-	DeleteDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListProviders request
+	ListProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	DeleteDeployment(ctx context.Context, body DeleteDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateProvider request with any body
+	CreateProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostDeployment request with any body
-	PostDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateProvider(ctx context.Context, body CreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostDeployment(ctx context.Context, body PostDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteProvider request
+	DeleteProvider(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetSecret request
-	GetSecret(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetProvider request
+	GetProvider(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostSecret request
-	PostSecret(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateProvider request with any body
+	UpdateProviderWithBody(ctx context.Context, providerId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateProvider(ctx context.Context, providerId string, body UpdateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) DeleteDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteDeploymentRequestWithBody(c.Server, contentType, body)
+func (c *Client) ListProviders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListProvidersRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +173,8 @@ func (c *Client) DeleteDeploymentWithBody(ctx context.Context, contentType strin
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteDeployment(ctx context.Context, body DeleteDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteDeploymentRequest(c.Server, body)
+func (c *Client) CreateProviderWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateProviderRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -163,8 +185,8 @@ func (c *Client) DeleteDeployment(ctx context.Context, body DeleteDeploymentJSON
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDeploymentRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateProvider(ctx context.Context, body CreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateProviderRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +197,8 @@ func (c *Client) PostDeploymentWithBody(ctx context.Context, contentType string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDeployment(ctx context.Context, body PostDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDeploymentRequest(c.Server, body)
+func (c *Client) DeleteProvider(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteProviderRequest(c.Server, providerId)
 	if err != nil {
 		return nil, err
 	}
@@ -187,8 +209,8 @@ func (c *Client) PostDeployment(ctx context.Context, body PostDeploymentJSONRequ
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetSecret(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetSecretRequest(c.Server)
+func (c *Client) GetProvider(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetProviderRequest(c.Server, providerId)
 	if err != nil {
 		return nil, err
 	}
@@ -199,8 +221,8 @@ func (c *Client) GetSecret(ctx context.Context, reqEditors ...RequestEditorFn) (
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostSecret(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostSecretRequest(c.Server)
+func (c *Client) UpdateProviderWithBody(ctx context.Context, providerId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProviderRequestWithBody(c.Server, providerId, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -211,19 +233,20 @@ func (c *Client) PostSecret(ctx context.Context, reqEditors ...RequestEditorFn) 
 	return c.Client.Do(req)
 }
 
-// NewDeleteDeploymentRequest calls the generic DeleteDeployment builder with application/json body
-func NewDeleteDeploymentRequest(server string, body DeleteDeploymentJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
+func (c *Client) UpdateProvider(ctx context.Context, providerId string, body UpdateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateProviderRequest(c.Server, providerId, body)
 	if err != nil {
 		return nil, err
 	}
-	bodyReader = bytes.NewReader(buf)
-	return NewDeleteDeploymentRequestWithBody(server, "application/json", bodyReader)
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
-// NewDeleteDeploymentRequestWithBody generates requests for DeleteDeployment with any type of body
-func NewDeleteDeploymentRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewListProvidersRequest generates requests for ListProviders
+func NewListProvidersRequest(server string) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -231,7 +254,7 @@ func NewDeleteDeploymentRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/deployments")
+	operationPath := fmt.Sprintf("/api/v1/providers")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -241,29 +264,27 @@ func NewDeleteDeploymentRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), body)
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Content-Type", contentType)
-
 	return req, nil
 }
 
-// NewPostDeploymentRequest calls the generic PostDeployment builder with application/json body
-func NewPostDeploymentRequest(server string, body PostDeploymentJSONRequestBody) (*http.Request, error) {
+// NewCreateProviderRequest calls the generic CreateProvider builder with application/json body
+func NewCreateProviderRequest(server string, body CreateProviderJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostDeploymentRequestWithBody(server, "application/json", bodyReader)
+	return NewCreateProviderRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostDeploymentRequestWithBody generates requests for PostDeployment with any type of body
-func NewPostDeploymentRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateProviderRequestWithBody generates requests for CreateProvider with any type of body
+func NewCreateProviderRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -271,7 +292,7 @@ func NewPostDeploymentRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/deployments")
+	operationPath := fmt.Sprintf("/api/v1/providers")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -291,16 +312,57 @@ func NewPostDeploymentRequestWithBody(server string, contentType string, body io
 	return req, nil
 }
 
-// NewGetSecretRequest generates requests for GetSecret
-func NewGetSecretRequest(server string) (*http.Request, error) {
+// NewDeleteProviderRequest generates requests for DeleteProvider
+func NewDeleteProviderRequest(server string, providerId string) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/secrets")
+	operationPath := fmt.Sprintf("/api/v1/providers/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetProviderRequest generates requests for GetProvider
+func NewGetProviderRequest(server string, providerId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/providers/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -318,16 +380,34 @@ func NewGetSecretRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewPostSecretRequest generates requests for PostSecret
-func NewPostSecretRequest(server string) (*http.Request, error) {
+// NewUpdateProviderRequest calls the generic UpdateProvider builder with application/json body
+func NewUpdateProviderRequest(server string, providerId string, body UpdateProviderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateProviderRequestWithBody(server, providerId, "application/json", bodyReader)
+}
+
+// NewUpdateProviderRequestWithBody generates requests for UpdateProvider with any type of body
+func NewUpdateProviderRequestWithBody(server string, providerId string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providerId", runtime.ParamLocationPath, providerId)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/secrets")
+	operationPath := fmt.Sprintf("/api/v1/providers/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -337,10 +417,12 @@ func NewPostSecretRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -388,33 +470,43 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// DeleteDeployment request with any body
-	DeleteDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteDeploymentResponse, error)
+	// ListProviders request
+	ListProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListProvidersResponse, error)
 
-	DeleteDeploymentWithResponse(ctx context.Context, body DeleteDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteDeploymentResponse, error)
+	// CreateProvider request with any body
+	CreateProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProviderResponse, error)
 
-	// PostDeployment request with any body
-	PostDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeploymentResponse, error)
+	CreateProviderWithResponse(ctx context.Context, body CreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProviderResponse, error)
 
-	PostDeploymentWithResponse(ctx context.Context, body PostDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeploymentResponse, error)
+	// DeleteProvider request
+	DeleteProviderWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*DeleteProviderResponse, error)
 
-	// GetSecret request
-	GetSecretWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSecretResponse, error)
+	// GetProvider request
+	GetProviderWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error)
 
-	// PostSecret request
-	PostSecretWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostSecretResponse, error)
+	// UpdateProvider request with any body
+	UpdateProviderWithBodyWithResponse(ctx context.Context, providerId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProviderResponse, error)
+
+	UpdateProviderWithResponse(ctx context.Context, providerId string, body UpdateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProviderResponse, error)
 }
 
-type DeleteDeploymentResponse struct {
+type ListProvidersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		StackId string `json:"stackId"`
+	JSON200      *[]externalRef0.ProviderV2
+	JSON401      *struct {
+		Error *string `json:"error,omitempty"`
+	}
+	JSON404 *struct {
+		Error *string `json:"error,omitempty"`
+	}
+	JSON500 *struct {
+		Error *string `json:"error,omitempty"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteDeploymentResponse) Status() string {
+func (r ListProvidersResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -422,23 +514,24 @@ func (r DeleteDeploymentResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteDeploymentResponse) StatusCode() int {
+func (r ListProvidersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostDeploymentResponse struct {
+type CreateProviderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		StackId string `json:"stackId"`
+	JSON200      *map[string]interface{}
+	JSON500      *struct {
+		Error *string `json:"error,omitempty"`
 	}
 }
 
 // Status returns HTTPResponse.Status
-func (r PostDeploymentResponse) Status() string {
+func (r CreateProviderResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -446,20 +539,24 @@ func (r PostDeploymentResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostDeploymentResponse) StatusCode() int {
+func (r CreateProviderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetSecretResponse struct {
+type DeleteProviderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *map[string]interface{}
+	JSON500      *struct {
+		Error *string `json:"error,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
-func (r GetSecretResponse) Status() string {
+func (r DeleteProviderResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -467,20 +564,27 @@ func (r GetSecretResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetSecretResponse) StatusCode() int {
+func (r DeleteProviderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostSecretResponse struct {
+type GetProviderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *externalRef0.ProviderV2
+	JSON401      *struct {
+		Error *string `json:"error,omitempty"`
+	}
+	JSON500 *struct {
+		Error *string `json:"error,omitempty"`
+	}
 }
 
 // Status returns HTTPResponse.Status
-func (r PostSecretResponse) Status() string {
+func (r GetProviderResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -488,148 +592,296 @@ func (r PostSecretResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostSecretResponse) StatusCode() int {
+func (r GetProviderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// DeleteDeploymentWithBodyWithResponse request with arbitrary body returning *DeleteDeploymentResponse
-func (c *ClientWithResponses) DeleteDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeleteDeploymentResponse, error) {
-	rsp, err := c.DeleteDeploymentWithBody(ctx, contentType, body, reqEditors...)
+type UpdateProviderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.ProviderV2
+	JSON500      *struct {
+		Error *string `json:"error,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateProviderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateProviderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ListProvidersWithResponse request returning *ListProvidersResponse
+func (c *ClientWithResponses) ListProvidersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListProvidersResponse, error) {
+	rsp, err := c.ListProviders(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteDeploymentResponse(rsp)
+	return ParseListProvidersResponse(rsp)
 }
 
-func (c *ClientWithResponses) DeleteDeploymentWithResponse(ctx context.Context, body DeleteDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*DeleteDeploymentResponse, error) {
-	rsp, err := c.DeleteDeployment(ctx, body, reqEditors...)
+// CreateProviderWithBodyWithResponse request with arbitrary body returning *CreateProviderResponse
+func (c *ClientWithResponses) CreateProviderWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProviderResponse, error) {
+	rsp, err := c.CreateProviderWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteDeploymentResponse(rsp)
+	return ParseCreateProviderResponse(rsp)
 }
 
-// PostDeploymentWithBodyWithResponse request with arbitrary body returning *PostDeploymentResponse
-func (c *ClientWithResponses) PostDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeploymentResponse, error) {
-	rsp, err := c.PostDeploymentWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) CreateProviderWithResponse(ctx context.Context, body CreateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProviderResponse, error) {
+	rsp, err := c.CreateProvider(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDeploymentResponse(rsp)
+	return ParseCreateProviderResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostDeploymentWithResponse(ctx context.Context, body PostDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeploymentResponse, error) {
-	rsp, err := c.PostDeployment(ctx, body, reqEditors...)
+// DeleteProviderWithResponse request returning *DeleteProviderResponse
+func (c *ClientWithResponses) DeleteProviderWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*DeleteProviderResponse, error) {
+	rsp, err := c.DeleteProvider(ctx, providerId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDeploymentResponse(rsp)
+	return ParseDeleteProviderResponse(rsp)
 }
 
-// GetSecretWithResponse request returning *GetSecretResponse
-func (c *ClientWithResponses) GetSecretWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetSecretResponse, error) {
-	rsp, err := c.GetSecret(ctx, reqEditors...)
+// GetProviderWithResponse request returning *GetProviderResponse
+func (c *ClientWithResponses) GetProviderWithResponse(ctx context.Context, providerId string, reqEditors ...RequestEditorFn) (*GetProviderResponse, error) {
+	rsp, err := c.GetProvider(ctx, providerId, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetSecretResponse(rsp)
+	return ParseGetProviderResponse(rsp)
 }
 
-// PostSecretWithResponse request returning *PostSecretResponse
-func (c *ClientWithResponses) PostSecretWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*PostSecretResponse, error) {
-	rsp, err := c.PostSecret(ctx, reqEditors...)
+// UpdateProviderWithBodyWithResponse request with arbitrary body returning *UpdateProviderResponse
+func (c *ClientWithResponses) UpdateProviderWithBodyWithResponse(ctx context.Context, providerId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProviderResponse, error) {
+	rsp, err := c.UpdateProviderWithBody(ctx, providerId, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostSecretResponse(rsp)
+	return ParseUpdateProviderResponse(rsp)
 }
 
-// ParseDeleteDeploymentResponse parses an HTTP response from a DeleteDeploymentWithResponse call
-func ParseDeleteDeploymentResponse(rsp *http.Response) (*DeleteDeploymentResponse, error) {
+func (c *ClientWithResponses) UpdateProviderWithResponse(ctx context.Context, providerId string, body UpdateProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProviderResponse, error) {
+	rsp, err := c.UpdateProvider(ctx, providerId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateProviderResponse(rsp)
+}
+
+// ParseListProvidersResponse parses an HTTP response from a ListProvidersWithResponse call
+func ParseListProvidersResponse(rsp *http.Response) (*ListProvidersResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteDeploymentResponse{
+	response := &ListProvidersResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			StackId string `json:"stackId"`
-		}
+		var dest []externalRef0.ProviderV2
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
 	return response, nil
 }
 
-// ParsePostDeploymentResponse parses an HTTP response from a PostDeploymentWithResponse call
-func ParsePostDeploymentResponse(rsp *http.Response) (*PostDeploymentResponse, error) {
+// ParseCreateProviderResponse parses an HTTP response from a CreateProviderWithResponse call
+func ParseCreateProviderResponse(rsp *http.Response) (*CreateProviderResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostDeploymentResponse{
+	response := &CreateProviderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			StackId string `json:"stackId"`
-		}
+		var dest map[string]interface{}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
 }
 
-// ParseGetSecretResponse parses an HTTP response from a GetSecretWithResponse call
-func ParseGetSecretResponse(rsp *http.Response) (*GetSecretResponse, error) {
+// ParseDeleteProviderResponse parses an HTTP response from a DeleteProviderWithResponse call
+func ParseDeleteProviderResponse(rsp *http.Response) (*DeleteProviderResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetSecretResponse{
+	response := &DeleteProviderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
 }
 
-// ParsePostSecretResponse parses an HTTP response from a PostSecretWithResponse call
-func ParsePostSecretResponse(rsp *http.Response) (*PostSecretResponse, error) {
+// ParseGetProviderResponse parses an HTTP response from a GetProviderWithResponse call
+func ParseGetProviderResponse(rsp *http.Response) (*GetProviderResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostSecretResponse{
+	response := &GetProviderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.ProviderV2
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateProviderResponse parses an HTTP response from a UpdateProviderWithResponse call
+func ParseUpdateProviderResponse(rsp *http.Response) (*UpdateProviderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateProviderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.ProviderV2
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error *string `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
@@ -637,18 +889,21 @@ func ParsePostSecretResponse(rsp *http.Response) (*PostSecretResponse, error) {
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-
-	// (DELETE /api/v1/deployments)
-	DeleteDeployment(w http.ResponseWriter, r *http.Request)
-
-	// (POST /api/v1/deployments)
-	PostDeployment(w http.ResponseWriter, r *http.Request)
-	// Your GET endpoint
-	// (GET /api/v1/secrets)
-	GetSecret(w http.ResponseWriter, r *http.Request)
-
-	// (POST /api/v1/secrets)
-	PostSecret(w http.ResponseWriter, r *http.Request)
+	// List providers
+	// (GET /api/v1/providers)
+	ListProviders(w http.ResponseWriter, r *http.Request)
+	// Create provider
+	// (POST /api/v1/providers)
+	CreateProvider(w http.ResponseWriter, r *http.Request)
+	// Delete provider
+	// (DELETE /api/v1/providers/{providerId})
+	DeleteProvider(w http.ResponseWriter, r *http.Request, providerId string)
+	// Get provider detailed
+	// (GET /api/v1/providers/{providerId})
+	GetProvider(w http.ResponseWriter, r *http.Request, providerId string)
+	// Update provider
+	// (POST /api/v1/providers/{providerId})
+	UpdateProvider(w http.ResponseWriter, r *http.Request, providerId string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -660,12 +915,12 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
 
-// DeleteDeployment operation middleware
-func (siw *ServerInterfaceWrapper) DeleteDeployment(w http.ResponseWriter, r *http.Request) {
+// ListProviders operation middleware
+func (siw *ServerInterfaceWrapper) ListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteDeployment(w, r)
+		siw.Handler.ListProviders(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -675,12 +930,12 @@ func (siw *ServerInterfaceWrapper) DeleteDeployment(w http.ResponseWriter, r *ht
 	handler(w, r.WithContext(ctx))
 }
 
-// PostDeployment operation middleware
-func (siw *ServerInterfaceWrapper) PostDeployment(w http.ResponseWriter, r *http.Request) {
+// CreateProvider operation middleware
+func (siw *ServerInterfaceWrapper) CreateProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostDeployment(w, r)
+		siw.Handler.CreateProvider(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -690,12 +945,23 @@ func (siw *ServerInterfaceWrapper) PostDeployment(w http.ResponseWriter, r *http
 	handler(w, r.WithContext(ctx))
 }
 
-// GetSecret operation middleware
-func (siw *ServerInterfaceWrapper) GetSecret(w http.ResponseWriter, r *http.Request) {
+// DeleteProvider operation middleware
+func (siw *ServerInterfaceWrapper) DeleteProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	var err error
+
+	// ------------- Path parameter "providerId" -------------
+	var providerId string
+
+	err = runtime.BindStyledParameter("simple", false, "providerId", chi.URLParam(r, "providerId"), &providerId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providerId", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSecret(w, r)
+		siw.Handler.DeleteProvider(w, r, providerId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -705,12 +971,49 @@ func (siw *ServerInterfaceWrapper) GetSecret(w http.ResponseWriter, r *http.Requ
 	handler(w, r.WithContext(ctx))
 }
 
-// PostSecret operation middleware
-func (siw *ServerInterfaceWrapper) PostSecret(w http.ResponseWriter, r *http.Request) {
+// GetProvider operation middleware
+func (siw *ServerInterfaceWrapper) GetProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	var err error
+
+	// ------------- Path parameter "providerId" -------------
+	var providerId string
+
+	err = runtime.BindStyledParameter("simple", false, "providerId", chi.URLParam(r, "providerId"), &providerId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providerId", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSecret(w, r)
+		siw.Handler.GetProvider(w, r, providerId)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UpdateProvider operation middleware
+func (siw *ServerInterfaceWrapper) UpdateProvider(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "providerId" -------------
+	var providerId string
+
+	err = runtime.BindStyledParameter("simple", false, "providerId", chi.URLParam(r, "providerId"), &providerId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providerId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateProvider(w, r, providerId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -834,16 +1137,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/deployments", wrapper.DeleteDeployment)
+		r.Get(options.BaseURL+"/api/v1/providers", wrapper.ListProviders)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/deployments", wrapper.PostDeployment)
+		r.Post(options.BaseURL+"/api/v1/providers", wrapper.CreateProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/secrets", wrapper.GetSecret)
+		r.Delete(options.BaseURL+"/api/v1/providers/{providerId}", wrapper.DeleteProvider)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/secrets", wrapper.PostSecret)
+		r.Get(options.BaseURL+"/api/v1/providers/{providerId}", wrapper.GetProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/providers/{providerId}", wrapper.UpdateProvider)
 	})
 
 	return r
@@ -852,16 +1158,20 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6xUTW/UMBD9K9bAMYrTciK30paq4sAKEBKqejDJ7K5L7DHjScWqyn9Hdvazm1JVNJdY",
-	"8/2e5/kBGnKBPHqJUD8A4+8eo3yg1mI2XGDoaOXQy5fRlYwNeUGfjyaEzjZGLHl9F8knW2yW6Ew6BaaA",
-	"LOta3jhMf1kFhBqisPULGAqIYppf1+2kT9C4Scc9crRjw0e+ocg4LGML9c1YoRi779Jui00a/bzDRmBI",
-	"X8qMgXw8Rj+a/wP+0ygfDbwJnBqxgBZjwzZIxg6Xf4wLHarN2ImZS2biVxgYU53pcZ+d68yrnK4YpWeP",
-	"rZozOSVLVGez63JMsX5Om/lMI7sdgXNyjrz6aCTdWc8d1LAUCbHWusm+uREsLcGTjJzNrqEAsdLhkXW7",
-	"O3BSVqkEBfQmWKjhXVmVFRQQjCwzC9oEq+9PdLvdhWxusUPB8bTf/iLblVG7eMj1OZOe7n8dc7EfsBPe",
-	"6kU39pZxDjWUeo2gXLnujd6JWo+hUc+Y7m2L/P0UJhb9tKr2qh0U2MbpCTXkSoHGZ+GQiHNGI6iIVR9a",
-	"8xwlM4ryL0KmJ9t7rPTxS/WKIIdiuwcRG8ZxBxaYcR8iuUL5mkNguv0hS58/ZT3F3jnDK6jhB/Wsri6/",
-	"KfRtIOszjA3Dx5y9tFWGEpGTAqC+edjTVq11R43plhSlfl9VFQzpBTKLMXCtzAWbpICh2Fq492IdwnA7",
-	"/A0AAP//X130M08GAAA=",
+	"H4sIAAAAAAAC/7RXzY7iRhB+FauSo4M9LBziG9ndrFAiBUVKLisOvXaBm7h/aBfsWMjvHnU3xnhsa5YZ",
+	"mMtYVa6/r6q+MidIldBKoqQSkhMY3B+wpN9UxtEJPqEuVCVQ0t9eZYWpkoTSPTKtC54y4kpGu1JJKyvT",
+	"HAWzT9oojYbOviQTaP9TpRESKMlwuYU6hJJY+t8yG9QRMjGoOKIpuQ/4QleHrg5uMIPkq/cQ+uit2Tps",
+	"zNS3HaYEtf2zlqVWsuxX78XvKH+8yhcJNy8OpRhChmVquCZXO3x+ZkIXGDRpW2Q+G6PMHRJG62c43Vfz",
+	"WsjAmQcG6WAkZsHGKBFQjsFitZw4Jz6uC/XRICNcGXXkGZoW9n5SrODepBvve84oqNQhSFlRuDDZxUmg",
+	"Nk6iz+4h7E/T6Gw+av7CcyW2yZwKaz8Kwku8Q3j+pSSlC77NHUQ8gwSe91MzL77nOzNXe5fFPzq7FdW3",
+	"l+lddBfsXNhoHj9W2IaLHZt/mPHZVO/BrymXG9WMNkuppRf4qIRQMvidkYX7YApIICfSZRJFqdNtGOGE",
+	"KxhdpsVqCW32XekFD3iaxNaF0iiZ5pDAh0k8iSEEzSh3YEZM8+j4FDWD54RbpP74/slLCtrXnFfjttQS",
+	"hlOvrrQdkprG8U1LzgmFM/zZ4AYSmETnEiaVKH6K2oMQnRc0akL/O4V295kxrBpa/b/+sG/N4qerGB23",
+	"l+yjLlM5q9kbrOYegZusLP8chGCm6sNfh6CVP3XdPnQ3FMKre1nd1IOhVBu0R2lg4EDd2vtXeds3b+qb",
+	"11X5vLK7AO59tYxstb1tiU7N4zKrfT4FEvbb8snJO215PEbvxsBnfYVBOMwNX7CdzeBbFfCsxw9fkO5V",
+	"/ZtI4b4k8G5kO4hlSIwXaEEjti3tqVpkgktY2zVnhgkkR81fT8Bt6pa+m3udQDuCcH3vyBww7A/N5Tau",
+	"xyikewsfRCGjB/cOFHLXAXk40XgkronGqtEcm5a3HwhJFBUqZUWuSkp+jeMYbBfPM3P5vNgaZn8r1eFF",
+	"Yg6SuECo1/X/AQAA//8FWQBKTw0AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

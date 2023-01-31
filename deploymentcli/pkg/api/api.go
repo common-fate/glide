@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/common-fate/deploymentcli/pkg/services/deploymentsvc"
 	"github.com/common-fate/common-fate/deploymentcli/pkg/types"
+	cfTypes "github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/go-chi/chi/v5"
 )
@@ -29,6 +30,7 @@ import (
 // signature matches the ServerInterface interface.
 type API struct {
 	Registry          providerregistrysdk.ClientWithResponsesInterface
+	CommonFate        cfTypes.ClientWithResponsesInterface
 	DeploymentService deploymentsvc.Service
 }
 
@@ -37,6 +39,7 @@ var _ types.ServerInterface = &API{}
 
 type Opts struct {
 	ProviderRegistryAPIURL string
+	CommonFateAPIURL       string
 }
 
 // New creates a new API. You can add any additional constructor logic here.
@@ -45,11 +48,16 @@ func New(ctx context.Context, o Opts) (*API, error) {
 	if err != nil {
 		return nil, err
 	}
+	commonfate, err := cfTypes.NewClientWithResponses(o.CommonFateAPIURL)
+	if err != nil {
+		return nil, err
+	}
 	a := API{
 		Registry: registryClient,
 		DeploymentService: deploymentsvc.Service{
 			Registry: registryClient,
 		},
+		CommonFate: commonfate,
 	}
 	return &a, nil
 }

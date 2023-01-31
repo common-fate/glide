@@ -9,42 +9,103 @@ info:
 servers:
   - url: "http://localhost:9000"
 paths:
-  /api/v1/secrets:
+  /api/v1/providers:
     get:
-      summary: Your GET endpoint
-      tags: []
+      summary: List providers
       responses:
         "200":
           description: OK
-      operationId: get-secret
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./openapi.yml#/components/schemas/ProviderV2
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: list-providers
+      description: List providers
     post:
-      summary: ""
-      operationId: post-secret
+      summary: Create provider
+      operationId: create-provider
       responses:
         "200":
           description: OK
-  /api/v1/deployments:
-    post:
-      summary: ""
-      operationId: post-deployment
-      responses:
-        "200":
-          $ref: "#/components/responses/DeploymentResponse"
-      description: Create or update a deployment
-      requestBody:
-        $ref: "#/components/requestBodies/DeploymentRequest"
-    delete:
-      summary: ""
-      operationId: delete-deployment
-      responses:
-        "200":
-          $ref: "#/components/responses/DeploymentResponse"
-      description: Delete a deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "201":
+          description: Created
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: ""
       requestBody:
         content:
           application/json:
             schema:
-              $ref: ./openapi.yml#/components/schemas/ProviderV2
+              $ref: "#/components/schemas/CreateProviderDeployment"
+  "/api/v1/providers/{providerId}":
+    get:
+      summary: Get provider detailed
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yml#/components/schemas/ProviderV2
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: get-provider
+      description: Get provider by id
+    parameters:
+      - schema:
+          type: string
+        name: providerId
+        in: path
+        required: true
+    delete:
+      summary: Delete provider
+      operationId: delete-provider
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      summary: Update provider
+      operationId: update-provider
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yml#/components/schemas/ProviderV2
+        "201":
+          description: Created
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProviderDeployment"
 components:
   responses:
     ErrorResponse:
@@ -87,6 +148,40 @@ components:
               - team
               - name
               - version
+  schemas:
+    CreateProviderDeployment:
+      title: CreateProviderDeployment
+      x-stoplight:
+        id: xq2r5lwhjr5oq
+      type: object
+      properties:
+        team:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        alias:
+          type: string
+          description: what you call the deployment of the provider
+      required:
+        - team
+        - name
+        - version
+        - alias
+    UpdateProviderDeployment:
+      title: UpdateProviderDeployment
+      x-stoplight:
+        id: fimja534i42pq
+      type: object
+      properties:
+        alias:
+          type: string
+        version:
+          type: string
+      required:
+        - alias
+        - version
 tags:
   - name: grants
   - name: runtime

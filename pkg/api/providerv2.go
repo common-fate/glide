@@ -69,16 +69,10 @@ func (a *API) AdminGetProviderv2(w http.ResponseWriter, r *http.Request, provide
 }
 
 // (DELETE /api/v1/admin/providersv2)
-func (a *API) AdminDeleteProviderv2(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminDeleteProviderv2(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
-	var providerID types.AdminDeleteProviderv2JSONRequestBody
-	err := apio.DecodeJSONBody(w, r, &providerID)
-	if err != nil {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-		return
-	}
 
-	q := storage.GetProvider{ID: providerID.StackId}
+	q := storage.GetProvider{ID: providerId}
 	_, err = a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)

@@ -94,6 +94,7 @@ export * from './reviewDecision';
 export * from './reviewRequestBody';
 export * from './reviewResponseResponse';
 export * from './timeConstraints';
+export * from './updateProviderV2';
 export * from './user';
 export * from './userCancelRequest200';
 export * from './userListRequestsParams';
