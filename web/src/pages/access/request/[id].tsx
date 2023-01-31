@@ -408,6 +408,8 @@ const AccessRequestForm = (props: AccessRequestProps) => {
     const u = new URL(window.location.href);
     u.search = location.stringifySearch(a.Search);
     setUrlClipboardValue(u.toString());
+    /** this is needed as redundancy bc. `urlClipboardValue` is not always stateful when used by useClipboard */
+    clipboard.setValue(u.toString());
   }, [formData]);
 
   return (
