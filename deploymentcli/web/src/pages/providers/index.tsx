@@ -10,19 +10,15 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { UserLayout } from "../../components/Layout";
 import { ProviderIcon } from "../../components/icons/providerIcon";
-
-import {
-  useAdminListProviders,
-  useAdminListProvidersv2,
-} from "../../utils/common-fate-client/admin/admin";
-import { ProviderV2 } from "../../utils/common-fate-client/types";
+import { useListProviders } from "../../utils/local-client/deploymentcli/deploymentcli";
+import { ProviderV2 } from "../../utils/local-client/types/openapi.yml";
 
 /** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
 export const uniqueProviderKey = (provider: ProviderV2) =>
   `${provider.team}/${provider.name}/${provider.version}`;
 
 const Providers = () => {
-  const { data: providers } = useAdminListProvidersv2();
+  const { data: providers } = useListProviders();
 
   return (
     <UserLayout>
@@ -60,7 +56,6 @@ const Providers = () => {
                     to={`/providers/${provider.id}`}
                   >
                     {/* <ProviderIcon type={provider.name} mb={3} h="8" w="8" /> */}
-
                     <Text textStyle="Body/SmallBold" color="neutrals.700">
                       {provider.id}
                     </Text>

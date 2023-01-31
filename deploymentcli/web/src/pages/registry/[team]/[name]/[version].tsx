@@ -3,8 +3,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../../../components/Layout";
-import { adminCreateProviderv2 } from "../../../../utils/common-fate-client/admin/admin";
-import { postDeployment } from "../../../../utils/local-client/orval";
+import { createProvider } from "../../../../utils/local-client/deploymentcli/deploymentcli";
 import { useGetProvider } from "../../../../utils/registry-client/orval";
 
 const RegistryProvider = () => {
@@ -21,29 +20,13 @@ const RegistryProvider = () => {
     // call deployment CLI, get the stack id...
     // stackId = await deployCLI.create()
     setLoading(true);
-    postDeployment({ name, team, version })
-      .then(({ stackId }) => {
-        adminCreateProviderv2({
-          team,
-          name,
-          version,
-          stackId,
-          alias: "",
-        })
-          .then(() => {
-            setLoading(false);
-            // navigate to the provider page
-          })
-          .catch((e) => {
-            console.log(e);
-          });
-      })
+    createProvider({ name, team, version, alias: "" })
+      .then(() => {})
       .finally(() => {
         setLoading(false);
       });
-
-    // now call CF to create the provider
   };
+
   return (
     <UserLayout>
       <Helmet>

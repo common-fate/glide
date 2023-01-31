@@ -589,7 +589,7 @@ export const useAdminListProviders = <TError = ErrorType<ErrorResponseResponse>>
 export const adminListProvidersv2 = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider[]>(
+      return customInstance<ProviderV2[]>(
       {url: `/api/v1/admin/providersv2`, method: 'get'
     },
       options);

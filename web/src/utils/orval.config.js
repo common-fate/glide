@@ -6,7 +6,6 @@ module.exports = {
       target: "./backend-client/orval.ts",
       schemas: "./backend-client/types",
       client: "swr",
-      mock: true,
       override: {
         mutator: {
           path: "./custom-instance.ts",

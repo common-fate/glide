@@ -22,39 +22,34 @@ paths:
                 items:
                   $ref: ./openapi.yml#/components/schemas/ProviderV2
         "401":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
         "404":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       operationId: list-providers
-      description: List providers
+      description: Lists the Providers installed to an org's Common Fate account
+      tags:
+        - deploymentcli
     post:
       summary: Create provider
       operationId: create-provider
       responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
         "201":
           description: Created
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       description: ""
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateProviderDeployment"
+      tags:
+        - deploymentcli
   "/api/v1/providers/{providerId}":
     get:
       summary: Get provider detailed
-      tags:
-        - Admin
       responses:
         "200":
           description: OK
@@ -63,11 +58,13 @@ paths:
               schema:
                 $ref: ./openapi.yml#/components/schemas/ProviderV2
         "401":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       operationId: get-provider
       description: Get provider by id
+      tags:
+        - deploymentcli
     parameters:
       - schema:
           type: string
@@ -86,7 +83,9 @@ paths:
                 type: object
                 properties: {}
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
+      tags:
+        - deploymentcli
     post:
       summary: Update provider
       operationId: update-provider
@@ -100,24 +99,16 @@ paths:
         "201":
           description: Created
         "500":
-          $ref: "#/components/responses/ErrorResponse"
+          $ref: ./openapi.yml#/components/responses/ErrorResponse
       requestBody:
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateProviderDeployment"
+      tags:
+        - deploymentcli
 components:
   responses:
-    ErrorResponse:
-      description: An error returned from the API.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-          examples: {}
     DeploymentResponse:
       description: Example response
       content:
