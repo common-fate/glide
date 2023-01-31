@@ -2,12 +2,8 @@ import { AvatarProps, Avatar, HStack, Text, TextProps } from "@chakra-ui/react";
 import React from "react";
 import { TerraformIcon } from "./icons/Icons";
 
-export enum BotType {
-  Terraform,
-}
-
 interface BotAvatarProps extends AvatarProps {
-  botType: BotType;
+  botType: string;
   textProps?: TextProps;
   tooltip?: boolean;
 }
@@ -19,7 +15,7 @@ export const BotAvatarDetails: React.FC<BotAvatarProps> = ({
   ...rest
 }) => {
   switch (botType) {
-    case BotType.Terraform:
+    case "bot_governance_api":
       return (
         <HStack>
           <Avatar
@@ -27,19 +23,15 @@ export const BotAvatarDetails: React.FC<BotAvatarProps> = ({
             {...rest}
             bg="white"
           />
-          <Text {...textProps}>Terraform</Text>
+          <Text {...textProps}>Governance API</Text>
         </HStack>
       );
 
     default:
       return (
         <HStack>
-          <Avatar
-            icon={<TerraformIcon fontSize="0.9rem" />}
-            {...rest}
-            bg="white"
-          />
-          <Text {...textProps}>Terraform</Text>
+          <Avatar {...rest} bg="white" />
+          <Text {...textProps}>{botType}</Text>
         </HStack>
       );
       break;

@@ -1,15 +1,8 @@
-import {
-  AvatarProps,
-  HStack,
-  TextProps,
-  SkeletonCircle,
-  SkeletonText,
-} from "@chakra-ui/react";
+import { AvatarProps, TextProps } from "@chakra-ui/react";
 import React from "react";
-import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 
+import { BotAvatarDetails } from "./BotAvatar";
 import { UserAvatarDetails } from "./UserAvatar";
-import { BotAvatarDetails, BotType } from "./BotAvatar";
 
 interface CFAvatarProps extends AvatarProps {
   //   type: AvatarType;
@@ -20,22 +13,11 @@ interface CFAvatarProps extends AvatarProps {
 
 // UserAvatar loads a user avatar from a user ID
 export const CFAvatar: React.FC<CFAvatarProps> = ({ userId }) => {
-  const { data, isValidating } = useUserGetUser(userId);
-
-  if (!data && isValidating) {
-    return (
-      <HStack>
-        <SkeletonCircle size="6" />
-        <SkeletonText noOfLines={1} w="12ch" />
-      </HStack>
-    );
-  }
-
-  if (userId != "tf_bot" && data) {
+  if (userId != "bot_governance_api") {
     return (
       <UserAvatarDetails
         tooltip
-        user={data}
+        userId={userId}
         size="xs"
         variant="withBorder"
         textProps={{
@@ -58,7 +40,7 @@ export const CFAvatar: React.FC<CFAvatarProps> = ({ userId }) => {
           noOfLines: 1,
           color: "neutrals.700",
         }}
-        botType={BotType.Terraform}
+        botType={userId}
       />
     );
   }

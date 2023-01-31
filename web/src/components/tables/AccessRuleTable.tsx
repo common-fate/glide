@@ -132,11 +132,7 @@ export const AccessRuleTable = () => {
             <HStack>
               <CFAvatar
                 tooltip
-                userId={
-                  cell.value?.createdBy !== ""
-                    ? cell.value?.createdBy
-                    : "tf_bot"
-                }
+                userId={cell.value?.createdBy}
                 size="xs"
                 variant="withBorder"
                 textProps={{
