@@ -13,7 +13,7 @@ import {
   Text,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../components/Layout";

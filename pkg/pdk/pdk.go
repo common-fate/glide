@@ -5,9 +5,10 @@ import "encoding/json"
 type payloadType string
 
 const (
-	payloadTypeGrant  payloadType = "grant"
-	payloadTypeRevoke payloadType = "revoke"
-	payloadTypeSchema payloadType = "schema"
+	payloadTypeGrant         payloadType = "grant"
+	payloadTypeRevoke        payloadType = "revoke"
+	payloadTypeSchema        payloadType = "schema"
+	payloadTypeLoadResources payloadType = "loadResources"
 )
 
 type payload struct {
@@ -52,5 +53,20 @@ func NewRevokeEvent(subject string, target map[string]string) payload {
 func NewSchemaEvent() payload {
 	return payload{
 		Type: payloadTypeSchema,
+	}
+}
+
+type loadResourceData struct {
+	Name string      `json:"name"`
+	Ctx  interface{} `json:"ctx"`
+}
+
+func NewLoadResourcesEvent(name string, ctx interface{}) payload {
+	return payload{
+		Type: payloadTypeLoadResources,
+		Data: loadResourceData{
+			Name: name,
+			Ctx:  ctx,
+		},
 	}
 }

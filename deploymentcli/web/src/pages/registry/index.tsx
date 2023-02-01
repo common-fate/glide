@@ -34,7 +34,7 @@ const Providers = () => {
         minW={{ base: "100%", lg: "container.lg" }}
         overflowX="auto"
       >
-        <Heading>Deploy a provider</Heading>
+        <Text textStyle="Heading/H3">Provider Registry</Text>
         <SimpleGrid columns={2} spacing={4} p={0} mt={6}>
           {providers &&
             providers.providers.map((provider) => {

@@ -23,7 +23,7 @@ func (a *API) ListProviders(w http.ResponseWriter, r *http.Request) {
 	apio.JSON(ctx, w, res.JSON200, res.StatusCode())
 }
 
-// Create provider deployment in Common Fate
+// Create provider deployment in CEommon Fate
 // (POST /api/v1/providers)
 func (a *API) CreateProvider(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -55,7 +55,12 @@ func (a *API) CreateProvider(w http.ResponseWriter, r *http.Request) {
 		apio.JSON(ctx, w, prov.Body, prov.StatusCode())
 	}
 	a.BackgroundService.StartPollForDeploymentStatus(stackID, *prov.JSON200)
-	apio.JSON(ctx, w, prov.Body, prov.StatusCode())
+
+	res := types.DeploymentResponse{
+		StackId: prov.JSON200.Id,
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // Delete provider
