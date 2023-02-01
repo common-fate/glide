@@ -97,7 +97,11 @@ func (a *API) AdminDeleteProviderv2(w http.ResponseWriter, r *http.Request, prov
 	}
 	q.Result.Status = types.DELETED
 
-	a.DB.Put(ctx, q.Result)
+	err = a.DB.Put(ctx, q.Result)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
 	apio.JSON(ctx, w, q.Result.ToAPIV2(), http.StatusOK)
 }

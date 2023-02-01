@@ -1,6 +1,8 @@
+import React from "react";
 import {
   Box,
   Container,
+  Flex,
   Heading,
   LinkOverlay,
   SimpleGrid,
@@ -12,6 +14,7 @@ import { UserLayout } from "../../components/Layout";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { useListProviders } from "../../utils/local-client/deploymentcli/deploymentcli";
 import { ProviderV2 } from "../../utils/local-client/types/openapi.yml";
+import ProviderStatus from "../../components/ProviderStatus";
 
 /** `${provider.team}/${provider.name}` is the format that will be used for detail lookup on /provider/[id] routes */
 export const uniqueProviderKey = (provider: ProviderV2) =>
@@ -30,14 +33,13 @@ const Providers = () => {
         minW={{ base: "100%", lg: "container.lg" }}
         overflowX="auto"
       >
-        <Heading>My Providers</Heading>
-        <SimpleGrid columns={2} spacing={4} p={0} mt={6}>
+        <Text textStyle="Heading/H3">Provider Deployments</Text>
+        <SimpleGrid columns={1} spacing={4} p={0} mt={6}>
           {providers &&
             providers?.map((provider) => {
               return (
                 <Box
                   key={provider.id}
-                  as="button"
                   className="group"
                   textAlign="center"
                   bg="neutrals.100"
@@ -48,22 +50,26 @@ const Providers = () => {
                   _disabled={{
                     opacity: "0.5",
                   }}
+                  as={Link}
+                  to={`/providers/${provider.id}`}
                 >
-                  <LinkOverlay
-                    href={`/providers/${provider.id}`}
-                    as={Link}
-                    to={`/providers/${provider.id}`}
-                  >
-                    {/* <ProviderIcon type={provider.name} mb={3} h="8" w="8" /> */}
-                    <Text
-                      as={"pre"}
-                      textStyle="Body/SmallBold"
-                      color="neutrals.700"
-                      whiteSpace={"pre-wrap"}
-                    >
-                      {JSON.stringify(provider, undefined, 2)}
+                  <ProviderStatus provider={provider} mb={4} />
+
+                  <Flex flexDir="row" alignItems="center">
+                    <ProviderIcon type={provider.name} mr={3} h="8" w="8" />
+                    <Text textStyle="Body/SmallBold" color="neutrals.700">
+                      {`${provider.team}/${provider.name}@${provider.version}`}
                     </Text>
-                  </LinkOverlay>
+                  </Flex>
+
+                  {/* <Text
+                    as={"pre"}
+                    textStyle="Body/SmallBold"
+                    color="neutrals.700"
+                    whiteSpace={"pre-wrap"}
+                  >
+                    {JSON.stringify(provider, undefined, 2)}
+                  </Text> */}
                 </Box>
               );
             })}
