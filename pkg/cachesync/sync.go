@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/logger"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/pdk"
+	"github.com/common-fate/common-fate/pkg/provider"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
@@ -106,7 +108,36 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 				continue
 			}
 			logw.Infow("successfully fetched schema for provider")
+
+			if provider.Schema.Audit.ResourceLoaders.AdditionalProperties != nil {
+				err = s.SyncCommunityProviderResources(ctx, provider)
+				if err != nil {
+					logw.Error("failed to update resources of provider in database")
+					continue
+				}
+			}
 		}
 	}
 	return nil
+}
+
+// Cache Resources associated with Provider in the ddb.
+func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, p provider.Provider) error {
+	var tasks []string
+	for k := range p.Schema.Audit.ResourceLoaders.AdditionalProperties {
+		tasks = append(tasks, k)
+	}
+
+	rf := NewResourceFetcher(p.ID, aws.ToString(p.FunctionARN))
+	resources, err := rf.LoadResources(ctx, tasks)
+	if err != nil {
+		return err
+	}
+
+	items := make([]ddb.Keyer, len(resources))
+	for k, v := range resources {
+		items[k] = v
+	}
+
+	return s.DB.PutBatch(ctx, items...)
 }
