@@ -6,6 +6,8 @@ import {
 } from "@chakra-ui/icons";
 import {
   Avatar,
+  Button,
+  ButtonGroup,
   Center,
   Container,
   Flex,
@@ -37,9 +39,9 @@ import {
 
 import { useUserGetUser } from "../../../utils/backend-client/end-user/end-user";
 import {
-  Group,
   AdminListGroupsSource,
   AdminUpdateUserBody,
+  Group,
   User,
 } from "../../../utils/backend-client/types";
 import { GetIDPName } from "../../../utils/idp-logo";
@@ -80,13 +82,21 @@ const Index = () => {
         </Text>
       </Center>
       {/* Main content */}
-      <Container maxW="container.xl" py={16}>
+      <Container maxW="container.md" py={8}>
+        <Flex justifyContent="flex-end" w="100%" flexGrow={1} mb={4}>
+          <ButtonGroup>
+            <Button size="sm" variant={"solid"} colorScheme="red">
+              Revoke all access
+            </Button>
+          </ButtonGroup>
+        </Flex>
         <Center>
           <Flex
             direction={["column", "row"]}
             rounded="md"
             bg="neutrals.100"
-            w={{ base: "100%", md: "500px", lg: "716px" }}
+            w={"100%"}
+            // w={{ base: "100%", md: "500px", lg: "716px" }}
             p={8}
           >
             <Content />

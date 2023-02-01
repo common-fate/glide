@@ -619,6 +619,44 @@ paths:
                 - groups
       tags:
         - Admin
+  "/api/v1/admin/users/{userId}/revoke-access":
+    parameters:
+      - schema:
+          type: string
+        name: userId
+        in: path
+        required: true
+    post:
+      summary: Revoke user access
+      operationId: admin-revoke-user-access
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Revoke all user Access Requests. Revokes active requests and cancels any pending or approved scheduled requests.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                groups:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - groups
+      tags:
+        - Admin
   /api/v1/admin/users:
     get:
       summary: Returns a list of users
