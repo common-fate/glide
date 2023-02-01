@@ -99,9 +99,8 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 		}
 		logw.Infow("successfully fetched schema for provider")
 
-		// this is where I need to add
 		if provider.Schema.Audit.ResourceLoaders.AdditionalProperties != nil {
-			err = cacheProviderResources(ctx, provider, s.DB)
+			err = s.SyncCommunityProviderResources(ctx, provider)
 			if err != nil {
 				logw.Error("failed to update resources of provider in database")
 				continue
@@ -111,8 +110,8 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 	return nil
 }
 
-// Cache Resources associated with Provider in ddb.
-func cacheProviderResources(ctx context.Context, p provider.Provider, db ddb.Storage) error {
+// Cache Resources associated with Provider in the ddb.
+func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, p provider.Provider) error {
 	var tasks []string
 	for k := range p.Schema.Audit.ResourceLoaders.AdditionalProperties {
 		tasks = append(tasks, k)
@@ -129,5 +128,5 @@ func cacheProviderResources(ctx context.Context, p provider.Provider, db ddb.Sto
 		items[k] = v
 	}
 
-	return db.PutBatch(ctx, items...)
+	return s.DB.PutBatch(ctx, items...)
 }
