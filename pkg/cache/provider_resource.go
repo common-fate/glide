@@ -5,7 +5,6 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-const PK_PREFIX = "PROVIDER_RESOURCE#"
 
 type ProviderResource struct {
 	Value        string      `json:"value" dynamodbav:"value"`
