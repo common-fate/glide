@@ -30,6 +30,7 @@ import type {
   CreateGroupRequestBody,
   Provider,
   ProviderV2,
+  CreateProviderRequestBody,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -588,7 +589,7 @@ export const useAdminListProviders = <TError = ErrorType<ErrorResponseResponse>>
 export const adminListProvidersv2 = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider[]>(
+      return customInstance<ProviderV2[]>(
       {url: `/api/v1/admin/providersv2`, method: 'get'
     },
       options);
@@ -619,6 +620,21 @@ export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse
     ...query
   }
 }
+
+/**
+ * create a v2 provider, this method is called once the 
+ */
+export const adminCreateProviderv2 = (
+    createProviderRequestBody: CreateProviderRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderV2>(
+      {url: `/api/v1/admin/providersv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderRequestBody
+    },
+      options);
+    }
+  
 
 /**
  * Get provider by id

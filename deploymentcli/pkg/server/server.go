@@ -47,6 +47,7 @@ func New(ctx context.Context, opts Opts) (*Server, error) {
 
 	api, err := api.New(ctx, api.Opts{
 		ProviderRegistryAPIURL: opts.Cfg.ProviderRegistryAPIURL,
+		CommonFateAPIURL:       opts.Cfg.CommonFateAPIURL,
 	})
 	if err != nil {
 		return nil, err

@@ -787,7 +787,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Provider"
+                  $ref: "#/components/schemas/ProviderV2"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -801,9 +801,17 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderV2"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: "create a v2 provider, this method is called once the "
       requestBody:
         $ref: "#/components/requestBodies/CreateProviderRequest"
+      tags:
+        - Admin
   "/api/v1/admin/providersv2/{providerId}":
     get:
       summary: Get provider detailed
@@ -828,6 +836,23 @@ paths:
         name: providerId
         in: path
         required: true
+    delete:
+      summary: Delete providerv2
+      operationId: admin-delete-providerv2
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Update providerv2
+      operationId: admin-update-providerv2
+      responses:
+        "200":
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProviderV2"
   "/api/v1/admin/providers/{providerId}":
     get:
       summary: List providers
@@ -1577,15 +1602,16 @@ components:
         stackId:
           type: string
         status:
-          type: string
-          enum:
-            - creating
-            - configuring
-            - updating
-            - deleting
+          $ref: "#/components/schemas/ProviderV2Status"
         type:
           type: string
         id:
+          type: string
+        alias:
+          type: string
+        functionArn:
+          type: string
+        functionRoleArn:
           type: string
       required:
         - name
@@ -1595,6 +1621,7 @@ components:
         - status
         - type
         - id
+        - alias
     Provider:
       title: Provider
       type: object
@@ -2202,6 +2229,36 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
+    UpdateProviderV2:
+      title: UpdateProviderV2
+      x-stoplight:
+        id: 8bpot4cenqzjb
+      type: object
+      properties:
+        alias:
+          type: string
+        version:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProviderV2Status"
+        functionArn:
+          type: string
+        functionRoleArn:
+          type: string
+      required:
+        - alias
+        - version
+        - status
+    ProviderV2Status:
+      title: ProviderV2Status
+      x-stoplight:
+        id: oz90w79dp4kph
+      type: string
+      enum:
+        - CREATING
+        - UPDATING
+        - DEPLOYED
+        - DELETED
   responses:
     ErrorResponse:
       description: An error returned from the service.

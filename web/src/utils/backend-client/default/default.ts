@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type {
-  CreateProviderRequestBody
+  UpdateProviderV2
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 
@@ -21,15 +21,29 @@ import { customInstance } from '../../custom-instance'
   : never;
 
 /**
- * create a v2 provider, this method is called once the 
+ * @summary Delete providerv2
  */
-export const adminCreateProviderv2 = (
-    createProviderRequestBody: CreateProviderRequestBody,
+export const adminDeleteProviderv2 = (
+    providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
-      {url: `/api/v1/admin/providersv2`, method: 'post',
+      {url: `/api/v1/admin/providersv2/${providerId}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Update providerv2
+ */
+export const adminUpdateProviderv2 = (
+    providerId: string,
+    updateProviderV2: UpdateProviderV2,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/providersv2/${providerId}`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: createProviderRequestBody
+      data: updateProviderV2
     },
       options);
     }

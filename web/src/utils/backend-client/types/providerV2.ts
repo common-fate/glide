@@ -18,4 +18,7 @@ export interface ProviderV2 {
   status: ProviderV2Status;
   type: string;
   id: string;
+  alias: string;
+  functionArn?: string;
+  functionRoleArn?: string;
 }

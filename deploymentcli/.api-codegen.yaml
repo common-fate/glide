@@ -1,8 +1,0 @@
-package: types
-generate:
-  chi-server: true
-  models: true
-  embedded-spec: true
-output-options:
-  skip-prune: true
-output: deploymentcli/pkg/types/api.gen.go

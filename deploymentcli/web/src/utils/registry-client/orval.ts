@@ -10,12 +10,6 @@ import type {
   SWRConfiguration,
   Key
 } from 'swr'
-import {
-  rest
-} from 'msw'
-import {
-  faker
-} from '@faker-js/faker'
 import { customInstanceRegistry } from '../custom-instance'
 import type { ErrorType } from '../custom-instance'
 export type RegisterProvidersResponseResponse = {
@@ -238,6 +232,96 @@ export const useGetProvider = <TError = ErrorType<unknown>>(
 
 
 /**
+ * @summary Get Provider Setup Docs
+ */
+export const getProviderSetupDocs = (
+    team: string,
+    name: string,
+    version: string,
+ options?: SecondParameter<typeof customInstanceRegistry>) => {
+      return customInstanceRegistry<string[]>(
+      {url: `/api/v1/team/${team}/providers/${name}/${version}/setup`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetProviderSetupDocsKey = (team: string,
+    name: string,
+    version: string,) => [`/api/v1/team/${team}/providers/${name}/${version}/setup`];
+
+    
+export type GetProviderSetupDocsQueryResult = NonNullable<Awaited<ReturnType<typeof getProviderSetupDocs>>>
+export type GetProviderSetupDocsQueryError = ErrorType<unknown>
+
+export const useGetProviderSetupDocs = <TError = ErrorType<unknown>>(
+ team: string,
+    name: string,
+    version: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProviderSetupDocs>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceRegistry> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(team && name && version)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderSetupDocsKey(team,name,version) : null);
+  const swrFn = () => getProviderSetupDocs(team,name,version, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+
+/**
+ * @summary Get Provider Usage Doc
+ */
+export const getProviderUsageDoc = (
+    team: string,
+    name: string,
+    version: string,
+ options?: SecondParameter<typeof customInstanceRegistry>) => {
+      return customInstanceRegistry<string[]>(
+      {url: `/api/v1/team/${team}/providers/${name}/${version}/usage`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetProviderUsageDocKey = (team: string,
+    name: string,
+    version: string,) => [`/api/v1/team/${team}/providers/${name}/${version}/usage`];
+
+    
+export type GetProviderUsageDocQueryResult = NonNullable<Awaited<ReturnType<typeof getProviderUsageDoc>>>
+export type GetProviderUsageDocQueryError = ErrorType<unknown>
+
+export const useGetProviderUsageDoc = <TError = ErrorType<unknown>>(
+ team: string,
+    name: string,
+    version: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProviderUsageDoc>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceRegistry> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(team && name && version)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderUsageDocKey(team,name,version) : null);
+  const swrFn = () => getProviderUsageDoc(team,name,version, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+
+/**
  * @summary List Providers
  */
 export const listAllProviders = (
@@ -276,43 +360,3 @@ export const useListAllProviders = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 
-
-
-export const getGetHealthMock = () => ({healthy: faker.datatype.boolean()})
-
-export const getGetProviderMock = () => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'cldi9hcnn00003xs7445rcwi9': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
-      }, audit: {}, target: {
-        'cldi9hcnn00023xs7ha3qgpz8': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'cldi9hcnn00013xs76pxu7f63': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
-      }}
-      }}})
-
-export const getListAllProvidersMock = () => ({providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'cldi9hcnu00033xs7ehi3dtgm': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
-      }, audit: {}, target: {
-        'cldi9hcnv00053xs787b7c8km': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'cldi9hcnv00043xs7cu13edjk': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
-      }}
-      }}})), next: faker.helpers.arrayElement([faker.random.word(), null])})
-
-export const getExampleAPIMSW = () => [
-rest.get('*/api/v1/health', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetHealthMock()),
-        )
-      }),rest.get('*/api/v1/team/:team/providers/:name/:version', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getGetProviderMock()),
-        )
-      }),rest.get('*/api/v1/providers', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getListAllProvidersMock()),
-        )
-      }),]

@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
-	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
@@ -48,11 +47,15 @@ func (l *LambdaRuntime) Schema(ctx context.Context) (schema providerregistrysdk.
 	if err != nil {
 		return schema, err
 	}
-	log := logger.Get(ctx)
+	// log := logger.Get(ctx)
+
 	err = json.Unmarshal(out.Payload, &schema)
 	if err != nil {
-		return schema, err
+		return providerregistrysdk.ProviderSchema{}, err
 	}
-	log.Infow("schema", "out", string(out.Payload), "schema", schema)
+	// if err != nil {
+	// 	return invokeResponse, err
+	// }
+	// log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse)
 	return
 }

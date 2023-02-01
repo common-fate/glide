@@ -11,8 +11,8 @@ export type ProviderV2Status = typeof ProviderV2Status[keyof typeof ProviderV2St
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProviderV2Status = {
-  creating: 'creating',
-  configuring: 'configuring',
-  updating: 'updating',
-  deleting: 'deleting',
+  CREATING: 'CREATING',
+  UPDATING: 'UPDATING',
+  DEPLOYED: 'DEPLOYED',
+  DELETED: 'DELETED',
 } as const;

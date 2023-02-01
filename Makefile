@@ -11,4 +11,8 @@ generate:
 	cd web && pnpm clienttypegen 
 	cd deploymentcli/web && pnpm clienttypegen
 	pnpm prettier  --write **/openapi.yml
+	pnpm prettier  --write ./deploymentcli.openapi.yml
 	
+clean:
+	pnpm prettier  --write **/openapi.yml
+	pnpm prettier  --write ./deploymentcli.openapi.yml

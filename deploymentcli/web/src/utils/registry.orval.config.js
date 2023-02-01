@@ -5,7 +5,6 @@ module.exports = {
       mode: "single",
       target: "./registry-client/orval.ts",
       client: "swr",
-      mock: true,
       override: {
         mutator: {
           path: "./custom-instance.ts",
