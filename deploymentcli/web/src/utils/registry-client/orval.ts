@@ -35,7 +35,15 @@ export type HealthResponseResponse = {
   healthy: boolean;
 };
 
-export interface AuditSchema { [key: string]: any }
+export interface ResourceLoader {
+  title: string;
+}
+
+export type AuditSchemaResourceLoaders = {[key: string]: ResourceLoader};
+
+export interface AuditSchema {
+  resourceLoaders: AuditSchemaResourceLoaders;
+}
 
 export interface ConfigurationSchema {[key: string]: ConfigurationArgument}
 
@@ -238,6 +246,96 @@ export const useGetProvider = <TError = ErrorType<unknown>>(
 
 
 /**
+ * @summary Get Provider Setup Docs
+ */
+export const getProviderSetupDocs = (
+    team: string,
+    name: string,
+    version: string,
+ options?: SecondParameter<typeof customInstanceRegistry>) => {
+      return customInstanceRegistry<string[]>(
+      {url: `/api/v1/team/${team}/providers/${name}/${version}/setup`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetProviderSetupDocsKey = (team: string,
+    name: string,
+    version: string,) => [`/api/v1/team/${team}/providers/${name}/${version}/setup`];
+
+    
+export type GetProviderSetupDocsQueryResult = NonNullable<Awaited<ReturnType<typeof getProviderSetupDocs>>>
+export type GetProviderSetupDocsQueryError = ErrorType<unknown>
+
+export const useGetProviderSetupDocs = <TError = ErrorType<unknown>>(
+ team: string,
+    name: string,
+    version: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProviderSetupDocs>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceRegistry> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(team && name && version)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderSetupDocsKey(team,name,version) : null);
+  const swrFn = () => getProviderSetupDocs(team,name,version, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+
+/**
+ * @summary Get Provider Usage Doc
+ */
+export const getProviderUsageDoc = (
+    team: string,
+    name: string,
+    version: string,
+ options?: SecondParameter<typeof customInstanceRegistry>) => {
+      return customInstanceRegistry<string[]>(
+      {url: `/api/v1/team/${team}/providers/${name}/${version}/usage`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getGetProviderUsageDocKey = (team: string,
+    name: string,
+    version: string,) => [`/api/v1/team/${team}/providers/${name}/${version}/usage`];
+
+    
+export type GetProviderUsageDocQueryResult = NonNullable<Awaited<ReturnType<typeof getProviderUsageDoc>>>
+export type GetProviderUsageDocQueryError = ErrorType<unknown>
+
+export const useGetProviderUsageDoc = <TError = ErrorType<unknown>>(
+ team: string,
+    name: string,
+    version: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getProviderUsageDoc>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceRegistry> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(team && name && version)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetProviderUsageDocKey(team,name,version) : null);
+  const swrFn = () => getProviderUsageDoc(team,name,version, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+
+/**
  * @summary List Providers
  */
 export const listAllProviders = (
@@ -281,18 +379,26 @@ export const useListAllProviders = <TError = ErrorType<ErrorResponseResponse>>(
 export const getGetHealthMock = () => ({healthy: faker.datatype.boolean()})
 
 export const getGetProviderMock = () => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'clde4wksd0000dss76yvve6ea': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
-      }, audit: {}, target: {
-        'clde4wksf0002dss7dsjwc6gs': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'clde4wksf0001dss7h1sj9iqm': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+        'cldl0wc620000fvccgiu8c5wl': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
+      }, audit: {resourceLoaders: {
+        'cldl0wc620001fvcc9odl8irm': {title: faker.random.word()}
+      }}, target: {
+        'cldl0wc630003fvccfgl5fnvy': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'cldl0wc630002fvcc3zez0mhq': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
       }}})
 
+export const getGetProviderSetupDocsMock = () => (Array.from({length: faker.datatype.number({min: 1,max: 10})}, () => faker.random.word()))
+
+export const getGetProviderUsageDocMock = () => (Array.from({length: faker.datatype.number({min: 1,max: 10})}, () => faker.random.word()))
+
 export const getListAllProvidersMock = () => ({providers: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({team: faker.random.word(), name: faker.random.word(), version: faker.random.word(), lambdaAssetS3Arn: faker.random.word(), schema: {schemaVersion: faker.random.word(), providerVersion: faker.random.word(), configuration: {
-        'clde4wktb0003dss7180h4cgf': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
-      }, audit: {}, target: {
-        'clde4wktd0005dss718pm3gom': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'clde4wktd0004dss72511btsr': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+        'cldl0wc6r0004fvcc93kr68i7': {id: faker.random.word(), type: faker.helpers.arrayElement(['STRING','SECRETSTRING']), secret: faker.datatype.boolean(), optional: faker.datatype.boolean(), usage: faker.random.word(), name: faker.random.word()}
+      }, audit: {resourceLoaders: {
+        'cldl0wc6s0005fvccdstk20mk': {title: faker.random.word()}
+      }}, target: {
+        'cldl0wc6s0007fvccgk9p23k8': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'cldl0wc6s0006fvcchses30tj': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
       }}})), next: faker.helpers.arrayElement([faker.random.word(), null])})
 
@@ -308,6 +414,18 @@ ctx.json(getGetHealthMock()),
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
 ctx.json(getGetProviderMock()),
+        )
+      }),rest.get('*/api/v1/team/:team/providers/:name/:version/setup', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getGetProviderSetupDocsMock()),
+        )
+      }),rest.get('*/api/v1/team/:team/providers/:name/:version/usage', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getGetProviderUsageDocMock()),
         )
       }),rest.get('*/api/v1/providers', (_req, res, ctx) => {
         return res(
