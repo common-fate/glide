@@ -14,6 +14,11 @@ export interface ProviderV2 {
   name: string;
   team: string;
   version: string;
-  stackId?: string;
-  status?: ProviderV2Status;
+  stackId: string;
+  status: ProviderV2Status;
+  type: string;
+  id: string;
+  alias: string;
+  functionArn?: string;
+  functionRoleArn?: string;
 }

@@ -29,6 +29,8 @@ import type {
   Group,
   CreateGroupRequestBody,
   Provider,
+  ProviderV2,
+  CreateProviderRequestBody,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
   ProviderSetupResponseResponse,
@@ -40,7 +42,7 @@ import type {
 } from '.././types'
 import type {
   ArgSchema,
-  ArgOptionsResponseResponse
+  ArgOptions
 } from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -587,7 +589,7 @@ export const useAdminListProviders = <TError = ErrorType<ErrorResponseResponse>>
 export const adminListProvidersv2 = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider[]>(
+      return customInstance<ProviderV2[]>(
       {url: `/api/v1/admin/providersv2`, method: 'get'
     },
       options);
@@ -620,13 +622,28 @@ export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse
 }
 
 /**
+ * create a v2 provider, this method is called once the 
+ */
+export const adminCreateProviderv2 = (
+    createProviderRequestBody: CreateProviderRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderV2>(
+      {url: `/api/v1/admin/providersv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderRequestBody
+    },
+      options);
+    }
+  
+
+/**
  * Get provider by id
  * @summary Get provider detailed
  */
 export const adminGetProviderv2 = (
     providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider>(
+      return customInstance<ProviderV2>(
       {url: `/api/v1/admin/providersv2/${providerId}`, method: 'get'
     },
       options);
@@ -665,7 +682,7 @@ export const useAdminGetProviderv2 = <TError = ErrorType<ErrorResponseResponse>>
 export const adminGetProvider = (
     providerId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Provider>(
+      return customInstance<ProviderV2>(
       {url: `/api/v1/admin/providers/${providerId}`, method: 'get'
     },
       options);
@@ -745,7 +762,7 @@ export const adminListProviderArgOptions = (
     argId: string,
     params?: AdminListProviderArgOptionsParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgOptionsResponseResponse>(
+      return customInstance<ArgOptions>(
       {url: `/api/v1/admin/providers/${providerId}/args/${argId}/options`, method: 'get',
         params
     },

@@ -10,7 +10,6 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { UserLayout } from "../../components/Layout";
 import { ProviderIcon } from "../../components/icons/providerIcon";
-
 import {
   Provider,
   useListAllProviders,
@@ -21,6 +20,7 @@ export const uniqueProviderKey = (provider: Provider) =>
   `${provider.team}/${provider.name}/${provider.version}`;
 
 const Providers = () => {
+  useListAllProviders;
   const { data: providers } = useListAllProviders();
 
   return (
@@ -36,37 +36,37 @@ const Providers = () => {
       >
         <Heading>Deploy a provider</Heading>
         <SimpleGrid columns={2} spacing={4} p={0} mt={6}>
-          {providers?.providers.map((provider) => {
-            const id = uniqueProviderKey(provider);
-            return (
-              <Box
-                key={id}
-                as="button"
-                className="group"
-                textAlign="center"
-                bg="neutrals.100"
-                p={6}
-                rounded="md"
-                data-testid={"provider_" + id}
-                position="relative"
-                _disabled={{
-                  opacity: "0.5",
-                }}
-              >
-                <LinkOverlay
-                  href={`/registry/${id}`}
-                  as={Link}
-                  to={`/registry/${id}`}
+          {providers &&
+            providers.providers.map((provider) => {
+              const id = uniqueProviderKey(provider);
+              return (
+                <Box
+                  key={id}
+                  as="button"
+                  className="group"
+                  textAlign="center"
+                  bg="neutrals.100"
+                  p={6}
+                  rounded="md"
+                  data-testid={"provider_" + id}
+                  position="relative"
+                  _disabled={{
+                    opacity: "0.5",
+                  }}
                 >
-                  <ProviderIcon type={provider.name} mb={3} h="8" w="8" />
-
-                  <Text textStyle="Body/SmallBold" color="neutrals.700">
-                    {`${provider.team}/${provider.name}@${provider.version}`}
-                  </Text>
-                </LinkOverlay>
-              </Box>
-            );
-          })}
+                  <LinkOverlay
+                    href={`/registry/${id}`}
+                    as={Link}
+                    to={`/registry/${id}`}
+                  >
+                    <ProviderIcon type={provider.name} mb={3} h="8" w="8" />
+                    <Text textStyle="Body/SmallBold" color="neutrals.700">
+                      {`${provider.team}/${provider.name}@${provider.version}`}
+                    </Text>
+                  </LinkOverlay>
+                </Box>
+              );
+            })}
         </SimpleGrid>
       </Container>
     </UserLayout>

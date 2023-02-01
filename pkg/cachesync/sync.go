@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/logger"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/pdk"
@@ -82,28 +83,38 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 
 	// If one of these fails, continue trying the others
 	for _, provider := range q.Result {
-		logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
-		logw.Infow("fetching schema for provider")
-		schema, err := pdk.InvokeSchema(ctx, provider.FunctionARN)
-		if err != nil {
-			logw.Error("failed to fetch schema")
-			continue
-		}
-
-		logw.Infow("recieved schema", "schema", schema)
-		provider.Schema = schema
-		err = s.DB.Put(ctx, &provider)
-		if err != nil {
-			logw.Error("failed to update schema in database")
-			continue
-		}
-		logw.Infow("successfully fetched schema for provider")
-
-		if provider.Schema.Audit.ResourceLoaders.AdditionalProperties != nil {
-			err = s.SyncCommunityProviderResources(ctx, provider)
+		if provider.FunctionARN != nil {
+			logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
+			logw.Infow("fetching schema for provider")
+			schemaResponse, err := pdk.InvokeSchema(ctx, *provider.FunctionARN)
 			if err != nil {
-				logw.Error("failed to update resources of provider in database")
+				logw.Error("failed to fetch schema")
 				continue
+			}
+			schema := schemaResponse.Schema
+
+			logw.Infow("recieved schema", "schema", schema)
+
+			//validate that the version of the provider matches the version of the schema
+			if provider.Version != schemaResponse.Version {
+				logw.Error("Provider schema version out of sync")
+				return nil
+			}
+
+			provider.Schema = schema
+			err = s.DB.Put(ctx, &provider)
+			if err != nil {
+				logw.Error("failed to update schema in database")
+				continue
+			}
+			logw.Infow("successfully fetched schema for provider")
+
+			if provider.Schema.Audit.ResourceLoaders.AdditionalProperties != nil {
+				err = s.SyncCommunityProviderResources(ctx, provider)
+				if err != nil {
+					logw.Error("failed to update resources of provider in database")
+					continue
+				}
 			}
 		}
 	}
@@ -117,7 +128,7 @@ func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, p prov
 		tasks = append(tasks, k)
 	}
 
-	rf := NewResourceFetcher(p.ID, p.FunctionARN)
+	rf := NewResourceFetcher(p.ID, aws.ToString(p.FunctionARN))
 	resources, err := rf.LoadResources(ctx, tasks)
 	if err != nil {
 		return err

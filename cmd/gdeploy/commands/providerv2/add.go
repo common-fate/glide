@@ -36,7 +36,8 @@ var addv2Command = cli.Command{
 		if err != nil {
 			return err
 		}
-		provider := provider.Provider{ID: types.NewProviderID(), Team: c.String("team"), Name: c.String("name"), Version: c.String("version"), IconName: c.String("icon-name"), FunctionARN: c.String("function-arn"), Alias: c.String("alias")}
+		funcArn := c.String("function-arn")
+		provider := provider.Provider{ID: types.NewProviderID(), Team: c.String("team"), Name: c.String("name"), Version: c.String("version"), IconName: c.String("icon-name"), FunctionARN: &funcArn, Alias: c.String("alias")}
 
 		err = db.Put(ctx, &provider)
 		if err != nil {

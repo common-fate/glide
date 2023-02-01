@@ -1,0 +1,11 @@
+package: types
+generate:
+  chi-server: true
+  models: true
+  embedded-spec: true
+  client: true
+output-options:
+  skip-prune: true
+import-mapping:
+  ./openapi.yml: github.com/common-fate/common-fate/pkg/types
+output: deploymentcli/pkg/types/api.gen.go

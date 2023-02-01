@@ -36,17 +36,24 @@ func Invoke(ctx context.Context, functionARN string, payload payload) (*lambda.I
 	return res, nil
 }
 
-func InvokeSchema(ctx context.Context, functionARN string) (schema providerregistrysdk.ProviderSchema, err error) {
+type SchemaResponse struct {
+	Version string                             `json:"version"`
+	Schema  providerregistrysdk.ProviderSchema `json:"schema"`
+}
+
+func InvokeSchema(ctx context.Context, functionARN string) (schema SchemaResponse, err error) {
 	out, err := Invoke(ctx, functionARN, NewSchemaEvent())
 	if err != nil {
 		return schema, err
 	}
 	log := logger.Get(ctx)
 
-	err = json.Unmarshal(out.Payload, &schema)
+	invokeResponse := SchemaResponse{}
+
+	err = json.Unmarshal(out.Payload, &invokeResponse)
 	if err != nil {
-		return schema, err
+		return invokeResponse, err
 	}
-	log.Infow("schema", "out", string(out.Payload), "schema", schema)
+	log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse)
 	return
 }

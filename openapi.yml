@@ -774,15 +774,6 @@ paths:
       operationId: admin-list-providers
       description: List providers
     parameters: []
-    post:
-      summary: ""
-      operationId: admin-create-provider
-      responses:
-        "200":
-          description: OK
-      description: create a v2 provider
-      requestBody:
-        $ref: "#/components/requestBodies/CreateProviderRequest"
   /api/v1/admin/providersv2:
     get:
       summary: List providers2
@@ -796,7 +787,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Provider"
+                  $ref: "#/components/schemas/ProviderV2"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -810,9 +801,17 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderV2"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       description: "create a v2 provider, this method is called once the "
       requestBody:
         $ref: "#/components/requestBodies/CreateProviderRequest"
+      tags:
+        - Admin
   "/api/v1/admin/providersv2/{providerId}":
     get:
       summary: Get provider detailed
@@ -824,7 +823,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Provider"
+                $ref: "#/components/schemas/ProviderV2"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -837,6 +836,23 @@ paths:
         name: providerId
         in: path
         required: true
+    delete:
+      summary: Delete providerv2
+      operationId: admin-delete-providerv2
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Update providerv2
+      operationId: admin-update-providerv2
+      responses:
+        "200":
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProviderV2"
   "/api/v1/admin/providers/{providerId}":
     get:
       summary: List providers
@@ -848,7 +864,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Provider"
+                $ref: "#/components/schemas/ProviderV2"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -903,7 +919,11 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgOptions
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1582,16 +1602,26 @@ components:
         stackId:
           type: string
         status:
+          $ref: "#/components/schemas/ProviderV2Status"
+        type:
           type: string
-          enum:
-            - creating
-            - configuring
-            - updating
-            - deleting
+        id:
+          type: string
+        alias:
+          type: string
+        functionArn:
+          type: string
+        functionRoleArn:
+          type: string
       required:
         - name
         - team
         - version
+        - stackId
+        - status
+        - type
+        - id
+        - alias
     Provider:
       title: Provider
       type: object
@@ -2199,6 +2229,36 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
+    UpdateProviderV2:
+      title: UpdateProviderV2
+      x-stoplight:
+        id: 8bpot4cenqzjb
+      type: object
+      properties:
+        alias:
+          type: string
+        version:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProviderV2Status"
+        functionArn:
+          type: string
+        functionRoleArn:
+          type: string
+      required:
+        - alias
+        - version
+        - status
+    ProviderV2Status:
+      title: ProviderV2Status
+      x-stoplight:
+        id: oz90w79dp4kph
+      type: string
+      enum:
+        - CREATING
+        - UPDATING
+        - DEPLOYED
+        - DELETED
   responses:
     ErrorResponse:
       description: An error returned from the service.

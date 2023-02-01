@@ -22,6 +22,7 @@ require (
 	github.com/bitfield/script v0.20.2
 	github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed
 	github.com/common-fate/cloudform v0.3.0
+	github.com/common-fate/cloudproof v0.0.0-20211216235511-30b36230aa40
 	github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73
 	github.com/common-fate/iso8601 v1.0.2
 	github.com/common-fate/provider-registry-sdk-go v0.1.2
@@ -63,7 +64,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/common-fate/cloudproof v0.0.0-20211216235511-30b36230aa40 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect

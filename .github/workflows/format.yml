@@ -22,10 +22,16 @@ jobs:
         uses: common-fate/prettier-action@6602189cf8bac1ce73ffe601925f6127ab7f21ac
         with:
           prettier_options: --write openapi.yml
-          commit_message: "CI: auto-formatted openapi.yml"
+          commit_message: 'CI: auto-formatted openapi.yml'
 
       - name: Prettify Access Handler code
         uses: common-fate/prettier-action@6602189cf8bac1ce73ffe601925f6127ab7f21ac
         with:
           prettier_options: --write accesshandler/openapi.yml
-          commit_message: "CI: auto-formatted accesshandler/openapi.yml"
+          commit_message: 'CI: auto-formatted accesshandler/openapi.yml'
+
+      - name: Prettify Deployment CLI code
+        uses: common-fate/prettier-action@6602189cf8bac1ce73ffe601925f6127ab7f21ac
+        with:
+          prettier_options: --write ./deploymentcli.openapi.yml
+          commit_message: 'CI: auto-formatted ./deploymentcli.openapi.yml'

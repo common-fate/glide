@@ -3,8 +3,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useMatch } from "react-location";
 import { UserLayout } from "../../../../components/Layout";
-import { adminCreateProvidersetupv2 } from "../../../../utils/common-fate-client/admin/admin";
-import { postDeployment } from "../../../../utils/local-client/orval";
+import { createProvider } from "../../../../utils/local-client/deploymentcli/deploymentcli";
 import { useGetProvider } from "../../../../utils/registry-client/orval";
 
 const RegistryProvider = () => {
@@ -21,21 +20,13 @@ const RegistryProvider = () => {
     // call deployment CLI, get the stack id...
     // stackId = await deployCLI.create()
     setLoading(true);
-    postDeployment({ name, team, version })
-      .then(({ stackId }) => {
-        adminCreateProvidersetupv2({ team, name, version, stackId }).then(
-          () => {
-            setLoading(false);
-            // navigate to the provider page
-          }
-        );
-      })
+    createProvider({ name, team, version, alias: "" })
+      .then(() => {})
       .finally(() => {
         setLoading(false);
       });
-
-    // now call CF to create the provider
   };
+
   return (
     <UserLayout>
       <Helmet>
@@ -50,7 +41,9 @@ const RegistryProvider = () => {
         <Heading>
           {team}/{name}/{version}
         </Heading>
-        <Button onClick={handleClick}>Create/Deploy Provider</Button>
+        <Button isLoading={loading} onClick={handleClick}>
+          Create/Deploy Provider
+        </Button>
         <Text>Schema</Text>
         <Text whiteSpace={"pre-wrap"} as={"pre"}>
           {JSON.stringify(provider.data?.schema, undefined, 2)}
