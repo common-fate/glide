@@ -24,7 +24,7 @@ require (
 	github.com/common-fate/cloudform v0.3.0
 	github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73
 	github.com/common-fate/iso8601 v1.0.2
-	github.com/common-fate/provider-registry-sdk-go v0.1.0
+	github.com/common-fate/provider-registry-sdk-go v0.1.2
 	github.com/deepmap/oapi-codegen v1.11.0
 	github.com/getkin/kin-openapi v0.107.0
 	github.com/getsentry/sentry-go v0.13.0
