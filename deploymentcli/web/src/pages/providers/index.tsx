@@ -56,7 +56,7 @@ const Providers = () => {
                   <ProviderStatus provider={provider} mb={4} />
 
                   <Flex flexDir="row" alignItems="center">
-                    <ProviderIcon type={provider.name} mr={3} h="8" w="8" />
+                    <ProviderIcon type={provider?.name} mr={3} h="8" w="8" />
                     <Text textStyle="Body/SmallBold" color="neutrals.700">
                       {`${provider.team}/${provider.name}@${provider.version}`}
                     </Text>
