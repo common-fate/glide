@@ -2,11 +2,9 @@ package cachesync
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/clio"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/provider"
@@ -102,57 +100,34 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 		logw.Infow("successfully fetched schema for provider")
 
 		// this is where I need to add
-		if provider.Schema.Audit != nil {
+		if provider.Schema.Audit.ResourceLoaders.AdditionalProperties != nil {
 			err = cacheProviderResources(ctx, provider, s.DB)
 			if err != nil {
 				logw.Error("failed to update resources of provider in database")
-				return err
+				continue
 			}
 		}
 	}
 	return nil
 }
 
+// Cache Resources associated with Provider in ddb.
 func cacheProviderResources(ctx context.Context, p provider.Provider, db ddb.Storage) error {
-	for k, v := range p.Schema.Audit {
-
-		// if the schema has "resourceLoaders" then we need to fetch the relevant resources.
-		if k == "resourceLoaders" {
-			for resourceFetcherFuncName := range v.(map[string]interface{}) {
-
-				fmt.Println("the resourceloader name is", resourceFetcherFuncName)
-				clio.Debug("the resourceLoader function is", resourceFetcherFuncName)
-
-				// The inital lambda invoke doesn't concern with context value
-				// so empty struct is initialized as context value.
-				var context struct{}
-				payload := pdk.NewLoadResourcesEvent(resourceFetcherFuncName, context)
-
-				// TODO: Replace this with actual lambda invoke
-				out, err := LocalInvoke(ctx, "", payload)
-				if err != nil {
-					return err
-				}
-
-				var outResponse LoadResourceResponse
-				err = json.Unmarshal(out, &outResponse)
-				if err != nil {
-					return err
-				}
-
-				var items []DbItem
-				err = recursiveGetResources(ctx, outResponse, &items)
-				if err != nil {
-					return err
-				}
-
-				fmt.Printf("the items is %v", items)
-				// db.PutBatch(ctx, items)
-			}
-		}
+	var tasks []string
+	for k := range p.Schema.Audit.ResourceLoaders.AdditionalProperties {
+		tasks = append(tasks, k)
 	}
-	return nil
-}
 
-// each resource should be added to ddb as individual row
-// each org unit will have a individual row
+	rf := NewResourceFetcher(p.ID, p.FunctionARN)
+	resources, err := rf.LoadResources(ctx, tasks)
+	if err != nil {
+		return err
+	}
+
+	items := make([]ddb.Keyer, len(resources))
+	for k, v := range resources {
+		items[k] = v
+	}
+
+	return db.PutBatch(ctx, items...)
+}
