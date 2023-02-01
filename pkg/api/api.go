@@ -19,6 +19,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/providerdeployment"
 	"github.com/common-fate/common-fate/pkg/providersetup"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
@@ -26,6 +27,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/service/pdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/service/providersvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
@@ -61,6 +63,7 @@ type API struct {
 	Access              AccessService
 	Rules               AccessRuleService
 	ProviderSetup       ProviderSetupService
+	ProviderDeployment  ProviderDeploymentService
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
 	IdentityProvider    string
@@ -86,6 +89,14 @@ type CognitoService interface {
 type ProviderSetupService interface {
 	Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error)
 	CompleteStep(ctx context.Context, setupID string, stepIndex int, body types.ProviderSetupStepCompleteRequest) (*providersetup.Setup, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providerdeployment_service.go -package=mocks . ProviderDeploymentService
+
+// ProviderDeploymentService contains business logic for managing the guided provider setup workflows.
+type ProviderDeploymentService interface {
+	Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providerdeployment.ProviderDeployment, error)
+	// CompleteStep(ctx context.Context, setupID string, stepIndex int, body types.ProviderSetupStepCompleteRequest) (*providerdeployment.ProviderDeployment, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_access_service.go -package=mocks . AccessService
@@ -217,6 +228,11 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			},
 		},
 		ProviderSetup: &psetupsvc.Service{
+			DB:               db,
+			TemplateData:     opts.TemplateData,
+			DeploymentSuffix: opts.DeploymentSuffix,
+		},
+		ProviderDeployment: &pdeploymentsvc.Service{
 			DB:               db,
 			TemplateData:     opts.TemplateData,
 			DeploymentSuffix: opts.DeploymentSuffix,

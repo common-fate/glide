@@ -87,6 +87,7 @@ func (s *Service) StartPollForDeploymentStatus(stackID string, provider cfTypes.
 					}
 				}
 				log.Info("successfully updated status")
+
 				return
 			}
 			time.Sleep(time.Second * 5)
