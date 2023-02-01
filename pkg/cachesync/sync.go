@@ -3,8 +3,8 @@ package cachesync
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/apikit/logger"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/pdk"
@@ -18,7 +18,25 @@ type CacheSyncer struct {
 	DB                  ddb.Storage
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	Cache               cachesvc.Service
-	ProviderRuntime     pdk.ProviderRuntime
+	UseLocal            bool
+}
+
+func (s *CacheSyncer) GetRuntime(ctx context.Context, arn string) (pdk.ProviderRuntime, error) {
+	var pr pdk.ProviderRuntime
+	if s.UseLocal {
+		// bit of a hack to get the local path in here
+		path := strings.TrimPrefix(arn, "arn:aws:lambda")
+		pr = pdk.LocalRuntime{
+			Path: path,
+		}
+	} else {
+		p, err := pdk.NewLambdaRuntime(ctx, arn)
+		if err != nil {
+			return nil, err
+		}
+		pr = p
+	}
+	return pr, nil
 }
 
 // Sync will attempt to sync all argument options for all providers
@@ -84,13 +102,21 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 
 	// If one of these fails, continue trying the others
 	for _, provider := range q.Result {
+		if provider.Alias != "josh" {
+			continue
+		}
 		logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
 		logw.Infow("fetching schema for provider")
 
 		if provider.FunctionARN != nil {
+			pr, err := s.GetRuntime(ctx, *provider.FunctionARN)
+			if err != nil {
+				logw.Error("failed to get runtime")
+				continue
+			}
 			logw := log.With("providerId", provider.ID, "alias", provider.Alias, "functionArn", provider.FunctionARN)
 			logw.Infow("fetching schema for provider")
-			schema, err := s.ProviderRuntime.Schema(ctx)
+			schema, err := pr.Schema(ctx)
 			if err != nil {
 				logw.Error("failed to fetch schema")
 				continue
@@ -137,7 +163,11 @@ func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, p prov
 		tasks = append(tasks, k)
 	}
 
-	rf := NewResourceFetcher(p.ID, aws.ToString(p.FunctionARN))
+	runtime, err := s.GetRuntime(ctx, *p.FunctionARN)
+	if err != nil {
+		return err
+	}
+	rf := NewResourceFetcher(p.ID, runtime)
 	resources, err := rf.LoadResources(ctx, tasks)
 	if err != nil {
 		return err

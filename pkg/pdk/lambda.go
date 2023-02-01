@@ -59,3 +59,15 @@ func (l *LambdaRuntime) Schema(ctx context.Context) (schema providerregistrysdk.
 	// log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse)
 	return
 }
+
+func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error) {
+	out, err := l.Invoke(ctx, NewLoadResourcesEvent(name, contx))
+	if err != nil {
+		return LoadResourceResponse{}, err
+	}
+	err = json.Unmarshal(out.Payload, &resources)
+	if err != nil {
+		return LoadResourceResponse{}, err
+	}
+	return
+}
