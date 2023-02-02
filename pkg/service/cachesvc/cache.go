@@ -20,6 +20,25 @@ import (
 // If cached options aren't present it falls back to refetching options from the Access Handler.
 // If options are refetched, the cache is updated.
 func (s *Service) LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error) {
+
+	// Add a function call here which handles new providers
+	// it checks if the provider exists in the database
+	// if not, the code below should run
+
+	// get provider from db
+	// check arg is in schema
+	// fetch all resourcwes of that arg type
+
+	q := storage.GetProvider{ID: providerId}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		re
+	}
+	if err != ddb.ErrNoItems {
+		apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+		return
+	}
+
 	providerConfigs, err := s.ProviderConfigReader.ReadProviders(ctx)
 	if err != nil {
 		return false, nil, nil, err
