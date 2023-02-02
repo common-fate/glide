@@ -2,12 +2,17 @@ package identitysync
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/okta/okta-sdk-golang/v2/okta"
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 type OktaSync struct {
@@ -50,21 +55,49 @@ func (s *OktaSync) TestConfig(ctx context.Context) error {
 
 // userFromOktaUser converts a Okta user to the identityprovider interface user type
 func (o *OktaSync) idpUserFromOktaUser(ctx context.Context, oktaUser *okta.User) (identity.IDPUser, error) {
+	log := logger.Get(ctx).With("okta.user_id", oktaUser.Id)
+
+	userJSON, err := json.Marshal(oktaUser)
+	if err != nil {
+		log.Errorw("error marshalling user for logging", zap.Error(err))
+	}
+
+	log.Debugw("converting okta user to internal user", "oktaUser", string(userJSON))
+
+	firstName, ok := (*oktaUser.Profile)["firstName"].(string)
+	if !ok {
+		log.Error("okta profile had no firstName")
+	}
+
+	lastName, ok := (*oktaUser.Profile)["lastName"].(string)
+	if !ok {
+		log.Error("okta profile had no lastName")
+	}
+
+	email, ok := (*oktaUser.Profile)["email"].(string)
+	if !ok {
+		return identity.IDPUser{}, fmt.Errorf("okta user %s profile had no email", oktaUser.Id)
+	}
+
 	u := identity.IDPUser{
 		ID:        oktaUser.Id,
-		FirstName: (*oktaUser.Profile)["firstName"].(string),
-		LastName:  (*oktaUser.Profile)["lastName"].(string),
-		Email:     (*oktaUser.Profile)["email"].(string),
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
 		Groups:    []string{},
 	}
 
+	log.Debug("listing groups for user")
+
 	userGroups, _, err := o.client.User.ListUserGroups(ctx, oktaUser.Id)
 	if err != nil {
-		return u, err
+		return u, errors.Wrapf(err, "listing groups for okta user %s", oktaUser.Id)
 	}
 	for _, g := range userGroups {
 		u.Groups = append(u.Groups, g.Id)
 	}
+
+	log.Debugw("finished converting okta user to internal user", "user", u)
 
 	return u, nil
 }
@@ -79,6 +112,8 @@ func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IDPGroup {
 }
 
 func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
+	log := logger.Get(ctx)
+
 	//get all users
 	idpUsers := []identity.IDPUser{}
 	hasMore := true
@@ -86,12 +121,20 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 	for hasMore {
 		users, res, err := o.client.User.ListUsers(ctx, &query.Params{Cursor: paginationToken})
 		if err != nil {
-			return nil, err
+			// try and log the response body
+			b, readErr := io.ReadAll(res.Body)
+			if readErr != nil {
+				log.Errorw("error reading Okta error response body", zap.Error(readErr))
+			} else {
+				log.Errorw("error listing Okta users", zap.Error(err), "body", string(b))
+			}
+
+			return nil, errors.Wrap(err, "listing okta users from okta API")
 		}
 		for _, u := range users {
 			user, err := o.idpUserFromOktaUser(ctx, u)
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrapf(err, "converting okta user %s to internal user", u.Id)
 			}
 			idpUsers = append(idpUsers, user)
 		}
@@ -108,7 +151,7 @@ func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) 
 	for hasMore {
 		groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{Cursor: paginationToken})
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "listing okta groups from okta API")
 		}
 		for _, g := range groups {
 			idpGroups = append(idpGroups, idpGroupFromOktaGroup(g))
