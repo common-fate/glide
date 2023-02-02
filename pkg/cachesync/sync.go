@@ -174,8 +174,8 @@ func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, p prov
 	}
 
 	items := make([]ddb.Keyer, len(resources))
-	for k, v := range resources {
-		items[k] = v
+	for k := range resources {
+		items[k] = resources[k]
 	}
 
 	return s.DB.PutBatch(ctx, items...)

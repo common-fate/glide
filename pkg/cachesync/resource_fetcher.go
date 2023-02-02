@@ -63,7 +63,8 @@ func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([
 		key := keys.PK + keys.SK
 		finalMap[key] = rf.resources[i]
 	}
-	final := make([]*cache.ProviderResource, len(finalMap))
+
+	final := make([]*cache.ProviderResource, 0, len(finalMap))
 	for k := range finalMap {
 		final = append(final, finalMap[k])
 	}
