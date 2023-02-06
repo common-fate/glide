@@ -40,7 +40,7 @@ import type {
 } from '.././types'
 import type {
   ArgSchema,
-  ArgOptionsResponseResponse
+  ArgOptions
 } from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -667,7 +667,7 @@ export const adminListProviderArgOptions = (
     argId: string,
     params?: AdminListProviderArgOptionsParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ArgOptionsResponseResponse>(
+      return customInstance<ArgOptions>(
       {url: `/api/v1/admin/providers/${providerId}/args/${argId}/options`, method: 'get',
         params
     },
