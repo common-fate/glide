@@ -64,6 +64,11 @@ func (o *OktaSync) idpUserFromOktaUser(ctx context.Context, oktaUser *okta.User)
 
 	log.Debugw("converting okta user to internal user", "oktaUser", string(userJSON))
 
+	// errors returned here are propagated up to the IDP sync function and cause the entire function to fail.
+	// if for any reason the Okta user profile doesn't contain "firstName" and "lastName" fields on the JSON object,
+	// we log an error and set them to an empty string to prevent the entire function failing.
+	// The only field which we MUST have set is the user email address.
+
 	firstName, ok := (*oktaUser.Profile)["firstName"].(string)
 	if !ok {
 		log.Error("okta profile had no firstName")
