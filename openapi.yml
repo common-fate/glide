@@ -1131,6 +1131,97 @@ paths:
       description: Update a favorite with new FavoriteDetails
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
+  "/api/v1/target-group-deployments/{id}":
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Target Groups
+      responses:
+        "200":
+          description: OK
+      operationId: get-target-group-deployment
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+  /api/v1/target-group-deployments:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Target Groups
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupDeploymentsResponse"
+        "500":
+          description: Internal Server Error
+      operationId: list-target-group-deployments
+    post:
+      summary: ""
+      operationId: create-target-group-deployment
+      responses:
+        "200":
+          description: OK
+      tags:
+        - Target Groups
+  "/api/v1/target-groups/{id}":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Target Groups
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetGroup"
+      operationId: get-target-group
+  /api/v1/target-groups:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Target Groups
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupsResponse"
+        "500":
+          description: Internal Server Error
+      operationId: list-target-groups
+    post:
+      summary: ""
+      operationId: create-target-group
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      tags:
+        - Target Groups
+      requestBody:
+        $ref: "#/components/requestBodies/CreateTargetGroupRequest"
+  "/api/v1/target-groups/{id}/link":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    post:
+      summary: ""
+      operationId: create-target-group-link
+      responses:
+        "200":
+          description: OK
+      tags:
+        - Target Groups
 components:
   schemas:
     User:
@@ -2062,6 +2153,44 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
+    TargetGroupDeployment:
+      title: TargetGroupDeployment
+      x-stoplight:
+        id: b4c96fa682036
+      type: object
+      x-tags:
+        - Target Groups
+      properties:
+        id:
+          type: string
+        functionArn:
+          type: string
+        awsAccount:
+          type: string
+        healthy:
+          type: boolean
+        diagnostics:
+          type: array
+          items: {}
+        activeConfig:
+          type: string
+        provider:
+          type: string
+    TargetGroup:
+      title: TargetGroup
+      x-stoplight:
+        id: wcyzfn1kp9xkx
+      type: object
+      properties:
+        id:
+          type: string
+        targetSchema:
+          type: object
+        icon:
+          type: string
+        targetDeployments:
+          type: array
+          items: {}
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2306,6 +2435,35 @@ components:
                 type: string
             required:
               - hasToken
+    ListTargetGroupsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              res:
+                $ref: "#/components/schemas/TargetGroup"
+              next:
+                type: string
+    ListTargetGroupDeploymentsResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            properties:
+              id:
+                type: string
+        application/xml:
+          schema:
+            type: object
+            properties:
+              res:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetGroupDeployment"
+              next:
+                type: string
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2497,6 +2655,35 @@ components:
               - accessRuleId
               - timing
               - name
+    CreateTargetGroupRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              targetSchema:
+                type: object
+              icon:
+                type: string
+              targetDeployments:
+                type: array
+                items: {}
+    CreateTargetGroupDeploymentRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              functionArn:
+                type: string
+              runtime:
+                type: string
+              awsAccount:
+                type: string
+              activeConfig:
+                type: string
+              provider:
+                type: string
 tags:
   - name: End User
   - name: Admin
