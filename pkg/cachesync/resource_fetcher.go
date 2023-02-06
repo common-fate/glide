@@ -81,9 +81,11 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response pdk.LoadRe
 		for _, i := range response.Resources {
 			rf.resources = append(rf.resources, &cache.ProviderResource{
 				ResourceType: i.Type,
-				Resource:     i.Data,
-				ProviderId:   rf.providerID,
-				Value:        i.Data.ID,
+				Resource: cache.Resource{
+					ID:   i.Data.ID,
+					Name: i.Data.Name,
+				},
+				ProviderId: rf.providerID,
 			})
 		}
 		rf.resourcesMx.Unlock()
