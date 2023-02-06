@@ -7,22 +7,23 @@ import (
 )
 
 type Data struct {
-	ID string `json:"id"`
-	// Other map[string]interface{} `json:",remain"`
+	ID    string                 `mapstructure:"id"`
+	Name  string                 `mapstructure:"name"`
+	Other map[string]interface{} `mapstructure:",remain"`
 }
 
 type Resource struct {
-	Type string `json:"type"`
-	Data Data   `json:"data"`
+	Type string `mapstructure:"type"`
+	Data Data   `mapstructure:"data"`
 }
 
 type LoadResourceResponse struct {
-	Resources []Resource `json:"resources"`
+	Resources []Resource `mapstructure:"resources"`
 
 	PendingTasks []struct {
-		Name string      `json:"name"`
-		Ctx  interface{} `json:"ctx"`
-	} `json:"pendingTasks"`
+		Name string      `mapstructure:"name"`
+		Ctx  interface{} `mapstructure:"ctx"`
+	} `mapstructure:"pendingTasks"`
 }
 
 type ProviderRuntime interface {

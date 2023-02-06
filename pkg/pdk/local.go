@@ -7,6 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+	"github.com/mitchellh/mapstructure"
 )
 
 type LocalRuntime struct {
@@ -40,7 +41,14 @@ func (l LocalRuntime) FetchResources(ctx context.Context, name string, contx int
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}
-	err = json.Unmarshal(out, &resources)
+
+	var data map[string]interface{}
+	err = json.Unmarshal(out, &data)
+	if err != nil {
+		return LoadResourceResponse{}, err
+	}
+
+	err = mapstructure.Decode(data, &resources)
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}

@@ -145,11 +145,15 @@ func (s *CacheSyncer) SyncCommunityProviderSchemas(ctx context.Context) error {
 			logw.Infow("successfully fetched schema for provider")
 
 			if provider.Schema.Audit.ResourceLoaders.AdditionalProperties != nil {
+
+				logw.Infof("fetching resources for provider %s", provider.ID)
 				err = s.SyncCommunityProviderResources(ctx, provider)
 				if err != nil {
-					logw.Error("failed to update resources of provider in database")
+					logw.Error("failed to update resources of provider in database", "err", err)
 					continue
 				}
+
+				logw.Infow("successfully updated resources for the provider")
 			}
 		}
 	}
@@ -173,10 +177,11 @@ func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, p prov
 		return err
 	}
 
-	items := make([]ddb.Keyer, len(resources))
-	for k := range resources {
-		items[k] = resources[k]
+	items := make([]ddb.Keyer, 0, len(resources))
+	for _, k := range resources {
+		items = append(items, k)
 	}
 
+	// TODO: Here we need to UPSERT the previous values and remove any remaining items
 	return s.DB.PutBatch(ctx, items...)
 }
