@@ -20,10 +20,8 @@ import (
 	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/fatih/color"
-	"github.com/mattn/go-colorable"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func main() {
@@ -66,16 +64,8 @@ func main() {
 		},
 	}
 
-	dec := zap.NewDevelopmentEncoderConfig()
-	dec.EncodeTime = nil
-	dec.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	log := zap.New(zapcore.NewCore(
-		zapcore.NewConsoleEncoder(dec),
-		zapcore.AddSync(colorable.NewColorableStdout()),
-		zapcore.DebugLevel,
-	))
-
-	zap.ReplaceGlobals(log)
+	clio.SetLevelFromEnv("CF_LOG", "GRANTED_LOG")
+	zap.ReplaceGlobals(clio.G())
 
 	err := internal.PrintAnalyticsNotice(false)
 	if err != nil {
