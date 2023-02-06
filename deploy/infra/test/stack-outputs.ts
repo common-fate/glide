@@ -36,6 +36,7 @@ const testOutputs: StackOutputs = {
   RestAPIExecutionRoleARN: "abcdefg",
   IDPSyncExecutionRoleARN: "abcdefg",
   CacheSyncFunctionName: "abcdefg",
+  CLIAppClientID: "abcdefg",
 };
 
 // Write the json object to ./testOutputs.json so that it can be parsed by a go test in pkg/deploy.output_test.go

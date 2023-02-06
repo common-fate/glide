@@ -191,7 +191,7 @@ export class CommonFateStackProd extends cdk.Stack {
       cloudfrontWafAclArn: cloudfrontWafAclArn.valueAsString,
     });
 
-    const webUserPool = new WebUserPool(this, "WebUserPool", {
+    const userPool = new WebUserPool(this, "WebUserPool", {
       appName,
       domainPrefix: cognitoDomainPrefix.valueAsString,
       callbackUrls: appFrontend.getProdCallbackUrls(),
@@ -234,7 +234,7 @@ export class CommonFateStackProd extends cdk.Stack {
 
     const appBackend = new AppBackend(this, "API", {
       appName,
-      userPool: webUserPool,
+      userPool: userPool,
       frontendUrl: "https://" + appFrontend.getDomainName(),
       accessHandler: accessHandler,
       governanceHandler: governance,
@@ -261,9 +261,9 @@ export class CommonFateStackProd extends cdk.Stack {
       cloudfrontDistributionId: appFrontend.getDistributionId(),
       frontendDomain: appFrontend.getDomainName(),
       frontendBucket: appFrontend.getBucket(),
-      cognitoClientId: webUserPool.getUserPoolClientId(),
-      cognitoUserPoolId: webUserPool.getUserPoolId(),
-      userPoolDomain: webUserPool.getUserPoolLoginFQDN(),
+      cognitoClientId: userPool.getUserPoolClientId(),
+      cognitoUserPoolId: userPool.getUserPoolId(),
+      userPoolDomain: userPool.getUserPoolLoginFQDN(),
       cfReleaseBucket: props.productionReleasesBucket,
       cfReleaseBucketFrontendAssetObjectPrefix:
         props.productionFrontendAssetObjectPrefix,
@@ -271,13 +271,13 @@ export class CommonFateStackProd extends cdk.Stack {
 
     /* Outputs */
     generateOutputs(this, {
-      CognitoClientID: webUserPool.getUserPoolClientId(),
+      CognitoClientID: userPool.getUserPoolClientId(),
       CloudFrontDomain: appFrontend.getCloudFrontDomain(),
       FrontendDomainOutput: appFrontend.getDomainName(),
       CloudFrontDistributionID: appFrontend.getDistributionId(),
       S3BucketName: appFrontend.getBucketName(),
-      UserPoolID: webUserPool.getUserPoolId(),
-      UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
+      UserPoolID: userPool.getUserPoolId(),
+      UserPoolDomain: userPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getRestApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
       GovernanceURL: governance.getGovernanceApiURL(),
@@ -297,7 +297,7 @@ export class CommonFateStackProd extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       SAMLIdentityProviderName:
-        webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
+        userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN:
@@ -306,6 +306,7 @@ export class CommonFateStackProd extends cdk.Stack {
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
+      CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
     });
   }
 }

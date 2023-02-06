@@ -3,6 +3,7 @@
     "region": "us-east-1",
     "userPoolId": "us-east-1_abcdefg",
     "userPoolWebClientId": "2aqedb08vdqnabcdeo5u51udlvg",
+    "cliAppClientId": "cli-client-app-id",
     "mandatorySignIn": true,
     "oauth": {
       "domain": "test.auth.us-east-1.amazoncognito.com",

@@ -34,6 +34,7 @@ func (o Output) ToRenderFrontendConfig() RenderFrontendConfig {
 		UserPoolDomain:  o.UserPoolDomain,
 		FrontendDomain:  o.FrontendDomainOutput,
 		APIURL:          o.APIURL,
+		CLIAppClientID:  o.CLIAppClientID,
 	}
 }
 
@@ -109,6 +110,7 @@ type RenderFrontendConfig struct {
 	UserPoolDomain  string
 	FrontendDomain  string
 	APIURL          string
+	CLIAppClientID  string
 }
 
 // RenderLocalFrontendConfig renders the aws-exports.js file
