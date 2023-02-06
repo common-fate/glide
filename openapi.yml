@@ -2451,11 +2451,6 @@ components:
       content:
         application/json:
           schema:
-            properties:
-              id:
-                type: string
-        application/xml:
-          schema:
             type: object
             properties:
               res:
