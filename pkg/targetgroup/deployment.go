@@ -2,6 +2,7 @@ package targetgroup
 
 import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -33,4 +34,8 @@ func (r *Deployment) DDBKeys() (ddb.Keys, error) {
 		SK: keys.TargetGroupDeployment.SK1(r.ID),
 	}
 	return keys, nil
+}
+
+func (r *Deployment) ToAPI() types.TargetGroupDeployment {
+	return types.TargetGroupDeployment{}
 }
