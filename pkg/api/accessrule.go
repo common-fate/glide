@@ -265,7 +265,7 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 	// get the requesting users id
 	u := auth.UserFromContext(ctx)
 
-	result, err := a.Rules.GetRule(ctx, ruleId, u, false)
+	ruleWithCanRequest, err := a.Rules.GetRule(ctx, ruleId, u, false)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule doesn't exist or you don't have permission to access it"), Status: http.StatusNotFound})
 		return
@@ -279,12 +279,12 @@ func (a *API) UserGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId s
 		return
 	}
 
-	requestArguments, err := a.Rules.RequestArguments(ctx, result.Rule.Target)
+	requestArguments, err := a.Rules.RequestArguments(ctx, ruleWithCanRequest.Rule.Target)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, result.Rule.ToRequestAccessRuleAPI(requestArguments, result.CanRequest), http.StatusOK)
+	apio.JSON(ctx, w, ruleWithCanRequest.Rule.ToRequestAccessRuleAPI(requestArguments, ruleWithCanRequest.CanRequest), http.StatusOK)
 }
 
 func (a *API) UserGetAccessRuleApprovers(w http.ResponseWriter, r *http.Request, ruleId string) {
