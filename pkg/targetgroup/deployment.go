@@ -18,13 +18,13 @@ type Deployment struct {
 }
 
 type Config struct {
-	Type  string
-	Value interface{}
+	Type  string      `json:"type" dynamodbav:"type"`
+	Value interface{} `json:"value" dynamodbav:"value"`
 }
 type Provider struct {
-	Publisher string
-	Name      string
-	Version   string
+	Publisher string `json:"publisher" dynamodbav:"publisher"`
+	Name      string `json:"name" dynamodbav:"name"`
+	Version   string `json:"version" dynamodbav:"version"`
 }
 
 func (r *Deployment) DDBKeys() (ddb.Keys, error) {
