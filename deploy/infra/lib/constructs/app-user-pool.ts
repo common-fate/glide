@@ -33,6 +33,7 @@ export class WebUserPool extends Construct {
   private readonly _appName: string;
   private readonly _idpType: IdentityProviderTypes;
   private readonly _samlUserPoolClient: SamlUserPoolClient;
+  private readonly _cliAppClient: cognito.IUserPoolClient;
   private _userPoolClientId: string;
   private _userPoolDomain: cognito.IUserPoolDomain;
 
@@ -118,7 +119,8 @@ export class WebUserPool extends Construct {
           precedence: 0,
         }
       );
-      cfnDeprecatedAdminUserPoolGroup.cfnOptions.condition = createCognitoResources;
+      cfnDeprecatedAdminUserPoolGroup.cfnOptions.condition =
+        createCognitoResources;
       const cfnAdminUserPoolGroup = new cognito.CfnUserPoolGroup(
         this,
         "WebAppAdministratorsGroupCF",
@@ -145,7 +147,7 @@ export class WebUserPool extends Construct {
         samlMetadata: props.samlMetadata,
       }
     );
-    this._samlUserPoolClient.node.defaultChild;
+
     const cognitoWebClient = new CognitoUserPoolClient(
       this,
       "CognitoUserPoolClient",
@@ -156,12 +158,44 @@ export class WebUserPool extends Construct {
         condition: createCognitoResources,
       }
     );
+
     this._userPoolClientId = cdk.Fn.conditionIf(
       createSAMLResources.logicalId,
       this._samlUserPoolClient.getUserPoolClient().userPoolClientId,
       cognitoWebClient.getUserPoolClient().userPoolClientId
     ).toString();
+
+    // to use the built-in Cognito IDP, we specify "COGNITO".
+    // otherwise, for a custom SAML IDP, we use the name as specified
+    // in the CDK props (e.g. 'aws-sso', 'okta').
+    const idp = cdk.Fn.conditionIf(
+      createCognitoResources.logicalId,
+      "COGNITO",
+      props.idpType
+    ).toString();
+
+    // create an app client for the CLI
+    this._cliAppClient = this._userPool.addClient("CLI", {
+      supportedIdentityProviders: [UserPoolClientIdentityProvider.custom(idp)],
+      oAuth: {
+        flows: {
+          authorizationCodeGrant: true,
+          implicitCodeGrant: false,
+          clientCredentials: false,
+        },
+        scopes: [
+          cognito.OAuthScope.OPENID,
+          cognito.OAuthScope.EMAIL,
+          cognito.OAuthScope.PROFILE,
+        ],
+        callbackUrls: ["http://localhost:18900/auth/cognito/callback"],
+      },
+    });
   }
+  getCLIAppClient(): cognito.IUserPoolClient {
+    return this._cliAppClient;
+  }
+
   getIdpType(): IdentityProviderTypes {
     return this._idpType;
   }
@@ -276,6 +310,7 @@ export class SamlUserPoolClient extends Construct {
     return this._userPoolClient.userPoolClientName;
   }
 }
+
 type CognitoUserPoolClientProps = {
   userPool: cognito.IUserPool;
   appName: string;
