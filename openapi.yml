@@ -1158,7 +1158,7 @@ paths:
           description: Internal Server Error
       operationId: list-target-group-deployments
     post:
-      summary: ""
+      summary: Create a target group deployment
       operationId: create-target-group-deployment
       responses:
         "200":
@@ -2233,6 +2233,14 @@ components:
           type: string
         provider:
           type: string
+      required:
+        - id
+        - functionArn
+        - awsAccount
+        - healthy
+        - diagnostics
+        - activeConfig
+        - provider
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2547,7 +2555,7 @@ components:
             required:
               - targetGroups
     ListTargetGroupDeploymentsResponse:
-      description: Example response
+      description: Respons obj for ListTargetGroupDeploymentsResponse
       content:
         application/json:
           schema:
@@ -2559,6 +2567,9 @@ components:
                   $ref: "#/components/schemas/TargetGroupDeployment"
               next:
                 type: string
+            required:
+              - res
+              - next
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2779,6 +2790,13 @@ components:
                 type: string
               provider:
                 type: string
+            required:
+              - functionArn
+              - runtime
+              - awsAccount
+              - activeConfig
+              - provider
 tags:
   - name: End User
   - name: Admin
+  - name: Target Groups

@@ -37,5 +37,34 @@ func (r *Deployment) DDBKeys() (ddb.Keys, error) {
 }
 
 func (r *Deployment) ToAPI() types.TargetGroupDeployment {
-	return types.TargetGroupDeployment{}
+
+	return types.TargetGroupDeployment{
+		Id:           r.ID,
+		AwsAccount:   r.AWSAccount,
+		FunctionArn:  r.FunctionARN,
+		Healthy:      r.Healthy,
+		ActiveConfig: "TODO",          // @TODO
+		Diagnostics:  nil,             // @TODO
+		Provider:     r.Provider.Name, // @TODO
+	}
+}
+
+func (r *Deployment) ToAPIDetailed(deploymentArguments map[string]Config) types.TargetGroupDeployment {
+
+	// follow spec from /pkg/access/request.go#L174
+
+	// for k, v := range deploymentArguments {
+	// 	...
+	// 	if activeConfig, ok := r.ActiveConfig[]
+	// }
+
+	return types.TargetGroupDeployment{
+		Id:           r.ID,
+		AwsAccount:   r.AWSAccount,
+		FunctionArn:  r.FunctionARN,
+		Healthy:      r.Healthy,
+		ActiveConfig: "TODO",          // @TODO
+		Diagnostics:  nil,             // @TODO
+		Provider:     r.Provider.Name, // @TODO
+	}
 }
