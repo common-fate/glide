@@ -12,6 +12,7 @@ import type { ArgumentGroups } from './argumentGroups';
 export interface Argument {
   id: string;
   title: string;
+  resourceName?: string;
   description?: string;
   ruleFormElement: ArgumentRuleFormElement;
   /** Optional form element for the request form, if not provided, defaults to multiselect */
