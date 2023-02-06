@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -99,12 +100,17 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 
 	q := storage.GetProvider{ID: providerId}
 	_, err := a.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	if err != ddb.ErrNoItems {
-		// @TODO this needs to be converted suitably to the api type
+
+	var isCommunityProvider bool
+	if q.Result != nil {
+		isCommunityProvider = true
+	}
+
+	if isCommunityProvider {
 		apio.JSON(ctx, w, q.Result.Schema.Target, http.StatusOK)
 		return
 	}
@@ -136,6 +142,24 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	}
 }
 
+func (a *API) fetchProviderResourcesByResourceType(ctx context.Context, providerId string, resourceType string) ([]ahTypes.Option, error) {
+	query := storage.ListCachedProviderResource{ProviderID: providerId, ResourceType: resourceType}
+	_, err := a.DB.Query(ctx, &query)
+	if err != nil {
+		return nil, err
+	}
+
+	var opts []ahTypes.Option
+	for _, k := range query.Result {
+		opts = append(opts, ahTypes.Option{
+			Label: k.Resource.Name,
+			Value: k.Resource.ID,
+		})
+	}
+
+	return opts, nil
+}
+
 // List provider arg options
 // (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
 func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.AdminListProviderArgOptionsParams) {
@@ -148,6 +172,31 @@ func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request
 	var options []cache.ProviderOption
 	var groups []cache.ProviderArgGroupOption
 	var err error
+
+	q := storage.GetProvider{ID: providerId}
+	_, err = a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	var isCommunityProvider bool
+	if q.Result != nil {
+		isCommunityProvider = true
+	}
+
+	if isCommunityProvider {
+		// argId is either an argument's Id or resource's Name
+		res.Options, err = a.fetchProviderResourcesByResourceType(ctx, providerId, argId)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
+
 	if params.Refresh != nil && *params.Refresh {
 		_, options, groups, err = a.Cache.RefreshCachedProviderArgOptions(ctx, providerId, argId)
 	} else {
