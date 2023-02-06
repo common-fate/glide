@@ -28,6 +28,8 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/targetgroup"
 
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -67,8 +69,9 @@ type API struct {
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito          CognitoService
-	InternalIdentity InternalIdentityService
+	Cognito            CognitoService
+	InternalIdentity   InternalIdentityService
+	TargetGroupService TargetGroupService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -120,6 +123,11 @@ type InternalIdentityService interface {
 	CreateGroup(ctx context.Context, in types.CreateGroupRequest) (*identity.Group, error)
 	UpdateUserGroups(ctx context.Context, user identity.User, groups []string) (*identity.User, error)
 	DeleteGroup(ctx context.Context, group identity.Group) error
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_service.go -package=mocks . TargetGroupService
+type TargetGroupService interface {
+	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
 }
 
 // API must meet the generated REST API interface.
@@ -223,6 +231,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Granter:             granter,
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
+		TargetGroupService: &targetgroupsvc.Service{
+			DB:    db,
+			Clock: clk,
+		},
 	}
 
 	// only initialise this if cognito is the IDP

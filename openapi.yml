@@ -1771,6 +1771,63 @@ components:
           format: time
       required:
         - durationSeconds
+    TargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: tk7obmea4shbx
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/TargetArgument"
+    TargetArgument:
+      title: TargetArgument
+      x-stoplight:
+        id: 1b080aa3276c2
+      type: object
+      description: "Define the metadata, data type and UI elements for the argument"
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        ruleFormElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: "Optional form element for the request form, if not provided, defaults to multiselect"
+        groups:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/TargetArgumentGroup"
+      required:
+        - id
+        - title
+        - ruleFormElement
+        - requestFormElement
+        - groups
+    TargetArgumentGroup:
+      title: TargetArgumentGroup
+      x-stoplight:
+        id: b65de9db1722a
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
+      description: An argument group
     ApprovalMethod:
       type: string
       description: "Describes whether a request has been approved automatically or from a review "
@@ -2185,12 +2242,51 @@ components:
         id:
           type: string
         targetSchema:
-          type: object
+          $ref: "#/components/schemas/GroupTargetSchema"
         icon:
           type: string
         targetDeployments:
           type: array
-          items: {}
+          items:
+            $ref: "#/components/schemas/DeploymentRegistration"
+      required:
+        - id
+        - targetSchema
+        - icon
+        - targetDeployments
+    DeploymentRegistration:
+      type: object
+      x-stoplight:
+        id: d13df9f8cec56
+      properties:
+        Id:
+          type: string
+        Priority:
+          type: integer
+        Valid:
+          type: boolean
+        Diagnostics:
+          type: array
+          items:
+            type: object
+      required:
+        - Id
+        - Priority
+        - Valid
+        - Diagnostics
+    GroupTargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: 6192c449ffbe9
+      type: object
+      properties:
+        From:
+          type: string
+        Schema:
+          $ref: "#/components/schemas/TargetSchema"
+      required:
+        - From
+        - Schema
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2442,10 +2538,14 @@ components:
           schema:
             type: object
             properties:
-              res:
-                $ref: "#/components/schemas/TargetGroup"
+              targetGroups:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetGroup"
               next:
                 type: string
+            required:
+              - targetGroups
     ListTargetGroupDeploymentsResponse:
       description: Example response
       content:
@@ -2662,12 +2762,12 @@ components:
             type: object
             properties:
               targetSchema:
-                type: object
-              icon:
                 type: string
-              targetDeployments:
-                type: array
-                items: {}
+              ID:
+                type: string
+            required:
+              - targetSchema
+              - ID
     CreateTargetGroupDeploymentRequest:
       content:
         application/json:
