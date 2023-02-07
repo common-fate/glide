@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -15,11 +16,13 @@ func (a *API) ListTargetGroups(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	var response types.ListTargetGroupsResponse
+	response := types.ListTargetGroupsResponse{TargetGroups: []types.TargetGroup{}}
 
 	q := storage.ListTargetGroups{}
 
 	_, err := a.DB.Query(ctx, &q)
+	// don't return an error response when there are not rules
+
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
@@ -43,7 +46,10 @@ func (a *API) CreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	group, err := a.TargetGroupService.CreateTargetGroup(ctx, createGroupRequest)
-
+	if err == targetgroupsvc.ErrTargetGroupIdAlreadyExists {
+		// the user supplied id already exists
+		err = apio.NewRequestError(err, http.StatusBadRequest)
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -59,7 +65,12 @@ func (a *API) GetTargetGroup(w http.ResponseWriter, r *http.Request, id string) 
 	q := storage.GetTargetGroup{ID: id}
 
 	_, err := a.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
+
+	if err == ddb.ErrNoItems {
+		err = apio.NewRequestError(err, http.StatusNotFound)
+	}
+
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
