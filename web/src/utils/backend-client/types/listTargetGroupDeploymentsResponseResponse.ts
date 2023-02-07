@@ -8,6 +8,6 @@
 import type { TargetGroupDeployment } from './targetGroupDeployment';
 
 export type ListTargetGroupDeploymentsResponseResponse = {
-  res?: TargetGroupDeployment[];
-  next?: string;
+  res: TargetGroupDeployment[];
+  next: string;
 };

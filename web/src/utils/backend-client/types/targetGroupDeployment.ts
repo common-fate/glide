@@ -5,13 +5,16 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { TargetGroupDiagnostic } from './targetGroupDiagnostic';
+import type { TargetGroupDeploymentActiveConfig } from './targetGroupDeploymentActiveConfig';
+import type { TargetGroupDeploymentProviderProperty } from './targetGroupDeploymentProviderProperty';
 
 export interface TargetGroupDeployment {
-  id?: string;
-  functionArn?: string;
-  awsAccount?: string;
-  healthy?: boolean;
-  diagnostics?: unknown[];
-  activeConfig?: string;
-  provider?: string;
+  id: string;
+  functionArn: string;
+  awsAccount: string;
+  healthy: boolean;
+  diagnostics: TargetGroupDiagnostic[];
+  activeConfig: TargetGroupDeploymentActiveConfig;
+  provider: TargetGroupDeploymentProviderProperty;
 }

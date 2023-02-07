@@ -37,5 +37,40 @@ func (r *Deployment) DDBKeys() (ddb.Keys, error) {
 }
 
 func (r *Deployment) ToAPI() types.TargetGroupDeployment {
-	return types.TargetGroupDeployment{}
+
+	diagnostics := make([]types.TargetGroupDiagnostic, len(r.Diagnostics))
+
+	for i, d := range r.Diagnostics {
+		diagnostics[i] = types.TargetGroupDiagnostic{
+			Code:    d.Code,
+			Level:   d.Level,
+			Message: d.Message,
+		}
+	}
+
+	// new struct that can be cast to json version of Provdier
+	// Q: should this instead be declared in the types package?
+	provider := struct {
+		Name      string "json:\"name\""
+		Publisher string "json:\"publisher\""
+		Version   string "json:\"version\""
+	}{
+		Name:      r.Provider.Name,
+		Publisher: r.Provider.Publisher,
+		Version:   r.Provider.Version,
+	}
+
+	return types.TargetGroupDeployment{
+		Id:          r.ID,
+		AwsAccount:  r.AWSAccount,
+		FunctionArn: r.FunctionARN,
+		Healthy:     r.Healthy,
+		// ActiveConfig: types.TargetGroupDeployment_ActiveConfig{ // @TODO
+		// 	AdditionalProperties: map[string]types.TargetGroupDeploymentConfig{
+		// 		"TODO": {Type: "todo", Value: make(map[string]interface{})},
+		// 	},
+		// },
+		Diagnostics: diagnostics,
+		Provider:    provider,
+	}
 }

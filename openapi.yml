@@ -1139,6 +1139,8 @@ paths:
       responses:
         "200":
           description: OK
+        "500":
+          description: Internal Server Error
       operationId: get-target-group-deployment
     parameters:
       - schema:
@@ -1158,11 +1160,13 @@ paths:
           description: Internal Server Error
       operationId: list-target-group-deployments
     post:
-      summary: ""
+      summary: Create a target group deployment
       operationId: create-target-group-deployment
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
+        "500":
+          description: Internal Server Error
       tags:
         - Target Groups
   "/api/v1/target-groups/{id}":
@@ -2228,11 +2232,33 @@ components:
           type: boolean
         diagnostics:
           type: array
-          items: {}
+          items:
+            $ref: "#/components/schemas/TargetGroupDiagnostic"
         activeConfig:
-          type: string
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/TargetGroupDeploymentConfig"
         provider:
-          type: string
+          type: object
+          required:
+            - publisher
+            - name
+            - version
+          properties:
+            publisher:
+              type: string
+            name:
+              type: string
+            version:
+              type: string
+      required:
+        - id
+        - functionArn
+        - awsAccount
+        - healthy
+        - diagnostics
+        - activeConfig
+        - provider
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2287,6 +2313,51 @@ components:
       required:
         - From
         - Schema
+    TargetGroupDeploymentConfig:
+      title: TargetGroupDeploymentConfig
+      x-stoplight:
+        id: uh2lj7r91ba6u
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: object
+      required:
+        - type
+        - value
+    TargetGroupDiagnostic:
+      title: TargetGroupDiagnostic
+      x-stoplight:
+        id: ktm8g34aqfgfd
+      type: object
+      properties:
+        level:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - level
+        - code
+        - message
+    TargetGroupDeploymentProvider:
+      title: TargetGroupDeploymentProvider
+      x-stoplight:
+        id: t8fxrpcy8wl7m
+      type: object
+      properties:
+        publisher:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+      required:
+        - publisher
+        - name
+        - version
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2547,7 +2618,7 @@ components:
             required:
               - targetGroups
     ListTargetGroupDeploymentsResponse:
-      description: Example response
+      description: Respons obj for ListTargetGroupDeploymentsResponse
       content:
         application/json:
           schema:
@@ -2559,6 +2630,9 @@ components:
                   $ref: "#/components/schemas/TargetGroupDeployment"
               next:
                 type: string
+            required:
+              - res
+              - next
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2776,9 +2850,17 @@ components:
               awsAccount:
                 type: string
               activeConfig:
-                type: string
+                type: object
+                x-go-type: "map[string]string"
               provider:
-                type: string
+                $ref: "#/components/schemas/TargetGroupDeploymentProvider"
+            required:
+              - functionArn
+              - runtime
+              - awsAccount
+              - activeConfig
+              - provider
 tags:
   - name: End User
   - name: Admin
+  - name: Target Groups

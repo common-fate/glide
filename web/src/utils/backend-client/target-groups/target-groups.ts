@@ -105,6 +105,9 @@ export const useListTargetGroupDeployments = <TError = ErrorType<void>>(
   }
 }
 
+/**
+ * @summary Create a target group deployment
+ */
 export const createTargetGroupDeployment = (
     
  options?: SecondParameter<typeof customInstance>) => {
