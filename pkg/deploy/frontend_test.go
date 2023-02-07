@@ -17,6 +17,7 @@ var testCDKOutput = Output{
 	S3BucketName:         "common-fate-test-us-east-1-12345567890",
 	DynamoDBTable:        "common-fate-test",
 	Region:               "us-east-1",
+	CLIAppClientID:       "cli-client-app-id",
 }
 
 func TestRenderLocalFrontend(t *testing.T) {

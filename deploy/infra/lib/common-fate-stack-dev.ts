@@ -70,7 +70,7 @@ export class CommonFateStackDev extends cdk.Stack {
       stableName: appName,
     }).withDevCDN(stage, devConfig, cloudfrontWafAclArn);
 
-    const webUserPool = new WebUserPool(this, "WebUserPool", {
+    const userPool = new WebUserPool(this, "WebUserPool", {
       appName: appName,
       domainPrefix: cognitoDomainPrefix,
       frontendUrl: "https://" + cdn.getDomainName(),
@@ -116,7 +116,7 @@ export class CommonFateStackDev extends cdk.Stack {
 
     const appBackend = new AppBackend(this, "API", {
       appName: appName,
-      userPool: webUserPool,
+      userPool: userPool,
       frontendUrl: "https://" + cdn.getDomainName(),
       accessHandler: accessHandler,
       governanceHandler: governance,
@@ -139,13 +139,13 @@ export class CommonFateStackDev extends cdk.Stack {
     });
     /* Outputs */
     generateOutputs(this, {
-      CognitoClientID: webUserPool.getUserPoolClientId(),
+      CognitoClientID: userPool.getUserPoolClientId(),
       CloudFrontDomain: cdn.getCloudFrontDomain(),
       FrontendDomainOutput: cdn.getDomainName(),
       CloudFrontDistributionID: cdn.getDistributionId(),
       S3BucketName: cdn.getBucketName(),
-      UserPoolID: webUserPool.getUserPoolId(),
-      UserPoolDomain: webUserPool.getUserPoolLoginFQDN(),
+      UserPoolID: userPool.getUserPoolId(),
+      UserPoolDomain: userPool.getUserPoolLoginFQDN(),
       APIURL: appBackend.getRestApiURL(),
       WebhookURL: appBackend.getWebhookApiURL(),
       GovernanceURL: governance.getGovernanceApiURL(),
@@ -165,7 +165,7 @@ export class CommonFateStackDev extends cdk.Stack {
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
       SAMLIdentityProviderName:
-        webUserPool.getSamlUserPoolClient()?.getUserPoolName() || "",
+        userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN:
@@ -174,6 +174,7 @@ export class CommonFateStackDev extends cdk.Stack {
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
+      CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
     });
   }
 }

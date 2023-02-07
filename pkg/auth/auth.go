@@ -113,16 +113,17 @@ func Middleware(authenticator Authenticator, db ddb.Storage, idp IdentitySyncer)
 // AdminAuthorizer only allows users belonging to adminGroup to access administrative endpoints.
 // The middleware currently gates all endpoints in the format /api/v1/admin/*
 func AdminAuthorizer(adminGroup string) func(next http.Handler) http.Handler {
-	// the admin group should always be provided.
-	// if it's not it's a serious misconfiguration so we panic to avoid
-	// actually running the server.
-	if adminGroup == "" {
-		panic("AdminAuthorizer: adminGroup was empty")
-	}
-
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+			// the admin group should always be non-empty.
+			// If it is empty, we return an internal server error and don't allow any access,
+			// as we can't determine whether the user should be authorized to access them.
+			if adminGroup == "" {
+				apio.ErrorString(ctx, w, "The Common Fate administrator group is empty. Update the administrator group in your deployment configuration and redeploy.", http.StatusInternalServerError)
+				return
+			}
+
 			usr, ok := ctx.Value(userContext).(*identity.User)
 			if !ok {
 				apio.Error(ctx, w, errors.New("could not parse auth claims from context"))
