@@ -18,6 +18,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/pkg/cfaws/policy"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-retry"
@@ -93,7 +94,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	// we didn't find the user, so return false.
 	return false, nil
 }
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, t providers.InstructionsTemplate) (string, error) {
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
 	err := json.Unmarshal(args, &a)
@@ -106,7 +107,7 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.eksClusterRoleAccountID, grantId)
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.clusterRegion.Get(), p.eksClusterRoleAccountID, t.GrantID)
 	i += "```\n"
 	i += "# K8s \n"
 	i += "Then you can add the kube config to setup your local kubeconfig with the following command:"
