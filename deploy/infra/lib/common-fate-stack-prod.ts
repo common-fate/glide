@@ -267,6 +267,7 @@ export class CommonFateStackProd extends cdk.Stack {
       cfReleaseBucket: props.productionReleasesBucket,
       cfReleaseBucketFrontendAssetObjectPrefix:
         props.productionFrontendAssetObjectPrefix,
+      cliClientId: userPool.getCLIAppClient().userPoolClientId,
     });
 
     /* Outputs */
