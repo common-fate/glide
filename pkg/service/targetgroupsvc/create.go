@@ -9,21 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// func BuildAccessHandlerClient(ctx context.Context, opts BuildAccessHandlerClientOpts) (types.ClientWithResponsesInterface, error) {
-// 	if opts.MockAccessHandler {
-// 		return nil, nil
-// 	}
-// 	awsCfg, err := cfaws.ConfigFromContextOrDefault(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	creds, err := awsCfg.Credentials.Retrieve(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return types.NewClientWithResponses(opts.AccessHandlerURL, types.WithRequestEditorFn(apiGatewayRequestSigner(creds, opts.Region)))
-// }
-
 func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error) {
 	log := zap.S()
 

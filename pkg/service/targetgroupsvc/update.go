@@ -42,6 +42,7 @@ func (s *Service) UpdateTargetGroup(ctx context.Context, req UpdateOpts) (*targe
 		}
 
 		targetGroup.TargetSchema.Schema = resp.JSON200.Schema.Target
+		targetGroup.TargetSchema.From = req.UpdateRequest.TargetSchema
 	}
 	//look up target schema for the provider version
 
