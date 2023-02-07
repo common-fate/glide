@@ -5,5 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { TargetArgument } from './targetArgument';
 
-export type CreateTargetGroupRequestBodyTargetSchema = { [key: string]: any };
+export interface TargetSchema {[key: string]: TargetArgument}

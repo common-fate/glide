@@ -6,4 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export type TargetGroupTargetSchema = { [key: string]: any };
+/**
+ * An argument group
+ */
+export interface TargetArgumentGroup {
+  id: string;
+  title: string;
+  description?: string;
+}

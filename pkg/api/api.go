@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/benbjohnson/clock"
+	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
@@ -128,25 +129,27 @@ type InternalIdentityService interface {
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_service.go -package=mocks . TargetGroupService
 type TargetGroupService interface {
 	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
+	UpdateTargetGroup(ctx context.Context, req targetgroupsvc.UpdateOpts) (*targetgroup.TargetGroup, error)
 }
 
 // API must meet the generated REST API interface.
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                 *zap.SugaredLogger
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	EventSender         *gevent.Sender
-	IdentitySyncer      auth.IdentitySyncer
-	DeploymentConfig    deploy.DeployConfigReader
-	DynamoTable         string
-	PaginationKMSKeyARN string
-	AdminGroup          string
-	TemplateData        psetup.TemplateData
-	DeploymentSuffix    string
-	CognitoUserPoolID   string
-	IDPType             string
-	AdminGroupID        string
+	Log                    *zap.SugaredLogger
+	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
+	ProviderRegistryClient registry_types.ClientWithResponsesInterface
+	EventSender            *gevent.Sender
+	IdentitySyncer         auth.IdentitySyncer
+	DeploymentConfig       deploy.DeployConfigReader
+	DynamoTable            string
+	PaginationKMSKeyARN    string
+	AdminGroup             string
+	TemplateData           psetup.TemplateData
+	DeploymentSuffix       string
+	CognitoUserPoolID      string
+	IDPType                string
+	AdminGroupID           string
 }
 
 // New creates a new API.
@@ -156,6 +159,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	}
 	if opts.AccessHandlerClient == nil {
 		return nil, errors.New("AccessHandlerClient must be provided")
+	}
+
+	if opts.ProviderRegistryClient == nil {
+		return nil, errors.New("ProviderRegistryClient must be provided")
 	}
 
 	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
@@ -232,8 +239,9 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
 		TargetGroupService: &targetgroupsvc.Service{
-			DB:    db,
-			Clock: clk,
+			DB:                     db,
+			Clock:                  clk,
+			ProviderRegistryClient: opts.ProviderRegistryClient,
 		},
 	}
 

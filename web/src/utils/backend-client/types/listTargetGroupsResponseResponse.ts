@@ -8,6 +8,6 @@
 import type { TargetGroup } from './targetGroup';
 
 export type ListTargetGroupsResponseResponse = {
-  res?: TargetGroup;
+  targetGroups: TargetGroup[];
   next?: string;
 };

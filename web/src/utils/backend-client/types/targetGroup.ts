@@ -5,11 +5,12 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { TargetGroupTargetSchema } from './targetGroupTargetSchema';
+import type { GroupTargetSchema } from './groupTargetSchema';
+import type { DeploymentRegistration } from './deploymentRegistration';
 
 export interface TargetGroup {
-  id?: string;
-  targetSchema?: TargetGroupTargetSchema;
-  icon?: string;
-  targetDeployments?: unknown[];
+  id: string;
+  targetSchema: GroupTargetSchema;
+  icon: string;
+  targetDeployments: DeploymentRegistration[];
 }

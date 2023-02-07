@@ -5,10 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { ListTargetGroupDeploymentsResponseResponseOne } from './listTargetGroupDeploymentsResponseResponseOne';
-import type { ListTargetGroupDeploymentsResponseResponseTwo } from './listTargetGroupDeploymentsResponseResponseTwo';
+import type { TargetGroupDeployment } from './targetGroupDeployment';
 
-/**
- * Example response
- */
-export type ListTargetGroupDeploymentsResponseResponse = ListTargetGroupDeploymentsResponseResponseOne | ListTargetGroupDeploymentsResponseResponseTwo;
+export type ListTargetGroupDeploymentsResponseResponse = {
+  res?: TargetGroupDeployment[];
+  next?: string;
+};

@@ -5,7 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { TargetSchema } from './targetSchema';
 
-export type ListTargetGroupDeploymentsResponseResponseOne = {
-  id?: string;
-};
+export interface GroupTargetSchema {
+  From: string;
+  Schema: TargetSchema;
+}
