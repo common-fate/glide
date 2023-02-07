@@ -161,6 +161,7 @@ func DeployProductionFrontend(ctx context.Context, cfg config.FrontendDeployerCo
 		UserPoolDomain:  cfg.UserPoolDomain,
 		FrontendDomain:  cfg.FrontendDomain,
 		APIURL:          cfg.APIURL,
+		CLIAppClientID:  cfg.CLIAppClientID,
 	}
 
 	zap.S().Infow("rendered frontend config", "config", rfc)
