@@ -1301,6 +1301,12 @@ components:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
           type: boolean
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        updatedAt:
+          type: string
+          x-go-type: time.Time
       required:
         - id
         - version
@@ -1309,6 +1315,8 @@ components:
         - target
         - timeConstraints
         - isCurrent
+        - createdAt
+        - updatedAt
     AccessRuleDetail:
       title: AccessRuleDetail
       type: object

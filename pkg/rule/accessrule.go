@@ -97,6 +97,8 @@ func (a AccessRule) ToAPI() types.AccessRule {
 
 		Target:    a.Target.ToAPI(),
 		IsCurrent: a.Current,
+		CreatedAt: a.Metadata.CreatedAt,
+		UpdatedAt: a.Metadata.UpdatedAt,
 	}
 }
 
