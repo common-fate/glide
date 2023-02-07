@@ -14,6 +14,8 @@ func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetG
 
 	//look up target schema for the provider version
 
+	//TODO: validate that the targetschema is something we are expecting
+
 	splitKey := strings.Split(req.TargetSchema, "/")
 
 	resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])

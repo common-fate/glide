@@ -7,7 +7,7 @@
  */
 import type { TargetSchema } from './targetSchema';
 
-export interface GroupTargetSchema {
+export interface TargetGroupTargetSchema {
   From: string;
   Schema: TargetSchema;
 }

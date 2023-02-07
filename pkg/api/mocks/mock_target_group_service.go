@@ -8,7 +8,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	targetgroupsvc "github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
 	targetgroup "github.com/common-fate/common-fate/pkg/targetgroup"
 	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
@@ -50,19 +49,4 @@ func (m *MockTargetGroupService) CreateTargetGroup(arg0 context.Context, arg1 ty
 func (mr *MockTargetGroupServiceMockRecorder) CreateTargetGroup(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTargetGroup", reflect.TypeOf((*MockTargetGroupService)(nil).CreateTargetGroup), arg0, arg1)
-}
-
-// UpdateTargetGroup mocks base method.
-func (m *MockTargetGroupService) UpdateTargetGroup(arg0 context.Context, arg1 targetgroupsvc.UpdateOpts) (*targetgroup.TargetGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTargetGroup", arg0, arg1)
-	ret0, _ := ret[0].(*targetgroup.TargetGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateTargetGroup indicates an expected call of UpdateTargetGroup.
-func (mr *MockTargetGroupServiceMockRecorder) UpdateTargetGroup(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTargetGroup", reflect.TypeOf((*MockTargetGroupService)(nil).UpdateTargetGroup), arg0, arg1)
 }
