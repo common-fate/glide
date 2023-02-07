@@ -48,20 +48,45 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// TODO: run pre-lim checks to ensure aws account/arn are valid
+
 	dbInput := targetgroup.Deployment{
-		ID:          types.NewTargetGroupDeploymentID(),
-		FunctionARN: b.FunctionArn,
-		Runtime:     b.Runtime,
-		AWSAccount:  string(b.AwsAccount),
-		// Q: ok to initialize false?
-		Healthy: false,
-		// Q: ok to intialize array empty?
-		Diagnostics: []targetgroup.Diagnostic{},
-		// Q: ok to intialize nil?
-		ActiveConfig: nil,
-		// Q: ok to intialize nil?
-		Provider: targetgroup.Provider{},
+		ID:           types.NewTargetGroupDeploymentID(),
+		FunctionARN:  b.FunctionArn,
+		Runtime:      b.Runtime,
+		AWSAccount:   b.AwsAccount,
+		Healthy:      false,
+		Diagnostics:  []targetgroup.Diagnostic{},
+		ActiveConfig: map[string]targetgroup.Config{},
+		Provider:     targetgroup.Provider{},
 	}
+
+	dbInput.Provider.Name = b.Provider.Name
+	dbInput.Provider.Version = b.Provider.Version
+	dbInput.Provider.Version = b.Provider.Version
+
+	/**
+
+	TODO
+	- determine the specific spec for active config,
+	- what are the value input requirements,
+	- what are the value output requirements? i.e. what additional processing is needed
+
+	...
+
+	Below is a rough idea of how to extract values taken from:
+	pkg/service/psetupsvc/create.go:89
+
+	*/
+
+	// initialise the config values if the provider supports it.
+	// if configer, ok := b.ActiveConfig.(targetgroup.Config); ok {
+	// 	for _, field := range configer.Config() {
+	// 		ps.ConfigValues[field.Key()] = ""
+	// 	}
+	// }
+
+	// @TODO: run a check here to ensure no overwrites occur ...
 
 	err = a.DB.Put(ctx, &dbInput)
 	if err != nil {
