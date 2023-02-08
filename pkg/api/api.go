@@ -29,6 +29,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 
@@ -70,9 +71,10 @@ type API struct {
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito            CognitoService
-	InternalIdentity   InternalIdentityService
-	TargetGroupService TargetGroupService
+	Cognito                      CognitoService
+	InternalIdentity             InternalIdentityService
+	TargetGroupService           TargetGroupService
+	TargetGroupDeploymentService TargetGroupDeploymentService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -130,6 +132,11 @@ type InternalIdentityService interface {
 type TargetGroupService interface {
 	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
 	UpdateTargetGroup(ctx context.Context, req targetgroupsvc.UpdateOpts) (*targetgroup.TargetGroup, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_deployment_service.go -package=mocks . TargetGroupDeploymentService
+type TargetGroupDeploymentService interface {
+	// CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error)
 }
 
 // API must meet the generated REST API interface.
@@ -239,6 +246,11 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
 		TargetGroupService: &targetgroupsvc.Service{
+			DB:                     db,
+			Clock:                  clk,
+			ProviderRegistryClient: opts.ProviderRegistryClient,
+		},
+		TargetGroupDeploymentService: &targetdeploymentsvc.Service{
 			DB:                     db,
 			Clock:                  clk,
 			ProviderRegistryClient: opts.ProviderRegistryClient,
