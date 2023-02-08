@@ -7,7 +7,7 @@
  */
 import type { TargetGroup } from './targetGroup';
 
-export type ListTargetGroupsResponseResponse = {
+export type ListTargetGroupResponseResponse = {
   targetGroups: TargetGroup[];
   next?: string;
 };

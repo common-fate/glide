@@ -16,7 +16,7 @@ func (a *API) ListTargetGroups(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	response := types.ListTargetGroupsResponse{TargetGroups: []types.TargetGroup{}}
+	response := types.ListTargetGroupResponse{TargetGroups: []types.TargetGroup{}}
 
 	q := storage.ListTargetGroups{}
 

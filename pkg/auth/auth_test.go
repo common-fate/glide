@@ -79,9 +79,10 @@ func TestAdminAuthorizer(t *testing.T) {
 			wantCode:          http.StatusInternalServerError,
 		},
 		{
-			name:       "panic on empty adminGroup",
+			name:       "internal server error on empty adminGroup",
 			adminGroup: "",
-			wantPanic:  "AdminAuthorizer: adminGroup was empty",
+			wantBody:   `{"error":"The Common Fate administrator group is empty. Update the administrator group in your deployment configuration and redeploy."}`,
+			wantCode:   http.StatusInternalServerError,
 		},
 	}
 

@@ -11,9 +11,9 @@ import type {
   Key
 } from 'swr'
 import type {
-  ListTargetGroupDeploymentsResponseResponse,
+  ListTargetGroupDeploymentResponseResponse,
   TargetGroup,
-  ListTargetGroupsResponseResponse,
+  ListTargetGroupResponseResponse,
   CreateTargetGroupRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
@@ -73,7 +73,7 @@ export const useGetTargetGroupDeployment = <TError = ErrorType<unknown>>(
 export const listTargetGroupDeployments = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListTargetGroupDeploymentsResponseResponse>(
+      return customInstance<ListTargetGroupDeploymentResponseResponse>(
       {url: `/api/v1/target-group-deployments`, method: 'get'
     },
       options);
@@ -162,7 +162,7 @@ export const useGetTargetGroup = <TError = ErrorType<unknown>>(
 export const listTargetGroups = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListTargetGroupsResponseResponse>(
+      return customInstance<ListTargetGroupResponseResponse>(
       {url: `/api/v1/target-groups`, method: 'get'
     },
       options);

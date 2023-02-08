@@ -840,7 +840,11 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgOptions
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1155,7 +1159,7 @@ paths:
         - Target Groups
       responses:
         "200":
-          $ref: "#/components/responses/ListTargetGroupDeploymentsResponse"
+          $ref: "#/components/responses/ListTargetGroupDeploymentResponse"
         "404":
           description: Not Found
         "500":
@@ -1198,7 +1202,7 @@ paths:
         - Target Groups
       responses:
         "200":
-          $ref: "#/components/responses/ListTargetGroupsResponse"
+          $ref: "#/components/responses/ListTargetGroupResponse"
         "500":
           description: Internal Server Error
       operationId: list-target-groups
@@ -2606,7 +2610,7 @@ components:
                 type: string
             required:
               - hasToken
-    ListTargetGroupsResponse:
+    ListTargetGroupResponse:
       description: Example response
       content:
         application/json:
@@ -2621,8 +2625,8 @@ components:
                 type: string
             required:
               - targetGroups
-    ListTargetGroupDeploymentsResponse:
-      description: Respons obj for ListTargetGroupDeploymentsResponse
+    ListTargetGroupDeploymentResponse:
+      description: Respons obj for ListTargetGroupDeploymentResponse
       content:
         application/json:
           schema:

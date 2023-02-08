@@ -5,8 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { CreateTargetGroupDeploymentRequestBodyActiveConfig } from './createTargetGroupDeploymentRequestBodyActiveConfig';
-import type { TargetGroupDeploymentProvider } from './targetGroupDeploymentProvider';
 
 export type CreateTargetGroupDeploymentRequestBody = {
   /** The ID of the target group to deploy to. User, provided */
@@ -14,6 +12,4 @@ export type CreateTargetGroupDeploymentRequestBody = {
   functionArn: string;
   runtime: string;
   awsAccount: string;
-  activeConfig: CreateTargetGroupDeploymentRequestBodyActiveConfig;
-  provider: TargetGroupDeploymentProvider;
 };

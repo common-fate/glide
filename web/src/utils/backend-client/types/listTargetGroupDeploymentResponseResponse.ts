@@ -7,7 +7,7 @@
  */
 import type { TargetGroupDeployment } from './targetGroupDeployment';
 
-export type ListTargetGroupDeploymentsResponseResponse = {
+export type ListTargetGroupDeploymentResponseResponse = {
   res: TargetGroupDeployment[];
   next: string;
 };

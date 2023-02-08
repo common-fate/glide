@@ -15,7 +15,7 @@ import (
 func (a *API) ListTargetGroupDeployments(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-	res := types.ListTargetGroupDeploymentsResponse{
+	res := types.ListTargetGroupDeploymentResponse{
 		Res: []types.TargetGroupDeployment{},
 	}
 
