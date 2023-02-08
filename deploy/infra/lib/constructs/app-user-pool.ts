@@ -191,7 +191,12 @@ export class WebUserPool extends Construct {
         callbackUrls: ["http://localhost:18900/auth/cognito/callback"],
       },
     });
+    this._cliAppClient.node.addDependency(
+      this._samlUserPoolClient,
+      cognitoWebClient
+    );
   }
+
   getCLIAppClient(): cognito.IUserPoolClient {
     return this._cliAppClient;
   }
