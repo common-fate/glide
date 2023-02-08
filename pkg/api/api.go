@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/benbjohnson/clock"
+	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
@@ -28,6 +29,9 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
+	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/targetgroup"
 
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -67,8 +71,10 @@ type API struct {
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito          CognitoService
-	InternalIdentity InternalIdentityService
+	Cognito                      CognitoService
+	InternalIdentity             InternalIdentityService
+	TargetGroupService           TargetGroupService
+	TargetGroupDeploymentService TargetGroupDeploymentService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -122,23 +128,35 @@ type InternalIdentityService interface {
 	DeleteGroup(ctx context.Context, group identity.Group) error
 }
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_service.go -package=mocks . TargetGroupService
+type TargetGroupService interface {
+	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
+	// UpdateTargetGroup(ctx context.Context, req targetgroupsvc.UpdateOpts) (*targetgroup.TargetGroup, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_deployment_service.go -package=mocks . TargetGroupDeploymentService
+type TargetGroupDeploymentService interface {
+	CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error)
+}
+
 // API must meet the generated REST API interface.
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                 *zap.SugaredLogger
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	EventSender         *gevent.Sender
-	IdentitySyncer      auth.IdentitySyncer
-	DeploymentConfig    deploy.DeployConfigReader
-	DynamoTable         string
-	PaginationKMSKeyARN string
-	AdminGroup          string
-	TemplateData        psetup.TemplateData
-	DeploymentSuffix    string
-	CognitoUserPoolID   string
-	IDPType             string
-	AdminGroupID        string
+	Log                    *zap.SugaredLogger
+	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
+	ProviderRegistryClient registry_types.ClientWithResponsesInterface
+	EventSender            *gevent.Sender
+	IdentitySyncer         auth.IdentitySyncer
+	DeploymentConfig       deploy.DeployConfigReader
+	DynamoTable            string
+	PaginationKMSKeyARN    string
+	AdminGroup             string
+	TemplateData           psetup.TemplateData
+	DeploymentSuffix       string
+	CognitoUserPoolID      string
+	IDPType                string
+	AdminGroupID           string
 }
 
 // New creates a new API.
@@ -148,6 +166,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	}
 	if opts.AccessHandlerClient == nil {
 		return nil, errors.New("AccessHandlerClient must be provided")
+	}
+
+	if opts.ProviderRegistryClient == nil {
+		return nil, errors.New("ProviderRegistryClient must be provided")
 	}
 
 	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
@@ -223,6 +245,16 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Granter:             granter,
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
+		TargetGroupService: &targetgroupsvc.Service{
+			DB:                     db,
+			Clock:                  clk,
+			ProviderRegistryClient: opts.ProviderRegistryClient,
+		},
+		TargetGroupDeploymentService: &targetdeploymentsvc.Service{
+			DB:                     db,
+			Clock:                  clk,
+			ProviderRegistryClient: opts.ProviderRegistryClient,
+		},
 	}
 
 	// only initialise this if cognito is the IDP

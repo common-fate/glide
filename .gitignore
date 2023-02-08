@@ -35,3 +35,5 @@ deployments/
 trace*.zip
 
 gomock_reflect_*
+
+prog.go
