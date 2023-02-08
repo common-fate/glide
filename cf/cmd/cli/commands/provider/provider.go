@@ -8,12 +8,12 @@ import (
 	"path"
 	"strings"
 
+	aws_config "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/clio"
-	"github.com/common-fate/common-fate/cf/pkg/bootstrapper"
-	"github.com/common-fate/common-fate/pkg/config"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
-	"github.com/joho/godotenv"
-	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -31,24 +31,19 @@ var BootstrapCommand = cli.Command{
 	Description: "bootstrap a provider from the registry",
 	Usage:       "bootstrap a provider from the registry",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "bootstrapBucket", Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket provider is deployed to", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
+		&cli.StringFlag{Name: "bootstrapBucket", Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket to copy assets into", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
+		&cli.StringFlag{Name: "registryAPIURL", Value: build.ProviderRegistryAPIURL, EnvVars: []string{"COMMONFATE_PROVIDER_REGISTRY_API_URL"}, Hidden: true},
 	},
+
 	Action: func(c *cli.Context) error {
+
 		id := c.Args().First()
 		if id == "" {
 			return errors.New("id argument must be provided")
 		}
 
-		var cfg config.ProviderDeploymentCLI
 		ctx := context.Background()
-		_ = godotenv.Load()
-
-		err := envconfig.Process(ctx, &cfg)
-		if err != nil {
-			return err
-		}
-
-		registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+		registryClient, err := providerregistrysdk.NewClientWithResponses(c.String("registryAPIURL"))
 		if err != nil {
 			return errors.New("error configuring provider registry client")
 		}
@@ -62,6 +57,9 @@ var BootstrapCommand = cli.Command{
 		version := keys[1]
 
 		teamAndName := strings.Split(keys[0], "/")
+		if len(teamAndName) != 2 {
+			return errors.New("incorrect provider id given")
+		}
 
 		team := teamAndName[0]
 		name := teamAndName[1]
@@ -74,11 +72,6 @@ var BootstrapCommand = cli.Command{
 		if res.StatusCode() != http.StatusOK {
 			return fmt.Errorf("provider for that version does not exist: %s", team+name+version)
 		}
-		//get the bootstrap bucket name
-		bs, err := bootstrapper.New(ctx)
-		if err != nil {
-			return err
-		}
 
 		//get bootstrap bucket
 
@@ -89,8 +82,16 @@ var BootstrapCommand = cli.Command{
 		lambdaAssetPath := path.Join(team, name, version)
 
 		//copy the provider assets into the bucket (this will also copy the cloudformation template too)
-		err = bs.CopyProviderAsset(ctx, res.JSON200.LambdaAssetS3Arn, lambdaAssetPath, bootstrapBucket)
-
+		awsCfg, err := aws_config.LoadDefaultConfig(ctx)
+		if err != nil {
+			return err
+		}
+		client := s3.NewFromConfig(awsCfg)
+		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
+			Bucket:     aws.String(bootstrapBucket),
+			Key:        aws.String(lambdaAssetPath),
+			CopySource: aws.String(strings.TrimPrefix(res.JSON200.LambdaAssetS3Arn, "arn:aws:s3:::")),
+		})
 		if err != nil {
 			return err
 		}
