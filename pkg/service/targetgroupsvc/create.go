@@ -19,6 +19,7 @@ func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetG
 
 	splitKey := strings.Split(req.TargetSchema, "/")
 
+	//the target schema we receive should be in the form team/provider/version and split into 3 keys
 	if len(splitKey) != 3 {
 		return nil, errors.New("target schema given in incorrect format")
 	}
@@ -27,9 +28,12 @@ func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetG
 	if err != nil {
 		return nil, err
 	}
+	now := s.Clock.Now()
 	group := targetgroup.TargetGroup{
 		ID:           req.ID,
 		TargetSchema: targetgroup.GroupTargetSchema{From: req.TargetSchema, Schema: resp.JSON200.Schema.Target},
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 	//based on the target schema provider type set the Icon
 

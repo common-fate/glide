@@ -2275,6 +2275,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DeploymentRegistration"
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        updatedAt:
+          type: string
+          x-go-type: time.Time
+          format: time
       required:
         - id
         - targetSchema

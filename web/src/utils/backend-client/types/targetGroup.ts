@@ -13,4 +13,6 @@ export interface TargetGroup {
   targetSchema: TargetGroupTargetSchema;
   icon: string;
   targetDeployments: DeploymentRegistration[];
+  createdAt?: string;
+  updatedAt?: string;
 }

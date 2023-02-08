@@ -1,6 +1,8 @@
 package targetgroup
 
 import (
+	"time"
+
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -14,6 +16,8 @@ type TargetGroup struct {
 	// reference to the SVG icon for the target group
 	Icon              string                   `json:"icon" dynamodbav:"icon"`
 	TargetDeployments []DeploymentRegistration `json:"targetDeployments" dynamodbav:"targetDeployments"`
+	CreatedAt         time.Time                `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt         time.Time                `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
 type GroupTargetSchema struct {
@@ -92,6 +96,8 @@ func (r *TargetGroup) ToAPI() types.TargetGroup {
 		Id:           r.ID,
 		Icon:         r.Icon,
 		TargetSchema: r.TargetSchema.ToAPI(),
+		CreatedAt:    &r.CreatedAt,
+		UpdatedAt:    &r.UpdatedAt,
 	}
 
 	for _, tf := range r.TargetDeployments {

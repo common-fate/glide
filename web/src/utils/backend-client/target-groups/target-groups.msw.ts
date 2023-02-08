@@ -13,20 +13,20 @@ import {
 } from '@faker-js/faker'
 
 export const getListTargetGroupDeploymentsMock = () => ({res: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), functionArn: faker.random.word(), awsAccount: faker.random.word(), healthy: faker.datatype.boolean(), diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.random.word(), code: faker.random.word(), message: faker.random.word()})), activeConfig: {
-        'clduvqwh3000nxconf7yxhk77': {type: faker.random.word(), value: {}}
+        'clduxplbw000ndxon92p5cu46': {type: faker.random.word(), value: {}}
       }, provider: {publisher: faker.random.word(), name: faker.random.word(), version: faker.random.word()}})), next: faker.random.word()})
 
 export const getGetTargetGroupMock = () => ({id: faker.random.word(), targetSchema: {From: faker.random.word(), Schema: {
-        'clduvqwh5000pxcon5jvi2i71': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'clduvqwh4000oxconfmsu13f1': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+        'clduxplbx000pdxong2qz56m2': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'clduxplbw000odxon23kj5e14': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
-      }}, icon: faker.random.word(), targetDeployments: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({Id: faker.random.word(), Priority: faker.datatype.number({min: undefined, max: undefined}), Valid: faker.datatype.boolean(), Diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({}))}))})
+      }}, icon: faker.random.word(), targetDeployments: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({Id: faker.random.word(), Priority: faker.datatype.number({min: undefined, max: undefined}), Valid: faker.datatype.boolean(), Diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({}))})), createdAt: faker.helpers.arrayElement([faker.random.word(), undefined]), updatedAt: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getListTargetGroupsMock = () => ({targetGroups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), targetSchema: {From: faker.random.word(), Schema: {
-        'clduvqwh7000rxcond35td1m1': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'clduvqwh7000qxcondzlh83js': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+        'clduxplby000rdxon59toaxfq': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'clduxplby000qdxon14nce781': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
-      }}, icon: faker.random.word(), targetDeployments: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({Id: faker.random.word(), Priority: faker.datatype.number({min: undefined, max: undefined}), Valid: faker.datatype.boolean(), Diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({}))}))})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
+      }}, icon: faker.random.word(), targetDeployments: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({Id: faker.random.word(), Priority: faker.datatype.number({min: undefined, max: undefined}), Valid: faker.datatype.boolean(), Diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({}))})), createdAt: faker.helpers.arrayElement([faker.random.word(), undefined]), updatedAt: faker.helpers.arrayElement([faker.random.word(), undefined])})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getTargetGroupsMSW = () => [
 rest.get('*/api/v1/target-group-deployments/:id', (_req, res, ctx) => {
