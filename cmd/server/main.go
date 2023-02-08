@@ -4,14 +4,15 @@ import (
 	"context"
 	"log"
 
+	"github.com/common-fate/apikit/logger"
 	ahConfig "github.com/common-fate/common-fate/accesshandler/pkg/config"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-
-	"github.com/common-fate/apikit/logger"
 	ahServer "github.com/common-fate/common-fate/accesshandler/pkg/server"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/api"
+	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/auth/localauth"
+	"github.com/common-fate/common-fate/pkg/auth/nolocalauth"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
@@ -63,12 +64,22 @@ func run() error {
 		}
 	}
 
-	auth, err := localauth.New(ctx, localauth.Opts{
-		UserPoolID:    cfg.CognitoUserPoolID,
-		CognitoRegion: cfg.Region,
-	})
-	if err != nil {
-		return err
+	var authMiddleware auth.Authenticator
+	if cfg.NoAuthEmail != "" {
+		a, err := nolocalauth.New(ctx, nolocalauth.Opts{Email: cfg.NoAuthEmail})
+		if err != nil {
+			return err
+		}
+		authMiddleware = a
+	} else {
+		a, err := localauth.New(ctx, localauth.Opts{
+			UserPoolID:    cfg.CognitoUserPoolID,
+			CognitoRegion: cfg.Region,
+		})
+		if err != nil {
+			return err
+		}
+		authMiddleware = a
 	}
 
 	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL, MockAccessHandler: cfg.MockAccessHandler})
@@ -129,7 +140,7 @@ func run() error {
 	s, err := server.New(ctx, server.Config{
 		Config:         cfg,
 		Log:            log,
-		Authenticator:  auth,
+		Authenticator:  authMiddleware,
 		API:            api,
 		IdentitySyncer: idsync,
 	})
