@@ -16,7 +16,12 @@ func (p *Provider) Grant(ctx context.Context, subject string, args []byte, grant
 	if err != nil {
 		return err
 	}
-	out, err := pdk.Invoke(ctx, p.FunctionARN, pdk.NewGrantEvent(subject, a))
+
+	runtime, err := pdk.NewLambdaRuntime(ctx, p.FunctionARN)
+	if err != nil {
+		return err
+	}
+	out, err := runtime.Invoke(ctx, pdk.NewGrantEvent(subject, a))
 	if err != nil {
 		return err
 	}
@@ -32,10 +37,15 @@ func (p *Provider) Revoke(ctx context.Context, subject string, args []byte, gran
 	if err != nil {
 		return err
 	}
-	out, err := pdk.Invoke(ctx, p.FunctionARN, pdk.NewRevokeEvent(subject, a))
+	runtime, err := pdk.NewLambdaRuntime(ctx, p.FunctionARN)
 	if err != nil {
 		return err
 	}
+	out, err := runtime.Invoke(ctx, pdk.NewRevokeEvent(subject, a))
+	if err != nil {
+		return err
+	}
+
 	logger.Get(ctx).Infow("response from invoking lambda", "payload", string(out.Payload), "statusCode", out.StatusCode)
 	return nil
 }

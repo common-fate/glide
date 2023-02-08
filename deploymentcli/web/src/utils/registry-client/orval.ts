@@ -177,6 +177,7 @@ export interface TargetArgument {
   id: string;
   title: string;
   description?: string;
+  resourceName?: string;
   ruleFormElement: TargetArgumentRuleFormElement;
   /** Optional form element for the request form, if not provided, defaults to multiselect */
   requestFormElement: TargetArgumentRequestFormElement;
@@ -445,6 +446,46 @@ export const useListAllProviders = <TError = ErrorType<ErrorResponseResponse>>(
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getListAllProvidersKey() : null);
   const swrFn = () => listAllProviders(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+
+/**
+ * Get the setup instructions for an Access Provider.
+ * @summary Get the setup instructions for an Access Provider
+ */
+export const adminGetProvidersetupInstructions = (
+    providersetupId: string,
+ options?: SecondParameter<typeof customInstanceRegistry>) => {
+      return customInstanceRegistry<ProviderSetupInstructions>(
+      {url: `/api/v1/admin/providersetups/${providersetupId}/instructions`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetProvidersetupInstructionsKey = (providersetupId: string,) => [`/api/v1/admin/providersetups/${providersetupId}/instructions`];
+
+    
+export type AdminGetProvidersetupInstructionsQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProvidersetupInstructions>>>
+export type AdminGetProvidersetupInstructionsQueryError = ErrorType<unknown>
+
+export const useAdminGetProvidersetupInstructions = <TError = ErrorType<unknown>>(
+ providersetupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetProvidersetupInstructions>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstanceRegistry> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(providersetupId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProvidersetupInstructionsKey(providersetupId) : null);
+  const swrFn = () => adminGetProvidersetupInstructions(providersetupId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

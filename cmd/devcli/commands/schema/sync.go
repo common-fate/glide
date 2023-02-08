@@ -36,7 +36,8 @@ var syncCommand = cli.Command{
 		}
 
 		syncer := cachesync.CacheSyncer{
-			DB: db,
+			DB:       db,
+			UseLocal: true,
 		}
 
 		err = syncer.SyncCommunityProviderSchemas(ctx)
