@@ -5,5 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { TargetSchema } from './targetSchema';
 
-export type TargetGroupTargetSchema = { [key: string]: any };
+export interface TargetGroupTargetSchema {
+  From: string;
+  Schema: TargetSchema;
+}

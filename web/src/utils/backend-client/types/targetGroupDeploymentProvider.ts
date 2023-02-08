@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export type ListTargetGroupDeploymentsResponseResponseOne = {
-  id?: string;
-};
+export interface TargetGroupDeploymentProvider {
+  publisher: string;
+  name: string;
+  version: string;
+}

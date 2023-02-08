@@ -6,7 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateTargetGroupRequestBody = {
-  targetSchema: string;
-  ID: string;
-};
+export interface TargetGroupDiagnostic {
+  level: string;
+  code: string;
+  message: string;
+}

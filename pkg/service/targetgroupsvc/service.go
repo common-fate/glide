@@ -1,16 +1,14 @@
 package targetgroupsvc
 
-// Service holds business logic relating to Cognito user management.
-// type Service struct {
-// 	Clock clock.Clock
-// 	DB    ddb.Storage
+import (
+	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
-// 	TargetDeployments TargetGroup
-// 	AdminGroupID      string
-// }
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/ddb"
+)
 
-// type TargetGroup interface {
-// 	CreateTargetGroup(context.Context, CreateTargetGroupOpts) (targetgroup.TargetGroup, error)
-// 	UpdateTargetGroup(context.Context, UpdateTargetGroupOpts) (targetgroup.TargetGroup, error)
-// 	ArchiveTargetGroup(context.Context, ArchiveTargetGroupOpts) error
-// }
+type Service struct {
+	Clock                  clock.Clock
+	DB                     ddb.Storage
+	ProviderRegistryClient registry_types.ClientWithResponsesInterface
+}

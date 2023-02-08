@@ -1133,12 +1133,14 @@ paths:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
   "/api/v1/target-group-deployments/{id}":
     get:
-      summary: Your GET endpoint
+      summary: Get target group deployment (detailed)
       tags:
         - Target Groups
       responses:
         "200":
           description: OK
+        "500":
+          description: Internal Server Error
       operationId: get-target-group-deployment
     parameters:
       - schema:
@@ -1148,21 +1150,26 @@ paths:
         required: true
   /api/v1/target-group-deployments:
     get:
-      summary: Your GET endpoint
+      summary: Get target group deployments
       tags:
         - Target Groups
       responses:
         "200":
           $ref: "#/components/responses/ListTargetGroupDeploymentsResponse"
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
       operationId: list-target-group-deployments
+      description: ""
     post:
-      summary: ""
+      summary: Create a target group deployment
       operationId: create-target-group-deployment
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
+        "500":
+          description: Internal Server Error
       tags:
         - Target Groups
   "/api/v1/target-groups/{id}":
@@ -1173,7 +1180,7 @@ paths:
         in: path
         required: true
     get:
-      summary: Your GET endpoint
+      summary: Get target group (detailed)
       tags:
         - Target Groups
       responses:
@@ -1186,7 +1193,7 @@ paths:
       operationId: get-target-group
   /api/v1/target-groups:
     get:
-      summary: Your GET endpoint
+      summary: Get target groups
       tags:
         - Target Groups
       responses:
@@ -1196,7 +1203,7 @@ paths:
           description: Internal Server Error
       operationId: list-target-groups
     post:
-      summary: ""
+      summary: Create target group
       operationId: create-target-group
       responses:
         "200":
@@ -1215,7 +1222,7 @@ paths:
         in: path
         required: true
     post:
-      summary: ""
+      summary: Link a target group
       operationId: create-target-group-link
       responses:
         "200":
@@ -1771,6 +1778,63 @@ components:
           format: time
       required:
         - durationSeconds
+    TargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: tk7obmea4shbx
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/TargetArgument"
+    TargetArgument:
+      title: TargetArgument
+      x-stoplight:
+        id: 1b080aa3276c2
+      type: object
+      description: "Define the metadata, data type and UI elements for the argument"
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        ruleFormElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: "Optional form element for the request form, if not provided, defaults to multiselect"
+        groups:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/TargetArgumentGroup"
+      required:
+        - id
+        - title
+        - ruleFormElement
+        - requestFormElement
+        - groups
+    TargetArgumentGroup:
+      title: TargetArgumentGroup
+      x-stoplight:
+        id: b65de9db1722a
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
+      description: An argument group
     ApprovalMethod:
       type: string
       description: "Describes whether a request has been approved automatically or from a review "
@@ -2171,11 +2235,20 @@ components:
           type: boolean
         diagnostics:
           type: array
-          items: {}
+          items:
+            $ref: "#/components/schemas/TargetGroupDiagnostic"
         activeConfig:
-          type: string
+          $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
         provider:
-          type: string
+          $ref: "#/components/schemas/TargetGroupDeploymentProvider"
+      required:
+        - id
+        - functionArn
+        - awsAccount
+        - healthy
+        - diagnostics
+        - activeConfig
+        - provider
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2185,12 +2258,110 @@ components:
         id:
           type: string
         targetSchema:
-          type: object
+          $ref: "#/components/schemas/TargetGroupTargetSchema"
         icon:
           type: string
         targetDeployments:
           type: array
-          items: {}
+          items:
+            $ref: "#/components/schemas/DeploymentRegistration"
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        updatedAt:
+          type: string
+          x-go-type: time.Time
+          format: time
+      required:
+        - id
+        - targetSchema
+        - icon
+        - targetDeployments
+    DeploymentRegistration:
+      type: object
+      x-stoplight:
+        id: d13df9f8cec56
+      properties:
+        Id:
+          type: string
+        Priority:
+          type: integer
+        Valid:
+          type: boolean
+        Diagnostics:
+          type: array
+          items:
+            type: object
+      required:
+        - Id
+        - Priority
+        - Valid
+        - Diagnostics
+    TargetGroupTargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: 6192c449ffbe9
+      type: object
+      properties:
+        From:
+          type: string
+        Schema:
+          $ref: "#/components/schemas/TargetSchema"
+      required:
+        - From
+        - Schema
+    TargetGroupDeploymentConfig:
+      title: TargetGroupDeploymentConfig
+      x-stoplight:
+        id: uh2lj7r91ba6u
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: object
+      required:
+        - type
+        - value
+    TargetGroupDiagnostic:
+      title: TargetGroupDiagnostic
+      x-stoplight:
+        id: ktm8g34aqfgfd
+      type: object
+      properties:
+        level:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - level
+        - code
+        - message
+    TargetGroupDeploymentProvider:
+      title: TargetGroupDeploymentProvider
+      x-stoplight:
+        id: t8fxrpcy8wl7m
+      type: object
+      properties:
+        publisher:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+      required:
+        - publisher
+        - name
+        - version
+    TargetGroupDeploymentActiveConfig:
+      title: TargetGroupDeploymentActiveConfig
+      x-stoplight:
+        id: 3z1qcglniqj25
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/TargetGroupDeploymentConfig"
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2442,12 +2613,16 @@ components:
           schema:
             type: object
             properties:
-              res:
-                $ref: "#/components/schemas/TargetGroup"
+              targetGroups:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetGroup"
               next:
                 type: string
+            required:
+              - targetGroups
     ListTargetGroupDeploymentsResponse:
-      description: Example response
+      description: Respons obj for ListTargetGroupDeploymentsResponse
       content:
         application/json:
           schema:
@@ -2459,6 +2634,9 @@ components:
                   $ref: "#/components/schemas/TargetGroupDeployment"
               next:
                 type: string
+            required:
+              - res
+              - next
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2657,28 +2835,35 @@ components:
             type: object
             properties:
               targetSchema:
-                type: object
-              icon:
                 type: string
-              targetDeployments:
-                type: array
-                items: {}
+              ID:
+                type: string
+            required:
+              - targetSchema
+              - ID
     CreateTargetGroupDeploymentRequest:
       content:
         application/json:
           schema:
             type: object
             properties:
+              id:
+                type: string
+                description: "The ID of the target group to deploy to. User, provided"
               functionArn:
                 type: string
               runtime:
                 type: string
               awsAccount:
                 type: string
-              activeConfig:
-                type: string
-              provider:
-                type: string
+            required:
+              - id
+              - functionArn
+              - runtime
+              - awsAccount
+              - activeConfig
+              - provider
 tags:
   - name: End User
   - name: Admin
+  - name: Target Groups

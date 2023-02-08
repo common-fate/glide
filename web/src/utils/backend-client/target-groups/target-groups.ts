@@ -30,7 +30,7 @@ import type { ErrorType } from '../../custom-instance'
   : never;
 
 /**
- * @summary Your GET endpoint
+ * @summary Get target group deployment (detailed)
  */
 export const getTargetGroupDeployment = (
     id: string,
@@ -68,7 +68,7 @@ export const useGetTargetGroupDeployment = <TError = ErrorType<unknown>>(
 }
 
 /**
- * @summary Your GET endpoint
+ * @summary Get target group deployments
  */
 export const listTargetGroupDeployments = (
     
@@ -105,6 +105,9 @@ export const useListTargetGroupDeployments = <TError = ErrorType<void>>(
   }
 }
 
+/**
+ * @summary Create a target group deployment
+ */
 export const createTargetGroupDeployment = (
     
  options?: SecondParameter<typeof customInstance>) => {
@@ -116,7 +119,7 @@ export const createTargetGroupDeployment = (
   
 
 /**
- * @summary Your GET endpoint
+ * @summary Get target group (detailed)
  */
 export const getTargetGroup = (
     id: string,
@@ -154,7 +157,7 @@ export const useGetTargetGroup = <TError = ErrorType<unknown>>(
 }
 
 /**
- * @summary Your GET endpoint
+ * @summary Get target groups
  */
 export const listTargetGroups = (
     
@@ -191,6 +194,9 @@ export const useListTargetGroups = <TError = ErrorType<void>>(
   }
 }
 
+/**
+ * @summary Create target group
+ */
 export const createTargetGroup = (
     createTargetGroupRequestBody: CreateTargetGroupRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
@@ -203,6 +209,9 @@ export const createTargetGroup = (
     }
   
 
+/**
+ * @summary Link a target group
+ */
 export const createTargetGroupLink = (
     id: string,
  options?: SecondParameter<typeof customInstance>) => {

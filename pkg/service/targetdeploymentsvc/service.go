@@ -1,16 +1,14 @@
 package targetdeploymentsvc
 
+import (
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/ddb"
+	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+)
+
 // Service holds business logic relating to Cognito user management.
-// type Service struct {
-// 	Clock clock.Clock
-// 	DB    ddb.Storage
-
-// 	TargetDeployments TargetDeployments
-// 	AdminGroupID      string
-// }
-
-// type TargetDeployments interface {
-// 	CreateDeployment(context.Context, CreateTargetDeploymentOpts) (targetgroup.Deployment, error)
-// 	UpdateDeployment(context.Context, UpdateTargetDeploymentOpts) (targetgroup.Deployment, error)
-// 	ArchiveDeployment(context.Context, ArchiveTargetDeploymentOpts) error
-// }
+type Service struct {
+	Clock                  clock.Clock
+	DB                     ddb.Storage
+	ProviderRegistryClient registry_types.ClientWithResponsesInterface
+}

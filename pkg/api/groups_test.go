@@ -158,9 +158,8 @@ func TestCreateGroup(t *testing.T) {
 	adminGroup := "test_admins"
 	testcases := []testcase{
 		{name: "create internal group ok",
-			body:     `{"name":"test","description":"user","members": []}`,
-			wantCode: http.StatusCreated,
-
+			body:                  `{"name":"test","description":"user","members": []}`,
+			wantCode:              http.StatusCreated,
 			expectCreateGroupOpts: &types.CreateGroupRequest{Name: "test", Description: aws.String("user"), Members: []string{}},
 			withCreatedGroup: &identity.Group{
 				ID:          "1234",

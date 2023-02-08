@@ -6,7 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateTargetGroupRequestBody = {
-  targetSchema: string;
-  ID: string;
-};
+/**
+ * An argument group
+ */
+export interface TargetArgumentGroup {
+  id: string;
+  title: string;
+  description?: string;
+}
