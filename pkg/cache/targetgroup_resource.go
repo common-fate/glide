@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"strings"
+
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
@@ -14,6 +16,11 @@ type TargateGroupResource struct {
 	Resource      Resource `json:"resource" dynamodbav:"resource"`
 	TargetGroupID string   `json:"targetGroupId" dynamodbav:"targetGroupId"`
 	ResourceType  string   `json:"resourceType" dynamodbav:"resourceType"`
+}
+
+// UniqueKey is TargetGroupID/ResourceType/Resource.ID
+func (t TargateGroupResource) UniqueKey() string {
+	return strings.Join([]string{t.TargetGroupID, t.ResourceType, t.Resource.ID}, "/")
 }
 
 func (d *TargateGroupResource) DDBKeys() (ddb.Keys, error) {
