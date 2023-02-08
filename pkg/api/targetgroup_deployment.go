@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -49,14 +50,24 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	req, err := a.TargetGroupDeploymentService.CreateTargetGroupDeployment(ctx, b)
+	res, err := a.TargetGroupDeploymentService.CreateTargetGroupDeployment(ctx, b)
+
+	// add status code handling here
+
+	// validation error: 500
+	// deployment already exists: 400 named error 'target group deployment service error: [deployment] already exists'
+
+	if err == targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
 
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	apio.JSON(ctx, w, req, http.StatusCreated)
+	apio.JSON(ctx, w, res, http.StatusCreated)
 }
 
 // Your GET endpoint

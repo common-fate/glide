@@ -3,55 +3,52 @@ package targetdeploymentsvc
 import (
 	"context"
 
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 )
 
 func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error) {
 
-	// TODO: run pre-lim checks to ensure aws account/arn are valid
-	dbInput := targetgroup.Deployment{
-		ID:           req.Id,
-		FunctionARN:  req.FunctionArn,
-		Runtime:      req.Runtime,
-		AWSAccount:   req.AwsAccount,
-		Healthy:      false,
-		Diagnostics:  []targetgroup.Diagnostic{},
-		ActiveConfig: map[string]targetgroup.Config{},
-		Provider:     targetgroup.Provider{},
+	// run pre-lim checks to ensure input data is valid
+	if len(req.AwsAccount) != 12 || !allDigits(req.AwsAccount) {
+		return nil, ErrInvalidAwsAccountNumber
 	}
 
-	dbInput.Provider.Name = req.Provider.Name
-	dbInput.Provider.Version = req.Provider.Version
-	dbInput.Provider.Version = req.Provider.Version
+	// fetch existing deployment to ensure no overlap
+	q := storage.GetTargetGroupDeployment{ID: req.Id}
+	_, err := s.DB.Query(ctx, &q)
+	// database error unrelated to no items
+	if err != nil && err != ddb.ErrNoItems {
+		return nil, err
+	}
+	// we've found a pre-existing deployment
+	if err == nil {
+		return nil, ErrTargetGroupDeploymentIdAlreadyExists
+	}
 
-	/**
+	// create deployment
+	dbInput := targetgroup.Deployment{
+		ID:          req.Id,
+		FunctionARN: req.FunctionArn,
+		Runtime:     req.Runtime,
+		AWSAccount:  req.AwsAccount,
+	}
 
-	  TODO
-	  - determine the specific spec for active config,
-	  - what are the value input requirements,
-	  - what are the value output requirements? i.e. what additional processing is needed
-
-	  ...
-
-	  Below is a rough idea of how to extract values taken from:
-	  pkg/service/psetupsvc/create.go:89
-
-	*/
-
-	// initialise the config values if the provider supports it.
-	// if configer, ok := b.ActiveConfig.(targetgroup.Config); ok {
-	// 	for _, field := range configer.Config() {
-	// 		ps.ConfigValues[field.Key()] = ""
-	// 	}
-	// }
-
-	// @TODO: run a check here to ensure no overwrites occur ...
-
-	err := s.DB.Put(ctx, &dbInput)
+	err = s.DB.Put(ctx, &dbInput)
 	if err != nil {
 		return nil, err
 	}
 
 	return &dbInput, nil
+}
+
+func allDigits(s string) bool {
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }

@@ -2856,10 +2856,6 @@ components:
                 type: string
               awsAccount:
                 type: string
-              activeConfig:
-                $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
-              provider:
-                $ref: "#/components/schemas/TargetGroupDeploymentProvider"
             required:
               - id
               - functionArn

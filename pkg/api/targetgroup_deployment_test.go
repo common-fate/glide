@@ -32,9 +32,9 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 		{
 			name:     "create.success.201",
 			wantCode: http.StatusCreated,
-			wantBody: `{"id":"test","functionArn":"string","runtime":"string","awsAccount":"string","healthy":false,"diagnostics":[],"activeConfig":{},"provider":{"publisher":"","name":"","version":""}}`,
+			wantBody: `{"id":"123456789012","functionArn":"string","runtime":"string","awsAccount":"string","healthy":false,"diagnostics":[],"activeConfig":{},"provider":{"publisher":"","name":"","version":""}}`,
 			withCreatedDep: &targetgroup.Deployment{
-				ID:           "test",
+				ID:           "123456789012",
 				FunctionARN:  "string",
 				Runtime:      "string",
 				AWSAccount:   "string",
