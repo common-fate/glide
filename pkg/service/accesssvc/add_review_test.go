@@ -7,10 +7,9 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/storage"
-
 	"github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
