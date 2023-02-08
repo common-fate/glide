@@ -44,7 +44,5 @@ func (s *Service) Route(ctx context.Context, tg targetgroup.TargetGroup) (*targe
 		return nil, ErrCannotRoute
 	}
 
-	// s.DB.Query(ctx context.Context, qb ddb.QueryBuilder, opts ...func(*ddb.QueryOpts))
-	// @TODO lookup from database when queries are merged
 	return highest, nil
 }
