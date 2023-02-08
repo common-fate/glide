@@ -191,10 +191,9 @@ export class WebUserPool extends Construct {
         callbackUrls: ["http://localhost:18900/auth/cognito/callback"],
       },
     });
-    this._cliAppClient.node.addDependency(
-      this._samlUserPoolClient,
-      cognitoWebClient
-    );
+    const rawCliAppClient = this._cliAppClient.node
+      .defaultChild as CfnUserPoolClient;
+    rawCliAppClient.addDependsOn(this._samlUserPoolClient.getIdp());
   }
 
   getCLIAppClient(): cognito.IUserPoolClient {
@@ -307,6 +306,9 @@ export class SamlUserPoolClient extends Construct {
     // adding this depends on to ensure that the user pool client is not created until the saml CfnUserPoolIdentityProvider exists
     // this avoids an error "The provider <PROVIDER NAME> does not exist for User Pool <POOL_ID>"
     c.addDependsOn(this._idp);
+  }
+  getIdp(): CfnUserPoolIdentityProvider {
+    return this._idp;
   }
   getUserPoolClient(): cognito.UserPoolClient {
     return this._userPoolClient;
