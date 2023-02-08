@@ -1,4 +1,4 @@
-package targetgroup
+package provider
 
 import (
 	"context"
@@ -30,6 +30,9 @@ var BootstrapCommand = cli.Command{
 	Name:        "bootstrap",
 	Description: "bootstrap a provider from the registry",
 	Usage:       "bootstrap a provider from the registry",
+	Flags: []cli.Flag{
+		&cli.StringFlag{Name: "bootstrapBucket", Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket provider is deployed to", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
+	},
 	Action: func(c *cli.Context) error {
 		id := c.Args().First()
 		if id == "" {
@@ -50,15 +53,18 @@ var BootstrapCommand = cli.Command{
 			return errors.New("error configuring provider registry client")
 		}
 
-		keys := strings.Split(id, "/")
+		keys := strings.Split(id, "@")
 
-		if len(keys) != 3 {
+		if len(keys) != 2 {
 			return errors.New("incorrect provider id given")
 		}
 
-		team := keys[0]
-		name := keys[1]
-		version := keys[2]
+		version := keys[1]
+
+		teamAndName := strings.Split(keys[0], "/")
+
+		team := teamAndName[0]
+		name := teamAndName[1]
 
 		//check that the provider type matches one in our registry
 		res, err := registryClient.GetProviderWithResponse(ctx, team, name, version)
@@ -66,27 +72,30 @@ var BootstrapCommand = cli.Command{
 			return err
 		}
 		if res.StatusCode() != http.StatusOK {
-			return errors.New("provider for that version does not exist")
+			return fmt.Errorf("provider for that version does not exist: %s", team+name+version)
 		}
 		//get the bootstrap bucket name
 		bs, err := bootstrapper.New(ctx)
 		if err != nil {
 			return err
 		}
-		bootstrapBucket, err := bs.GetOrDeployBootstrapBucket(ctx)
-		if err != nil {
-			return err
-		}
+
+		//get bootstrap bucket
+
+		//read from flag
+		bootstrapBucket := c.String("bootstrapBucket")
+
 		//work out the lambda asset path
 		lambdaAssetPath := path.Join(team, name, version)
 
-		//copy the provider assets into the bucket
+		//copy the provider assets into the bucket (this will also copy the cloudformation template too)
 		err = bs.CopyProviderAsset(ctx, res.JSON200.LambdaAssetS3Arn, lambdaAssetPath, bootstrapBucket)
 
 		if err != nil {
 			return err
 		}
-		clio.Log(fmt.Sprintf("copied %s into %s", id, path.Join(res.JSON200.LambdaAssetS3Arn, lambdaAssetPath)))
+
+		clio.Log(fmt.Sprintf("copied %s into %s", id, path.Join(bootstrapBucket, lambdaAssetPath)))
 		return nil
 	},
 }
