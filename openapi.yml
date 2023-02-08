@@ -840,7 +840,11 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: ./accesshandler/openapi.yml#/components/responses/ArgOptionsResponse
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgOptions
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1301,6 +1305,12 @@ components:
           $ref: "#/components/schemas/TimeConstraints"
         isCurrent:
           type: boolean
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        updatedAt:
+          type: string
+          x-go-type: time.Time
       required:
         - id
         - version
@@ -1309,6 +1319,8 @@ components:
         - target
         - timeConstraints
         - isCurrent
+        - createdAt
+        - updatedAt
     AccessRuleDetail:
       title: AccessRuleDetail
       type: object

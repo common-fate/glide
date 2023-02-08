@@ -609,6 +609,21 @@ components:
       type: object
       additionalProperties:
         $ref: "#/components/schemas/Argument"
+    ArgOptions:
+      title: ArgOptions
+      x-stoplight:
+        id: kqdjopr9owqlr
+      type: object
+      properties:
+        options:
+          type: array
+          description: The suggested options.
+          items:
+            $ref: "#/components/schemas/Option"
+        groups:
+          $ref: "#/components/schemas/Groups"
+      required:
+        - options
   requestBodies:
     ValidateRequest:
       content:
@@ -666,17 +681,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              options:
-                type: array
-                description: The suggested options.
-                items:
-                  $ref: "#/components/schemas/Option"
-              groups:
-                $ref: "#/components/schemas/Groups"
-            required:
-              - options
+            $ref: "#/components/schemas/ArgOptions"
     ValidateResponse:
       description: Validation of a provider's configuration.
       content:
