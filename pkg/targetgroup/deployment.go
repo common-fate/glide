@@ -3,6 +3,7 @@ package targetgroup
 import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // represents a lambda TargetGroupDeployment
@@ -15,6 +16,7 @@ type Deployment struct {
 	Diagnostics  []Diagnostic      `json:"diagnostics" dynamodbav:"diagnostics"`
 	ActiveConfig map[string]Config `json:"activeConfig" dynamodbav:"activeConfig"`
 	Provider     Provider          `json:"provider" dynamodbav:"provider"`
+	AuditSchema  providerregistrysdk.AuditSchema
 }
 
 type Config struct {
