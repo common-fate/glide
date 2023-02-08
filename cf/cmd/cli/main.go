@@ -7,9 +7,9 @@ import (
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/bootstrap"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/deployment"
+	"github.com/common-fate/common-fate/cf/cmd/cli/commands/provider"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/targetgroup"
 	mw "github.com/common-fate/common-fate/cf/cmd/cli/middleware"
-	"github.com/common-fate/common-fate/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/common-fate/internal/build"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -35,6 +35,7 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			mw.WithBeforeFuncs(&bootstrap.Command, mw.RequireAWSCredentials()),
+			// mw.WithBeforeFuncs(&provider.Command, mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&provider.Command, mw.RequireAWSCredentials()),
 			&targetgroup.Command,
 			&deployment.Command,
