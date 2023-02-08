@@ -208,6 +208,12 @@ paths:
           name: grantId
           description: ID of the grant instructions
           required: true
+        - schema:
+            type: string
+          in: query
+          name: frontendUrl
+          description: The URL of the Common Fate dashboard
+          required: true
     parameters:
       - schema:
           type: string

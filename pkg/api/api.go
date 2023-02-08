@@ -63,6 +63,7 @@ type API struct {
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
 	IdentityProvider    string
+	FrontendURL         string
 	Granter             accesssvc.Granter
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
@@ -133,6 +134,7 @@ type Opts struct {
 	DeploymentConfig    deploy.DeployConfigReader
 	DynamoTable         string
 	PaginationKMSKeyARN string
+	FrontendURL         string
 	AdminGroup          string
 	TemplateData        psetup.TemplateData
 	DeploymentSuffix    string
@@ -172,6 +174,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
+		FrontendURL:      opts.FrontendURL,
 		InternalIdentity: &internalidentitysvc.Service{
 			DB:    db,
 			Clock: clk,

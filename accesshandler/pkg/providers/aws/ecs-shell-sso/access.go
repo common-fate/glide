@@ -15,6 +15,7 @@ import (
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/pkg/cfaws/policy"
 	"github.com/sethvargo/go-retry"
 	"go.uber.org/zap"
@@ -330,7 +331,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	return false, nil
 }
 
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, t providers.InstructionsTemplate) (string, error) {
 
 	url := fmt.Sprintf("https://%s.awsapps.com/start", p.identityStoreID.Get())
 	var a Args
@@ -373,7 +374,7 @@ Enable ECS Execute and then retry request the role.
 	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, grantId)
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.ecsRegion.Get(), p.awsAccountID, t.GrantID)
 	i += fmt.Sprintf("aws ecs execute-command --cluster %s --task %s --container %s --interactive --command 'flask shell'\n", p.ecsClusterARN.Get(), id, "DefaultContainer")
 	i += "```\n"
 	return i, nil
