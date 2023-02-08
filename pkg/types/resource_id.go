@@ -49,7 +49,3 @@ func NewProviderSetupID() string {
 func NewDeploymentID() string {
 	return newResourceID("dep")
 }
-
-func NewTargetGroupDeploymentID() string {
-	return newResourceID("tgd")
-}

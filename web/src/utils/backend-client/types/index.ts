@@ -105,7 +105,6 @@ export * from './targetGroupDeploymentActiveConfig';
 export * from './targetGroupDeploymentConfig';
 export * from './targetGroupDeploymentConfigValue';
 export * from './targetGroupDeploymentProvider';
-export * from './targetGroupDeploymentProviderProperty';
 export * from './targetGroupDiagnostic';
 export * from './targetGroupTargetSchema';
 export * from './targetSchema';

@@ -23,15 +23,18 @@ func TestListTargetGroupDeployments(t *testing.T) {
 	type testcase struct {
 		name          string
 		give          string
+		giveMethod    string
 		mockCancelErr error
 		wantCode      int
 		wantBody      string
+		deploymentId  string
 	}
 
 	testcases := []testcase{
 		{
 			name:          "ok",
 			give:          `{}`,
+			giveMethod:    "GET",
 			mockCancelErr: nil,
 			wantCode:      http.StatusOK,
 			wantBody:      `{}`,
@@ -44,10 +47,20 @@ func TestListTargetGroupDeployments(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockAccess := mocks.NewMockAccessService(ctrl)
 			mockAccess.EXPECT().CancelRequest(gomock.Any(), gomock.Any()).Return(tc.mockCancelErr).AnyTimes()
-			a := API{Access: mockAccess}
+			a := API{
+				Access: mockAccess,
+				// @TODO: service implementation
+				// TargetGroupService: TargetGroupService,
+			}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/admin/access/cancel", strings.NewReader(tc.give))
+			req, err := http.NewRequest(tc.giveMethod, "/api/v1/target-group-deployments", strings.NewReader(tc.give))
+
+			// if its a req with a deploymentId, we need to change the request to use the detail endpoint
+			if tc.deploymentId != "" {
+				req, err = http.NewRequest(tc.giveMethod, "/api/v1/target-group-deployments/"+tc.deploymentId, strings.NewReader(tc.give))
+			}
+
 			if err != nil {
 				t.Fatal(err)
 			}

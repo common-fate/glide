@@ -7,7 +7,7 @@
  */
 import type { TargetGroupDiagnostic } from './targetGroupDiagnostic';
 import type { TargetGroupDeploymentActiveConfig } from './targetGroupDeploymentActiveConfig';
-import type { TargetGroupDeploymentProviderProperty } from './targetGroupDeploymentProviderProperty';
+import type { TargetGroupDeploymentProvider } from './targetGroupDeploymentProvider';
 
 export interface TargetGroupDeployment {
   id: string;
@@ -16,5 +16,5 @@ export interface TargetGroupDeployment {
   healthy: boolean;
   diagnostics: TargetGroupDiagnostic[];
   activeConfig: TargetGroupDeploymentActiveConfig;
-  provider: TargetGroupDeploymentProviderProperty;
+  provider: TargetGroupDeploymentProvider;
 }

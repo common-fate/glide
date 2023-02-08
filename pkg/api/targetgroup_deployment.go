@@ -51,7 +51,7 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 	// TODO: run pre-lim checks to ensure aws account/arn are valid
 
 	dbInput := targetgroup.Deployment{
-		ID:           types.NewTargetGroupDeploymentID(),
+		ID:           b.Id,
 		FunctionARN:  b.FunctionArn,
 		Runtime:      b.Runtime,
 		AWSAccount:   b.AwsAccount,

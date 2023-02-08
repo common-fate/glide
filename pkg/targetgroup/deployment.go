@@ -48,29 +48,21 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		}
 	}
 
-	// new struct that can be cast to json version of Provdier
-	// Q: should this instead be declared in the types package?
-	provider := struct {
-		Name      string "json:\"name\""
-		Publisher string "json:\"publisher\""
-		Version   string "json:\"version\""
-	}{
-		Name:      r.Provider.Name,
-		Publisher: r.Provider.Publisher,
-		Version:   r.Provider.Version,
-	}
+	// todo: itteration here
+	targActiveConfig := types.TargetGroupDeploymentActiveConfig{}
+	targActiveConfig.Set("test", types.TargetGroupDeploymentConfig{Type: "test", Value: make(map[string]interface{})})
 
 	return types.TargetGroupDeployment{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
 		FunctionArn: r.FunctionARN,
 		Healthy:     r.Healthy,
-		// ActiveConfig: types.TargetGroupDeployment_ActiveConfig{ // @TODO
-		// 	AdditionalProperties: map[string]types.TargetGroupDeploymentConfig{
-		// 		"TODO": {Type: "todo", Value: make(map[string]interface{})},
-		// 	},
-		// },
-		Diagnostics: diagnostics,
-		Provider:    provider,
+		Provider: types.TargetGroupDeploymentProvider{
+			Name:      r.Provider.Name,
+			Publisher: r.Provider.Publisher,
+			Version:   r.Provider.Version,
+		},
+		ActiveConfig: targActiveConfig,
+		Diagnostics:  diagnostics,
 	}
 }

@@ -1133,7 +1133,7 @@ paths:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
   "/api/v1/target-group-deployments/{id}":
     get:
-      summary: Your GET endpoint
+      summary: Get target group deployment (detailed)
       tags:
         - Target Groups
       responses:
@@ -1150,7 +1150,7 @@ paths:
         required: true
   /api/v1/target-group-deployments:
     get:
-      summary: Your GET endpoint
+      summary: Get target group deployments
       tags:
         - Target Groups
       responses:
@@ -1159,6 +1159,7 @@ paths:
         "500":
           description: Internal Server Error
       operationId: list-target-group-deployments
+      description: ""
     post:
       summary: Create a target group deployment
       operationId: create-target-group-deployment
@@ -1177,7 +1178,7 @@ paths:
         in: path
         required: true
     get:
-      summary: Your GET endpoint
+      summary: Get target group (detailed)
       tags:
         - Target Groups
       responses:
@@ -1190,7 +1191,7 @@ paths:
       operationId: get-target-group
   /api/v1/target-groups:
     get:
-      summary: Your GET endpoint
+      summary: Get target groups
       tags:
         - Target Groups
       responses:
@@ -1200,7 +1201,7 @@ paths:
           description: Internal Server Error
       operationId: list-target-groups
     post:
-      summary: ""
+      summary: Create target group
       operationId: create-target-group
       responses:
         "200":
@@ -1219,7 +1220,7 @@ paths:
         in: path
         required: true
     post:
-      summary: ""
+      summary: Link a target group
       operationId: create-target-group-link
       responses:
         "200":
@@ -2235,22 +2236,9 @@ components:
           items:
             $ref: "#/components/schemas/TargetGroupDiagnostic"
         activeConfig:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/TargetGroupDeploymentConfig"
+          $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
         provider:
-          type: object
-          required:
-            - publisher
-            - name
-            - version
-          properties:
-            publisher:
-              type: string
-            name:
-              type: string
-            version:
-              type: string
+          $ref: "#/components/schemas/TargetGroupDeploymentProvider"
       required:
         - id
         - functionArn
@@ -2365,6 +2353,13 @@ components:
         - publisher
         - name
         - version
+    TargetGroupDeploymentActiveConfig:
+      title: TargetGroupDeploymentActiveConfig
+      x-stoplight:
+        id: 3z1qcglniqj25
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/TargetGroupDeploymentConfig"
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2850,6 +2845,9 @@ components:
           schema:
             type: object
             properties:
+              id:
+                type: string
+                description: The ID of the target group to deploy to. User, provided
               functionArn:
                 type: string
               runtime:
@@ -2862,6 +2860,7 @@ components:
               provider:
                 $ref: "#/components/schemas/TargetGroupDeploymentProvider"
             required:
+              - id
               - functionArn
               - runtime
               - awsAccount

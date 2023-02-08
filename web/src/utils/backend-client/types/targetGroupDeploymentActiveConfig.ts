@@ -7,4 +7,4 @@
  */
 import type { TargetGroupDeploymentConfig } from './targetGroupDeploymentConfig';
 
-export type TargetGroupDeploymentActiveConfig = {[key: string]: TargetGroupDeploymentConfig};
+export interface TargetGroupDeploymentActiveConfig {[key: string]: TargetGroupDeploymentConfig}
