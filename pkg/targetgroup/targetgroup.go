@@ -62,8 +62,8 @@ func (r *TargetGroup) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
-func (r *GroupTargetSchema) ToAPI() types.GroupTargetSchema {
-	resp := types.GroupTargetSchema{
+func (r *GroupTargetSchema) ToAPI() types.TargetGroupTargetSchema {
+	resp := types.TargetGroupTargetSchema{
 		From: r.From,
 	}
 

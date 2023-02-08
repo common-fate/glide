@@ -2256,7 +2256,7 @@ components:
         id:
           type: string
         targetSchema:
-          $ref: "#/components/schemas/GroupTargetSchema"
+          $ref: "#/components/schemas/TargetGroupTargetSchema"
         icon:
           type: string
         targetDeployments:
@@ -2288,7 +2288,7 @@ components:
         - Priority
         - Valid
         - Diagnostics
-    GroupTargetSchema:
+    TargetGroupTargetSchema:
       title: TargetSchema
       x-stoplight:
         id: 6192c449ffbe9

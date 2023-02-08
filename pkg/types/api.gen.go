@@ -314,12 +314,6 @@ type Group struct {
 	Source      string   `json:"source"`
 }
 
-// GroupTargetSchema defines model for GroupTargetSchema.
-type GroupTargetSchema struct {
-	From   string       `json:"From"`
-	Schema TargetSchema `json:"Schema"`
-}
-
 // IdpStatus defines model for IdpStatus.
 type IdpStatus string
 
@@ -621,7 +615,7 @@ type TargetGroup struct {
 	Icon              string                   `json:"icon"`
 	Id                string                   `json:"id"`
 	TargetDeployments []DeploymentRegistration `json:"targetDeployments"`
-	TargetSchema      GroupTargetSchema        `json:"targetSchema"`
+	TargetSchema      TargetGroupTargetSchema  `json:"targetSchema"`
 }
 
 // TargetGroupDeployment defines model for TargetGroupDeployment.
@@ -658,6 +652,12 @@ type TargetGroupDiagnostic struct {
 	Code    string `json:"code"`
 	Level   string `json:"level"`
 	Message string `json:"message"`
+}
+
+// TargetGroupTargetSchema defines model for TargetGroupTargetSchema.
+type TargetGroupTargetSchema struct {
+	From   string       `json:"From"`
+	Schema TargetSchema `json:"Schema"`
 }
 
 // TargetSchema defines model for TargetSchema.

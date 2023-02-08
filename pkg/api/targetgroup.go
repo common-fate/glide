@@ -48,7 +48,8 @@ func (a *API) CreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 	group, err := a.TargetGroupService.CreateTargetGroup(ctx, createGroupRequest)
 	if err == targetgroupsvc.ErrTargetGroupIdAlreadyExists {
 		// the user supplied id already exists
-		err = apio.NewRequestError(err, http.StatusBadRequest)
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
 	}
 	if err != nil {
 		apio.Error(ctx, w, err)
@@ -67,7 +68,8 @@ func (a *API) GetTargetGroup(w http.ResponseWriter, r *http.Request, id string) 
 	_, err := a.DB.Query(ctx, &q)
 
 	if err == ddb.ErrNoItems {
-		err = apio.NewRequestError(err, http.StatusNotFound)
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
 	}
 
 	if err != nil {

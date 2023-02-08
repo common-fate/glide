@@ -2,6 +2,7 @@ package targetgroupsvc
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/common-fate/common-fate/pkg/targetgroup"
@@ -14,7 +15,13 @@ func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetG
 
 	//look up target schema for the provider version
 
+	//TODO: validate that the targetschema is something we are expecting
+
 	splitKey := strings.Split(req.TargetSchema, "/")
+
+	if len(splitKey) != 3 {
+		return nil, errors.New("target schema given in incorrect format")
+	}
 
 	resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])
 	if err != nil {
