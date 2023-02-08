@@ -210,7 +210,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.INPUT
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
 				}
 			}
 		}
@@ -227,7 +227,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.INPUT
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
 				}
 			}
 		}
@@ -249,7 +249,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
 				} else {
 					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.INPUT
+					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
 				}
 			}
 		}
