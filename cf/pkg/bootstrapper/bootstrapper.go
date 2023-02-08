@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -88,6 +89,20 @@ func (b *Bootstrapper) GetOrDeployBootstrapBucket(ctx context.Context) (string, 
 	}
 
 	return out.AssetsBucket, nil
+}
+
+func (b *Bootstrapper) CopyProviderAsset(ctx context.Context, sourceObjectARN, path, bootstrapBucket string) error {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return err
+	}
+	client := s3.NewFromConfig(cfg)
+	_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
+		Bucket:     aws.String(bootstrapBucket),
+		Key:        aws.String(path),
+		CopySource: aws.String(strings.TrimPrefix(sourceObjectARN, "arn:aws:s3:::")),
+	})
+	return err
 }
 
 func (b *Bootstrapper) deployBootstrapStack(ctx context.Context) (*types.Stack, error) {
