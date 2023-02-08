@@ -10,12 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
-	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/sethvargo/go-retry"
-	"golang.org/x/sync/errgroup"
 )
 
 type Args struct {
@@ -267,34 +265,18 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 	}
 
 	return nil, &UserNotFoundError{Email: email}
-
 }
+
 func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, t providers.InstructionsTemplate) (string, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
 		return "", err
 	}
-	var g errgroup.Group
 
-	var po *ssoadmin.DescribePermissionSetOutput
-	var acc *organizations.DescribeAccountOutput
-	g.Go(func() error {
-		var err error
-		po, err = p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
-			InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(a.PermissionSetARN),
-		})
-		return err
+	po, err := p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
+		InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(a.PermissionSetARN),
 	})
-	g.Go(func() error {
-		var err error
-		acc, err = p.orgClient.DescribeAccount(ctx, &organizations.DescribeAccountInput{
-			AccountId: &a.AccountID,
-		})
-		return err
-	})
-
-	err = g.Wait()
 	if err != nil {
 		return "", err
 	}
@@ -305,30 +287,14 @@ func (p *Provider) Instructions(ctx context.Context, subject string, args []byte
 		url = fmt.Sprintf("https://%s.awsapps.com/start", p.ssoSubdomain.Get())
 	}
 
-	roleName := aws.ToString(po.PermissionSet.Name)
-	profileName := fmt.Sprintf("%s/%s", aws.ToString(acc.Account.Name), roleName)
-
 	i := "# Browser\n"
 	i += fmt.Sprintf("You can access this role at your [AWS SSO URL](%s).\n\n", url)
 	i += fmt.Sprintf("**Account ID**: %s\n\n", a.AccountID)
 	i += fmt.Sprintf("**Role**: %s\n\n", *po.PermissionSet.Name)
-	i += "# CLI - First time setup\n"
+	i += "# CLI\n"
 	i += "Ensure that you've [installed](https://docs.commonfate.io/granted/getting-started#installing-the-cli) the Granted CLI, then run:\n\n"
 	i += "```\n"
-	i += fmt.Sprintf("granted settings request-url set %s\n\n", t.FrontendURL)
-	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s --save-to %s\n", url, p.region.Get(), a.AccountID, roleName, profileName)
-	i += "```\n"
-	i += fmt.Sprintf("The role will be saved as `%s` in your AWS config file.\n", profileName)
-
-	i += "# CLI - Usage\n"
-	i += "Once you've run the above commands, you can assume the role from any terminal as follows:\n\n"
-	i += "```\n"
-	i += fmt.Sprintf("assume %s\n", profileName)
-	i += "```\n"
-
-	i += "Or use the profile with the AWS CLI\n\n"
-	i += "```\n"
-	i += fmt.Sprintf("aws <command> --profile %s\n", profileName)
+	i += fmt.Sprintf("assume --sso --sso-start-url %s --sso-region %s --account-id %s --role-name %s\n", url, p.region.Get(), a.AccountID, aws.ToString(po.PermissionSet.Name))
 	i += "```\n"
 	return i, nil
 }
