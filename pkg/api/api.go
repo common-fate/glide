@@ -251,9 +251,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			ProviderRegistryClient: opts.ProviderRegistryClient,
 		},
 		TargetGroupDeploymentService: &targetdeploymentsvc.Service{
-			DB:                     db,
-			Clock:                  clk,
-			ProviderRegistryClient: opts.ProviderRegistryClient,
+			DB:    db,
+			Clock: clk,
 		},
 	}
 
