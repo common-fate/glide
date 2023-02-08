@@ -1156,6 +1156,8 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListTargetGroupDeploymentsResponse"
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
       operationId: list-target-group-deployments
@@ -2847,7 +2849,7 @@ components:
             properties:
               id:
                 type: string
-                description: The ID of the target group to deploy to. User, provided
+                description: "The ID of the target group to deploy to. User, provided"
               functionArn:
                 type: string
               runtime:
@@ -2855,8 +2857,7 @@ components:
               awsAccount:
                 type: string
               activeConfig:
-                type: object
-                x-go-type: "map[string]string"
+                $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
               provider:
                 $ref: "#/components/schemas/TargetGroupDeploymentProvider"
             required:

@@ -5,8 +5,8 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 )
 
 // Your GET endpoint
@@ -20,20 +20,21 @@ func (a *API) ListTargetGroupDeployments(w http.ResponseWriter, r *http.Request)
 
 	listTargetGroupDeployments := storage.ListTargetGroupDeployments{}
 
-	dbq, err := a.DB.Query(ctx, &listTargetGroupDeployments)
-	if err != nil {
+	_, err := a.DB.Query(ctx, &listTargetGroupDeployments)
+
+	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
-	if dbq.NextPage != "" {
-		res.Next = dbq.NextPage
+
+	if len(listTargetGroupDeployments.Result) == 0 {
+		res.Res = []types.TargetGroupDeployment{}
 	}
 	for _, r := range listTargetGroupDeployments.Result {
 		res.Res = append(res.Res, r.ToAPI())
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
-
 }
 
 // (POST /api/v1/target-group-deployments)
@@ -48,58 +49,14 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// TODO: run pre-lim checks to ensure aws account/arn are valid
-
-	dbInput := targetgroup.Deployment{
-		ID:           b.Id,
-		FunctionARN:  b.FunctionArn,
-		Runtime:      b.Runtime,
-		AWSAccount:   b.AwsAccount,
-		Healthy:      false,
-		Diagnostics:  []targetgroup.Diagnostic{},
-		ActiveConfig: map[string]targetgroup.Config{},
-		Provider:     targetgroup.Provider{},
-	}
-
-	dbInput.Provider.Name = b.Provider.Name
-	dbInput.Provider.Version = b.Provider.Version
-	dbInput.Provider.Version = b.Provider.Version
-
-	/**
-
-	TODO
-	- determine the specific spec for active config,
-	- what are the value input requirements,
-	- what are the value output requirements? i.e. what additional processing is needed
-
-	...
-
-	Below is a rough idea of how to extract values taken from:
-	pkg/service/psetupsvc/create.go:89
-
-	*/
-
-	// initialise the config values if the provider supports it.
-	// if configer, ok := b.ActiveConfig.(targetgroup.Config); ok {
-	// 	for _, field := range configer.Config() {
-	// 		ps.ConfigValues[field.Key()] = ""
-	// 	}
-	// }
-
-	// @TODO: run a check here to ensure no overwrites occur ...
-
-	err = a.DB.Put(ctx, &dbInput)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
+	req, err := a.TargetGroupDeploymentService.CreateTargetGroupDeployment(ctx, b)
 
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	apio.JSON(ctx, w, nil, http.StatusCreated)
+	apio.JSON(ctx, w, req, http.StatusCreated)
 }
 
 // Your GET endpoint
@@ -111,12 +68,16 @@ func (a *API) GetTargetGroupDeployment(w http.ResponseWriter, r *http.Request, i
 	q := storage.GetTargetGroupDeployment{ID: id}
 
 	_, err := a.DB.Query(ctx, &q)
+
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
-	res := q.Result.ToAPI()
-
-	apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }

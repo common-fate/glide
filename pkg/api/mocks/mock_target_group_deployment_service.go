@@ -5,6 +5,11 @@
 package mocks
 
 import (
+	context "context"
+	reflect "reflect"
+
+	targetgroup "github.com/common-fate/common-fate/pkg/targetgroup"
+	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -29,4 +34,19 @@ func NewMockTargetGroupDeploymentService(ctrl *gomock.Controller) *MockTargetGro
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockTargetGroupDeploymentService) EXPECT() *MockTargetGroupDeploymentServiceMockRecorder {
 	return m.recorder
+}
+
+// CreateTargetGroupDeployment mocks base method.
+func (m *MockTargetGroupDeploymentService) CreateTargetGroupDeployment(arg0 context.Context, arg1 types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTargetGroupDeployment", arg0, arg1)
+	ret0, _ := ret[0].(*targetgroup.Deployment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTargetGroupDeployment indicates an expected call of CreateTargetGroupDeployment.
+func (mr *MockTargetGroupDeploymentServiceMockRecorder) CreateTargetGroupDeployment(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTargetGroupDeployment", reflect.TypeOf((*MockTargetGroupDeploymentService)(nil).CreateTargetGroupDeployment), arg0, arg1)
 }
