@@ -122,6 +122,7 @@ func run() error {
 		AdminGroupID:        cfg.AdminGroup,
 		DeploymentConfig:    dc,
 		TemplateData:        td,
+		FrontendURL:         cfg.FrontendURL,
 	})
 	if err != nil {
 		return err

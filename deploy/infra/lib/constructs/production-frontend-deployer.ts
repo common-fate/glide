@@ -11,6 +11,7 @@ interface Props {
   frontendBucket: Bucket;
   cognitoUserPoolId: string;
   cognitoClientId: string;
+  cliClientId: string;
   userPoolDomain: string;
   frontendDomain: string;
   cloudfrontDistributionId: string;
@@ -47,6 +48,7 @@ export class ProductionFrontendDeployer extends Construct {
         COMMONFATE_USER_POOL_DOMAIN: props.userPoolDomain,
         COMMONFATE_FRONTEND_DOMAIN: props.frontendDomain,
         COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID: props.cloudfrontDistributionId,
+        COMMONFATE_CLI_CLIENT_ID: props.cliClientId,
         COMMONFATE_API_URL: props.apiUrl,
       },
       runtime: lambda.Runtime.GO_1_X,

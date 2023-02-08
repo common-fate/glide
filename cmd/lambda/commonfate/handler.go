@@ -100,6 +100,7 @@ func buildHandler() (*Lambda, error) {
 		IDPType:             cfg.IdpProvider,
 		AdminGroupID:        cfg.AdminGroup,
 		DeploymentConfig:    dc,
+		FrontendURL:         cfg.FrontendURL,
 	})
 	if err != nil {
 		return nil, err
