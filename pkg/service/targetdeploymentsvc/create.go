@@ -12,7 +12,7 @@ import (
 func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error) {
 
 	// run pre-lim checks to ensure input data is valid
-	if len(req.AwsAccount) != 12 || !allDigits(req.AwsAccount) {
+	if !IsValidAwsAccountNumber(req.AwsAccount) {
 		return nil, ErrInvalidAwsAccountNumber
 	}
 
@@ -51,4 +51,8 @@ func allDigits(s string) bool {
 		}
 	}
 	return true
+}
+
+func IsValidAwsAccountNumber(s string) bool {
+	return len(s) == 12 && allDigits(s)
 }

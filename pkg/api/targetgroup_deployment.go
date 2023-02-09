@@ -15,7 +15,7 @@ import (
 func (a *API) ListTargetGroupDeployments(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-	res := types.ListTargetGroupDeploymentResponse{
+	res := types.ListTargetGroupDeploymentAPIResponse{
 		Res: []types.TargetGroupDeployment{},
 	}
 
@@ -67,7 +67,15 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	apio.JSON(ctx, w, res, http.StatusCreated)
+	// we're getting an api error that res.ActiveConfig is missing so lets force set it here
+	// res.ActiveConfig = map[string]targetgroup.Config{
+	// 	"aws": {
+	// 		Type:  "test",
+	// 		Value: &targetgroup.Config{},
+	// 	},
+	// }
+
+	apio.JSON(ctx, w, res.ToAPI(), http.StatusCreated)
 }
 
 // Your GET endpoint
