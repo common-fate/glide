@@ -17,6 +17,7 @@ type Deployment struct {
 	Diagnostics  []Diagnostic      `json:"diagnostics" dynamodbav:"diagnostics"`
 	ActiveConfig map[string]Config `json:"activeConfig" dynamodbav:"activeConfig"`
 	Provider     Provider          `json:"provider" dynamodbav:"provider"`
+	AwsRegion    string            `json:"awsRegion" dynamodbav:"awsRegion"`
 	AuditSchema  providerregistrysdk.AuditSchema
 }
 
@@ -64,6 +65,7 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		AwsAccount:  r.AWSAccount,
 		FunctionArn: r.FunctionARN,
 		Healthy:     r.Healthy,
+		AwsRegion:   r.AwsRegion,
 		// Provider: types.TargetGroupDeploymentProvider{
 		// 	Name:      r.Provider.Name,
 		// 	Publisher: r.Provider.Publisher,

@@ -38,7 +38,7 @@ var RegisterCommand = cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "runtime", Required: true},
-		// &cli.StringFlag{Name: "aws-region", Required: true},
+		&cli.StringFlag{Name: "aws-region", Required: true},
 		&cli.StringFlag{Name: "aws-account", Required: true},
 	},
 	Action: func(c *cli.Context) error {
@@ -49,7 +49,7 @@ var RegisterCommand = cli.Command{
 
 		runtime := c.String("runtime")
 		id := c.String("id")
-		// awsRegion := c.String("aws-region")
+		awsRegion := c.String("aws-region")
 		awsAccount := c.String("aws-account")
 
 		if runtime != "" {
@@ -58,9 +58,9 @@ var RegisterCommand = cli.Command{
 		if id != "" {
 			reqBody.Id = id
 		}
-		// if awsRegion != "" {
-		// 	reqBody.AwsRegion = awsRegion
-		// }
+		if awsRegion != "" {
+			reqBody.AwsRegion = awsRegion
+		}
 		if awsAccount != "" {
 			if targetdeploymentsvc.IsValidAwsAccountNumber(awsAccount) {
 				reqBody.AwsAccount = awsAccount

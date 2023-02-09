@@ -2241,6 +2241,8 @@ components:
           type: string
         awsAccount:
           type: string
+        awsRegion:
+          type: string
         healthy:
           type: boolean
         diagnostics:
@@ -2257,6 +2259,7 @@ components:
         - awsAccount
         - healthy
         - diagnostics
+        - awsRegion
         # - activeConfig
         # - provider
     TargetGroup:
@@ -2866,11 +2869,14 @@ components:
                 type: string
               awsAccount:
                 type: string
+              awsRegion:
+                type: string
             required:
               - id
               - functionArn
               - runtime
               - awsAccount
+              - awsRegion
 tags:
   - name: End User
   - name: Admin
