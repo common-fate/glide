@@ -171,7 +171,11 @@ export class WebUserPool extends Construct {
     const idp = cdk.Fn.conditionIf(
       createCognitoResources.logicalId,
       "COGNITO",
-      props.idpType
+      // the ref of the Cognito IDP is its name
+      // this ensures that the IDP is provisioned before the app client is created
+      // this avoids an error "The provider <PROVIDER NAME> does not exist for User Pool <POOL_ID>"
+      // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolidentityprovider.html#aws-resource-cognito-userpoolidentityprovider-return-values
+      cdk.Fn.ref(this._samlUserPoolClient.getIdp().logicalId)
     ).toString();
 
     // create an app client for the CLI
@@ -192,6 +196,7 @@ export class WebUserPool extends Construct {
       },
     });
   }
+
   getCLIAppClient(): cognito.IUserPoolClient {
     return this._cliAppClient;
   }
@@ -302,6 +307,9 @@ export class SamlUserPoolClient extends Construct {
     // adding this depends on to ensure that the user pool client is not created until the saml CfnUserPoolIdentityProvider exists
     // this avoids an error "The provider <PROVIDER NAME> does not exist for User Pool <POOL_ID>"
     c.addDependsOn(this._idp);
+  }
+  getIdp(): CfnUserPoolIdentityProvider {
+    return this._idp;
   }
   getUserPoolClient(): cognito.UserPoolClient {
     return this._userPoolClient;
