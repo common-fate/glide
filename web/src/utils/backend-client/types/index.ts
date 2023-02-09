@@ -34,6 +34,7 @@ export * from './createRequestRequestBody';
 export * from './createRequestWith';
 export * from './createRequestWithSubRequest';
 export * from './createTargetGroupDeploymentRequestBody';
+export * from './createTargetGroupLinkBody';
 export * from './createTargetGroupRequestBody';
 export * from './createUserRequestBody';
 export * from './deploymentRegistration';

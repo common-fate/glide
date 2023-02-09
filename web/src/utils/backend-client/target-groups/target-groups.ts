@@ -14,7 +14,8 @@ import type {
   ListTargetGroupDeploymentResponseResponse,
   TargetGroup,
   ListTargetGroupResponseResponse,
-  CreateTargetGroupRequestBody
+  CreateTargetGroupRequestBody,
+  CreateTargetGroupLinkBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -214,9 +215,12 @@ export const createTargetGroup = (
  */
 export const createTargetGroupLink = (
     id: string,
+    createTargetGroupLinkBody: CreateTargetGroupLinkBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
-      {url: `/api/v1/target-groups/${id}/link`, method: 'post'
+      {url: `/api/v1/target-groups/${id}/link`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupLinkBody
     },
       options);
     }
