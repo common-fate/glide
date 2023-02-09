@@ -65,6 +65,7 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 	}
 
 	//validate deployment target schema matches target group
+	//TODO?
 
 	//update target group deployments to include new deployment
 	q.Result.TargetDeployments = append(q.Result.TargetDeployments, targetgroup.DeploymentRegistration{
