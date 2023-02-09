@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *Service) CompareAndValidateProviderVersions(ctx context.Context, provider1 string, provider2 string) (bool, error) {
+func (s *Service) compareAndValidateProviderVersions(ctx context.Context, provider1 string, provider2 string) (bool, error) {
 	splitKey := strings.Split(provider1, "/")
 
 	//the target schema we receive should be in the form team/provider/version and split into 3 keys

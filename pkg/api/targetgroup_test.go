@@ -219,3 +219,92 @@ func TestGetTargetGroup(t *testing.T) {
 		})
 	}
 }
+
+func TestTargetGroupLink(t *testing.T) {
+	type testcase struct {
+		name                                 string
+		mockGetTargetGroupResponse           targetgroup.TargetGroup
+		mockGetTargetGroupDeploymentResponse targetgroup.Deployment
+		mockGetTargetGroupErr                error
+		want                                 string
+		wantCode                             int
+		mockCreate                           *targetgroup.TargetGroup
+		deploymentId                         string
+		mockCreateErr                        error
+		give                                 string
+	}
+
+	testcases := []testcase{
+		{
+			name:                                 "ok",
+			wantCode:                             http.StatusOK,
+			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
+			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			want:                                 `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"123","targetDeployments":[{"Diagnostics":null,"Id":"abc","Priority":0,"Valid":false}],"targetSchema":{"From":"","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			deploymentId:                         "abc",
+			mockCreate:                           &targetgroup.TargetGroup{ID: "123", TargetDeployments: []targetgroup.DeploymentRegistration{{ID: "abc", Priority: 100}}},
+			give:                                 `{"deploymentId": "abc", "priority": 100}`,
+		},
+
+		{
+			name:                                 "priority cannot be out of range",
+			wantCode:                             http.StatusBadRequest,
+			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
+			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
+			deploymentId:                         "abc",
+			mockCreate:                           &targetgroup.TargetGroup{ID: "123", TargetDeployments: []targetgroup.DeploymentRegistration{{ID: "abc", Priority: 100}}},
+			give:                                 `{"deploymentId": "abc", "priority": 1000}`,
+			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
+		},
+		{
+			name:                                 "priority cannot be under range",
+			wantCode:                             http.StatusBadRequest,
+			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
+			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
+			deploymentId:                         "abc",
+			mockCreate:                           &targetgroup.TargetGroup{ID: "123", TargetDeployments: []targetgroup.DeploymentRegistration{{ID: "abc", Priority: -1}}},
+			give:                                 `{"deploymentId": "abc", "priority": -1}`,
+			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetTargetGroupDeployment{Result: tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			m := mocks.NewMockTargetGroupService(ctrl)
+
+			if tc.mockCreateErr == nil {
+				m.EXPECT().CreateTargetGroupLink(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+
+			}
+
+			a := API{DB: db, TargetGroupService: m}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("POST", "/api/v1/target-groups/123/link", strings.NewReader(tc.give))
+
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
