@@ -11,8 +11,6 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/golang/mock/gomock"
 )
 
 func TestCreateTargetGroupDeployment(t *testing.T) {
@@ -84,12 +82,13 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 			}
 			if tc.mockPut != nil {
 				ctx := context.Background()
-				dbMock.Put(ctx, tc.mockPut)
+				err := dbMock.Put(ctx, tc.mockPut)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			clk := clock.NewMock()
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			s := Service{
 				Clock: clk,
