@@ -3,6 +3,7 @@ package schema
 import (
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/ddb"
@@ -37,6 +38,8 @@ var syncCommand = cli.Command{
 			return err
 		}
 
+		// this configuration means the pdk will use the local test runtime instead of calling out to lambda
+		pdk.UseLocal = true
 		syncer := cachesync.CacheSyncer{
 			DB: db,
 			Cache: cachesvc.Service{
