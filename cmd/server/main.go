@@ -16,6 +16,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/server"
@@ -119,20 +120,25 @@ func run() error {
 		return err
 	}
 
+	registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+	if err != nil {
+		return err
+	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		DeploymentSuffix:    cfg.DeploymentSuffix,
-		IdentitySyncer:      idsync,
-		CognitoUserPoolID:   cfg.CognitoUserPoolID,
-		IDPType:             cfg.IdpProvider,
-		AdminGroupID:        cfg.AdminGroup,
-		DeploymentConfig:    dc,
-		TemplateData:        td,
+		Log:                    log,
+		DynamoTable:            cfg.DynamoTable,
+		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
+		AccessHandlerClient:    ahc,
+		EventSender:            eventBus,
+		AdminGroup:             cfg.AdminGroup,
+		DeploymentSuffix:       cfg.DeploymentSuffix,
+		IdentitySyncer:         idsync,
+		CognitoUserPoolID:      cfg.CognitoUserPoolID,
+		IDPType:                cfg.IdpProvider,
+		AdminGroupID:           cfg.AdminGroup,
+		DeploymentConfig:       dc,
+		TemplateData:           td,
+		ProviderRegistryClient: registryClient,
 	})
 	if err != nil {
 		return err

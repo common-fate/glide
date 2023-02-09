@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
@@ -26,14 +27,34 @@ var CreateCommand = cli.Command{
 		&cli.BoolFlag{Name: "ok-if-exists"},
 	},
 	Action: func(c *cli.Context) error {
-		// ctx := c.Context
+		ctx := c.Context
 		id := c.Args().First()
 		if id == "" {
 			return errors.New("id argument must be provided")
 		}
-		// @TODO call the create API
-		clio.Successf("[✔] created target group '%s'", id)
-		return nil
+
+		schemaFrom := c.String("schema-from")
+		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
+		if err != nil {
+			return err
+		}
+
+		result, err := cfApi.CreateTargetGroupWithResponse(ctx, types.CreateTargetGroupJSONRequestBody{
+			ID:           id,
+			TargetSchema: schemaFrom,
+		})
+		if err != nil {
+			return err
+		}
+
+		switch result.StatusCode() {
+		case 201:
+			clio.Successf("created target group '%s'", id)
+			return nil
+		default:
+			return errors.New(string(result.Body))
+		}
+
 	},
 }
 
