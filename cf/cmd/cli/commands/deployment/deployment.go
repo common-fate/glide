@@ -1,6 +1,8 @@
 package deployment
 
 import (
+	"errors"
+
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -78,26 +80,18 @@ var RegisterCommand = cli.Command{
 			return err
 		}
 
-		client, err := cfApi.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
+		result, err := cfApi.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
 		if err != nil {
 			return err
 		}
 
-		switch client.StatusCode() {
+		switch result.StatusCode() {
 		case 201:
 			clio.Successf("[✔] registered deployment '%s' with Common Fate", c.String("id"))
 			return nil
-		case 400:
-			clio.Errorf("[✖] bad request")
-			return nil
-		case 401:
-			clio.Errorf("[✖] unauthorized")
-			return nil
 		default:
-			clio.Errorf("[✖] unknown error")
-			return nil
+			return errors.New(string(result.Body))
 		}
-
 	},
 }
 
