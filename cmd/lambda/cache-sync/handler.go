@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -39,6 +40,9 @@ func main() {
 		Cache: cachesvc.Service{
 			DB:                  db,
 			AccessHandlerClient: ahc,
+			RequestRouter: &requestroutersvc.Service{
+				DB: db,
+			},
 		},
 	}
 	log, err := logger.Build(cfg.LogLevel)
