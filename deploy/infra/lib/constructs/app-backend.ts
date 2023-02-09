@@ -16,6 +16,7 @@ import { EventHandler } from "./event-handler";
 import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
+import { HealthChecker } from "./healthchecker";
 
 interface Props {
   appName: string;
@@ -50,7 +51,7 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
-
+  private _healthChecker: HealthChecker;
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
   private _webhookLambda: lambda.Function;
@@ -305,6 +306,9 @@ export class AppBackend extends Construct {
       dynamoTable: this._dynamoTable,
       accessHandler: props.accessHandler,
     });
+    this._healthChecker = new HealthChecker(this, "HealthCheck", {
+      dynamoTable: this._dynamoTable,
+    });
   }
 
   /**
@@ -373,6 +377,9 @@ export class AppBackend extends Construct {
   }
   getCacheSync(): CacheSync {
     return this._cacheSync;
+  }
+  getHealthChecker(): HealthChecker {
+    return this._healthChecker;
   }
 
   getKmsKeyArn(): string {
