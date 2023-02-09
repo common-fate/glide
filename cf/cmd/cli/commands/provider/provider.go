@@ -31,8 +31,8 @@ var BootstrapCommand = cli.Command{
 	Description: "bootstrap a provider from the registry",
 	Usage:       "bootstrap a provider from the registry",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "bootstrapBucket", Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket to copy assets into", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
-		&cli.StringFlag{Name: "registryAPIURL", Value: build.ProviderRegistryAPIURL, EnvVars: []string{"COMMONFATE_PROVIDER_REGISTRY_API_URL"}, Hidden: true},
+		&cli.StringFlag{Name: "bootstrap-bucket", Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket to copy assets into", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
+		&cli.StringFlag{Name: "registry-api-url", Value: build.ProviderRegistryAPIURL, EnvVars: []string{"COMMONFATE_PROVIDER_REGISTRY_API_URL"}, Hidden: true},
 	},
 
 	Action: func(c *cli.Context) error {
@@ -43,7 +43,7 @@ var BootstrapCommand = cli.Command{
 		}
 
 		ctx := context.Background()
-		registryClient, err := providerregistrysdk.NewClientWithResponses(c.String("registryAPIURL"))
+		registryClient, err := providerregistrysdk.NewClientWithResponses(c.String("registry-api-url"))
 		if err != nil {
 			return errors.New("error configuring provider registry client")
 		}
@@ -76,7 +76,7 @@ var BootstrapCommand = cli.Command{
 		//get bootstrap bucket
 
 		//read from flag
-		bootstrapBucket := c.String("bootstrapBucket")
+		bootstrapBucket := c.String("bootstrap-bucket")
 
 		//work out the lambda asset path
 		lambdaAssetPath := path.Join(team, name, version)

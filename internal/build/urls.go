@@ -2,5 +2,5 @@ package build
 
 // these URLs are overridden as part of the release build process.
 var (
-	ProviderRegistryAPIURL = "localhost:9019"
+	ProviderRegistryAPIURL = "http://localhost:9001"
 )
