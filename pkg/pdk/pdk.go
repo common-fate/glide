@@ -7,6 +7,7 @@ type payloadType string
 const (
 	payloadTypeGrant         payloadType = "grant"
 	payloadTypeRevoke        payloadType = "revoke"
+	payloadTypeDescribe      payloadType = "describe"
 	payloadTypeSchema        payloadType = "schema"
 	payloadTypeLoadResources payloadType = "loadResources"
 )
@@ -68,5 +69,11 @@ func NewLoadResourcesEvent(name string, ctx interface{}) payload {
 			Name: name,
 			Ctx:  ctx,
 		},
+	}
+}
+
+func NewProviderDescribeEvent() payload {
+	return payload{
+		Type: payloadTypeDescribe,
 	}
 }

@@ -3,6 +3,7 @@ package pdk
 import (
 	"context"
 
+	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
@@ -29,4 +30,5 @@ type LoadResourceResponse struct {
 type ProviderRuntime interface {
 	Schema(ctx context.Context) (schema providerregistrysdk.ProviderSchema, err error)
 	FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error)
+	Describe(ctx context.Context) (describeResponse targetgroup.ProviderDescribe, err error)
 }
