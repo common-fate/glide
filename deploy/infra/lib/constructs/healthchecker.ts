@@ -22,7 +22,7 @@ export class HealthChecker extends Construct {
 
     this._lambda = new lambda.Function(this, "HandlerFunction", {
       code,
-      timeout: Duration.minutes(60),
+      timeout: Duration.minutes(1),
       environment: {
         COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
       },
