@@ -21,8 +21,39 @@ type CacheSyncer struct {
 // if a particular argument fails to sync, the error is logged and it continues to try syncing the other arguments/providers
 func (s *CacheSyncer) Sync(ctx context.Context) error {
 	log := logger.Get(ctx)
-	log.Info("starting to sync provider options cache")
 
+	// non blocking errors ensure the best chance of running
+	err := s.AccessHandler(ctx)
+	if err != nil {
+		log.Errorw("failed to refresh access handler options", "error", err)
+	}
+	err = s.TargetDeployments(ctx)
+	if err != nil {
+		log.Errorw("failed to refresh target group resources", "error", err)
+	}
+	return nil
+}
+func (s *CacheSyncer) TargetDeployments(ctx context.Context) error {
+	log := logger.Get(ctx)
+	q := storage.ListTargetGroups{}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil {
+		return err
+	}
+	for _, tg := range q.Result {
+		log.Infow("started syncing target group resources cache", "targetgroup", tg)
+		err = s.Cache.RefreshCachedTargetGroupResources(ctx, tg)
+		if err != nil {
+			log.Errorw("failed to refresh resources for targetgroup", "targetgroup", tg, "error", err)
+			continue
+		}
+		log.Infow("completed syncing target group resources cache", "targetgroup", tg)
+	}
+	return nil
+}
+func (s *CacheSyncer) AccessHandler(ctx context.Context) error {
+	log := logger.Get(ctx)
+	log.Info("starting to sync provider options cache")
 	providers, err := s.AccessHandlerClient.ListProvidersWithResponse(ctx)
 	if err != nil {
 		return err
@@ -58,21 +89,5 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 		}
 	}
 	log.Info("completed syncing provider options cache")
-
-	q := storage.ListTargetGroups{}
-	_, err = s.DB.Query(ctx, &q)
-	if err != nil {
-		return err
-	}
-	for _, tg := range q.Result {
-		log.Infow("started syncing target group resources cache", "targetgroup", tg)
-		err = s.Cache.RefreshCachedTargetGroupResources(ctx, tg)
-		if err != nil {
-			log.Errorw("failed to refresh resources for targetgroup", "targetgroup", tg, "error", err)
-			continue
-		}
-		log.Infow("completed syncing target group resources cache", "targetgroup", tg)
-	}
-
 	return nil
 }
