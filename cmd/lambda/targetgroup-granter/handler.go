@@ -9,16 +9,12 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	"github.com/common-fate/ddb"
-	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 )
 
 func main() {
 	var cfg config.TargetGroupGranterConfig
 	ctx := context.Background()
-	_ = godotenv.Load()
-	ctx.Deadline()
-
 	err := envconfig.Process(ctx, &cfg)
 	if err != nil {
 		panic(err)
