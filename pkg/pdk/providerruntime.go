@@ -3,12 +3,9 @@ package pdk
 import (
 	"context"
 
-
 	"github.com/common-fate/common-fate/pkg/targetgroup"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"strings"
-
 )
 
 // uselocal enables development mode using alocal cli instead of calling out to deployed lambdas

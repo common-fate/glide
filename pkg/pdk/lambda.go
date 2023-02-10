@@ -10,8 +10,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/cfaws"
 
 	"github.com/common-fate/common-fate/pkg/targetgroup"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
-
 )
 
 type LambdaRuntime struct {
@@ -56,7 +54,6 @@ func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx i
 	}
 	return
 }
-
 
 func (l *LambdaRuntime) Describe(ctx context.Context) (info targetgroup.ProviderDescribe, err error) {
 	out, err := l.Invoke(ctx, NewProviderDescribeEvent())
