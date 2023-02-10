@@ -205,12 +205,15 @@ func PackageBackend() error {
 	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate")
 }
 
+// PackageTargetGroupGranter zips the Go TargetGroupGranter so that it can be deployed to Lambda.
+func PackageTargetGroupGranter() error {
 	mg.Deps(Build.TargetGroupGranter)
 	return sh.Run("zip", "--junk-paths", "bin/targetgroup-granter.zip", "bin/targetgroup-granter")
 }
 
 // PackageHealthChecker zips the Go deployment health checker so that it can be deployed to Lambda.
 func PackageHealthChecker() error {
+	mg.Deps(Build.HealthChecker)
 	return sh.Run("zip", "--junk-paths", "bin/healthcheck.zip", "bin/healthcheck")
 }
 
