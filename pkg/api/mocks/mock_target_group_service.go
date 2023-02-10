@@ -50,3 +50,18 @@ func (mr *MockTargetGroupServiceMockRecorder) CreateTargetGroup(arg0, arg1 inter
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTargetGroup", reflect.TypeOf((*MockTargetGroupService)(nil).CreateTargetGroup), arg0, arg1)
 }
+
+// CreateTargetGroupLink mocks base method.
+func (m *MockTargetGroupService) CreateTargetGroupLink(arg0 context.Context, arg1 types.CreateTargetGroupLink, arg2 string) (*targetgroup.TargetGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTargetGroupLink", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*targetgroup.TargetGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateTargetGroupLink indicates an expected call of CreateTargetGroupLink.
+func (mr *MockTargetGroupServiceMockRecorder) CreateTargetGroupLink(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTargetGroupLink", reflect.TypeOf((*MockTargetGroupService)(nil).CreateTargetGroupLink), arg0, arg1, arg2)
+}
