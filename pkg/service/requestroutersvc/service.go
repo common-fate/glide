@@ -20,8 +20,6 @@ type Service struct {
 func (s *Service) Route(ctx context.Context, tg targetgroup.TargetGroup) (*targetgroup.Deployment, error) {
 	highestPriorityDeployment := storage.GetTargetGroupDeploymentWithPriority{
 		TargetGroupId: tg.ID,
-		Valid:         "true",
-		Health:        "true",
 	}
 
 	_, err := s.DB.Query(ctx, &highestPriorityDeployment)

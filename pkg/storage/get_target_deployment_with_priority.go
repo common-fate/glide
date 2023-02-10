@@ -12,22 +12,20 @@ import (
 
 type GetTargetGroupDeploymentWithPriority struct {
 	TargetGroupId string
-	Valid         string
-	Health        string
-	Result        targetgroup.Deployment `ddb:"result"`
+
+	Result targetgroup.Deployment `ddb:"result"`
 }
 
 func (g *GetTargetGroupDeploymentWithPriority) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
+		ScanIndexForward: aws.Bool(false),
+
 		IndexName:              aws.String(keys.IndexNames.GSI1),
 		Limit:                  aws.Int32(1),
-		KeyConditionExpression: aws.String("GSIPK = :pk and begins_with(GSISK, :sk1)"),
+		KeyConditionExpression: aws.String("GSI1PK = :pk and begins_with(GSI1SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSIPK1ValidHealthy(g.TargetGroupId)},
 			":sk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSISK1ValidHealthy},
-			//where sk = true#true#
-			//Will this ^ return the highest priority given the above query?
-			//Will be saved to the database like this true#true#999
 		},
 	}
 	return &qi, nil

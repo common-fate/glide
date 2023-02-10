@@ -21,7 +21,7 @@ func (g *GetTargetGroupDeploymentWithGroupId) BuildQuery() (*dynamodb.QueryInput
 		Limit:                  aws.Int32(1),
 		KeyConditionExpression: aws.String("GSIPK = :pk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.PK1},
+			":pk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSIPK1(g.TargetGroupId)},
 		},
 	}
 	return &qi, nil

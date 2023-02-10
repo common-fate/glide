@@ -24,14 +24,15 @@ func TestTargetGroup(opt ...func(*TargetGroup)) TargetGroup {
 func TestTargetGroupDeployment(opt ...func(*Deployment)) Deployment {
 
 	ar := Deployment{
-		ID:           "test-target-group",
-		FunctionARN:  "arn:aws:lambda:us-east-1:123456789012:function:my-function",
-		Runtime:      "aws-lambda",
-		AWSAccount:   "123456789012",
-		Healthy:      false,
-		Diagnostics:  []Diagnostic{},
-		ActiveConfig: map[string]Config{},
-		Provider:     Provider{},
+		ID:                    "test-target-group",
+		FunctionARN:           "arn:aws:lambda:us-east-1:123456789012:function:my-function",
+		Runtime:               "aws-lambda",
+		AWSAccount:            "123456789012",
+		Healthy:               false,
+		Diagnostics:           []Diagnostic{},
+		ActiveConfig:          map[string]Config{},
+		Provider:              Provider{},
+		TargetGroupAssignment: TargetGroupAssignment{TargetGroupID: "abc"},
 	}
 
 	for _, o := range opt {
