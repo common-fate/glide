@@ -44,6 +44,9 @@ func (r *TargetGroup) DDBKeys() (ddb.Keys, error) {
 func (r *GroupTargetSchema) ToAPI() types.TargetGroupTargetSchema {
 	resp := types.TargetGroupTargetSchema{
 		From: r.From,
+		Schema: types.TargetSchema{
+			AdditionalProperties: make(map[string]types.TargetArgument),
+		},
 	}
 
 	for grsI, grs := range r.Schema.AdditionalProperties {

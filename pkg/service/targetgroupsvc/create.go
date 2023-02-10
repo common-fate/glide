@@ -99,28 +99,62 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 	return &q.Result, nil
 }
 
+type Provider struct {
+	Publisher string
+	Name      string
+	Version   string
+}
+
+func SplitProviderString(s string) (Provider, error) {
+	splitversion := strings.Split(s, "@")
+	if len(splitversion) != 2 {
+		return Provider{}, errors.New("target schema given in incorrect format")
+	}
+
+	splitname := strings.Split(splitversion[0], "/")
+	if len(splitname) != 2 {
+		return Provider{}, errors.New("target schema given in incorrect format")
+	}
+	p := Provider{
+		Publisher: splitname[0],
+		Name:      splitname[1],
+		Version:   splitversion[1],
+	}
+	return p, nil
+}
+
 func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error) {
 	log := zap.S()
 
-	//look up target schema for the provider version
-
-	//TODO: validate that the targetschema is something we are expecting
-
-	splitKey := strings.Split(req.TargetSchema, "/")
-
-	//the target schema we receive should be in the form team/provider/version and split into 3 keys
-	if len(splitKey) != 3 {
-		return nil, errors.New("target schema given in incorrect format")
+	q := &storage.GetTargetGroup{
+		ID: req.ID,
 	}
 
-	resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])
+	_, err := s.DB.Query(ctx, q)
+	if err == nil {
+		return nil, ErrTargetGroupIdAlreadyExists
+	}
+	if err != nil && err != ddb.ErrNoItems {
+		return nil, err
+	}
+	//look up target schema for the provider version
+	provider, err := SplitProviderString(req.TargetSchema)
 	if err != nil {
 		return nil, err
 	}
+	result, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, provider.Publisher, provider.Name, provider.Version)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.StatusCode() != 200 {
+		return nil, errors.New(string(result.Body))
+	}
+
 	now := s.Clock.Now()
 	group := targetgroup.TargetGroup{
 		ID:           req.ID,
-		TargetSchema: targetgroup.GroupTargetSchema{From: req.TargetSchema, Schema: resp.JSON200.Schema.Target},
+		TargetSchema: targetgroup.GroupTargetSchema{From: req.TargetSchema, Schema: result.JSON200.Schema.Target},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

@@ -6,12 +6,10 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/ddb"
-	"k8s.io/utils/clock"
 )
 
 type Service struct {
-	Clock clock.Clock
-	DB    ddb.Storage
+	DB ddb.Storage
 }
 
 // Route is a very basic router that just chooses the highest priority valid and healthy deployment

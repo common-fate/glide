@@ -7,6 +7,7 @@ type payloadType string
 const (
 	payloadTypeGrant         payloadType = "grant"
 	payloadTypeRevoke        payloadType = "revoke"
+	payloadTypeDescribe      payloadType = "describe"
 	payloadTypeSchema        payloadType = "schema"
 	payloadTypeLoadResources payloadType = "loadResources"
 )
@@ -20,12 +21,23 @@ func (p payload) Marshal() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-type grantData struct {
-	Subject string            `json:"subject"`
-	Target  map[string]string `json:"args"`
+type Argument struct {
+	Type string
+	Data any
+}
+type Target struct {
+	// Mode is defines which behaviour of the provider to use, e.g SSO or Group
+	// The modes are defined by the provider schema, and each deployment is registered with its mode configuration in the database
+	Mode      string
+	Arguments map[string]Argument
 }
 
-func NewGrantEvent(subject string, target map[string]string) payload {
+type grantData struct {
+	Subject string `json:"subject"`
+	Target  Target `json:"target"`
+}
+
+func NewGrantEvent(subject string, target Target) payload {
 	return payload{
 		Type: payloadTypeGrant,
 		Data: grantData{
@@ -36,23 +48,17 @@ func NewGrantEvent(subject string, target map[string]string) payload {
 }
 
 type revokeData struct {
-	Subject string            `json:"subject"`
-	Target  map[string]string `json:"args"`
+	Subject string `json:"subject"`
+	Target  Target `json:"target"`
 }
 
-func NewRevokeEvent(subject string, target map[string]string) payload {
+func NewRevokeEvent(subject string, target Target) payload {
 	return payload{
 		Type: payloadTypeRevoke,
 		Data: revokeData{
 			Subject: subject,
 			Target:  target,
 		},
-	}
-}
-
-func NewSchemaEvent() payload {
-	return payload{
-		Type: payloadTypeSchema,
 	}
 }
 
@@ -68,5 +74,11 @@ func NewLoadResourcesEvent(name string, ctx interface{}) payload {
 			Name: name,
 			Ctx:  ctx,
 		},
+	}
+}
+
+func NewProviderDescribeEvent() payload {
+	return payload{
+		Type: payloadTypeDescribe,
 	}
 }

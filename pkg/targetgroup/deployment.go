@@ -20,6 +20,7 @@ type Deployment struct {
 	ActiveConfig          map[string]Config               `json:"activeConfig" dynamodbav:"activeConfig"`
 	Provider              Provider                        `json:"provider" dynamodbav:"provider"`
 	AuditSchema           providerregistrysdk.AuditSchema `json:"auditSchema" dynamodbav:"auditSchema"`
+	AWSRegion             string                          `json:"awsRegion" dynamodbav:"awsRegion"`
 	TargetGroupAssignment TargetGroupAssignment           `json:"targetGroupAssignment" dynamodbav:"targetGroupAssignment"`
 }
 
@@ -56,6 +57,25 @@ type Provider struct {
 	Version   string `json:"version" dynamodbav:"version"`
 }
 
+type ProviderDescribe struct {
+	Provider Provider `json:"provider"`
+	Config   struct {
+		InstanceArn     string `json:"instance_arn"`
+		IdentityStoreID string `json:"identity_store_id"`
+		Region          string `json:"region"`
+	} `json:"config"`
+	ConfigValidation map[string]struct {
+		Logs    []Diagnostic `json:"logs"`
+		Success bool         `json:"success"`
+	} `json:"configValidation"`
+	Schema struct {
+		Target           providerregistrysdk.TargetSchema   `json:"target"`
+		Audit            providerregistrysdk.AuditSchema    `json:"audit"`
+		ResourcesLoaders providerregistrysdk.ResourceLoader `json:"resourceLoaders"`
+		Resource         interface{}                        `json:"resource"`
+	}
+}
+
 func (r *Deployment) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK:     keys.TargetGroupDeployment.PK1,
@@ -78,22 +98,28 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		}
 	}
 
-	// todo: itteration here
 	targActiveConfig := types.TargetGroupDeploymentActiveConfig{}
-	targActiveConfig.Set("test", types.TargetGroupDeploymentConfig{Type: "test", Value: make(map[string]interface{})})
+
+	for k, v := range r.ActiveConfig {
+		targActiveConfig.Set(k, types.TargetGroupDeploymentConfig{
+			Type:  v.Type,
+			Value: v.Value.(map[string]interface{}),
+		})
+	}
 
 	return types.TargetGroupDeployment{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
 		FunctionArn: r.FunctionARN,
 		Healthy:     r.Healthy,
-		Provider: types.TargetGroupDeploymentProvider{
-			Name:      r.Provider.Name,
-			Publisher: r.Provider.Publisher,
-			Version:   r.Provider.Version,
-		},
-		ActiveConfig: targActiveConfig,
-		Diagnostics:  diagnostics,
+		AwsRegion:   r.AWSRegion,
+		// Provider: types.TargetGroupDeploymentProvider{
+		// 	Name:      r.Provider.Name,
+		// 	Publisher: r.Provider.Publisher,
+		// 	Version:   r.Provider.Version,
+		// },
+		// ActiveConfig: targActiveConfig,
+		Diagnostics: diagnostics,
 	}
 }
 

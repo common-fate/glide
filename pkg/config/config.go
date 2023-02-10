@@ -25,7 +25,8 @@ type Config struct {
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
 
-	NoAuthEmail string `env:"NO_AUTH_EMAIL"`
+	NoAuthEmail            string `env:"NO_AUTH_EMAIL"`
+	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
 }
 
 type NotificationsConfig struct {
@@ -86,4 +87,11 @@ type ProviderDeploymentCLI struct {
 	LocalFrontendURL       string `env:"COMMONFATE_CLI_LOCAL_FRONTEND_URL,default=http://localhost:9000"`
 	Debug                  bool   `env:"COMMONFATE_CLI_DEBUG"`
 	CommonFateAPIURL       string `env:"COMMONFATE_HOST,default=http://0.0.0.0:8080"`
+}
+
+type TargetGroupGranterConfig struct {
+	LogLevel       string `env:"LOG_LEVEL,default=info"`
+	EventBusArn    string `env:"COMMONFATE_EVENT_BUS_ARN"`
+	EventBusSource string `env:"COMMONFATE_EVENT_BUS_SOURCE"`
+	DynamoTable    string `env:"COMMONFATE_TABLE_NAME,required"`
 }

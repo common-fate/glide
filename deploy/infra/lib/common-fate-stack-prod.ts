@@ -17,6 +17,7 @@ import {
 } from "./helpers/registry";
 import { Database } from "./constructs/database";
 import { Governance } from "./constructs/governance";
+import { TargetGroupGranter } from "./constructs/targetgroup-granter";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -214,7 +215,14 @@ export class CommonFateStackProd extends cdk.Stack {
       remoteConfigUrl: remoteConfigUrl.valueAsString,
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
     });
-
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+      }
+    );
     //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
     const kmsKey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
