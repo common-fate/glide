@@ -55,6 +55,10 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 		return nil, err
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
 	//lookup deployment
 	p := storage.GetTargetGroupDeployment{ID: req.DeploymentId}
 
@@ -63,7 +67,9 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 	if err == ddb.ErrNoItems {
 		return nil, err
 	}
-
+	if err != nil {
+		return nil, err
+	}
 	if p.Result.TargetGroupAssignment != nil {
 		//means that there was a deployment already linked with a target group so this cannot be linked
 		return nil, errors.New("target group deployment already linked with a target group")
