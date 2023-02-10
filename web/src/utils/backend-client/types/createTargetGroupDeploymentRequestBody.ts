@@ -12,4 +12,5 @@ export type CreateTargetGroupDeploymentRequestBody = {
   functionArn: string;
   runtime: string;
   awsAccount: string;
+  awsRegion: string;
 };

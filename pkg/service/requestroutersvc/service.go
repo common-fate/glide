@@ -16,31 +16,13 @@ type Service struct {
 // returns an error if none is found
 // has no way of falling back to lower priority
 func (s *Service) Route(ctx context.Context, tg targetgroup.TargetGroup) (*targetgroup.Deployment, error) {
-	var priority int
-	var highest *targetgroup.Deployment
-	for _, r := range tg.TargetDeployments {
-		if highest == nil || r.Priority > priority {
-			if r.Valid {
-				q := &storage.GetTargetGroupDeployment{
-					ID: r.ID,
-				}
-				_, err := s.DB.Query(ctx, q)
-				if err == ddb.ErrNoItems {
-					continue
-				}
-				if err != nil {
-					return nil, err
-				}
-				if q.Result.Healthy {
-					highest = &q.Result
-					priority = r.Priority
-				}
-			}
-		}
-	}
-	if highest == nil {
-		return nil, ErrCannotRoute
+	highestPriorityDeployment := storage.GetTargetGroupDeploymentWithPriority{
+		TargetGroupId: tg.ID,
 	}
 
-	return highest, nil
+	_, err := s.DB.Query(ctx, &highestPriorityDeployment)
+	if err != nil {
+		return nil, err
+	}
+	return &highestPriorityDeployment.Result, nil
 }
