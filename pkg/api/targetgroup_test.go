@@ -288,6 +288,9 @@ func TestTargetGroupLink(t *testing.T) {
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", "/api/v1/target-groups/123/link", strings.NewReader(tc.give))
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			req.Header.Add("Content-Type", "application/json")
 

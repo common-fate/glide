@@ -3,7 +3,6 @@ package targetgroupsvc
 import (
 	"context"
 	"errors"
-	"reflect"
 	"strings"
 
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -13,34 +12,34 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *Service) compareAndValidateProviderVersions(ctx context.Context, provider1 string, provider2 string) (bool, error) {
-	splitKey := strings.Split(provider1, "/")
+// func (s *Service) compareAndValidateProviderVersions(ctx context.Context, provider1 string, provider2 string) (bool, error) {
+// 	splitKey := strings.Split(provider1, "/")
 
-	//the target schema we receive should be in the form team/provider/version and split into 3 keys
-	if len(splitKey) != 3 {
-		return false, errors.New("target schema given in incorrect format")
-	}
+// 	//the target schema we receive should be in the form team/provider/version and split into 3 keys
+// 	if len(splitKey) != 3 {
+// 		return false, errors.New("target schema given in incorrect format")
+// 	}
 
-	provider1Resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])
-	if err != nil {
-		return false, err
-	}
+// 	provider1Resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])
+// 	if err != nil {
+// 		return false, err
+// 	}
 
-	splitKey = strings.Split(provider2, "/")
+// 	splitKey = strings.Split(provider2, "/")
 
-	//the target schema we receive should be in the form team/provider/version and split into 3 keys
-	if len(splitKey) != 3 {
-		return false, errors.New("target schema given in incorrect format")
-	}
+// 	//the target schema we receive should be in the form team/provider/version and split into 3 keys
+// 	if len(splitKey) != 3 {
+// 		return false, errors.New("target schema given in incorrect format")
+// 	}
 
-	provider2Resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])
-	if err != nil {
-		return false, err
-	}
+// 	provider2Resp, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, splitKey[0], splitKey[1], splitKey[2])
+// 	if err != nil {
+// 		return false, err
+// 	}
 
-	return reflect.DeepEqual(provider1Resp.JSON200.Schema.Target, provider2Resp.JSON200.Schema.Target), nil
+// 	return reflect.DeepEqual(provider1Resp.JSON200.Schema.Target, provider2Resp.JSON200.Schema.Target), nil
 
-}
+// }
 
 func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTargetGroupLink, targetGroupId string) (*targetgroup.TargetGroup, error) {
 	log := zap.S()
