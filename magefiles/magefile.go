@@ -142,7 +142,13 @@ func (Build) Webhook() error {
 	}
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/webhook", "cmd/lambda/webhook/handler.go")
 }
-
+func (Build) TargetGroupGranter() error {
+	env := map[string]string{
+		"GOOS":   "linux",
+		"GOARCH": "amd64",
+	}
+	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/targetgroup-granter", "cmd/lambda/targetgroup-granter/handler.go")
+}
 func (Build) Governance() error {
 	env := map[string]string{
 		"GOOS":   "linux",
@@ -199,6 +205,12 @@ func PackageBackend() error {
 	return sh.Run("zip", "--junk-paths", "bin/commonfate.zip", "bin/commonfate")
 }
 
+// PackageTargetGroupGranter zips the Go TargetGroupGranter so that it can be deployed to Lambda.
+func PackageTargetGroupGranter() error {
+	mg.Deps(Build.TargetGroupGranter)
+	return sh.Run("zip", "--junk-paths", "bin/targetgroup-granter.zip", "bin/targetgroup-granter")
+}
+
 // PackageHealthChecker zips the Go deployment health checker so that it can be deployed to Lambda.
 func PackageHealthChecker() error {
 	mg.Deps(Build.HealthChecker)
@@ -208,7 +220,7 @@ func PackageHealthChecker() error {
 func Package() {
 	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
 	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
-	mg.Deps(PackageCacheSyncer, PackageHealthChecker)
+	mg.Deps(PackageCacheSyncer, PackageHealthChecker, PackageTargetGroupGranter)
 }
 
 // PackageGranter zips the Go granter so that it can be deployed to Lambda.
