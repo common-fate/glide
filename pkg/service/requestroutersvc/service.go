@@ -16,7 +16,7 @@ type Service struct {
 // returns an error if none is found
 // has no way of falling back to lower priority
 func (s *Service) Route(ctx context.Context, tg targetgroup.TargetGroup) (*targetgroup.Deployment, error) {
-	highestPriorityDeployment := storage.GetTargetGroupDeploymentWithPriority{
+	highestPriorityDeployment := storage.GetTargetGroupDeploymentWithHighestPriority{
 		TargetGroupId: tg.ID,
 	}
 	_, err := s.DB.Query(ctx, &highestPriorityDeployment)
