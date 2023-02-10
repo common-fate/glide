@@ -3,14 +3,11 @@ package cachesync
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/common-fate/apikit/logger"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
-	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
-	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 )
 
@@ -18,34 +15,45 @@ type CacheSyncer struct {
 	DB                  ddb.Storage
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	Cache               cachesvc.Service
-	RequestRouter       requestroutersvc.Service
-	UseLocal            bool
-}
-
-func (s *CacheSyncer) GetRuntime(ctx context.Context, arn string) (pdk.ProviderRuntime, error) {
-	var pr pdk.ProviderRuntime
-	if s.UseLocal {
-		// bit of a hack to get the local path in here
-		path := strings.TrimPrefix(arn, "arn:aws:lambda")
-		pr = pdk.LocalRuntime{
-			Path: path,
-		}
-	} else {
-		p, err := pdk.NewLambdaRuntime(ctx, arn)
-		if err != nil {
-			return nil, err
-		}
-		pr = p
-	}
-	return pr, nil
 }
 
 // Sync will attempt to sync all argument options for all providers
 // if a particular argument fails to sync, the error is logged and it continues to try syncing the other arguments/providers
 func (s *CacheSyncer) Sync(ctx context.Context) error {
 	log := logger.Get(ctx)
-	log.Info("starting to sync provider options cache")
 
+	// non blocking errors ensure the best chance of running
+	err := s.AccessHandler(ctx)
+	if err != nil {
+		log.Errorw("failed to refresh access handler options", "error", err)
+	}
+	err = s.TargetDeployments(ctx)
+	if err != nil {
+		log.Errorw("failed to refresh target group resources", "error", err)
+	}
+	return nil
+}
+func (s *CacheSyncer) TargetDeployments(ctx context.Context) error {
+	log := logger.Get(ctx)
+	q := storage.ListTargetGroups{}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil {
+		return err
+	}
+	for _, tg := range q.Result {
+		log.Infow("started syncing target group resources cache", "targetgroup", tg)
+		err = s.Cache.RefreshCachedTargetGroupResources(ctx, tg)
+		if err != nil {
+			log.Errorw("failed to refresh resources for targetgroup", "targetgroup", tg, "error", err)
+			continue
+		}
+		log.Infow("completed syncing target group resources cache", "targetgroup", tg)
+	}
+	return nil
+}
+func (s *CacheSyncer) AccessHandler(ctx context.Context) error {
+	log := logger.Get(ctx)
+	log.Info("starting to sync provider options cache")
 	providers, err := s.AccessHandlerClient.ListProvidersWithResponse(ctx)
 	if err != nil {
 		return err
@@ -80,41 +88,6 @@ func (s *CacheSyncer) Sync(ctx context.Context) error {
 
 		}
 	}
-
-	// @TODO list target groups, then run sync resources
 	log.Info("completed syncing provider options cache")
-
 	return nil
-}
-
-// Cache Resources associated with Provider in the ddb.
-func (s *CacheSyncer) SyncCommunityProviderResources(ctx context.Context, tg targetgroup.TargetGroup) error {
-	var tasks []string
-
-	deployment, err := s.RequestRouter.Route(ctx, tg)
-	if err != nil {
-		return err
-	}
-
-	for k := range deployment.AuditSchema.ResourceLoaders.AdditionalProperties {
-		tasks = append(tasks, k)
-	}
-
-	runtime, err := s.GetRuntime(ctx, deployment.FunctionARN)
-	if err != nil {
-		return err
-	}
-	rf := NewResourceFetcher(tg.ID, runtime)
-	resources, err := rf.LoadResources(ctx, tasks)
-	if err != nil {
-		return err
-	}
-
-	items := make([]ddb.Keyer, 0, len(resources))
-	for i := range resources {
-		items = append(items, &resources[i])
-	}
-
-	// TODO: Here we need to UPSERT the previous values and remove any remaining items
-	return s.DB.PutBatch(ctx, items...)
 }

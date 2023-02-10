@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 
@@ -89,8 +90,17 @@ var BootstrapCommand = cli.Command{
 		client := s3.NewFromConfig(awsCfg)
 		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(bootstrapBucket),
-			Key:        aws.String(lambdaAssetPath),
-			CopySource: aws.String(strings.TrimPrefix(res.JSON200.LambdaAssetS3Arn, "arn:aws:s3:::")),
+			Key:        aws.String(path.Join(lambdaAssetPath, "handler.zip")),
+			CopySource: aws.String(url.QueryEscape(path.Join(res.JSON200.LambdaAssetS3Arn, "handler.zip"))),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
+			Bucket:     aws.String(bootstrapBucket),
+			Key:        aws.String(path.Join(lambdaAssetPath, "cloudformation.json")),
+			CopySource: aws.String(url.QueryEscape(path.Join(res.JSON200.LambdaAssetS3Arn, "cloudformation.json"))),
 		})
 		if err != nil {
 			return err

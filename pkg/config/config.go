@@ -25,7 +25,8 @@ type Config struct {
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
 
-	NoAuthEmail string `env:"NO_AUTH_EMAIL"`
+	NoAuthEmail            string `env:"NO_AUTH_EMAIL"`
+	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
 }
 
 type NotificationsConfig struct {
@@ -58,6 +59,11 @@ type CacheSyncConfig struct {
 	LogLevel         string `env:"LOG_LEVEL,default=info"`
 	Region           string `env:"AWS_REGION,required"`
 	AccessHandlerURL string `env:"COMMONFATE_ACCESS_HANDLER_URL,default=http://0.0.0.0:9092"`
+}
+type HealthCheckerConfig struct {
+	TableName string `env:"COMMONFATE_TABLE_NAME,required"`
+	LogLevel  string `env:"LOG_LEVEL,default=info"`
+	Region    string `env:"AWS_REGION,required"`
 }
 
 type FrontendDeployerConfig struct {
