@@ -56,12 +56,8 @@ type Provider struct {
 }
 
 type ProviderDescribe struct {
-	Provider Provider `json:"provider"`
-	Config   struct {
-		InstanceArn     string `json:"instance_arn"`
-		IdentityStoreID string `json:"identity_store_id"`
-		Region          string `json:"region"`
-	} `json:"config"`
+	Provider         Provider          `json:"provider"`
+	Config           map[string]Config `json:"config"`
 	ConfigValidation map[string]struct {
 		Logs    []Diagnostic `json:"logs"`
 		Success bool         `json:"success"`
