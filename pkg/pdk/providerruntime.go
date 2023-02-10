@@ -2,7 +2,13 @@ package pdk
 
 import (
 	"context"
+
+
+	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+
 	"strings"
+
 )
 
 // uselocal enables development mode using alocal cli instead of calling out to deployed lambdas
@@ -31,6 +37,7 @@ type LoadResourceResponse struct {
 
 type ProviderRuntime interface {
 	FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error)
+	Describe(ctx context.Context) (describeResponse targetgroup.ProviderDescribe, err error)
 	Grant(ctx context.Context, subject string, target Target) (err error)
 	Revoke(ctx context.Context, subject string, target Target) (err error)
 }

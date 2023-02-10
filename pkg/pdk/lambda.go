@@ -8,6 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
+
+	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+
 )
 
 type LambdaRuntime struct {
@@ -53,6 +57,19 @@ func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx i
 	return
 }
 
+
+func (l *LambdaRuntime) Describe(ctx context.Context) (info targetgroup.ProviderDescribe, err error) {
+	out, err := l.Invoke(ctx, NewProviderDescribeEvent())
+	if err != nil {
+		return targetgroup.ProviderDescribe{}, err
+	}
+	err = json.Unmarshal(out.Payload, &info)
+	if err != nil {
+		return targetgroup.ProviderDescribe{}, err
+	}
+
+	return
+}
 func (l *LambdaRuntime) Grant(ctx context.Context, subject string, target Target) (err error) {
 	_, err = l.Invoke(ctx, NewGrantEvent(subject, target))
 	return err

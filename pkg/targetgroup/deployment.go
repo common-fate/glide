@@ -31,6 +31,25 @@ type Provider struct {
 	Version   string `json:"version" dynamodbav:"version"`
 }
 
+type ProviderDescribe struct {
+	Provider Provider `json:"provider"`
+	Config   struct {
+		InstanceArn     string `json:"instance_arn"`
+		IdentityStoreID string `json:"identity_store_id"`
+		Region          string `json:"region"`
+	} `json:"config"`
+	ConfigValidation map[string]struct {
+		Logs    []Diagnostic `json:"logs"`
+		Success bool         `json:"success"`
+	} `json:"configValidation"`
+	Schema struct {
+		Target           providerregistrysdk.TargetSchema   `json:"target"`
+		Audit            providerregistrysdk.AuditSchema    `json:"audit"`
+		ResourcesLoaders providerregistrysdk.ResourceLoader `json:"resourceLoaders"`
+		Resource         interface{}                        `json:"resource"`
+	}
+}
+
 func (r *Deployment) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.TargetGroupDeployment.PK1,
