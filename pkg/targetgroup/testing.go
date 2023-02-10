@@ -12,7 +12,6 @@ func TestTargetGroup(opt ...func(*TargetGroup)) TargetGroup {
 			From:   "test/test/v1.1.1",
 			Schema: providerregistrysdk.TargetSchema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}},
 		},
-		TargetDeployments: []DeploymentRegistration{},
 	}
 
 	for _, o := range opt {

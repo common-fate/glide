@@ -1,6 +1,8 @@
 package targetgroup
 
 import (
+	"strconv"
+
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -9,15 +11,39 @@ import (
 
 // represents a lambda TargetGroupDeployment
 type Deployment struct {
-	ID           string            `json:"id" dynamodbav:"id"`
-	FunctionARN  string            `json:"functionArn" dynamodbav:"functionArn"`
-	Runtime      string            `json:"runtime" dynamodbav:"runtime"`
-	AWSAccount   string            `json:"awsAccount" dynamodbav:"awsAccount"`
-	Healthy      bool              `json:"healthy" dynamodbav:"healthy"`
-	Diagnostics  []Diagnostic      `json:"diagnostics" dynamodbav:"diagnostics"`
-	ActiveConfig map[string]Config `json:"activeConfig" dynamodbav:"activeConfig"`
-	Provider     Provider          `json:"provider" dynamodbav:"provider"`
-	AuditSchema  providerregistrysdk.AuditSchema
+	ID                    string                          `json:"id" dynamodbav:"id"`
+	FunctionARN           string                          `json:"functionArn" dynamodbav:"functionArn"`
+	Runtime               string                          `json:"runtime" dynamodbav:"runtime"`
+	AWSAccount            string                          `json:"awsAccount" dynamodbav:"awsAccount"`
+	Healthy               bool                            `json:"healthy" dynamodbav:"healthy"`
+	Diagnostics           []Diagnostic                    `json:"diagnostics" dynamodbav:"diagnostics"`
+	ActiveConfig          map[string]Config               `json:"activeConfig" dynamodbav:"activeConfig"`
+	Provider              Provider                        `json:"provider" dynamodbav:"provider"`
+	AuditSchema           providerregistrysdk.AuditSchema `json:"auditSchema" dynamodbav:"auditSchema"`
+	TargetGroupAssignment TargetGroupAssignment           `json:"targetGroupAssignment" dynamodbav:"targetGroupAssignment"`
+}
+
+// TargetGroupAssignments holds information about the deployment and its link to the target group
+type TargetGroupAssignment struct {
+	TargetGroupID string `json:"targetGroupId" dynamodbav:"targetGroupId"`
+	// range from 0 - an upper bound
+	//
+	// 0 being disabled, 100 being higher priority than 50
+	Priority int `json:"priority" dynamodbav:"priority"`
+	// Validity indicates that a provider may have:
+	//
+	// 	IncompatibleVersion
+	// 		The provider version is incompatible with this targetGroup
+	// 		Requests cannot be routed to the provider
+	//
+	// 	IncompatibleConfig
+	// 		The provider config differs majorly and would result in different resources
+	// 		Requests cannot be routed to provider because resources do/will not match
+	Valid bool `json:"valid" dynamodbav:"valid"`
+	// Store warnings/errors from healthchecks related to validity for the targetGroup registration - These diagnostics can explain why a route is invalid
+	//
+	// Note: Diagnostics related to whether the deployment is healthy or unhealthy can be found on the deployment item itself
+	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
 }
 
 type Config struct {
@@ -32,8 +58,10 @@ type Provider struct {
 
 func (r *Deployment) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.TargetGroupDeployment.PK1,
-		SK: keys.TargetGroupDeployment.SK1(r.ID),
+		PK:     keys.TargetGroupDeployment.PK1,
+		SK:     keys.TargetGroupDeployment.SK1(r.ID),
+		GSI1PK: keys.TargetGroupDeployment.GSIPK1(r.TargetGroupAssignment.TargetGroupID),
+		GSI1SK: keys.TargetGroupDeployment.GSISK1(strconv.FormatBool(r.TargetGroupAssignment.Valid), strconv.FormatBool(r.Healthy), strconv.Itoa(r.TargetGroupAssignment.Priority)),
 	}
 	return keys, nil
 }
@@ -66,5 +94,11 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		},
 		ActiveConfig: targActiveConfig,
 		Diagnostics:  diagnostics,
+	}
+}
+
+func (r *TargetGroupAssignment) ToAPI() types.TargetGroupAssignment {
+	return types.TargetGroupAssignment{
+		Id: r.TargetGroupID,
 	}
 }

@@ -2249,6 +2249,8 @@ components:
           $ref: '#/components/schemas/TargetGroupDeploymentActiveConfig'
         provider:
           $ref: '#/components/schemas/TargetGroupDeploymentProvider'
+        targetGroupAssignment:
+          $ref: '#/components/schemas/TargetGroupAssignment'
       required:
         - id
         - functionArn
@@ -2257,6 +2259,7 @@ components:
         - diagnostics
         - activeConfig
         - provider
+        - targetGroupAssignment
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2269,10 +2272,6 @@ components:
           $ref: '#/components/schemas/TargetGroupTargetSchema'
         icon:
           type: string
-        targetDeployments:
-          type: array
-          items:
-            $ref: '#/components/schemas/DeploymentRegistration'
         createdAt:
           type: string
           x-go-type: time.Time
@@ -2284,11 +2283,10 @@ components:
         - id
         - targetSchema
         - icon
-        - targetDeployments
-    DeploymentRegistration:
+    TargetGroupAssignment:
       type: object
       x-stoplight:
-        id: d13df9f8cec56
+        id: 44a09f993c68a
       properties:
         Id:
           type: string
@@ -2305,6 +2303,7 @@ components:
         - Priority
         - Valid
         - Diagnostics
+      title: ''
     TargetGroupTargetSchema:
       title: TargetSchema
       x-stoplight:

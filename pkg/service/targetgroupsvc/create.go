@@ -67,16 +67,31 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 	//validate deployment target schema matches target group
 	//TODO?
 
-	//update target group deployments to include new deployment
-	q.Result.TargetDeployments = append(q.Result.TargetDeployments, targetgroup.DeploymentRegistration{
-		ID:          p.Result.ID,
-		Priority:    req.Priority,
-		Diagnostics: p.Result.Diagnostics,
-	})
+	//check to see if deployment is already linked with a target
+	checkDeployment := storage.GetTargetGroupDeploymentWithGroupId{TargetGroupId: targetGroupId}
+
+	_, err = s.DB.Query(ctx, &checkDeployment)
+
+	if err == nil {
+		//means that there was a deployment already linked with a target group so this cannot be linked
+		return nil, errors.New("target group deployment already linked with a target group")
+	} else {
+		//dont want to break execution for no items found
+		if err != ddb.ErrNoItems {
+			return nil, err
+		}
+	}
+
+	//update the target group assignment on the deployment object
+	p.Result.TargetGroupAssignment = targetgroup.TargetGroupAssignment{
+		TargetGroupID: p.Result.ID,
+		Priority:      req.Priority,
+		Diagnostics:   p.Result.Diagnostics,
+	}
 
 	log.Debugw("Linking deployment to target group", "group", q.Result.ID)
 	// save the request.
-	err = s.DB.Put(ctx, &q.Result)
+	err = s.DB.Put(ctx, &p.Result)
 	if err != nil {
 		return nil, err
 	}

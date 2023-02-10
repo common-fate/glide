@@ -8,6 +8,7 @@
 import type { TargetGroupDiagnostic } from './targetGroupDiagnostic';
 import type { TargetGroupDeploymentActiveConfig } from './targetGroupDeploymentActiveConfig';
 import type { TargetGroupDeploymentProvider } from './targetGroupDeploymentProvider';
+import type { TargetGroupAssignment } from './targetGroupAssignment';
 
 export interface TargetGroupDeployment {
   id: string;
@@ -17,4 +18,5 @@ export interface TargetGroupDeployment {
   diagnostics: TargetGroupDiagnostic[];
   activeConfig: TargetGroupDeploymentActiveConfig;
   provider: TargetGroupDeploymentProvider;
+  targetGroupAssignment: TargetGroupAssignment;
 }
