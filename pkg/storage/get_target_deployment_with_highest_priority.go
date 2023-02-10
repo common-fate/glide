@@ -10,12 +10,12 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-type GetTargetGroupDeploymentWithPriority struct {
+type GetTargetGroupDeploymentWithHighestPriority struct {
 	TargetGroupId string
 	Result        targetgroup.Deployment `ddb:"result"`
 }
 
-func (g *GetTargetGroupDeploymentWithPriority) BuildQuery() (*dynamodb.QueryInput, error) {
+func (g *GetTargetGroupDeploymentWithHighestPriority) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		ScanIndexForward: aws.Bool(false),
 
@@ -30,7 +30,7 @@ func (g *GetTargetGroupDeploymentWithPriority) BuildQuery() (*dynamodb.QueryInpu
 	return &qi, nil
 }
 
-func (g *GetTargetGroupDeploymentWithPriority) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetTargetGroupDeploymentWithHighestPriority) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
 	if len(out.Items) != 1 {
 		return ddb.ErrNoItems
 	}

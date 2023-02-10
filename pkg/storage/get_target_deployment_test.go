@@ -12,7 +12,7 @@ func TestGetTargetGroupDeployment_BuildQuery(t *testing.T) {
 
 	db := newTestingStorage(t)
 
-	tg := targetgroup.TestTargetGroupDeployment()
+	tg := targetgroup.TestTargetGroupDeployment("t1")
 	ddbtest.PutFixtures(t, db, &tg)
 
 	tc := []ddbtest.QueryTestCase{
