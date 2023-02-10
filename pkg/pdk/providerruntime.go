@@ -3,8 +3,6 @@ package pdk
 import (
 	"context"
 	"strings"
-
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // uselocal enables development mode using alocal cli instead of calling out to deployed lambdas
@@ -32,8 +30,9 @@ type LoadResourceResponse struct {
 }
 
 type ProviderRuntime interface {
-	Schema(ctx context.Context) (schema providerregistrysdk.ProviderSchema, err error)
 	FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error)
+	Grant(ctx context.Context, subject string, target Target) (err error)
+	Revoke(ctx context.Context, subject string, target Target) (err error)
 }
 
 func GetRuntime(ctx context.Context, arn string) (ProviderRuntime, error) {

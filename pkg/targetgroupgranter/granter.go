@@ -51,7 +51,7 @@ type Grant struct {
 	Subject openapi_types.Email `json:"subject"`
 
 	// Provider-specific grant data. Must match the provider's schema.
-	Target Target `json:"target"`
+	Target pdk.Target `json:"target"`
 }
 
 // Defines values for GrantStatus.
@@ -65,15 +65,6 @@ const (
 
 // The current state of the grant.
 type GrantStatus string
-
-type Argument struct {
-	Type string
-	Data any
-}
-type Target struct {
-	Mode      string
-	Arguments map[string]Argument
-}
 
 type Output struct {
 	Grant Grant `json:"grant"`
@@ -117,9 +108,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.TargetGroup, deployment.ID)
 				}
 			}()
-			// @TODO implement grant method on runtime
-			// runtime.Grant()
-			return nil
+			return runtime.Grant(ctx, string(in.Grant.Subject), in.Grant.Target)
 		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
@@ -130,9 +119,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.TargetGroup, deployment.ID)
 				}
 			}()
-			// @TODO implement revoke method on runtime
-			// runtime.Revoke()
-			return nil
+			return runtime.Revoke(ctx, string(in.Grant.Subject), in.Grant.Target)
 		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
