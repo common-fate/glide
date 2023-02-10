@@ -23,8 +23,8 @@ func (g *GetTargetGroupDeploymentWithPriority) BuildQuery() (*dynamodb.QueryInpu
 		Limit:                  aws.Int32(1),
 		KeyConditionExpression: aws.String("GSIPK = :pk and begins_with(GSISK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSIPK1(g.TargetGroupId)},
-			":sk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSISK1(g.Valid, g.Health, "")},
+			":pk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSIPK1ValidHealthy(g.TargetGroupId)},
+			":sk": &types.AttributeValueMemberS{Value: keys.TargetGroupDeployment.GSISK1ValidHealthy},
 			//where sk = true#true#
 			//Will this ^ return the highest priority given the above query?
 			//Will be saved to the database like this true#true#999
