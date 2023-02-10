@@ -34,6 +34,14 @@ func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.Cre
 		FunctionARN: req.FunctionArn,
 		Runtime:     req.Runtime,
 		AWSAccount:  req.AwsAccount,
+		AwsRegion:   req.AwsRegion,
+		Healthy:     false,
+		Diagnostics: []targetgroup.Diagnostic{
+			{
+				Level:   string(types.ProviderSetupDiagnosticLogLevelINFO),
+				Message: "offline: lambda cannot be reached/invoked",
+			},
+		},
 	}
 
 	err = s.DB.Put(ctx, &dbInput)

@@ -61,6 +61,12 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 			want: &targetgroup.Deployment{
 				ID:         "test1",
 				AWSAccount: "123456789012",
+				Diagnostics: []targetgroup.Diagnostic{
+					{
+						Level:   string(types.ProviderSetupDiagnosticLogLevelINFO),
+						Message: "offline: lambda cannot be reached/invoked",
+					},
+				},
 			},
 		},
 	}
