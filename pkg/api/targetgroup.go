@@ -82,5 +82,19 @@ func (a *API) GetTargetGroup(w http.ResponseWriter, r *http.Request, id string) 
 
 // (POST /api/v1/target-groups/{id}/link)
 func (a *API) CreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id string) {
-	// todo:
+	ctx := r.Context()
+	var linkGroupRequest types.CreateTargetGroupLink
+	err := apio.DecodeJSONBody(w, r, &linkGroupRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+
+	targetGroup, err := a.TargetGroupService.CreateTargetGroupLink(ctx, linkGroupRequest, id)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	apio.JSON(ctx, w, targetGroup.ToAPI(), http.StatusOK)
+
 }

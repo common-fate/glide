@@ -7,14 +7,13 @@
  */
 import type { TargetGroupDiagnostic } from './targetGroupDiagnostic';
 import type { TargetGroupDeploymentActiveConfig } from './targetGroupDeploymentActiveConfig';
-import type { TargetGroupDeploymentProvider } from './targetGroupDeploymentProvider';
 
 export interface TargetGroupDeployment {
   id: string;
   functionArn: string;
   awsAccount: string;
+  awsRegion: string;
   healthy: boolean;
   diagnostics: TargetGroupDiagnostic[];
-  activeConfig: TargetGroupDeploymentActiveConfig;
-  provider: TargetGroupDeploymentProvider;
+  activeConfig?: TargetGroupDeploymentActiveConfig;
 }

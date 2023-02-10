@@ -101,16 +101,14 @@ func TestListTargetGroup(t *testing.T) {
 			wantCode: http.StatusOK,
 			targetgroups: []targetgroup.TargetGroup{
 				{
-					ID:                "tg1",
-					TargetSchema:      targetgroup.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetSchema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
-					Icon:              "test",
-					TargetDeployments: []targetgroup.DeploymentRegistration{{ID: "reg1"}},
+					ID:           "tg1",
+					TargetSchema: targetgroup.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetSchema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
+					Icon:         "test",
 				},
 				{
-					ID:                "tg2",
-					TargetSchema:      targetgroup.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetSchema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
-					Icon:              "test",
-					TargetDeployments: []targetgroup.DeploymentRegistration{{ID: "reg1"}},
+					ID:           "tg2",
+					TargetSchema: targetgroup.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetSchema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
+					Icon:         "test",
 				},
 			},
 

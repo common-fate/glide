@@ -11,10 +11,13 @@ import type {
   Key
 } from 'swr'
 import type {
-  ListTargetGroupDeploymentResponseResponse,
+  ListTargetGroupDeploymentAPIResponseResponse,
+  TargetGroupDeployment,
+  CreateTargetGroupDeploymentRequestBody,
   TargetGroup,
   ListTargetGroupResponseResponse,
-  CreateTargetGroupRequestBody
+  CreateTargetGroupRequestBody,
+  CreateTargetGroupLinkBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -73,7 +76,7 @@ export const useGetTargetGroupDeployment = <TError = ErrorType<unknown>>(
 export const listTargetGroupDeployments = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListTargetGroupDeploymentResponseResponse>(
+      return customInstance<ListTargetGroupDeploymentAPIResponseResponse>(
       {url: `/api/v1/target-group-deployments`, method: 'get'
     },
       options);
@@ -109,10 +112,12 @@ export const useListTargetGroupDeployments = <TError = ErrorType<void>>(
  * @summary Create a target group deployment
  */
 export const createTargetGroupDeployment = (
-    
+    createTargetGroupDeploymentRequestBody: CreateTargetGroupDeploymentRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/target-group-deployments`, method: 'post'
+      return customInstance<TargetGroupDeployment>(
+      {url: `/api/v1/target-group-deployments`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupDeploymentRequestBody
     },
       options);
     }
@@ -214,9 +219,12 @@ export const createTargetGroup = (
  */
 export const createTargetGroupLink = (
     id: string,
+    createTargetGroupLinkBody: CreateTargetGroupLinkBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
-      {url: `/api/v1/target-groups/${id}/link`, method: 'post'
+      {url: `/api/v1/target-groups/${id}/link`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupLinkBody
     },
       options);
     }

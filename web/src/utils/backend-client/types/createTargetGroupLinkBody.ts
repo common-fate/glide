@@ -6,4 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type DeploymentRegistrationDiagnosticsItem = { [key: string]: any };
+export type CreateTargetGroupLinkBody = {
+  deploymentId: string;
+  priority: number;
+};
