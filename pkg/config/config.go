@@ -59,6 +59,11 @@ type CacheSyncConfig struct {
 	Region           string `env:"AWS_REGION,required"`
 	AccessHandlerURL string `env:"COMMONFATE_ACCESS_HANDLER_URL,default=http://0.0.0.0:9092"`
 }
+type HealthCheckerConfig struct {
+	TableName string `env:"COMMONFATE_TABLE_NAME,required"`
+	LogLevel  string `env:"LOG_LEVEL,default=info"`
+	Region    string `env:"AWS_REGION,required"`
+}
 
 type FrontendDeployerConfig struct {
 	LogLevel                             string `env:"LOG_LEVEL,default=info"`
