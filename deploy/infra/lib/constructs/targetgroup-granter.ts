@@ -9,7 +9,6 @@ import { EventBus } from "aws-cdk-lib/aws-events";
 interface Props {
   eventBusSourceName: string;
   eventBus: EventBus;
-  executionRole: iam.Role;
 }
 export class TargetGroupGranter extends Construct {
   private _stateMachine: sfn.StateMachine;
