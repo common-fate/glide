@@ -1159,7 +1159,7 @@ paths:
         - Target Groups
       responses:
         "200":
-          $ref: "#/components/responses/ListTargetGroupDeploymentResponse"
+          $ref: "#/components/responses/ListTargetGroupDeploymentAPIResponse"
         "404":
           description: Not Found
         "500":
@@ -1172,10 +1172,16 @@ paths:
       responses:
         "201":
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetGroupDeployment"
         "500":
           description: Internal Server Error
       tags:
         - Target Groups
+      requestBody:
+        $ref: "#/components/requestBodies/CreateTargetGroupDeploymentRequest"
   "/api/v1/target-groups/{id}":
     parameters:
       - schema:
@@ -2235,24 +2241,27 @@ components:
           type: string
         awsAccount:
           type: string
+        awsRegion:
+          type: string
         healthy:
           type: boolean
         diagnostics:
           type: array
           items:
             $ref: "#/components/schemas/TargetGroupDiagnostic"
-        activeConfig:
-          $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
-        provider:
-          $ref: "#/components/schemas/TargetGroupDeploymentProvider"
+        # activeConfig:
+        #   $ref: '#/components/schemas/TargetGroupDeploymentActiveConfig'
+        # provider:
+        #   $ref: '#/components/schemas/TargetGroupDeploymentProvider'
       required:
         - id
         - functionArn
         - awsAccount
         - healthy
         - diagnostics
-        - activeConfig
-        - provider
+        - awsRegion
+        # - activeConfig
+        # - provider
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2625,8 +2634,8 @@ components:
                 type: string
             required:
               - targetGroups
-    ListTargetGroupDeploymentResponse:
-      description: Respons obj for ListTargetGroupDeploymentResponse
+    ListTargetGroupDeploymentAPIResponse:
+      description: Response obj for ListTargetGroupDeploymentAPIResponse
       content:
         application/json:
           schema:
@@ -2860,13 +2869,14 @@ components:
                 type: string
               awsAccount:
                 type: string
+              awsRegion:
+                type: string
             required:
               - id
               - functionArn
               - runtime
               - awsAccount
-              - activeConfig
-              - provider
+              - awsRegion
 tags:
   - name: End User
   - name: Admin

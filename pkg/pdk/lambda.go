@@ -8,8 +8,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
+
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+
 )
 
 type LambdaRuntime struct {
@@ -43,24 +45,6 @@ func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.Inv
 	return res, nil
 }
 
-func (l *LambdaRuntime) Schema(ctx context.Context) (schema providerregistrysdk.ProviderSchema, err error) {
-	out, err := l.Invoke(ctx, NewSchemaEvent())
-	if err != nil {
-		return schema, err
-	}
-	// log := logger.Get(ctx)
-
-	err = json.Unmarshal(out.Payload, &schema)
-	if err != nil {
-		return providerregistrysdk.ProviderSchema{}, err
-	}
-	// if err != nil {
-	// 	return invokeResponse, err
-	// }
-	// log.Infow("schema", "out", string(out.Payload), "schema", invokeResponse)
-	return
-}
-
 func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error) {
 	out, err := l.Invoke(ctx, NewLoadResourcesEvent(name, contx))
 	if err != nil {
@@ -73,6 +57,7 @@ func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx i
 	return
 }
 
+
 func (l *LambdaRuntime) Describe(ctx context.Context) (info targetgroup.ProviderDescribe, err error) {
 	out, err := l.Invoke(ctx, NewProviderDescribeEvent())
 	if err != nil {
@@ -84,4 +69,12 @@ func (l *LambdaRuntime) Describe(ctx context.Context) (info targetgroup.Provider
 	}
 
 	return
+}
+func (l *LambdaRuntime) Grant(ctx context.Context, subject string, target Target) (err error) {
+	_, err = l.Invoke(ctx, NewGrantEvent(subject, target))
+	return err
+}
+func (l *LambdaRuntime) Revoke(ctx context.Context, subject string, target Target) (err error) {
+	_, err = l.Invoke(ctx, NewRevokeEvent(subject, target))
+	return err
 }

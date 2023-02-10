@@ -17,6 +17,7 @@ type Deployment struct {
 	Diagnostics  []Diagnostic      `json:"diagnostics" dynamodbav:"diagnostics"`
 	ActiveConfig map[string]Config `json:"activeConfig" dynamodbav:"activeConfig"`
 	Provider     Provider          `json:"provider" dynamodbav:"provider"`
+	AwsRegion    string            `json:"awsRegion" dynamodbav:"awsRegion"`
 	AuditSchema  providerregistrysdk.AuditSchema
 }
 
@@ -69,21 +70,27 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		}
 	}
 
-	// todo: itteration here
 	targActiveConfig := types.TargetGroupDeploymentActiveConfig{}
-	targActiveConfig.Set("test", types.TargetGroupDeploymentConfig{Type: "test", Value: make(map[string]interface{})})
+
+	for k, v := range r.ActiveConfig {
+		targActiveConfig.Set(k, types.TargetGroupDeploymentConfig{
+			Type:  v.Type,
+			Value: v.Value.(map[string]interface{}),
+		})
+	}
 
 	return types.TargetGroupDeployment{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
 		FunctionArn: r.FunctionARN,
 		Healthy:     r.Healthy,
-		Provider: types.TargetGroupDeploymentProvider{
-			Name:      r.Provider.Name,
-			Publisher: r.Provider.Publisher,
-			Version:   r.Provider.Version,
-		},
-		ActiveConfig: targActiveConfig,
-		Diagnostics:  diagnostics,
+		AwsRegion:   r.AwsRegion,
+		// Provider: types.TargetGroupDeploymentProvider{
+		// 	Name:      r.Provider.Name,
+		// 	Publisher: r.Provider.Publisher,
+		// 	Version:   r.Provider.Version,
+		// },
+		// ActiveConfig: targActiveConfig,
+		Diagnostics: diagnostics,
 	}
 }
