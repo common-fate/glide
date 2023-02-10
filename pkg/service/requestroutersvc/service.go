@@ -19,8 +19,10 @@ func (s *Service) Route(ctx context.Context, tg targetgroup.TargetGroup) (*targe
 	highestPriorityDeployment := storage.GetTargetGroupDeploymentWithPriority{
 		TargetGroupId: tg.ID,
 	}
-
 	_, err := s.DB.Query(ctx, &highestPriorityDeployment)
+	if err == ddb.ErrNoItems {
+		return nil, ErrCannotRoute
+	}
 	if err != nil {
 		return nil, err
 	}
