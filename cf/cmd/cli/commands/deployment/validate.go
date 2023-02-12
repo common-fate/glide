@@ -61,11 +61,6 @@ var ValidateCommand = cli.Command{
 			clio.Infof("cloudformation stack '%s' exists in '%s' and is in '%s' state", id, awsRegion, stacks.Stacks[0].StackStatus)
 		}
 
-		_, err := pr.Schema(c.Context)
-		if err != nil {
-			return err
-		}
-
 		desc, err := pr.Describe(c.Context)
 		if err != nil {
 			return err
