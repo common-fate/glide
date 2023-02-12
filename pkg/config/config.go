@@ -88,3 +88,10 @@ type ProviderDeploymentCLI struct {
 	Debug                  bool   `env:"COMMONFATE_CLI_DEBUG"`
 	CommonFateAPIURL       string `env:"COMMONFATE_HOST,default=http://0.0.0.0:8080"`
 }
+
+type TargetGroupGranterConfig struct {
+	LogLevel       string `env:"LOG_LEVEL,default=info"`
+	EventBusArn    string `env:"COMMONFATE_EVENT_BUS_ARN"`
+	EventBusSource string `env:"COMMONFATE_EVENT_BUS_SOURCE"`
+	DynamoTable    string `env:"COMMONFATE_TABLE_NAME,required"`
+}

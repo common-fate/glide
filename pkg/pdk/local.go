@@ -3,31 +3,17 @@ package pdk
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/common-fate/common-fate/pkg/targetgroup"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+
 	"github.com/mitchellh/mapstructure"
 )
 
 type LocalRuntime struct {
 	Path string
-}
-
-func (l LocalRuntime) Schema(ctx context.Context) (schema providerregistrysdk.ProviderSchema, err error) {
-	cmd := exec.Command("pdk-cli", "test", "schema")
-	cmd.Dir = l.Path
-	cmd.Env = append(cmd.Env, os.Environ()...)
-	out, err := cmd.Output()
-	if err != nil {
-		return providerregistrysdk.ProviderSchema{}, err
-	}
-	err = json.Unmarshal(out, &schema)
-	if err != nil {
-		return providerregistrysdk.ProviderSchema{}, err
-	}
-	return
 }
 
 func (l LocalRuntime) FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error) {
@@ -65,6 +51,8 @@ func (l LocalRuntime) Describe(ctx context.Context) (targetgroup.ProviderDescrib
 		return targetgroup.ProviderDescribe{}, err
 	}
 
+	fmt.Println("the out is", string(out))
+
 	var describe targetgroup.ProviderDescribe
 	err = json.Unmarshal(out, &describe)
 	if err != nil {
@@ -72,4 +60,22 @@ func (l LocalRuntime) Describe(ctx context.Context) (targetgroup.ProviderDescrib
 	}
 
 	return describe, nil
+}
+func (l LocalRuntime) Grant(ctx context.Context, subject string, target Target) (err error) {
+	// @TODO this is untested/ not implemented in the local CLI
+	cmd := exec.Command("pdk-cli", "test", "grant")
+	cmd.Dir = l.Path
+	cmd.Env = append(cmd.Env, os.Environ()...)
+	_, err = cmd.Output()
+	return err
+
+}
+func (l LocalRuntime) Revoke(ctx context.Context, subject string, target Target) (err error) {
+	// @TODO this is untested/ not implemented in the local CLI
+	cmd := exec.Command("pdk-cli", "test", "revoke")
+	cmd.Dir = l.Path
+	cmd.Env = append(cmd.Env, os.Environ()...)
+	_, err = cmd.Output()
+	return err
+
 }

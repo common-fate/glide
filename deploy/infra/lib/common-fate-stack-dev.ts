@@ -13,6 +13,7 @@ import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
 import { Governance } from "./constructs/governance";
+import { TargetGroupGranter } from "./constructs/targetgroup-granter";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -85,6 +86,14 @@ export class CommonFateStackDev extends cdk.Stack {
       appName: appName,
     });
 
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+      }
+    );
     const accessHandler = new AccessHandler(this, "AccessHandler", {
       appName: appName,
       eventBus: events.getEventBus(),

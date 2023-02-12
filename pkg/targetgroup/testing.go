@@ -12,7 +12,6 @@ func TestTargetGroup(opt ...func(*TargetGroup)) TargetGroup {
 			From:   "test/test/v1.1.1",
 			Schema: providerregistrysdk.TargetSchema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}},
 		},
-		TargetDeployments: []DeploymentRegistration{},
 	}
 
 	for _, o := range opt {
@@ -22,17 +21,18 @@ func TestTargetGroup(opt ...func(*TargetGroup)) TargetGroup {
 	return ar
 }
 
-func TestTargetGroupDeployment(opt ...func(*Deployment)) Deployment {
+func TestTargetGroupDeployment(id string, opt ...func(*Deployment)) Deployment {
 
 	ar := Deployment{
-		ID:           "test-target-group",
-		FunctionARN:  "arn:aws:lambda:us-east-1:123456789012:function:my-function",
-		Runtime:      "aws-lambda",
-		AWSAccount:   "123456789012",
-		Healthy:      false,
-		Diagnostics:  []Diagnostic{},
-		ActiveConfig: map[string]Config{},
-		Provider:     Provider{},
+		ID:                    id,
+		FunctionARN:           "arn:aws:lambda:us-east-1:123456789012:function:my-function",
+		Runtime:               "aws-lambda",
+		AWSAccount:            "123456789012",
+		Healthy:               false,
+		Diagnostics:           []Diagnostic{},
+		ActiveConfig:          map[string]Config{},
+		Provider:              Provider{},
+		TargetGroupAssignment: &TargetGroupAssignment{TargetGroupID: "abc"},
 	}
 
 	for _, o := range opt {

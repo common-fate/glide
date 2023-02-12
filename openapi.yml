@@ -1237,8 +1237,12 @@ paths:
       responses:
         "200":
           description: OK
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
       tags:
         - Target Groups
+      requestBody:
+        $ref: "#/components/requestBodies/CreateTargetGroupLink"
 components:
   schemas:
     User:
@@ -2249,16 +2253,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TargetGroupDiagnostic"
-        # activeConfig:
-        #   $ref: '#/components/schemas/TargetGroupDeploymentActiveConfig'
+        activeConfig:
+          $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
         # provider:
-        #   $ref: '#/components/schemas/TargetGroupDeploymentProvider'
+        #   $ref: "#/components/schemas/TargetGroupDeploymentProvider"
+        # targetGroupAssignment:
+        #   $ref: "#/components/schemas/TargetGroupAssignment"
       required:
         - id
         - functionArn
         - awsAccount
         - healthy
         - diagnostics
+        - targetGroupAssignment
         - awsRegion
         # - activeConfig
         # - provider
@@ -2274,10 +2281,6 @@ components:
           $ref: "#/components/schemas/TargetGroupTargetSchema"
         icon:
           type: string
-        targetDeployments:
-          type: array
-          items:
-            $ref: "#/components/schemas/DeploymentRegistration"
         createdAt:
           type: string
           x-go-type: time.Time
@@ -2289,11 +2292,10 @@ components:
         - id
         - targetSchema
         - icon
-        - targetDeployments
-    DeploymentRegistration:
+    TargetGroupAssignment:
       type: object
       x-stoplight:
-        id: d13df9f8cec56
+        id: 44a09f993c68a
       properties:
         Id:
           type: string
@@ -2310,6 +2312,7 @@ components:
         - Priority
         - Valid
         - Diagnostics
+      title: ""
     TargetGroupTargetSchema:
       title: TargetSchema
       x-stoplight:
@@ -2876,7 +2879,25 @@ components:
               - functionArn
               - runtime
               - awsAccount
+              - activeConfig
+              - provider
               - awsRegion
+
+    CreateTargetGroupLink:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deploymentId:
+                type: string
+              priority:
+                type: integer
+                maximum: 999
+                minimum: 0
+            required:
+              - deploymentId
+              - priority
 tags:
   - name: End User
   - name: Admin

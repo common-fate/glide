@@ -34,7 +34,7 @@ func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.Cre
 		FunctionARN: req.FunctionArn,
 		Runtime:     req.Runtime,
 		AWSAccount:  req.AwsAccount,
-		AwsRegion:   req.AwsRegion,
+		AWSRegion:   req.AwsRegion,
 		Healthy:     false,
 		Diagnostics: []targetgroup.Diagnostic{
 			{
