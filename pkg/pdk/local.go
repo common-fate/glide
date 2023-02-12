@@ -3,7 +3,6 @@ package pdk
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 
@@ -50,8 +49,6 @@ func (l LocalRuntime) Describe(ctx context.Context) (targetgroup.ProviderDescrib
 	if err != nil {
 		return targetgroup.ProviderDescribe{}, err
 	}
-
-	fmt.Println("the out is", string(out))
 
 	var describe targetgroup.ProviderDescribe
 	err = json.Unmarshal(out, &describe)
