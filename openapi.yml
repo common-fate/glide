@@ -2879,10 +2879,7 @@ components:
               - functionArn
               - runtime
               - awsAccount
-              - activeConfig
-              - provider
               - awsRegion
-
     CreateTargetGroupLink:
       content:
         application/json:

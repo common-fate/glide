@@ -49,25 +49,27 @@ type Config struct {
 	Type  string      `json:"type" dynamodbav:"type"`
 	Value interface{} `json:"value" dynamodbav:"value"`
 }
+
 type Provider struct {
 	Publisher string `json:"publisher" dynamodbav:"publisher"`
 	Name      string `json:"name" dynamodbav:"name"`
 	Version   string `json:"version" dynamodbav:"version"`
 }
+type ConfigValidation struct {
+	Logs    []Diagnostic `json:"logs"`
+	Success bool         `json:"success"`
+}
 
 type ProviderDescribe struct {
-	Provider         Provider          `json:"provider"`
-	Config           map[string]string `json:"config"`
-	ConfigValidation map[string]struct {
-		Logs    []Diagnostic `json:"logs"`
-		Success bool         `json:"success"`
-	} `json:"configValidation"`
-	Schema struct {
+	Provider         Provider                    `json:"provider"`
+	Config           map[string]Config           `json:"config"`
+	ConfigValidation map[string]ConfigValidation `json:"configValidation"`
+	Schema           struct {
 		Target           providerregistrysdk.TargetSchema   `json:"target"`
 		Audit            providerregistrysdk.AuditSchema    `json:"audit"`
 		ResourcesLoaders providerregistrysdk.ResourceLoader `json:"resourceLoaders"`
 		Resource         interface{}                        `json:"resource"`
-	}
+	} `json:"schema"`
 }
 
 func (r *Deployment) DDBKeys() (ddb.Keys, error) {
