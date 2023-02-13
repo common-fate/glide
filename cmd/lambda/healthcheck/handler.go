@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/config"
-	"github.com/common-fate/common-fate/pkg/healthcheck"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
@@ -28,11 +27,8 @@ func main() {
 		panic(err)
 	}
 
-	healthchecker := healthcheck.HealthChecker{
+	healthchecker := healthchecksvc.Service{
 		DB: db,
-		HealthCheck: &healthchecksvc.Service{
-			DB: db,
-		},
 	}
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {

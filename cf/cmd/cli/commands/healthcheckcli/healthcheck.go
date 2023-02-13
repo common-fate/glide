@@ -3,7 +3,6 @@ package healthcheckcli
 import (
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/healthcheck"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/ddb"
 	"github.com/urfave/cli/v2"
@@ -35,26 +34,13 @@ var Command = cli.Command{
 			return err
 		}
 
-		hc := healthcheck.HealthChecker{
+		hc := healthchecksvc.Service{
 			DB: db,
-			HealthCheck: &healthchecksvc.Service{
-				DB: db,
-			},
 		}
-
-		// cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
-		// if err != nil {
-		// 	return err
-		// }
 
 		// run the health check synchronously ⭐️⭐️⭐️⭐️
 		// find a way to invoke the health check and determin an api response
 		// await the result
-
-		// res, err := cfApi.AdminHealthCheckTargetGroupsWithResponse(ctx)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = hc.Check(ctx)
 		if err != nil {
