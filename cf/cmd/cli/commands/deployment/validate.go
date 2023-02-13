@@ -80,7 +80,7 @@ var ValidateCommand = cli.Command{
 				}
 			}
 		} else {
-			clio.Warn("could not found any config validations for this provider.")
+			clio.Warn("could not find any config validations for this provider.")
 		}
 
 		if !isHealthy {

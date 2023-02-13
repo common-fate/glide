@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -39,15 +40,24 @@ func (s *Service) Check(ctx context.Context) error {
 		// get the lambda runtime
 		runtime, err := pdk.GetRuntime(ctx, deploymentItem.FunctionARN)
 		if err != nil {
-			return err
+			deploymentItem.Healthy = false
+			log.Warnf("Error getting lambda runtime: %s", deploymentItem.ID)
+			deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
+				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
+				Message: err.Error(),
+			})
+			continue
 		}
 		// now we can call the describe endpoint
 		describeRes, err := runtime.Describe(ctx)
 		if err != nil {
-			/**
-			[✘] operation error Lambda: Invoke, https response error StatusCode: 404, RequestID: e630c31d-e611-4e31-a02d-6aef0aa7ac7f, ResourceNotFoundException: Functions from 'us-east-1' are not reachable in this region ('ap-southeast-2')
-			*/
-			return err
+			deploymentItem.Healthy = false
+			log.Warnf("Error running healthcheck for deployment: %s", deploymentItem.ID)
+			deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
+				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
+				Message: err.Error(),
+			})
+			continue
 		}
 
 		/**
@@ -56,7 +66,8 @@ func (s *Service) Check(ctx context.Context) error {
 		- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
 
 		What we probably want:
-		- an improved deploymentItem.Diagnostics field that is a map data type?? ⭐️⭐️
+		- an improved deploymentItem.Diagnostics field that is a map data type??
+		- break this down in the future
 		*/
 
 		// if there is an unhealthy config validation, then the deployment is unhealthy
@@ -70,19 +81,18 @@ func (s *Service) Check(ctx context.Context) error {
 			}
 			if !diagnostic.Success {
 				healthy = false
-				break
 			}
 		}
 
 		// update the deployment
 		deploymentItem.Healthy = healthy
-
 		upsertItems = append(upsertItems, &deploymentItem)
 	}
 
-	s.DB.PutBatch(ctx, upsertItems...)
-
+	err = s.DB.PutBatch(ctx, upsertItems...)
+	if err != nil {
+		return err
+	}
 	log.Info("completed checking health")
-
 	return nil
 }

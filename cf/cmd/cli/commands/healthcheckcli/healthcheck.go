@@ -4,6 +4,7 @@ import (
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/urfave/cli/v2"
 )
@@ -18,8 +19,6 @@ var Command = cli.Command{
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
 		ctx := c.Context
-
-		// opts := []types.ClientOption{}
 
 		do, err := deploy.LoadConfig(deploy.DefaultFilename)
 		if err != nil {
@@ -38,32 +37,38 @@ var Command = cli.Command{
 			DB: db,
 		}
 
-		// run the health check synchronously ⭐️⭐️⭐️⭐️
-		// find a way to invoke the health check and determin an api response
-		// await the result
-
 		err = hc.Check(ctx)
 		if err != nil {
 			return err
 		}
 
+		opts := []types.ClientOption{}
+
+		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		if err != nil {
+			return err
+		}
+
 		// now run a fetch
-		// listRes, err := cfApi.ListTargetGroupDeploymentsWithResponse(ctx, nil)
+		listRes, err := cfApi.ListTargetGroupDeploymentsWithResponse(ctx)
+		if err != nil {
+			return err
+		}
 
 		healthyCount := 0
 		unhealthyCount := 0
 
-		// for _, deployment := range listRes.JSON200.Res {
-		// 	if deployment.Healthy {
-		// 		healthyCount++
-		// 	} else {
-		// 		unhealthyCount++
-		// 	}
-		// }
+		for _, deployment := range listRes.JSON200.Res {
+			if deployment.Healthy {
+				healthyCount++
+			} else {
+				unhealthyCount++
+			}
+		}
 
 		clio.Log("healthcheck result")
-		clio.Log("healthy: %d", healthyCount)
-		clio.Log("unhealthy: %d", unhealthyCount)
+		clio.Logf("healthy: %d", healthyCount)
+		clio.Logf("unhealthy: %d", unhealthyCount)
 
 		return nil
 	}),
