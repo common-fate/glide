@@ -17,7 +17,7 @@ type HealthChecker struct {
 }
 
 /*
-*
+
 Healthcheck
 The service has a mildly complex task, it needs to call out to all the deployments, and update the healthiness.
 
@@ -30,13 +30,10 @@ Then for each target group, update the validity of the deployments which are reg
 The validations should be applied as described in the milestone, and tests should be implemented to assert that the healthcheck service works as expected with different responses.
 
 Procedure described:
-- initialise a map keyed by target group id
 - go over each target group deployment
 - run a healthcheck
 - update the healthiness of the deployment
-- if the deployment is healthy, update the target group map to be healthy
 - if the deployment is unhealthy, record the error and continue
-- finally, iterrate over the target group map and update the target group healthiness
 */
 
 func (s *HealthChecker) Check(ctx context.Context) error {
@@ -51,7 +48,6 @@ func (s *HealthChecker) Check(ctx context.Context) error {
 		return err
 	}
 
-	targetgroupMap := make(map[string]bool)
 	upsertItems := []ddb.Keyer{}
 
 	// for each deployment, run a healthcheck
@@ -61,75 +57,53 @@ func (s *HealthChecker) Check(ctx context.Context) error {
 		// update the healthiness of the deployment
 		log.Infof("Running healthcheck for deployment: %s", deploymentItem.ID)
 
-		// Determine requirements/api for querying the deployment ⭐️⭐️⭐️⭐️
-		// "The deployment lambda should respond with some data"
+		// get the lambda runtime
 		runtime, err := pdk.GetRuntime(ctx, deploymentItem.FunctionARN)
 		if err != nil {
 			return err
 		}
+		// now we can call the describe endpoint
 		describeRes, err := runtime.Describe(ctx)
 		if err != nil {
+			/**
+			[✘] operation error Lambda: Invoke, https response error StatusCode: 404, RequestID: e630c31d-e611-4e31-a02d-6aef0aa7ac7f, ResourceNotFoundException: Functions from 'us-east-1' are not reachable in this region ('ap-southeast-2')
+			*/
 			return err
 		}
 
-		// healthy, err := CheckIfHealthy(deploymentItem)
+		/**
+		What we have here:
+		- healthy response that defaults to any error
+		- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
 
+		What we probably want:
+		- an improved deploymentItem.Diagnostics field that is a map data type?? ⭐️⭐️
+		*/
+
+		// if there is an unhealthy config validation, then the deployment is unhealthy
 		healthy := true
 		for _, diagnostic := range describeRes.ConfigValidation {
-
-			// @TODO: determine whether we need to push the config validation to the deployment item ⭐️⭐️⭐️ i.e. deploymentItem.ActiveConfig
-
+			for _, d := range diagnostic.Logs {
+				deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
+					Level:   d.Level,
+					Message: d.Message,
+				})
+			}
 			if !diagnostic.Success {
 				healthy = false
 				break
 			}
 		}
 
-		if err != nil {
-			return err
-		}
-
 		// update the deployment
 		deploymentItem.Healthy = healthy
-
-		if healthy {
-			// update the target group map to be healthy
-			targetgroupMap[deploymentItem.ID] = healthy
-		} else {
-			// @TODO: record the error Diagnostics and continue  ⭐️⭐️⭐️⭐️
-			deploymentItem.Diagnostics = []targetgroup.Diagnostic{}
-		}
 
 		upsertItems = append(upsertItems, &deploymentItem)
 	}
 
 	s.DB.PutBatch(ctx, upsertItems...)
 
-	// now we can iterate over the target group map and update the target group healthiness
-	for targetGroupID, healthy := range targetgroupMap {
-		// get the target group
-		getTargetGroup := storage.GetTargetGroup{ID: targetGroupID}
-		_, err := s.DB.Query(ctx, &getTargetGroup)
-		if err != nil {
-			return err
-		}
-		if !healthy {
-			// update the target group...
-			// Q: target group doesn't store health?
-		}
-	}
-
 	log.Info("completed checking health")
 
 	return nil
 }
-
-// func CheckIfHealthy(deploymentItem targetgroup.Deployment) (bool, error) {
-
-// 	// TODO: use me as input when polling the deployment
-// 	// deployment.AWSAccount
-// 	// deployment.AwsRegion
-// 	// deployment.FunctionARN
-
-// 	return true, nil
-// }
