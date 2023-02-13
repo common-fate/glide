@@ -57,7 +57,7 @@ type Provider struct {
 
 type ProviderDescribe struct {
 	Provider         Provider          `json:"provider"`
-	Config           map[string]Config `json:"config"`
+	Config           map[string]string `json:"config"`
 	ConfigValidation map[string]struct {
 		Logs    []Diagnostic `json:"logs"`
 		Success bool         `json:"success"`

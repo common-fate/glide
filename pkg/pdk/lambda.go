@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
-
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 )
 
@@ -60,6 +59,7 @@ func (l *LambdaRuntime) Describe(ctx context.Context) (info targetgroup.Provider
 	if err != nil {
 		return targetgroup.ProviderDescribe{}, err
 	}
+
 	err = json.Unmarshal(out.Payload, &info)
 	if err != nil {
 		return targetgroup.ProviderDescribe{}, err
