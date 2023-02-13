@@ -23,15 +23,16 @@ var CreateCommand = cli.Command{
 	Description: "create a target group",
 	Usage:       "create a target group",
 	Flags: []cli.Flag{
+		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "schema-from", Required: true},
 		&cli.BoolFlag{Name: "ok-if-exists"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		id := c.Args().First()
-		if id == "" {
-			return errors.New("id argument must be provided")
-		}
+		id := c.String("id")
+		// if id == "" {
+		// 	return errors.New("id argument must be provided")
+		// }
 
 		schemaFrom := c.String("schema-from")
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
@@ -96,7 +97,7 @@ var LinkCommand = cli.Command{
 			return errors.New(string(result.Body))
 		}
 
-		clio.Successf("linked deployment '%s' with target group '%s'", c.String("deployment"), c.String("name"))
+		clio.Successf("linked deployment '%s' with target group '%s'", c.String("deployment"), c.String("group"))
 		return nil
 	},
 }

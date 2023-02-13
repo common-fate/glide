@@ -3022,8 +3022,8 @@ components:
               - functionArn
               - runtime
               - awsAccount
-              - activeConfig
-              - provider
+              # - activeConfig
+              # - provider
               - awsRegion
 
     CreateTargetGroupLink:

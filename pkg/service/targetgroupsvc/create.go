@@ -76,7 +76,7 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 
 	//update the target group assignment on the deployment object
 	p.Result.TargetGroupAssignment = &targetgroup.TargetGroupAssignment{
-		TargetGroupID: p.Result.ID,
+		TargetGroupID: q.Result.ID,
 		Priority:      req.Priority,
 		Diagnostics:   p.Result.Diagnostics,
 	}
