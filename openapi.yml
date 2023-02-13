@@ -753,6 +753,85 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       description: Delete an internal group
+  /api/v1/admin/providersv2:
+    get:
+      summary: List providers2
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProviderV2"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-list-providersv2
+      description: List providers
+    parameters: []
+    post:
+      summary: ""
+      operationId: admin-create-providerv2
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderV2"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: "create a v2 provider, this method is called once the "
+      requestBody:
+        $ref: "#/components/requestBodies/CreateProviderRequest"
+      tags:
+        - Admin
+  "/api/v1/admin/providersv2/{providerId}":
+    get:
+      summary: Get provider detailed
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderV2"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-get-providerv2
+      description: Get provider by id
+    parameters:
+      - schema:
+          type: string
+        name: providerId
+        in: path
+        required: true
+    delete:
+      summary: Delete providerv2
+      operationId: admin-delete-providerv2
+      responses:
+        "200":
+          description: OK
+    post:
+      summary: Update providerv2
+      operationId: admin-update-providerv2
+      responses:
+        "200":
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProviderV2"
   /api/v1/admin/providers:
     get:
       summary: List providers
@@ -1617,6 +1696,40 @@ components:
           maximum: 15724800
       required:
         - maxDurationSeconds
+    ProviderV2:
+      title: ProviderV2
+      type: object
+      description: ProviderV2
+      properties:
+        name:
+          type: string
+        team:
+          type: string
+        version:
+          type: string
+        stackId:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProviderV2Status"
+        type:
+          type: string
+        id:
+          type: string
+        alias:
+          type: string
+        functionArn:
+          type: string
+        functionRoleArn:
+          type: string
+      required:
+        - name
+        - team
+        - version
+        - stackId
+        - status
+        - type
+        - id
+        - alias
     Provider:
       title: Provider
       type: object
@@ -2231,6 +2344,36 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
+    UpdateProviderV2:
+      title: UpdateProviderV2
+      x-stoplight:
+        id: 8bpot4cenqzjb
+      type: object
+      properties:
+        alias:
+          type: string
+        version:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProviderV2Status"
+        functionArn:
+          type: string
+        functionRoleArn:
+          type: string
+      required:
+        - alias
+        - version
+        - status
+    ProviderV2Status:
+      title: ProviderV2Status
+      x-stoplight:
+        id: oz90w79dp4kph
+      type: string
+      enum:
+        - CREATING
+        - UPDATING
+        - DEPLOYED
+        - DELETED
     TargetGroupDeployment:
       title: TargetGroupDeployment
       x-stoplight:
@@ -2898,7 +3041,30 @@ components:
             required:
               - deploymentId
               - priority
+    CreateProviderRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              stackId:
+                type: string
+              team:
+                type: string
+              name:
+                type: string
+              version:
+                type: string
+              alias:
+                type: string
+            required:
+              - stackId
+              - team
+              - name
+              - version
+              - alias
 tags:
   - name: End User
   - name: Admin
   - name: Target Groups
+  - name: ProviderSetup

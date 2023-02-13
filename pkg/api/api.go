@@ -27,6 +27,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
+	"github.com/common-fate/common-fate/pkg/service/providersvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
@@ -75,6 +76,7 @@ type API struct {
 	InternalIdentity             InternalIdentityService
 	TargetGroupService           TargetGroupService
 	TargetGroupDeploymentService TargetGroupDeploymentService
+	ProviderService              providersvc.Service
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService

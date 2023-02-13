@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-/**
- * The current configuration values.
- */
-export type ProviderSetupV2ConfigValues = { [key: string]: any };
+export type CreateTargetGroupRequestBody = {
+  targetSchema: string;
+  ID: string;
+};

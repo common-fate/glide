@@ -28,6 +28,8 @@ import type {
   AdminListGroupsParams,
   Group,
   CreateGroupRequestBody,
+  ProviderV2,
+  CreateProviderRequestBody,
   Provider,
   AdminListProviderArgOptionsParams,
   ListProviderSetupsResponseResponse,
@@ -540,6 +542,99 @@ export const adminDeleteGroup = (
       options);
     }
   
+
+/**
+ * List providers
+ * @summary List providers2
+ */
+export const adminListProvidersv2 = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderV2[]>(
+      {url: `/api/v1/admin/providersv2`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminListProvidersv2Key = () => [`/api/v1/admin/providersv2`];
+
+    
+export type AdminListProvidersv2QueryResult = NonNullable<Awaited<ReturnType<typeof adminListProvidersv2>>>
+export type AdminListProvidersv2QueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminListProvidersv2 = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListProvidersv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListProvidersv2Key() : null);
+  const swrFn = () => adminListProvidersv2(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * create a v2 provider, this method is called once the 
+ */
+export const adminCreateProviderv2 = (
+    createProviderRequestBody: CreateProviderRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderV2>(
+      {url: `/api/v1/admin/providersv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createProviderRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * Get provider by id
+ * @summary Get provider detailed
+ */
+export const adminGetProviderv2 = (
+    providerId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ProviderV2>(
+      {url: `/api/v1/admin/providersv2/${providerId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetProviderv2Key = (providerId: string,) => [`/api/v1/admin/providersv2/${providerId}`];
+
+    
+export type AdminGetProviderv2QueryResult = NonNullable<Awaited<ReturnType<typeof adminGetProviderv2>>>
+export type AdminGetProviderv2QueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminGetProviderv2 = <TError = ErrorType<ErrorResponseResponse>>(
+ providerId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetProviderv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(providerId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetProviderv2Key(providerId) : null);
+  const swrFn = () => adminGetProviderv2(providerId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 /**
  * List providers

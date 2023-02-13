@@ -13,6 +13,7 @@ import (
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/logs"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/notifications"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/provider"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/providerv2"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/release"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/restore"
 	mw "github.com/common-fate/common-fate/cmd/gdeploy/middleware"
@@ -61,6 +62,7 @@ func main() {
 			mw.WithBeforeFuncs(&cache.Command, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&commands.InitCommand, mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&release.Command, mw.RequireDeploymentConfig()),
+			mw.WithBeforeFuncs(&providerv2.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 		},
 	}
 
