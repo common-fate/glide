@@ -7,6 +7,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
+import { grantInvokeCommunityProviders } from "../helpers/permissions";
 
 interface Props {
   dynamoTable: Table;
@@ -48,17 +49,7 @@ export class CacheSync extends Construct {
     targets.addLambdaPermission(this.eventRule, this._lambda);
 
     // allows to invoke the function from any account if they have the correct tag
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        resources: ["arn:aws:lambda:#:#:#"],
-        actions: ["execute-api:Invoke"],
-        conditions: {
-          StringEquals: {
-            "iam:ResourceTag/common-fate-abac-role": "access-provider",
-          },
-        },
-      })
-    );
+    grantInvokeCommunityProviders(this._lambda);
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
