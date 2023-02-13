@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
@@ -62,8 +63,28 @@ func (s *HealthChecker) Check(ctx context.Context) error {
 
 		// Determine requirements/api for querying the deployment ⭐️⭐️⭐️⭐️
 		// "The deployment lambda should respond with some data"
+		runtime, err := pdk.GetRuntime(ctx, deploymentItem.FunctionARN)
+		if err != nil {
+			return err
+		}
+		describeRes, err := runtime.Describe(ctx)
+		if err != nil {
+			return err
+		}
 
-		healthy, err := CheckIfHealthy(deploymentItem)
+		// healthy, err := CheckIfHealthy(deploymentItem)
+
+		healthy := true
+		for _, diagnostic := range describeRes.ConfigValidation {
+
+			// @TODO: determine whether we need to push the config validation to the deployment item ⭐️⭐️⭐️ i.e. deploymentItem.ActiveConfig
+
+			if !diagnostic.Success {
+				healthy = false
+				break
+			}
+		}
+
 		if err != nil {
 			return err
 		}
@@ -103,12 +124,12 @@ func (s *HealthChecker) Check(ctx context.Context) error {
 	return nil
 }
 
-func CheckIfHealthy(deploymentItem targetgroup.Deployment) (bool, error) {
+// func CheckIfHealthy(deploymentItem targetgroup.Deployment) (bool, error) {
 
-	// TODO: use me as input when polling the deployment
-	// deployment.AWSAccount
-	// deployment.AwsRegion
-	// deployment.FunctionARN
+// 	// TODO: use me as input when polling the deployment
+// 	// deployment.AWSAccount
+// 	// deployment.AwsRegion
+// 	// deployment.FunctionARN
 
-	return true, nil
-}
+// 	return true, nil
+// }
