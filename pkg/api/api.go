@@ -76,7 +76,9 @@ type API struct {
 	InternalIdentity             InternalIdentityService
 	TargetGroupService           TargetGroupService
 	TargetGroupDeploymentService TargetGroupDeploymentService
-	ProviderService              providersvc.Service
+	ProviderRegistryAPIURL       string
+
+	ProviderService providersvc.Service
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -159,6 +161,7 @@ type Opts struct {
 	CognitoUserPoolID      string
 	IDPType                string
 	AdminGroupID           string
+	ProviderRegistryAPIURL string
 }
 
 // New creates a new API.
@@ -255,6 +258,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		TargetGroupDeploymentService: &targetdeploymentsvc.Service{
 			DB:    db,
 			Clock: clk,
+		},
+		ProviderRegistryAPIURL: opts.ProviderRegistryAPIURL,
+		ProviderService: providersvc.Service{
+			DB: db,
 		},
 	}
 
