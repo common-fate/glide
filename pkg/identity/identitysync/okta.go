@@ -131,6 +131,8 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 	//get all users
 	idpUsers := []identity.IDPUser{}
 
+	log.Debugw("listing all okta users")
+
 	users, res, err := o.client.User.ListUsers(ctx, &query.Params{})
 	if err != nil {
 		// try and log the response body
@@ -138,17 +140,17 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 		return nil, errors.Wrap(err, "listing okta users from okta API")
 	}
 
-	hasMore := res.HasNextPage()
+	log.Debugw("listed all okta users")
 
-	for hasMore {
+	for res.HasNextPage() {
 		var nextUsers []*okta.User
-		res, err := res.Next(ctx, &nextUsers)
+		res, err = res.Next(ctx, &nextUsers)
 		if err != nil {
 			logResponseErr(log, res, err)
 			return nil, err
 		}
 		users = append(users, nextUsers...)
-		hasMore = res.HasNextPage()
+		log.Debugw("fetched more users", "nextPage", res.NextPage)
 	}
 
 	// convert all Okta users to internal users
@@ -166,6 +168,8 @@ func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
 	log := logger.Get(ctx)
 
+	log.Debugw("listing all okta groups")
+
 	idpGroups := []identity.IDPGroup{}
 
 	groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{})
@@ -175,9 +179,10 @@ func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) 
 		return nil, errors.Wrap(err, "listing okta groups from okta API")
 	}
 
-	hasMore := res.HasNextPage()
+	log.Debugw("listed all okta groups")
 
-	for hasMore {
+	for res.HasNextPage() {
+		log.Debugw("hasmore")
 		var nextGroups []*okta.Group
 		res, err = res.Next(ctx, &nextGroups)
 		if err != nil {
@@ -185,7 +190,7 @@ func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) 
 			return nil, err
 		}
 		groups = append(groups, nextGroups...)
-		hasMore = res.HasNextPage()
+		log.Debugw("fetched more groups", "nextPage", res.NextPage)
 	}
 
 	// convert all Okta groups to internal groups
