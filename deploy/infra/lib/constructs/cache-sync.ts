@@ -52,6 +52,11 @@ export class CacheSync extends Construct {
       new PolicyStatement({
         resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
         actions: ["execute-api:Invoke"],
+        conditions: {
+          StringEquals: {
+            "iam:ResourceTag/common-fate-abac-role": "access-provider",
+          },
+        },
       })
     );
   }
