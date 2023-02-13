@@ -5,6 +5,7 @@ import { Construct } from "constructs";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
+import { grantInvokeCommunityProviders } from "../helpers/permissions";
 
 interface Props {
   eventBusSourceName: string;
@@ -37,6 +38,8 @@ export class TargetGroupGranter extends Construct {
       runtime: lambda.Runtime.GO_1_X,
       handler: "targetgroup-granter",
     });
+
+    grantInvokeCommunityProviders(this._lambda);
 
     // this lambda needs to be able to invoke provider deployments
     const definition = {
