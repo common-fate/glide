@@ -58,9 +58,9 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 
 	q := storage.GetTargetGroup{ID: providerId}
 	_, err := a.DB.Query(ctx, &q)
-	// TODO: Maybe need to gracefully handle for v1 providers.
-	if err != nil {
-		apio.Error(ctx, w, errors.New("unable to find targetgroup"))
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
 	}
 
 	if q.Result.ID != "" {
