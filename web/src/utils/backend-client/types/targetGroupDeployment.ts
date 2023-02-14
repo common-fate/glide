@@ -7,6 +7,7 @@
  */
 import type { TargetGroupDiagnostic } from './targetGroupDiagnostic';
 import type { TargetGroupDeploymentActiveConfig } from './targetGroupDeploymentActiveConfig';
+import type { TargetGroupAssignment } from './targetGroupAssignment';
 
 export interface TargetGroupDeployment {
   id: string;
@@ -16,4 +17,5 @@ export interface TargetGroupDeployment {
   healthy: boolean;
   diagnostics: TargetGroupDiagnostic[];
   activeConfig?: TargetGroupDeploymentActiveConfig;
+  targetGroupAssignment?: TargetGroupAssignment;
 }

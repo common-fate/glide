@@ -24,20 +24,17 @@ import {
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-location";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
 import { TabsStyledButton } from "../../../components/nav/Navbar";
-import { StatusCell } from "../../../components/StatusCell";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
+
 import {
-  adminDeleteProvidersetup,
-  useAdminListProvidersetups,
-} from "../../../utils/backend-client/admin/admin";
-import { useListTargetGroupDeployments } from "../../../utils/backend-client/target-groups/target-groups";
+  useListTargetGroupDeployments,
+  useListTargetGroups,
+} from "../../../utils/backend-client/target-groups/target-groups";
 import {
-  Provider,
-  ProviderSetup,
+  TargetGroup,
   TargetGroupDeployment,
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
@@ -73,6 +70,11 @@ const AdminProvidersTable = () => {
         Header: "Account",
       },
       {
+        // @ts-ignore this is required because ts cannot infer the nexted object types correctly
+        accessor: "targetGroupAssignment.TargetGroupId",
+        Header: "Target Group Id",
+      },
+      {
         accessor: "healthy",
         Header: "Health",
         Cell: ({ value }) => (
@@ -99,6 +101,31 @@ const AdminProvidersTable = () => {
   });
 };
 
+const AdminTargetGroupsTable = () => {
+  const { data } = useListTargetGroups();
+  // @ts-ignore this is required because ts cannot infer the nexted object types correctly
+  const cols: Column<TargetGroup>[] = useMemo(
+    () => [
+      {
+        accessor: "id",
+        Header: "ID",
+      },
+      {
+        accessor: "targetSchema.From",
+        Header: "From",
+      },
+    ],
+    []
+  );
+
+  return TableRenderer<TargetGroup>({
+    columns: cols,
+    data: data?.targetGroups,
+    emptyText: "No providers have been set up yet.",
+    linkTo: false,
+  });
+};
+
 const Providers = () => {
   return (
     <AdminLayout>
@@ -114,7 +141,16 @@ const Providers = () => {
         {/* spacer of 32px to acccount for un-needed UI/CLS */}
         <div style={{ height: "32px" }} />
         <ProvidersV2Tabs />
-        <AdminProvidersTable />
+
+        <Container
+          my={12}
+          // This prevents unbounded widths for small screen widths
+          minW={{ base: "100%", xl: "container.xl" }}
+          overflowX="auto"
+        >
+          Target Groups
+          <AdminTargetGroupsTable />
+        </Container>
         {/* <HStack mt={2} spacing={1} w="100%" justify={"center"}>
           <Text textStyle={"Body/ExtraSmall"}>
             View the full configuration of each access provider in your{" "}
@@ -122,6 +158,16 @@ const Providers = () => {
           <Code fontSize={"12px"}>deployment.yml</Code>
           <Text textStyle={"Body/ExtraSmall"}>file.</Text>
         </HStack> */}
+
+        <Container
+          my={12}
+          // This prevents unbounded widths for small screen widths
+          minW={{ base: "100%", xl: "container.xl" }}
+          overflowX="auto"
+        >
+          Target Group Deployments
+          <AdminProvidersTable />
+        </Container>
       </Container>
     </AdminLayout>
   );
