@@ -33,7 +33,7 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 
 		targetGroups := a.FetchTargetGroups(ctx)
 
-		combinedResponse := make([]ahTypes.Provider, 0, len(targetGroups))
+		combinedResponse := *res.JSON200
 
 		for _, target := range targetGroups {
 			combinedResponse = append(combinedResponse, ahTypes.Provider{
@@ -97,15 +97,26 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 	}
 }
 
+// helper method to check if the
+func (a *API) isTargetGroup(ctx context.Context, targetGroupId string) bool {
+	q := storage.GetTargetGroup{ID: targetGroupId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		return false
+	}
+
+	if q.Result.ID != "" {
+		return true
+	}
+
+	return false
+}
+
 func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
 
 	q := storage.GetTargetGroup{ID: providerId}
-	_, err := a.DB.Query(ctx, &q)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
+	a.DB.Query(ctx, &q)
 
 	var isCommunityProvider bool
 	if q.Result.ID != "" {
@@ -174,19 +185,8 @@ func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request
 		Groups:  &ahTypes.Groups{AdditionalProperties: make(map[string][]ahTypes.GroupOption)},
 	}
 
-	q := storage.GetTargetGroup{ID: providerId}
-	_, err := a.DB.Query(ctx, &q)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	var isCommunityProvider bool
-	if q.Result.ID != "" {
-		isCommunityProvider = true
-	}
-
-	if isCommunityProvider {
+	var err error
+	if a.isTargetGroup(ctx, providerId) {
 		// argId is either an argument's Id or resource's Name
 		res.Options, err = a.fetchProviderResourcesByResourceType(ctx, providerId, argId)
 		if err != nil {
