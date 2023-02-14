@@ -105,8 +105,7 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 			Value: v.Value.(map[string]interface{}),
 		})
 	}
-
-	return types.TargetGroupDeployment{
+	res := types.TargetGroupDeployment{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
 		FunctionArn: r.FunctionARN,
@@ -118,9 +117,13 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		// 	Version:   r.Provider.Version,
 		// },
 		// ActiveConfig: targActiveConfig,
-		Diagnostics:           diagnostics,
-		TargetGroupAssignment: r.TargetGroupAssignment.ToAPI(),
+		Diagnostics: diagnostics,
 	}
+	if r.TargetGroupAssignment != nil {
+		res.TargetGroupAssignment = r.TargetGroupAssignment.ToAPI()
+	}
+
+	return res
 }
 
 func (r *TargetGroupAssignment) ToAPI() *types.TargetGroupAssignment {
