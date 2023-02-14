@@ -6854,6 +6854,7 @@ func (r CreateTargetGroupDeploymentResponse) StatusCode() int {
 type GetTargetGroupDeploymentResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *TargetGroupDeployment
 }
 
 // Status returns HTTPResponse.Status
@@ -9644,6 +9645,16 @@ func ParseGetTargetGroupDeploymentResponse(rsp *http.Response) (*GetTargetGroupD
 		HTTPResponse: rsp,
 	}
 
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TargetGroupDeployment
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
 	return response, nil
 }
 
@@ -12003,11 +12014,11 @@ var swaggerSpec = []string{
 	"WFUYusch6wKUto1iN+UJGaNKYeuK58PEyenPJXtiBuht7uzq+iGApuj2imLZQS7Wm9nCh1GcYKPQUjtF",
 	"TUCHxvbmwgJrdqE3aC12wTtiF92bwjfMzW2kYcqDQdEC04xL09zY7z1wPpkgbafjNEUxhgIlS1BHSHqD",
 	"mm+dP/zNcWlQRqz7oi1T6A4Te8o7uJdXNfOvjyJKpQwMNjLcXMyH+19eDAN4fYgirSodQTcF1U7SuLCn",
-	"+r6hlq2LCNIOx7rmpRu6QoPTPcaTdXgfzS/XG1PC+WpryNFAjRYs7R6og3z9Bol6mrWTGA/BgeB7+zj9",
-	"QzMv7vyltAajrSXDTuRBQEhuj96dnOqdnOW1nza2P1w+ItY/T2sdoof0RfrLtM4584/YN3euFGb3E0xu",
-	"2mljm6thKzj7rQRhF9ytJlqftbexz8hN6fZox+I6vlU3Pm1dsjCv0pY/HiV0OtX97eq7/71B4h3azLWW",
-	"iVkxxLtV+epA9dq8+1f5eWKlxliNBV7hZvAfMxqx4iJ0nyj49SHqgMMGpHYfKIpaQaEuAj1t3lXzZH8/",
-	"oRFMZpSLk1f9V/2OlAsGNNeT04F433V/03G13h+Kp+n+0/3/CwAA//8PcYQKzvIAAA==",
+	"+r6hlq2LCNIOx7rmpRu6QoPTPcaTdXgfzS/XG1PC+WpryNFAjRYs7R6og3z9Bol6mj2QQ6U1crVEeggO",
+	"B9/bx+8fmnl95y+xNRRrLXl2Im8CQnh79O5EauxEVqz9dLL94fURsf55XeuQPtLRbJ/T5h+xb+5cKczu",
+	"J5jctNP2NlfzVnD2WwnCLrhbTbQ+a29j/5Gb0u3UjsV1/KxurNq6JGJeBS5/nErodKr759V3F3yDxDu0",
+	"mesuE7NiCHmr8tiB6rh5d7Hy88dKjbQaa7zCjeE/ljRixUUAP1Fw7UPUGYcNSO0+UJS2gkJdBHravGvn",
+	"yf5+QiOYzCgXJ6/6r/odKRcMaK7npwPxvuv+puN2vT8UT9P9p/v/FwAA//8qMIK/LvMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

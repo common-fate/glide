@@ -17,6 +17,7 @@ var Command = cli.Command{
 		&RegisterCommand,
 		&ValidateCommand,
 		&ListCommand,
+		&DiagnosticCommand,
 	},
 }
 

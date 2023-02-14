@@ -1,4 +1,4 @@
-import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
+import { CloseIcon, CopyIcon, SmallAddIcon } from "@chakra-ui/icons";
 import {
   Button,
   ButtonGroup,
@@ -20,6 +20,7 @@ import {
   ModalOverlay,
   Stack,
   Text,
+  useClipboard,
   useDisclosure,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
@@ -55,6 +56,8 @@ const AdminProvidersTable = () => {
     hookProps: {},
   });
 
+  const clippy = useClipboard();
+
   const cols: Column<TargetGroupDeployment>[] = useMemo(
     () => [
       {
@@ -87,6 +90,45 @@ const AdminProvidersTable = () => {
             <Text as="span">{value ? "Healthy" : "Unhealthy"}</Text>
           </Flex>
         ),
+      },
+      {
+        accessor: "diagnostics",
+        Header: "Diagnostics",
+        Cell: ({ value }) => {
+          // Strip out the code from the diagnostics, it's currently an empty field
+          const strippedCode = JSON.stringify(
+            value.map((v) => {
+              delete v["code"];
+              return v;
+            })
+          );
+          return (
+            <Code
+              rounded="md"
+              fontSize="sm"
+              p={2}
+              noOfLines={3}
+              position="relative"
+            >
+              {strippedCode}
+              <IconButton
+                aria-label="Copy"
+                variant="ghost"
+                icon={<CopyIcon />}
+                size="xs"
+                position="absolute"
+                bottom={0}
+                right={0}
+                opacity={0.5}
+                onClick={() => {
+                  clippy.setValue(strippedCode);
+                  clippy.onCopy();
+                  console.log("copied", strippedCode);
+                }}
+              />
+            </Code>
+          );
+        },
       },
     ],
     []
