@@ -2,15 +2,22 @@ package pdk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/common-fate/common-fate/pkg/targetgroup"
-
-	"strings"
 )
 
 // uselocal enables development mode using alocal cli instead of calling out to deployed lambdas
 // set this to true to enable local handler
 var UseLocal bool
+
+// make of deploymentID to relative path
+// example: ../../testvault-provider/provider
+var LocalDeploymentMap map[string]string
+
+func init() {
+	LocalDeploymentMap = make(map[string]string)
+}
 
 type Data struct {
 	ID    string                 `mapstructure:"id"`
@@ -39,16 +46,18 @@ type ProviderRuntime interface {
 	Revoke(ctx context.Context, subject string, target Target) (err error)
 }
 
-func GetRuntime(ctx context.Context, arn string) (ProviderRuntime, error) {
+func GetRuntime(ctx context.Context, deployment targetgroup.Deployment) (ProviderRuntime, error) {
 	var pr ProviderRuntime
 	if UseLocal {
-		// bit of a hack to get the local path in here
-		path := strings.TrimPrefix(arn, "arn:aws:lambda")
+		path, ok := LocalDeploymentMap[deployment.ID]
+		if !ok {
+			return nil, fmt.Errorf("local runtime path not configured for deployment %s", deployment.ID)
+		}
 		pr = LocalRuntime{
 			Path: path,
 		}
 	} else {
-		p, err := NewLambdaRuntime(ctx, arn)
+		p, err := NewLambdaRuntime(ctx, deployment.FunctionARN)
 		if err != nil {
 			return nil, err
 		}

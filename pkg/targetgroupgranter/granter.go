@@ -88,7 +88,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	if err != nil {
 		return Output{}, err
 	}
-	runtime, err := pdk.GetRuntime(ctx, deployment.FunctionARN)
+	runtime, err := pdk.GetRuntime(ctx, *deployment)
 	if err != nil {
 		return Output{}, err
 	}

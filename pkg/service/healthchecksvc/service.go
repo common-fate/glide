@@ -38,7 +38,7 @@ func (s *Service) Check(ctx context.Context) error {
 		log.Infof("Running healthcheck for deployment: %s", deploymentItem.ID)
 
 		// get the lambda runtime
-		runtime, err := pdk.GetRuntime(ctx, deploymentItem.FunctionARN)
+		runtime, err := pdk.GetRuntime(ctx, deploymentItem)
 		if err != nil {
 			deploymentItem.Healthy = false
 			log.Warnf("Error getting lambda runtime: %s", deploymentItem.ID)
