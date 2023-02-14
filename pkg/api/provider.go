@@ -97,7 +97,7 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 	}
 }
 
-// helper method to check if the
+// helper method to check if the provided id is a valid target group.
 func (a *API) isTargetGroup(ctx context.Context, targetGroupId string) bool {
 	q := storage.GetTargetGroup{ID: targetGroupId}
 	_, err := a.DB.Query(ctx, &q)

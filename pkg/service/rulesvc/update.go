@@ -17,7 +17,7 @@ type UpdateOpts struct {
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
 	clk := s.Clock
-	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target)
+	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target, false)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,9 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
 )
 
@@ -89,7 +91,41 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 	}
 	return nil
 }
-func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
+func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget, isTargetGroup bool) (rule.Target, error) {
+
+	if isTargetGroup {
+		targetgroup := rule.Target{
+			ProviderID:               in.ProviderId,
+			ProviderType:             "targetgroup", // what should be the type here??
+			With:                     make(map[string]string),
+			WithSelectable:           make(map[string][]string),
+			WithArgumentGroupOptions: make(map[string]map[string][]string),
+		}
+
+		// TODO: Validate target group against cached resources
+
+		for argumentID, argument := range in.With.AdditionalProperties {
+			for groupId, groupValues := range argument.Groupings.AdditionalProperties {
+				if len(groupValues) > 0 {
+
+					argumentGroupOptions := targetgroup.WithArgumentGroupOptions[argumentID]
+					if argumentGroupOptions == nil {
+						argumentGroupOptions = make(map[string][]string)
+					}
+					argumentGroupOptions[groupId] = groupValues
+					targetgroup.WithArgumentGroupOptions[argumentID] = argumentGroupOptions
+				}
+			}
+			if len(argument.Values) == 1 {
+				targetgroup.With[argumentID] = argument.Values[0]
+			} else {
+				targetgroup.WithSelectable[argumentID] = argument.Values
+			}
+		}
+
+		return targetgroup, nil
+	}
+
 	// After verifying the provider, we can save the provider type to the rule for convenience
 	provider, err := s.getProviderByID(ctx, in.ProviderId)
 	if err != nil {
@@ -143,9 +179,20 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
 
-	target, err := s.ProcessTarget(ctx, in.Target)
-	if err != nil {
+	q := storage.GetTargetGroup{ID: in.Target.ProviderId}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
+	}
+
+	var target rule.Target
+	if q.Result.ID != "" {
+		target, err = s.ProcessTarget(ctx, in.Target, true)
+	} else {
+		target, err = s.ProcessTarget(ctx, in.Target, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// validate it is under 6 months
