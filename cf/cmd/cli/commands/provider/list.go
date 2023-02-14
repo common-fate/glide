@@ -47,7 +47,7 @@ var ListProvidersCommand = cli.Command{
 		for _, d := range res.JSON200.Providers {
 
 			table.Append([]string{
-				d.Name, d.Team, d.Version, d.LambdaAssetS3Arn,
+				d.Name, d.Publisher, d.Version, d.LambdaAssetS3Arn,
 			})
 		}
 		table.Render()
