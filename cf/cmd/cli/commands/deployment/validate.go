@@ -69,9 +69,9 @@ var ValidateCommand = cli.Command{
 		clio.Infof("provider: %s/%s@%s\n", desc.Provider.Publisher, desc.Provider.Name, desc.Provider.Version)
 
 		isHealthy := true
-		if len(desc.ConfigValidation) > 0 {
+		if len(desc.ConfigValidation.AdditionalProperties) > 0 {
 			clio.Infof("validating config...")
-			for k, v := range desc.ConfigValidation {
+			for k, v := range desc.ConfigValidation.AdditionalProperties {
 				if v.Success {
 					clio.Successf(" %s", k)
 				} else {

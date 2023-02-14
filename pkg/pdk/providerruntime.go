@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // make of deploymentID to relative path
@@ -37,7 +38,7 @@ type LoadResourceResponse struct {
 
 type ProviderRuntime interface {
 	FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error)
-	Describe(ctx context.Context) (describeResponse targetgroup.ProviderDescribe, err error)
+	Describe(ctx context.Context) (describeResponse *providerregistrysdk.DescribeResponse, err error)
 	Grant(ctx context.Context, subject string, target Target) (err error)
 	Revoke(ctx context.Context, subject string, target Target) (err error)
 }

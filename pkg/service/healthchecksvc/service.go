@@ -80,11 +80,11 @@ func (s *Service) Check(ctx context.Context) error {
 
 		// if there is an unhealthy config validation, then the deployment is unhealthy
 		healthy := true
-		for _, diagnostic := range describeRes.ConfigValidation {
+		for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
 			for _, d := range diagnostic.Logs {
 				deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
-					Level:   d.Level,
-					Message: d.Message,
+					Level:   string(d.Level),
+					Message: d.Msg,
 				})
 			}
 			if !diagnostic.Success {
@@ -92,8 +92,7 @@ func (s *Service) Check(ctx context.Context) error {
 			}
 		}
 
-		deploymentItem.AuditSchema = describeRes.Schema.Audit
-		deploymentItem.ActiveConfig = describeRes.Config
+		deploymentItem.ProviderDescription = describeRes
 		deploymentItem.Healthy = healthy
 
 		// @TODO validate target schema against targetgroup
