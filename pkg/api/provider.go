@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -28,7 +30,18 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
 			return
 		}
-		apio.JSON(ctx, w, res.JSON200, code)
+
+		targetGroups := a.FetchTargetGroups(ctx)
+
+		combinedResponse := make([]ahTypes.Provider, 0, len(targetGroups))
+
+		for _, target := range targetGroups {
+			combinedResponse = append(combinedResponse, ahTypes.Provider{
+				Id:   target.Id,
+				Type: target.Icon,
+			})
+		}
+		apio.JSON(ctx, w, combinedResponse, code)
 		return
 	case 500:
 		apio.JSON(ctx, w, res.JSON500, code)
@@ -42,6 +55,23 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
+
+	q := storage.GetTargetGroup{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	// TODO: Maybe need to gracefully handle for v1 providers.
+	if err != nil {
+		apio.Error(ctx, w, errors.New("unable to find targetgroup"))
+	}
+
+	if q.Result.ID != "" {
+		apio.JSON(ctx, w,
+			&ahTypes.Provider{
+				Id:   q.Result.ID,
+				Type: q.Result.Icon,
+			}, http.StatusOK)
+		return
+	}
+
 	res, err := a.AccessHandlerClient.GetProviderWithResponse(ctx, providerId)
 	if err != nil {
 		apio.Error(ctx, w, err)
@@ -69,6 +99,24 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 
 func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
 	ctx := r.Context()
+
+	q := storage.GetTargetGroup{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	var isCommunityProvider bool
+	if q.Result.ID != "" {
+		isCommunityProvider = true
+	}
+
+	if isCommunityProvider {
+		apio.JSON(ctx, w, q.Result.TargetSchema.Schema, http.StatusCreated)
+		return
+	}
+
 	res, err := a.AccessHandlerClient.GetProviderArgsWithResponse(ctx, providerId)
 	if err != nil {
 		apio.Error(ctx, w, err)
@@ -94,6 +142,28 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	}
 }
 
+func (a *API) fetchProviderResourcesByResourceType(ctx context.Context, providerId string, resourceType string) ([]ahTypes.Option, error) {
+	cachedResources := storage.ListCachedTargetGroupResource{
+		TargetGroupID: providerId,
+		ResourceType:  resourceType,
+	}
+
+	_, err := a.DB.Query(ctx, &cachedResources)
+	if err != nil && err != ddb.ErrNoItems {
+		return []ahTypes.Option{}, err
+	}
+
+	var opts []ahTypes.Option
+	for _, k := range cachedResources.Result {
+		opts = append(opts, ahTypes.Option{
+			Label: k.Resource.Name,
+			Value: k.Resource.ID,
+		})
+	}
+
+	return opts, nil
+}
+
 // List provider arg options
 // (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
 func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.AdminListProviderArgOptionsParams) {
@@ -103,9 +173,33 @@ func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request
 		Options: []ahTypes.Option{},
 		Groups:  &ahTypes.Groups{AdditionalProperties: make(map[string][]ahTypes.GroupOption)},
 	}
+
+	q := storage.GetTargetGroup{ID: providerId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	var isCommunityProvider bool
+	if q.Result.ID != "" {
+		isCommunityProvider = true
+	}
+
+	if isCommunityProvider {
+		// argId is either an argument's Id or resource's Name
+		res.Options, err = a.fetchProviderResourcesByResourceType(ctx, providerId, argId)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+		apio.JSON(ctx, w, res, http.StatusOK)
+		return
+	}
+
 	var options []cache.ProviderOption
 	var groups []cache.ProviderArgGroupOption
-	var err error
 	if params.Refresh != nil && *params.Refresh {
 		_, options, groups, err = a.Cache.RefreshCachedProviderArgOptions(ctx, providerId, argId)
 	} else {

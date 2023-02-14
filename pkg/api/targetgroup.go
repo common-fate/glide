@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -9,6 +10,25 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
+
+func (a *API) FetchTargetGroups(ctx context.Context) []types.TargetGroup {
+
+	q := storage.ListTargetGroups{}
+
+	_, err := a.DB.Query(ctx, &q)
+
+	var targetGroups []types.TargetGroup
+	// don't return an error response when there are not rules
+	if err != nil && err != ddb.ErrNoItems {
+		return nil
+	}
+
+	for _, tg := range q.Result {
+		targetGroups = append(targetGroups, tg.ToAPI())
+	}
+
+	return targetGroups
+}
 
 // Your GET endpoint
 // (GET /api/v1/target-groups)
