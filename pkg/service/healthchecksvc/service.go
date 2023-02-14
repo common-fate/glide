@@ -37,6 +37,12 @@ func (s *Service) Check(ctx context.Context) error {
 		// update the healthiness of the deployment
 		log.Infof("Running healthcheck for deployment: %s", deploymentItem.ID)
 
+		// clear previous diagnostics
+		deploymentItem.Diagnostics = []targetgroup.Diagnostic{}
+		if deploymentItem.TargetGroupAssignment != nil {
+			deploymentItem.TargetGroupAssignment.Diagnostics = []targetgroup.Diagnostic{}
+		}
+
 		// get the lambda runtime
 		runtime, err := pdk.GetRuntime(ctx, deploymentItem)
 		if err != nil {
@@ -46,6 +52,7 @@ func (s *Service) Check(ctx context.Context) error {
 				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
 				Message: err.Error(),
 			})
+			upsertItems = append(upsertItems, &deploymentItem)
 			continue
 		}
 		// now we can call the describe endpoint
@@ -57,6 +64,7 @@ func (s *Service) Check(ctx context.Context) error {
 				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
 				Message: err.Error(),
 			})
+			upsertItems = append(upsertItems, &deploymentItem)
 			continue
 		}
 
@@ -72,11 +80,11 @@ func (s *Service) Check(ctx context.Context) error {
 
 		// if there is an unhealthy config validation, then the deployment is unhealthy
 		healthy := true
-		for _, diagnostic := range describeRes.ConfigValidation {
+		for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
 			for _, d := range diagnostic.Logs {
 				deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
-					Level:   d.Level,
-					Message: d.Message,
+					Level:   string(d.Level),
+					Message: d.Msg,
 				})
 			}
 			if !diagnostic.Success {
@@ -84,8 +92,17 @@ func (s *Service) Check(ctx context.Context) error {
 			}
 		}
 
-		// update the deployment
+		deploymentItem.ProviderDescription = describeRes
 		deploymentItem.Healthy = healthy
+
+		// @TODO validate target schema against targetgroup
+		if deploymentItem.TargetGroupAssignment != nil {
+			// This needs to be replaced with an actual check
+			deploymentItem.TargetGroupAssignment.Valid = true
+		}
+
+		// update the deployment
+
 		upsertItems = append(upsertItems, &deploymentItem)
 	}
 

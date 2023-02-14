@@ -47,7 +47,13 @@ export class CacheSync extends Construct {
 
     // allow the Event Rule to invoke the Lambda function
     targets.addLambdaPermission(this.eventRule, this._lambda);
-
+    // Grant the Common Fate app access to invoke the access handler api
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
+        actions: ["execute-api:Invoke"],
+      })
+    );
     // allows to invoke the function from any account if they have the correct tag
     grantInvokeCommunityProviders(this._lambda);
   }

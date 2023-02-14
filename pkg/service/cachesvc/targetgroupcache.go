@@ -2,6 +2,7 @@ package cachesvc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/pdk"
@@ -81,7 +82,10 @@ func (s *Service) fetchResources(ctx context.Context, tg targetgroup.TargetGroup
 		return nil, err
 	}
 
-	for k := range deployment.AuditSchema.ResourceLoaders.AdditionalProperties {
+	if deployment.ProviderDescription == nil {
+		return nil, errors.New("expected ProviderDescription to not be nil")
+	}
+	for k := range deployment.ProviderDescription.Schema.Audit.ResourceLoaders.AdditionalProperties {
 		tasks = append(tasks, k)
 	}
 

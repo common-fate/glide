@@ -1,8 +1,13 @@
-package healthcheckcli
+package healthcheck
 
 import (
+	"errors"
+	"net/http"
+	"strings"
+
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/deploy"
+	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -16,6 +21,7 @@ var Command = cli.Command{
 	Name:        "healthcheck",
 	Description: "healthcheck a deployment",
 	Usage:       "healthcheck a deployment",
+	Flags:       []cli.Flag{&cli.StringSliceFlag{Name: "deployment-mappings"}},
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
 		ctx := c.Context
@@ -31,6 +37,13 @@ var Command = cli.Command{
 		db, err := ddb.New(ctx, o.DynamoDBTable)
 		if err != nil {
 			return err
+		}
+		for _, dm := range c.StringSlice("deployment-mappings") {
+			kv := strings.Split(dm, ":")
+			if len(kv) != 2 {
+				return errors.New("deployment-mapping is invalid")
+			}
+			pdk.LocalDeploymentMap[kv[0]] = kv[1]
 		}
 
 		hc := healthchecksvc.Service{
@@ -57,6 +70,11 @@ var Command = cli.Command{
 
 		healthyCount := 0
 		unhealthyCount := 0
+
+		if listRes.StatusCode() != http.StatusOK {
+			clio.Error(err)
+			return errors.New("failed to list deployments from API")
+		}
 
 		for _, deployment := range listRes.JSON200.Res {
 			if deployment.Healthy {
