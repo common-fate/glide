@@ -29,10 +29,12 @@ var DiagnosticCommand = cli.Command{
 
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
 		if err != nil {
+			clio.Error("Failed to create client: ", err.Error())
 			return err
 		}
 		res, err := cfApi.GetTargetGroupDeploymentWithResponse(ctx, ID)
 		if err != nil {
+			clio.Error("Failed to get deployment: ", err.Error())
 			return err
 		}
 
