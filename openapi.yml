@@ -1143,6 +1143,10 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetGroupDeployment"
         "500":
           description: Internal Server Error
       operationId: get-target-group-deployment
