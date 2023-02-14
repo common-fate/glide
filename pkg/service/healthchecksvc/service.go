@@ -37,6 +37,12 @@ func (s *Service) Check(ctx context.Context) error {
 		// update the healthiness of the deployment
 		log.Infof("Running healthcheck for deployment: %s", deploymentItem.ID)
 
+		// clear previous diagnostics
+		deploymentItem.Diagnostics = []targetgroup.Diagnostic{}
+		if deploymentItem.TargetGroupAssignment != nil {
+			deploymentItem.TargetGroupAssignment.Diagnostics = []targetgroup.Diagnostic{}
+		}
+
 		// get the lambda runtime
 		runtime, err := pdk.GetRuntime(ctx, deploymentItem)
 		if err != nil {

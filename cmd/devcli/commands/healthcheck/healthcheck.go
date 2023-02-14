@@ -46,8 +46,6 @@ var Command = cli.Command{
 			pdk.LocalDeploymentMap[kv[0]] = kv[1]
 		}
 
-		// this configuration means the pdk will use the local test runtime instead of calling out to lambda
-		pdk.UseLocal = true
 		hc := healthchecksvc.Service{
 			DB: db,
 		}

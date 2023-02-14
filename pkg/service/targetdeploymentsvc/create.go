@@ -30,12 +30,11 @@ func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.Cre
 
 	// create deployment
 	dbInput := targetgroup.Deployment{
-		ID:          req.Id,
-		FunctionARN: req.FunctionArn,
-		Runtime:     req.Runtime,
-		AWSAccount:  req.AwsAccount,
-		AWSRegion:   req.AwsRegion,
-		Healthy:     false,
+		ID:         req.Id,
+		Runtime:    req.Runtime,
+		AWSAccount: req.AwsAccount,
+		AWSRegion:  req.AwsRegion,
+		Healthy:    false,
 		Diagnostics: []targetgroup.Diagnostic{
 			{
 				Level:   string(types.ProviderSetupDiagnosticLogLevelINFO),

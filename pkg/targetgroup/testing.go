@@ -25,7 +25,6 @@ func TestTargetGroupDeployment(id string, opt ...func(*Deployment)) Deployment {
 
 	ar := Deployment{
 		ID:                    id,
-		FunctionARN:           "arn:aws:lambda:us-east-1:123456789012:function:my-function",
 		Runtime:               "aws-lambda",
 		AWSAccount:            "123456789012",
 		Healthy:               false,

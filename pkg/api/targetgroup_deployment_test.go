@@ -35,7 +35,6 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 			wantBody: `{"id":"123456789012","functionArn":"string","runtime":"string","awsAccount":"string","healthy":false,"diagnostics":[],"activeConfig":{},"provider":{"publisher":"","name":"","version":""},"AuditSchema":{"resourceLoaders":{}}}`,
 			withCreatedDep: &targetgroup.Deployment{
 				ID:           "123456789012",
-				FunctionARN:  "string",
 				Runtime:      "string",
 				AWSAccount:   "string",
 				Healthy:      false,
@@ -113,7 +112,6 @@ func TestListTargetGroupDeployments(t *testing.T) {
 			targetGroupDeployments: []targetgroup.Deployment{
 				{
 					ID:           "dep1",
-					FunctionARN:  "string",
 					Runtime:      "string",
 					AWSAccount:   "string",
 					Healthy:      false,
@@ -123,7 +121,6 @@ func TestListTargetGroupDeployments(t *testing.T) {
 				},
 				{
 					ID:           "dep2",
-					FunctionARN:  "string",
 					Runtime:      "string",
 					AWSAccount:   "string",
 					Healthy:      true,

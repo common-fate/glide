@@ -1,6 +1,8 @@
 package targetgroup
 
 import (
+	"fmt"
+
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -10,7 +12,6 @@ import (
 // represents a lambda TargetGroupDeployment
 type Deployment struct {
 	ID                    string                          `json:"id" dynamodbav:"id"`
-	FunctionARN           string                          `json:"functionArn" dynamodbav:"functionArn"`
 	Runtime               string                          `json:"runtime" dynamodbav:"runtime"`
 	AWSAccount            string                          `json:"awsAccount" dynamodbav:"awsAccount"`
 	Healthy               bool                            `json:"healthy" dynamodbav:"healthy"`
@@ -20,6 +21,10 @@ type Deployment struct {
 	AuditSchema           providerregistrysdk.AuditSchema `json:"auditSchema" dynamodbav:"auditSchema"`
 	AWSRegion             string                          `json:"awsRegion" dynamodbav:"awsRegion"`
 	TargetGroupAssignment *TargetGroupAssignment          `json:"targetGroupAssignment,omitempty" dynamodbav:"targetGroupAssignment,omitempty"`
+}
+
+func (d *Deployment) FunctionARN() string {
+	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", d.AWSRegion, d.AWSAccount, d.ID)
 }
 
 // TargetGroupAssignments holds information about the deployment and its link to the target group
@@ -108,7 +113,7 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 	return types.TargetGroupDeployment{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
-		FunctionArn: r.FunctionARN,
+		FunctionArn: r.FunctionARN(),
 		Healthy:     r.Healthy,
 		AwsRegion:   r.AWSRegion,
 		// Provider: types.TargetGroupDeploymentProvider{
