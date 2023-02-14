@@ -16,6 +16,7 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&RegisterCommand,
 		&ValidateCommand,
+		&ListCommand,
 	},
 }
 

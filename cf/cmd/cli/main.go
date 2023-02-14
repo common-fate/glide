@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/bootstrap"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/deployment"
+	"github.com/common-fate/common-fate/cf/cmd/cli/commands/healthcheckcli"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/provider"
 	"github.com/common-fate/common-fate/cf/cmd/cli/commands/targetgroup"
 	mw "github.com/common-fate/common-fate/cf/cmd/cli/middleware"
@@ -39,6 +40,7 @@ func main() {
 			mw.WithBeforeFuncs(&provider.Command, mw.RequireAWSCredentials()),
 			&targetgroup.Command,
 			&deployment.Command,
+			&healthcheckcli.Command,
 		},
 	}
 

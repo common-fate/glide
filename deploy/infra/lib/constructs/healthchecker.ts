@@ -5,6 +5,8 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { grantInvokeCommunityProviders } from "../helpers/permissions";
 
 interface Props {
   dynamoTable: Table;
@@ -43,13 +45,8 @@ export class HealthChecker extends Construct {
     // allow the Event Rule to invoke the Lambda function
     targets.addLambdaPermission(this.eventRule, this._lambda);
 
-    // Grant the Common Fate app access to invoke the provider APIs
-    // this._lambda.addToRolePolicy(
-    //   new PolicyStatement({
-    //     resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
-    //     actions: ["execute-api:Invoke"],
-    //   })
-    // );
+    // allows to invoke the function from any account if they have the correct tag
+    grantInvokeCommunityProviders(this._lambda);
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;

@@ -31,6 +31,7 @@ type Diagnostic struct {
 	Level   string `json:"level" dynamodbav:"level"`
 	Code    string `json:"code" dynamodbav:"code"`
 	Message string `json:"message" dynamodbav:"message"`
+	// @TODO: could add an optional group id here (activeConfig key) to indicate which group is causing the issue
 }
 
 func (r *TargetGroup) DDBKeys() (ddb.Keys, error) {
