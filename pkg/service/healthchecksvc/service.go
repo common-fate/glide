@@ -52,6 +52,7 @@ func (s *Service) Check(ctx context.Context) error {
 				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
 				Message: err.Error(),
 			})
+			upsertItems = append(upsertItems, &deploymentItem)
 			continue
 		}
 		// now we can call the describe endpoint
@@ -63,6 +64,7 @@ func (s *Service) Check(ctx context.Context) error {
 				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
 				Message: err.Error(),
 			})
+			upsertItems = append(upsertItems, &deploymentItem)
 			continue
 		}
 
