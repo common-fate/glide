@@ -85,7 +85,7 @@ func (s *Service) fetchResources(ctx context.Context, tg targetgroup.TargetGroup
 		tasks = append(tasks, k)
 	}
 
-	runtime, err := pdk.GetRuntime(ctx, deployment.FunctionARN)
+	runtime, err := pdk.GetRuntime(ctx, *deployment)
 	if err != nil {
 		return nil, err
 	}
