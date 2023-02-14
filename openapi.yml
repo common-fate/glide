@@ -1143,6 +1143,10 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetGroupDeployment"
         "500":
           description: Internal Server Error
       operationId: get-target-group-deployment
@@ -2255,20 +2259,15 @@ components:
             $ref: "#/components/schemas/TargetGroupDiagnostic"
         activeConfig:
           $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
-        # provider:
-        #   $ref: "#/components/schemas/TargetGroupDeploymentProvider"
-        # targetGroupAssignment:
-        #   $ref: "#/components/schemas/TargetGroupAssignment"
+        targetGroupAssignment:
+          $ref: "#/components/schemas/TargetGroupAssignment"
       required:
         - id
         - functionArn
         - awsAccount
+        - awsRegion
         - healthy
         - diagnostics
-        - targetGroupAssignment
-        - awsRegion
-        # - activeConfig
-        # - provider
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2297,7 +2296,7 @@ components:
       x-stoplight:
         id: 44a09f993c68a
       properties:
-        Id:
+        TargetGroupId:
           type: string
         Priority:
           type: integer
@@ -2308,11 +2307,10 @@ components:
           items:
             type: object
       required:
-        - Id
+        - TargetGroupId
         - Priority
         - Valid
         - Diagnostics
-      title: ""
     TargetGroupTargetSchema:
       title: TargetSchema
       x-stoplight:

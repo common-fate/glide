@@ -15,6 +15,7 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&CreateCommand,
 		&LinkCommand,
+		&ListCommand,
 	},
 }
 

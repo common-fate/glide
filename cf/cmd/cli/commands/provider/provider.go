@@ -24,6 +24,7 @@ var Command = cli.Command{
 	Usage:       "manage provider",
 	Subcommands: []*cli.Command{
 		&BootstrapCommand,
+		&ListProvidersCommand,
 	},
 }
 
