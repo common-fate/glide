@@ -9,6 +9,8 @@ import (
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
+
+	"github.com/common-fate/common-fate/cmd/devcli/commands/healthcheck"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -26,6 +28,7 @@ func main() {
 			&events.EventsCommand,
 			&slack.SlackCommand,
 			&cache.CacheCommand,
+			&healthcheck.Command,
 		},
 	}
 

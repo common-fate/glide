@@ -15,7 +15,7 @@ type Deployment struct {
 	AWSAccount            string                          `json:"awsAccount" dynamodbav:"awsAccount"`
 	Healthy               bool                            `json:"healthy" dynamodbav:"healthy"`
 	Diagnostics           []Diagnostic                    `json:"diagnostics" dynamodbav:"diagnostics"`
-	ActiveConfig          map[string]Config               `json:"activeConfig" dynamodbav:"activeConfig"`
+	ActiveConfig          map[string]string               `json:"activeConfig" dynamodbav:"activeConfig"`
 	Provider              Provider                        `json:"provider" dynamodbav:"provider"`
 	AuditSchema           providerregistrysdk.AuditSchema `json:"auditSchema" dynamodbav:"auditSchema"`
 	AWSRegion             string                          `json:"awsRegion" dynamodbav:"awsRegion"`
@@ -62,13 +62,12 @@ type ConfigValidation struct {
 
 type ProviderDescribe struct {
 	Provider         Provider                    `json:"provider"`
-	Config           map[string]Config           `json:"config"`
+	Config           map[string]string           `json:"config"`
 	ConfigValidation map[string]ConfigValidation `json:"configValidation"`
 	Schema           struct {
-		Target           providerregistrysdk.TargetSchema   `json:"target"`
-		Audit            providerregistrysdk.AuditSchema    `json:"audit"`
-		ResourcesLoaders providerregistrysdk.ResourceLoader `json:"resourceLoaders"`
-		Resource         interface{}                        `json:"resource"`
+		Target    providerregistrysdk.TargetSchema `json:"target"`
+		Audit     providerregistrysdk.AuditSchema  `json:"audit"`
+		Resources interface{}                      `json:"resources"`
 	} `json:"schema"`
 }
 
@@ -97,14 +96,14 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		}
 	}
 
-	targActiveConfig := types.TargetGroupDeploymentActiveConfig{}
+	// targActiveConfig := types.TargetGroupDeploymentActiveConfig{}
 
-	for k, v := range r.ActiveConfig {
-		targActiveConfig.Set(k, types.TargetGroupDeploymentConfig{
-			Type:  v.Type,
-			Value: v.Value.(map[string]interface{}),
-		})
-	}
+	// for k, v := range r.ActiveConfig {
+	// 	targActiveConfig.Set(k, types.TargetGroupDeploymentConfig{
+	// 		Type:  v.Type,
+	// 		Value: v.Value.(map[string]interface{}),
+	// 	})
+	// }
 
 	return types.TargetGroupDeployment{
 		Id:          r.ID,

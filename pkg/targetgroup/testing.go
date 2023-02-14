@@ -30,7 +30,7 @@ func TestTargetGroupDeployment(id string, opt ...func(*Deployment)) Deployment {
 		AWSAccount:            "123456789012",
 		Healthy:               false,
 		Diagnostics:           []Diagnostic{},
-		ActiveConfig:          map[string]Config{},
+		ActiveConfig:          map[string]string{},
 		Provider:              Provider{},
 		TargetGroupAssignment: &TargetGroupAssignment{TargetGroupID: "abc"},
 	}

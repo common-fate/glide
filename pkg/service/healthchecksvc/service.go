@@ -84,8 +84,18 @@ func (s *Service) Check(ctx context.Context) error {
 			}
 		}
 
-		// update the deployment
+		deploymentItem.AuditSchema = describeRes.Schema.Audit
+		deploymentItem.ActiveConfig = describeRes.Config
 		deploymentItem.Healthy = healthy
+
+		// @TODO validate target schema against targetgroup
+		if deploymentItem.TargetGroupAssignment != nil {
+			// This needs to be replaced with an actual check
+			deploymentItem.TargetGroupAssignment.Valid = true
+		}
+
+		// update the deployment
+
 		upsertItems = append(upsertItems, &deploymentItem)
 	}
 
