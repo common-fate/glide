@@ -50,11 +50,9 @@ type TargetGroupAssignment struct {
 	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
 }
 
-type Config struct {
-	Type  string      `json:"type" dynamodbav:"type"`
-	Value interface{} `json:"value" dynamodbav:"value"`
+type ConfigType struct {
+	Type string `json:"type" dynamodbav:"type"`
 }
-
 type Provider struct {
 	Publisher string `json:"publisher" dynamodbav:"publisher"`
 	Name      string `json:"name" dynamodbav:"name"`
@@ -73,6 +71,7 @@ type ProviderDescribe struct {
 		Target    providerregistrysdk.TargetSchema `json:"target"`
 		Audit     providerregistrysdk.AuditSchema  `json:"audit"`
 		Resources interface{}                      `json:"resources"`
+		Config    map[string]ConfigType
 	} `json:"schema"`
 }
 

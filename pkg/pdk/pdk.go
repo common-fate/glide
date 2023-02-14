@@ -8,7 +8,6 @@ const (
 	payloadTypeGrant         payloadType = "grant"
 	payloadTypeRevoke        payloadType = "revoke"
 	payloadTypeDescribe      payloadType = "describe"
-	payloadTypeSchema        payloadType = "schema"
 	payloadTypeLoadResources payloadType = "loadResources"
 )
 
