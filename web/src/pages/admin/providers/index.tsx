@@ -33,7 +33,13 @@ import {
   useAdminListProvidersetups,
   adminDeleteProvidersetup,
 } from "../../../utils/backend-client/admin/admin";
-import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
+import { ProvidersV2Tabs } from "../providersv2";
+import {
+  Provider,
+  ProviderSetup,
+  TargetGroup,
+} from "../../../utils/backend-client/types";
+import { useListTargetGroups } from "../../../utils/backend-client/target-groups/target-groups";
 
 const AdminProvidersTable = () => {
   const { data } = useAdminListProviders();
@@ -94,7 +100,22 @@ const Providers = () => {
         >
           New Access Provider
         </Button>
+        <Flex justify="space-between" align="center">
+          <ProvidersV2Tabs />
+          <Button
+            my={5}
+            size="sm"
+            variant="ghost"
+            leftIcon={<SmallAddIcon />}
+            as={Link}
+            to="/admin/providers/setup"
+            id="new-provider-button"
+          >
+            New Access Provider
+          </Button>
+        </Flex>
         <AdminProvidersTable />
+
         <HStack mt={2} spacing={1} w="100%" justify={"center"}>
           <Text textStyle={"Body/ExtraSmall"}>
             View the full configuration of each access provider in your{" "}

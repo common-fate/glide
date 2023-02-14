@@ -8,7 +8,7 @@
 import type { TargetGroupAssignmentDiagnosticsItem } from './targetGroupAssignmentDiagnosticsItem';
 
 export interface TargetGroupAssignment {
-  Id: string;
+  TargetGroupId: string;
   Priority: number;
   Valid: boolean;
   Diagnostics: TargetGroupAssignmentDiagnosticsItem[];

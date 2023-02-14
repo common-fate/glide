@@ -118,12 +118,15 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		// 	Version:   r.Provider.Version,
 		// },
 		// ActiveConfig: targActiveConfig,
-		Diagnostics: diagnostics,
+		Diagnostics:           diagnostics,
+		TargetGroupAssignment: r.TargetGroupAssignment.ToAPI(),
 	}
 }
 
-func (r *TargetGroupAssignment) ToAPI() types.TargetGroupAssignment {
-	return types.TargetGroupAssignment{
-		Id: r.TargetGroupID,
+func (r *TargetGroupAssignment) ToAPI() *types.TargetGroupAssignment {
+	return &types.TargetGroupAssignment{
+		TargetGroupId: r.TargetGroupID,
+		Priority:      r.Priority,
+		Valid:         r.Valid,
 	}
 }
