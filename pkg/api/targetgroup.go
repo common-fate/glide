@@ -18,8 +18,8 @@ func (a *API) FetchTargetGroups(ctx context.Context) []types.TargetGroup {
 	_, err := a.DB.Query(ctx, &q)
 
 	var targetGroups []types.TargetGroup
-	// don't return an error response when there are not rules
-	if err != nil && err != ddb.ErrNoItems {
+	// return empty slice if error
+	if err != nil {
 		return nil
 	}
 
