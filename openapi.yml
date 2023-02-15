@@ -1531,6 +1531,8 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
+        targetGroup:
+          $ref: "#/components/schemas/TargetGroup"
       required:
         - provider
         - with

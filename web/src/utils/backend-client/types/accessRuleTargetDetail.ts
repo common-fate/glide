@@ -7,6 +7,7 @@
  */
 import type { Provider } from './provider';
 import type { AccessRuleTargetDetailWith } from './accessRuleTargetDetailWith';
+import type { TargetGroup } from './targetGroup';
 
 /**
  * A detailed target for an access rule
@@ -14,4 +15,5 @@ import type { AccessRuleTargetDetailWith } from './accessRuleTargetDetailWith';
 export interface AccessRuleTargetDetail {
   provider: Provider;
   with: AccessRuleTargetDetailWith;
+  targetGroup?: TargetGroup;
 }

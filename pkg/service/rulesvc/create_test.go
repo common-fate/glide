@@ -356,7 +356,7 @@ func TestProcessTarget(t *testing.T) {
 				AHClient: m,
 				Cache:    cm,
 			}
-			got, err := s.ProcessTarget(context.Background(), tc.give)
+			got, err := s.ProcessTarget(context.Background(), tc.give, false)
 			if tc.wantErr == nil {
 				assert.NoError(t, err)
 			} else {
