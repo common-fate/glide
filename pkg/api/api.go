@@ -132,6 +132,7 @@ type InternalIdentityService interface {
 type TargetGroupService interface {
 	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
 	CreateTargetGroupLink(ctx context.Context, req types.CreateTargetGroupLink, targetGroupId string) (*targetgroup.TargetGroup, error)
+	RemoveTargetGroupLink(ctx context.Context, req types.CreateTargetGroupLink, targetGroupId string) error
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_deployment_service.go -package=mocks . TargetGroupDeploymentService
