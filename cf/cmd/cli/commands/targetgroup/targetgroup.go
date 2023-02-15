@@ -65,6 +65,7 @@ var LinkCommand = cli.Command{
 		&cli.StringFlag{Name: "group", Required: true},
 		&cli.StringFlag{Name: "deployment", Required: true},
 		&cli.IntFlag{Name: "priority", Value: 100},
+		&cli.IntFlag{Name: "force"},
 	},
 	Action: func(c *cli.Context) error {
 

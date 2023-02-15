@@ -31,7 +31,11 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		targetGroups := a.FetchTargetGroups(ctx)
+		targetGroups, err := a.TargetGroupService.ListTargetGroups(ctx)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
 
 		combinedResponse := *res.JSON200
 
