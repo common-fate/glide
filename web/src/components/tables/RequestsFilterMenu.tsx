@@ -37,6 +37,18 @@ export const RequestsFilterMenu: React.FC<{
           defaultValue="all"
           title="View option"
           type="radio"
+          value={
+            // map the status input to a value so that the MenuList hydrates the current state
+            status === "PENDING"
+              ? "pend"
+              : status === "DECLINED"
+              ? "den"
+              : status === "APPROVED"
+              ? "apr"
+              : status === "CANCELLED"
+              ? "can"
+              : "all"
+          }
           onChange={(e) => {
             switch (e) {
               case "pend":
