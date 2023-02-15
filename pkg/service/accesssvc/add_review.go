@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
 	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
 	"github.com/common-fate/common-fate/pkg/types"
 )
@@ -67,15 +68,22 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		if overlaps {
 			return nil, ErrRequestOverlapsExistingGrant
 		}
-
-		// if the request is approved, attempt to create the grant.
-		updatedRequest, err := s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: request, AccessRule: opts.AccessRule})
-		if err != nil {
-			return nil, err
+		isTargetGroupRule := opts.AccessRule.Target.TargetGroupID != ""
+		var updatedReq *access.Request
+		if isTargetGroupRule {
+			updatedReq, err = s.GranterV2.CreateGrant(ctx, grantsvcv2.CreateGrantOpts{Request: request, AccessRule: opts.AccessRule})
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			updatedReq, err = s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: request, AccessRule: opts.AccessRule})
+			if err != nil {
+				return nil, err
+			}
 		}
 		reviewed := types.REVIEWED
 		request.ApprovalMethod = &reviewed
-		request = *updatedRequest
+		request = *updatedReq
 
 	case access.DecisionDECLINED:
 		request.Status = access.DECLINED

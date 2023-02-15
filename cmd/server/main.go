@@ -139,6 +139,7 @@ func run() error {
 		DeploymentConfig:       dc,
 		TemplateData:           td,
 		ProviderRegistryClient: registryClient,
+		StateMachineARN:        cfg.StateMachineARN,
 	})
 	if err != nil {
 		return err

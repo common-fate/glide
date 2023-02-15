@@ -26,6 +26,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
@@ -157,6 +158,7 @@ type Opts struct {
 	CognitoUserPoolID      string
 	IDPType                string
 	AdminGroupID           string
+	StateMachineARN        string
 }
 
 // New creates a new API.
@@ -189,6 +191,13 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Clock:            clk,
 		EventBus:         opts.EventSender,
 		DeploymentConfig: opts.DeploymentConfig,
+	})
+
+	grantsvcv2.New(ctx, grantsvcv2.GranterOpts{
+		DB:              db,
+		Clock:           clk,
+		EventBus:        opts.EventSender,
+		StateMachineARN: opts.StateMachineARN,
 	})
 
 	a := API{
