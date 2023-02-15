@@ -14,7 +14,9 @@ import (
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -99,14 +101,13 @@ func TestCreateAccessRule(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			dbc := ddbmock.Client{
-				PutErr: tc.wantErr,
-			}
-
+			dbc := ddbmock.New(t)
 			clk := clock.NewMock()
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()
+
+			dbc.MockQueryWithErr(&storage.GetTargetGroup{ID: in.Target.ProviderId}, ddb.ErrNoItems)
 
 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
 			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&ahTypes.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &tc.withProviderResponse}, nil)
@@ -117,7 +118,7 @@ func TestCreateAccessRule(t *testing.T) {
 
 			s := Service{
 				Clock:    clk,
-				DB:       &dbc,
+				DB:       dbc,
 				AHClient: m,
 				Cache:    cm,
 			}
