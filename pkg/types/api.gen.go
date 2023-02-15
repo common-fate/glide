@@ -197,8 +197,9 @@ type AccessRuleTarget struct {
 // A detailed target for an access rule
 type AccessRuleTargetDetail struct {
 	// Provider
-	Provider Provider                    `json:"provider"`
-	With     AccessRuleTargetDetail_With `json:"with"`
+	Provider    Provider                    `json:"provider"`
+	TargetGroup *TargetGroup                `json:"targetGroup,omitempty"`
+	With        AccessRuleTargetDetail_With `json:"with"`
 }
 
 // AccessRuleTargetDetail_With defines model for AccessRuleTargetDetail.With.

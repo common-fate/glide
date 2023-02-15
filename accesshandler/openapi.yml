@@ -528,6 +528,8 @@ components:
           type: string
         title:
           type: string
+        resourceName:
+          type: string
         description:
           type: string
         ruleFormElement:
