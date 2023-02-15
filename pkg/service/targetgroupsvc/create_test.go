@@ -30,7 +30,7 @@ func TestCreateTargetGroup(t *testing.T) {
 
 	mockTargetGroup := targetgroup.TargetGroup{
 		ID:           "test",
-		TargetSchema: targetgroup.GroupTargetSchema{From: "commonfate/test/v1.0.1", Schema: providerregistrysdk.TargetSchema{}},
+		TargetSchema: targetgroup.GroupTargetSchema{From: "commonfate/test/v1.0.1", Schema: providerregistrysdk.TargetMode_Schema{}},
 	}
 
 	testcases := []testcase{

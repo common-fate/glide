@@ -24,7 +24,7 @@ type GroupTargetSchema struct {
 	// Reference to the provider and mode from the registry "commonfate/okta@v1.0.0/Group"
 	From string `json:"from" dynamodbav:"from"`
 	// Schema is denomalised and saved here for efficiency
-	Schema providerregistrysdk.TargetSchema `json:"schema" dynamodbav:"schema"`
+	Schema providerregistrysdk.TargetMode_Schema `json:"schema" dynamodbav:"schema"`
 }
 
 type Diagnostic struct {
