@@ -55,7 +55,6 @@ var syncCommand = cli.Command{
 		}
 
 		// this configuration means the pdk will use the local test runtime instead of calling out to lambda
-		pdk.UseLocal = true
 		syncer := cachesync.CacheSyncer{
 			DB: db,
 			Cache: cachesvc.Service{

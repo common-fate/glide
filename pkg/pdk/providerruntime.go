@@ -2,14 +2,11 @@ package pdk
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
-
-// uselocal enables development mode using alocal cli instead of calling out to deployed lambdas
-// set this to true to enable local handler
-var UseLocal bool
 
 // make of deploymentID to relative path
 // example: ../../testvault-provider/provider
@@ -41,23 +38,24 @@ type LoadResourceResponse struct {
 
 type ProviderRuntime interface {
 	FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error)
-	Describe(ctx context.Context) (describeResponse targetgroup.ProviderDescribe, err error)
+	Describe(ctx context.Context) (describeResponse *providerregistrysdk.DescribeResponse, err error)
 	Grant(ctx context.Context, subject string, target Target) (err error)
 	Revoke(ctx context.Context, subject string, target Target) (err error)
 }
 
 func GetRuntime(ctx context.Context, deployment targetgroup.Deployment) (ProviderRuntime, error) {
+	log := logger.Get(ctx)
 	var pr ProviderRuntime
-	if UseLocal {
-		path, ok := LocalDeploymentMap[deployment.ID]
-		if !ok {
-			return nil, fmt.Errorf("local runtime path not configured for deployment %s", deployment.ID)
-		}
+	path, ok := LocalDeploymentMap[deployment.ID]
+	if ok {
+		log.Debugw("found local runtime configuration for deployment", "deployment", deployment, "path", path)
 		pr = LocalRuntime{
 			Path: path,
 		}
+
 	} else {
-		p, err := NewLambdaRuntime(ctx, deployment.FunctionARN)
+		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", deployment)
+		p, err := NewLambdaRuntime(ctx, deployment.FunctionARN())
 		if err != nil {
 			return nil, err
 		}

@@ -43,7 +43,6 @@ require (
 	k8s.io/api v0.22.1
 	k8s.io/apimachinery v0.22.1
 	k8s.io/client-go v0.22.1
-	k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9
 
 )
 
@@ -134,6 +133,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	k8s.io/klog/v2 v2.70.1 // indirect
+	k8s.io/utils v0.0.0-20210707171843-4b05e18ac7d9 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 
@@ -190,7 +190,7 @@ require (
 	github.com/common-fate/analytics-go v0.1.0
 	github.com/common-fate/clio v1.0.0
 	github.com/common-fate/ddb v0.15.0
-	github.com/common-fate/provider-registry-sdk-go v0.1.5-0.20230207021924-f64ace098128
+	github.com/common-fate/provider-registry-sdk-go v0.1.7
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

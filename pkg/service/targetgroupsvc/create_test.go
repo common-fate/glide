@@ -24,7 +24,7 @@ func TestCreateTargetGroup(t *testing.T) {
 		version      string
 		give         types.CreateTargetGroupRequest
 		wantErr      error
-		withResponse providerregistrysdk.Provider
+		withResponse providerregistrysdk.ProviderDetail
 		want         *targetgroup.TargetGroup
 	}
 
@@ -38,11 +38,10 @@ func TestCreateTargetGroup(t *testing.T) {
 			name:    "ok",
 			version: "v1.0.1",
 			give:    types.CreateTargetGroupRequest{ID: "test", TargetSchema: "commonfate/test/v1.0.1"},
-			withResponse: providerregistrysdk.Provider{
-				Team:    "commonfate",
-				Name:    "test",
-				Version: "v1.0.1",
-				Schema:  providerregistrysdk.ProviderSchema{},
+			withResponse: providerregistrysdk.ProviderDetail{
+				Publisher: "commonfate",
+				Name:      "test",
+				Version:   "v1.0.1",
 			},
 			want: &mockTargetGroup,
 		},

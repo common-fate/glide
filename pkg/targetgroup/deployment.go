@@ -1,6 +1,8 @@
 package targetgroup
 
 import (
+	"fmt"
+
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -9,17 +11,19 @@ import (
 
 // represents a lambda TargetGroupDeployment
 type Deployment struct {
-	ID                    string                          `json:"id" dynamodbav:"id"`
-	FunctionARN           string                          `json:"functionArn" dynamodbav:"functionArn"`
-	Runtime               string                          `json:"runtime" dynamodbav:"runtime"`
-	AWSAccount            string                          `json:"awsAccount" dynamodbav:"awsAccount"`
-	Healthy               bool                            `json:"healthy" dynamodbav:"healthy"`
-	Diagnostics           []Diagnostic                    `json:"diagnostics" dynamodbav:"diagnostics"`
-	ActiveConfig          map[string]Config               `json:"activeConfig" dynamodbav:"activeConfig"`
-	Provider              Provider                        `json:"provider" dynamodbav:"provider"`
-	AuditSchema           providerregistrysdk.AuditSchema `json:"auditSchema" dynamodbav:"auditSchema"`
-	AWSRegion             string                          `json:"awsRegion" dynamodbav:"awsRegion"`
-	TargetGroupAssignment *TargetGroupAssignment          `json:"targetGroupAssignment,omitempty" dynamodbav:"targetGroupAssignment,omitempty"`
+	ID          string       `json:"id" dynamodbav:"id"`
+	Runtime     string       `json:"runtime" dynamodbav:"runtime"`
+	AWSAccount  string       `json:"awsAccount" dynamodbav:"awsAccount"`
+	Healthy     bool         `json:"healthy" dynamodbav:"healthy"`
+	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
+	// Provider description comes from polling the provider via a healthcheck
+	ProviderDescription   *providerregistrysdk.DescribeResponse `json:"providerDescription" dynamodbav:"providerDescription"`
+	AWSRegion             string                                `json:"awsRegion" dynamodbav:"awsRegion"`
+	TargetGroupAssignment *TargetGroupAssignment                `json:"targetGroupAssignment,omitempty" dynamodbav:"targetGroupAssignment,omitempty"`
+}
+
+func (d *Deployment) FunctionARN() string {
+	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", d.AWSRegion, d.AWSAccount, d.ID)
 }
 
 // TargetGroupAssignments holds information about the deployment and its link to the target group
@@ -43,33 +47,6 @@ type TargetGroupAssignment struct {
 	//
 	// Note: Diagnostics related to whether the deployment is healthy or unhealthy can be found on the deployment item itself
 	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
-}
-
-type Config struct {
-	Type  string      `json:"type" dynamodbav:"type"`
-	Value interface{} `json:"value" dynamodbav:"value"`
-}
-
-type Provider struct {
-	Publisher string `json:"publisher" dynamodbav:"publisher"`
-	Name      string `json:"name" dynamodbav:"name"`
-	Version   string `json:"version" dynamodbav:"version"`
-}
-type ConfigValidation struct {
-	Logs    []Diagnostic `json:"logs"`
-	Success bool         `json:"success"`
-}
-
-type ProviderDescribe struct {
-	Provider         Provider                    `json:"provider"`
-	Config           map[string]Config           `json:"config"`
-	ConfigValidation map[string]ConfigValidation `json:"configValidation"`
-	Schema           struct {
-		Target           providerregistrysdk.TargetSchema   `json:"target"`
-		Audit            providerregistrysdk.AuditSchema    `json:"audit"`
-		ResourcesLoaders providerregistrysdk.ResourceLoader `json:"resourceLoaders"`
-		Resource         interface{}                        `json:"resource"`
-	} `json:"schema"`
 }
 
 func (r *Deployment) DDBKeys() (ddb.Keys, error) {
@@ -97,33 +74,25 @@ func (r *Deployment) ToAPI() types.TargetGroupDeployment {
 		}
 	}
 
-	targActiveConfig := types.TargetGroupDeploymentActiveConfig{}
-
-	for k, v := range r.ActiveConfig {
-		targActiveConfig.Set(k, types.TargetGroupDeploymentConfig{
-			Type:  v.Type,
-			Value: v.Value.(map[string]interface{}),
-		})
-	}
-
-	return types.TargetGroupDeployment{
+	res := types.TargetGroupDeployment{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
-		FunctionArn: r.FunctionARN,
+		FunctionArn: r.FunctionARN(),
 		Healthy:     r.Healthy,
 		AwsRegion:   r.AWSRegion,
-		// Provider: types.TargetGroupDeploymentProvider{
-		// 	Name:      r.Provider.Name,
-		// 	Publisher: r.Provider.Publisher,
-		// 	Version:   r.Provider.Version,
-		// },
-		// ActiveConfig: targActiveConfig,
 		Diagnostics: diagnostics,
 	}
+	if r.TargetGroupAssignment != nil {
+		res.TargetGroupAssignment = r.TargetGroupAssignment.ToAPI()
+	}
+
+	return res
 }
 
-func (r *TargetGroupAssignment) ToAPI() types.TargetGroupAssignment {
-	return types.TargetGroupAssignment{
-		Id: r.TargetGroupID,
+func (r *TargetGroupAssignment) ToAPI() *types.TargetGroupAssignment {
+	return &types.TargetGroupAssignment{
+		TargetGroupId: r.TargetGroupID,
+		Priority:      r.Priority,
+		Valid:         r.Valid,
 	}
 }

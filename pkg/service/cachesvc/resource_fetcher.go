@@ -24,6 +24,7 @@ func NewResourceFetcher(targetGroupID string, runtime pdk.ProviderRuntime) *Reso
 	return &ResourceFetcher{
 		targetGroupID: targetGroupID,
 		runtime:       runtime,
+		resources:     make(map[string]cache.TargateGroupResource),
 	}
 }
 
