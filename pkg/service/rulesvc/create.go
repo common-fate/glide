@@ -187,14 +187,14 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, err
 	}
 
-	var target rule.Target
+	var isTargetGroup bool
 	if q.Result.ID != "" {
-		target, err = s.ProcessTarget(ctx, in.Target, true)
-	} else {
-		target, err = s.ProcessTarget(ctx, in.Target, false)
-		if err != nil {
-			return nil, err
-		}
+		isTargetGroup = true
+	}
+
+	target, err := s.ProcessTarget(ctx, in.Target, isTargetGroup)
+	if err != nil {
+		return nil, err
 	}
 
 	// validate it is under 6 months
