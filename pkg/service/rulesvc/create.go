@@ -96,13 +96,15 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 	if isTargetGroup {
 		targetgroup := rule.Target{
 			ProviderID:               in.ProviderId,
-			ProviderType:             "targetgroup", // what should be the type here??
+			ProviderType:             "",
+			TargetGroupID:            in.ProviderId,
 			With:                     make(map[string]string),
 			WithSelectable:           make(map[string][]string),
 			WithArgumentGroupOptions: make(map[string]map[string][]string),
 		}
 
 		// TODO: Validate target group against cached resources
+		// TODO: Validate target group against schema
 
 		for argumentID, argument := range in.With.AdditionalProperties {
 			for groupId, groupValues := range argument.Groupings.AdditionalProperties {
