@@ -116,7 +116,10 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	ctx := r.Context()
 
 	q := storage.GetTargetGroup{ID: providerId}
-	a.DB.Query(ctx, &q)
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+	}
 
 	var isCommunityProvider bool
 	if q.Result.ID != "" {
