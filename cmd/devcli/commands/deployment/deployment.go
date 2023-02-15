@@ -46,6 +46,7 @@ var Command = cli.Command{
 		&cli.StringFlag{Name: "accountId", Usage: "The accountId"},
 		&cli.StringFlag{Name: "aws-region", Usage: "The aws-region"},
 		&cli.StringFlag{Name: "suffix", Usage: "The suffix"},
+		&cli.StringFlag{Name: "target-group-override", Usage: "If a target group already exists, pass the name here to use it"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
@@ -265,21 +266,29 @@ var Command = cli.Command{
 		}
 
 		//create target group
+
 		cfApi, err := types.NewClientWithResponses(cfg.CommonFateAPIURL)
 		if err != nil {
 			return err
 		}
-		tgCreateReq := types.CreateTargetGroupJSONRequestBody{
-			ID: providerName + "-" + providerVersion + "-" + suffix,
-			// will create the target group as eg. commonfate-v0.1.4-jacktest
-			TargetSchema: assetString,
-		}
-		_, err = cfApi.CreateTargetGroupWithResponse(ctx, tgCreateReq)
-		if err != nil {
-			return err
-		}
 
-		clio.Successf("Successfully created target group '%s'", tgCreateReq.ID)
+		targetGroupId := c.String("target-group-override")
+
+		//if there was an override dont create a new target group but link with an old one
+		if targetGroupId == "" {
+			tgCreateReq := types.CreateTargetGroupJSONRequestBody{
+				ID: providerName + "-" + providerVersion + "-" + suffix,
+				// will create the target group as eg. commonfate-v0.1.4-jacktest
+				TargetSchema: assetString,
+			}
+			_, err = cfApi.CreateTargetGroupWithResponse(ctx, tgCreateReq)
+			if err != nil {
+				return err
+			}
+			clio.Successf("Successfully created target group '%s'", tgCreateReq.ID)
+			targetGroupId = tgCreateReq.ID
+
+		}
 
 		reqBody := types.CreateTargetGroupDeploymentJSONRequestBody{
 			AwsAccount: accountId,
@@ -295,14 +304,14 @@ var Command = cli.Command{
 		clio.Successf("Successfully created target group deployment '%s'", reqBody.Id)
 
 		//link deployment to target group
-		_, err = cfApi.CreateTargetGroupLinkWithResponse(ctx, tgCreateReq.ID, types.CreateTargetGroupLinkJSONRequestBody{
+		_, err = cfApi.CreateTargetGroupLinkWithResponse(ctx, targetGroupId, types.CreateTargetGroupLinkJSONRequestBody{
 			DeploymentId: reqBody.Id,
 			Priority:     100,
 		})
 		if err != nil {
 			return err
 		}
-		clio.Successf("linked deployment '%s' with target group '%s'", reqBody.Id, tgCreateReq.ID)
+		clio.Successf("linked deployment '%s' with target group '%s'", reqBody.Id, targetGroupId)
 
 		//run health check
 		clio.Successf("Completed deploy")
