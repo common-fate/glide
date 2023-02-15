@@ -18,7 +18,6 @@ var Command = cli.Command{
 		&ValidateCommand,
 		&ListCommand,
 		&DiagnosticCommand,
-		&UnlinkCommand,
 	},
 }
 

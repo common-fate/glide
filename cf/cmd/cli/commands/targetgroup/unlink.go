@@ -1,4 +1,4 @@
-package deployment
+package targetgroup
 
 import (
 	"errors"
@@ -10,8 +10,8 @@ import (
 
 var UnlinkCommand = cli.Command{
 	Name:        "unlink",
-	Description: "unlink a deployment",
-
+	Description: "unlink a deployment from its target group",
+	Usage:       "unlink a deployment from its target group",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "deployment", Required: true},
 		&cli.StringFlag{Name: "group", Required: true},
@@ -28,7 +28,6 @@ var UnlinkCommand = cli.Command{
 			return errors.New("group is required")
 		}
 
-		// opts := []types.ClientOption{}
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
@@ -41,7 +40,7 @@ var UnlinkCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Success("Unlinked deployment %s from group %s", deployment, group)
+		clio.Successf("Unlinked deployment %s from group %s", deployment, group)
 		return nil
 	},
 }
