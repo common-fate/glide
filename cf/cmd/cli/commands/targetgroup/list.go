@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -12,12 +13,15 @@ import (
 var ListCommand = cli.Command{
 	Name:        "list",
 	Description: "list target groups",
+	Flags: []cli.Flag{
+		&cli.StringFlag{Name: "commonfate-api", Value: build.CommonFateAPIURL, EnvVars: []string{"COMMONFATE_API_URL"}, Hidden: true},
+	},
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
 		opts := []types.ClientOption{}
 		ctx := c.Context
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfApi, err := types.NewClientWithResponses(c.String("commonfate-api"), opts...)
 		if err != nil {
 			return err
 		}

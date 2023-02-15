@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
@@ -44,6 +45,7 @@ var RegisterCommand = cli.Command{
 		&cli.StringFlag{Name: "runtime", Required: true},
 		&cli.StringFlag{Name: "aws-region", Required: true},
 		&cli.StringFlag{Name: "aws-account", Required: true},
+		&cli.StringFlag{Name: "commonfate-api", Value: build.CommonFateAPIURL, EnvVars: []string{"COMMONFATE_API_URL"}, Hidden: true},
 	},
 	Action: func(c *cli.Context) error {
 
@@ -77,7 +79,7 @@ var RegisterCommand = cli.Command{
 		// initialise some types.ClientOption to pass to the client
 		opts := []types.ClientOption{}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfApi, err := types.NewClientWithResponses(c.String("commonfate-api"), opts...)
 		if err != nil {
 			return err
 		}

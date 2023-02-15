@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
 )
@@ -27,13 +28,14 @@ var CreateCommand = cli.Command{
 		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "schema-from", Required: true},
 		&cli.BoolFlag{Name: "ok-if-exists"},
+		&cli.StringFlag{Name: "commonfate-api", Value: build.CommonFateAPIURL, EnvVars: []string{"COMMONFATE_API_URL"}, Hidden: true},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		id := c.String("id")
 
 		schemaFrom := c.String("schema-from")
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
+		cfApi, err := types.NewClientWithResponses(c.String("commonfate-api"))
 		if err != nil {
 			return err
 		}
@@ -65,6 +67,7 @@ var LinkCommand = cli.Command{
 		&cli.StringFlag{Name: "group", Required: true},
 		&cli.StringFlag{Name: "deployment", Required: true},
 		&cli.IntFlag{Name: "priority", Value: 100},
+		&cli.StringFlag{Name: "commonfate-api", Value: build.CommonFateAPIURL, EnvVars: []string{"COMMONFATE_API_URL"}, Hidden: true},
 	},
 	Action: func(c *cli.Context) error {
 
@@ -79,7 +82,7 @@ var LinkCommand = cli.Command{
 
 		}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
+		cfApi, err := types.NewClientWithResponses(c.String("commonfate-api"))
 		if err != nil {
 			return err
 		}

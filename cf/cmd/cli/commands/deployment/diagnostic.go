@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -16,6 +17,7 @@ var DiagnosticCommand = cli.Command{
 	Description: "query a deployment by ID and fetch it's diagnostic information",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
+		&cli.StringFlag{Name: "commonfate-api", Value: build.CommonFateAPIURL, EnvVars: []string{"COMMONFATE_API_URL"}, Hidden: true},
 	},
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
@@ -27,7 +29,7 @@ var DiagnosticCommand = cli.Command{
 			return errors.New("id is required, it can be found by referencing the `deployment list` output")
 		}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfApi, err := types.NewClientWithResponses(c.String("commonfate-api"), opts...)
 		if err != nil {
 			clio.Error("Failed to create client: ", err.Error())
 			return err
