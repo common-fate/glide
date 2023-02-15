@@ -110,7 +110,7 @@ func (a *API) RemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	err = a.TargetGroupService.RemoveTargetGroupLink(ctx, linkGroupRequest, id)
+	err = a.TargetGroupService.RemoveTargetGroupLink(ctx, linkGroupRequest.DeploymentId, id)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
