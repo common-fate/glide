@@ -3,6 +3,7 @@ package targetgroup
 import (
 	"errors"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
@@ -88,6 +89,7 @@ var LinkCommand = cli.Command{
 		result, err := cfApi.CreateTargetGroupLinkWithResponse(ctx, group, types.CreateTargetGroupLinkJSONRequestBody{
 			DeploymentId: deployment,
 			Priority:     priority,
+			Force:        aws.Bool(c.Bool("force")),
 		})
 		if err != nil {
 			return err

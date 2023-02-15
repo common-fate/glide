@@ -65,3 +65,18 @@ func (mr *MockTargetGroupServiceMockRecorder) CreateTargetGroupLink(arg0, arg1, 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTargetGroupLink", reflect.TypeOf((*MockTargetGroupService)(nil).CreateTargetGroupLink), arg0, arg1, arg2)
 }
+
+// ListTargetGroups mocks base method.
+func (m *MockTargetGroupService) ListTargetGroups(arg0 context.Context) ([]types.TargetGroup, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTargetGroups", arg0)
+	ret0, _ := ret[0].([]types.TargetGroup)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTargetGroups indicates an expected call of ListTargetGroups.
+func (mr *MockTargetGroupServiceMockRecorder) ListTargetGroups(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTargetGroups", reflect.TypeOf((*MockTargetGroupService)(nil).ListTargetGroups), arg0)
+}

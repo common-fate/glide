@@ -9,4 +9,5 @@
 export type CreateTargetGroupLinkBody = {
   deploymentId: string;
   priority: number;
+  force: boolean;
 };

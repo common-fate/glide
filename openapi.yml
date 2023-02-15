@@ -2892,9 +2892,12 @@ components:
                 type: integer
                 maximum: 999
                 minimum: 0
+              force:
+                type: boolean
             required:
               - deploymentId
               - priority
+              - force
 tags:
   - name: End User
   - name: Admin
