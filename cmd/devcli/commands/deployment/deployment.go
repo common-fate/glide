@@ -186,7 +186,6 @@ var Command = cli.Command{
 		//lambda that is created from the cloudformation should have the same name of deployment we register below
 		deploymentName := providerName + "-deployment" + "-" + suffix
 
-		//https://commonfateproviderassets-commonfateproviderassets-10ylgm4i7o107.s3.ap-southeast-2.amazonaws.com/jack-test/testvault/v0.1.5/handler.zip
 		template := "https://" + bootstrapBucket + ".s3." + awsRegion + ".amazonaws.com/" + assetString + "/cloudformation.json"
 		clio.Info(template)
 		ccfg, err := cfaws.ConfigFromContextOrDefault(ctx)
@@ -305,6 +304,7 @@ var Command = cli.Command{
 		clio.Successf("linked deployment '%s' with target group '%s'", reqBody.Id, tgCreateReq.ID)
 
 		//run health check
+		clio.Successf("Completed deploy")
 
 		return nil
 	},
