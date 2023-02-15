@@ -33,7 +33,7 @@ import (
 )
 
 //eg command
-//go run cmd/devcli/main.go deploy --publisher=jack --version=v0.1.4 --name=testvault --accountId=616777145260 --aws-region=ap-southeast-2 --suffix=jacktest6
+//go run cmd/devcli/main.go deploy --runtime=aws --publisher=jack --version=v0.1.4 --name=testvault --accountId=616777145260 --aws-region=ap-southeast-2 --suffix=jacktest6
 
 var Command = cli.Command{
 	Name:        "deploy",
@@ -46,6 +46,8 @@ var Command = cli.Command{
 		&cli.StringFlag{Name: "accountId", Usage: "The accountId"},
 		&cli.StringFlag{Name: "aws-region", Usage: "The aws-region"},
 		&cli.StringFlag{Name: "suffix", Usage: "The suffix"},
+		&cli.StringFlag{Name: "runtime", Usage: "The runtime"},
+
 		&cli.StringFlag{Name: "target-group-override", Usage: "If a target group already exists, pass the name here to use it"},
 	},
 	Action: func(c *cli.Context) error {
@@ -182,8 +184,6 @@ var Command = cli.Command{
 
 		clio.Success(fmt.Sprintf("copied %s into %s\n", assetString, path.Join(bootstrapBucket, assetString)))
 
-		//deploy cloud formation??
-		//TODO
 		//lambda that is created from the cloudformation should have the same name of deployment we register below
 		deploymentName := providerName + "-deployment" + "-" + suffix
 
@@ -294,7 +294,7 @@ var Command = cli.Command{
 			AwsAccount: accountId,
 			AwsRegion:  awsRegion,
 			Id:         deploymentName,
-			Runtime:    "aws",
+			Runtime:    c.String("runtime"),
 		}
 
 		_, err = cfApi.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
