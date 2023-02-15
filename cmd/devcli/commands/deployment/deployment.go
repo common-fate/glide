@@ -199,6 +199,7 @@ var Command = cli.Command{
 		si.Writer = os.Stderr
 		si.Start()
 
+		//todo update this from being hardcoded parameters for testvault
 		params := []aws_types.Parameter{
 			{
 				ParameterKey:   aws.String("UniqueVaultId"),
