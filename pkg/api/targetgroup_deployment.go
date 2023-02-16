@@ -67,14 +67,6 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// we're getting an api error that res.ActiveConfig is missing so lets force set it here
-	// res.ActiveConfig = map[string]targetgroup.Config{
-	// 	"aws": {
-	// 		Type:  "test",
-	// 		Value: &targetgroup.Config{},
-	// 	},
-	// }
-
 	apio.JSON(ctx, w, res.ToAPI(), http.StatusCreated)
 }
 
