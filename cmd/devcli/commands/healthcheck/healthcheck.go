@@ -15,11 +15,14 @@ import (
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/joho/godotenv"
+	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -33,6 +36,7 @@ var Command = cli.Command{
 	Flags:       []cli.Flag{&cli.StringSliceFlag{Name: "deployment-mappings"}},
 	Subcommands: []*cli.Command{
 		&LocalCommand,
+		&LambdaCommand,
 	},
 }
 
@@ -42,16 +46,14 @@ var LocalCommand = cli.Command{
 	Usage:       "healthcheck a deployment locally",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 		ctx := c.Context
-
-		do, err := deploy.LoadConfig(deploy.DefaultFilename)
+		// Read from the .env file
+		var cfg config.HealthCheckerConfig
+		_ = godotenv.Load()
+		err := envconfig.Process(ctx, &cfg)
 		if err != nil {
 			return err
 		}
-		o, err := do.LoadOutput(ctx)
-		if err != nil {
-			return err
-		}
-		db, err := ddb.New(ctx, o.DynamoDBTable)
+		db, err := ddb.New(ctx, cfg.TableName)
 		if err != nil {
 			return err
 		}
@@ -116,7 +118,7 @@ var LambdaCommand = cli.Command{
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 		ctx := c.Context
 
-		dc, err := deploy.ConfigFromContext(ctx)
+		dc, err := deploy.LoadConfig(deploy.DefaultFilename)
 		if err != nil {
 			return err
 		}
