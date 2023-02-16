@@ -8,7 +8,7 @@ export const grantInvokeCommunityProviders = (_lambda: lambda.Function) => {
       actions: ["lambda:InvokeFunction"],
       conditions: {
         StringEquals: {
-          "iam:ResourceTag/common-fate-abac-role": "access-provider",
+          "aws:ResourceTag/common-fate-abac-role": "access-provider",
         },
       },
     })
