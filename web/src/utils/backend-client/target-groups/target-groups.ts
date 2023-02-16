@@ -11,8 +11,8 @@ import type {
   Key
 } from 'swr'
 import type {
-  ListTargetGroupDeploymentAPIResponseResponse,
   TargetGroupDeployment,
+  ListTargetGroupDeploymentAPIResponseResponse,
   CreateTargetGroupDeploymentRequestBody,
   TargetGroup,
   ListTargetGroupResponseResponse,
@@ -38,7 +38,7 @@ import type { ErrorType } from '../../custom-instance'
 export const getTargetGroupDeployment = (
     id: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
+      return customInstance<TargetGroupDeployment>(
       {url: `/api/v1/target-group-deployments/${id}`, method: 'get'
     },
       options);
@@ -49,9 +49,9 @@ export const getGetTargetGroupDeploymentKey = (id: string,) => [`/api/v1/target-
 
     
 export type GetTargetGroupDeploymentQueryResult = NonNullable<Awaited<ReturnType<typeof getTargetGroupDeployment>>>
-export type GetTargetGroupDeploymentQueryError = ErrorType<unknown>
+export type GetTargetGroupDeploymentQueryError = ErrorType<void>
 
-export const useGetTargetGroupDeployment = <TError = ErrorType<unknown>>(
+export const useGetTargetGroupDeployment = <TError = ErrorType<void>>(
  id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTargetGroupDeployment>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
   ) => {
@@ -215,7 +215,7 @@ export const createTargetGroup = (
   
 
 /**
- * @summary Link a target group
+ * @summary Link a target group deployment to its target group
  */
 export const createTargetGroupLink = (
     id: string,
@@ -223,6 +223,22 @@ export const createTargetGroupLink = (
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
       {url: `/api/v1/target-groups/${id}/link`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupLinkBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Unlink a target group deployment from its target group
+ */
+export const removeTargetGroupLink = (
+    id: string,
+    createTargetGroupLinkBody: CreateTargetGroupLinkBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/target-groups/${id}/unlink`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createTargetGroupLinkBody
     },
