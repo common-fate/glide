@@ -2,6 +2,8 @@ package targetgroupsvc
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/benbjohnson/clock"
@@ -20,11 +22,11 @@ import (
 func TestCreateTargetGroup(t *testing.T) {
 	// test cases:
 	// s.DB.Query error == ddb.ErrNoItems -> ok ✅
-	// s.DB.Query error == misc error     -> nil, misc error
-	// s.DB.Query error == nil            -> nil, ErrTargetGroupIdAlreadyExists
-	// invalid provider string			  -> nil, ErrInvalidProviderString
-	// ProviderRegistryClient.GetProviderWithResponse error != nil -> nil, err
-	// s.DB.Put error != nil -> nil, err
+	// s.DB.Query error == misc error     -> nil, misc error ✅
+	// s.DB.Query error == nil            -> nil, ErrTargetGroupIdAlreadyExists ✅
+	// invalid provider string			  -> nil, ErrInvalidProviderString ✅
+	// ProviderRegistryClient.GetProviderWithResponse error != nil -> nil, err ✅
+	// s.DB.Put error != nil -> nil, err ✅
 
 	// items to mock: s.DB.Query storage.GetTargetGroup ✅
 	// items to mock: GetProviderWithResponse ✅
@@ -72,24 +74,78 @@ func TestCreateTargetGroup(t *testing.T) {
 					Version: "v1.0.1",
 					Schema:  providerregistrysdk.ProviderSchema{},
 				},
+				HTTPResponse: &http.Response{
+					StatusCode: 200,
+				},
 			},
 			want: &mockWantedTargetGroup,
 		},
-		// {
-		// 	name:                         "s.DB.Query error == misc error",
-		// 	version:                      "v1.0.1",
-		// 	give:                         types.CreateTargetGroupRequest{ID: "test", TargetSchema: "commonfate/test@v1.0.1"},
-		// 	mockStorageGetTargetGroupErr: errors.New("error"),
-		// 	mockGetProviderRes:           providerregistrysdk.GetProviderResponse{},
-		// 	mockGetProviderResErr:        nil,
-		// 	withResponse: providerregistrysdk.ProviderDetail{
-		// 		Publisher: "commonfate",
-		// 		Name:      "test",
-		// 		Version:   "v1.0.1",
-		// 	},
-		// 	want:    nil,
-		// 	wantErr: errors.New("error"),
-		// },
+		{
+			name:                         "s.DB.Query error == misc error",
+			version:                      "v1.0.1",
+			give:                         types.CreateTargetGroupRequest{ID: "test", TargetSchema: "commonfate/test@v1.0.1"},
+			mockStorageGetTargetGroupErr: errors.New("error"),
+			mockGetProviderRes:           providerregistrysdk.GetProviderResponse{},
+			mockGetProviderResErr:        nil,
+			withResponse: providerregistrysdk.ProviderDetail{
+				Publisher: "commonfate",
+				Name:      "test",
+				Version:   "v1.0.1",
+			},
+			want:    nil,
+			wantErr: errors.New("error"),
+		},
+		{
+			name:                         "nil, ErrTargetGroupIdAlreadyExists",
+			version:                      "v1.0.1",
+			give:                         types.CreateTargetGroupRequest{ID: "test", TargetSchema: "commonfate/test@v1.0.1"},
+			mockStorageGetTargetGroupErr: ErrTargetGroupIdAlreadyExists,
+			mockGetProviderRes:           providerregistrysdk.GetProviderResponse{},
+			mockGetProviderResErr:        nil,
+			withResponse: providerregistrysdk.ProviderDetail{
+				Publisher: "commonfate",
+				Name:      "test",
+				Version:   "v1.0.1",
+			},
+			want:    nil,
+			wantErr: ErrTargetGroupIdAlreadyExists,
+		},
+		{
+			name:                         "nil, ErrInvalidProviderString",
+			version:                      "v1.0.1",
+			give:                         types.CreateTargetGroupRequest{ID: "test", TargetSchema: "commonfateBADSTRINGtest@v1.0.1"},
+			mockGetProviderRes:           providerregistrysdk.GetProviderResponse{},
+			mockStorageGetTargetGroupErr: ddb.ErrNoItems,
+			withResponse: providerregistrysdk.ProviderDetail{
+				Publisher: "commonfate",
+				Name:      "test",
+				Version:   "v1.0.1",
+			},
+			want:    nil,
+			wantErr: errors.New("target schema given in incorrect format"),
+		},
+		{
+			name:                         "ok",
+			version:                      "v1.0.1",
+			give:                         types.CreateTargetGroupRequest{ID: "test", TargetSchema: "commonfate/test@v1.0.1"},
+			mockStorageGetTargetGroupErr: ddb.ErrNoItems,
+			withResponse: providerregistrysdk.ProviderDetail{
+				Publisher: "commonfate",
+				Name:      "test",
+				Version:   "v1.0.1",
+			},
+			mockGetProviderRes: providerregistrysdk.GetProviderResponse{
+				JSON200: &providerregistrysdk.ProviderDetail{
+					Version: "v1.0.1",
+					Schema:  providerregistrysdk.ProviderSchema{},
+				},
+				HTTPResponse: &http.Response{
+					StatusCode: 200,
+				},
+			},
+			mockStoragePutTargetGroupErr: errors.New("misc put error"),
+			wantErr:                      errors.New("misc put error"),
+		},
 	}
 
 	for _, tc := range testcases {
@@ -102,13 +158,18 @@ func TestCreateTargetGroup(t *testing.T) {
 
 			dbc.MockQueryWithErr(&storage.GetTargetGroup{}, tc.mockStorageGetTargetGroupErr)
 
+			dbc.PutErr = tc.mockStoragePutTargetGroupErr
+
 			ctrl := gomock.NewController(t)
 
 			defer ctrl.Finish()
 
 			m := prmocks.NewMockClientWithResponsesInterface(ctrl)
 
-			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq("commonfate"), gomock.Eq("test"), gomock.Eq(tc.version)).Return(&tc.mockGetProviderRes, tc.mockGetProviderResErr)
+			// to prevent nil pointer dereference, we only run mock if we expect a response from test case
+			if tc.want != nil || tc.mockGetProviderResErr != nil || tc.mockStoragePutTargetGroupErr != nil {
+				m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq("commonfate"), gomock.Eq("test"), gomock.Eq(tc.version)).Return(&tc.mockGetProviderRes, tc.mockGetProviderResErr)
+			}
 
 			s := Service{
 				Clock:                  clk,
