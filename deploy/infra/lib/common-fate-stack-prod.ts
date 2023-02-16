@@ -215,14 +215,7 @@ export class CommonFateStackProd extends cdk.Stack {
       remoteConfigUrl: remoteConfigUrl.valueAsString,
       remoteConfigHeaders: remoteConfigHeaders.valueAsString,
     });
-    const targetGroupGranter = new TargetGroupGranter(
-      this,
-      "TargetGroupGranter",
-      {
-        eventBus: events.getEventBus(),
-        eventBusSourceName: events.getEventBusSourceName(),
-      }
-    );
+
     //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
     const kmsKey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -263,7 +256,15 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
       kmsKey: kmsKey,
     });
-
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+        dynamoTable: appBackend.getDynamoTable(),
+      }
+    );
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
       apiUrl: appBackend.getRestApiURL(),
       cloudfrontDistributionId: appFrontend.getDistributionId(),
@@ -317,6 +318,7 @@ export class CommonFateStackProd extends cdk.Stack {
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
       HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
       HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
+      GranterV2StateMachineArn: targetGroupGranter.getGranterARN(),
     });
   }
 }

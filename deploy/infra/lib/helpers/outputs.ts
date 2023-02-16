@@ -36,6 +36,7 @@ export type StackOutputs = {
   CLIAppClientID: string;
   HealthcheckFunctionName: string;
   HealthcheckLogGroupName: string;
+  GranterV2StateMachineArn: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs
