@@ -2,6 +2,7 @@ package healthchecksvc
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/pdk"
@@ -98,7 +99,19 @@ func (s *Service) Check(ctx context.Context) error {
 		// @TODO validate target schema against targetgroup
 		if deploymentItem.TargetGroupAssignment != nil {
 			// This needs to be replaced with an actual check
-			deploymentItem.TargetGroupAssignment.Valid = true
+
+			// need to do a structural comparison of the scheam for the provider in the describe against the schema stored on the target group
+
+			//lookup target group
+			targetGroup := storage.GetTargetGroup{ID: deploymentItem.TargetGroupAssignment.TargetGroupID}
+
+			_, err := s.DB.Query(ctx, &targetGroup)
+			if err != nil {
+				return err
+			}
+
+			//do some sort of check here to validate that the schemas are the same and valid.
+			deploymentItem.TargetGroupAssignment.Valid = reflect.DeepEqual(targetGroup.Result.TargetSchema.Schema, describeRes.Schema.Target)
 		}
 
 		// update the deployment
