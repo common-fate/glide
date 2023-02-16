@@ -118,3 +118,22 @@ func (a *API) CreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id s
 	apio.JSON(ctx, w, targetGroup.ToAPI(), http.StatusOK)
 
 }
+
+// Unlink a target group deployment from its target group
+// (POST /api/v1/target-groups/{id}/unlink)
+func (a *API) RemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string) {
+	ctx := r.Context()
+	var linkGroupRequest types.CreateTargetGroupLink
+	err := apio.DecodeJSONBody(w, r, &linkGroupRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+
+	err = a.TargetGroupService.RemoveTargetGroupLink(ctx, linkGroupRequest.DeploymentId, id)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusOK)
+}
