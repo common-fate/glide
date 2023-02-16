@@ -25,10 +25,10 @@ func NewLambdaRuntime(ctx context.Context, functionARN string) (*LambdaRuntime, 
 	return &LambdaRuntime{FunctionARN: functionARN, lambdaClient: lambdaClient}, nil
 }
 
-func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.InvokeOutput, error) {
+func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.InvokeOutput, *LambdaResponse, error) {
 	payloadbytes, err := payload.Marshal()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	res, err := l.lambdaClient.Invoke(ctx, &lambda.InvokeInput{
 		FunctionName:   aws.String(l.FunctionARN),
@@ -37,30 +37,49 @@ func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.Inv
 		LogType:        lambdatypes.LogTypeTail,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return res, nil
+
+	var lr LambdaResponse
+	err = json.Unmarshal(res.Payload, &lr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return res, &lr, nil
 }
 
 func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error) {
-	out, err := l.Invoke(ctx, NewLoadResourcesEvent(name, contx))
+	_, response, err := l.Invoke(ctx, NewLoadResourcesEvent(name, contx))
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}
-	err = json.Unmarshal(out.Payload, &resources)
+	b, err := json.Marshal(response.Body)
+	if err != nil {
+		return LoadResourceResponse{}, err
+	}
+	err = json.Unmarshal(b, &resources)
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}
 	return
 }
 
+type LambdaResponse struct {
+	Body    map[string]interface{} `json:"body"`
+	Message string                 `json:"message"`
+}
+
 func (l *LambdaRuntime) Describe(ctx context.Context) (info *providerregistrysdk.DescribeResponse, err error) {
-	out, err := l.Invoke(ctx, NewProviderDescribeEvent())
+	_, response, err := l.Invoke(ctx, NewProviderDescribeEvent())
 	if err != nil {
 		return nil, err
 	}
-
-	err = json.Unmarshal(out.Payload, &info)
+	b, err := json.Marshal(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(b, &info)
 	if err != nil {
 		return nil, err
 	}
@@ -68,10 +87,10 @@ func (l *LambdaRuntime) Describe(ctx context.Context) (info *providerregistrysdk
 	return
 }
 func (l *LambdaRuntime) Grant(ctx context.Context, subject string, target Target) (err error) {
-	_, err = l.Invoke(ctx, NewGrantEvent(subject, target))
+	_, _, err = l.Invoke(ctx, NewGrantEvent(subject, target))
 	return err
 }
 func (l *LambdaRuntime) Revoke(ctx context.Context, subject string, target Target) (err error) {
-	_, err = l.Invoke(ctx, NewRevokeEvent(subject, target))
+	_, _, err = l.Invoke(ctx, NewRevokeEvent(subject, target))
 	return err
 }

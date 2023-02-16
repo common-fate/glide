@@ -215,7 +215,7 @@ export const createTargetGroup = (
   
 
 /**
- * @summary Link a target group
+ * @summary Link a target group deployment to its target group
  */
 export const createTargetGroupLink = (
     id: string,
@@ -223,6 +223,22 @@ export const createTargetGroupLink = (
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
       {url: `/api/v1/target-groups/${id}/link`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupLinkBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Unlink a target group deployment from its target group
+ */
+export const removeTargetGroupLink = (
+    id: string,
+    createTargetGroupLinkBody: CreateTargetGroupLinkBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/target-groups/${id}/unlink`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createTargetGroupLinkBody
     },

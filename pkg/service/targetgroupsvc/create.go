@@ -145,8 +145,10 @@ func (s *Service) CreateTargetGroup(ctx context.Context, req types.CreateTargetG
 
 	now := s.Clock.Now()
 	group := targetgroup.TargetGroup{
-		ID:           req.ID,
-		TargetSchema: targetgroup.GroupTargetSchema{From: req.TargetSchema, Schema: result.JSON200.Schema.Target},
+		ID: req.ID,
+		// The default mode here is a placeholder in our API until multi mode providers are supported fully by the framework
+		// until it is changed, providers will always return the Default mode
+		TargetSchema: targetgroup.GroupTargetSchema{From: req.TargetSchema, Schema: result.JSON200.Schema.Target.AdditionalProperties["Default"].Schema},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

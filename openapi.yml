@@ -1233,11 +1233,32 @@ paths:
       - schema:
           type: string
         name: id
+        description: Target group ID
         in: path
         required: true
     post:
-      summary: Link a target group
+      summary: Link a target group deployment to its target group
       operationId: create-target-group-link
+      responses:
+        "200":
+          description: OK
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      tags:
+        - Target Groups
+      requestBody:
+        $ref: "#/components/requestBodies/CreateTargetGroupLink"
+  "/api/v1/target-groups/{id}/unlink":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        description: Target group ID
+        in: path
+        required: true
+    post:
+      summary: Unlink a target group deployment from its target group
+      operationId: remove-target-group-link
       responses:
         "200":
           description: OK
@@ -1531,6 +1552,8 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
+        targetGroup:
+          $ref: "#/components/schemas/TargetGroup"
       required:
         - provider
         - with

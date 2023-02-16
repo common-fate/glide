@@ -37,6 +37,7 @@ import {
 import {
   TargetGroup,
   TargetGroupDeployment,
+  TargetGroupDiagnostic,
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 
@@ -56,7 +57,7 @@ const AdminProvidersTable = () => {
     hookProps: {},
   });
 
-  const clippy = useClipboard();
+  const clippy = useClipboard("");
 
   const cols: Column<TargetGroupDeployment>[] = useMemo(
     () => [
@@ -97,7 +98,7 @@ const AdminProvidersTable = () => {
         Cell: ({ value }) => {
           // Strip out the code from the diagnostics, it's currently an empty field
           const strippedCode = JSON.stringify(
-            value.map((v) => {
+            (value as Partial<TargetGroupDiagnostic>[]).map((v) => {
               delete v["code"];
               return v;
             })

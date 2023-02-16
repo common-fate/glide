@@ -148,9 +148,10 @@ func (a *Approval) IsRequired() bool {
 // I expect this will be different to what gets returned in the api response
 type Target struct {
 	// References the provider's unique ID
-	ProviderID   string            `json:"providerId"  dynamodbav:"providerId"`
-	ProviderType string            `json:"providerType"  dynamodbav:"providerType"`
-	With         map[string]string `json:"with"  dynamodbav:"with"`
+	ProviderID    string            `json:"providerId"  dynamodbav:"providerId"`
+	TargetGroupID string            `json:"targetGroupId" dynamodbav:"targetGroupId"`
+	ProviderType  string            `json:"providerType"  dynamodbav:"providerType"`
+	With          map[string]string `json:"with"  dynamodbav:"with"`
 	// when target can have multiple values
 	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
 	// when target doesn't have values but instead belongs to a group
@@ -185,6 +186,7 @@ func (t Target) ToAPI() types.AccessRuleTarget {
 }
 
 func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
+
 	at := types.AccessRuleTargetDetail{
 		Provider: types.Provider{
 			Id:   t.ProviderID,
@@ -193,6 +195,45 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 		With: types.AccessRuleTargetDetail_With{
 			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
 		},
+	}
+
+	if t.TargetGroupID != "" {
+		at.TargetGroup = &types.TargetGroup{
+			Id: t.TargetGroupID,
+		}
+
+		for k, v := range t.With {
+			argument := at.With.AdditionalProperties[k]
+			argument.Values = append(argument.Values, v)
+
+			at.With.AdditionalProperties[k] = argument
+		}
+		for k, v := range t.WithSelectable {
+			argument := at.With.AdditionalProperties[k]
+			argument.Values = append(argument.Values, v...)
+
+			at.With.AdditionalProperties[k] = argument
+		}
+		for k, v := range t.WithArgumentGroupOptions {
+			argument := at.With.AdditionalProperties[k]
+			argument.Groupings.AdditionalProperties = make(map[string][]string)
+			for k2, v2 := range v {
+				group := argument.Groupings.AdditionalProperties[k2]
+				group = append(group, v2...)
+				argument.Groupings.AdditionalProperties[k2] = group
+			}
+			at.With.AdditionalProperties[k] = argument
+		}
+
+		// It is essential that all slices be initialised for the apitypes otherwise it will be serialised as null instead of empty
+		for k, v := range at.With.AdditionalProperties {
+			if v.Values == nil {
+				v.Values = make([]string, 0)
+			}
+			at.With.AdditionalProperties[k] = v
+		}
+
+		return at
 	}
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title

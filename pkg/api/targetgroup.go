@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -9,6 +10,25 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
+
+func (a *API) FetchTargetGroups(ctx context.Context) []types.TargetGroup {
+
+	q := storage.ListTargetGroups{}
+
+	_, err := a.DB.Query(ctx, &q)
+
+	var targetGroups []types.TargetGroup
+	// return empty slice if error
+	if err != nil {
+		return nil
+	}
+
+	for _, tg := range q.Result {
+		targetGroups = append(targetGroups, tg.ToAPI())
+	}
+
+	return targetGroups
+}
 
 // Your GET endpoint
 // (GET /api/v1/target-groups)
@@ -97,4 +117,23 @@ func (a *API) CreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id s
 	}
 	apio.JSON(ctx, w, targetGroup.ToAPI(), http.StatusOK)
 
+}
+
+// Unlink a target group deployment from its target group
+// (POST /api/v1/target-groups/{id}/unlink)
+func (a *API) RemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string) {
+	ctx := r.Context()
+	var linkGroupRequest types.CreateTargetGroupLink
+	err := apio.DecodeJSONBody(w, r, &linkGroupRequest)
+	if err != nil {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+
+	err = a.TargetGroupService.RemoveTargetGroupLink(ctx, linkGroupRequest.DeploymentId, id)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }

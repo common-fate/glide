@@ -191,6 +191,20 @@ export class AppBackend extends Construct {
       })
     );
 
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: [
+          "states:StopExecution",
+          "states:StartExecution",
+          "states:DescribeExecution",
+          "states:GetExecutionHistory",
+          "states:StopExecution",
+        ],
+        // @TODO this should be specific to the v2 granter step function
+        resources: ["*"],
+      })
+    );
+
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 

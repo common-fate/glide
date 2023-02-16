@@ -112,9 +112,10 @@ export const ProviderPreviewMultiSelect: React.FC<ProviderArgFieldProps> = ({
 }) => {
   const { formState, watch } = useFormContext<AccessRuleFormData>();
 
+  const argId = argument?.resourceName ? argument.resourceName : argument.id;
   const { data: argOptions } = useAdminListProviderArgOptions(
     providerId,
-    argument.id
+    argId
   );
   const multiSelectsError = formState.errors.target?.multiSelects;
 

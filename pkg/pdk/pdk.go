@@ -20,15 +20,21 @@ func (p payload) Marshal() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-type Argument struct {
-	Type string
-	Data any
-}
 type Target struct {
 	// Mode is defines which behaviour of the provider to use, e.g SSO or Group
 	// The modes are defined by the provider schema, and each deployment is registered with its mode configuration in the database
-	Mode      string
-	Arguments map[string]Argument
+	Mode      string            `json:"mode"`
+	Arguments map[string]string `json:"arguments"`
+}
+
+// NewDefaultModeTarget creates a target from arguments for the Default mode
+// providers will eventually support multiple modes, until then
+// All providers use the "Default" mode
+func NewDefaultModeTarget(args map[string]string) Target {
+	return Target{
+		Mode:      "Default",
+		Arguments: args,
+	}
 }
 
 type grantData struct {
