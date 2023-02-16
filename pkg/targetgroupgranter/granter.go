@@ -138,7 +138,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
-		grant.Status = GrantStatusERROR
+		gr.Status = types.GrantStatusERROR
 
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: gr, Reason: err.Error()})
 		if eventErr != nil {
@@ -151,10 +151,10 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		grant.Status = GrantStatusACTIVE
+		gr.Status = types.GrantStatusACTIVE
 		evt = &gevent.GrantActivated{Grant: gr}
 	case DEACTIVATE:
-		grant.Status = GrantStatusEXPIRED
+		gr.Status = types.GrantStatusEXPIRED
 		evt = &gevent.GrantExpired{Grant: gr}
 	}
 
