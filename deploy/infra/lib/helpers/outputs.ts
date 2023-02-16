@@ -34,6 +34,8 @@ export type StackOutputs = {
   IDPSyncExecutionRoleARN: string;
   CacheSyncFunctionName: string;
   CLIAppClientID: string;
+  HealthcheckFunctionName: string;
+  HealthcheckLogGroupName: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs
