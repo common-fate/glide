@@ -14,6 +14,24 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+func (a *API) fetchTargetGroups(ctx context.Context) []types.TargetGroup {
+	q := storage.ListTargetGroups{}
+
+	_, err := a.DB.Query(ctx, &q)
+
+	var targetGroups []types.TargetGroup
+	// return empty slice if error
+	if err != nil {
+		return nil
+	}
+
+	for _, tg := range q.Result {
+		targetGroups = append(targetGroups, tg.ToAPI())
+	}
+
+	return targetGroups
+}
+
 func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	res, err := a.AccessHandlerClient.ListProvidersWithResponse(ctx)
