@@ -3,6 +3,8 @@ package targetgroup
 import (
 	"errors"
 
+	cf_cli_client "github.com/common-fate/cli/pkg/client"
+	cf_cli_config "github.com/common-fate/cli/pkg/config"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
@@ -19,6 +21,16 @@ var UnlinkCommand = cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
+		cfg, err := cf_cli_config.Load()
+		if err != nil {
+			return err
+		}
+
+		cf, err := cf_cli_client.FromConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
 		deployment := c.String("deployment")
 		if deployment == "" {
 			return errors.New("deployment is required")
@@ -28,12 +40,7 @@ var UnlinkCommand = cli.Command{
 			return errors.New("group is required")
 		}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
-		if err != nil {
-			return err
-		}
-
-		_, err = cfApi.RemoveTargetGroupLinkWithResponse(ctx, group, types.RemoveTargetGroupLinkJSONRequestBody{
+		_, err = cf.RemoveTargetGroupLinkWithResponse(ctx, group, types.RemoveTargetGroupLinkJSONRequestBody{
 			// @TODO: update/create a new req body that doesn't have priority:int
 			DeploymentId: deployment,
 		})

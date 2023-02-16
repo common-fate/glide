@@ -3,6 +3,8 @@ package targetgroup
 import (
 	"errors"
 
+	cf_cli_client "github.com/common-fate/cli/pkg/client"
+	cf_cli_config "github.com/common-fate/cli/pkg/config"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
@@ -35,13 +37,19 @@ var CreateCommand = cli.Command{
 		ctx := c.Context
 		id := c.String("id")
 
-		schemaFrom := c.String("schema-from")
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
+		cfg, err := cf_cli_config.Load()
 		if err != nil {
 			return err
 		}
 
-		result, err := cfApi.CreateTargetGroupWithResponse(ctx, types.CreateTargetGroupJSONRequestBody{
+		cf, err := cf_cli_client.FromConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
+		schemaFrom := c.String("schema-from")
+
+		result, err := cf.CreateTargetGroupWithResponse(ctx, types.CreateTargetGroupJSONRequestBody{
 			ID:           id,
 			TargetSchema: schemaFrom,
 		})
@@ -79,15 +87,19 @@ var LinkCommand = cli.Command{
 
 		if priority < 0 || priority > 999 {
 			return errors.New("priority must be a number between 0 and 999")
-
 		}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
+		cfg, err := cf_cli_config.Load()
 		if err != nil {
 			return err
 		}
 
-		result, err := cfApi.CreateTargetGroupLinkWithResponse(ctx, group, types.CreateTargetGroupLinkJSONRequestBody{
+		cf, err := cf_cli_client.FromConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
+		result, err := cf.CreateTargetGroupLinkWithResponse(ctx, group, types.CreateTargetGroupLinkJSONRequestBody{
 			DeploymentId: deployment,
 			Priority:     priority,
 		})

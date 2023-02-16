@@ -37,7 +37,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sethvargo/go-retry v0.2.3
 	go.uber.org/zap v1.23.0
-	golang.org/x/oauth2 v0.1.0
+	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.103.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.22.1
@@ -50,6 +50,8 @@ require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
 	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
+	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
+	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.7 // indirect
@@ -61,9 +63,13 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
+	github.com/common-fate/useragent v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -77,6 +83,7 @@ require (
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gookit/color v1.5.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
@@ -100,6 +107,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d // indirect
 	github.com/patrickmn/go-cache v0.0.0-20180815053127-5633e0862627 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -120,10 +128,10 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.2.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/term v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	golang.org/x/tools v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -173,7 +181,7 @@ require (
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
-	github.com/BurntSushi/toml v1.2.0 // indirect
+	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
 	github.com/aws/aws-lambda-go v1.32.0
@@ -188,7 +196,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.18.1
 	github.com/common-fate/analytics-go v0.1.0
-	github.com/common-fate/clio v1.0.0
+	github.com/common-fate/cli v0.0.0-20230210001518-d5b690a993c0
+	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.0
 	github.com/common-fate/provider-registry-sdk-go v0.1.9
 	github.com/common-fate/testvault v0.1.0
@@ -200,7 +209,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/slack-go/slack v0.11.2
 	github.com/stretchr/testify v1.8.1
-	github.com/urfave/cli/v2 v2.11.1
+	github.com/urfave/cli/v2 v2.24.3
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/sync v0.1.0

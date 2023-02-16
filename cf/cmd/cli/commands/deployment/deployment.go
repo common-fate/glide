@@ -3,6 +3,8 @@ package deployment
 import (
 	"errors"
 
+	cf_cli_client "github.com/common-fate/cli/pkg/client"
+	cf_cli_config "github.com/common-fate/cli/pkg/config"
 	"github.com/common-fate/clio"
 	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -74,15 +76,17 @@ var RegisterCommand = cli.Command{
 			}
 		}
 
-		// initialise some types.ClientOption to pass to the client
-		opts := []types.ClientOption{}
-
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfg, err := cf_cli_config.Load()
 		if err != nil {
 			return err
 		}
 
-		result, err := cfApi.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
+		cf, err := cf_cli_client.FromConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
+		result, err := cf.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
 		if err != nil {
 			return err
 		}

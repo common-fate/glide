@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	cf_cli_client "github.com/common-fate/cli/pkg/client"
+	cf_cli_config "github.com/common-fate/cli/pkg/config"
 	"github.com/common-fate/clio"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
 )
@@ -20,7 +21,6 @@ var DiagnosticCommand = cli.Command{
 	},
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
-		opts := []types.ClientOption{}
 		ctx := c.Context
 
 		ID := c.String("id")
@@ -28,12 +28,16 @@ var DiagnosticCommand = cli.Command{
 			return errors.New("id is required, it can be found by referencing the `deployment list` output")
 		}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfg, err := cf_cli_config.Load()
 		if err != nil {
-			clio.Error("Failed to create client: ", err.Error())
 			return err
 		}
-		res, err := cfApi.GetTargetGroupDeploymentWithResponse(ctx, ID)
+		cf, err := cf_cli_client.FromConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
+		res, err := cf.GetTargetGroupDeploymentWithResponse(ctx, ID)
 		if err != nil {
 			clio.Error("Failed to get deployment: ", err.Error())
 			return err

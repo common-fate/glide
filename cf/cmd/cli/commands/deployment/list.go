@@ -3,8 +3,10 @@ package deployment
 import (
 	"os"
 
+	cf_cli_client "github.com/common-fate/cli/pkg/client"
+	cf_cli_config "github.com/common-fate/cli/pkg/config"
+
 	"github.com/common-fate/clio"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
 )
@@ -15,14 +17,19 @@ var ListCommand = cli.Command{
 	Usage:       "list deployments",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
-		opts := []types.ClientOption{}
 		ctx := c.Context
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfg, err := cf_cli_config.Load()
 		if err != nil {
 			return err
 		}
-		res, err := cfApi.ListTargetGroupDeploymentsWithResponse(ctx)
+
+		cf, err := cf_cli_client.FromConfig(ctx, cfg)
+		if err != nil {
+			return err
+		}
+
+		res, err := cf.ListTargetGroupDeploymentsWithResponse(ctx)
 		if err != nil {
 			return err
 		}
