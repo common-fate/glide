@@ -69,7 +69,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		GovernanceURL:                 "abcdefg",
 		CLIAppClientID:                "abcdefg",
 		HealthcheckFunctionName:       "abcdefg",
-		HealthcheckLogGroup:           "abcdefg",
+		HealthcheckLogGroupName:       "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
@@ -126,7 +126,7 @@ func TestOutput_Get(t *testing.T) {
 		GovernanceURL                 string
 		CLIAppClientID                string
 		HealthcheckFunctionName       string
-		HealthcheckLogGroup           string
+		HealthcheckLogGroupName       string
 		WebhookLogGroupName           string
 		CacheSyncLogGroupName         string
 		RestAPIExecutionRoleARN       string
@@ -196,7 +196,7 @@ func TestOutput_Get(t *testing.T) {
 				CacheSyncFunctionName:         tt.fields.CacheSyncFunctionName,
 				CLIAppClientID:                tt.fields.CLIAppClientID,
 				HealthcheckFunctionName:       tt.fields.HealthcheckFunctionName,
-				HealthcheckLogGroup:           tt.fields.HealthcheckLogGroup,
+				HealthcheckLogGroupName:       tt.fields.HealthcheckLogGroupName,
 			}
 			got, err := o.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {

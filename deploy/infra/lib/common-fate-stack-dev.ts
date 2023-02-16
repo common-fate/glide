@@ -185,7 +185,7 @@ export class CommonFateStackDev extends cdk.Stack {
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
       HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
-      HealthcheckLogGroup: appBackend.getHealthChecker().getLogGroupName(),
+      HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
     });
   }
 }

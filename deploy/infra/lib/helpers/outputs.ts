@@ -35,7 +35,7 @@ export type StackOutputs = {
   CacheSyncFunctionName: string;
   CLIAppClientID: string;
   HealthcheckFunctionName: string;
-  HealthcheckLogGroup: string;
+  HealthcheckLogGroupName: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs

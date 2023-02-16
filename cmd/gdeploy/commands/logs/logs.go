@@ -24,6 +24,7 @@ var ServiceLogGroupNameMap = map[string]string{
 	"slack-notifier": "SlackNotifierLogGroupName",
 	"webhook":        "WebhookLogGroupName",
 	"cache-sync":     "CacheSyncLogGroupName",
+	"healthcheck":    "HealthcheckLogGroupName",
 }
 
 // the services names are defined here for this CLI command, and may be different in other usages
@@ -37,4 +38,5 @@ var ServiceNames = []string{
 	"slack-notifier",
 	"webhook",
 	"cache-sync",
+	"healthcheck",
 }
