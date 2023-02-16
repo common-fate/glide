@@ -26,6 +26,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
@@ -132,6 +133,7 @@ type InternalIdentityService interface {
 type TargetGroupService interface {
 	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
 	CreateTargetGroupLink(ctx context.Context, req types.CreateTargetGroupLink, targetGroupId string) (*targetgroup.TargetGroup, error)
+	RemoveTargetGroupLink(ctx context.Context, deploymentID string, targetGroupId string) error
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_deployment_service.go -package=mocks . TargetGroupDeploymentService
@@ -157,6 +159,7 @@ type Opts struct {
 	CognitoUserPoolID      string
 	IDPType                string
 	AdminGroupID           string
+	StateMachineARN        string
 }
 
 // New creates a new API.
@@ -191,6 +194,16 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		DeploymentConfig: opts.DeploymentConfig,
 	})
 
+	granterv2, err := grantsvcv2.New(ctx, grantsvcv2.GranterOpts{
+		DB:              db,
+		Clock:           clk,
+		EventBus:        opts.EventSender,
+		StateMachineARN: opts.StateMachineARN,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
@@ -218,7 +231,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 					AccessHandlerClient:  opts.AccessHandlerClient,
 				},
 			},
-			AHClient: opts.AccessHandlerClient,
+			AHClient:  opts.AccessHandlerClient,
+			GranterV2: granterv2,
 		},
 		Cache: &cachesvc.Service{
 			ProviderConfigReader: opts.DeploymentConfig,

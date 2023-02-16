@@ -40,8 +40,8 @@ type Grant struct {
 	End iso8601.Time `json:"end"`
 
 	ID string `json:"id"`
-	// The ID of the provider to grant access to.
-	TargetGroup string `json:"provider"`
+	// The ID of the targetGroup to grant access to.
+	TargetGroup string `json:"targetGroup"`
 
 	// The start time of the grant in ISO8601 format.
 	Start iso8601.Time `json:"start"`
@@ -125,12 +125,22 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
 	}
 
+	gr := types.Grant{
+		End:      grant.End,
+		ID:       grant.ID,
+		Provider: grant.TargetGroup,
+		Start:    grant.Start,
+		Status:   types.GrantStatus(grant.Status),
+		Subject:  grant.Subject,
+		With: types.Grant_With{
+			AdditionalProperties: grant.Target.Arguments,
+		}}
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
-		grant.Status = GrantStatusERROR
+		gr.Status = types.GrantStatusERROR
 
-		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: types.Grant{}, Reason: err.Error()})
+		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: gr, Reason: err.Error()})
 		if eventErr != nil {
 			return Output{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())
 		}
@@ -141,11 +151,11 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		grant.Status = GrantStatusACTIVE
-		evt = &gevent.GrantActivated{Grant: types.Grant{}}
+		gr.Status = types.GrantStatusACTIVE
+		evt = &gevent.GrantActivated{Grant: gr}
 	case DEACTIVATE:
-		grant.Status = GrantStatusEXPIRED
-		evt = &gevent.GrantExpired{Grant: types.Grant{}}
+		gr.Status = types.GrantStatusEXPIRED
+		evt = &gevent.GrantExpired{Grant: gr}
 	}
 
 	log.Infow("emitting event", "event", evt, "action", in.Action)

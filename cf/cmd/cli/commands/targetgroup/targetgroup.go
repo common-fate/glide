@@ -15,6 +15,7 @@ var Command = cli.Command{
 	Subcommands: []*cli.Command{
 		&CreateCommand,
 		&LinkCommand,
+		&UnlinkCommand,
 		&ListCommand,
 	},
 }
@@ -25,7 +26,9 @@ var CreateCommand = cli.Command{
 	Usage:       "create a target group",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
-		&cli.StringFlag{Name: "schema-from", Required: true},
+		&cli.StringFlag{Name: "schema-from",
+			// TODO: add explanation here
+			Required: true},
 		&cli.BoolFlag{Name: "ok-if-exists"},
 	},
 	Action: func(c *cli.Context) error {

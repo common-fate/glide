@@ -269,6 +269,7 @@ func TestTargetGroupLink(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
@@ -288,6 +289,83 @@ func TestTargetGroupLink(t *testing.T) {
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", "/api/v1/target-groups/123/link", strings.NewReader(tc.give))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
+
+func TestRemoveTargetGroupLink(t *testing.T) {
+	type testcase struct {
+		name                                 string
+		mockGetTargetGroupResponse           targetgroup.TargetGroup
+		mockGetTargetGroupDeploymentResponse targetgroup.Deployment
+		mockGetTargetGroupErr                error
+		want                                 string
+		wantCode                             int
+		mockCreate                           *targetgroup.TargetGroup
+		deploymentId                         string
+		mockCreateErr                        error
+		give                                 string
+	}
+
+	testcases := []testcase{
+		{
+			name:                                 "ok",
+			wantCode:                             http.StatusOK,
+			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
+			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			want:                                 `null`,
+			deploymentId:                         "abc",
+			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
+			give:                                 `{"deploymentId": "abc", "priority": 100}`,
+		},
+		{
+			name:                                 "target group err, error case",
+			wantCode:                             http.StatusInternalServerError,
+			mockCreateErr:                        errors.New("error case"),
+			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			want:                                 `{"error":"Internal Server Error"}`,
+			deploymentId:                         "abc",
+			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
+			give:                                 `{"deploymentId": "abc", "priority": 100}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetTargetGroupDeployment{Result: tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			m := mocks.NewMockTargetGroupService(ctrl)
+
+			m.EXPECT().RemoveTargetGroupLink(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreateErr)
+
+			a := API{DB: db, TargetGroupService: m}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("POST", "/api/v1/target-groups/123/unlink", strings.NewReader(tc.give))
 			if err != nil {
 				t.Fatal(err)
 			}

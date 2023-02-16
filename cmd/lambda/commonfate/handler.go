@@ -106,6 +106,7 @@ func buildHandler() (*Lambda, error) {
 		AdminGroupID:           cfg.AdminGroup,
 		DeploymentConfig:       dc,
 		ProviderRegistryClient: registryClient,
+		StateMachineARN:        cfg.StateMachineARN,
 	})
 	if err != nil {
 		return nil, err

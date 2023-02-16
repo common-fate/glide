@@ -6,7 +6,9 @@ import (
 
 	"github.com/common-fate/common-fate/cmd/devcli/commands/cache"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/deployment"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/grants"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
 
@@ -29,6 +31,8 @@ func main() {
 			&slack.SlackCommand,
 			&cache.CacheCommand,
 			&healthcheck.Command,
+			&deployment.Command,
+			&grants.Command,
 		},
 	}
 

@@ -12,6 +12,7 @@ import (
 var ListCommand = cli.Command{
 	Name:        "list",
 	Description: "list target groups",
+	Usage:       "list target groups",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
 		opts := []types.ClientOption{}

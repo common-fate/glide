@@ -86,14 +86,6 @@ export class CommonFateStackDev extends cdk.Stack {
       appName: appName,
     });
 
-    const targetGroupGranter = new TargetGroupGranter(
-      this,
-      "TargetGroupGranter",
-      {
-        eventBus: events.getEventBus(),
-        eventBusSourceName: events.getEventBusSourceName(),
-      }
-    );
     const accessHandler = new AccessHandler(this, "AccessHandler", {
       appName: appName,
       eventBus: events.getEventBus(),
@@ -146,6 +138,16 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsDeploymentStage,
       kmsKey: kmsKey,
     });
+
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+        dynamoTable: appBackend.getDynamoTable(),
+      }
+    );
     /* Outputs */
     generateOutputs(this, {
       CognitoClientID: userPool.getUserPoolClientId(),
@@ -184,6 +186,9 @@ export class CommonFateStackDev extends cdk.Stack {
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
+      HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
+      HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
+      GranterV2StateMachineArn: targetGroupGranter.getGranterARN(),
     });
   }
 }

@@ -14,6 +14,7 @@ import (
 var DiagnosticCommand = cli.Command{
 	Name:        "diagnostic",
 	Description: "query a deployment by ID and fetch it's diagnostic information",
+	Usage:       "query a deployment by ID and fetch it's diagnostic information",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 	},

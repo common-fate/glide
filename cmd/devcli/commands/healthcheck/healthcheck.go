@@ -1,16 +1,28 @@
 package healthcheck
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	lambdaTypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/briandowns/spinner"
 	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
+	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/joho/godotenv"
+	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
 )
 
@@ -22,19 +34,26 @@ var Command = cli.Command{
 	Description: "healthcheck a deployment",
 	Usage:       "healthcheck a deployment",
 	Flags:       []cli.Flag{&cli.StringSliceFlag{Name: "deployment-mappings"}},
+	Subcommands: []*cli.Command{
+		&LocalCommand,
+		&LambdaCommand,
+	},
+}
+
+var LocalCommand = cli.Command{
+	Name:        "local",
+	Description: "healthcheck a deployment locally",
+	Usage:       "healthcheck a deployment locally",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
-
 		ctx := c.Context
-
-		do, err := deploy.LoadConfig(deploy.DefaultFilename)
+		// Read from the .env file
+		var cfg config.HealthCheckerConfig
+		_ = godotenv.Load()
+		err := envconfig.Process(ctx, &cfg)
 		if err != nil {
 			return err
 		}
-		o, err := do.LoadOutput(ctx)
-		if err != nil {
-			return err
-		}
-		db, err := ddb.New(ctx, o.DynamoDBTable)
+		db, err := ddb.New(ctx, cfg.TableName)
 		if err != nil {
 			return err
 		}
@@ -58,6 +77,94 @@ var Command = cli.Command{
 		opts := []types.ClientOption{}
 
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		if err != nil {
+			return err
+		}
+
+		// now run a fetch
+		listRes, err := cfApi.ListTargetGroupDeploymentsWithResponse(ctx)
+		if err != nil {
+			return err
+		}
+
+		healthyCount := 0
+		unhealthyCount := 0
+
+		if listRes.StatusCode() != http.StatusOK {
+			clio.Error(err)
+			return errors.New("failed to list deployments from API")
+		}
+
+		for _, deployment := range listRes.JSON200.Res {
+			if deployment.Healthy {
+				healthyCount++
+			} else {
+				unhealthyCount++
+			}
+		}
+
+		clio.Log("healthcheck result")
+		clio.Logf("healthy: %d", healthyCount)
+		clio.Logf("unhealthy: %d", unhealthyCount)
+
+		return nil
+	}),
+}
+
+var LambdaCommand = cli.Command{
+	Name:        "lambda",
+	Description: "healthcheck a deployment by invoking the lambda function",
+	Usage:       "healthcheck a deployment by invoking the lambda function",
+	Action: cli.ActionFunc(func(c *cli.Context) error {
+		ctx := c.Context
+
+		dc, err := deploy.LoadConfig(deploy.DefaultFilename)
+		if err != nil {
+			return err
+		}
+		o, err := dc.LoadOutput(ctx)
+		if err != nil {
+			return err
+		}
+
+		cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
+		if err != nil {
+			return err
+		}
+
+		if o.HealthcheckFunctionName == "" {
+			return clierr.New("The healthcheck function name is not yet available. You may need to update your deployment to use this feature.")
+		}
+		si := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		si.Suffix = " invoking healthcheck sync lambda function"
+		si.Writer = os.Stderr
+		si.Start()
+
+		lambdaClient := lambda.NewFromConfig(cfg)
+		res, err := lambdaClient.Invoke(ctx, &lambda.InvokeInput{
+			FunctionName:   &o.HealthcheckFunctionName,
+			InvocationType: lambdaTypes.InvocationTypeRequestResponse,
+			Payload:        []byte("{}"),
+		})
+		si.Stop()
+		if err != nil {
+			return err
+		}
+		b, err := json.Marshal(res)
+		if err != nil {
+			return err
+		}
+		clio.Debugf("healthcheck sync lambda invoke response: %s", string(b))
+		if res.FunctionError != nil {
+			return fmt.Errorf("healthcheck sync failed with lambda execution error: %s", *res.FunctionError)
+		} else if res.StatusCode == 200 {
+
+			clio.Successf("Successfully synced the healthcheck")
+		} else {
+			return fmt.Errorf("healthcheck sync failed with lambda invoke status code: %d", res.StatusCode)
+		}
+
+		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
 		}
