@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -10,16 +11,44 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+func (a *API) fetchTargetGroups(ctx context.Context) []types.TargetGroup {
+	q := storage.ListTargetGroups{}
+
+	_, err := a.DB.Query(ctx, &q)
+
+	var targetGroups []types.TargetGroup
+	// return empty slice if error
+	if err != nil {
+		return nil
+	}
+
+	for _, tg := range q.Result {
+		targetGroups = append(targetGroups, tg.ToAPI())
+	}
+
+	return targetGroups
+}
+
 // Your GET endpoint
 // (GET /api/v1/target-groups)
 func (a *API) ListTargetGroups(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	response, err := a.TargetGroupService.ListTargetGroups(ctx)
+	response := types.ListTargetGroupResponse{TargetGroups: []types.TargetGroup{}}
+
+	q := storage.ListTargetGroups{}
+
+	_, err := a.DB.Query(ctx, &q)
+	// don't return an error response when there are not rules
 
 	if err != nil && err != ddb.ErrNoItems {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	for _, tg := range q.Result {
+		response.TargetGroups = append(response.TargetGroups, tg.ToAPI())
 	}
 
 	apio.JSON(ctx, w, response, http.StatusOK)

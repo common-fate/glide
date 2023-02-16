@@ -31,7 +31,7 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		targetGroups, err := a.TargetGroupService.ListTargetGroups(ctx)
+		targetGroups := a.fetchTargetGroups(ctx)
 		if err != nil {
 			apio.Error(ctx, w, err)
 			return
