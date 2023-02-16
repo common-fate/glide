@@ -57,7 +57,7 @@ const AdminProvidersTable = () => {
     hookProps: {},
   });
 
-  const clippy = useClipboard();
+  const clippy = useClipboard("");
 
   const cols: Column<TargetGroupDeployment>[] = useMemo(
     () => [

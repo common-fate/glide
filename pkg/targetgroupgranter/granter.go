@@ -40,8 +40,8 @@ type Grant struct {
 	End iso8601.Time `json:"end"`
 
 	ID string `json:"id"`
-	// The ID of the provider to grant access to.
-	TargetGroup string `json:"provider"`
+	// The ID of the targetGroup to grant access to.
+	TargetGroup string `json:"targetGroup"`
 
 	// The start time of the grant in ISO8601 format.
 	Start iso8601.Time `json:"start"`

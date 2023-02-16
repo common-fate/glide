@@ -27,6 +27,16 @@ type Target struct {
 	Arguments map[string]string `json:"arguments"`
 }
 
+// NewDefaultModeTarget creates a target from arguments for the Default mode
+// providers will eventually support multiple modes, until then
+// All providers use the "Default" mode
+func NewDefaultModeTarget(args map[string]string) Target {
+	return Target{
+		Mode:      "Default",
+		Arguments: args,
+	}
+}
+
 type grantData struct {
 	Subject string `json:"subject"`
 	Target  Target `json:"target"`

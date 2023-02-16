@@ -33,22 +33,19 @@ var BootstrapCommand = cli.Command{
 	Description: "bootstrap a provider from the registry",
 	Usage:       "bootstrap a provider from the registry",
 	Flags: []cli.Flag{
+		&cli.StringFlag{Name: "id", Required: true, Usage: "publisher/name@version"},
 		&cli.StringFlag{Name: "bootstrap-bucket", Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket to copy assets into", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
 		&cli.StringFlag{Name: "registry-api-url", Value: build.ProviderRegistryAPIURL, EnvVars: []string{"COMMONFATE_PROVIDER_REGISTRY_API_URL"}, Hidden: true},
 	},
 
 	Action: func(c *cli.Context) error {
 
-		id := c.Args().First()
-		if id == "" {
-			return errors.New("id argument must be provided")
-		}
-
 		ctx := context.Background()
 		registryClient, err := providerregistrysdk.NewClientWithResponses(c.String("registry-api-url"))
 		if err != nil {
 			return errors.New("error configuring provider registry client")
 		}
+		id := c.String("id")
 
 		keys := strings.Split(id, "@")
 
@@ -92,7 +89,7 @@ var BootstrapCommand = cli.Command{
 		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(bootstrapBucket),
 			Key:        aws.String(path.Join(lambdaAssetPath, "handler.zip")),
-			CopySource: aws.String(url.QueryEscape(path.Join(res.JSON200.LambdaAssetS3Arn, "handler.zip"))),
+			CopySource: aws.String(url.QueryEscape(res.JSON200.LambdaAssetS3Arn)),
 		})
 		if err != nil {
 			return err
@@ -101,7 +98,7 @@ var BootstrapCommand = cli.Command{
 		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(bootstrapBucket),
 			Key:        aws.String(path.Join(lambdaAssetPath, "cloudformation.json")),
-			CopySource: aws.String(url.QueryEscape(path.Join(res.JSON200.LambdaAssetS3Arn, "cloudformation.json"))),
+			CopySource: aws.String(url.QueryEscape(res.JSON200.CfnTemplateS3Arn)),
 		})
 		if err != nil {
 			return err
