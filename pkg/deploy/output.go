@@ -50,6 +50,8 @@ type Output struct {
 	IDPSyncExecutionRoleARN       string `json:"IDPSyncExecutionRoleARN"`
 	CacheSyncFunctionName         string `json:"CacheSyncFunctionName"`
 	CLIAppClientID                string `json:"CLIAppClientID"`
+	HealthcheckFunctionName       string `json:"HealthcheckFunctionName"`
+	HealthcheckLogGroup           string `json:"HealthcheckLogGroup"`
 }
 
 func (c Output) FrontendURL() string {

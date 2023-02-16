@@ -184,6 +184,8 @@ export class CommonFateStackDev extends cdk.Stack {
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
+      HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
+      HealthcheckLogGroup: appBackend.getHealthChecker().getLogGroupName(),
     });
   }
 }

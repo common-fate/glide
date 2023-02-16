@@ -68,6 +68,8 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		CacheSyncFunctionName:         "abcdefg",
 		GovernanceURL:                 "abcdefg",
 		CLIAppClientID:                "abcdefg",
+		HealthcheckFunctionName:       "abcdefg",
+		HealthcheckLogGroup:           "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
@@ -121,6 +123,14 @@ func TestOutput_Get(t *testing.T) {
 		PaginationKMSKeyARN           string
 		AccessHandlerExecutionRoleARN string
 		CacheSyncFunctionName         string
+		GovernanceURL                 string
+		CLIAppClientID                string
+		HealthcheckFunctionName       string
+		HealthcheckLogGroup           string
+		WebhookLogGroupName           string
+		CacheSyncLogGroupName         string
+		RestAPIExecutionRoleARN       string
+		IDPSyncExecutionRoleARN       string
 	}
 	type args struct {
 		key string
@@ -178,6 +188,15 @@ func TestOutput_Get(t *testing.T) {
 				Region:                        tt.fields.Region,
 				PaginationKMSKeyARN:           tt.fields.PaginationKMSKeyARN,
 				AccessHandlerExecutionRoleARN: tt.fields.AccessHandlerExecutionRoleARN,
+				GovernanceURL:                 tt.fields.GovernanceURL,
+				WebhookLogGroupName:           tt.fields.WebhookLogGroupName,
+				CacheSyncLogGroupName:         tt.fields.CacheSyncLogGroupName,
+				RestAPIExecutionRoleARN:       tt.fields.RestAPIExecutionRoleARN,
+				IDPSyncExecutionRoleARN:       tt.fields.IDPSyncExecutionRoleARN,
+				CacheSyncFunctionName:         tt.fields.CacheSyncFunctionName,
+				CLIAppClientID:                tt.fields.CLIAppClientID,
+				HealthcheckFunctionName:       tt.fields.HealthcheckFunctionName,
+				HealthcheckLogGroup:           tt.fields.HealthcheckLogGroup,
 			}
 			got, err := o.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {
