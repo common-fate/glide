@@ -44,12 +44,15 @@ var ListProvidersCommand = cli.Command{
 		table.SetHeaderLine(false)
 		table.SetBorder(false)
 
-		for _, d := range res.JSON200.Providers {
+		if res.JSON200 != nil {
+			for _, d := range res.JSON200.Providers {
 
-			table.Append([]string{
-				d.Name, d.Publisher, d.Version, d.LambdaAssetS3Arn,
-			})
+				table.Append([]string{
+					d.Name, d.Publisher, d.Version, d.LambdaAssetS3Arn,
+				})
+			}
 		}
+
 		table.Render()
 		return nil
 	},

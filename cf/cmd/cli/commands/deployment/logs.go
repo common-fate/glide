@@ -25,8 +25,7 @@ var LogsCommand = cli.Command{
 
 var WatchCommand = cli.Command{
 	Name:        "watch",
-	Description: "register a deployment",
-	Usage:       "register a deployment",
+	Description: "Stream logs for a deployment",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 	},
@@ -38,6 +37,7 @@ var WatchCommand = cli.Command{
 			return err
 		}
 
+		//deployment should have the same name as the actual lambda
 		logGroup := "/aws/lambda/" + c.String("id")
 		wg := sync.WaitGroup{}
 		wg.Add(1)
@@ -72,8 +72,7 @@ func watchEvents(group string, region string, filter string) {
 
 var GetCommand = cli.Command{
 	Name:        "get",
-	Description: "register a deployment",
-	Usage:       "register a deployment",
+	Description: "Get logs for a deployment",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "start", Usage: "Start time", Value: "-5m", Required: false},
