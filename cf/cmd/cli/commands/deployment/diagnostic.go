@@ -41,12 +41,12 @@ var DiagnosticCommand = cli.Command{
 
 		if res.JSON200 != nil {
 			dep := res.JSON200
-			healthEmoji := "🟢"
+			health := "healthy"
 			if !dep.Healthy {
-				healthEmoji = "🔴"
+				health = "unhealthy"
 			}
 			fmt.Println("Diagnostic Logs:")
-			fmt.Printf("%s %s %s %s\n", dep.Id, dep.AwsAccount, dep.AwsRegion, healthEmoji)
+			fmt.Printf("%s %s %s %s\n", dep.Id, dep.AwsAccount, dep.AwsRegion, health)
 
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{

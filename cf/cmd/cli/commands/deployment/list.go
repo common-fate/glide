@@ -41,12 +41,12 @@ var ListCommand = cli.Command{
 			table.SetBorder(false)
 
 			for _, d := range res.JSON200.Res {
-				healthEmoji := "🟢"
+				health := "healthy"
 				if !d.Healthy {
-					healthEmoji = "🔴"
+					health = "unhealthy"
 				}
 				table.Append([]string{
-					d.Id, d.AwsAccount, d.AwsRegion, healthEmoji,
+					d.Id, d.AwsAccount, d.AwsRegion, health,
 				})
 			}
 			table.Render()
