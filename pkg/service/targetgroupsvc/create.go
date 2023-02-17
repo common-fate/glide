@@ -69,7 +69,7 @@ func (s *Service) CreateTargetGroupLink(ctx context.Context, req types.CreateTar
 	if err != nil {
 		return nil, err
 	}
-	if p.Result.TargetGroupAssignment != nil {
+	if p.Result.TargetGroupAssignment != nil && !req.Force {
 		//means that there was a deployment already linked with a target group so this cannot be linked
 		return nil, errors.New("target group deployment already linked with a target group")
 	}

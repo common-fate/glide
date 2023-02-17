@@ -68,6 +68,7 @@ var LinkCommand = cli.Command{
 		&cli.StringFlag{Name: "group", Required: true},
 		&cli.StringFlag{Name: "deployment", Required: true},
 		&cli.IntFlag{Name: "priority", Value: 100},
+		&cli.BoolFlag{Name: "force"},
 	},
 	Action: func(c *cli.Context) error {
 
@@ -90,6 +91,7 @@ var LinkCommand = cli.Command{
 		result, err := cfApi.CreateTargetGroupLinkWithResponse(ctx, group, types.CreateTargetGroupLinkJSONRequestBody{
 			DeploymentId: deployment,
 			Priority:     priority,
+			Force:        c.Bool("force"),
 		})
 		if err != nil {
 			return err
