@@ -46,9 +46,9 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 		wantBody       string
 		withCreatedDep *targetgroup.Deployment
 		// if this flag is enabled giveBody is ignored and an invalid JSON obj is passed
-		giveInvalidBody                    bool
-		giveBody                           types.CreateTargetGroupDeploymentRequest
-		mockCreateTargetgroupDeployment    *targetgroup.Deployment
+		giveInvalidBody bool
+		giveBody        types.CreateTargetGroupDeploymentRequest
+		// mockCreateTargetgroupDeployment    *targetgroup.Deployment
 		mockCreateTargetgroupDeploymentErr error
 	}
 

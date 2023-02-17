@@ -22,9 +22,9 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		mockGetTargetGroupErr                error                   // ok
 		mockGetTargetGroupDeploymentResponse targetgroup.Deployment  // ok
 		mockGetTargetGroupDeploymentErr      error                   // ok
-		mockPutTargetGroupDeployment         *targetgroup.Deployment
-		mockPutTargetGroupDeploymentErr      error // ok
-		want                                 error // ok
+		// mockPutTargetGroupDeployment         *targetgroup.Deployment
+		mockPutTargetGroupDeploymentErr error // ok
+		want                            error // ok
 	}
 
 	testcases := []testcase{
