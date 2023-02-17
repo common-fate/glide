@@ -25,7 +25,7 @@ type Service struct {
 	Cache       CacheService
 	AHClient    AHClient
 	Rules       AccessRuleService
-	GranterV2   grantsvcv2.Granter
+	GranterV2   *grantsvcv2.Granter
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/granter.go -package=mocks . Granter

@@ -194,12 +194,15 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		DeploymentConfig: opts.DeploymentConfig,
 	})
 
-	grantsvcv2.New(ctx, grantsvcv2.GranterOpts{
+	granterv2, err := grantsvcv2.New(ctx, grantsvcv2.GranterOpts{
 		DB:              db,
 		Clock:           clk,
 		EventBus:        opts.EventSender,
 		StateMachineARN: opts.StateMachineARN,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
@@ -228,7 +231,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 					AccessHandlerClient:  opts.AccessHandlerClient,
 				},
 			},
-			AHClient: opts.AccessHandlerClient,
+			AHClient:  opts.AccessHandlerClient,
+			GranterV2: granterv2,
 		},
 		Cache: &cachesvc.Service{
 			ProviderConfigReader: opts.DeploymentConfig,

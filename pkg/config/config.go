@@ -27,7 +27,7 @@ type Config struct {
 
 	NoAuthEmail            string `env:"NO_AUTH_EMAIL"`
 	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
-	StateMachineARN        string `env:"COMMONFATE_STATE_MACHINE_ARN"`
+	StateMachineARN        string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type NotificationsConfig struct {

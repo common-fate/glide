@@ -6,9 +6,11 @@ import { Duration, Stack } from "aws-cdk-lib";
 import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
 import { grantInvokeCommunityProviders } from "../helpers/permissions";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
 
 interface Props {
   eventBusSourceName: string;
+  dynamoTable: Table;
   eventBus: EventBus;
 }
 export class TargetGroupGranter extends Construct {
@@ -34,10 +36,14 @@ export class TargetGroupGranter extends Construct {
       environment: {
         COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
+        COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "targetgroup-granter",
     });
+
+    props.dynamoTable.grantReadData(this._lambda);
+    props.eventBus.grantPutEventsTo(this._lambda);
 
     grantInvokeCommunityProviders(this._lambda);
 

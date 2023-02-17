@@ -70,6 +70,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		CLIAppClientID:                "abcdefg",
 		HealthcheckFunctionName:       "abcdefg",
 		HealthcheckLogGroupName:       "abcdefg",
+		GranterV2StateMachineArn:      "abcdefg",
 	}
 	b, err := json.Marshal(output)
 	if err != nil {
@@ -131,6 +132,7 @@ func TestOutput_Get(t *testing.T) {
 		CacheSyncLogGroupName         string
 		RestAPIExecutionRoleARN       string
 		IDPSyncExecutionRoleARN       string
+		GranterV2StateMachineArn      string
 	}
 	type args struct {
 		key string
@@ -197,6 +199,7 @@ func TestOutput_Get(t *testing.T) {
 				CLIAppClientID:                tt.fields.CLIAppClientID,
 				HealthcheckFunctionName:       tt.fields.HealthcheckFunctionName,
 				HealthcheckLogGroupName:       tt.fields.HealthcheckLogGroupName,
+				GranterV2StateMachineArn:      tt.fields.GranterV2StateMachineArn,
 			}
 			got, err := o.Get(tt.args.key)
 			if (err != nil) != tt.wantErr {
