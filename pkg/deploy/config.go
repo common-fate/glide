@@ -512,12 +512,6 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &p.AnalyticsDeploymentStage,
 		})
 	}
-	if c.Deployment.Parameters.EnableCronHealthCheckInDev != "" {
-		res = append(res, types.Parameter{
-			ParameterKey:   aws.String("EnableCronHealthCheckInDev"),
-			ParameterValue: &p.EnableCronHealthCheckInDev,
-		})
-	}
 
 	return res, nil
 }

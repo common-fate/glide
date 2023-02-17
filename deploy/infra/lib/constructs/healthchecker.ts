@@ -35,18 +35,17 @@ export class HealthChecker extends Construct {
 
     props.dynamoTable.grantReadWriteData(this._lambda);
 
-    if (props.shouldRunAsCron) {
-      //add event bridge trigger to lambda every minute
-      this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
-        schedule: events.Schedule.cron({ minute: "0/1" }),
-      });
+    //add event bridge trigger to lambda every minute
+    this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
+      schedule: events.Schedule.cron({ minute: "0/1" }),
+      enabled: props.shouldRunAsCron,
+    });
 
-      // add the Lambda function as a target for the Event Rule
-      this.eventRule.addTarget(new targets.LambdaFunction(this._lambda));
+    // add the Lambda function as a target for the Event Rule
+    this.eventRule.addTarget(new targets.LambdaFunction(this._lambda));
 
-      // allow the Event Rule to invoke the Lambda function
-      targets.addLambdaPermission(this.eventRule, this._lambda);
-    }
+    // allow the Event Rule to invoke the Lambda function
+    targets.addLambdaPermission(this.eventRule, this._lambda);
 
     // allows to invoke the function from any account if they have the correct tag
     grantInvokeCommunityProviders(this._lambda);
