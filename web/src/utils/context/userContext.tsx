@@ -4,6 +4,7 @@ import CFSpinner from "../../components/CFSpinner";
 import NoUser from "../../pages/noUserPage";
 import { userGetMe } from "../backend-client/end-user/end-user";
 import { User } from "../backend-client/types";
+import { useCognito } from "./cognitoContext";
 import { createCtx } from "./createCtx";
 
 export interface UserContextProps {
@@ -21,23 +22,26 @@ const UserProvider: React.FC<Props> = ({ children }) => {
   const [loadingMe, setLoadingMe] = useState<boolean>(true);
   const [user, setUser] = useState<User | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState<boolean>();
+  const { cognitoAuthenticatedUserEmail } = useCognito();
 
   useEffect(() => {
-    setLoadingMe(true);
-    userGetMe()
-      .then((u) => {
-        if (u) {
-          setUser(u.user);
-          setIsAdmin(u.isAdmin);
-          setLoadingMe(false);
-        } else {
-          setUser(undefined);
-          setIsAdmin(undefined);
-          setLoadingMe(false);
-        }
-      })
-      .catch((e) => console.error(e));
-  }, []);
+    if (cognitoAuthenticatedUserEmail !== undefined) {
+      setLoadingMe(true);
+      userGetMe()
+        .then((u) => {
+          if (u) {
+            setUser(u.user);
+            setIsAdmin(u.isAdmin);
+            setLoadingMe(false);
+          } else {
+            setUser(undefined);
+            setIsAdmin(undefined);
+            setLoadingMe(false);
+          }
+        })
+        .catch((e) => console.error(e));
+    }
+  }, [cognitoAuthenticatedUserEmail]);
 
   if (loadingMe && user === undefined) {
     return (
@@ -64,7 +68,6 @@ const UserProvider: React.FC<Props> = ({ children }) => {
     <UserContextProvider
       value={{
         user,
-
         isAdmin,
       }}
     >

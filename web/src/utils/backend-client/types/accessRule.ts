@@ -22,4 +22,6 @@ When a rule is updated, it's ID remains consistent.
   target: AccessRuleTarget;
   timeConstraints: TimeConstraints;
   isCurrent: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

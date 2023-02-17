@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/okta/fixtures"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providertest"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providertest/integration"
@@ -52,7 +53,7 @@ func TestInstructions(t *testing.T) {
 		uniqueID: gconfig.StringValue{Value: "1234"},
 	}
 	args := `{"vault": "my-vault"}`
-	got, err := p.Instructions(context.Background(), "testuser", []byte(args), "")
+	got, err := p.Instructions(context.Background(), "testuser", []byte(args), providers.InstructionsTemplate{})
 	if err != nil {
 		t.Fatal(err)
 	}

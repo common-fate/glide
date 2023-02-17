@@ -116,54 +116,87 @@ func idpGroupFromOktaGroup(oktaGroup *okta.Group) identity.IDPGroup {
 	}
 }
 
+func logResponseErr(log *zap.SugaredLogger, res *okta.Response, err error) {
+	b, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		log.Errorw("error reading Okta error response body", zap.Error(readErr))
+	} else {
+		log.Errorw("error listing Okta users", zap.Error(err), "body", string(b))
+	}
+}
+
 func (o *OktaSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
 	log := logger.Get(ctx)
 
 	//get all users
 	idpUsers := []identity.IDPUser{}
-	hasMore := true
-	var paginationToken string
-	for hasMore {
-		users, res, err := o.client.User.ListUsers(ctx, &query.Params{Cursor: paginationToken})
-		if err != nil {
-			// try and log the response body
-			b, readErr := io.ReadAll(res.Body)
-			if readErr != nil {
-				log.Errorw("error reading Okta error response body", zap.Error(readErr))
-			} else {
-				log.Errorw("error listing Okta users", zap.Error(err), "body", string(b))
-			}
 
-			return nil, errors.Wrap(err, "listing okta users from okta API")
-		}
-		for _, u := range users {
-			user, err := o.idpUserFromOktaUser(ctx, u)
-			if err != nil {
-				return nil, errors.Wrapf(err, "converting okta user %s to internal user", u.Id)
-			}
-			idpUsers = append(idpUsers, user)
-		}
-		paginationToken = res.NextPage
-		hasMore = paginationToken != ""
+	log.Debugw("listing all okta users")
+
+	users, res, err := o.client.User.ListUsers(ctx, &query.Params{})
+	if err != nil {
+		// try and log the response body
+		logResponseErr(log, res, err)
+		return nil, errors.Wrap(err, "listing okta users from okta API")
 	}
+
+	log.Debugw("listed all okta users")
+
+	for res.HasNextPage() {
+		var nextUsers []*okta.User
+		res, err = res.Next(ctx, &nextUsers)
+		if err != nil {
+			logResponseErr(log, res, err)
+			return nil, err
+		}
+		users = append(users, nextUsers...)
+		log.Debugw("fetched more users", "nextPage", res.NextPage)
+	}
+
+	// convert all Okta users to internal users
+	for _, u := range users {
+		user, err := o.idpUserFromOktaUser(ctx, u)
+		if err != nil {
+			return nil, errors.Wrapf(err, "converting okta user %s to internal user", u.Id)
+		}
+		idpUsers = append(idpUsers, user)
+	}
+
 	return idpUsers, nil
 }
 
 func (o *OktaSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
+	log := logger.Get(ctx)
+
+	log.Debugw("listing all okta groups")
+
 	idpGroups := []identity.IDPGroup{}
-	hasMore := true
-	var paginationToken string
-	for hasMore {
-		groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{Cursor: paginationToken})
-		if err != nil {
-			return nil, errors.Wrap(err, "listing okta groups from okta API")
-		}
-		for _, g := range groups {
-			idpGroups = append(idpGroups, idpGroupFromOktaGroup(g))
-		}
-		paginationToken = res.NextPage
-		//Check that the next token is not nil so we don't need any more polling
-		hasMore = paginationToken != ""
+
+	groups, res, err := o.client.Group.ListGroups(ctx, &query.Params{})
+	if err != nil {
+		// try and log the response body
+		logResponseErr(log, res, err)
+		return nil, errors.Wrap(err, "listing okta groups from okta API")
 	}
+
+	log.Debugw("listed all okta groups")
+
+	for res.HasNextPage() {
+		log.Debugw("hasmore")
+		var nextGroups []*okta.Group
+		res, err = res.Next(ctx, &nextGroups)
+		if err != nil {
+			logResponseErr(log, res, err)
+			return nil, err
+		}
+		groups = append(groups, nextGroups...)
+		log.Debugw("fetched more groups", "nextPage", res.NextPage)
+	}
+
+	// convert all Okta groups to internal groups
+	for _, g := range groups {
+		idpGroups = append(idpGroups, idpGroupFromOktaGroup(g))
+	}
+
 	return idpGroups, nil
 }

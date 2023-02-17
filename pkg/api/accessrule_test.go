@@ -604,7 +604,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			want: `[{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 		{
 			name:     "multiple matches",
@@ -638,7 +638,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}},{"accessRule":{"description":"","id":"second","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""}}]`,
+			want: `[{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 		{
 			name:     "match with selectable",
@@ -669,7 +669,7 @@ func TestLookupAccessRules(t *testing.T) {
 					},
 				},
 			},
-			want: `[{"accessRule":{"description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
+			want: `[{"accessRule":{"createdAt":"0001-01-01T00:00:00Z","description":"","id":"test","isCurrent":false,"name":"","target":{"provider":{"id":"test-provider","type":"aws-sso"}},"timeConstraints":{"maxDurationSeconds":0},"updatedAt":"0001-01-01T00:00:00Z","version":""},"selectableWithOptionValues":[{"key":"accountId","value":"123456789012"},{"key":"permissionSetArn","value":"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"}]}]`,
 		},
 	}
 

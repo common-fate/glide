@@ -68,6 +68,7 @@ type API struct {
 	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 	AdminGroup          string
 	IdentityProvider    string
+	FrontendURL         string
 	Granter             accesssvc.Granter
 	Cache               CacheService
 	IdentitySyncer      auth.IdentitySyncer
@@ -160,6 +161,7 @@ type Opts struct {
 	IDPType                string
 	AdminGroupID           string
 	StateMachineARN        string
+	FrontendURL            string
 }
 
 // New creates a new API.
@@ -207,6 +209,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
 		AdminGroup:       opts.AdminGroup,
+		FrontendURL:      opts.FrontendURL,
 		InternalIdentity: &internalidentitysvc.Service{
 			DB:    db,
 			Clock: clk,

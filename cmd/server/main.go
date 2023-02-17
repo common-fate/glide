@@ -140,6 +140,7 @@ func run() error {
 		TemplateData:           td,
 		ProviderRegistryClient: registryClient,
 		StateMachineARN:        cfg.StateMachineARN,
+		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {
 		return err

@@ -12,6 +12,7 @@ import (
 	idtypes "github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin/types"
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/sethvargo/go-retry"
 )
 
@@ -264,14 +265,15 @@ func (p *Provider) getUser(ctx context.Context, email string) (*idtypes.User, er
 	}
 
 	return nil, &UserNotFoundError{Email: email}
-
 }
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
+
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, t providers.InstructionsTemplate) (string, error) {
 	var a Args
 	err := json.Unmarshal(args, &a)
 	if err != nil {
 		return "", err
 	}
+
 	po, err := p.client.DescribePermissionSet(ctx, &ssoadmin.DescribePermissionSetInput{
 		InstanceArn: aws.String(p.instanceARN.Get()), PermissionSetArn: aws.String(a.PermissionSetARN),
 	})

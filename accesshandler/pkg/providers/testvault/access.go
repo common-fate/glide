@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	tv "github.com/common-fate/testvault"
 	"go.uber.org/zap"
 )
@@ -74,7 +75,7 @@ func (p *Provider) IsActive(ctx context.Context, subject string, args []byte, gr
 	return exists, nil
 }
 
-func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error) {
+func (p *Provider) Instructions(ctx context.Context, subject string, args []byte, t providers.InstructionsTemplate) (string, error) {
 
 	var a Args
 	err := json.Unmarshal(args, &a)

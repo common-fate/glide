@@ -79,6 +79,7 @@ type FrontendDeployerConfig struct {
 	FrontendDomain                       string `env:"COMMONFATE_FRONTEND_DOMAIN,required"`
 	CloudFrontDistributionID             string `env:"COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID,required"`
 	APIURL                               string `env:"COMMONFATE_API_URL,required"`
+	CLIAppClientID                       string `env:"COMMONFATE_CLI_CLIENT_ID,required"`
 }
 
 type ProviderDeploymentCLI struct {

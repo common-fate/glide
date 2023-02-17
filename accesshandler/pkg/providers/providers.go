@@ -72,10 +72,17 @@ type ArgOptioner interface {
 	Options(ctx context.Context, arg string) (*types.ArgOptionsResponse, error)
 }
 
+// InstructionsTemplate is template data provided
+// by the Common Fate API.
+type InstructionsTemplate struct {
+	GrantID     string
+	FrontendURL string
+}
+
 // Instructioners provide instructions on how a user can access a role or
 // resource that we've granted access to
 type Instructioner interface {
-	Instructions(ctx context.Context, subject string, args []byte, grantId string) (string, error)
+	Instructions(ctx context.Context, subject string, args []byte, t InstructionsTemplate) (string, error)
 }
 
 // SetupDocers return an embedded filesystem containing setup documentation.

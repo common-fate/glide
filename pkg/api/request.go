@@ -9,6 +9,7 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/apikit/logger"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
@@ -354,10 +355,13 @@ func (a *API) UserGetAccessInstructions(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	logger.Get(ctx).Infow("getting access instructions", "frontendURL", a.FrontendURL)
+
 	res, err := a.AccessHandlerClient.GetAccessInstructionsWithResponse(ctx, q.Result.Grant.Provider, &ahtypes.GetAccessInstructionsParams{
-		Subject: q.Result.Grant.Subject,
-		Args:    string(args),
-		GrantId: q.ID,
+		Subject:     q.Result.Grant.Subject,
+		Args:        string(args),
+		GrantId:     q.ID,
+		FrontendUrl: a.FrontendURL,
 	})
 	if err != nil {
 		apio.Error(ctx, w, err)
