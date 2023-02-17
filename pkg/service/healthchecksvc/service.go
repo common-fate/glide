@@ -97,12 +97,7 @@ func (s *Service) Check(ctx context.Context) error {
 		deploymentItem.ProviderDescription = describeRes
 		deploymentItem.Healthy = healthy
 
-		// @TODO validate target schema against targetgroup
 		if deploymentItem.TargetGroupAssignment != nil {
-			// This needs to be replaced with an actual check
-
-			// need to do a structural comparison of the scheam for the provider in the describe against the schema stored on the target group
-
 			//lookup target group
 			targetGroup := storage.GetTargetGroup{ID: deploymentItem.TargetGroupAssignment.TargetGroupID}
 
@@ -111,8 +106,7 @@ func (s *Service) Check(ctx context.Context) error {
 				return err
 			}
 
-			valid := s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
-			deploymentItem.TargetGroupAssignment.Valid = valid
+			deploymentItem.TargetGroupAssignment.Valid = s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
 
 		}
 
