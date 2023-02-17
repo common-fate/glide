@@ -25,13 +25,14 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
-	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
+
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/live"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 
 	"github.com/common-fate/common-fate/pkg/types"
@@ -69,14 +70,15 @@ type API struct {
 	AdminGroup          string
 	IdentityProvider    string
 	FrontendURL         string
-	Granter             accesssvc.Granter
-	Cache               CacheService
-	IdentitySyncer      auth.IdentitySyncer
+
+	Cache          CacheService
+	IdentitySyncer auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito                      CognitoService
 	InternalIdentity             InternalIdentityService
 	TargetGroupService           TargetGroupService
 	TargetGroupDeploymentService TargetGroupDeploymentService
+	Workflow                     Workflow
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -141,6 +143,9 @@ type TargetGroupService interface {
 type TargetGroupDeploymentService interface {
 	CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error)
 }
+type Workflow interface {
+	Revoke(ctx context.Context, request access.Request, revokerID string) (*access.Request, error)
+}
 
 // API must meet the generated REST API interface.
 var _ types.ServerInterface = &API{}
@@ -188,20 +193,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	clk := clock.New()
 
-	granter := grantsvc.New(grantsvc.GranterOpts{
-		AHClient:         opts.AccessHandlerClient,
-		DB:               db,
-		Clock:            clk,
-		EventBus:         opts.EventSender,
-		DeploymentConfig: opts.DeploymentConfig,
-	})
-
-	granterv2, err := grantsvcv2.New(ctx, grantsvcv2.GranterOpts{
-		DB:              db,
-		Clock:           clk,
-		EventBus:        opts.EventSender,
-		StateMachineARN: opts.StateMachineARN,
-	})
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +208,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Access: &accesssvc.Service{
 			Clock:       clk,
 			DB:          db,
-			Granter:     granter,
 			EventPutter: opts.EventSender,
 			Cache: &cachesvc.Service{
 				ProviderConfigReader: opts.DeploymentConfig,
@@ -234,8 +224,16 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 					AccessHandlerClient:  opts.AccessHandlerClient,
 				},
 			},
-			AHClient:  opts.AccessHandlerClient,
-			GranterV2: granterv2,
+			AHClient: opts.AccessHandlerClient,
+			Workflow: &workflowsvc.Service{
+				Runtime: &live.Runtime{
+					StateMachineARN: opts.StateMachineARN,
+					AHClient:        opts.AccessHandlerClient,
+				},
+				DB:       db,
+				Clk:      clk,
+				Eventbus: opts.EventSender,
+			},
 		},
 		Cache: &cachesvc.Service{
 			ProviderConfigReader: opts.DeploymentConfig,
@@ -259,7 +257,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,
-		Granter:             granter,
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
 		TargetGroupService: &targetgroupsvc.Service{
@@ -270,6 +267,15 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		TargetGroupDeploymentService: &targetdeploymentsvc.Service{
 			DB:    db,
 			Clock: clk,
+		},
+		Workflow: &workflowsvc.Service{
+			Runtime: &live.Runtime{
+				StateMachineARN: opts.StateMachineARN,
+				AHClient:        opts.AccessHandlerClient,
+			},
+			DB:       db,
+			Clk:      clk,
+			Eventbus: opts.EventSender,
 		},
 	}
 

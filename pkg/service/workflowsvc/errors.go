@@ -1,4 +1,4 @@
-package grantsvcv2
+package workflowsvc
 
 import (
 	"errors"

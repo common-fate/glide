@@ -10,8 +10,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
-	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -20,21 +18,15 @@ import (
 type Service struct {
 	Clock       clock.Clock
 	DB          ddb.Storage
-	Granter     Granter
 	EventPutter EventPutter
 	Cache       CacheService
 	AHClient    AHClient
 	Rules       AccessRuleService
-	GranterV2   *grantsvcv2.Granter
+	Workflow    Workflow
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/granter.go -package=mocks . Granter
-
-// Granter creates Grants in the Access Handler.
-type Granter interface {
-	CreateGrant(ctx context.Context, opts grantsvc.CreateGrantOpts) (*access.Request, error)
-	RevokeGrant(ctx context.Context, opts grantsvc.RevokeGrantOpts) (*access.Request, error)
-	ValidateGrant(ctx context.Context, opts grantsvc.CreateGrantOpts) error
+type Workflow interface {
+	Grant(ctx context.Context, request access.Request, accessRule rule.AccessRule) (*access.Grant, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
