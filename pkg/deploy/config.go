@@ -182,6 +182,7 @@ type Parameters struct {
 	AnalyticsURL                    string         `yaml:"AnalyticsURL,omitempty"`
 	AnalyticsLogLevel               string         `yaml:"AnalyticsLogLevel,omitempty"`
 	AnalyticsDeploymentStage        string         `yaml:"AnalyticsDeploymentStage,omitempty"`
+	EnableCronHealthCheckInDev      string         `yaml:"EnableCronHealthCheckInDev,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -509,6 +510,12 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("AnalyticsDeploymentStage"),
 			ParameterValue: &p.AnalyticsDeploymentStage,
+		})
+	}
+	if c.Deployment.Parameters.EnableCronHealthCheckInDev != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("EnableCronHealthCheckInDev"),
+			ParameterValue: &p.EnableCronHealthCheckInDev,
 		})
 	}
 

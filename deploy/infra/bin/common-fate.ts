@@ -40,6 +40,16 @@ const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
 
+let shouldRunCronHealthCheckCacheSync = app.node.tryGetContext(
+  "enableCronHealthCheck"
+);
+
+if (typeof shouldRunCronHealthCheckCacheSync === "string") {
+  if (shouldRunCronHealthCheckCacheSync.toLowerCase() == "true") {
+    shouldRunCronHealthCheckCacheSync = true;
+  }
+}
+
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one
 // To prepare the prod stack only, set the env var to "prod"
@@ -84,6 +94,8 @@ if (stackTarget === "dev") {
     analyticsUrl: analyticsUrl || "",
     analyticsLogLevel: analyticsLogLevel || "",
     analyticsDeploymentStage: analyticsDeploymentStage || "",
+    shouldRunCronHealthCheckCacheSync:
+      shouldRunCronHealthCheckCacheSync || false,
   });
 } else if (stackTarget === "prod") {
   new CommonFateStackProd(app, "Granted", {

@@ -40,6 +40,7 @@ interface Props {
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
   kmsKey: cdk.aws_kms.Key;
+  shouldRunCronHealthCheckCacheSync: boolean;
 }
 
 export class AppBackend extends Construct {
@@ -319,9 +320,11 @@ export class AppBackend extends Construct {
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,
       accessHandler: props.accessHandler,
+      shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
     });
     this._healthChecker = new HealthChecker(this, "HealthCheck", {
       dynamoTable: this._dynamoTable,
+      shouldRunAsCron: 
     });
   }
 
