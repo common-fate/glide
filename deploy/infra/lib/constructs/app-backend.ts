@@ -324,7 +324,7 @@ export class AppBackend extends Construct {
     });
     this._healthChecker = new HealthChecker(this, "HealthCheck", {
       dynamoTable: this._dynamoTable,
-      shouldRunAsCron: 
+      shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
     });
   }
 
