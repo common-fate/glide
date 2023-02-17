@@ -110,8 +110,30 @@ func (s *Service) Check(ctx context.Context) error {
 				return err
 			}
 
+			targetGroupSchemaMap := make(map[string]string)
+			for _, arg := range targetGroup.Result.TargetSchema.Schema.AdditionalProperties {
+
+				if arg.ResourceName != nil {
+					targetGroupSchemaMap[arg.Id] = "string"
+
+				} else {
+					targetGroupSchemaMap[arg.Id] = *arg.ResourceName
+
+				}
+			}
+			describeSchemaMap := make(map[string]string)
+			for _, arg := range describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties {
+				if arg.ResourceName != nil {
+					describeSchemaMap[arg.Id] = "string"
+
+				} else {
+					describeSchemaMap[arg.Id] = *arg.ResourceName
+
+				}
+			}
+
 			//do some sort of check here to validate that the schemas are the same and valid.
-			deploymentItem.TargetGroupAssignment.Valid = reflect.DeepEqual(targetGroup.Result.TargetSchema.Schema, describeRes.Schema.Target)
+			deploymentItem.TargetGroupAssignment.Valid = reflect.DeepEqual(describeSchemaMap, targetGroupSchemaMap)
 		}
 
 		// update the deployment
