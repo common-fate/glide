@@ -6,15 +6,13 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/iso8601"
 
-	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
-	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/pkg/errors"
 )
 
@@ -23,7 +21,9 @@ type Granter struct {
 	DB            ddb.Storage
 	RequestRouter *requestroutersvc.Service
 }
-
+type WorkflowInput struct {
+	Grant ahTypes.Grant `json:"grant"`
+}
 type EventType string
 
 const (
@@ -32,42 +32,12 @@ const (
 )
 
 type InputEvent struct {
-	Action EventType `json:"action"`
-	Grant  Grant     `json:"grant"`
+	Action EventType     `json:"action"`
+	Grant  ahTypes.Grant `json:"grant"`
 }
-type Grant struct {
-	// The end time of the grant in ISO8601 format.
-	End iso8601.Time `json:"end"`
-
-	ID string `json:"id"`
-	// The ID of the targetGroup to grant access to.
-	TargetGroup string `json:"targetGroup"`
-
-	// The start time of the grant in ISO8601 format.
-	Start iso8601.Time `json:"start"`
-	// The current state of the grant.
-	Status GrantStatus `json:"status"`
-	// The email address of the user to grant access to.
-	Subject openapi_types.Email `json:"subject"`
-
-	// Provider-specific grant data. Must match the provider's schema.
-	Target pdk.Target `json:"target"`
-}
-
-// Defines values for GrantStatus.
-const (
-	GrantStatusACTIVE  GrantStatus = "ACTIVE"
-	GrantStatusERROR   GrantStatus = "ERROR"
-	GrantStatusEXPIRED GrantStatus = "EXPIRED"
-	GrantStatusPENDING GrantStatus = "PENDING"
-	GrantStatusREVOKED GrantStatus = "REVOKED"
-)
-
-// The current state of the grant.
-type GrantStatus string
 
 type Output struct {
-	Grant Grant `json:"grant"`
+	Grant ahTypes.Grant `json:"grant"`
 }
 
 func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, error) {
@@ -77,7 +47,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	log.Infow("Handling event", "event", in)
 
 	tgq := storage.GetTargetGroup{
-		ID: in.Grant.TargetGroup,
+		ID: in.Grant.Provider,
 	}
 
 	_, err := g.DB.Query(ctx, &tgq)
@@ -104,43 +74,33 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 		err = func() (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while granting access", "error", r, "target group", in.Grant.TargetGroup)
-					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.TargetGroup, deployment.ID)
+					log.Errorw("recovered panic while granting access", "error", r, "target group", in.Grant.Provider)
+					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
 				}
 			}()
-			return runtime.Grant(ctx, string(in.Grant.Subject), in.Grant.Target)
+			return runtime.Grant(ctx, string(in.Grant.Subject), pdk.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
 		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
 		err = func() (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while deactivating access", "error", r, "target group", in.Grant.TargetGroup)
-					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.TargetGroup, deployment.ID)
+					log.Errorw("recovered panic while deactivating access", "error", r, "target group", in.Grant.Provider)
+					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
 				}
 			}()
-			return runtime.Revoke(ctx, string(in.Grant.Subject), in.Grant.Target)
+			return runtime.Revoke(ctx, string(in.Grant.Subject), pdk.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
 		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
 	}
 
-	gr := types.Grant{
-		End:      grant.End,
-		ID:       grant.ID,
-		Provider: grant.TargetGroup,
-		Start:    grant.Start,
-		Status:   types.GrantStatus(grant.Status),
-		Subject:  grant.Subject,
-		With: types.Grant_With{
-			AdditionalProperties: grant.Target.Arguments,
-		}}
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
-		gr.Status = types.GrantStatusERROR
+		in.Grant.Status = ahTypes.GrantStatusERROR
 
-		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: gr, Reason: err.Error()})
+		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: in.Grant, Reason: err.Error()})
 		if eventErr != nil {
 			return Output{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())
 		}
@@ -151,11 +111,11 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		gr.Status = types.GrantStatusACTIVE
-		evt = &gevent.GrantActivated{Grant: gr}
+		in.Grant.Status = ahTypes.GrantStatusACTIVE
+		evt = &gevent.GrantActivated{Grant: in.Grant}
 	case DEACTIVATE:
-		gr.Status = types.GrantStatusEXPIRED
-		evt = &gevent.GrantExpired{Grant: gr}
+		in.Grant.Status = ahTypes.GrantStatusEXPIRED
+		evt = &gevent.GrantExpired{Grant: in.Grant}
 	}
 
 	log.Infow("emitting event", "event", evt, "action", in.Action)

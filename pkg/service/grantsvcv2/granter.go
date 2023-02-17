@@ -14,7 +14,6 @@ import (
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
@@ -66,10 +65,6 @@ type RevokeGrantOpts struct {
 	RevokerID string
 }
 
-type WorkflowInput struct {
-	Grant targetgroupgranter.Grant `json:"grant"`
-}
-
 // CreateGrant creates a Grant in the Access Handler, it does not update the Common Fate app database.
 // the returned Request will contain the newly created grant
 func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*access.Request, error) {
@@ -82,7 +77,7 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 
 	//setting the input for the step function lambda
 
-	in := WorkflowInput{Grant: grant}
+	in := targetgroupgranter.WorkflowInput{Grant: *grant}
 
 	logger.Get(ctx).Infow("constructed workflow input", "input", in)
 
@@ -105,14 +100,13 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 	}
 	now := g.clock.Now()
 
-	// @TODO the v1 grant type is baked in here a little, I have adapted it for v2
 	opts.Request.Grant = &access.Grant{
-		Provider:  grant.TargetGroup,
+		Provider:  grant.Provider,
 		Subject:   string(grant.Subject),
 		Start:     grant.Start.Time,
 		End:       grant.End.Time,
 		Status:    ahTypes.GrantStatusPENDING,
-		With:      ahTypes.Grant_With{AdditionalProperties: grant.Target.Arguments},
+		With:      grant.With,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -121,30 +115,33 @@ func (g *Granter) CreateGrant(ctx context.Context, opts CreateGrantOpts) (*acces
 }
 
 // prepareCreateGrantRequest converts opts into a CreateGrant struct for access handler requests
-func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGrantOpts) (targetgroupgranter.Grant, error) {
+func (g *Granter) prepareCreateGrantRequest(ctx context.Context, opts CreateGrantOpts) (*ahTypes.Grant, error) {
 	q := &storage.GetUser{
 		ID: opts.Request.RequestedBy,
 	}
 	_, err := g.db.Query(ctx, q)
 	if err != nil {
-		return targetgroupgranter.Grant{}, err
+		return nil, err
 	}
-	target := make(map[string]string)
 	start, end := opts.Request.GetInterval(access.WithNow(g.clock.Now()))
-	req := targetgroupgranter.Grant{
-		ID:          opts.Request.ID,
-		TargetGroup: opts.AccessRule.Target.TargetGroupID,
-		Subject:     openapi_types.Email(q.Result.Email),
-		Start:       iso8601.New(start),
-		End:         iso8601.New(end),
+	grant := ahTypes.Grant{
+		ID:       opts.Request.ID,
+		Provider: opts.AccessRule.Target.TargetGroupID,
+		Subject:  openapi_types.Email(q.Result.Email),
+		Start:    iso8601.New(start),
+		End:      iso8601.New(end),
+		Status:   ahTypes.GrantStatusPENDING,
+		With: ahTypes.Grant_With{
+			AdditionalProperties: make(map[string]string),
+		},
 	}
 
 	for k, v := range opts.AccessRule.Target.With {
-		target[k] = v
+		grant.With.AdditionalProperties[k] = v
 	}
 	for k, v := range opts.Request.SelectedWith {
-		target[k] = v.Value
+		grant.With.AdditionalProperties[k] = v.Value
 	}
-	req.Target = pdk.NewDefaultModeTarget(target)
-	return req, nil
+
+	return &grant, nil
 }
