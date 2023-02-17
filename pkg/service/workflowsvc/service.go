@@ -41,6 +41,26 @@ func (s *Service) Grant(ctx context.Context, request access.Request, accessRule 
 	if err != nil {
 		return nil, err
 	}
+
+	// @TODO because v1 access providers sends this event in the rest API method
+	// We have to skip sending here here unless it is for a target group
+	// in which case the event can be sent from here
+	// There is still some issues with a race condition here, for asap requests, the grant could start in step functions before this event it sent.
+	// or they could arrive at the same times, if instead this event is produced by the step functions or local mock workflow, then the race condition won't exist
+	if accessRule.Target.IsForTargetGroup() {
+		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: ahTypes.Grant{
+			ID:       createGrant.Id,
+			Provider: createGrant.Provider,
+			End:      createGrant.End,
+			Start:    createGrant.Start,
+			Status:   ahTypes.GrantStatusPENDING,
+			Subject:  createGrant.Subject,
+			With:     ahTypes.Grant_With(createGrant.With),
+		}})
+		if err != nil {
+			return nil, err
+		}
+	}
 	now := s.Clk.Now()
 	return &access.Grant{
 		Provider:  createGrant.Provider,

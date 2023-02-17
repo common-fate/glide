@@ -11,12 +11,14 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
+	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 )
 
 type Runtime struct {
 	StateMachineARN string
 	AHClient        ahTypes.ClientWithResponsesInterface
+	Eventbus        *gevent.Sender
 }
 
 func (r *Runtime) Grant(ctx context.Context, grant ahTypes.CreateGrant, isForTargetGroup bool) error {
@@ -49,6 +51,7 @@ func (r *Runtime) grantTargetGroup(ctx context.Context, grant ahTypes.CreateGran
 	//running the step function
 	_, err = sfnClient.StartExecution(ctx, sei)
 	return err
+
 }
 
 func (r *Runtime) grantProvider(ctx context.Context, grant ahTypes.CreateGrant) error {

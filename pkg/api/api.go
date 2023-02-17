@@ -229,6 +229,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				Runtime: &live.Runtime{
 					StateMachineARN: opts.StateMachineARN,
 					AHClient:        opts.AccessHandlerClient,
+					Eventbus:        opts.EventSender,
 				},
 				DB:       db,
 				Clk:      clk,
@@ -272,6 +273,7 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Runtime: &live.Runtime{
 				StateMachineARN: opts.StateMachineARN,
 				AHClient:        opts.AccessHandlerClient,
+				Eventbus:        opts.EventSender,
 			},
 			DB:       db,
 			Clk:      clk,
