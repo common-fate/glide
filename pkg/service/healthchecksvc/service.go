@@ -2,6 +2,7 @@ package healthchecksvc
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/pdk"
@@ -9,6 +10,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // Service holds business logic relating to Access Requests.
@@ -95,10 +97,17 @@ func (s *Service) Check(ctx context.Context) error {
 		deploymentItem.ProviderDescription = describeRes
 		deploymentItem.Healthy = healthy
 
-		// @TODO validate target schema against targetgroup
 		if deploymentItem.TargetGroupAssignment != nil {
-			// This needs to be replaced with an actual check
-			deploymentItem.TargetGroupAssignment.Valid = true
+			//lookup target group
+			targetGroup := storage.GetTargetGroup{ID: deploymentItem.TargetGroupAssignment.TargetGroupID}
+
+			_, err := s.DB.Query(ctx, &targetGroup)
+			if err != nil {
+				return err
+			}
+
+			deploymentItem.TargetGroupAssignment.Valid = s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
+
 		}
 
 		// update the deployment
@@ -112,4 +121,33 @@ func (s *Service) Check(ctx context.Context) error {
 	}
 	log.Info("completed checking health")
 	return nil
+}
+
+func (s *Service) validateProviderSchema(schema1 map[string]providerregistrysdk.TargetArgument, schema2 map[string]providerregistrysdk.TargetArgument) bool {
+
+	targetGroupSchemaMap := make(map[string]string)
+	for _, arg := range schema1 {
+
+		if arg.ResourceName == nil {
+			targetGroupSchemaMap[arg.Id] = "string"
+
+		} else {
+			targetGroupSchemaMap[arg.Id] = *arg.ResourceName
+
+		}
+	}
+	describeSchemaMap := make(map[string]string)
+	for _, arg := range schema2 {
+		if arg.ResourceName == nil {
+			describeSchemaMap[arg.Id] = "string"
+
+		} else {
+			describeSchemaMap[arg.Id] = *arg.ResourceName
+
+		}
+	}
+
+	return reflect.DeepEqual(describeSchemaMap, targetGroupSchemaMap)
+
+	//do some sort of check here to validate that the schemas are the same and valid.
 }
