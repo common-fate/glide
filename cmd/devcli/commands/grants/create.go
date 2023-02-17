@@ -9,11 +9,9 @@ import (
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/iso8601"
 
-	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/config"
-	"github.com/common-fate/common-fate/pkg/pdk"
-	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/joho/godotenv"
@@ -41,20 +39,20 @@ var CreateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		grant := targetgroupgranter.Grant{
-			Subject:     openapi_types.Email("josh@commonfate.io"),
-			Start:       iso8601.New(time.Now().Add(time.Second * 2)),
-			End:         iso8601.New(time.Now().Add(time.Hour)),
-			TargetGroup: "josh-example",
-			ID:          types.NewGrantID(),
-			Target: pdk.Target{
-				Mode: "Default",
-				Arguments: map[string]string{
+		grant := ahTypes.Grant{
+			Subject:  openapi_types.Email("josh@commonfate.io"),
+			Start:    iso8601.New(time.Now().Add(time.Second * 2)),
+			End:      iso8601.New(time.Now().Add(time.Hour)),
+			Provider: "josh-example",
+			ID:       ahTypes.NewGrantID(),
+			Status:   ahTypes.GrantStatusPENDING,
+			With: ahTypes.Grant_With{
+				AdditionalProperties: map[string]string{
 					"vault": "test",
 				},
 			},
 		}
-		in := grantsvcv2.WorkflowInput{Grant: grant}
+		in := targetgroupgranter.WorkflowInput{Grant: grant}
 
 		logger.Get(ctx).Infow("constructed workflow input", "input", in)
 
