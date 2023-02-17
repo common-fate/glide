@@ -44,6 +44,10 @@ var ListProvidersCommand = cli.Command{
 		table.SetHeaderLine(false)
 		table.SetBorder(false)
 
+		if res.JSON200 == nil {
+			return errors.New("no providers found")
+		}
+
 		for _, d := range res.JSON200.Providers {
 
 			table.Append([]string{
