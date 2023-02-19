@@ -10,6 +10,7 @@ import { grantInvokeCommunityProviders } from "../helpers/permissions";
 
 interface Props {
   dynamoTable: Table;
+  shouldRunAsCron: boolean;
 }
 
 export class HealthChecker extends Construct {
@@ -37,6 +38,7 @@ export class HealthChecker extends Construct {
     //add event bridge trigger to lambda every minute
     this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
       schedule: events.Schedule.cron({ minute: "0/1" }),
+      enabled: props.shouldRunAsCron,
     });
 
     // add the Lambda function as a target for the Event Rule
