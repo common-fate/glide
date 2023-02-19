@@ -19,7 +19,7 @@ func (l LocalRuntime) FetchResources(ctx context.Context, name string, contx int
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}
-	cmd := exec.Command("pdk-cli", "test", "fetch-resources", "--name="+name, "--ctx="+string(b))
+	cmd := exec.Command("pdk-cli", "test", "load-resources", "--name="+name, "--ctx="+string(b))
 	cmd.Dir = l.Path
 	cmd.Env = append(cmd.Env, os.Environ()...)
 	out, err := cmd.Output()
@@ -27,8 +27,19 @@ func (l LocalRuntime) FetchResources(ctx context.Context, name string, contx int
 		return LoadResourceResponse{}, err
 	}
 
+	var lr LambdaResponse
+	err = json.Unmarshal(out, &lr)
+	if err != nil {
+		return LoadResourceResponse{}, err
+	}
+
+	byt, err := json.Marshal(lr.Body)
+	if err != nil {
+		return LoadResourceResponse{}, err
+	}
+
 	var data map[string]interface{}
-	err = json.Unmarshal(out, &data)
+	err = json.Unmarshal(byt, &data)
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}
@@ -49,8 +60,19 @@ func (l LocalRuntime) Describe(ctx context.Context) (*providerregistrysdk.Descri
 		return nil, err
 	}
 
+	var lr LambdaResponse
+	err = json.Unmarshal(out, &lr)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(lr.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	var describe providerregistrysdk.DescribeResponse
-	err = json.Unmarshal(out, &describe)
+	err = json.Unmarshal(b, &describe)
 	if err != nil {
 		return nil, err
 	}
