@@ -82,6 +82,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
+	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/itchyny/gojq v0.12.7 // indirect
@@ -193,6 +194,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1
 	github.com/hashicorp/go-version v1.6.0
+	github.com/invopop/jsonschema v0.7.0
 	github.com/lestrrat-go/jwx v1.2.25
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8

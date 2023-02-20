@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/common-fate/cmd/devcli/commands"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/deployment_schema"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
@@ -26,6 +27,7 @@ func main() {
 			&events.EventsCommand,
 			&slack.SlackCommand,
 			&commands.CacheCommand,
+			&deployment_schema.DeploymentSchemaCommand,
 		},
 	}
 
