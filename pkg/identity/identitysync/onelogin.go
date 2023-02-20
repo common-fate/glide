@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -20,6 +21,9 @@ type OneLoginSync struct {
 	clientSecret gconfig.SecretStringValue
 	// This is initialised during the Init function call and is not saved in config
 	token gconfig.SecretStringValue
+
+	// TODO: have me actually configured at deployment/fetched from config at runtime
+	idpGroupFilter gconfig.StringValue
 
 	baseURL gconfig.StringValue
 }
@@ -97,7 +101,6 @@ func (s *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) id
 		ID:   strconv.Itoa(oneLoginGroup.ID),
 		Name: oneLoginGroup.Name,
 	}
-
 }
 
 func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
@@ -106,6 +109,77 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 	var idpUsers []identity.IDPUser
 	hasMore := true
 	url := s.baseURL.Get() + "/api/1/users"
+
+	// @TODO: get config param
+	// if dc.Deployment.Parameters.IdentityGroupFilter...
+	// 	you should get the groups first
+	// 	then run a filter on group name
+	// now query based on `customer.group_id`
+
+	groupFilter := s.idpGroupFilter.Get()
+
+	if groupFilter != "" {
+
+		// because we may receive multiple users from different groups we want a string map
+		// we want to key by user id, to remove duplicates
+		idpUsersMap := make(map[string]identity.IDPUser)
+
+		roles, err := s.listGroupsWithFilter(ctx, &groupFilter)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, r := range roles {
+			url = s.baseURL.Get() + fmt.Sprintf("api/2/roles/%s/users", r.ID)
+			req, _ := http.NewRequest("GET", url, nil)
+			req.Header.Add("Authorization", "Bearer: "+s.token.Get())
+
+			// hasMore := true
+			// for hasMore {
+
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return nil, err
+			}
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+			if res.StatusCode != 200 && res.StatusCode != 404 {
+				return nil, fmt.Errorf(string(b))
+			}
+
+			var lu OneLoginListUserResponse
+			err = json.Unmarshal(b, &lu)
+			if err != nil {
+				return nil, err
+			}
+
+			// @TODO: do we need hasMoreSupport?
+			// if lu.Pagination.NextLink != nil {
+			// 	url = *lu.Pagination.NextLink
+			// } else {
+			// 	hasMore = false
+			// }
+
+			for _, u := range lu.Users {
+				idpUser, err := s.idpUserFromOneLoginUser(ctx, &u)
+				if err != nil {
+					return nil, err
+				}
+				idpUser.Groups = append(idpUser.Groups, r.Name)
+				// this is a map, so if it exists it will be overwritten
+				idpUsersMap[idpUser.ID] = idpUser
+			}
+			// }
+		}
+
+		// now we need to convert the map to a slice
+		for _, v := range idpUsersMap {
+			idpUsers = append(idpUsers, v)
+		}
+		return idpUsers, nil
+	}
 
 	for hasMore {
 
@@ -151,6 +225,10 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 }
 
 func (s *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
+	return s.listGroupsWithFilter(ctx, nil)
+}
+
+func (s *OneLoginSync) listGroupsWithFilter(ctx context.Context, filterString *string) ([]identity.IDPGroup, error) {
 	var idpGroups = []identity.IDPGroup{}
 	hasMore := true
 
@@ -193,6 +271,21 @@ func (s *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, err
 			hasMore = false
 		}
 	}
+
+	if filterString != nil {
+		filter, err := regexp.Compile(*filterString)
+		if err != nil {
+			return nil, err
+		}
+		var filteredGroups []identity.IDPGroup
+		for _, g := range idpGroups {
+			if filter.MatchString(g.Name) {
+				filteredGroups = append(filteredGroups, g)
+			}
+		}
+		return filteredGroups, nil
+	}
+
 	return idpGroups, nil
 }
 
