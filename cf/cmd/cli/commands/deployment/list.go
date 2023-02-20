@@ -1,9 +1,11 @@
 package deployment
 
 import (
+	"errors"
+	"net/http"
 	"os"
 
-	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -11,14 +13,11 @@ import (
 
 var ListCommand = cli.Command{
 	Name:        "list",
-	Description: "list deployments",
-	Usage:       "list deployments",
+	Description: "List deployments",
+	Usage:       "List deployments",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
-
-		opts := []types.ClientOption{}
 		ctx := c.Context
-
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
 		}
@@ -26,8 +25,8 @@ var ListCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
-		if res.JSON200 != nil {
+		switch res.StatusCode() {
+		case http.StatusOK:
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"ID", "Account", "Region", "Health"})
 			table.SetAutoWrapText(false)
@@ -50,10 +49,13 @@ var ListCommand = cli.Command{
 				})
 			}
 			table.Render()
-		} else {
-			clio.Error("no deployments found")
+		case http.StatusUnauthorized:
+			return errors.New(res.JSON401.Error)
+		case http.StatusInternalServerError:
+			return errors.New(res.JSON500.Error)
+		default:
+			return clierr.New("Unhandled response from the Common Fate API", clierr.Infof("Status Code: %d", res.StatusCode()), clierr.Error(string(res.Body)))
 		}
-
 		return nil
 	}),
 }
