@@ -16,7 +16,6 @@ import (
 func main() {
 	var cfg config.HealthCheckerConfig
 	ctx := context.Background()
-	_ = godotenv.Load()
 
 	err := envconfig.Process(ctx, &cfg)
 	if err != nil {
