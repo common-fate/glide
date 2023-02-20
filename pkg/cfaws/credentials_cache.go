@@ -24,7 +24,11 @@ func WithRoleSessionName(rsn string) AssumeRoleCredentialProviderOptFunc {
 // https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 func WithExternalID(externalID string) AssumeRoleCredentialProviderOptFunc {
 	return func(f *AssumeRoleCredentialProviderOpts) {
-		f.ExternalId = &externalID
+		// empty external IDs cause role assumption errors,
+		// so only set it if it's not an empty string.
+		if externalID != "" {
+			f.ExternalId = &externalID
+		}
 	}
 }
 
