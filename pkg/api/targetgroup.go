@@ -12,7 +12,7 @@ import (
 
 // Your GET endpoint
 // (GET /api/v1/target-groups)
-func (a *API) ListTargetGroups(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminListTargetGroups(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -37,7 +37,7 @@ func (a *API) ListTargetGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 // (POST /api/v1/target-groups)
-func (a *API) CreateTargetGroup(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var createGroupRequest types.CreateTargetGroupRequest
 	err := apio.DecodeJSONBody(w, r, &createGroupRequest)
@@ -60,7 +60,7 @@ func (a *API) CreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 
 // Your GET endpoint
 // (GET /api/v1/target-groups/{id})
-func (a *API) GetTargetGroup(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) AdminGetTargetGroup(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 
 	q := storage.GetTargetGroup{ID: id}
@@ -81,7 +81,7 @@ func (a *API) GetTargetGroup(w http.ResponseWriter, r *http.Request, id string) 
 }
 
 // (POST /api/v1/target-groups/{id}/link)
-func (a *API) CreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 	var linkGroupRequest types.CreateTargetGroupLink
 	err := apio.DecodeJSONBody(w, r, &linkGroupRequest)
@@ -101,7 +101,7 @@ func (a *API) CreateTargetGroupLink(w http.ResponseWriter, r *http.Request, id s
 
 // Unlink a target group deployment from its target group
 // (POST /api/v1/target-groups/{id}/unlink)
-func (a *API) RemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string, params types.AdminRemoveTargetGroupLinkParams) {
 	ctx := r.Context()
 	var linkGroupRequest types.CreateTargetGroupLink
 	err := apio.DecodeJSONBody(w, r, &linkGroupRequest)

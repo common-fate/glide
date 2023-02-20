@@ -12,7 +12,7 @@ import (
 
 // Your GET endpoint
 // (GET /api/v1/target-group-deployments)
-func (a *API) ListTargetGroupDeployments(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminListTargetGroupDeployments(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	res := types.ListTargetGroupDeploymentAPIResponse{
@@ -39,7 +39,7 @@ func (a *API) ListTargetGroupDeployments(w http.ResponseWriter, r *http.Request)
 }
 
 // (POST /api/v1/target-group-deployments)
-func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request) {
+func (a *API) AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -72,7 +72,7 @@ func (a *API) CreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request
 
 // Your GET endpoint
 // (GET /api/v1/target-group-deployments/{id})
-func (a *API) GetTargetGroupDeployment(w http.ResponseWriter, r *http.Request, id string) {
+func (a *API) AdminGetTargetGroupDeployment(w http.ResponseWriter, r *http.Request, id string) {
 
 	ctx := r.Context()
 

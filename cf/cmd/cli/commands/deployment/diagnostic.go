@@ -33,7 +33,7 @@ var DiagnosticCommand = cli.Command{
 			clio.Error("Failed to create client: ", err.Error())
 			return err
 		}
-		res, err := cfApi.GetTargetGroupDeploymentWithResponse(ctx, ID)
+		res, err := cfApi.AdminGetTargetGroupDeploymentWithResponse(ctx, ID)
 		if err != nil {
 			clio.Error("Failed to get deployment: ", err.Error())
 			return err

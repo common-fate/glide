@@ -22,7 +22,7 @@ var ListCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		res, err := cfApi.ListTargetGroupDeploymentsWithResponse(ctx)
+		res, err := cfApi.AdminListTargetGroupDeploymentsWithResponse(ctx)
 		if err != nil {
 			return err
 		}
