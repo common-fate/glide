@@ -129,7 +129,7 @@ export class TargetGroupGranter extends Construct {
           Type: "Fail",
         },
       },
-      Comment: "Common Fate Access Handler State Machine",
+      Comment: "Common Fate Access Workflow State Machine",
     };
 
     this._stateMachine = new sfn.StateMachine(this, "StateMachine", {
