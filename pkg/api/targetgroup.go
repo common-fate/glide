@@ -89,13 +89,7 @@ func (a *API) AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request,
 // (POST /api/v1/target-groups/{id}/unlink)
 func (a *API) AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string, params types.AdminRemoveTargetGroupLinkParams) {
 	ctx := r.Context()
-	var linkGroupRequest types.CreateTargetGroupLink
-	err := apio.DecodeJSONBody(w, r, &linkGroupRequest)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	err = a.TargetGroupService.RemoveTargetGroupLink(ctx, linkGroupRequest.DeploymentId, id)
+	err := a.TargetGroupService.RemoveTargetGroupLink(ctx, params.DeploymentId, id)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
