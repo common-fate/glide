@@ -2,16 +2,18 @@ package targetgroup
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
 var Command = cli.Command{
 	Name:        "targetgroup",
-	Description: "target group",
-	Usage:       "target group",
+	Description: "Manage Target Groups",
+	Usage:       "Manage Target Groups",
 	Subcommands: []*cli.Command{
 		&CreateCommand,
 		&LinkCommand,
@@ -22,86 +24,82 @@ var Command = cli.Command{
 
 var CreateCommand = cli.Command{
 	Name:        "create",
-	Description: "create a target group",
-	Usage:       "create a target group",
+	Description: "Create a target group",
+	Usage:       "Create a target group",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
-		&cli.StringFlag{Name: "schema-from",
-			// TODO: add explanation here
-			Required: true},
+		&cli.StringFlag{Name: "schema-from", Required: true, Usage: "publisher/name@version"},
 		&cli.BoolFlag{Name: "ok-if-exists"},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		id := c.String("id")
-
 		schemaFrom := c.String("schema-from")
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
 		}
 
-		result, err := cfApi.CreateTargetGroupWithResponse(ctx, types.CreateTargetGroupJSONRequestBody{
+		res, err := cfApi.AdminCreateTargetGroupWithResponse(ctx, types.AdminCreateTargetGroupJSONRequestBody{
 			ID:           id,
 			TargetSchema: schemaFrom,
 		})
 		if err != nil {
 			return err
 		}
-
-		switch result.StatusCode() {
-		case 201:
-			clio.Successf("created target group '%s'", id)
-			return nil
+		switch res.StatusCode() {
+		case http.StatusCreated:
+			clio.Successf("Successfully created the targetgroup: %s", id)
+		case http.StatusUnauthorized:
+			return errors.New(res.JSON401.Error)
+		case http.StatusInternalServerError:
+			return errors.New(res.JSON500.Error)
 		default:
-			return errors.New(string(result.Body))
+			return clierr.New("Unhandled response from the Common Fate API", clierr.Infof("Status Code: %d", res.StatusCode()), clierr.Error(string(res.Body)))
 		}
+		return nil
 
 	},
 }
 
 var LinkCommand = cli.Command{
 	Name:        "link",
-	Description: "link a deployment to a target group",
-	Usage:       "link a deployment to a target group",
+	Description: "Link a deployment to a target group",
+	Usage:       "Link a deployment to a target group",
 	Flags: []cli.Flag{
-		&cli.StringFlag{Name: "group", Required: true},
+		&cli.StringFlag{Name: "target-group", Required: true},
 		&cli.StringFlag{Name: "deployment", Required: true},
 		&cli.IntFlag{Name: "priority", Value: 100},
+		// @TODO this will be removed when we reshape the data model to support a deployment being linked to multiple target groups
 		&cli.BoolFlag{Name: "force"},
 	},
 	Action: func(c *cli.Context) error {
 
 		ctx := c.Context
-
-		group := c.String("group")
-		deployment := c.String("deployment")
-		priority := c.Int("priority")
-
-		if priority < 0 || priority > 999 {
-			return errors.New("priority must be a number between 0 and 999")
-
-		}
-
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
 		}
 
-		result, err := cfApi.CreateTargetGroupLinkWithResponse(ctx, group, types.CreateTargetGroupLinkJSONRequestBody{
-			DeploymentId: deployment,
-			Priority:     priority,
+		res, err := cfApi.AdminCreateTargetGroupLinkWithResponse(ctx, c.String("target-group"), types.AdminCreateTargetGroupLinkJSONRequestBody{
+			DeploymentId: c.String("deployment"),
+			Priority:     c.Int("priority"),
 			Force:        c.Bool("force"),
 		})
 		if err != nil {
 			return err
 		}
-
-		if result.StatusCode() != 200 {
-			return errors.New(string(result.Body))
+		switch res.StatusCode() {
+		case http.StatusCreated:
+			clio.Successf("Successfully linked the deployment '%s' with target group '%s'", c.String("deployment"), c.String("target-group"))
+		case http.StatusUnauthorized:
+			return errors.New(res.JSON401.Error)
+		case http.StatusInternalServerError:
+			return errors.New(res.JSON500.Error)
+		default:
+			return clierr.New("Unhandled response from the Common Fate API", clierr.Infof("Status Code: %d", res.StatusCode()), clierr.Error(string(res.Body)))
 		}
 
-		clio.Successf("linked deployment '%s' with target group '%s'", c.String("deployment"), c.String("group"))
 		return nil
 	},
 }

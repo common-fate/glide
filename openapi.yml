@@ -1304,8 +1304,6 @@ paths:
           $ref: '#/components/responses/ErrorResponse'
         '500':
           $ref: '#/components/responses/ErrorResponse'
-      requestBody:
-        $ref: '#/components/requestBodies/CreateTargetGroupLink'
       parameters:
         - schema:
             type: string

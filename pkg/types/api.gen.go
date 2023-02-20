@@ -1039,9 +1039,6 @@ type AdminCreateTargetGroupJSONRequestBody CreateTargetGroupRequest
 // AdminCreateTargetGroupLinkJSONRequestBody defines body for AdminCreateTargetGroupLink for application/json ContentType.
 type AdminCreateTargetGroupLinkJSONRequestBody CreateTargetGroupLink
 
-// AdminRemoveTargetGroupLinkJSONRequestBody defines body for AdminRemoveTargetGroupLink for application/json ContentType.
-type AdminRemoveTargetGroupLinkJSONRequestBody CreateTargetGroupLink
-
 // AdminCreateUserJSONRequestBody defines body for AdminCreateUser for application/json ContentType.
 type AdminCreateUserJSONRequestBody CreateUserRequest
 
@@ -1801,10 +1798,8 @@ type ClientInterface interface {
 
 	AdminCreateTargetGroupLink(ctx context.Context, id string, body AdminCreateTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// AdminRemoveTargetGroupLink request with any body
-	AdminRemoveTargetGroupLinkWithBody(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	AdminRemoveTargetGroupLink(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, body AdminRemoveTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// AdminRemoveTargetGroupLink request
+	AdminRemoveTargetGroupLink(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminListUsers request
 	AdminListUsers(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2470,20 +2465,8 @@ func (c *Client) AdminCreateTargetGroupLink(ctx context.Context, id string, body
 	return c.Client.Do(req)
 }
 
-func (c *Client) AdminRemoveTargetGroupLinkWithBody(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminRemoveTargetGroupLinkRequestWithBody(c.Server, id, params, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminRemoveTargetGroupLink(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, body AdminRemoveTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminRemoveTargetGroupLinkRequest(c.Server, id, params, body)
+func (c *Client) AdminRemoveTargetGroupLink(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminRemoveTargetGroupLinkRequest(c.Server, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4377,19 +4360,8 @@ func NewAdminCreateTargetGroupLinkRequestWithBody(server string, id string, cont
 	return req, nil
 }
 
-// NewAdminRemoveTargetGroupLinkRequest calls the generic AdminRemoveTargetGroupLink builder with application/json body
-func NewAdminRemoveTargetGroupLinkRequest(server string, id string, params *AdminRemoveTargetGroupLinkParams, body AdminRemoveTargetGroupLinkJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewAdminRemoveTargetGroupLinkRequestWithBody(server, id, params, "application/json", bodyReader)
-}
-
-// NewAdminRemoveTargetGroupLinkRequestWithBody generates requests for AdminRemoveTargetGroupLink with any type of body
-func NewAdminRemoveTargetGroupLinkRequestWithBody(server string, id string, params *AdminRemoveTargetGroupLinkParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewAdminRemoveTargetGroupLinkRequest generates requests for AdminRemoveTargetGroupLink
+func NewAdminRemoveTargetGroupLinkRequest(server string, id string, params *AdminRemoveTargetGroupLinkParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -4430,12 +4402,10 @@ func NewAdminRemoveTargetGroupLinkRequestWithBody(server string, id string, para
 
 	queryURL.RawQuery = queryValues.Encode()
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -5462,10 +5432,8 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateTargetGroupLinkWithResponse(ctx context.Context, id string, body AdminCreateTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupLinkResponse, error)
 
-	// AdminRemoveTargetGroupLink request with any body
-	AdminRemoveTargetGroupLinkWithBodyWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error)
-
-	AdminRemoveTargetGroupLinkWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, body AdminRemoveTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error)
+	// AdminRemoveTargetGroupLink request
+	AdminRemoveTargetGroupLinkWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error)
 
 	// AdminListUsers request
 	AdminListUsersWithResponse(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*AdminListUsersResponse, error)
@@ -7644,17 +7612,9 @@ func (c *ClientWithResponses) AdminCreateTargetGroupLinkWithResponse(ctx context
 	return ParseAdminCreateTargetGroupLinkResponse(rsp)
 }
 
-// AdminRemoveTargetGroupLinkWithBodyWithResponse request with arbitrary body returning *AdminRemoveTargetGroupLinkResponse
-func (c *ClientWithResponses) AdminRemoveTargetGroupLinkWithBodyWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error) {
-	rsp, err := c.AdminRemoveTargetGroupLinkWithBody(ctx, id, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminRemoveTargetGroupLinkResponse(rsp)
-}
-
-func (c *ClientWithResponses) AdminRemoveTargetGroupLinkWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, body AdminRemoveTargetGroupLinkJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error) {
-	rsp, err := c.AdminRemoveTargetGroupLink(ctx, id, params, body, reqEditors...)
+// AdminRemoveTargetGroupLinkWithResponse request returning *AdminRemoveTargetGroupLinkResponse
+func (c *ClientWithResponses) AdminRemoveTargetGroupLinkWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error) {
+	rsp, err := c.AdminRemoveTargetGroupLink(ctx, id, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -12499,29 +12459,29 @@ var swaggerSpec = []string{
 	"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",
-	"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",
-	"3i9MOKzJSLn7fPf/AgAA///JWewEVvoAAA==",
+	"je3FJgLnrYRzF0JHTXS3TlzWw4mFR+JUiZLqLA/9zMJ3IGu6KXmi7KZfo8rsFjqTBUspQ9T6DpO/eDDz",
+	"kSnWqOHCCaPJRnyoSiJVGoKvkRjPChWVanwEH82fn0KqzcbWt9xEBRkugiWmNsyNsX0Zd5AaYwrebij+",
+	"9YbvX9lUUH5/WqatNtzopHW/yf8Z38tqnUYP3o2n2WVAGMYbx6kq/qBlia5xxme4NjcizGiNuSNfQ3f9",
+	"KtiFQrhe5edCl4O7+0y8qOLjh7+NdpWtsZqFJ3BBGRaoSS0JKxulYJO89gMH8vNUfh8VHIq8AyrL7b52",
+	"a24qyt0MO4/E82ELe/qCZ9B9Vnat2iwvvEBE1yEGqqwh5kDV35V/nqixXn1eW7eFw4V6lcGJjcycI113",
+	"UL8dV2BZSzAL1OY3iJ3hIW4Ru9Y9VhHb1c3gIba+GKw7Xc7psCpfUlJcMkW2Qpm6emyOuk0U6rsKjl5x",
+	"6l3fdguTe84rMLKgIMJ8HsMlgG7wD9zVtzV1dCdMcUtUwbpvkFixswfitkd/dKjnsvvwnKxKsXQcoIqE",
+	"S103j0YepKj+/CGE0UOzx92q87/yzVYFDLsr84oMVUdK06Tci/3XbVM4WNJUnrOJMt/cLaFjpeXfxpCY",
+	"76ur3X9HD758Rm8yNIgZFE45KTR8n1DWBgyKGWJyHKn6aga57uMqZijhKF4gXpnuoKeuz3f43t6oFcMm",
+	"Sz+uYA016R28RtljquQoo/BwmiAdM3lFrohyN4Ak5cJUtloWilmBmxkiIIHXpiKjecQGH10daK98sqBy",
+	"pL+uX8sZE5s7nnGCvxJDE8QQGSPeAR8k+9xgjmypZnDYO8yiW2w9vfoyzVqY+c/qG0lDM8EKYbgiKNGV",
+	"uql93g4ItO4cavoGpdqpUQPU8XTVBdsA3c7lTdQ2quyCXqtm6U76rRRZ51DB+Kd2Q20RBLKCJul8TG0/",
+	"71q6lMpDqtBnXUg7KkhGeUZMg/h4aWvzUKay/KI01udrpPIs5CHWpgomYJKKlKHVt9BHC/RfZK0g61qB",
+	"Pa6CfDHmzt6JhAq/7zVlQJmn9jZT8ldJYLA6zshWv5cDsOls4tSEYqETx1YSAnXFjpY6PE5zl4bwR0IF",
+	"OgZGaQ3e6X6vodzSP1XWxf8riOmpBDGF2MhWwmycRWC7CZaC6J0m4GdH+YxICZB3UqZ4qKNAYyXSGNL1",
+	"ula0V7iHfIO101nLgDTNQTC6TWETT5IflKBvwgj6Rng4DrDXyPo3hff9E4nVMPxgt/S0GEHrjg3LbG8G",
+	"QuWrijIlpD2tgQg4du3dtAQzuLAl4SNpjcfIPPKZZ0Bj06rkhwrmOlGr7OiiKj2b7PZJ41GY9cSQYX1b",
+	"xecotChUur0/PWqV6nu22Kp4bm6WJ/Dk5LuyAFoUCuU+DXmiqfMo8uQCaedZSYpYVRi6xyHrApS2jWI3",
+	"5QkZoVKnqZLnw+TT6M8le2IG6E3m7Gr7qUKmC9aK7lVBLtab2cKHkZ9goxQ0O0VFQIfG9ubCAmt2oddo",
+	"LXbBO2IX3SzSN8zNbaRhypLG0ALTlEvT3NjvHXA2mSBtp+MkQRGGAsVLUEVIeo3qb50//c1xYVBGrPui",
+	"KVPoyA7dg7txUc+sjmHmNonpdKpbrVY3on2DxDu0mVKZilk+uKlRJ4VAfeesEWXRMG+IKz8KZsUF65vx",
+	"tVhxsSmPFPZxHy0pYA1S2/cUP6SgUP1x9LRZg+fjbjemYxjPKBfHr3qvei0pmAxorj20A/Gu7X6nI0q8",
+	"X5ggVpNHcvf57v8FAAD//5pWBE4M+gAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
