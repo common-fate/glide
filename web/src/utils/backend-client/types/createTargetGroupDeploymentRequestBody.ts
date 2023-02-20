@@ -9,7 +9,6 @@
 export type CreateTargetGroupDeploymentRequestBody = {
   /** The ID of the target group to deploy to. User, provided */
   id: string;
-  functionArn: string;
   runtime: string;
   awsAccount: string;
   awsRegion: string;

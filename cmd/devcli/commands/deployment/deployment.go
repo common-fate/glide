@@ -276,12 +276,12 @@ var Command = cli.Command{
 
 		//if there was an override dont create a new target group but link with an old one
 		if targetGroupId == "" {
-			tgCreateReq := types.CreateTargetGroupJSONRequestBody{
+			tgCreateReq := types.AdminCreateTargetGroupJSONRequestBody{
 				ID: providerName + "-" + providerVersion + "-" + suffix,
 				// will create the target group as eg. commonfate-v0.1.4-jacktest
 				TargetSchema: assetString,
 			}
-			_, err = cfApi.CreateTargetGroupWithResponse(ctx, tgCreateReq)
+			_, err = cfApi.AdminCreateTargetGroupWithResponse(ctx, tgCreateReq)
 			if err != nil {
 				return err
 			}
@@ -290,21 +290,21 @@ var Command = cli.Command{
 
 		}
 
-		reqBody := types.CreateTargetGroupDeploymentJSONRequestBody{
+		reqBody := types.AdminCreateTargetGroupDeploymentJSONRequestBody{
 			AwsAccount: accountId,
 			AwsRegion:  awsRegion,
 			Id:         deploymentName,
 			Runtime:    c.String("runtime"),
 		}
 
-		_, err = cfApi.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
+		_, err = cfApi.AdminCreateTargetGroupDeploymentWithResponse(ctx, reqBody)
 		if err != nil {
 			return err
 		}
 		clio.Successf("Successfully created target group deployment '%s'", reqBody.Id)
 
 		//link deployment to target group
-		_, err = cfApi.CreateTargetGroupLinkWithResponse(ctx, targetGroupId, types.CreateTargetGroupLinkJSONRequestBody{
+		_, err = cfApi.AdminCreateTargetGroupLinkWithResponse(ctx, targetGroupId, types.AdminCreateTargetGroupLinkJSONRequestBody{
 			DeploymentId: reqBody.Id,
 			Priority:     100,
 		})

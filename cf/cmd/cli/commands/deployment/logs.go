@@ -1,8 +1,6 @@
 package deployment
 
 import (
-	"sync"
-
 	"github.com/TylerBrock/saw/blade"
 	sawconfig "github.com/TylerBrock/saw/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
@@ -37,20 +35,11 @@ var WatchCommand = cli.Command{
 			return err
 		}
 
-		//deployment should have the same name as the actual lambda
+		// logGroup for deployments uses the id of the deployment as its name
+		// this is defined in the cloudformation template
 		logGroup := "/aws/lambda/" + c.String("id")
-		wg := sync.WaitGroup{}
-		wg.Add(1)
-
-		go func(lg string) {
-			clio.Infof("Starting to watch logs for , log group id: %s", lg)
-
-			watchEvents(lg, cfg.Region, c.String("filter"))
-			wg.Done()
-
-		}(logGroup)
-		wg.Wait()
-
+		clio.Infof("Starting to watch logs for log group id: %s", logGroup)
+		watchEvents(logGroup, cfg.Region, c.String("filter"))
 		return nil
 	},
 }
@@ -87,40 +76,33 @@ var GetCommand = cli.Command{
 		}
 
 		logGroup := "/aws/lambda/" + c.String("id")
-		wg := sync.WaitGroup{}
-		wg.Add(1)
 		start := c.String("start")
 		end := c.String("end")
-		go func(lg string) {
-			clio.Info("Starting to get logs for Health check lambda, log group id: %s", lg)
-			hasLogs := true
-			cwClient := cloudwatchlogs.NewFromConfig(cfg)
+		clio.Info("Starting to get logs for Health check lambda, log group id: %s", logGroup)
+		hasLogs := true
+		cwClient := cloudwatchlogs.NewFromConfig(cfg)
 
-			// Because the saw library emits its own errors and os.exits.
-			// We first check whether logs exist for the log group.
-			// if they dont, emit a warning rather than terminating the command
-			o, _ := cwClient.DescribeLogGroups(ctx, &cloudwatchlogs.DescribeLogGroupsInput{
-				LogGroupNamePrefix: &lg,
+		// Because the saw library emits its own errors and os.exits.
+		// We first check whether logs exist for the log group.
+		// if they dont, emit a warning rather than terminating the command
+		o, _ := cwClient.DescribeLogGroups(ctx, &cloudwatchlogs.DescribeLogGroupsInput{
+			LogGroupNamePrefix: &logGroup,
+		})
+		if o != nil && len(o.LogGroups) == 1 {
+			lo, err := cwClient.DescribeLogStreams(ctx, &cloudwatchlogs.DescribeLogStreamsInput{
+				LogGroupName: o.LogGroups[0].LogGroupName,
+				Limit:        aws.Int32(1),
 			})
-			if o != nil && len(o.LogGroups) == 1 {
-				lo, err := cwClient.DescribeLogStreams(ctx, &cloudwatchlogs.DescribeLogStreamsInput{
-					LogGroupName: o.LogGroups[0].LogGroupName,
-					Limit:        aws.Int32(1),
-				})
-				_ = err
-				if lo != nil && len(lo.LogStreams) != 0 {
-					hasLogs = true
-				}
+			_ = err
+			if lo != nil && len(lo.LogStreams) != 0 {
+				hasLogs = true
 			}
-			if hasLogs {
-				getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region, c.String("filter"))
-			} else {
-				clio.Warnf("The service may not have run yet. Log group id: %s", lg)
-			}
-			wg.Done()
-
-		}(logGroup)
-		wg.Wait()
+		}
+		if hasLogs {
+			getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region, c.String("filter"))
+		} else {
+			clio.Warnf("The deployment may not have been invoked yet. Log group id: %s", logGroup)
+		}
 
 		return nil
 	},

@@ -71,11 +71,10 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 				Diagnostics: []targetgroup.Diagnostic{},
 			},
 			giveBody: types.CreateTargetGroupDeploymentRequest{
-				AwsAccount:  "123456789012",
-				AwsRegion:   "ap-southeast-2",
-				FunctionArn: "test",
-				Id:          "test",
-				Runtime:     "aws",
+				AwsAccount: "123456789012",
+				AwsRegion:  "ap-southeast-2",
+				Id:         "test",
+				Runtime:    "aws",
 			},
 		},
 		{
