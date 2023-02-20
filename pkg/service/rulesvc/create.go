@@ -141,12 +141,12 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 						return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
 					}
 				}
+			}
 
-				if len(argument.Values) == 1 {
-					targetgroup.With[argumentID] = argument.Values[0]
-				} else {
-					targetgroup.WithSelectable[argumentID] = argument.Values
-				}
+			if len(argument.Values) == 1 {
+				targetgroup.With[argumentID] = argument.Values[0]
+			} else {
+				targetgroup.WithSelectable[argumentID] = argument.Values
 			}
 		}
 
