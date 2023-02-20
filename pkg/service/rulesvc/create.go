@@ -111,19 +111,18 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		}
 
 		for argumentID, argument := range in.With.AdditionalProperties {
-			isValidArgId := false
 			// check if the provided argId is a valid argument id in TargetGroup's schema.
-			for schemaArgId, schemaValue := range q.Result.TargetSchema.Schema.AdditionalProperties {
-				if argumentID == schemaArgId {
-					isValidArgId = true
-				}
+			arg, ok := q.Result.TargetSchema.Schema.Get(argumentID)
+			if !ok {
+				return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
+			}
 
-				if len(argument.Values) < 1 {
-					return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
-				}
+			if len(argument.Values) < 1 {
+				return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
+			}
 
-				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *schemaValue.ResourceName}
-
+			if arg.ResourceName != nil {
+				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.ResourceName}
 				_, err := s.DB.Query(ctx, &qGetResourcesForTG)
 				if err != nil {
 					return rule.Target{}, err
@@ -142,16 +141,12 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 						return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
 					}
 				}
-			}
 
-			if !isValidArgId {
-				return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
-			}
-
-			if len(argument.Values) == 1 {
-				targetgroup.With[argumentID] = argument.Values[0]
-			} else {
-				targetgroup.WithSelectable[argumentID] = argument.Values
+				if len(argument.Values) == 1 {
+					targetgroup.With[argumentID] = argument.Values[0]
+				} else {
+					targetgroup.WithSelectable[argumentID] = argument.Values
+				}
 			}
 		}
 
