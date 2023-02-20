@@ -33,7 +33,7 @@ import (
 )
 
 //eg command
-//go run cmd/devcli/main.go deploy --runtime=aws --publisher=jack --version=v0.1.4 --name=testvault --accountId=616777145260 --aws-region=ap-southeast-2 --suffix=jacktest6
+//go run cmd/devcli/main.go deploy --runtime=aws --publisher=jack --version=v0.1.4 --name=testvault --accountId=12345678912 --aws-region=ap-southeast-2 --suffix=jacktest6
 
 var Command = cli.Command{
 	Name:        "deploy",
