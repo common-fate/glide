@@ -2,6 +2,7 @@ package rulesvc
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -103,21 +104,50 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 			WithArgumentGroupOptions: make(map[string]map[string][]string),
 		}
 
-		// TODO: Validate target group against cached resources
-		// TODO: Validate target group against schema
+		q := storage.GetTargetGroup{ID: in.ProviderId}
+		_, err := s.DB.Query(ctx, &q)
+		if err != nil && err != ddb.ErrNoItems {
+			return rule.Target{}, err
+		}
 
 		for argumentID, argument := range in.With.AdditionalProperties {
-			for groupId, groupValues := range argument.Groupings.AdditionalProperties {
-				if len(groupValues) > 0 {
+			isValidArgId := false
+			// check if the provided argId is a valid argument id in TargetGroup's schema.
+			for schemaArgId, schemaValue := range q.Result.TargetSchema.Schema.AdditionalProperties {
+				if argumentID == schemaArgId {
+					isValidArgId = true
+				}
 
-					argumentGroupOptions := targetgroup.WithArgumentGroupOptions[argumentID]
-					if argumentGroupOptions == nil {
-						argumentGroupOptions = make(map[string][]string)
+				if len(argument.Values) < 1 {
+					return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
+				}
+
+				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *schemaValue.ResourceName}
+
+				_, err := s.DB.Query(ctx, &qGetResourcesForTG)
+				if err != nil {
+					return rule.Target{}, err
+				}
+
+				// check if the provided value is a valid resource id in cached resources.
+				for _, providedValue := range argument.Values {
+					isValidArgValue := false
+					for _, cachedResource := range qGetResourcesForTG.Result {
+						if cachedResource.Resource.ID == providedValue {
+							isValidArgValue = true
+						}
 					}
-					argumentGroupOptions[groupId] = groupValues
-					targetgroup.WithArgumentGroupOptions[argumentID] = argumentGroupOptions
+
+					if !isValidArgValue {
+						return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
+					}
 				}
 			}
+
+			if !isValidArgId {
+				return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
+			}
+
 			if len(argument.Values) == 1 {
 				targetgroup.With[argumentID] = argument.Values[0]
 			} else {
