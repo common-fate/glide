@@ -57,7 +57,9 @@ export const accessRuleTargetApiToTargetFormData = (
   };
   Object.entries(apiData.target.with).forEach(([k, v]) => {
     if (
-      v.formElement === AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+      v.formElement ===
+        AccessRuleTargetDetailArgumentsFormElement.MULTISELECT ||
+      "SELECT"
     ) {
       t.multiSelects[k] = v.values;
       t.argumentGroups[k] = v.groupings;

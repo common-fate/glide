@@ -222,16 +222,6 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 
 			at.With.AdditionalProperties[k] = argument
 		}
-		for k, v := range t.WithArgumentGroupOptions {
-			argument := at.With.AdditionalProperties[k]
-			argument.Groupings.AdditionalProperties = make(map[string][]string)
-			for k2, v2 := range v {
-				group := argument.Groupings.AdditionalProperties[k2]
-				group = append(group, v2...)
-				argument.Groupings.AdditionalProperties[k2] = group
-			}
-			at.With.AdditionalProperties[k] = argument
-		}
 
 		// It is essential that all slices be initialised for the apitypes otherwise it will be serialised as null instead of empty
 		for k, v := range at.With.AdditionalProperties {

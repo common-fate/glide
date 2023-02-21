@@ -23,8 +23,20 @@ import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import ProviderArgumentField from "../components/ProviderArgumentField";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
-import { AccessRuleFormData } from "../CreateForm";
+import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 import { FormStep } from "./FormStep";
+import { Provider } from "src/utils/backend-client/types";
+
+interface PreviewProps {
+  target: AccessRuleFormDataTarget;
+  provider?: Provider;
+}
+
+const Preview = (props: PreviewProps) => {
+  if (!props.provider) return null;
+
+  return <ProviderPreview provider={props.provider} />;
+};
 
 export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
@@ -37,12 +49,6 @@ export const ProviderStep: React.FC = () => {
     target?.providerId ?? ""
   );
 
-  const Preview = () => {
-    if (!target || !provider || !(target?.inputs || target?.multiSelects)) {
-      return null;
-    }
-    return <ProviderPreview provider={provider} />;
-  };
   const isFieldLoading = (!provider && ivp) || (!providerArgs && ivpa);
 
   return (
@@ -50,7 +56,7 @@ export const ProviderStep: React.FC = () => {
       heading="Provider"
       subHeading="The permissions that the rule gives access to"
       fields={["target", "target.providerId"]}
-      preview={<Preview />}
+      preview={<Preview target={target} provider={provider} />}
       isFieldLoading={isFieldLoading}
     >
       <>
