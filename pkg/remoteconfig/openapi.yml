@@ -40,6 +40,9 @@ components:
       type: object
       description: The configuration for a Common Fate deployment.
       properties:
+        samlSSOMetadataURL:
+          type: string
+          description: The URL to the SAML SSO metadata for the deployment.
         providerConfiguration:
           $ref: "#/components/schemas/ProviderMap"
         notificationsConfiguration:

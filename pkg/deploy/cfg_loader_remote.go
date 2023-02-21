@@ -115,6 +115,12 @@ func (r *RemoteDeploymentConfig) ReadProviders(ctx context.Context) (ProviderMap
 	return pm, nil
 }
 
+// Read SamlSSOMetadataURL
+func (r *RemoteDeploymentConfig) ReadSamlSSOMetadataURL(ctx context.Context) (string, error) {
+	// TODO: implement
+	return "", nil
+}
+
 func (r *RemoteDeploymentConfig) WriteProviders(ctx context.Context, pm ProviderMap) error {
 	var config remoteconfig.ProviderMap
 	for k, v := range pm {
