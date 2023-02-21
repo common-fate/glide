@@ -6,7 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/clio"
 	"github.com/common-fate/iso8601"
 
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
@@ -53,7 +53,7 @@ var CreateCommand = cli.Command{
 		}
 		in := targetgroupgranter.WorkflowInput{Grant: grant}
 
-		logger.Get(ctx).Infow("constructed workflow input", "input", in)
+		clio.Infow("constructed workflow input", "input", in, "cfg", cfg)
 
 		inJson, err := json.Marshal(in)
 		if err != nil {
@@ -68,11 +68,11 @@ var CreateCommand = cli.Command{
 		}
 
 		//running the step function
-		_, err = sfnClient.StartExecution(ctx, sei)
+		out, err := sfnClient.StartExecution(ctx, sei)
 		if err != nil {
 			return err
 		}
-
+		clio.Infow("execution created", "out", out)
 		return nil
 	},
 }

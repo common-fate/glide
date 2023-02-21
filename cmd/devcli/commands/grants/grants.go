@@ -6,5 +6,5 @@ var Command = cli.Command{
 	Name:        "grants",
 	Action:      cli.ShowSubcommandHelp,
 	Description: "Administer grants",
-	Subcommands: []*cli.Command{&CreateCommand},
+	Subcommands: []*cli.Command{&CreateCommand, &Handle},
 }

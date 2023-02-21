@@ -320,7 +320,7 @@ export class CommonFateStackProd extends cdk.Stack {
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
       HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
       HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
-      GranterV2StateMachineArn: targetGroupGranter.getGranterARN(),
+      GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
     });
   }
 }
