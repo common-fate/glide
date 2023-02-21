@@ -18,6 +18,10 @@ jobs:
           # Make sure the actual branch is checked out when running on pull requests
           ref: ${{ github.head_ref }}
 
+      # https://github.com/creyD/prettier_action/issues/114
+      - name: Install npm v8
+        run: npm i -g npm@8
+
       - name: Prettify code
         uses: common-fate/prettier-action@6602189cf8bac1ce73ffe601925f6127ab7f21ac
         with:
