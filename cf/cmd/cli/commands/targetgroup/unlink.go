@@ -2,45 +2,48 @@ package targetgroup
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
 var UnlinkCommand = cli.Command{
 	Name:        "unlink",
-	Description: "unlink a deployment from its target group",
-	Usage:       "unlink a deployment from its target group",
+	Description: "Unlink a deployment from a target group",
+	Usage:       "Unlink a deployment from a target group",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "deployment", Required: true},
-		&cli.StringFlag{Name: "group", Required: true},
+		&cli.StringFlag{Name: "target-group", Required: true},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-
-		deployment := c.String("deployment")
-		if deployment == "" {
-			return errors.New("deployment is required")
-		}
-		group := c.String("group")
-		if group == "" {
-			return errors.New("group is required")
-		}
-
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
 		}
 
-		_, err = cfApi.RemoveTargetGroupLinkWithResponse(ctx, group, types.RemoveTargetGroupLinkJSONRequestBody{
-			// @TODO: update/create a new req body that doesn't have priority:int
-			DeploymentId: deployment,
+		res, err := cfApi.AdminRemoveTargetGroupLinkWithResponse(ctx, c.String("target-group"), &types.AdminRemoveTargetGroupLinkParams{
+			DeploymentId: c.String("deployment"),
 		})
 		if err != nil {
 			return err
 		}
-		clio.Successf("Unlinked deployment %s from group %s", deployment, group)
+		switch res.StatusCode() {
+		case http.StatusOK:
+			clio.Successf("Unlinked deployment %s from group %s", c.String("deployment"), c.String("target-group"))
+		case http.StatusUnauthorized:
+			return errors.New(res.JSON401.Error)
+		case http.StatusNotFound:
+			return errors.New(res.JSON404.Error)
+		case http.StatusInternalServerError:
+			return errors.New(res.JSON500.Error)
+		default:
+			return clierr.New("Unhandled response from the Common Fate API", clierr.Infof("Status Code: %d", res.StatusCode()), clierr.Error(string(res.Body)))
+		}
+
 		return nil
 	},
 }

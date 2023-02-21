@@ -15,6 +15,48 @@ import (
 // RequestArguments takes an access rule and prepares a list of request arguments which contains all the available options that a user may chose from when creating a request
 // this can also be used to validate the input to a create request api call
 func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error) {
+
+	if accessRuleTarget.TargetGroupID != "" {
+		targetGroupRequestArguments := make(map[string]types.RequestArgument)
+
+		targetGroup := &storage.GetTargetGroup{ID: accessRuleTarget.TargetGroupID}
+		_, err := s.DB.Query(ctx, targetGroup)
+		if err != nil && err != ddb.ErrNoItems {
+			return nil, err
+		}
+
+		for k, v := range accessRuleTarget.WithSelectable {
+			arg := targetGroupRequestArguments[k]
+			arg.Title = k
+			resource := targetGroup.Result.TargetSchema.Schema.AdditionalProperties[k]
+
+			argOptionsQuery := &storage.ListCachedTargetGroupResource{TargetGroupID: accessRuleTarget.TargetGroupID, ResourceType: *resource.ResourceName}
+			_, err := s.DB.Query(ctx, argOptionsQuery)
+			if err != nil && err != ddb.ErrNoItems {
+				return nil, err
+			}
+
+			arg.FormElement = (*types.RequestArgumentFormElement)(&resource.RequestFormElement)
+			arg.RequiresSelection = true
+
+			for _, o := range v {
+				for _, j := range argOptionsQuery.Result {
+					if j.Resource.ID == o {
+						arg.Options = append(arg.Options, types.WithOption{
+							Label: j.Resource.Name,
+							Value: o,
+							Valid: true,
+						})
+					}
+				}
+			}
+
+			targetGroupRequestArguments[k] = arg
+		}
+
+		return targetGroupRequestArguments, nil
+	}
+
 	// prepare request arguments for an access rule
 	// fetch the schema for the provider
 	providerSchema, err := s.getProviderArgSchemaByID(ctx, accessRuleTarget.ProviderID)

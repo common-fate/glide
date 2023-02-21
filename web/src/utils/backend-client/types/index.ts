@@ -17,6 +17,7 @@ export * from './adminListProviderArgOptionsParams';
 export * from './adminListRequestsParams';
 export * from './adminListRequestsStatus';
 export * from './adminListUsersParams';
+export * from './adminRemoveTargetGroupLinkParams';
 export * from './adminUpdateUserBody';
 export * from './approvalMethod';
 export * from './approverConfig';

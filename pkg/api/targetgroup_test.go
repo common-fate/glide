@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -63,7 +64,7 @@ func TestCreateTargetGroup(t *testing.T) {
 			a := API{TargetGroupService: m}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("POST", "/api/v1/target-groups", strings.NewReader(tc.give))
+			req, err := http.NewRequest("POST", "/api/v1/admin/target-groups", strings.NewReader(tc.give))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -141,7 +142,7 @@ func TestListTargetGroup(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/target-groups", nil)
+			req, err := http.NewRequest("GET", "/api/v1/admin/target-groups", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -196,7 +197,7 @@ func TestGetTargetGroup(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/target-groups/123", nil)
+			req, err := http.NewRequest("GET", "/api/v1/admin/target-groups/123", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -238,10 +239,10 @@ func TestTargetGroupLink(t *testing.T) {
 			wantCode:                             http.StatusOK,
 			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
 			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
-			want:                                 `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"123","targetDeployments":[{"Diagnostics":null,"Id":"abc","Priority":0,"Valid":false}],"targetSchema":{"From":"","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			want:                                 `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"123","targetSchema":{"From":"","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
 			deploymentId:                         "abc",
 			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": 100}`,
+			give:                                 `{"deploymentId": "abc", "priority": 100,"force":false}`,
 		},
 
 		{
@@ -252,7 +253,7 @@ func TestTargetGroupLink(t *testing.T) {
 			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
 			deploymentId:                         "abc",
 			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": 1000}`,
+			give:                                 `{"deploymentId": "abc", "priority": 1000,"force":false}`,
 			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
 		},
 		{
@@ -263,7 +264,7 @@ func TestTargetGroupLink(t *testing.T) {
 			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
 			deploymentId:                         "abc",
 			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": -1}`,
+			give:                                 `{"deploymentId": "abc", "priority": -1,"force":false}`,
 			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
 		},
 	}
@@ -288,7 +289,7 @@ func TestTargetGroupLink(t *testing.T) {
 			a := API{DB: db, TargetGroupService: m}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("POST", "/api/v1/target-groups/123/link", strings.NewReader(tc.give))
+			req, err := http.NewRequest("POST", "/api/v1/admin/target-groups/123/link", strings.NewReader(tc.give))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -322,7 +323,6 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		mockCreate                           *targetgroup.TargetGroup
 		deploymentId                         string
 		mockCreateErr                        error
-		give                                 string
 	}
 
 	testcases := []testcase{
@@ -334,7 +334,6 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 			want:                                 `null`,
 			deploymentId:                         "abc",
 			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": 100}`,
 		},
 		{
 			name:                                 "target group err, error case",
@@ -344,7 +343,6 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 			want:                                 `{"error":"Internal Server Error"}`,
 			deploymentId:                         "abc",
 			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": 100}`,
 		},
 	}
 
@@ -365,7 +363,7 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 			a := API{DB: db, TargetGroupService: m}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("POST", "/api/v1/target-groups/123/unlink", strings.NewReader(tc.give))
+			req, err := http.NewRequest("POST", fmt.Sprintf("/api/v1/admin/target-groups/123/unlink?deploymentId=%s", tc.deploymentId), strings.NewReader(""))
 			if err != nil {
 				t.Fatal(err)
 			}

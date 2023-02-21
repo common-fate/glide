@@ -255,6 +255,7 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsLogLevel: analyticsLogLevel.valueAsString,
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
       kmsKey: kmsKey,
+      shouldRunCronHealthCheckCacheSync: true,
     });
     const targetGroupGranter = new TargetGroupGranter(
       this,

@@ -3,9 +3,10 @@ package deployment
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 
-	"github.com/common-fate/clio"
+	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -13,40 +14,31 @@ import (
 
 var DiagnosticCommand = cli.Command{
 	Name:        "diagnostic",
-	Description: "query a deployment by ID and fetch it's diagnostic information",
-	Usage:       "query a deployment by ID and fetch it's diagnostic information",
+	Description: "List diagnostic logs for a deployment",
+	Usage:       "List diagnostic logs for a deployment",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 	},
 	Action: cli.ActionFunc(func(c *cli.Context) error {
-
-		opts := []types.ClientOption{}
 		ctx := c.Context
-
-		ID := c.String("id")
-		if ID == "" {
-			return errors.New("id is required, it can be found by referencing the `deployment list` output")
-		}
-
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		id := c.String("id")
+		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
-			clio.Error("Failed to create client: ", err.Error())
 			return err
 		}
-		res, err := cfApi.GetTargetGroupDeploymentWithResponse(ctx, ID)
+		res, err := cfApi.AdminGetTargetGroupDeploymentWithResponse(ctx, id)
 		if err != nil {
-			clio.Error("Failed to get deployment: ", err.Error())
 			return err
 		}
 
-		if res.JSON200 != nil {
-			dep := res.JSON200
+		switch res.StatusCode() {
+		case http.StatusOK:
 			health := "healthy"
-			if !dep.Healthy {
+			if !res.JSON200.Healthy {
 				health = "unhealthy"
 			}
 			fmt.Println("Diagnostic Logs:")
-			fmt.Printf("%s %s %s %s\n", dep.Id, dep.AwsAccount, dep.AwsRegion, health)
+			fmt.Printf("%s %s %s %s\n", res.JSON200.Id, res.JSON200.AwsAccount, res.JSON200.AwsRegion, health)
 
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{
@@ -61,16 +53,21 @@ var DiagnosticCommand = cli.Command{
 			table.SetHeaderLine(false)
 			table.SetBorder(false)
 
-			for _, d := range dep.Diagnostics {
+			for _, d := range res.JSON200.Diagnostics {
 				table.Append([]string{
 					d.Level, d.Message,
 				})
 			}
 			table.Render()
-		} else {
-			clio.Error("no deployments found")
+		case http.StatusUnauthorized:
+			return errors.New(res.JSON401.Error)
+		case http.StatusNotFound:
+			return errors.New(res.JSON404.Error)
+		case http.StatusInternalServerError:
+			return errors.New(res.JSON500.Error)
+		default:
+			return clierr.New("Unhandled response from the Common Fate API", clierr.Infof("Status Code: %d", res.StatusCode()), clierr.Error(string(res.Body)))
 		}
-
 		return nil
 	}),
 }

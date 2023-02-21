@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroup"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
@@ -45,19 +43,17 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 		wantCode       int
 		wantBody       string
 		withCreatedDep *targetgroup.Deployment
-		// if this flag is enabled giveBody is ignored and an invalid JSON obj is passed
-		giveInvalidBody bool
-		giveBody        types.CreateTargetGroupDeploymentRequest
+		giveBody       string
 		// mockCreateTargetgroupDeployment    *targetgroup.Deployment
 		mockCreateTargetgroupDeploymentErr error
 	}
 
 	testcases := []testcase{
 		{
-			name:            "apio.DecodeJSONBody error",
-			wantCode:        http.StatusBadRequest,
-			wantBody:        `{"error":"request body has an error: failed to decode request body: invalid character 'i' looking for beginning of object key string"}`,
-			giveInvalidBody: true,
+			name:     "apio.DecodeJSONBody error",
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": property \"id\" is missing"}`,
+			giveBody: "{}",
 		},
 		{
 			name:     "create.success.201",
@@ -70,26 +66,20 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 				Healthy:     false,
 				Diagnostics: []targetgroup.Diagnostic{},
 			},
-			giveBody: types.CreateTargetGroupDeploymentRequest{
-				AwsAccount:  "123456789012",
-				AwsRegion:   "ap-southeast-2",
-				FunctionArn: "test",
-				Id:          "test",
-				Runtime:     "aws",
-			},
+			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
 		},
 		{
 			name:                               "error == targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists",
 			mockCreateTargetgroupDeploymentErr: targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists,
 			wantCode:                           http.StatusBadRequest,
-			giveBody:                           types.CreateTargetGroupDeploymentRequest{}, // this is required but will not be used
+			giveBody:                           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
 			wantBody:                           `{"error":"target group deployment id already exists"}`,
 		},
 		{
 			name:                               "error == anything else",
 			mockCreateTargetgroupDeploymentErr: errors.New("misc deployment svc error"),
 			wantCode:                           http.StatusInternalServerError,
-			giveBody:                           types.CreateTargetGroupDeploymentRequest{}, // this is required but will not be used
+			giveBody:                           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
 			wantBody:                           `{"error":"Internal Server Error"}`,
 		},
 	}
@@ -110,24 +100,10 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 			}
 			handler := newTestServer(t, &a)
 
-			// now we need to json encode the tc.giveBody
-			// we can use the apio.EncodeJSONBody helper function
-			// we can then pass this to the httptest.NewRequest function
-			var bodyAsString string
-			if tc.giveInvalidBody {
-				bodyAsString = "{invalid json req}"
-			} else {
-				encoded, err := json.Marshal(&tc.giveBody)
-				if err != nil {
-					t.Fatal(err)
-				}
-				bodyAsString = string(encoded)
-			}
-
 			req, err := http.NewRequest(
 				"POST",
-				"/api/v1/target-group-deployments",
-				strings.NewReader(bodyAsString),
+				"/api/v1/admin/target-group-deployments",
+				strings.NewReader(tc.giveBody),
 			)
 
 			if err != nil {
@@ -219,7 +195,7 @@ func TestListTargetGroupDeployments(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/target-group-deployments", nil)
+			req, err := http.NewRequest("GET", "/api/v1/admin/target-group-deployments", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -280,7 +256,7 @@ func TestGetTargetGroupDeployment(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/target-group-deployments/123", nil)
+			req, err := http.NewRequest("GET", "/api/v1/admin/target-group-deployments/123", nil)
 			if err != nil {
 				t.Fatal(err)
 			}

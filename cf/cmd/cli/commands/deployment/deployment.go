@@ -4,20 +4,20 @@ import (
 	"errors"
 
 	"github.com/common-fate/clio"
-	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/urfave/cli/v2"
 )
 
 var Command = cli.Command{
 	Name:        "deployment",
-	Description: "manage a deployment",
-	Usage:       "manage a deployment",
+	Description: "Manage provider deployments",
+	Usage:       "Manage provider deployments",
 	Subcommands: []*cli.Command{
 		&RegisterCommand,
 		&ValidateCommand,
 		&ListCommand,
 		&DiagnosticCommand,
+		&LogsCommand,
 	},
 }
 
@@ -37,11 +37,11 @@ go run cf/cmd/cli/main.go deployment register --runtime=aws-lambda --id=okta-1 -
 
 var RegisterCommand = cli.Command{
 	Name:        "register",
-	Description: "register a deployment",
-	Usage:       "register a deployment",
+	Description: "Register a provider deployment in Common Fate",
+	Usage:       "Register a provider deployment in Common Fate",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
-		&cli.StringFlag{Name: "runtime", Required: true},
+		&cli.StringFlag{Name: "runtime", Required: true, Value: "aws-lambda"},
 		&cli.StringFlag{Name: "aws-region", Required: true},
 		&cli.StringFlag{Name: "aws-account", Required: true},
 	},
@@ -49,47 +49,26 @@ var RegisterCommand = cli.Command{
 
 		ctx := c.Context
 
-		reqBody := types.CreateTargetGroupDeploymentJSONRequestBody{}
-
-		runtime := c.String("runtime")
-		id := c.String("id")
-		awsRegion := c.String("aws-region")
-		awsAccount := c.String("aws-account")
-
-		if runtime != "" {
-			reqBody.Runtime = runtime
-		}
-		if id != "" {
-			reqBody.Id = id
-		}
-		if awsRegion != "" {
-			reqBody.AwsRegion = awsRegion
-		}
-		if awsAccount != "" {
-			if targetdeploymentsvc.IsValidAwsAccountNumber(awsAccount) {
-				reqBody.AwsAccount = awsAccount
-			} else {
-				clio.Errorf("[✖] invalid aws account id")
-				return nil
-			}
+		reqBody := types.AdminCreateTargetGroupDeploymentJSONRequestBody{
+			AwsAccount: c.String("aws-account"),
+			AwsRegion:  c.String("aws-region"),
+			Runtime:    c.String("runtime"),
+			Id:         c.String("id"),
 		}
 
-		// initialise some types.ClientOption to pass to the client
-		opts := []types.ClientOption{}
-
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
 		if err != nil {
 			return err
 		}
 
-		result, err := cfApi.CreateTargetGroupDeploymentWithResponse(ctx, reqBody)
+		result, err := cfApi.AdminCreateTargetGroupDeploymentWithResponse(ctx, reqBody)
 		if err != nil {
 			return err
 		}
 
 		switch result.StatusCode() {
 		case 201:
-			clio.Successf("[✔] registered deployment '%s' with Common Fate", c.String("id"))
+			clio.Successf("Successfully registered deployment '%s' with Common Fate", c.String("id"))
 			return nil
 		default:
 			return errors.New(string(result.Body))

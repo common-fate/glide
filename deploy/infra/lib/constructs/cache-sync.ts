@@ -12,6 +12,7 @@ import { grantInvokeCommunityProviders } from "../helpers/permissions";
 interface Props {
   dynamoTable: Table;
   accessHandler: AccessHandler;
+  shouldRunAsCron: boolean;
 }
 
 export class CacheSync extends Construct {
@@ -40,6 +41,7 @@ export class CacheSync extends Construct {
     //add event bridge trigger to lambda
     this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
       schedule: events.Schedule.cron({ minute: "0/5" }),
+      enabled: props.shouldRunAsCron,
     });
 
     // add the Lambda function as a target for the Event Rule
@@ -47,6 +49,7 @@ export class CacheSync extends Construct {
 
     // allow the Event Rule to invoke the Lambda function
     targets.addLambdaPermission(this.eventRule, this._lambda);
+
     // Grant the Common Fate app access to invoke the access handler api
     this._lambda.addToRolePolicy(
       new PolicyStatement({
