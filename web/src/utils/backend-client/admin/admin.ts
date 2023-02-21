@@ -1009,13 +1009,13 @@ export const adminListTargetGroupDeployments = (
     
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ListTargetGroupDeploymentAPIResponseResponse>(
-      {url: `/api/v1/admin/admin/target-group-deployments`, method: 'get'
+      {url: `/api/v1/admin/target-group-deployments`, method: 'get'
     },
       options);
     }
   
 
-export const getAdminListTargetGroupDeploymentsKey = () => [`/api/v1/admin/admin/target-group-deployments`];
+export const getAdminListTargetGroupDeploymentsKey = () => [`/api/v1/admin/target-group-deployments`];
 
     
 export type AdminListTargetGroupDeploymentsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListTargetGroupDeployments>>>
@@ -1047,7 +1047,7 @@ export const adminCreateTargetGroupDeployment = (
     createTargetGroupDeploymentRequestBody: CreateTargetGroupDeploymentRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<TargetGroupDeployment>(
-      {url: `/api/v1/admin/admin/target-group-deployments`, method: 'post',
+      {url: `/api/v1/admin/target-group-deployments`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createTargetGroupDeploymentRequestBody
     },

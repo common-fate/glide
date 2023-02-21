@@ -1,7 +1,6 @@
 import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
 import {
   Button,
-  Center,
   CircularProgress,
   Code,
   Container,
@@ -25,16 +24,14 @@ import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { Column } from "react-table";
-import { CFCode } from "../../../components/CodeInstruction";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
+  adminDeleteProvidersetup,
   useAdminListProviders,
   useAdminListProvidersetups,
-  adminDeleteProvidersetup,
 } from "../../../utils/backend-client/admin/admin";
 
-import { useListTargetGroups } from "../../../utils/backend-client/target-groups/target-groups";
 import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
 import { ProvidersV2Tabs } from "../providersv2";
 

@@ -13,8 +13,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
-	"github.com/common-fate/common-fate/pkg/service/grantsvcv2"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -138,16 +136,6 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 		}
 	}
 
-	isTargetGroupRule := in.Rule.Target.TargetGroupID != ""
-	if !isTargetGroupRule {
-		//validate the request against the access handler - make sure that access will be able to be provisioned
-		//validating the grant before the request was made so that the request object does not get created.
-		err := s.Granter.ValidateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: in.Rule})
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-	}
-
 	// If the approval is not required, auto-approve the request
 	auto := types.AUTOMATIC
 	revd := types.REVIEWED
@@ -221,20 +209,11 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 	// check to see if it valid for instant approval
 	if !in.Rule.Approval.IsRequired() {
 		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
-		var updatedReq *access.Request
-		if isTargetGroupRule {
-			updatedReq, err = s.GranterV2.CreateGrant(ctx, grantsvcv2.CreateGrantOpts{Request: req, AccessRule: in.Rule})
-			if err != nil {
-				return CreateRequestResult{}, err
-			}
-		} else {
-			updatedReq, err = s.Granter.CreateGrant(ctx, grantsvc.CreateGrantOpts{Request: req, AccessRule: in.Rule})
-			if err != nil {
-				return CreateRequestResult{}, err
-			}
+		grant, err := s.Workflow.Grant(ctx, req, in.Rule)
+		if err != nil {
+			return CreateRequestResult{}, err
 		}
-
-		req = *updatedReq
+		req.Grant = grant
 		items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, req, dbupdate.WithReviewers(reviewers))
 		if err != nil {
 			return CreateRequestResult{}, err

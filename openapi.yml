@@ -1161,7 +1161,7 @@ paths:
         name: id
         in: path
         required: true
-  /api/v1/admin/admin/target-group-deployments:
+  /api/v1/admin/target-group-deployments:
     get:
       summary: Get target group deployments
       responses:
