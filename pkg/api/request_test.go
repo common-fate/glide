@@ -16,8 +16,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
-	ahMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -529,11 +527,10 @@ func TestRevokeRequest(t *testing.T) {
 			db.MockQueryWithErr(&storage.GetRequest{Result: &tc.request}, tc.withGetRequestError)
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{Request: tc.request}}, tc.withGetReviewerError)
 			ctrl := gomock.NewController(t)
-			rs := ahMocks.NewMockGranter(ctrl)
+			workflowMock := mocks.NewMockWorkflow(ctrl)
+			workflowMock.EXPECT().Revoke(gomock.Any(), tc.request, tc.withUID).AnyTimes().Return(nil, tc.withRevokeGrantErr)
 
-			rs.EXPECT().RevokeGrant(gomock.Any(), grantsvc.RevokeGrantOpts{Request: tc.request, RevokerID: tc.withUID}).AnyTimes().Return(nil, tc.withRevokeGrantErr)
-
-			a := API{DB: db, Granter: rs}
+			a := API{DB: db, Workflow: workflowMock}
 			handler := newTestServer(t, &a, withIsAdmin(tc.withIsAdmin), withRequestUser(identity.User{ID: tc.withUID}))
 
 			req, err := http.NewRequest("POST", "/api/v1/requests/123/revoke", strings.NewReader(tc.give))
