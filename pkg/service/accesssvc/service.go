@@ -25,6 +25,7 @@ type Service struct {
 	Workflow    Workflow
 }
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/workflow.go -package=mocks . Workflow
 type Workflow interface {
 	Grant(ctx context.Context, request access.Request, accessRule rule.AccessRule) (*access.Grant, error)
 }

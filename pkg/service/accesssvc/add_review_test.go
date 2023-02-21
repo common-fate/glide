@@ -8,6 +8,7 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
+	accessMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb/ddbmock"
@@ -200,8 +201,8 @@ func TestAddReview(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			g := mocks.NewMockGranter(ctrl)
-			g.EXPECT().CreateGrant(gomock.Any(), gomock.Eq(tc.wantCreateGrantOpts)).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
+			workflowMock := accessMocks.NewMockWorkflow(ctrl)
+			workflowMock.EXPECT().Grant(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request.Grant, tc.withCreateGrantResponse.err).AnyTimes()
 
 			ctrl2 := gomock.NewController(t)
 			ep := mocks.NewMockEventPutter(ctrl2)
@@ -216,8 +217,8 @@ func TestAddReview(t *testing.T) {
 			s := Service{
 				Clock:       clk,
 				DB:          c,
-				Granter:     g,
 				EventPutter: ep,
+				Workflow:    workflowMock,
 			}
 			got, err := s.AddReviewAndGrantAccess(context.Background(), tc.give)
 			if tc.wantErr == nil {

@@ -278,9 +278,8 @@ func TestNewRequest(t *testing.T) {
 			ep := accessMocks.NewMockEventPutter(ctrl2)
 			ep.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-			g := accessMocks.NewMockGranter(ctrl)
-			g.EXPECT().CreateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
-			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.wantValidationError).AnyTimes()
+			workflowMock := accessMocks.NewMockWorkflow(ctrl)
+			workflowMock.EXPECT().Grant(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request.Grant, tc.withCreateGrantResponse.err).AnyTimes()
 
 			ca := accessMocks.NewMockCacheService(ctrl)
 			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil, nil).AnyTimes()
@@ -291,10 +290,10 @@ func TestNewRequest(t *testing.T) {
 			s := Service{
 				Clock:       clk,
 				DB:          db,
-				Granter:     g,
 				EventPutter: ep,
 				Cache:       ca,
 				Rules:       rs,
+				Workflow:    workflowMock,
 			}
 			got, err := s.CreateRequests(context.Background(), tc.in)
 			var gotWithoutIDs []CreateRequestResult

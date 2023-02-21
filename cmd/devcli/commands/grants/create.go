@@ -39,14 +39,13 @@ var CreateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		grant := ahTypes.Grant{
+		grant := ahTypes.CreateGrant{
 			Subject:  openapi_types.Email("josh@commonfate.io"),
 			Start:    iso8601.New(time.Now().Add(time.Second * 2)),
 			End:      iso8601.New(time.Now().Add(time.Hour)),
 			Provider: "josh-example",
-			ID:       ahTypes.NewGrantID(),
-			Status:   ahTypes.GrantStatusPENDING,
-			With: ahTypes.Grant_With{
+			Id:       ahTypes.NewGrantID(),
+			With: ahTypes.CreateGrant_With{
 				AdditionalProperties: map[string]string{
 					"vault": "test",
 				},
@@ -65,7 +64,7 @@ var CreateCommand = cli.Command{
 		sei := &sfn.StartExecutionInput{
 			StateMachineArn: aws.String(cfg.StateMachineARN),
 			Input:           aws.String(string(inJson)),
-			Name:            &grant.ID,
+			Name:            &grant.Id,
 		}
 
 		//running the step function

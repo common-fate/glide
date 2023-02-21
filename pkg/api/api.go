@@ -143,6 +143,8 @@ type TargetGroupService interface {
 type TargetGroupDeploymentService interface {
 	CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error)
 }
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
 	Revoke(ctx context.Context, request access.Request, revokerID string) (*access.Request, error)
 }
