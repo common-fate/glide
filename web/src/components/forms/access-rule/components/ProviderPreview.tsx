@@ -35,7 +35,7 @@ export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
 }) => {
   const { data: providerArgs } = useAdminGetProviderArgs(provider.id ?? "");
 
-  if (!provider) return null;
+  if (!providerArgs) return null;
 
   return (
     <VStack w="100%" align="flex-start">
