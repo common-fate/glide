@@ -167,6 +167,12 @@ func (t Target) UsesSelectableOptions() bool {
 	return t.WithSelectable != nil && len(t.WithSelectable) > 0
 }
 
+// IsForTargetGroup check if this target has a targetgroup ID
+// if so, it means this rule is for a targetgroup not a v1 provider
+func (t Target) IsForTargetGroup() bool {
+	return t.TargetGroupID != ""
+}
+
 // UsesDynamicOptions is true if the rule uses dynamic options that are automatically
 // updated, such as AWS Organizational Units.
 func (t Target) UsesDynamicOptions() bool {
