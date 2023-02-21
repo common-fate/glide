@@ -1,29 +1,15 @@
-import { CloseIcon, CopyIcon, SmallAddIcon } from "@chakra-ui/icons";
+import { CopyIcon } from "@chakra-ui/icons";
 import {
-  Button,
   ButtonGroup,
   Circle,
-  CircularProgress,
   Code,
   Container,
   Flex,
-  HStack,
   IconButton,
-  LinkBox,
-  LinkOverlay,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Stack,
   Text,
   useClipboard,
-  useDisclosure,
 } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
@@ -31,15 +17,15 @@ import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 
 import {
-  useListTargetGroupDeployments,
-  useListTargetGroups,
-} from "../../../utils/backend-client/target-groups/target-groups";
-import {
   TargetGroup,
   TargetGroupDeployment,
   TargetGroupDiagnostic,
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
+import {
+  useAdminListTargetGroupDeployments,
+  useAdminListTargetGroups,
+} from "../../../utils/backend-client/admin/admin";
 
 // using a chakra tab component and links, link to /admin/providers and /admin/providersv2
 export const ProvidersV2Tabs = () => {
@@ -52,8 +38,8 @@ export const ProvidersV2Tabs = () => {
 };
 
 const AdminProvidersTable = () => {
-  const paginator = usePaginatorApi<typeof useListTargetGroupDeployments>({
-    swrHook: useListTargetGroupDeployments,
+  const paginator = usePaginatorApi<typeof useAdminListTargetGroupDeployments>({
+    swrHook: useAdminListTargetGroupDeployments,
     hookProps: {},
   });
 
@@ -145,7 +131,7 @@ const AdminProvidersTable = () => {
 };
 
 const AdminTargetGroupsTable = () => {
-  const { data } = useListTargetGroups();
+  const { data } = useAdminListTargetGroups();
   // @ts-ignore this is required because ts cannot infer the nexted object types correctly
   const cols: Column<TargetGroup>[] = useMemo(
     () => [
