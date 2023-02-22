@@ -130,7 +130,10 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 	//if the state of the grant is in the active state
 	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
 		//call the provider revoke
-		r.revokeProvider(ctx, grantID)
+		err = r.revokeProvider(ctx, grantID)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
