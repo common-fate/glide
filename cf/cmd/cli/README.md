@@ -29,6 +29,9 @@ Providers v2 can be interacted with through the cli tooling.
     - Handles bootstrapping deployment s3 buckets 
     - Handles creating cloudformation based on an loaded provider from the pdk-cli upload.
     - Handles manually creating target groups and target group deployments
+- devcli which is found in the common-fate repo `cmd/devcli`
+    - Helpful shortcuts and testing commands to assist in development process
+    - Running these with the following command `go run cmd/devcli/main.go {command}`
 
 
 
@@ -41,11 +44,31 @@ assume demo-sandbox1 --env
 go run cmd/local-dev-server/main.go
 # make sure you have a local copy of any provider, for this example we are using the testvault provider
 # This assumes you have the provider in a folder one step away from the current directory
-go run cmd/cli/main.go package --path ../testvault-provider/provider --name cf --version v1.0.0 --publisher testvault
-go run cmd/cli/main.go upload --publisher testvault --name cf --version v1.0.0                                      
+go run cmd/cli/main.go package --path ../testvault-provider/provider --name testvault --version v1.0.0 --publisher commonfate
+go run cmd/cli/main.go upload --publisher commonfate --name testvault --version v1.0.0                                      
 ```
 - This will:
     - Create a provider in the provider registry dynamo database (to be interacted with in the frontend later down the line)
+    - Upload the provider to a s3 bucket
+
+
+## Bootstrapping and deploying cloudformation for a provider
+Next we will run some commands in the cfcli.
+
+```bash
+#in the terminal make the cli command by running
+make cfcli
+#bootstrap the s3 bucket with a path to transfer the cloudformation template into 
+cfcli bootstrap aws
+# this will return you a s3 bucket name eg.
+#commonfateproviderassets-commonfateproviderassets-10ylgm4i7o105
+
+#we will need to export this bucket name to our environent by running
+export DEPLOYMENT_BUCKET={bucket_name}
+
+#then move our uploaded provider into that bucket by running
+cfcli provider bootstrap id=te
+```
 
 
 Authenticate, create a deployment and target group, then link them together
