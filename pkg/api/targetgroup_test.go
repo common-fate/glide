@@ -47,7 +47,7 @@ func TestCreateTargetGroup(t *testing.T) {
 			name:          "id already exists",
 			give:          `{"ID": "test", "targetSchema": "v1.0.1"}`,
 			mockCreateErr: targetgroupsvc.ErrTargetGroupIdAlreadyExists,
-			wantCode:      http.StatusBadRequest,
+			wantCode:      http.StatusConflict,
 			wantBody:      `{"error":"target group id already exists"}`,
 		},
 	}

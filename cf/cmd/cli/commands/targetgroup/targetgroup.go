@@ -2,6 +2,7 @@ package targetgroup
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/common-fate/clio"
@@ -29,7 +30,7 @@ var CreateCommand = cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "schema-from", Required: true, Usage: "publisher/name@version"},
-		&cli.BoolFlag{Name: "ok-if-exists"},
+		&cli.BoolFlag{Name: "ok-if-exists", Value: false},
 	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
@@ -50,6 +51,15 @@ var CreateCommand = cli.Command{
 		switch res.StatusCode() {
 		case http.StatusCreated:
 			clio.Successf("Successfully created the targetgroup: %s", id)
+		case http.StatusConflict:
+			// if ok-if-exists flag is provided then gracefully return no error.
+			if c.Bool("ok-if-exists") {
+				clio.Infof("Targetgroup with that ID already exists: '%s'", id)
+
+				return nil
+			}
+
+			return clierr.New(fmt.Sprintf("Duplicate targetgroup ID provided. Targetgroup with that ID '%s' already exist", id))
 		case http.StatusUnauthorized:
 			return errors.New(res.JSON401.Error)
 		case http.StatusInternalServerError:

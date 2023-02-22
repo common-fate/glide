@@ -40,7 +40,7 @@ func (a *API) AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 	group, err := a.TargetGroupService.CreateTargetGroup(ctx, createGroupRequest)
 	if err == targetgroupsvc.ErrTargetGroupIdAlreadyExists {
 		// the user supplied id already exists
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusConflict))
 		return
 	}
 	if err != nil {
