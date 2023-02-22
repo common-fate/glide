@@ -229,7 +229,7 @@ func TestTargetGroupLink(t *testing.T) {
 		mockGetTargetGroupErr                error
 		want                                 string
 		wantCode                             int
-		mockCreate                           *target.Group
+		mockCreate                           *target.Route
 		deploymentId                         string
 		mockCreateErr                        error
 		give                                 string
@@ -241,33 +241,25 @@ func TestTargetGroupLink(t *testing.T) {
 			wantCode:                             http.StatusOK,
 			mockGetTargetGroupResponse:           target.Group{ID: "123"},
 			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
-			want:                                 `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"123","targetSchema":{"From":"","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			want:                                 `{"diagnostics":[],"handlerId":"123","mode":"Default","priority":100,"targetGroupId":"123","valid":false}`,
 			deploymentId:                         "abc",
-			mockCreate:                           &target.Group{ID: "123"},
+			mockCreate:                           &target.Route{Group: "123", Handler: "123", Mode: "Default", Priority: 100},
 			give:                                 `{"deploymentId": "abc", "priority": 100,"force":false}`,
 		},
 
 		{
-			name:                                 "priority cannot be out of range",
-			wantCode:                             http.StatusBadRequest,
-			mockGetTargetGroupResponse:           target.Group{ID: "123"},
-			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
-			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
-			deploymentId:                         "abc",
-			mockCreate:                           &target.Group{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": 1000,"force":false}`,
-			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
+			name:         "priority cannot be out of range",
+			wantCode:     http.StatusBadRequest,
+			want:         `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
+			deploymentId: "abc",
+			give:         `{"deploymentId": "abc", "priority": 1000,"force":false}`,
 		},
 		{
-			name:                                 "priority cannot be under range",
-			wantCode:                             http.StatusBadRequest,
-			mockGetTargetGroupResponse:           target.Group{ID: "123"},
-			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
-			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
-			deploymentId:                         "abc",
-			mockCreate:                           &target.Group{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": -1,"force":false}`,
-			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
+			name:         "priority cannot be under range",
+			wantCode:     http.StatusBadRequest,
+			want:         `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
+			deploymentId: "abc",
+			give:         `{"deploymentId": "abc", "priority": -1,"force":false}`,
 		},
 	}
 
@@ -283,10 +275,7 @@ func TestTargetGroupLink(t *testing.T) {
 			defer ctrl.Finish()
 			m := mocks.NewMockTargetService(ctrl)
 
-			if tc.mockCreateErr == nil {
-				m.EXPECT().CreateRoute(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
-
-			}
+			m.EXPECT().CreateRoute(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
 
 			a := API{DB: db, TargetService: m}
 			handler := newTestServer(t, &a)

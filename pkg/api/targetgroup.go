@@ -77,10 +77,12 @@ func (a *API) AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request,
 		apio.Error(ctx, w, err)
 		return
 	}
-	_, err = a.TargetService.CreateRoute(ctx, id, linkGroupRequest)
-	// @TODO
-	apio.JSON(ctx, w, nil, http.StatusOK)
-
+	route, err := a.TargetService.CreateRoute(ctx, id, linkGroupRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, route.ToAPI(), http.StatusOK)
 }
 
 // Unlink a target group deployment from its target group

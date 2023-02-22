@@ -2,16 +2,17 @@ package target
 
 import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
 type Route struct {
-	Group      string       `json:"group" dynamodbav:"group"`
-	Handler    string       `json:"handler" dynamodbav:"handler"`
-	Mode       string       `json:"mode" dynamodbav:"mode"`
-	Priority   int          `json:"priority" dynamodbav:"priority"`
-	Valid      bool         `json:"valid" dynamodbav:"valid"`
-	Diagnostic []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
+	Group       string       `json:"group" dynamodbav:"group"`
+	Handler     string       `json:"handler" dynamodbav:"handler"`
+	Mode        string       `json:"mode" dynamodbav:"mode"`
+	Priority    int          `json:"priority" dynamodbav:"priority"`
+	Valid       bool         `json:"valid" dynamodbav:"valid"`
+	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
 }
 
 type Diagnostic struct {
@@ -31,4 +32,23 @@ func (r *Route) DDBKeys() (ddb.Keys, error) {
 		GSI1SK: keys.TargetRoute.GSI1SK(r.Valid, r.Priority),
 	}
 	return keys, nil
+}
+
+func (r *Route) ToAPI() types.TargetRoute {
+	diagnostics := make([]types.Diagnostic, len(r.Diagnostics))
+	for i, d := range r.Diagnostics {
+		diagnostics[i] = types.Diagnostic{
+			Code:    d.Code,
+			Level:   d.Level,
+			Message: d.Message,
+		}
+	}
+	return types.TargetRoute{
+		TargetGroupId: r.Group,
+		HandlerId:     r.Handler,
+		Mode:          r.Mode,
+		Priority:      r.Priority,
+		Valid:         r.Valid,
+		Diagnostics:   diagnostics,
+	}
 }
