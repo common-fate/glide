@@ -38,16 +38,16 @@ func (r *Handler) DDBKeys() (ddb.Keys, error) {
 	return k, nil
 }
 
-func (r *Handler) ToAPI() types.TargetGroupDeployment {
-	diagnostics := make([]types.TargetGroupDiagnostic, len(r.Diagnostics))
+func (r *Handler) ToAPI() types.TGHandler {
+	diagnostics := make([]types.Diagnostic, len(r.Diagnostics))
 	for i, d := range r.Diagnostics {
-		diagnostics[i] = types.TargetGroupDiagnostic{
+		diagnostics[i] = types.Diagnostic{
 			Code:    d.Code,
 			Level:   d.Level,
 			Message: d.Message,
 		}
 	}
-	res := types.TargetGroupDeployment{
+	res := types.TGHandler{
 		Id:          r.ID,
 		AwsAccount:  r.AWSAccount,
 		FunctionArn: r.FunctionARN(),

@@ -22,7 +22,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 		// database put object (used to mock ok response)
 		mockPut *handler.Handler
 		// input to CreateTargetGroupDeployment
-		give    types.CreateTargetGroupDeploymentRequest
+		give    types.RegisterHandlerRequest
 		wantErr error
 		want    *handler.Handler
 	}
@@ -30,7 +30,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "bad aws account number",
-			give: types.CreateTargetGroupDeploymentRequest{
+			give: types.RegisterHandlerRequest{
 				AwsAccount: "123_bad_123",
 			},
 			wantErr: ErrInvalidAwsAccountNumber,
@@ -43,7 +43,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 					ID: "test1",
 				},
 			},
-			give: types.CreateTargetGroupDeploymentRequest{
+			give: types.RegisterHandlerRequest{
 				Id:         "test1",
 				AwsAccount: "123456789012",
 			},
@@ -55,7 +55,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				ID:         "test1",
 				AWSAccount: "123456789011",
 			},
-			give: types.CreateTargetGroupDeploymentRequest{
+			give: types.RegisterHandlerRequest{
 				Id:         "test1",
 				AwsAccount: "123456789012",
 			},
@@ -102,7 +102,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				DB:    dbMock,
 			}
 
-			got, err := s.CreateHandler(context.Background(), tc.give)
+			got, err := s.RegisterHandler(context.Background(), tc.give)
 
 			if err != nil && tc.wantErr != nil {
 				assert.Equal(t, tc.wantErr.Error(), err.Error())

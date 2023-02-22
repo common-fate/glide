@@ -36,17 +36,17 @@ func (m *MockHandlerService) EXPECT() *MockHandlerServiceMockRecorder {
 	return m.recorder
 }
 
-// CreateHandler mocks base method.
-func (m *MockHandlerService) CreateHandler(arg0 context.Context, arg1 types.CreateTargetGroupDeploymentRequest) (*handler.Handler, error) {
+// RegisterHandler mocks base method.
+func (m *MockHandlerService) RegisterHandler(arg0 context.Context, arg1 types.RegisterHandlerRequest) (*handler.Handler, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateHandler", arg0, arg1)
+	ret := m.ctrl.Call(m, "RegisterHandler", arg0, arg1)
 	ret0, _ := ret[0].(*handler.Handler)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateHandler indicates an expected call of CreateHandler.
-func (mr *MockHandlerServiceMockRecorder) CreateHandler(arg0, arg1 interface{}) *gomock.Call {
+// RegisterHandler indicates an expected call of RegisterHandler.
+func (mr *MockHandlerServiceMockRecorder) RegisterHandler(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateHandler", reflect.TypeOf((*MockHandlerService)(nil).CreateHandler), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterHandler", reflect.TypeOf((*MockHandlerService)(nil).RegisterHandler), arg0, arg1)
 }

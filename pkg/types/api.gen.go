@@ -265,6 +265,13 @@ type CreateRequestWith struct {
 // CreateRequestWithSubRequest defines model for CreateRequestWithSubRequest.
 type CreateRequestWithSubRequest = []CreateRequestWith
 
+// Diagnostic defines model for Diagnostic.
+type Diagnostic struct {
+	Code    string `json:"code"`
+	Level   string `json:"level"`
+	Message string `json:"message"`
+}
+
 // Favorite defines model for Favorite.
 type Favorite struct {
 	Id     string `json:"id"`
@@ -578,6 +585,18 @@ type RequestTiming struct {
 // A decision made on an Access Request.
 type ReviewDecision string
 
+// Handler represents a deployment of a provider.
+// Handlers can be linked to target groups via routes
+type TGHandler struct {
+	AwsAccount  string       `json:"awsAccount"`
+	AwsRegion   string       `json:"awsRegion"`
+	Diagnostics []Diagnostic `json:"diagnostics"`
+	FunctionArn string       `json:"functionArn"`
+	Healthy     bool         `json:"healthy"`
+	Id          string       `json:"id"`
+	Runtime     string       `json:"runtime"`
+}
+
 // Define the metadata, data type and UI elements for the argument
 type TargetArgument struct {
 	Description *string               `json:"description,omitempty"`
@@ -617,55 +636,20 @@ type TargetGroup struct {
 	UpdatedAt    *time.Time              `json:"updatedAt,omitempty"`
 }
 
-// TargetGroupAssignment defines model for TargetGroupAssignment.
-type TargetGroupAssignment struct {
-	Diagnostics   []map[string]interface{} `json:"Diagnostics"`
-	Priority      int                      `json:"Priority"`
-	TargetGroupId string                   `json:"TargetGroupId"`
-	Valid         bool                     `json:"Valid"`
-}
-
-// TargetGroupDeployment defines model for TargetGroupDeployment.
-type TargetGroupDeployment struct {
-	ActiveConfig          *TargetGroupDeploymentActiveConfig `json:"activeConfig,omitempty"`
-	AwsAccount            string                             `json:"awsAccount"`
-	AwsRegion             string                             `json:"awsRegion"`
-	Diagnostics           []TargetGroupDiagnostic            `json:"diagnostics"`
-	FunctionArn           string                             `json:"functionArn"`
-	Healthy               bool                               `json:"healthy"`
-	Id                    string                             `json:"id"`
-	TargetGroupAssignment *TargetGroupAssignment             `json:"targetGroupAssignment,omitempty"`
-}
-
-// TargetGroupDeploymentActiveConfig defines model for TargetGroupDeploymentActiveConfig.
-type TargetGroupDeploymentActiveConfig struct {
-	AdditionalProperties map[string]TargetGroupDeploymentConfig `json:"-"`
-}
-
-// TargetGroupDeploymentConfig defines model for TargetGroupDeploymentConfig.
-type TargetGroupDeploymentConfig struct {
-	Type  string                 `json:"type"`
-	Value map[string]interface{} `json:"value"`
-}
-
-// TargetGroupDeploymentProvider defines model for TargetGroupDeploymentProvider.
-type TargetGroupDeploymentProvider struct {
-	Name      string `json:"name"`
-	Publisher string `json:"publisher"`
-	Version   string `json:"version"`
-}
-
-// TargetGroupDiagnostic defines model for TargetGroupDiagnostic.
-type TargetGroupDiagnostic struct {
-	Code    string `json:"code"`
-	Level   string `json:"level"`
-	Message string `json:"message"`
-}
-
 // TargetGroupTargetSchema defines model for TargetGroupTargetSchema.
 type TargetGroupTargetSchema struct {
 	From   string       `json:"From"`
 	Schema TargetSchema `json:"Schema"`
+}
+
+// TargetRoute defines model for TargetRoute.
+type TargetRoute struct {
+	Diagnostics   []Diagnostic `json:"diagnostics"`
+	HandlerId     string       `json:"handlerId"`
+	Mode          string       `json:"mode"`
+	Priority      int          `json:"priority"`
+	TargetGroupId string       `json:"targetGroupId"`
+	Valid         bool         `json:"valid"`
 }
 
 // TargetSchema defines model for TargetSchema.
@@ -774,6 +758,12 @@ type ListGroupsResponse struct {
 	Next   *string `json:"next"`
 }
 
+// ListHandlersResponse defines model for ListHandlersResponse.
+type ListHandlersResponse struct {
+	Next string      `json:"next"`
+	Res  []TGHandler `json:"res"`
+}
+
 // ListProviderSetupsResponse defines model for ListProviderSetupsResponse.
 type ListProviderSetupsResponse struct {
 	ProviderSetups []ProviderSetup `json:"providerSetups"`
@@ -789,12 +779,6 @@ type ListRequestEventsResponse struct {
 type ListRequestsResponse struct {
 	Next     *string   `json:"next"`
 	Requests []Request `json:"requests"`
-}
-
-// ListTargetGroupDeploymentAPIResponse defines model for ListTargetGroupDeploymentAPIResponse.
-type ListTargetGroupDeploymentAPIResponse struct {
-	Next string                  `json:"next"`
-	Res  []TargetGroupDeployment `json:"res"`
 }
 
 // ListTargetGroupResponse defines model for ListTargetGroupResponse.
@@ -865,16 +849,6 @@ type CreateRequestRequest struct {
 	With         *CreateRequestWithSubRequest `json:"with,omitempty"`
 }
 
-// CreateTargetGroupDeploymentRequest defines model for CreateTargetGroupDeploymentRequest.
-type CreateTargetGroupDeploymentRequest struct {
-	AwsAccount string `json:"awsAccount"`
-	AwsRegion  string `json:"awsRegion"`
-
-	// The ID of the target group to deploy to. User, provided
-	Id      string `json:"id"`
-	Runtime string `json:"runtime"`
-}
-
 // CreateTargetGroupLink defines model for CreateTargetGroupLink.
 type CreateTargetGroupLink struct {
 	DeploymentId string `json:"deploymentId"`
@@ -903,6 +877,16 @@ type ProviderSetupStepCompleteRequest struct {
 
 	// The config values entered by the user which correspond to the setup step.
 	ConfigValues map[string]string `json:"configValues"`
+}
+
+// RegisterHandlerRequest defines model for RegisterHandlerRequest.
+type RegisterHandlerRequest struct {
+	AwsAccount string `json:"awsAccount"`
+	AwsRegion  string `json:"awsRegion"`
+
+	// The ID of the target group to deploy to. User, provided
+	Id      string `json:"id"`
+	Runtime string `json:"runtime"`
 }
 
 // ReviewRequest defines model for ReviewRequest.
@@ -1024,14 +1008,14 @@ type AdminCreateGroupJSONRequestBody CreateGroupRequest
 // AdminUpdateGroupJSONRequestBody defines body for AdminUpdateGroup for application/json ContentType.
 type AdminUpdateGroupJSONRequestBody CreateGroupRequest
 
+// AdminRegisterHandlerJSONRequestBody defines body for AdminRegisterHandler for application/json ContentType.
+type AdminRegisterHandlerJSONRequestBody RegisterHandlerRequest
+
 // AdminCreateProvidersetupJSONRequestBody defines body for AdminCreateProvidersetup for application/json ContentType.
 type AdminCreateProvidersetupJSONRequestBody CreateProviderSetupRequest
 
 // AdminSubmitProvidersetupStepJSONRequestBody defines body for AdminSubmitProvidersetupStep for application/json ContentType.
 type AdminSubmitProvidersetupStepJSONRequestBody ProviderSetupStepCompleteRequest
-
-// AdminCreateTargetGroupDeploymentJSONRequestBody defines body for AdminCreateTargetGroupDeployment for application/json ContentType.
-type AdminCreateTargetGroupDeploymentJSONRequestBody CreateTargetGroupDeploymentRequest
 
 // AdminCreateTargetGroupJSONRequestBody defines body for AdminCreateTargetGroup for application/json ContentType.
 type AdminCreateTargetGroupJSONRequestBody CreateTargetGroupRequest
@@ -1481,59 +1465,6 @@ func (a TargetArgument_Groups) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
-// Getter for additional properties for TargetGroupDeploymentActiveConfig. Returns the specified
-// element and whether it was found
-func (a TargetGroupDeploymentActiveConfig) Get(fieldName string) (value TargetGroupDeploymentConfig, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for TargetGroupDeploymentActiveConfig
-func (a *TargetGroupDeploymentActiveConfig) Set(fieldName string, value TargetGroupDeploymentConfig) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]TargetGroupDeploymentConfig)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for TargetGroupDeploymentActiveConfig to handle AdditionalProperties
-func (a *TargetGroupDeploymentActiveConfig) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]TargetGroupDeploymentConfig)
-		for fieldName, fieldBuf := range object {
-			var fieldVal TargetGroupDeploymentConfig
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for TargetGroupDeploymentActiveConfig to handle AdditionalProperties
-func (a TargetGroupDeploymentActiveConfig) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
 // Getter for additional properties for TargetSchema. Returns the specified
 // element and whether it was found
 func (a TargetSchema) Get(fieldName string) (value TargetArgument, found bool) {
@@ -1719,6 +1650,17 @@ type ClientInterface interface {
 
 	AdminUpdateGroup(ctx context.Context, groupId string, body AdminUpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminListHandlers request
+	AdminListHandlers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminRegisterHandler request with any body
+	AdminRegisterHandlerWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	AdminRegisterHandler(ctx context.Context, body AdminRegisterHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AdminGetHandler request
+	AdminGetHandler(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetIdentityConfiguration request
 	AdminGetIdentityConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1770,17 +1712,6 @@ type ClientInterface interface {
 
 	// AdminGetRequest request
 	AdminGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminListTargetGroupDeployments request
-	AdminListTargetGroupDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminCreateTargetGroupDeployment request with any body
-	AdminCreateTargetGroupDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	AdminCreateTargetGroupDeployment(ctx context.Context, body AdminCreateTargetGroupDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminGetTargetGroupDeployment request
-	AdminGetTargetGroupDeployment(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminListTargetGroups request
 	AdminListTargetGroups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2129,6 +2060,54 @@ func (c *Client) AdminUpdateGroup(ctx context.Context, groupId string, body Admi
 	return c.Client.Do(req)
 }
 
+func (c *Client) AdminListHandlers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminListHandlersRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminRegisterHandlerWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminRegisterHandlerRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminRegisterHandler(ctx context.Context, body AdminRegisterHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminRegisterHandlerRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminGetHandler(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminGetHandlerRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AdminGetIdentityConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetIdentityConfigurationRequest(c.Server)
 	if err != nil {
@@ -2335,54 +2314,6 @@ func (c *Client) AdminListRequests(ctx context.Context, params *AdminListRequest
 
 func (c *Client) AdminGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetRequestRequest(c.Server, requestId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminListTargetGroupDeployments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminListTargetGroupDeploymentsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminCreateTargetGroupDeploymentWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminCreateTargetGroupDeploymentRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminCreateTargetGroupDeployment(ctx context.Context, body AdminCreateTargetGroupDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminCreateTargetGroupDeploymentRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminGetTargetGroupDeployment(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminGetTargetGroupDeploymentRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -3513,6 +3444,107 @@ func NewAdminUpdateGroupRequestWithBody(server string, groupId string, contentTy
 	return req, nil
 }
 
+// NewAdminListHandlersRequest generates requests for AdminListHandlers
+func NewAdminListHandlersRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/handlers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminRegisterHandlerRequest calls the generic AdminRegisterHandler builder with application/json body
+func NewAdminRegisterHandlerRequest(server string, body AdminRegisterHandlerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAdminRegisterHandlerRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewAdminRegisterHandlerRequestWithBody generates requests for AdminRegisterHandler with any type of body
+func NewAdminRegisterHandlerRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/handlers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminGetHandlerRequest generates requests for AdminGetHandler
+func NewAdminGetHandlerRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/handlers/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAdminGetIdentityConfigurationRequest generates requests for AdminGetIdentityConfiguration
 func NewAdminGetIdentityConfigurationRequest(server string) (*http.Request, error) {
 	var err error
@@ -4094,107 +4126,6 @@ func NewAdminGetRequestRequest(server string, requestId string) (*http.Request, 
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/admin/requests/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminListTargetGroupDeploymentsRequest generates requests for AdminListTargetGroupDeployments
-func NewAdminListTargetGroupDeploymentsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/target-group-deployments")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminCreateTargetGroupDeploymentRequest calls the generic AdminCreateTargetGroupDeployment builder with application/json body
-func NewAdminCreateTargetGroupDeploymentRequest(server string, body AdminCreateTargetGroupDeploymentJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewAdminCreateTargetGroupDeploymentRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewAdminCreateTargetGroupDeploymentRequestWithBody generates requests for AdminCreateTargetGroupDeployment with any type of body
-func NewAdminCreateTargetGroupDeploymentRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/target-group-deployments")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewAdminGetTargetGroupDeploymentRequest generates requests for AdminGetTargetGroupDeployment
-func NewAdminGetTargetGroupDeploymentRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/target-group-deployments/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -5353,6 +5284,17 @@ type ClientWithResponsesInterface interface {
 
 	AdminUpdateGroupWithResponse(ctx context.Context, groupId string, body AdminUpdateGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateGroupResponse, error)
 
+	// AdminListHandlers request
+	AdminListHandlersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListHandlersResponse, error)
+
+	// AdminRegisterHandler request with any body
+	AdminRegisterHandlerWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminRegisterHandlerResponse, error)
+
+	AdminRegisterHandlerWithResponse(ctx context.Context, body AdminRegisterHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminRegisterHandlerResponse, error)
+
+	// AdminGetHandler request
+	AdminGetHandlerWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetHandlerResponse, error)
+
 	// AdminGetIdentityConfiguration request
 	AdminGetIdentityConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetIdentityConfigurationResponse, error)
 
@@ -5404,17 +5346,6 @@ type ClientWithResponsesInterface interface {
 
 	// AdminGetRequest request
 	AdminGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*AdminGetRequestResponse, error)
-
-	// AdminListTargetGroupDeployments request
-	AdminListTargetGroupDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListTargetGroupDeploymentsResponse, error)
-
-	// AdminCreateTargetGroupDeployment request with any body
-	AdminCreateTargetGroupDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupDeploymentResponse, error)
-
-	AdminCreateTargetGroupDeploymentWithResponse(ctx context.Context, body AdminCreateTargetGroupDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupDeploymentResponse, error)
-
-	// AdminGetTargetGroupDeployment request
-	AdminGetTargetGroupDeploymentWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupDeploymentResponse, error)
 
 	// AdminListTargetGroups request
 	AdminListTargetGroupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListTargetGroupsResponse, error)
@@ -5965,6 +5896,99 @@ func (r AdminUpdateGroupResponse) StatusCode() int {
 	return 0
 }
 
+type AdminListHandlersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next string      `json:"next"`
+		Res  []TGHandler `json:"res"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminListHandlersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminListHandlersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminRegisterHandlerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *TGHandler
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminRegisterHandlerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminRegisterHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminGetHandlerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *TGHandler
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminGetHandlerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminGetHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AdminGetIdentityConfigurationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -6372,99 +6396,6 @@ func (r AdminGetRequestResponse) StatusCode() int {
 	return 0
 }
 
-type AdminListTargetGroupDeploymentsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Next string                  `json:"next"`
-		Res  []TargetGroupDeployment `json:"res"`
-	}
-	JSON401 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminListTargetGroupDeploymentsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminListTargetGroupDeploymentsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminCreateTargetGroupDeploymentResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *TargetGroupDeployment
-	JSON400      *struct {
-		Error string `json:"error"`
-	}
-	JSON401 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminCreateTargetGroupDeploymentResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminCreateTargetGroupDeploymentResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminGetTargetGroupDeploymentResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *TargetGroupDeployment
-	JSON401      *struct {
-		Error string `json:"error"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminGetTargetGroupDeploymentResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminGetTargetGroupDeploymentResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type AdminListTargetGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -6561,6 +6492,7 @@ func (r AdminGetTargetGroupResponse) StatusCode() int {
 type AdminCreateTargetGroupLinkResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *TargetRoute
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
@@ -7365,6 +7297,41 @@ func (c *ClientWithResponses) AdminUpdateGroupWithResponse(ctx context.Context, 
 	return ParseAdminUpdateGroupResponse(rsp)
 }
 
+// AdminListHandlersWithResponse request returning *AdminListHandlersResponse
+func (c *ClientWithResponses) AdminListHandlersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListHandlersResponse, error) {
+	rsp, err := c.AdminListHandlers(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminListHandlersResponse(rsp)
+}
+
+// AdminRegisterHandlerWithBodyWithResponse request with arbitrary body returning *AdminRegisterHandlerResponse
+func (c *ClientWithResponses) AdminRegisterHandlerWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminRegisterHandlerResponse, error) {
+	rsp, err := c.AdminRegisterHandlerWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminRegisterHandlerResponse(rsp)
+}
+
+func (c *ClientWithResponses) AdminRegisterHandlerWithResponse(ctx context.Context, body AdminRegisterHandlerJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminRegisterHandlerResponse, error) {
+	rsp, err := c.AdminRegisterHandler(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminRegisterHandlerResponse(rsp)
+}
+
+// AdminGetHandlerWithResponse request returning *AdminGetHandlerResponse
+func (c *ClientWithResponses) AdminGetHandlerWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetHandlerResponse, error) {
+	rsp, err := c.AdminGetHandler(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminGetHandlerResponse(rsp)
+}
+
 // AdminGetIdentityConfigurationWithResponse request returning *AdminGetIdentityConfigurationResponse
 func (c *ClientWithResponses) AdminGetIdentityConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetIdentityConfigurationResponse, error) {
 	rsp, err := c.AdminGetIdentityConfiguration(ctx, reqEditors...)
@@ -7523,41 +7490,6 @@ func (c *ClientWithResponses) AdminGetRequestWithResponse(ctx context.Context, r
 		return nil, err
 	}
 	return ParseAdminGetRequestResponse(rsp)
-}
-
-// AdminListTargetGroupDeploymentsWithResponse request returning *AdminListTargetGroupDeploymentsResponse
-func (c *ClientWithResponses) AdminListTargetGroupDeploymentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListTargetGroupDeploymentsResponse, error) {
-	rsp, err := c.AdminListTargetGroupDeployments(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminListTargetGroupDeploymentsResponse(rsp)
-}
-
-// AdminCreateTargetGroupDeploymentWithBodyWithResponse request with arbitrary body returning *AdminCreateTargetGroupDeploymentResponse
-func (c *ClientWithResponses) AdminCreateTargetGroupDeploymentWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupDeploymentResponse, error) {
-	rsp, err := c.AdminCreateTargetGroupDeploymentWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminCreateTargetGroupDeploymentResponse(rsp)
-}
-
-func (c *ClientWithResponses) AdminCreateTargetGroupDeploymentWithResponse(ctx context.Context, body AdminCreateTargetGroupDeploymentJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupDeploymentResponse, error) {
-	rsp, err := c.AdminCreateTargetGroupDeployment(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminCreateTargetGroupDeploymentResponse(rsp)
-}
-
-// AdminGetTargetGroupDeploymentWithResponse request returning *AdminGetTargetGroupDeploymentResponse
-func (c *ClientWithResponses) AdminGetTargetGroupDeploymentWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupDeploymentResponse, error) {
-	rsp, err := c.AdminGetTargetGroupDeployment(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminGetTargetGroupDeploymentResponse(rsp)
 }
 
 // AdminListTargetGroupsWithResponse request returning *AdminListTargetGroupsResponse
@@ -8500,6 +8432,159 @@ func ParseAdminUpdateGroupResponse(rsp *http.Response) (*AdminUpdateGroupRespons
 	return response, nil
 }
 
+// ParseAdminListHandlersResponse parses an HTTP response from a AdminListHandlersWithResponse call
+func ParseAdminListHandlersResponse(rsp *http.Response) (*AdminListHandlersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminListHandlersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next string      `json:"next"`
+			Res  []TGHandler `json:"res"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminRegisterHandlerResponse parses an HTTP response from a AdminRegisterHandlerWithResponse call
+func ParseAdminRegisterHandlerResponse(rsp *http.Response) (*AdminRegisterHandlerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminRegisterHandlerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest TGHandler
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminGetHandlerResponse parses an HTTP response from a AdminGetHandlerWithResponse call
+func ParseAdminGetHandlerResponse(rsp *http.Response) (*AdminGetHandlerResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminGetHandlerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TGHandler
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAdminGetIdentityConfigurationResponse parses an HTTP response from a AdminGetIdentityConfigurationWithResponse call
 func ParseAdminGetIdentityConfigurationResponse(rsp *http.Response) (*AdminGetIdentityConfigurationResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -9055,159 +9140,6 @@ func ParseAdminGetRequestResponse(rsp *http.Response) (*AdminGetRequestResponse,
 	return response, nil
 }
 
-// ParseAdminListTargetGroupDeploymentsResponse parses an HTTP response from a AdminListTargetGroupDeploymentsWithResponse call
-func ParseAdminListTargetGroupDeploymentsResponse(rsp *http.Response) (*AdminListTargetGroupDeploymentsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminListTargetGroupDeploymentsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Next string                  `json:"next"`
-			Res  []TargetGroupDeployment `json:"res"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminCreateTargetGroupDeploymentResponse parses an HTTP response from a AdminCreateTargetGroupDeploymentWithResponse call
-func ParseAdminCreateTargetGroupDeploymentResponse(rsp *http.Response) (*AdminCreateTargetGroupDeploymentResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminCreateTargetGroupDeploymentResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest TargetGroupDeployment
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminGetTargetGroupDeploymentResponse parses an HTTP response from a AdminGetTargetGroupDeploymentWithResponse call
-func ParseAdminGetTargetGroupDeploymentResponse(rsp *http.Response) (*AdminGetTargetGroupDeploymentResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminGetTargetGroupDeploymentResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest TargetGroupDeployment
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseAdminListTargetGroupsResponse parses an HTTP response from a AdminListTargetGroupsWithResponse call
 func ParseAdminListTargetGroupsResponse(rsp *http.Response) (*AdminListTargetGroupsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -9375,6 +9307,13 @@ func ParseAdminCreateTargetGroupLinkResponse(rsp *http.Response) (*AdminCreateTa
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest TargetRoute
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest struct {
 			Error string `json:"error"`
@@ -10278,6 +10217,15 @@ type ServerInterface interface {
 	// Update Group
 	// (PUT /api/v1/admin/groups/{groupId})
 	AdminUpdateGroup(w http.ResponseWriter, r *http.Request, groupId string)
+	// Get handlers
+	// (GET /api/v1/admin/handlers)
+	AdminListHandlers(w http.ResponseWriter, r *http.Request)
+	// Register a handler
+	// (POST /api/v1/admin/handlers)
+	AdminRegisterHandler(w http.ResponseWriter, r *http.Request)
+	// Get handler
+	// (GET /api/v1/admin/handlers/{id})
+	AdminGetHandler(w http.ResponseWriter, r *http.Request, id string)
 	// Get identity configuration
 	// (GET /api/v1/admin/identity)
 	AdminGetIdentityConfiguration(w http.ResponseWriter, r *http.Request)
@@ -10326,15 +10274,6 @@ type ServerInterface interface {
 	// Get a request
 	// (GET /api/v1/admin/requests/{requestId})
 	AdminGetRequest(w http.ResponseWriter, r *http.Request, requestId string)
-	// Get target group deployments
-	// (GET /api/v1/admin/target-group-deployments)
-	AdminListTargetGroupDeployments(w http.ResponseWriter, r *http.Request)
-	// Create a target group deployment
-	// (POST /api/v1/admin/target-group-deployments)
-	AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request)
-	// Get target group deployment (detailed)
-	// (GET /api/v1/admin/target-group-deployments/{id})
-	AdminGetTargetGroupDeployment(w http.ResponseWriter, r *http.Request, id string)
 	// Get target groups
 	// (GET /api/v1/admin/target-groups)
 	AdminListTargetGroups(w http.ResponseWriter, r *http.Request)
@@ -10890,6 +10829,62 @@ func (siw *ServerInterfaceWrapper) AdminUpdateGroup(w http.ResponseWriter, r *ht
 	handler(w, r.WithContext(ctx))
 }
 
+// AdminListHandlers operation middleware
+func (siw *ServerInterfaceWrapper) AdminListHandlers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListHandlers(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminRegisterHandler operation middleware
+func (siw *ServerInterfaceWrapper) AdminRegisterHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminRegisterHandler(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminGetHandler operation middleware
+func (siw *ServerInterfaceWrapper) AdminGetHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminGetHandler(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // AdminGetIdentityConfiguration operation middleware
 func (siw *ServerInterfaceWrapper) AdminGetIdentityConfiguration(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -11290,62 +11285,6 @@ func (siw *ServerInterfaceWrapper) AdminGetRequest(w http.ResponseWriter, r *htt
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminGetRequest(w, r, requestId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminListTargetGroupDeployments operation middleware
-func (siw *ServerInterfaceWrapper) AdminListTargetGroupDeployments(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminListTargetGroupDeployments(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminCreateTargetGroupDeployment operation middleware
-func (siw *ServerInterfaceWrapper) AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminCreateTargetGroupDeployment(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminGetTargetGroupDeployment operation middleware
-func (siw *ServerInterfaceWrapper) AdminGetTargetGroupDeployment(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminGetTargetGroupDeployment(w, r, id)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -12178,6 +12117,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/api/v1/admin/groups/{groupId}", wrapper.AdminUpdateGroup)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/admin/handlers", wrapper.AdminListHandlers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/admin/handlers", wrapper.AdminRegisterHandler)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/admin/handlers/{id}", wrapper.AdminGetHandler)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/identity", wrapper.AdminGetIdentityConfiguration)
 	})
 	r.Group(func(r chi.Router) {
@@ -12224,15 +12172,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/requests/{requestId}", wrapper.AdminGetRequest)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/target-group-deployments", wrapper.AdminListTargetGroupDeployments)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/target-group-deployments", wrapper.AdminCreateTargetGroupDeployment)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/target-group-deployments/{id}", wrapper.AdminGetTargetGroupDeployment)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/target-groups", wrapper.AdminListTargetGroups)
@@ -12319,169 +12258,168 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"9/nu/wUAAP//FKdY1wb6AAA=",
+	"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",
+	"/k1nlDh/MEmspjrl/vP9/wsAAP//7ZVTh/L2AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

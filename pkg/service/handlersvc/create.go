@@ -10,7 +10,7 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-func (s *Service) CreateHandler(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*handler.Handler, error) {
+func (s *Service) RegisterHandler(ctx context.Context, req types.RegisterHandlerRequest) (*handler.Handler, error) {
 	// run pre-lim checks to ensure input data is valid
 	if !IsValidAwsAccountNumber(req.AwsAccount) {
 		return nil, ErrInvalidAwsAccountNumber

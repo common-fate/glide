@@ -290,14 +290,14 @@ var Command = cli.Command{
 
 		}
 
-		reqBody := types.AdminCreateTargetGroupDeploymentJSONRequestBody{
+		reqBody := types.AdminRegisterHandlerJSONRequestBody{
 			AwsAccount: accountId,
 			AwsRegion:  awsRegion,
 			Id:         deploymentName,
 			Runtime:    c.String("runtime"),
 		}
 
-		_, err = cfApi.AdminCreateTargetGroupDeploymentWithResponse(ctx, reqBody)
+		_, err = cfApi.AdminRegisterHandlerWithResponse(ctx, reqBody)
 		if err != nil {
 			return err
 		}

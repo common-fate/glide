@@ -141,7 +141,7 @@ type TargetService interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_handler_service.go -package=mocks . HandlerService
 type HandlerService interface {
-	CreateHandler(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*handler.Handler, error)
+	RegisterHandler(ctx context.Context, req types.RegisterHandlerRequest) (*handler.Handler, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow

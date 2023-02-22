@@ -11,11 +11,11 @@ import (
 )
 
 // Your GET endpoint
-// (GET /api/v1/target-group-deployments)
-func (a *API) AdminListTargetGroupDeployments(w http.ResponseWriter, r *http.Request) {
+// (GET /api/v1/handlers)
+func (a *API) AdminListHandlers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	res := types.ListTargetGroupDeploymentAPIResponse{
-		Res: []types.TargetGroupDeployment{},
+	res := types.ListHandlersResponse{
+		Res: []types.TGHandler{},
 	}
 	q := storage.ListHandlers{}
 	_, err := a.DB.Query(ctx, &q)
@@ -29,16 +29,16 @@ func (a *API) AdminListTargetGroupDeployments(w http.ResponseWriter, r *http.Req
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
-// (POST /api/v1/target-group-deployments)
-func (a *API) AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Request) {
+// (POST /api/v1/handlers)
+func (a *API) AdminRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var b types.CreateTargetGroupDeploymentRequest
+	var b types.RegisterHandlerRequest
 	err := apio.DecodeJSONBody(w, r, &b)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	result, err := a.HandlerService.CreateHandler(ctx, b)
+	result, err := a.HandlerService.RegisterHandler(ctx, b)
 	// add status code handling here
 
 	// validation error: 500
@@ -55,8 +55,8 @@ func (a *API) AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Re
 }
 
 // Your GET endpoint
-// (GET /api/v1/target-group-deployments/{id})
-func (a *API) AdminGetTargetGroupDeployment(w http.ResponseWriter, r *http.Request, id string) {
+// (GET /api/v1/handlers/{id})
+func (a *API) AdminGetHandler(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 	q := storage.GetHandler{ID: id}
 	_, err := a.DB.Query(ctx, &q)

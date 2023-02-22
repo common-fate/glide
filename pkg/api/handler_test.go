@@ -94,7 +94,7 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockDeployment := mocks.NewMockHandlerService(ctrl)
-			mockDeployment.EXPECT().CreateHandler(gomock.Any(), gomock.Any()).Return(tc.withCreatedDep, tc.mockCreateTargetgroupDeploymentErr).AnyTimes()
+			mockDeployment.EXPECT().RegisterHandler(gomock.Any(), gomock.Any()).Return(tc.withCreatedDep, tc.mockCreateTargetgroupDeploymentErr).AnyTimes()
 			a := API{
 				// TargetGroupDeploymentService: mockDeployment,
 			}
