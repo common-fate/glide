@@ -18,34 +18,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func TestListTargetGroupDeployments(t *testing.T) {
-func TestCreateTargetGroupDeployments(t *testing.T) {
+func TestRegisterHandler(t *testing.T) {
 
 	// test cases:
 	// apio.DecodeJSONBody error ✅
-	// CreateTargetGroupDeployment success ✅
-	// CreateTargetGroupDeployment error == handlersvc.ErrTargetGroupDeploymentIdAlreadyExists ✅
-	// CreateTargetGroupDeployment error == anything else ✅
-
-	// items to mock: a.TargetGroupDeploymentService.CreateTargetGroupDeployment:res
-	// items to mock: a.TargetGroupDeploymentService.CreateTargetGroupDeployment:err
-	// items to test: request as types.CreateTargetGroupDeploymentRequest{}
-
-	// we will need to mock a body like so:
-	// giveBody: `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"123","targetSchema":{"From":"","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
-	// give that writing out a string like this is long and arduous, we will use a helper function that converts,
-	// from types.CreateTargetGroupDeploymentRequest to a json object encoded as string
-	// we can then parse giveBody as a types.CreateTargetGroupDeploymentRequest{} and compare it to the request
-	// we will need to use a mockClock for consistent createdAt and updatedAt values
+	// RegisterHandler success ✅
+	// RegisterHandler error == handlersvc.ErrHandlerIdAlreadyExists ✅
+	// RegisterHandler error == anything else ✅
 
 	type testcase struct {
-		name           string
-		wantCode       int
-		wantBody       string
-		withCreatedDep *handler.Handler
-		giveBody       string
-		// mockCreateTargetgroupDeployment    *handler.Handler
-		mockCreateTargetgroupDeploymentErr error
+		name                   string
+		wantCode               int
+		wantBody               string
+		withRegisterResult     *handler.Handler
+		giveBody               string
+		mockRegisterHandlerErr error
 	}
 
 	testcases := []testcase{
@@ -58,29 +45,48 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 		{
 			name:     "create.success.201",
 			wantCode: http.StatusCreated,
-			wantBody: `{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:123456789012","healthy":false,"id":"123456789012"}`,
-			withCreatedDep: &handler.Handler{
-				ID:          "123456789012",
-				Runtime:     "string",
-				AWSAccount:  "string",
+			wantBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","diagnostics":[],"functionArn":"arn:aws:lambda:ap-southeast-2:123456789012:function:handler","healthy":false,"id":"handler","runtime":"aws-lambda"}`,
+			withRegisterResult: &handler.Handler{
+				ID:          "handler",
+				Runtime:     "aws-lambda",
+				AWSAccount:  "123456789012",
+				AWSRegion:   "ap-southeast-2",
 				Healthy:     false,
 				Diagnostics: []handler.Diagnostic{},
 			},
-			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
+			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"handler","runtime":"aws-lambda"}`,
 		},
 		{
-			name:                               "error == handlersvc.ErrTargetGroupDeploymentIdAlreadyExists",
-			mockCreateTargetgroupDeploymentErr: handlersvc.ErrHandlerIdAlreadyExists,
-			wantCode:                           http.StatusBadRequest,
-			giveBody:                           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
-			wantBody:                           `{"error":"target group deployment id already exists"}`,
+			name:                   "error == handlersvc.ErrHandlerIdAlreadyExists",
+			mockRegisterHandlerErr: handlersvc.ErrHandlerIdAlreadyExists,
+			wantCode:               http.StatusBadRequest,
+			giveBody:               `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
+			wantBody:               `{"error":"handler id already exists"}`,
 		},
 		{
-			name:                               "error == anything else",
-			mockCreateTargetgroupDeploymentErr: errors.New("misc deployment svc error"),
-			wantCode:                           http.StatusInternalServerError,
-			giveBody:                           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
-			wantBody:                           `{"error":"Internal Server Error"}`,
+			name:                   "error == anything else",
+			mockRegisterHandlerErr: errors.New("misc deployment svc error"),
+			wantCode:               http.StatusInternalServerError,
+			giveBody:               `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
+			wantBody:               `{"error":"Internal Server Error"}`,
+		},
+		{
+			name:     "aws account validation too short",
+			wantCode: http.StatusBadRequest,
+			giveBody: `{"awsAccount":"123456789","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/awsAccount\": string doesn't match the regular expression \"^[0-9]{12}\""}`,
+		},
+		{
+			name:     "aws account validation bad characters",
+			wantCode: http.StatusBadRequest,
+			giveBody: `{"awsAccount":"123456789abc","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/awsAccount\": string doesn't match the regular expression \"^[0-9]{12}\""}`,
+		},
+		{
+			name:     "aws region validation",
+			wantCode: http.StatusBadRequest,
+			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-wrong-2","id":"test","runtime":"aws-lambda"}`,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/awsRegion\": string doesn't match the regular expression \"^(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\\d$\""}`,
 		},
 	}
 
@@ -94,15 +100,15 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockDeployment := mocks.NewMockHandlerService(ctrl)
-			mockDeployment.EXPECT().RegisterHandler(gomock.Any(), gomock.Any()).Return(tc.withCreatedDep, tc.mockCreateTargetgroupDeploymentErr).AnyTimes()
+			mockDeployment.EXPECT().RegisterHandler(gomock.Any(), gomock.Any()).Return(tc.withRegisterResult, tc.mockRegisterHandlerErr).AnyTimes()
 			a := API{
-				// TargetGroupDeploymentService: mockDeployment,
+				HandlerService: mockDeployment,
 			}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest(
 				"POST",
-				"/api/v1/admin/target-group-deployments",
+				"/api/v1/admin/handlers",
 				strings.NewReader(tc.giveBody),
 			)
 
@@ -127,7 +133,7 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 	}
 }
 
-func TestListTargetGroupDeployments(t *testing.T) {
+func TestListHandlers(t *testing.T) {
 
 	// test cases to handle
 	// a.DB.Query(ctx, &q) error =  misc ✅
@@ -135,18 +141,18 @@ func TestListTargetGroupDeployments(t *testing.T) {
 	// a.DB.Query(ctx, &q) valid = 200 ✅
 
 	type testcase struct {
-		name                   string
-		targetGroupDeployments []handler.Handler
-		want                   string
-		mockListErr            error
-		wantCode               int
+		name        string
+		handlers    []handler.Handler
+		want        string
+		mockListErr error
+		wantCode    int
 	}
 
 	testcases := []testcase{
 		{
 			name:     "ok",
 			wantCode: http.StatusOK,
-			targetGroupDeployments: []handler.Handler{
+			handlers: []handler.Handler{
 				{
 					ID:          "dep1",
 					Runtime:     "string",
@@ -162,21 +168,19 @@ func TestListTargetGroupDeployments(t *testing.T) {
 					Diagnostics: []handler.Diagnostic{},
 				},
 			},
-			want: `{"next":"","res":[{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep1","healthy":false,"id":"dep1"},{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep2","healthy":true,"id":"dep2"}]}`,
+			want: `{"next":"","res":[{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep1","healthy":false,"id":"dep1","runtime":"string"},{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep2","healthy":true,"id":"dep2","runtime":"string"}]}`,
 		},
 		{
-			name:                   "no target groups returns an empty list not an error",
-			mockListErr:            ddb.ErrNoItems,
-			wantCode:               http.StatusOK,
-			targetGroupDeployments: nil,
-
-			want: `{"next":"","res":[]}`,
+			name:     "no handlers returns an empty list not an error",
+			wantCode: http.StatusOK,
+			handlers: nil,
+			want:     `{"next":"","res":[]}`,
 		},
 		{
-			name:                   "internal error",
-			mockListErr:            errors.New("internal error"),
-			wantCode:               http.StatusInternalServerError,
-			targetGroupDeployments: nil,
+			name:        "internal error",
+			mockListErr: errors.New("internal error"),
+			wantCode:    http.StatusInternalServerError,
+			handlers:    nil,
 
 			want: `{"error":"Internal Server Error"}`,
 		},
@@ -190,12 +194,12 @@ func TestListTargetGroupDeployments(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListHandlers{Result: tc.targetGroupDeployments}, tc.mockListErr)
+			db.MockQueryWithErr(&storage.ListHandlers{Result: tc.handlers}, tc.mockListErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/admin/target-group-deployments", nil)
+			req, err := http.NewRequest("GET", "/api/v1/admin/handlers", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -216,7 +220,7 @@ func TestListTargetGroupDeployments(t *testing.T) {
 	}
 }
 
-func TestGetTargetGroupDeployment(t *testing.T) {
+func TestGetHandler(t *testing.T) {
 
 	type testcase struct {
 		name                          string
@@ -256,7 +260,7 @@ func TestGetTargetGroupDeployment(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("GET", "/api/v1/admin/target-group-deployments/123", nil)
+			req, err := http.NewRequest("GET", "/api/v1/admin/handlers/123", nil)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -31,7 +31,7 @@ func (s *Service) RegisterHandler(ctx context.Context, req types.RegisterHandler
 	// create deployment
 	dbInput := handler.Handler{
 		ID:         req.Id,
-		Runtime:    req.Runtime,
+		Runtime:    string(req.Runtime),
 		AWSAccount: req.AwsAccount,
 		AWSRegion:  req.AwsRegion,
 		Healthy:    false,

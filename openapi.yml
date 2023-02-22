@@ -2919,10 +2919,15 @@ components:
                 description: 'The ID of the target group to deploy to. User, provided'
               runtime:
                 type: string
+                default: aws-lambda
               awsAccount:
                 type: string
+                pattern: '^[0-9]{12}'
               awsRegion:
                 type: string
+                pattern: ^(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d$
+                minLength: 9
+                example: us-east-1
             required:
               - id
               - runtime

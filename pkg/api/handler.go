@@ -19,7 +19,7 @@ func (a *API) AdminListHandlers(w http.ResponseWriter, r *http.Request) {
 	}
 	q := storage.ListHandlers{}
 	_, err := a.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}

@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateTargetGroupDeploymentRequestBody = {
+export type RegisterHandlerRequestBody = {
   /** The ID of the target group to deploy to. User, provided */
   id: string;
   runtime: string;

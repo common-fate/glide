@@ -6,4 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
-export type TargetGroupAssignmentDiagnosticsItem = { [key: string]: any };
+export interface Diagnostic {
+  level: string;
+  code: string;
+  message: string;
+}

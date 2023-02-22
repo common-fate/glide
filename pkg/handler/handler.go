@@ -26,21 +26,21 @@ type Diagnostic struct {
 	Message string `json:"message" dynamodbav:"message"`
 }
 
-func (d *Handler) FunctionARN() string {
-	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", d.AWSRegion, d.AWSAccount, d.ID)
+func (h *Handler) FunctionARN() string {
+	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", h.AWSRegion, h.AWSAccount, h.ID)
 }
 
-func (r *Handler) DDBKeys() (ddb.Keys, error) {
+func (h *Handler) DDBKeys() (ddb.Keys, error) {
 	k := ddb.Keys{
 		PK: keys.Handler.PK1,
-		SK: keys.Handler.SK1(r.ID),
+		SK: keys.Handler.SK1(h.ID),
 	}
 	return k, nil
 }
 
-func (r *Handler) ToAPI() types.TGHandler {
-	diagnostics := make([]types.Diagnostic, len(r.Diagnostics))
-	for i, d := range r.Diagnostics {
+func (h *Handler) ToAPI() types.TGHandler {
+	diagnostics := make([]types.Diagnostic, len(h.Diagnostics))
+	for i, d := range h.Diagnostics {
 		diagnostics[i] = types.Diagnostic{
 			Code:    d.Code,
 			Level:   d.Level,
@@ -48,12 +48,13 @@ func (r *Handler) ToAPI() types.TGHandler {
 		}
 	}
 	res := types.TGHandler{
-		Id:          r.ID,
-		AwsAccount:  r.AWSAccount,
-		FunctionArn: r.FunctionARN(),
-		Healthy:     r.Healthy,
-		AwsRegion:   r.AWSRegion,
+		Id:          h.ID,
+		AwsAccount:  h.AWSAccount,
+		FunctionArn: h.FunctionARN(),
+		Healthy:     h.Healthy,
+		AwsRegion:   h.AWSRegion,
 		Diagnostics: diagnostics,
+		Runtime:     h.Runtime,
 	}
 	return res
 }

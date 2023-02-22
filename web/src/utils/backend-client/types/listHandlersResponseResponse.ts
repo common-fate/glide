@@ -5,9 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { TGHandler } from './tGHandler';
 
-export interface TargetGroupDeploymentProvider {
-  publisher: string;
-  name: string;
-  version: string;
-}
+export type ListHandlersResponseResponse = {
+  res: TGHandler[];
+  next: string;
+};
