@@ -284,20 +284,25 @@ func (s *OneLoginSync) listGroupsWithFilter(ctx context.Context, filterString *s
 	}
 
 	if filterString != nil {
-		filter, err := regexp.Compile(*filterString)
-		if err != nil {
-			return nil, err
-		}
-		var filteredGroups []identity.IDPGroup
-		for _, g := range idpGroups {
-			if filter.MatchString(g.Name) {
-				filteredGroups = append(filteredGroups, g)
-			}
-		}
-		return filteredGroups, nil
+		return filterGroups(idpGroups, *filterString)
 	}
 
 	return idpGroups, nil
+}
+
+// here is the unit testable function
+func filterGroups(groups []identity.IDPGroup, filterString string) ([]identity.IDPGroup, error) {
+	filter, err := regexp.Compile(filterString)
+	if err != nil {
+		return nil, err
+	}
+	filteredGroups := []identity.IDPGroup{}
+	for _, g := range groups {
+		if filter.MatchString(g.Name) {
+			filteredGroups = append(filteredGroups, g)
+		}
+	}
+	return filteredGroups, nil
 }
 
 type OneLoginListGroupsResponse struct {
