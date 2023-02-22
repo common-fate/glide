@@ -124,54 +124,62 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 		// we want to key by user id, to remove duplicates
 		idpUsersMap := make(map[string]identity.IDPUser)
 
+		// fetch the filtered groups
 		roles, err := s.listGroupsWithFilter(ctx, &groupFilter)
 		if err != nil {
 			return nil, err
 		}
 
+		// itterate over each group/role
 		for _, r := range roles {
+			// @TODO: this may not actually return a hasMore/Pagination.NextLink repsonse,
+			// meaning we may:
+			// A) need to not use this hasMore pattern,
+			// B) need to change the API endpoint to not use the GET Role Users endpoint
+
+			// @TODO: verify response type
 			url = s.baseURL.Get() + fmt.Sprintf("api/2/roles/%s/users", r.ID)
-			req, _ := http.NewRequest("GET", url, nil)
-			req.Header.Add("Authorization", "Bearer: "+s.token.Get())
+			hasMore := true
+			for hasMore {
+				// fetch the users for the group/role
+				req, _ := http.NewRequest("GET", url, nil)
+				req.Header.Add("Authorization", "Bearer: "+s.token.Get())
 
-			// hasMore := true
-			// for hasMore {
-
-			res, err := http.DefaultClient.Do(req)
-			if err != nil {
-				return nil, err
-			}
-			b, err := io.ReadAll(res.Body)
-			if err != nil {
-				return nil, err
-			}
-			if res.StatusCode != 200 && res.StatusCode != 404 {
-				return nil, fmt.Errorf(string(b))
-			}
-
-			var lu OneLoginListUserResponse
-			err = json.Unmarshal(b, &lu)
-			if err != nil {
-				return nil, err
-			}
-
-			// @TODO: do we need hasMoreSupport?
-			// if lu.Pagination.NextLink != nil {
-			// 	url = *lu.Pagination.NextLink
-			// } else {
-			// 	hasMore = false
-			// }
-
-			for _, u := range lu.Users {
-				idpUser, err := s.idpUserFromOneLoginUser(ctx, &u)
+				res, err := http.DefaultClient.Do(req)
 				if err != nil {
 					return nil, err
 				}
-				idpUser.Groups = append(idpUser.Groups, r.Name)
-				// this is a map, so if it exists it will be overwritten
-				idpUsersMap[idpUser.ID] = idpUser
+				b, err := io.ReadAll(res.Body)
+				if err != nil {
+					return nil, err
+				}
+				if res.StatusCode != 200 && res.StatusCode != 404 {
+					return nil, fmt.Errorf(string(b))
+				}
+
+				var lu OneLoginListUserResponse
+				err = json.Unmarshal(b, &lu)
+				if err != nil {
+					return nil, err
+				}
+
+				// @TODO: do we need hasMoreSupport?
+				if lu.Pagination.NextLink != nil {
+					url = *lu.Pagination.NextLink
+				} else {
+					hasMore = false
+				}
+
+				for _, u := range lu.Users {
+					idpUser, err := s.idpUserFromOneLoginUser(ctx, &u)
+					if err != nil {
+						return nil, err
+					}
+					idpUser.Groups = append(idpUser.Groups, r.Name)
+					// this is a map, so if it exists it will be overwritten
+					idpUsersMap[idpUser.ID] = idpUser
+				}
 			}
-			// }
 		}
 
 		// now we need to convert the map to a slice
@@ -225,7 +233,10 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 }
 
 func (s *OneLoginSync) ListGroups(ctx context.Context) ([]identity.IDPGroup, error) {
-	return s.listGroupsWithFilter(ctx, nil)
+
+	groupFilter := s.idpGroupFilter.Get()
+
+	return s.listGroupsWithFilter(ctx, &groupFilter)
 }
 
 func (s *OneLoginSync) listGroupsWithFilter(ctx context.Context, filterString *string) ([]identity.IDPGroup, error) {
