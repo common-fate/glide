@@ -2922,7 +2922,7 @@ components:
                 default: aws-lambda
               awsAccount:
                 type: string
-                pattern: '^[0-9]{12}'
+                pattern: "^[0-9]{12}"
               awsRegion:
                 type: string
                 pattern: ^(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d$
