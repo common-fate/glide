@@ -1,4 +1,4 @@
-package targetdeploymentsvc
+package handlersvc
 
 import (
 	"github.com/benbjohnson/clock"

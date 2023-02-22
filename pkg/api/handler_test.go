@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/api/mocks"
-	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
+	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
@@ -24,7 +24,7 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 	// test cases:
 	// apio.DecodeJSONBody error ✅
 	// CreateTargetGroupDeployment success ✅
-	// CreateTargetGroupDeployment error == targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists ✅
+	// CreateTargetGroupDeployment error == handlersvc.ErrTargetGroupDeploymentIdAlreadyExists ✅
 	// CreateTargetGroupDeployment error == anything else ✅
 
 	// items to mock: a.TargetGroupDeploymentService.CreateTargetGroupDeployment:res
@@ -42,9 +42,9 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 		name           string
 		wantCode       int
 		wantBody       string
-		withCreatedDep *targetgroup.Deployment
+		withCreatedDep *handler.Handler
 		giveBody       string
-		// mockCreateTargetgroupDeployment    *targetgroup.Deployment
+		// mockCreateTargetgroupDeployment    *handler.Handler
 		mockCreateTargetgroupDeploymentErr error
 	}
 
@@ -59,18 +59,18 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 			name:     "create.success.201",
 			wantCode: http.StatusCreated,
 			wantBody: `{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:123456789012","healthy":false,"id":"123456789012"}`,
-			withCreatedDep: &targetgroup.Deployment{
+			withCreatedDep: &handler.Handler{
 				ID:          "123456789012",
 				Runtime:     "string",
 				AWSAccount:  "string",
 				Healthy:     false,
-				Diagnostics: []targetgroup.Diagnostic{},
+				Diagnostics: []handler.Diagnostic{},
 			},
 			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
 		},
 		{
-			name:                               "error == targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists",
-			mockCreateTargetgroupDeploymentErr: targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists,
+			name:                               "error == handlersvc.ErrTargetGroupDeploymentIdAlreadyExists",
+			mockCreateTargetgroupDeploymentErr: handlersvc.ErrHandlerIdAlreadyExists,
 			wantCode:                           http.StatusBadRequest,
 			giveBody:                           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"test","runtime":"aws-lambda"}`,
 			wantBody:                           `{"error":"target group deployment id already exists"}`,
@@ -93,10 +93,10 @@ func TestCreateTargetGroupDeployments(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 
-			mockDeployment := mocks.NewMockTargetGroupDeploymentService(ctrl)
-			mockDeployment.EXPECT().CreateTargetGroupDeployment(gomock.Any(), gomock.Any()).Return(tc.withCreatedDep, tc.mockCreateTargetgroupDeploymentErr).AnyTimes()
+			mockDeployment := mocks.NewMockHandlerService(ctrl)
+			mockDeployment.EXPECT().CreateHandler(gomock.Any(), gomock.Any()).Return(tc.withCreatedDep, tc.mockCreateTargetgroupDeploymentErr).AnyTimes()
 			a := API{
-				TargetGroupDeploymentService: mockDeployment,
+				// TargetGroupDeploymentService: mockDeployment,
 			}
 			handler := newTestServer(t, &a)
 
@@ -136,7 +136,7 @@ func TestListTargetGroupDeployments(t *testing.T) {
 
 	type testcase struct {
 		name                   string
-		targetGroupDeployments []targetgroup.Deployment
+		targetGroupDeployments []handler.Handler
 		want                   string
 		mockListErr            error
 		wantCode               int
@@ -146,20 +146,20 @@ func TestListTargetGroupDeployments(t *testing.T) {
 		{
 			name:     "ok",
 			wantCode: http.StatusOK,
-			targetGroupDeployments: []targetgroup.Deployment{
+			targetGroupDeployments: []handler.Handler{
 				{
 					ID:          "dep1",
 					Runtime:     "string",
 					AWSAccount:  "string",
 					Healthy:     false,
-					Diagnostics: []targetgroup.Diagnostic{},
+					Diagnostics: []handler.Diagnostic{},
 				},
 				{
 					ID:          "dep2",
 					Runtime:     "string",
 					AWSAccount:  "string",
 					Healthy:     true,
-					Diagnostics: []targetgroup.Diagnostic{},
+					Diagnostics: []handler.Diagnostic{},
 				},
 			},
 			want: `{"next":"","res":[{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep1","healthy":false,"id":"dep1"},{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep2","healthy":true,"id":"dep2"}]}`,
@@ -190,7 +190,7 @@ func TestListTargetGroupDeployments(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListTargetGroupDeployments{Result: tc.targetGroupDeployments}, tc.mockListErr)
+			db.MockQueryWithErr(&storage.ListHandlers{Result: tc.targetGroupDeployments}, tc.mockListErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
@@ -220,7 +220,7 @@ func TestGetTargetGroupDeployment(t *testing.T) {
 
 	type testcase struct {
 		name                          string
-		mockGetTargetGroupDepResponse targetgroup.Deployment
+		mockGetTargetGroupDepResponse handler.Handler
 		mockGetTargetGroupDepErr      error
 		want                          string
 		wantCode                      int
@@ -230,7 +230,7 @@ func TestGetTargetGroupDeployment(t *testing.T) {
 		{
 			name:                          "ok",
 			wantCode:                      http.StatusOK,
-			mockGetTargetGroupDepResponse: targetgroup.Deployment{ID: "123"},
+			mockGetTargetGroupDepResponse: handler.Handler{ID: "123"},
 			want:                          `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
 		},
 		{
@@ -251,7 +251,7 @@ func TestGetTargetGroupDeployment(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetTargetGroupDeployment{Result: tc.mockGetTargetGroupDepResponse}, tc.mockGetTargetGroupDepErr)
+			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDepResponse}, tc.mockGetTargetGroupDepErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)

@@ -1,12 +1,13 @@
-package targetdeploymentsvc
+package handlersvc
 
 import (
 	"context"
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
@@ -17,13 +18,13 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 	type testcase struct {
 		name string
 		// database lookup return object (used to mock ErrTargetGroupDeploymentIdAlreadyExists)
-		mockGet *storage.GetTargetGroupDeployment
+		mockGet *storage.GetHandler
 		// database put object (used to mock ok response)
-		mockPut *targetgroup.Deployment
+		mockPut *handler.Handler
 		// input to CreateTargetGroupDeployment
 		give    types.CreateTargetGroupDeploymentRequest
 		wantErr error
-		want    *targetgroup.Deployment
+		want    *handler.Handler
 	}
 
 	testcases := []testcase{
@@ -36,9 +37,9 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 		},
 		{
 			name: "existing deployment found",
-			mockGet: &storage.GetTargetGroupDeployment{
+			mockGet: &storage.GetHandler{
 				ID: "test1",
-				Result: targetgroup.Deployment{
+				Result: &handler.Handler{
 					ID: "test1",
 				},
 			},
@@ -46,11 +47,11 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				Id:         "test1",
 				AwsAccount: "123456789012",
 			},
-			wantErr: ErrTargetGroupDeploymentIdAlreadyExists,
+			wantErr: ErrHandlerIdAlreadyExists,
 		},
 		{
 			name: "ok",
-			mockPut: &targetgroup.Deployment{
+			mockPut: &handler.Handler{
 				ID:         "test1",
 				AWSAccount: "123456789011",
 			},
@@ -58,10 +59,10 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				Id:         "test1",
 				AwsAccount: "123456789012",
 			},
-			want: &targetgroup.Deployment{
+			want: &handler.Handler{
 				ID:         "test1",
 				AWSAccount: "123456789012",
-				Diagnostics: []targetgroup.Diagnostic{
+				Diagnostics: []handler.Diagnostic{
 					{
 						Level:   string(types.ProviderSetupDiagnosticLogLevelINFO),
 						Message: "offline: lambda cannot be reached/invoked",
@@ -84,7 +85,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				dbMock.MockQuery(tc.mockGet)
 			} else {
 				// this is used to mock s.DB.Put
-				dbMock.MockQueryWithErr(&storage.GetTargetGroupDeployment{}, ddb.ErrNoItems)
+				dbMock.MockQueryWithErr(&storage.GetHandler{}, ddb.ErrNoItems)
 			}
 			if tc.mockPut != nil {
 				ctx := context.Background()
@@ -101,7 +102,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				DB:    dbMock,
 			}
 
-			got, err := s.CreateTargetGroupDeployment(context.Background(), tc.give)
+			got, err := s.CreateHandler(context.Background(), tc.give)
 
 			if err != nil && tc.wantErr != nil {
 				assert.Equal(t, tc.wantErr.Error(), err.Error())

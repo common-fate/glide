@@ -1,4 +1,4 @@
-package targetgroup
+package target
 
 import (
 	"time"
@@ -9,7 +9,7 @@ import (
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
-type TargetGroup struct {
+type Group struct {
 	//user defined e.g. 'okta'
 	ID           string            `json:"id" dynamodbav:"id"`
 	TargetSchema GroupTargetSchema `json:"grouptargetSchema" dynamodbav:"groupTargetSchema"`
@@ -27,14 +27,7 @@ type GroupTargetSchema struct {
 	Schema providerregistrysdk.TargetMode_Schema `json:"schema" dynamodbav:"schema"`
 }
 
-type Diagnostic struct {
-	Level   string `json:"level" dynamodbav:"level"`
-	Code    string `json:"code" dynamodbav:"code"`
-	Message string `json:"message" dynamodbav:"message"`
-	// @TODO: could add an optional group id here (activeConfig key) to indicate which group is causing the issue
-}
-
-func (r *TargetGroup) DDBKeys() (ddb.Keys, error) {
+func (r *Group) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.TargetGroup.PK1,
 		SK: keys.TargetGroup.SK1(r.ID),
@@ -63,7 +56,7 @@ func (r *GroupTargetSchema) ToAPI() types.TargetGroupTargetSchema {
 	return resp
 }
 
-func (r *TargetGroup) ToAPI() types.TargetGroup {
+func (r *Group) ToAPI() types.TargetGroup {
 
 	tg := types.TargetGroup{
 		Id:           r.ID,

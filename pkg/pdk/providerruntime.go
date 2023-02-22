@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
@@ -43,19 +43,19 @@ type ProviderRuntime interface {
 	Revoke(ctx context.Context, subject string, target Target) (err error)
 }
 
-func GetRuntime(ctx context.Context, deployment targetgroup.Deployment) (ProviderRuntime, error) {
+func GetRuntime(ctx context.Context, handler handler.Handler) (ProviderRuntime, error) {
 	log := logger.Get(ctx)
 	var pr ProviderRuntime
-	path, ok := LocalDeploymentMap[deployment.ID]
+	path, ok := LocalDeploymentMap[handler.ID]
 	if ok {
-		log.Debugw("found local runtime configuration for deployment", "deployment", deployment, "path", path)
+		log.Debugw("found local runtime configuration for deployment", "deployment", handler, "path", path)
 		pr = LocalRuntime{
 			Path: path,
 		}
 
 	} else {
-		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", deployment)
-		p, err := NewLambdaRuntime(ctx, deployment.FunctionARN())
+		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", handler)
+		p, err := NewLambdaRuntime(ctx, handler.FunctionARN())
 		if err != nil {
 			return nil, err
 		}

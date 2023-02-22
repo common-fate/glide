@@ -1,4 +1,4 @@
-package targetgroupsvc
+package targetsvc
 
 import "errors"
 

@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -37,8 +38,8 @@ func (a *API) AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	group, err := a.TargetGroupService.CreateTargetGroup(ctx, createGroupRequest)
-	if err == targetgroupsvc.ErrTargetGroupIdAlreadyExists {
+	group, err := a.TargetService.CreateGroup(ctx, createGroupRequest)
+	if err == targetsvc.ErrTargetGroupIdAlreadyExists {
 		// the user supplied id already exists
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
@@ -76,12 +77,9 @@ func (a *API) AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request,
 		apio.Error(ctx, w, err)
 		return
 	}
-	targetGroup, err := a.TargetGroupService.CreateTargetGroupLink(ctx, linkGroupRequest, id)
-	if err != nil {
-		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-		return
-	}
-	apio.JSON(ctx, w, targetGroup.ToAPI(), http.StatusOK)
+	_, err = a.TargetService.CreateRoute(ctx, id, linkGroupRequest)
+	// @TODO
+	apio.JSON(ctx, w, nil, http.StatusOK)
 
 }
 
@@ -89,7 +87,12 @@ func (a *API) AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request,
 // (POST /api/v1/target-groups/{id}/unlink)
 func (a *API) AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string, params types.AdminRemoveTargetGroupLinkParams) {
 	ctx := r.Context()
-	err := a.TargetGroupService.RemoveTargetGroupLink(ctx, params.DeploymentId, id)
+	route := target.Route{
+		Group:   id,
+		Handler: params.DeploymentId,
+		Mode:    "Default",
+	}
+	err := a.DB.Delete(ctx, &route)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

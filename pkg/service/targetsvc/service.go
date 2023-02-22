@@ -1,4 +1,4 @@
-package targetgroupsvc
+package targetsvc
 
 import (
 	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"

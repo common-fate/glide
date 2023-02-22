@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
+	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -17,7 +17,7 @@ func (a *API) AdminListTargetGroupDeployments(w http.ResponseWriter, r *http.Req
 	res := types.ListTargetGroupDeploymentAPIResponse{
 		Res: []types.TargetGroupDeployment{},
 	}
-	q := storage.ListTargetGroupDeployments{}
+	q := storage.ListHandlers{}
 	_, err := a.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
@@ -38,12 +38,12 @@ func (a *API) AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Re
 		apio.Error(ctx, w, err)
 		return
 	}
-	result, err := a.TargetGroupDeploymentService.CreateTargetGroupDeployment(ctx, b)
+	result, err := a.HandlerService.CreateHandler(ctx, b)
 	// add status code handling here
 
 	// validation error: 500
 	// deployment already exists: 400 named error 'target group deployment service error: [deployment] already exists'
-	if err == targetdeploymentsvc.ErrTargetGroupDeploymentIdAlreadyExists {
+	if err == handlersvc.ErrHandlerIdAlreadyExists {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
@@ -58,7 +58,7 @@ func (a *API) AdminCreateTargetGroupDeployment(w http.ResponseWriter, r *http.Re
 // (GET /api/v1/target-group-deployments/{id})
 func (a *API) AdminGetTargetGroupDeployment(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
-	q := storage.GetTargetGroupDeployment{ID: id}
+	q := storage.GetHandler{ID: id}
 	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))

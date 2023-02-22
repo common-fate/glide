@@ -13,7 +13,7 @@ import (
 	"github.com/common-fate/clio"
 	"github.com/common-fate/clio/clierr"
 	"github.com/common-fate/common-fate/internal/build"
-	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/urfave/cli/v2"
 )
@@ -45,7 +45,7 @@ var BootstrapCommand = cli.Command{
 			return errors.New("error configuring provider registry client")
 		}
 
-		provider, err := targetgroupsvc.SplitProviderString(c.String("id"))
+		provider, err := targetsvc.SplitProviderString(c.String("id"))
 		if err != nil {
 			return err
 		}

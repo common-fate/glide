@@ -7,7 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
 )
 
@@ -15,7 +15,7 @@ import (
 // It updates the cached options.
 // To prevent an extended period of time where options are unavailable, we only update the items, and delete any that are no longer present (fixes SOL-35)
 // return true if options were refetched, false if they were already cached
-func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targetgroup.TargetGroup) error {
+func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg target.Group) error {
 
 	cachedResources := storage.ListCachedTargetGroupResource{}
 
@@ -74,7 +74,7 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 	return nil
 }
 
-func (s *Service) fetchResources(ctx context.Context, tg targetgroup.TargetGroup) ([]cache.TargateGroupResource, error) {
+func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargateGroupResource, error) {
 	var tasks []string
 
 	deployment, err := s.RequestRouter.Route(ctx, tg)

@@ -5,9 +5,9 @@ import (
 	"reflect"
 
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -23,9 +23,9 @@ func (s *Service) Check(ctx context.Context) error {
 	log.Info("starting to check health")
 
 	// get all deployments
-	listTargetGroupDeployments := storage.ListTargetGroupDeployments{}
+	listHandlers := storage.ListHandlers{}
 
-	_, err := s.DB.Query(ctx, &listTargetGroupDeployments)
+	_, err := s.DB.Query(ctx, &listHandlers)
 	if err != nil {
 		return err
 	}
@@ -34,86 +34,83 @@ func (s *Service) Check(ctx context.Context) error {
 
 	// for each deployment, run a healthcheck
 	// update the healthiness of the deployment
-	for _, deploymentItem := range listTargetGroupDeployments.Result {
+	for _, h := range listHandlers.Result {
 		// run a healthcheck
 		// update the healthiness of the deployment
-		log.Infof("Running healthcheck for deployment: %s", deploymentItem.ID)
+		log.Infof("Running healthcheck for deployment: %s", h.ID)
 
 		// clear previous diagnostics
-		deploymentItem.Diagnostics = []targetgroup.Diagnostic{}
-		if deploymentItem.TargetGroupAssignment != nil {
-			deploymentItem.TargetGroupAssignment.Diagnostics = []targetgroup.Diagnostic{}
-		}
+		h.Diagnostics = []handler.Diagnostic{}
 
 		// get the lambda runtime
-		runtime, err := pdk.GetRuntime(ctx, deploymentItem)
+		runtime, err := pdk.GetRuntime(ctx, h)
 		if err != nil {
-			deploymentItem.Healthy = false
-			log.Warnf("Error getting lambda runtime: %s", deploymentItem.ID)
-			deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
+			h.Healthy = false
+			log.Warnf("Error getting lambda runtime: %s", h.ID)
+			h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
 				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
 				Message: err.Error(),
 			})
-			upsertItems = append(upsertItems, &deploymentItem)
+			upsertItems = append(upsertItems, &h)
 			continue
 		}
 		// now we can call the describe endpoint
-		describeRes, err := runtime.Describe(ctx)
+		_, err = runtime.Describe(ctx)
 		if err != nil {
-			deploymentItem.Healthy = false
-			log.Warnf("Error running healthcheck for deployment: %s", deploymentItem.ID)
-			deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
+			h.Healthy = false
+			log.Warnf("Error running healthcheck for deployment: %s", h.ID)
+			h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
 				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
 				Message: err.Error(),
 			})
-			upsertItems = append(upsertItems, &deploymentItem)
+			upsertItems = append(upsertItems, &h)
 			continue
 		}
-
-		/**
-		What we have here:
-		- healthy response that defaults to any error
-		- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
-
-		What we probably want:
-		- an improved deploymentItem.Diagnostics field that is a map data type??
-		- break this down in the future
-		*/
-
-		// if there is an unhealthy config validation, then the deployment is unhealthy
-		healthy := true
-		for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
-			for _, d := range diagnostic.Logs {
-				deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, targetgroup.Diagnostic{
-					Level:   string(d.Level),
-					Message: d.Msg,
-				})
-			}
-			if !diagnostic.Success {
-				healthy = false
-			}
-		}
-
-		deploymentItem.ProviderDescription = describeRes
-		deploymentItem.Healthy = healthy
-
-		if deploymentItem.TargetGroupAssignment != nil {
-			//lookup target group
-			targetGroup := storage.GetTargetGroup{ID: deploymentItem.TargetGroupAssignment.TargetGroupID}
-
-			_, err := s.DB.Query(ctx, &targetGroup)
-			if err != nil {
-				return err
-			}
-
-			deploymentItem.TargetGroupAssignment.Valid = s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
-
-		}
-
-		// update the deployment
-
-		upsertItems = append(upsertItems, &deploymentItem)
 	}
+	/**
+	What we have here:
+	- healthy response that defaults to any error
+	- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
+
+	What we probably want:
+	- an improved deploymentItem.Diagnostics field that is a map data type??
+	- break this down in the future
+	*/
+
+	// if there is an unhealthy config validation, then the deployment is unhealthy
+	// healthy := true
+	// for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
+	// 	for _, d := range diagnostic.Logs {
+	// 		deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, target.Diagnostic{
+	// 			Level:   string(d.Level),
+	// 			Message: d.Msg,
+	// 		})
+	// 	}
+	// 	if !diagnostic.Success {
+	// 		healthy = false
+	// 	}
+	// }
+
+	// deploymentItem.ProviderDescription = describeRes
+	// deploymentItem.Healthy = healthy
+
+	// if deploymentItem.TargetGroupAssignment != nil {
+	// 	//lookup target group
+	// 	targetGroup := storage.GetTargetGroup{ID: deploymentItem.TargetGroupAssignment.TargetGroupID}
+
+	// 	_, err := s.DB.Query(ctx, &targetGroup)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	deploymentItem.TargetGroupAssignment.Valid = s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
+
+	// }
+
+	// 	// update the deployment
+
+	// 	upsertItems = append(upsertItems, &deploymentItem)
+	// }
 
 	err = s.DB.PutBatch(ctx, upsertItems...)
 	if err != nil {

@@ -1,23 +1,23 @@
-package targetdeploymentsvc
+package handlersvc
 
 import (
 	"context"
 
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
-func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error) {
-
+func (s *Service) CreateHandler(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*handler.Handler, error) {
 	// run pre-lim checks to ensure input data is valid
 	if !IsValidAwsAccountNumber(req.AwsAccount) {
 		return nil, ErrInvalidAwsAccountNumber
 	}
 
 	// fetch existing deployment to ensure no overlap
-	q := storage.GetTargetGroupDeployment{ID: req.Id}
+	q := storage.GetHandler{ID: req.Id}
 	_, err := s.DB.Query(ctx, &q)
 	// database error unrelated to no items
 	if err != nil && err != ddb.ErrNoItems {
@@ -25,17 +25,17 @@ func (s *Service) CreateTargetGroupDeployment(ctx context.Context, req types.Cre
 	}
 	// we've found a pre-existing deployment
 	if err == nil {
-		return nil, ErrTargetGroupDeploymentIdAlreadyExists
+		return nil, ErrHandlerIdAlreadyExists
 	}
 
 	// create deployment
-	dbInput := targetgroup.Deployment{
+	dbInput := handler.Handler{
 		ID:         req.Id,
 		Runtime:    req.Runtime,
 		AWSAccount: req.AwsAccount,
 		AWSRegion:  req.AwsRegion,
 		Healthy:    false,
-		Diagnostics: []targetgroup.Diagnostic{
+		Diagnostics: []handler.Diagnostic{
 			{
 				Level:   string(types.ProviderSetupDiagnosticLogLevelINFO),
 				Message: "offline: lambda cannot be reached/invoked",

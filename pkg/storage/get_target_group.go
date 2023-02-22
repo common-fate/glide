@@ -6,13 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
 )
 
 type GetTargetGroup struct {
 	ID     string
-	Result targetgroup.TargetGroup `ddb:"result"`
+	Result *target.Group `ddb:"result"`
 }
 
 func (g *GetTargetGroup) BuildQuery() (*dynamodb.QueryInput, error) {
