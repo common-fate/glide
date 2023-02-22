@@ -25,8 +25,10 @@ type Diagnostic struct {
 
 func (r *Route) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.TargetRoute.PK1,
-		SK: keys.TargetRoute.SK1(r.Group, r.Handler, r.Mode),
+		PK:     keys.TargetRoute.PK1,
+		SK:     keys.TargetRoute.SK1(r.Group, r.Handler, r.Mode),
+		GSI1PK: keys.TargetRoute.GSI1PK(r.Group),
+		GSI1SK: keys.TargetRoute.GSI1SK(r.Valid, r.Priority),
 	}
 	return keys, nil
 }

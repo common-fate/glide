@@ -16,6 +16,7 @@ type ListValidTargetRoutesForGroupByPriority struct {
 func (l *ListValidTargetRoutesForGroupByPriority) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		IndexName:              &keys.IndexNames.GSI1,
+		ScanIndexForward:       aws.Bool(false),
 		KeyConditionExpression: aws.String("GSI1PK = :pk and begins_with(GSI1SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.TargetRoute.GSI1PK(l.Group)},
