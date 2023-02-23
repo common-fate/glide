@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb/ddbtest"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +12,7 @@ import (
 func TestListTargetGroups(t *testing.T) {
 	db := newTestingStorage(t)
 
-	tg1 := targetgroup.TestTargetGroup()
+	tg1 := target.TestGroup()
 	ddbtest.PutFixtures(t, db, &tg1)
 	q := &ListTargetGroups{}
 	_, err := db.Query(context.TODO(), q)

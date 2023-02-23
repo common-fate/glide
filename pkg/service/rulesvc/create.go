@@ -211,11 +211,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
-
-	var isTargetGroup bool
-	if q.Result.ID != "" {
-		isTargetGroup = true
-	}
+	isTargetGroup := err != ddb.ErrNoItems
 
 	target, err := s.ProcessTarget(ctx, in.Target, isTargetGroup)
 	if err != nil {

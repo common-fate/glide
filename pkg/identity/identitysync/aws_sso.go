@@ -21,6 +21,9 @@ type AWSSSO struct {
 	identityStoreID gconfig.StringValue
 	// The aws region where the identity store runs
 	region gconfig.StringValue
+
+	// externalID is an optional External ID to use when assuming the role.
+	externalID gconfig.OptionalStringValue
 }
 
 func (s *AWSSSO) Config() gconfig.Config {
@@ -28,11 +31,21 @@ func (s *AWSSSO) Config() gconfig.Config {
 		gconfig.StringField("identityStoreRoleArn", &s.identityStoreRoleARN, "The ARN of the AWS IAM Role with permission to administer SSO"),
 		gconfig.StringField("identityStoreId", &s.identityStoreID, "the AWS SSO Identity Store ID"),
 		gconfig.StringField("region", &s.region, "the region the AWS SSO instance is deployed to"),
+		gconfig.OptionalStringField("externalId", &s.externalID, "(optional) an external ID to use when assuming the role"),
 	}
 }
 
 func (s *AWSSSO) Init(ctx context.Context) error {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, s.identityStoreRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso"))), config.WithRegion(s.region.Get()))
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithCredentialsProvider(
+			cfaws.NewAssumeRoleCredentialsCache(ctx,
+				s.identityStoreRoleARN.Get(),
+				cfaws.WithRoleSessionName("accesshandler-aws-sso"),
+				cfaws.WithExternalID(s.externalID.Get()),
+			),
+		),
+		config.WithRegion(s.region.Get()))
+
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/common-fate/pkg/providersetup"
@@ -26,14 +27,14 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 
+	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
-	"github.com/common-fate/common-fate/pkg/service/targetdeploymentsvc"
-	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/live"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/target"
 
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -74,11 +75,11 @@ type API struct {
 	Cache          CacheService
 	IdentitySyncer auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito                      CognitoService
-	InternalIdentity             InternalIdentityService
-	TargetGroupService           TargetGroupService
-	TargetGroupDeploymentService TargetGroupDeploymentService
-	Workflow                     Workflow
+	Cognito          CognitoService
+	InternalIdentity InternalIdentityService
+	TargetService    TargetService
+	HandlerService   HandlerService
+	Workflow         Workflow
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -132,16 +133,15 @@ type InternalIdentityService interface {
 	DeleteGroup(ctx context.Context, group identity.Group) error
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_service.go -package=mocks . TargetGroupService
-type TargetGroupService interface {
-	CreateTargetGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*targetgroup.TargetGroup, error)
-	CreateTargetGroupLink(ctx context.Context, req types.CreateTargetGroupLink, targetGroupId string) (*targetgroup.TargetGroup, error)
-	RemoveTargetGroupLink(ctx context.Context, deploymentID string, targetGroupId string) error
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_service.go -package=mocks . TargetService
+type TargetService interface {
+	CreateGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*target.Group, error)
+	CreateRoute(ctx context.Context, group string, req types.CreateTargetGroupLink) (*target.Route, error)
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_group_deployment_service.go -package=mocks . TargetGroupDeploymentService
-type TargetGroupDeploymentService interface {
-	CreateTargetGroupDeployment(ctx context.Context, req types.CreateTargetGroupDeploymentRequest) (*targetgroup.Deployment, error)
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_handler_service.go -package=mocks . HandlerService
+type HandlerService interface {
+	RegisterHandler(ctx context.Context, req types.RegisterHandlerRequest) (*handler.Handler, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
@@ -262,12 +262,12 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		DB:                  db,
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
-		TargetGroupService: &targetgroupsvc.Service{
+		TargetService: &targetsvc.Service{
 			DB:                     db,
 			Clock:                  clk,
 			ProviderRegistryClient: opts.ProviderRegistryClient,
 		},
-		TargetGroupDeploymentService: &targetdeploymentsvc.Service{
+		HandlerService: &handlersvc.Service{
 			DB:    db,
 			Clock: clk,
 		},
