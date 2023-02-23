@@ -243,7 +243,7 @@ func TestTargetGroupLink(t *testing.T) {
 			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
 			want:                                 `{"diagnostics":[],"handlerId":"123","mode":"Default","priority":100,"targetGroupId":"123","valid":false}`,
 			deploymentId:                         "abc",
-			mockCreate:                           &target.Route{Group: "123", Handler: "123", Mode: "Default", Priority: 100},
+			mockCreate:                           &target.Route{Group: "123", Handler: "123", Kind: "Default", Priority: 100},
 			give:                                 `{"deploymentId": "abc", "priority": 100,"force":false}`,
 		},
 

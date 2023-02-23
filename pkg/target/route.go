@@ -9,7 +9,7 @@ import (
 type Route struct {
 	Group       string       `json:"group" dynamodbav:"group"`
 	Handler     string       `json:"handler" dynamodbav:"handler"`
-	Mode        string       `json:"mode" dynamodbav:"mode"`
+	Kind        string       `json:"kind" dynamodbav:"kind"`
 	Priority    int          `json:"priority" dynamodbav:"priority"`
 	Valid       bool         `json:"valid" dynamodbav:"valid"`
 	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
@@ -27,7 +27,7 @@ type Diagnostic struct {
 func (r *Route) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK:     keys.TargetRoute.PK1,
-		SK:     keys.TargetRoute.SK1(r.Group, r.Handler, r.Mode),
+		SK:     keys.TargetRoute.SK1(r.Group, r.Handler, r.Kind),
 		GSI1PK: keys.TargetRoute.GSI1PK(r.Group),
 		GSI1SK: keys.TargetRoute.GSI1SK(r.Valid, r.Priority),
 	}
@@ -46,7 +46,7 @@ func (r *Route) ToAPI() types.TargetRoute {
 	return types.TargetRoute{
 		TargetGroupId: r.Group,
 		HandlerId:     r.Handler,
-		Mode:          r.Mode,
+		Kind:          r.Kind,
 		Priority:      r.Priority,
 		Valid:         r.Valid,
 		Diagnostics:   diagnostics,

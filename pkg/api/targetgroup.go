@@ -92,7 +92,7 @@ func (a *API) AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request,
 	route := target.Route{
 		Group:   id,
 		Handler: params.DeploymentId,
-		Mode:    "Default",
+		Kind:    params.Kind,
 	}
 	err := a.DB.Delete(ctx, &route)
 	if err != nil {

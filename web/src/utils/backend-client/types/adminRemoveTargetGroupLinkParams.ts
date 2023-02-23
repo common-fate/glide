@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AdminRemoveTargetGroupLinkParams = { deploymentId: string };
+export type AdminRemoveTargetGroupLinkParams = { deploymentId: string; kind: string };

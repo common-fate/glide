@@ -17,21 +17,21 @@ func TestListValidTargetRoutesForGroupByPriority(t *testing.T) {
 	r1 := target.Route{
 		Group:    groupID,
 		Handler:  types.NewGroupID(),
-		Mode:     "Default",
+		Kind:     "Default",
 		Priority: 1,
 		Valid:    true,
 	}
 	r2 := target.Route{
 		Group:    groupID,
 		Handler:  types.NewGroupID(),
-		Mode:     "Default",
+		Kind:     "Default",
 		Priority: 100,
 		Valid:    true,
 	}
 	r3 := target.Route{
 		Group:    groupID,
 		Handler:  types.NewGroupID(),
-		Mode:     "Default",
+		Kind:     "Default",
 		Priority: 200,
 		Valid:    false,
 	}

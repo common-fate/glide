@@ -64,14 +64,13 @@ var CreateCommand = cli.Command{
 
 var LinkCommand = cli.Command{
 	Name:        "link",
-	Description: "Link a deployment to a target group",
-	Usage:       "Link a deployment to a target group",
+	Description: "Link a handler to a target group",
+	Usage:       "Link a handler to a target group",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "target-group", Required: true},
-		&cli.StringFlag{Name: "deployment", Required: true},
+		&cli.StringFlag{Name: "handler", Required: true},
+		&cli.StringFlag{Name: "kind", Required: true},
 		&cli.IntFlag{Name: "priority", Value: 100},
-		// @TODO this will be removed when we reshape the data model to support a deployment being linked to multiple target groups
-		&cli.BoolFlag{Name: "force"},
 	},
 	Action: func(c *cli.Context) error {
 
@@ -82,16 +81,16 @@ var LinkCommand = cli.Command{
 		}
 
 		res, err := cfApi.AdminCreateTargetGroupLinkWithResponse(ctx, c.String("target-group"), types.AdminCreateTargetGroupLinkJSONRequestBody{
-			DeploymentId: c.String("deployment"),
+			DeploymentId: c.String("handler"),
 			Priority:     c.Int("priority"),
-			Force:        c.Bool("force"),
+			Kind:         c.String("kind"),
 		})
 		if err != nil {
 			return err
 		}
 		switch res.StatusCode() {
 		case http.StatusCreated:
-			clio.Successf("Successfully linked the deployment '%s' with target group '%s'", c.String("deployment"), c.String("target-group"))
+			clio.Successf("Successfully linked the handler '%s' with target group '%s' using kind: '%s'", c.String("handler"), c.String("target-group"), c.String("kind"))
 		case http.StatusUnauthorized:
 			return errors.New(res.JSON401.Error)
 		case http.StatusInternalServerError:

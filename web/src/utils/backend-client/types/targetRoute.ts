@@ -10,7 +10,7 @@ import type { Diagnostic } from './diagnostic';
 export interface TargetRoute {
   targetGroupId: string;
   handlerId: string;
-  mode: string;
+  kind: string;
   priority: number;
   valid: boolean;
   diagnostics: Diagnostic[];

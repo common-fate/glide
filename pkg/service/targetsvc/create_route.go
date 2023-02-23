@@ -28,7 +28,7 @@ func (s *Service) CreateRoute(ctx context.Context, group string, req types.Creat
 		Group:   group,
 		Handler: req.DeploymentId,
 		// hardcoded mode until multi mode is supported
-		Mode:     "Default",
+		Kind:     req.Kind,
 		Priority: req.Priority,
 		// invalid initially, healthcheck service will update this async
 		Valid: false,
