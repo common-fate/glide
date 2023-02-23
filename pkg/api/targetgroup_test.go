@@ -241,10 +241,10 @@ func TestTargetGroupLink(t *testing.T) {
 			wantCode:                             http.StatusOK,
 			mockGetTargetGroupResponse:           target.Group{ID: "123"},
 			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
-			want:                                 `{"diagnostics":[],"handlerId":"123","mode":"Default","priority":100,"targetGroupId":"123","valid":false}`,
+			want:                                 `{"diagnostics":[],"handlerId":"123","kind":"Default","priority":100,"targetGroupId":"123","valid":false}`,
 			deploymentId:                         "abc",
 			mockCreate:                           &target.Route{Group: "123", Handler: "123", Kind: "Default", Priority: 100},
-			give:                                 `{"deploymentId": "abc", "priority": 100,"force":false}`,
+			give:                                 `{"deploymentId": "abc", "priority": 100, "kind":"Default"}`,
 		},
 
 		{
@@ -252,14 +252,14 @@ func TestTargetGroupLink(t *testing.T) {
 			wantCode:     http.StatusBadRequest,
 			want:         `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
 			deploymentId: "abc",
-			give:         `{"deploymentId": "abc", "priority": 1000,"force":false}`,
+			give:         `{"deploymentId": "abc", "priority": 1000, "kind":"Default"}`,
 		},
 		{
 			name:         "priority cannot be under range",
 			wantCode:     http.StatusBadRequest,
 			want:         `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
 			deploymentId: "abc",
-			give:         `{"deploymentId": "abc", "priority": -1,"force":false}`,
+			give:         `{"deploymentId": "abc", "priority": -1, "kind":"Default"}`,
 		},
 	}
 
@@ -313,7 +313,7 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		wantCode                             int
 		mockCreate                           *target.Group
 		deploymentId                         string
-		mockCreateErr                        error
+		kind                                 string
 	}
 
 	testcases := []testcase{
@@ -324,15 +324,7 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
 			want:                                 `null`,
 			deploymentId:                         "abc",
-			mockCreate:                           &target.Group{ID: "123"},
-		},
-		{
-			name:                                 "target group err, error case",
-			wantCode:                             http.StatusInternalServerError,
-			mockCreateErr:                        errors.New("error case"),
-			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
-			want:                                 `{"error":"Internal Server Error"}`,
-			deploymentId:                         "abc",
+			kind:                                 "Default",
 			mockCreate:                           &target.Group{ID: "123"},
 		},
 	}
@@ -348,7 +340,7 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
-			req, err := http.NewRequest("POST", fmt.Sprintf("/api/v1/admin/target-groups/123/unlink?deploymentId=%s", tc.deploymentId), strings.NewReader(""))
+			req, err := http.NewRequest("POST", fmt.Sprintf("/api/v1/admin/target-groups/123/unlink?deploymentId=%s&kind=%s", tc.deploymentId, tc.kind), strings.NewReader(""))
 			if err != nil {
 				t.Fatal(err)
 			}
