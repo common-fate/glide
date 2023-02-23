@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+
+	aws_config "github.com/aws/aws-sdk-go-v2/config"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go/aws"
@@ -76,8 +79,69 @@ func (r *Runtime) Revoke(ctx context.Context, grantID string, isForTargetGroup b
 	return r.revokeProvider(ctx, grantID)
 }
 
+func BuildExecutionARN(stateMachineARN string, grantID string) string {
+
+	splitARN := strings.Split(stateMachineARN, ":")
+
+	//position 5 is the location of the arn type
+	splitARN[5] = "execution"
+	splitARN = append(splitARN, grantID)
+
+	return strings.Join(splitARN, ":")
+
+}
+
 func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
-	// @TODO
+	//we can grab all this from the execution input for the step function we will use this as the source of truth
+	c, err := aws_config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return err
+	}
+	sfnClient := sfn.NewFromConfig(c)
+
+	//build the execution ARN
+	exeARN := BuildExecutionARN(r.StateMachineARN, grantID)
+
+	out, err := sfnClient.DescribeExecution(ctx, &sfn.DescribeExecutionInput{ExecutionArn: aws.String(exeARN)})
+	if err != nil {
+		return err
+	}
+
+	//build the previous grant from the execution input
+	var input targetgroupgranter.WorkflowInput
+
+	err = json.Unmarshal([]byte(*out.Input), &input)
+	if err != nil {
+		return err
+	}
+	// grant := input.Grant
+
+	// args, err := json.Marshal(grant.With)
+	// if err != nil {
+	// 	return err
+	// }
+
+	//if the state function is in the active state then we will stop the execution
+	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
+	if err != nil {
+		return err
+	}
+	lastState := statefn.Events[len(statefn.Events)-1]
+	//if the state of the grant is in the active state
+	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
+		//call the provider revoke
+		err = r.revokeProvider(ctx, grantID)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
+	//if stopping the execution failed we want return with an error and not continue with the flow
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
