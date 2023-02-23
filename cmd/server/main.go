@@ -4,17 +4,19 @@ import (
 	"context"
 	"log"
 
+	"github.com/common-fate/apikit/logger"
 	ahConfig "github.com/common-fate/common-fate/accesshandler/pkg/config"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-
-	"github.com/common-fate/apikit/logger"
 	ahServer "github.com/common-fate/common-fate/accesshandler/pkg/server"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/api"
+	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/auth/localauth"
+	"github.com/common-fate/common-fate/pkg/auth/nolocalauth"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/server"
@@ -63,12 +65,22 @@ func run() error {
 		}
 	}
 
-	auth, err := localauth.New(ctx, localauth.Opts{
-		UserPoolID:    cfg.CognitoUserPoolID,
-		CognitoRegion: cfg.Region,
-	})
-	if err != nil {
-		return err
+	var authMiddleware auth.Authenticator
+	if cfg.NoAuthEmail != "" {
+		a, err := nolocalauth.New(ctx, nolocalauth.Opts{Email: cfg.NoAuthEmail})
+		if err != nil {
+			return err
+		}
+		authMiddleware = a
+	} else {
+		a, err := localauth.New(ctx, localauth.Opts{
+			UserPoolID:    cfg.CognitoUserPoolID,
+			CognitoRegion: cfg.Region,
+		})
+		if err != nil {
+			return err
+		}
+		authMiddleware = a
 	}
 
 	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL, MockAccessHandler: cfg.MockAccessHandler})
@@ -108,21 +120,27 @@ func run() error {
 		return err
 	}
 
+	registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+	if err != nil {
+		return err
+	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		DeploymentSuffix:    cfg.DeploymentSuffix,
-		IdentitySyncer:      idsync,
-		CognitoUserPoolID:   cfg.CognitoUserPoolID,
-		IDPType:             cfg.IdpProvider,
-		AdminGroupID:        cfg.AdminGroup,
-		DeploymentConfig:    dc,
-		TemplateData:        td,
-		FrontendURL:         cfg.FrontendURL,
+		Log:                    log,
+		DynamoTable:            cfg.DynamoTable,
+		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
+		AccessHandlerClient:    ahc,
+		EventSender:            eventBus,
+		AdminGroup:             cfg.AdminGroup,
+		DeploymentSuffix:       cfg.DeploymentSuffix,
+		IdentitySyncer:         idsync,
+		CognitoUserPoolID:      cfg.CognitoUserPoolID,
+		IDPType:                cfg.IdpProvider,
+		AdminGroupID:           cfg.AdminGroup,
+		DeploymentConfig:       dc,
+		TemplateData:           td,
+		ProviderRegistryClient: registryClient,
+		StateMachineARN:        cfg.StateMachineARN,
+		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {
 		return err
@@ -130,7 +148,7 @@ func run() error {
 	s, err := server.New(ctx, server.Config{
 		Config:         cfg,
 		Log:            log,
-		Authenticator:  auth,
+		Authenticator:  authMiddleware,
 		API:            api,
 		IdentitySyncer: idsync,
 	})

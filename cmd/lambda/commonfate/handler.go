@@ -18,6 +18,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/common-fate/pkg/server"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
@@ -86,21 +87,27 @@ func buildHandler() (*Lambda, error) {
 	if err != nil {
 		return nil, err
 	}
+	registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+	if err != nil {
+		return nil, err
+	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                 log,
-		DynamoTable:         cfg.DynamoTable,
-		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
-		AccessHandlerClient: ahc,
-		EventSender:         eventBus,
-		AdminGroup:          cfg.AdminGroup,
-		TemplateData:        td,
-		DeploymentSuffix:    cfg.DeploymentSuffix,
-		IdentitySyncer:      idsync,
-		CognitoUserPoolID:   cfg.CognitoUserPoolID,
-		IDPType:             cfg.IdpProvider,
-		AdminGroupID:        cfg.AdminGroup,
-		DeploymentConfig:    dc,
-		FrontendURL:         cfg.FrontendURL,
+		Log:                    log,
+		DynamoTable:            cfg.DynamoTable,
+		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
+		AccessHandlerClient:    ahc,
+		EventSender:            eventBus,
+		AdminGroup:             cfg.AdminGroup,
+		TemplateData:           td,
+		DeploymentSuffix:       cfg.DeploymentSuffix,
+		IdentitySyncer:         idsync,
+		CognitoUserPoolID:      cfg.CognitoUserPoolID,
+		IDPType:                cfg.IdpProvider,
+		AdminGroupID:           cfg.AdminGroup,
+		DeploymentConfig:       dc,
+		ProviderRegistryClient: registryClient,
+		StateMachineARN:        cfg.StateMachineARN,
+		FrontendURL:            cfg.FrontendURL,
 	})
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/benbjohnson/clock"
+	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
@@ -17,6 +18,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
 	"github.com/common-fate/common-fate/pkg/providersetup"
@@ -24,10 +26,15 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+
+	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
 	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
+	"github.com/common-fate/common-fate/pkg/service/targetsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/live"
+	"github.com/common-fate/common-fate/pkg/target"
 
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -64,12 +71,15 @@ type API struct {
 	AdminGroup          string
 	IdentityProvider    string
 	FrontendURL         string
-	Granter             accesssvc.Granter
-	Cache               CacheService
-	IdentitySyncer      auth.IdentitySyncer
+
+	Cache          CacheService
+	IdentitySyncer auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito          CognitoService
 	InternalIdentity InternalIdentityService
+	TargetService    TargetService
+	HandlerService   HandlerService
+	Workflow         Workflow
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -123,24 +133,42 @@ type InternalIdentityService interface {
 	DeleteGroup(ctx context.Context, group identity.Group) error
 }
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_target_service.go -package=mocks . TargetService
+type TargetService interface {
+	CreateGroup(ctx context.Context, targetGroup types.CreateTargetGroupRequest) (*target.Group, error)
+	CreateRoute(ctx context.Context, group string, req types.CreateTargetGroupLink) (*target.Route, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_handler_service.go -package=mocks . HandlerService
+type HandlerService interface {
+	RegisterHandler(ctx context.Context, req types.RegisterHandlerRequest) (*handler.Handler, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
+type Workflow interface {
+	Revoke(ctx context.Context, request access.Request, revokerID string) (*access.Request, error)
+}
+
 // API must meet the generated REST API interface.
 var _ types.ServerInterface = &API{}
 
 type Opts struct {
-	Log                 *zap.SugaredLogger
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	EventSender         *gevent.Sender
-	IdentitySyncer      auth.IdentitySyncer
-	DeploymentConfig    deploy.DeployConfigReader
-	DynamoTable         string
-	PaginationKMSKeyARN string
-	FrontendURL         string
-	AdminGroup          string
-	TemplateData        psetup.TemplateData
-	DeploymentSuffix    string
-	CognitoUserPoolID   string
-	IDPType             string
-	AdminGroupID        string
+	Log                    *zap.SugaredLogger
+	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
+	ProviderRegistryClient registry_types.ClientWithResponsesInterface
+	EventSender            *gevent.Sender
+	IdentitySyncer         auth.IdentitySyncer
+	DeploymentConfig       deploy.DeployConfigReader
+	DynamoTable            string
+	PaginationKMSKeyARN    string
+	AdminGroup             string
+	TemplateData           psetup.TemplateData
+	DeploymentSuffix       string
+	CognitoUserPoolID      string
+	IDPType                string
+	AdminGroupID           string
+	StateMachineARN        string
+	FrontendURL            string
 }
 
 // New creates a new API.
@@ -150,6 +178,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 	}
 	if opts.AccessHandlerClient == nil {
 		return nil, errors.New("AccessHandlerClient must be provided")
+	}
+
+	if opts.ProviderRegistryClient == nil {
+		return nil, errors.New("ProviderRegistryClient must be provided")
 	}
 
 	tokenizer, err := ddb.NewKMSTokenizer(ctx, opts.PaginationKMSKeyARN)
@@ -163,13 +195,9 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	clk := clock.New()
 
-	granter := grantsvc.New(grantsvc.GranterOpts{
-		AHClient:         opts.AccessHandlerClient,
-		DB:               db,
-		Clock:            clk,
-		EventBus:         opts.EventSender,
-		DeploymentConfig: opts.DeploymentConfig,
-	})
+	if err != nil {
+		return nil, err
+	}
 
 	a := API{
 		DeploymentConfig: opts.DeploymentConfig,
@@ -182,7 +210,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Access: &accesssvc.Service{
 			Clock:       clk,
 			DB:          db,
-			Granter:     granter,
 			EventPutter: opts.EventSender,
 			Cache: &cachesvc.Service{
 				ProviderConfigReader: opts.DeploymentConfig,
@@ -200,6 +227,16 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				},
 			},
 			AHClient: opts.AccessHandlerClient,
+			Workflow: &workflowsvc.Service{
+				Runtime: &live.Runtime{
+					StateMachineARN: opts.StateMachineARN,
+					AHClient:        opts.AccessHandlerClient,
+					Eventbus:        opts.EventSender,
+				},
+				DB:       db,
+				Clk:      clk,
+				Eventbus: opts.EventSender,
+			},
 		},
 		Cache: &cachesvc.Service{
 			ProviderConfigReader: opts.DeploymentConfig,
@@ -223,9 +260,27 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		},
 		AccessHandlerClient: opts.AccessHandlerClient,
 		DB:                  db,
-		Granter:             granter,
 		IdentitySyncer:      opts.IdentitySyncer,
 		IdentityProvider:    opts.IDPType,
+		TargetService: &targetsvc.Service{
+			DB:                     db,
+			Clock:                  clk,
+			ProviderRegistryClient: opts.ProviderRegistryClient,
+		},
+		HandlerService: &handlersvc.Service{
+			DB:    db,
+			Clock: clk,
+		},
+		Workflow: &workflowsvc.Service{
+			Runtime: &live.Runtime{
+				StateMachineARN: opts.StateMachineARN,
+				AHClient:        opts.AccessHandlerClient,
+				Eventbus:        opts.EventSender,
+			},
+			DB:       db,
+			Clk:      clk,
+			Eventbus: opts.EventSender,
+		},
 	}
 
 	// only initialise this if cognito is the IDP
