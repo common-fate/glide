@@ -75,7 +75,7 @@ func Test_filterGroups(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := filterGroups(tt.args.groups, tt.args.filterString)
+			got, err := FilterGroups(tt.args.groups, tt.args.filterString)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("filterGroups() error = %v, wantErr %v", err, tt.wantErr)
 				return

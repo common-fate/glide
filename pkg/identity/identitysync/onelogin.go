@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -103,7 +102,10 @@ func (s *OneLoginSync) idpGroupFromOneLoginGroup(oneLoginGroup OneLoginGroup) id
 	}
 }
 
-func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) {
+func (s *OneLoginSync) ListUsers(ctx context.Context,
+
+// add an opts here i.e. withGroupFilters string
+) ([]identity.IDPUser, error) {
 
 	//get all users
 	var idpUsers []identity.IDPUser
@@ -117,6 +119,8 @@ func (s *OneLoginSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error
 	// now query based on `customer.group_id`
 
 	groupFilter := s.idpGroupFilter.Get()
+
+	// issue: a user
 
 	if groupFilter != "" {
 
@@ -284,25 +288,10 @@ func (s *OneLoginSync) listGroupsWithFilter(ctx context.Context, filterString *s
 	}
 
 	if filterString != nil {
-		return filterGroups(idpGroups, *filterString)
+		return FilterGroups(idpGroups, *filterString)
 	}
 
 	return idpGroups, nil
-}
-
-// here is the unit testable function
-func filterGroups(groups []identity.IDPGroup, filterString string) ([]identity.IDPGroup, error) {
-	filter, err := regexp.Compile(filterString)
-	if err != nil {
-		return nil, err
-	}
-	filteredGroups := []identity.IDPGroup{}
-	for _, g := range groups {
-		if filter.MatchString(g.Name) {
-			filteredGroups = append(filteredGroups, g)
-		}
-	}
-	return filteredGroups, nil
 }
 
 type OneLoginListGroupsResponse struct {
