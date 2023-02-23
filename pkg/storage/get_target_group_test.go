@@ -3,7 +3,7 @@ package storage
 import (
 	"testing"
 
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbtest"
 )
@@ -11,14 +11,14 @@ import (
 func TestGetTargetGroup(t *testing.T) {
 	db := newTestingStorage(t)
 
-	tg := targetgroup.TestTargetGroup()
+	tg := target.TestGroup()
 	ddbtest.PutFixtures(t, db, &tg)
 
 	tc := []ddbtest.QueryTestCase{
 		{
 			Name:  "ok",
 			Query: &GetTargetGroup{ID: tg.ID},
-			Want:  &GetTargetGroup{ID: tg.ID, Result: tg},
+			Want:  &GetTargetGroup{ID: tg.ID, Result: &tg},
 		},
 		{
 			Name:    "target group not found",

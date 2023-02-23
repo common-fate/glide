@@ -4,19 +4,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
-	"github.com/common-fate/common-fate/pkg/target"
 )
 
-type ListTargetGroups struct {
-	Result []target.Group `ddb:"result"`
+type ListHandlers struct {
+	Result []handler.Handler `ddb:"result"`
 }
 
-func (l *ListTargetGroups) BuildQuery() (*dynamodb.QueryInput, error) {
+func (l *ListHandlers) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk "),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.TargetGroup.PK1},
+			":pk": &types.AttributeValueMemberS{Value: keys.Handler.PK1},
 		},
 	}
 	return &qi, nil

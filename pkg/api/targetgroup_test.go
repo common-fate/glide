@@ -10,9 +10,11 @@ import (
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/api/mocks"
-	"github.com/common-fate/common-fate/pkg/service/targetgroupsvc"
+	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroup"
+	"github.com/common-fate/common-fate/pkg/target"
+
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -24,7 +26,7 @@ func TestCreateTargetGroup(t *testing.T) {
 	type testcase struct {
 		name          string
 		give          string
-		mockCreate    *targetgroup.TargetGroup
+		mockCreate    *target.Group
 		mockCreateErr error
 
 		wantCode int
@@ -35,9 +37,9 @@ func TestCreateTargetGroup(t *testing.T) {
 		{
 			name: "ok",
 			give: `{"ID": "test", "targetSchema": "v1.0.1"}`,
-			mockCreate: &targetgroup.TargetGroup{
+			mockCreate: &target.Group{
 				ID:           "test",
-				TargetSchema: targetgroup.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.TargetMode_Schema{}},
+				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.TargetMode_Schema{}},
 			},
 			wantCode: http.StatusCreated,
 
@@ -46,7 +48,7 @@ func TestCreateTargetGroup(t *testing.T) {
 		{
 			name:          "id already exists",
 			give:          `{"ID": "test", "targetSchema": "v1.0.1"}`,
-			mockCreateErr: targetgroupsvc.ErrTargetGroupIdAlreadyExists,
+			mockCreateErr: targetsvc.ErrTargetGroupIdAlreadyExists,
 			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"target group id already exists"}`,
 		},
@@ -58,10 +60,10 @@ func TestCreateTargetGroup(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			m := mocks.NewMockTargetGroupService(ctrl)
-			m.EXPECT().CreateTargetGroup(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+			m := mocks.NewMockTargetService(ctrl)
+			m.EXPECT().CreateGroup(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
 
-			a := API{TargetGroupService: m}
+			a := API{TargetService: m}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", "/api/v1/admin/target-groups", strings.NewReader(tc.give))
@@ -90,7 +92,7 @@ func TestListTargetGroup(t *testing.T) {
 	type testcase struct {
 		name string
 
-		targetgroups []targetgroup.TargetGroup
+		targetgroups []target.Group
 		want         string
 		mockListErr  error
 		wantCode     int
@@ -100,15 +102,15 @@ func TestListTargetGroup(t *testing.T) {
 		{
 			name:     "ok",
 			wantCode: http.StatusOK,
-			targetgroups: []targetgroup.TargetGroup{
+			targetgroups: []target.Group{
 				{
 					ID:           "tg1",
-					TargetSchema: targetgroup.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
+					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
 					Icon:         "test",
 				},
 				{
 					ID:           "tg2",
-					TargetSchema: targetgroup.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
+					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
 					Icon:         "test",
 				},
 			},
@@ -166,7 +168,7 @@ func TestListTargetGroup(t *testing.T) {
 func TestGetTargetGroup(t *testing.T) {
 	type testcase struct {
 		name                       string
-		mockGetTargetGroupResponse targetgroup.TargetGroup
+		mockGetTargetGroupResponse target.Group
 		mockGetTargetGroupErr      error
 		want                       string
 		wantCode                   int
@@ -176,7 +178,7 @@ func TestGetTargetGroup(t *testing.T) {
 		{
 			name:                       "ok",
 			wantCode:                   http.StatusOK,
-			mockGetTargetGroupResponse: targetgroup.TargetGroup{ID: "123"},
+			mockGetTargetGroupResponse: target.Group{ID: "123"},
 			want:                       `{"icon":"","id":"123","targetDeployments":null,"targetSchema":{"From":"","Schema":{}}}`,
 		},
 		{
@@ -192,7 +194,7 @@ func TestGetTargetGroup(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
@@ -222,12 +224,12 @@ func TestGetTargetGroup(t *testing.T) {
 func TestTargetGroupLink(t *testing.T) {
 	type testcase struct {
 		name                                 string
-		mockGetTargetGroupResponse           targetgroup.TargetGroup
-		mockGetTargetGroupDeploymentResponse targetgroup.Deployment
+		mockGetTargetGroupResponse           target.Group
+		mockGetTargetGroupDeploymentResponse handler.Handler
 		mockGetTargetGroupErr                error
 		want                                 string
 		wantCode                             int
-		mockCreate                           *targetgroup.TargetGroup
+		mockCreate                           *target.Route
 		deploymentId                         string
 		mockCreateErr                        error
 		give                                 string
@@ -237,35 +239,27 @@ func TestTargetGroupLink(t *testing.T) {
 		{
 			name:                                 "ok",
 			wantCode:                             http.StatusOK,
-			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
-			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
-			want:                                 `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"123","targetSchema":{"From":"","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			mockGetTargetGroupResponse:           target.Group{ID: "123"},
+			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
+			want:                                 `{"diagnostics":[],"handlerId":"123","mode":"Default","priority":100,"targetGroupId":"123","valid":false}`,
 			deploymentId:                         "abc",
-			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
+			mockCreate:                           &target.Route{Group: "123", Handler: "123", Mode: "Default", Priority: 100},
 			give:                                 `{"deploymentId": "abc", "priority": 100,"force":false}`,
 		},
 
 		{
-			name:                                 "priority cannot be out of range",
-			wantCode:                             http.StatusBadRequest,
-			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
-			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
-			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
-			deploymentId:                         "abc",
-			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": 1000,"force":false}`,
-			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
+			name:         "priority cannot be out of range",
+			wantCode:     http.StatusBadRequest,
+			want:         `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"}`,
+			deploymentId: "abc",
+			give:         `{"deploymentId": "abc", "priority": 1000,"force":false}`,
 		},
 		{
-			name:                                 "priority cannot be under range",
-			wantCode:                             http.StatusBadRequest,
-			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
-			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
-			want:                                 `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
-			deploymentId:                         "abc",
-			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
-			give:                                 `{"deploymentId": "abc", "priority": -1,"force":false}`,
-			mockCreateErr:                        errors.New("request body has an error: doesn't match the schema: Error at \"/priority\": number must be at most 999"),
+			name:         "priority cannot be under range",
+			wantCode:     http.StatusBadRequest,
+			want:         `{"error":"request body has an error: doesn't match the schema: Error at \"/priority\": number must be at least 0"}`,
+			deploymentId: "abc",
+			give:         `{"deploymentId": "abc", "priority": -1,"force":false}`,
 		},
 	}
 
@@ -274,19 +268,16 @@ func TestTargetGroupLink(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
-			db.MockQueryWithErr(&storage.GetTargetGroupDeployment{Result: tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-			m := mocks.NewMockTargetGroupService(ctrl)
+			m := mocks.NewMockTargetService(ctrl)
 
-			if tc.mockCreateErr == nil {
-				m.EXPECT().CreateTargetGroupLink(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+			m.EXPECT().CreateRoute(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr).AnyTimes()
 
-			}
-
-			a := API{DB: db, TargetGroupService: m}
+			a := API{DB: db, TargetService: m}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", "/api/v1/admin/target-groups/123/link", strings.NewReader(tc.give))
@@ -315,12 +306,12 @@ func TestTargetGroupLink(t *testing.T) {
 func TestRemoveTargetGroupLink(t *testing.T) {
 	type testcase struct {
 		name                                 string
-		mockGetTargetGroupResponse           targetgroup.TargetGroup
-		mockGetTargetGroupDeploymentResponse targetgroup.Deployment
+		mockGetTargetGroupResponse           target.Group
+		mockGetTargetGroupDeploymentResponse handler.Handler
 		mockGetTargetGroupErr                error
 		want                                 string
 		wantCode                             int
-		mockCreate                           *targetgroup.TargetGroup
+		mockCreate                           *target.Group
 		deploymentId                         string
 		mockCreateErr                        error
 	}
@@ -329,20 +320,20 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		{
 			name:                                 "ok",
 			wantCode:                             http.StatusOK,
-			mockGetTargetGroupResponse:           targetgroup.TargetGroup{ID: "123"},
-			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			mockGetTargetGroupResponse:           target.Group{ID: "123"},
+			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
 			want:                                 `null`,
 			deploymentId:                         "abc",
-			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
+			mockCreate:                           &target.Group{ID: "123"},
 		},
 		{
 			name:                                 "target group err, error case",
 			wantCode:                             http.StatusInternalServerError,
 			mockCreateErr:                        errors.New("error case"),
-			mockGetTargetGroupDeploymentResponse: targetgroup.Deployment{ID: "abc"},
+			mockGetTargetGroupDeploymentResponse: handler.Handler{ID: "abc"},
 			want:                                 `{"error":"Internal Server Error"}`,
 			deploymentId:                         "abc",
-			mockCreate:                           &targetgroup.TargetGroup{ID: "123"},
+			mockCreate:                           &target.Group{ID: "123"},
 		},
 	}
 
@@ -351,16 +342,10 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
-			db.MockQueryWithErr(&storage.GetTargetGroupDeployment{Result: tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
+			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-			m := mocks.NewMockTargetGroupService(ctrl)
-
-			m.EXPECT().RemoveTargetGroupLink(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.mockCreateErr)
-
-			a := API{DB: db, TargetGroupService: m}
+			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", fmt.Sprintf("/api/v1/admin/target-groups/123/unlink?deploymentId=%s", tc.deploymentId), strings.NewReader(""))

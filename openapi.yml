@@ -1135,23 +1135,23 @@ paths:
       description: Update a favorite with new FavoriteDetails
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
-  "/api/v1/admin/target-group-deployments/{id}":
+  "/api/v1/admin/handlers/{id}":
     get:
-      summary: Get target group deployment (detailed)
+      summary: Get handler
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TargetGroupDeployment"
+                $ref: "#/components/schemas/TGHandler"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: admin-get-target-group-deployment
+      operationId: admin-get-handler
       tags:
         - Admin
       description: ""
@@ -1161,30 +1161,30 @@ paths:
         name: id
         in: path
         required: true
-  /api/v1/admin/target-group-deployments:
+  /api/v1/admin/handlers:
     get:
-      summary: Get target group deployments
+      summary: Get handlers
       responses:
         "200":
-          $ref: "#/components/responses/ListTargetGroupDeploymentAPIResponse"
+          $ref: "#/components/responses/ListHandlersResponse"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: admin-list-target-group-deployments
+      operationId: admin-list-handlers
       description: ""
       tags:
         - Admin
     post:
-      summary: Create a target group deployment
-      operationId: admin-create-target-group-deployment
+      summary: Register a handler
+      operationId: admin-register-handler
       responses:
         "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TargetGroupDeployment"
+                $ref: "#/components/schemas/TGHandler"
         "400":
           $ref: "#/components/responses/ErrorResponse"
         "401":
@@ -1192,7 +1192,7 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       requestBody:
-        $ref: "#/components/requestBodies/CreateTargetGroupDeploymentRequest"
+        $ref: "#/components/requestBodies/RegisterHandlerRequest"
       tags:
         - Admin
       description: ""
@@ -1270,6 +1270,10 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetRoute"
         "400":
           $ref: "#/components/responses/ErrorResponse"
         "401":
@@ -2311,15 +2315,17 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
-    TargetGroupDeployment:
-      title: TargetGroupDeployment
+    TGHandler:
+      title: TGHandler
       x-stoplight:
-        id: b4c96fa682036
+        id: dfd783fec606a
       type: object
       x-tags:
         - Target Groups
       properties:
         id:
+          type: string
+        runtime:
           type: string
         functionArn:
           type: string
@@ -2332,18 +2338,18 @@ components:
         diagnostics:
           type: array
           items:
-            $ref: "#/components/schemas/TargetGroupDiagnostic"
-        activeConfig:
-          $ref: "#/components/schemas/TargetGroupDeploymentActiveConfig"
-        targetGroupAssignment:
-          $ref: "#/components/schemas/TargetGroupAssignment"
+            $ref: "#/components/schemas/Diagnostic"
       required:
         - id
+        - runtime
         - functionArn
         - awsAccount
         - awsRegion
         - healthy
         - diagnostics
+      description: |-
+        Handler represents a deployment of a provider. 
+        Handlers can be linked to target groups via routes
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2367,26 +2373,33 @@ components:
         - id
         - targetSchema
         - icon
-    TargetGroupAssignment:
+    TargetRoute:
       type: object
       x-stoplight:
-        id: 44a09f993c68a
+        id: a3339ab311211
+      title: TargetRoute
       properties:
-        TargetGroupId:
+        targetGroupId:
           type: string
-        Priority:
+        handlerId:
+          type: string
+        mode:
+          type: string
+        priority:
           type: integer
-        Valid:
+        valid:
           type: boolean
-        Diagnostics:
+        diagnostics:
           type: array
           items:
-            type: object
+            $ref: "#/components/schemas/Diagnostic"
       required:
-        - TargetGroupId
-        - Priority
-        - Valid
-        - Diagnostics
+        - targetGroupId
+        - handlerId
+        - mode
+        - priority
+        - valid
+        - diagnostics
     TargetGroupTargetSchema:
       title: TargetSchema
       x-stoplight:
@@ -2400,23 +2413,10 @@ components:
       required:
         - From
         - Schema
-    TargetGroupDeploymentConfig:
-      title: TargetGroupDeploymentConfig
+    Diagnostic:
+      title: Diagnostic
       x-stoplight:
-        id: uh2lj7r91ba6u
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: object
-      required:
-        - type
-        - value
-    TargetGroupDiagnostic:
-      title: TargetGroupDiagnostic
-      x-stoplight:
-        id: ktm8g34aqfgfd
+        id: fb62cbb9bc444
       type: object
       properties:
         level:
@@ -2429,29 +2429,6 @@ components:
         - level
         - code
         - message
-    TargetGroupDeploymentProvider:
-      title: TargetGroupDeploymentProvider
-      x-stoplight:
-        id: t8fxrpcy8wl7m
-      type: object
-      properties:
-        publisher:
-          type: string
-        name:
-          type: string
-        version:
-          type: string
-      required:
-        - publisher
-        - name
-        - version
-    TargetGroupDeploymentActiveConfig:
-      title: TargetGroupDeploymentActiveConfig
-      x-stoplight:
-        id: 3z1qcglniqj25
-      type: object
-      additionalProperties:
-        $ref: "#/components/schemas/TargetGroupDeploymentConfig"
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2711,7 +2688,7 @@ components:
                 type: string
             required:
               - targetGroups
-    ListTargetGroupDeploymentAPIResponse:
+    ListHandlersResponse:
       description: Response obj for ListTargetGroupDeploymentAPIResponse
       content:
         application/json:
@@ -2721,7 +2698,7 @@ components:
               res:
                 type: array
                 items:
-                  $ref: "#/components/schemas/TargetGroupDeployment"
+                  $ref: "#/components/schemas/TGHandler"
               next:
                 type: string
             required:
@@ -2931,7 +2908,7 @@ components:
             required:
               - targetSchema
               - ID
-    CreateTargetGroupDeploymentRequest:
+    RegisterHandlerRequest:
       content:
         application/json:
           schema:
@@ -2942,10 +2919,15 @@ components:
                 description: "The ID of the target group to deploy to. User, provided"
               runtime:
                 type: string
+                default: aws-lambda
               awsAccount:
                 type: string
+                pattern: "^[0-9]{12}"
               awsRegion:
                 type: string
+                pattern: ^(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d$
+                minLength: 9
+                example: us-east-1
             required:
               - id
               - runtime

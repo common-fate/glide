@@ -49,7 +49,7 @@ var RegisterCommand = cli.Command{
 
 		ctx := c.Context
 
-		reqBody := types.AdminCreateTargetGroupDeploymentJSONRequestBody{
+		reqBody := types.AdminRegisterHandlerJSONRequestBody{
 			AwsAccount: c.String("aws-account"),
 			AwsRegion:  c.String("aws-region"),
 			Runtime:    c.String("runtime"),
@@ -61,7 +61,7 @@ var RegisterCommand = cli.Command{
 			return err
 		}
 
-		result, err := cfApi.AdminCreateTargetGroupDeploymentWithResponse(ctx, reqBody)
+		result, err := cfApi.AdminRegisterHandlerWithResponse(ctx, reqBody)
 		if err != nil {
 			return err
 		}

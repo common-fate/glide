@@ -54,7 +54,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	if err != nil {
 		return Output{}, err
 	}
-	deployment, err := g.RequestRouter.Route(ctx, tgq.Result)
+	deployment, err := g.RequestRouter.Route(ctx, *tgq.Result)
 	if err != nil {
 		return Output{}, err
 	}

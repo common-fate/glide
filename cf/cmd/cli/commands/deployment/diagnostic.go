@@ -26,7 +26,7 @@ var DiagnosticCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		res, err := cfApi.AdminGetTargetGroupDeploymentWithResponse(ctx, id)
+		res, err := cfApi.AdminGetHandlerWithResponse(ctx, id)
 		if err != nil {
 			return err
 		}

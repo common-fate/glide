@@ -82,7 +82,7 @@ var LocalCommand = cli.Command{
 		}
 
 		// now run a fetch
-		listRes, err := cfApi.AdminListTargetGroupDeploymentsWithResponse(ctx)
+		listRes, err := cfApi.AdminListHandlersWithResponse(ctx)
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ var LambdaCommand = cli.Command{
 		}
 
 		// now run a fetch
-		listRes, err := cfApi.AdminListTargetGroupDeploymentsWithResponse(ctx)
+		listRes, err := cfApi.AdminListHandlersWithResponse(ctx)
 		if err != nil {
 			return err
 		}

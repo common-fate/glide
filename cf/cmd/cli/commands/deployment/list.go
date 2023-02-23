@@ -21,7 +21,7 @@ var ListCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		res, err := cfApi.AdminListTargetGroupDeploymentsWithResponse(ctx)
+		res, err := cfApi.AdminListHandlersWithResponse(ctx)
 		if err != nil {
 			return err
 		}
