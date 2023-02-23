@@ -94,9 +94,11 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
 }) => {
   const { formState, watch, clearErrors } =
     useFormContext<AccessRuleFormData>();
+
+  const argId = argument?.resourceName ? argument.resourceName : argument.id;
   const { data: argOptions } = useAdminListProviderArgOptions(
     providerId,
-    argument.id
+    argId
   );
   const multiSelectsError = formState.errors.target?.multiSelects;
 
@@ -241,7 +243,11 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
               clearErrors("target.multiSelects");
             }}
           />
-          <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
+          <RefreshButton
+            argId={argument?.resourceName ? argument.resourceName : argument.id}
+            providerId={providerId}
+            mx={20}
+          />
         </HStack>
 
         {!argument.groups && (

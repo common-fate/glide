@@ -1,7 +1,6 @@
 import { CloseIcon, SmallAddIcon } from "@chakra-ui/icons";
 import {
   Button,
-  Center,
   CircularProgress,
   Code,
   Container,
@@ -25,15 +24,16 @@ import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-location";
 import { Column } from "react-table";
-import { CFCode } from "../../../components/CodeInstruction";
 import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
+  adminDeleteProvidersetup,
   useAdminListProviders,
   useAdminListProvidersetups,
-  adminDeleteProvidersetup,
 } from "../../../utils/backend-client/admin/admin";
+
 import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
+import { ProvidersV2Tabs } from "../providersv2";
 
 const AdminProvidersTable = () => {
   const { data } = useAdminListProviders();
@@ -83,18 +83,22 @@ const Providers = () => {
             ))}
           </Stack>
         )}
-        <Button
-          my={5}
-          size="sm"
-          variant="ghost"
-          leftIcon={<SmallAddIcon />}
-          as={Link}
-          to="/admin/providers/setup"
-          id="new-provider-button"
-        >
-          New Access Provider
-        </Button>
+        <Flex justify="space-between" align="center">
+          <ProvidersV2Tabs />
+          <Button
+            my={5}
+            size="sm"
+            variant="ghost"
+            leftIcon={<SmallAddIcon />}
+            as={Link}
+            to="/admin/providers/setup"
+            id="new-provider-button"
+          >
+            New Access Provider
+          </Button>
+        </Flex>
         <AdminProvidersTable />
+
         <HStack mt={2} spacing={1} w="100%" justify={"center"}>
           <Text textStyle={"Body/ExtraSmall"}>
             View the full configuration of each access provider in your{" "}

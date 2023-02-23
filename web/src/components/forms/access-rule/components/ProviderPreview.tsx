@@ -35,7 +35,7 @@ export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
 }) => {
   const { data: providerArgs } = useAdminGetProviderArgs(provider.id ?? "");
 
-  if (!provider) return null;
+  if (!providerArgs) return null;
 
   return (
     <VStack w="100%" align="flex-start">
@@ -112,9 +112,10 @@ export const ProviderPreviewMultiSelect: React.FC<ProviderArgFieldProps> = ({
 }) => {
   const { formState, watch } = useFormContext<AccessRuleFormData>();
 
+  const argId = argument?.resourceName ? argument.resourceName : argument.id;
   const { data: argOptions } = useAdminListProviderArgOptions(
     providerId,
-    argument.id
+    argId
   );
   const multiSelectsError = formState.errors.target?.multiSelects;
 

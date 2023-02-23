@@ -7,10 +7,12 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
+import { grantInvokeCommunityProviders } from "../helpers/permissions";
 
 interface Props {
   dynamoTable: Table;
   accessHandler: AccessHandler;
+  shouldRunAsCron: boolean;
 }
 
 export class CacheSync extends Construct {
@@ -39,6 +41,7 @@ export class CacheSync extends Construct {
     //add event bridge trigger to lambda
     this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
       schedule: events.Schedule.cron({ minute: "0/5" }),
+      enabled: props.shouldRunAsCron,
     });
 
     // add the Lambda function as a target for the Event Rule
@@ -54,6 +57,8 @@ export class CacheSync extends Construct {
         actions: ["execute-api:Invoke"],
       })
     );
+    // allows to invoke the function from any account if they have the correct tag
+    grantInvokeCommunityProviders(this._lambda);
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;

@@ -304,7 +304,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		req = q.Result.Request
 	}
 
-	_, err = a.Granter.RevokeGrant(ctx, grantsvc.RevokeGrantOpts{Request: req, RevokerID: uid})
+	_, err = a.Workflow.Revoke(ctx, req, uid)
 	if err == grantsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return

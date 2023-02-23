@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/common-fate/common-fate/cmd/devcli/commands"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/cache"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/db"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/deployment"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/grants"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
+
+	"github.com/common-fate/common-fate/cmd/devcli/commands/healthcheck"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -25,7 +29,10 @@ func main() {
 			&db.DBCommand,
 			&events.EventsCommand,
 			&slack.SlackCommand,
-			&commands.CacheCommand,
+			&cache.CacheCommand,
+			&healthcheck.Command,
+			&deployment.Command,
+			&grants.Command,
 		},
 	}
 

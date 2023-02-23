@@ -16,6 +16,7 @@ import { EventHandler } from "./event-handler";
 import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
+import { HealthChecker } from "./healthchecker";
 
 interface Props {
   appName: string;
@@ -39,6 +40,7 @@ interface Props {
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
   kmsKey: cdk.aws_kms.Key;
+  shouldRunCronHealthCheckCacheSync: boolean;
 }
 
 export class AppBackend extends Construct {
@@ -50,7 +52,7 @@ export class AppBackend extends Construct {
   private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
-
+  private _healthChecker: HealthChecker;
   private _KMSkey: cdk.aws_kms.Key;
   private _webhook: apigateway.Resource;
   private _webhookLambda: lambda.Function;
@@ -190,6 +192,20 @@ export class AppBackend extends Construct {
       })
     );
 
+    this._lambda.addToRolePolicy(
+      new PolicyStatement({
+        actions: [
+          "states:StopExecution",
+          "states:StartExecution",
+          "states:DescribeExecution",
+          "states:GetExecutionHistory",
+          "states:StopExecution",
+        ],
+        // @TODO this should be specific to the v2 granter step function
+        resources: ["*"],
+      })
+    );
+
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 
@@ -304,6 +320,11 @@ export class AppBackend extends Construct {
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,
       accessHandler: props.accessHandler,
+      shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
+    });
+    this._healthChecker = new HealthChecker(this, "HealthCheck", {
+      dynamoTable: this._dynamoTable,
+      shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
     });
   }
 
@@ -373,6 +394,9 @@ export class AppBackend extends Construct {
   }
   getCacheSync(): CacheSync {
     return this._cacheSync;
+  }
+  getHealthChecker(): HealthChecker {
+    return this._healthChecker;
   }
 
   getKmsKeyArn(): string {

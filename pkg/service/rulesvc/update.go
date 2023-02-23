@@ -17,10 +17,17 @@ type UpdateOpts struct {
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
 	clk := s.Clock
-	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target)
+
+	var isTargetGroup bool
+	if in.Rule.Target.TargetGroupID != "" {
+		isTargetGroup = true
+	}
+
+	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target, isTargetGroup)
 	if err != nil {
 		return nil, err
 	}
+
 	// makes a copy of the existing version which will be mutated
 	newVersion := in.Rule
 

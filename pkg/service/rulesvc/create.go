@@ -2,6 +2,7 @@ package rulesvc
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -10,7 +11,9 @@ import (
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
 )
 
@@ -89,7 +92,67 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 	}
 	return nil
 }
-func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
+func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget, isTargetGroup bool) (rule.Target, error) {
+
+	if isTargetGroup {
+		targetgroup := rule.Target{
+			ProviderID:               in.ProviderId,
+			ProviderType:             "",
+			TargetGroupID:            in.ProviderId,
+			With:                     make(map[string]string),
+			WithSelectable:           make(map[string][]string),
+			WithArgumentGroupOptions: make(map[string]map[string][]string),
+		}
+
+		q := storage.GetTargetGroup{ID: in.ProviderId}
+		_, err := s.DB.Query(ctx, &q)
+		if err != nil && err != ddb.ErrNoItems {
+			return rule.Target{}, err
+		}
+
+		for argumentID, argument := range in.With.AdditionalProperties {
+			// check if the provided argId is a valid argument id in TargetGroup's schema.
+			arg, ok := q.Result.TargetSchema.Schema.Get(argumentID)
+			if !ok {
+				return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
+			}
+
+			if len(argument.Values) < 1 {
+				return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
+			}
+
+			if arg.ResourceName != nil {
+				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.ResourceName}
+				_, err := s.DB.Query(ctx, &qGetResourcesForTG)
+				if err != nil {
+					return rule.Target{}, err
+				}
+
+				// check if the provided value is a valid resource id in cached resources.
+				for _, providedValue := range argument.Values {
+					isValidArgValue := false
+					for _, cachedResource := range qGetResourcesForTG.Result {
+						if cachedResource.Resource.ID == providedValue {
+							isValidArgValue = true
+						}
+					}
+
+					if !isValidArgValue {
+						return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
+					}
+				}
+			}
+
+			if len(argument.Values) == 1 {
+				targetgroup.With[argumentID] = argument.Values[0]
+			} else {
+				targetgroup.WithSelectable[argumentID] = argument.Values
+			}
+		}
+
+		return targetgroup, nil
+	}
+
 	// After verifying the provider, we can save the provider type to the rule for convenience
 	provider, err := s.getProviderByID(ctx, in.ProviderId)
 	if err != nil {
@@ -143,7 +206,14 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
 
-	target, err := s.ProcessTarget(ctx, in.Target)
+	q := storage.GetTargetGroup{ID: in.Target.ProviderId}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return nil, err
+	}
+	isTargetGroup := err != ddb.ErrNoItems
+
+	target, err := s.ProcessTarget(ctx, in.Target, isTargetGroup)
 	if err != nil {
 		return nil, err
 	}
