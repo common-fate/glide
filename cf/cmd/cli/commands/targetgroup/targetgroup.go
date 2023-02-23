@@ -99,7 +99,7 @@ var LinkCommand = cli.Command{
 			return err
 		}
 		switch res.StatusCode() {
-		case http.StatusCreated:
+		case http.StatusOK:
 			clio.Successf("Successfully linked the handler '%s' with target group '%s' using kind: '%s'", c.String("handler"), c.String("target-group"), c.String("kind"))
 		case http.StatusUnauthorized:
 			return errors.New(res.JSON401.Error)

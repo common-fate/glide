@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -34,7 +35,7 @@ var BootstrapCommand = cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true, Usage: "publisher/name@version"},
 		&cli.StringFlag{Name: "bootstrap-bucket", Required: true, Aliases: []string{"bb"}, Usage: "The name of the bootstrap bucket to copy assets into", EnvVars: []string{"DEPLOYMENT_BUCKET"}},
-		&cli.StringFlag{Name: "registry-api-url", Required: true, Value: build.ProviderRegistryAPIURL, EnvVars: []string{"COMMONFATE_PROVIDER_REGISTRY_API_URL"}, Hidden: true},
+		&cli.StringFlag{Name: "registry-api-url", Value: build.ProviderRegistryAPIURL, EnvVars: []string{"COMMONFATE_PROVIDER_REGISTRY_API_URL"}, Hidden: true},
 	},
 
 	Action: func(c *cli.Context) error {
@@ -80,7 +81,7 @@ var BootstrapCommand = cli.Command{
 		}
 		client := s3.NewFromConfig(awsCfg)
 
-		clio.Infof("Copying the handler.zip into %s", c.String("id"), path.Join(bootstrapBucket, lambdaAssetPath, "handler.zip"))
+		clio.Infof("Copying the handler.zip into %s", path.Join(bootstrapBucket, lambdaAssetPath, "handler.zip"))
 		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(bootstrapBucket),
 			Key:        aws.String(path.Join(lambdaAssetPath, "handler.zip")),
@@ -89,9 +90,9 @@ var BootstrapCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Successf("Successfully copied the handler.zip into %s", c.String("id"), path.Join(bootstrapBucket, lambdaAssetPath, "handler.zip"))
+		clio.Successf("Successfully copied the handler.zip into %s", path.Join(bootstrapBucket, lambdaAssetPath, "handler.zip"))
 
-		clio.Infof("Copying the cloudformation template into %s", c.String("id"), path.Join(bootstrapBucket, lambdaAssetPath, "cloudformation.json"))
+		clio.Infof("Copying the cloudformation template into %s", path.Join(bootstrapBucket, lambdaAssetPath, "cloudformation.json"))
 		_, err = client.CopyObject(ctx, &s3.CopyObjectInput{
 			Bucket:     aws.String(bootstrapBucket),
 			Key:        aws.String(path.Join(lambdaAssetPath, "cloudformation.json")),
@@ -100,7 +101,11 @@ var BootstrapCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		clio.Successf("Successfully copied the cloudformation template into %s", c.String("id"), path.Join(bootstrapBucket, lambdaAssetPath, "cloudformation.json"))
+		clio.Successf("Successfully copied the cloudformation template into %s", path.Join(bootstrapBucket, lambdaAssetPath, "cloudformation.json"))
+		templateURL := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bootstrapBucket, awsCfg.Region, path.Join(lambdaAssetPath, "cloudformation.json"))
+		clio.Info("Use the following cloudformation template URL to deploy this handler")
+		clio.Info(templateURL)
+		// clio.Infof("aws cloudformation create-stack --stack-name=<handler id> --template-url=%s --capabilities=CAPABILITY_IAM", templateURL)
 		return nil
 	},
 }

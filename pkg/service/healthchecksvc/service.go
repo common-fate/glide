@@ -55,7 +55,7 @@ func (s *Service) Check(ctx context.Context) error {
 			continue
 		}
 		// now we can call the describe endpoint
-		_, err = runtime.Describe(ctx)
+		describeRes, err := runtime.Describe(ctx)
 		if err != nil {
 			h.Healthy = false
 			log.Warnf("Error running healthcheck for deployment: %s", h.ID)
@@ -66,51 +66,52 @@ func (s *Service) Check(ctx context.Context) error {
 			upsertItems = append(upsertItems, &h)
 			continue
 		}
+
+		/**
+		What we have here:
+		- healthy response that defaults to any error
+		- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
+
+		What we probably want:
+		- an improved deploymentItem.Diagnostics field that is a map data type??
+		- break this down in the future
+		*/
+
+		// if there is an unhealthy config validation, then the deployment is unhealthy
+		healthy := true
+		for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
+			for _, d := range diagnostic.Logs {
+				h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
+					Level:   string(d.Level),
+					Message: d.Msg,
+				})
+			}
+			if !diagnostic.Success {
+				healthy = false
+			}
+		}
+
+		h.ProviderDescription = describeRes
+		h.Healthy = healthy
+
+		// TODO replace this
+		// if h.TargetGroupAssignment != nil {
+		// 	//lookup target group
+		// 	targetGroup := storage.GetTargetGroup{ID: h.TargetGroupAssignment.TargetGroupID}
+
+		// 	_, err := s.DB.Query(ctx, &targetGroup)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+
+		// 	deploymentItem.TargetGroupAssignment.Valid = s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
+
+		// }
+
+		// update the deployment
+
+		upsertItems = append(upsertItems, &h)
 	}
-	/**
-	What we have here:
-	- healthy response that defaults to any error
-	- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
-
-	What we probably want:
-	- an improved deploymentItem.Diagnostics field that is a map data type??
-	- break this down in the future
-	*/
-
-	// if there is an unhealthy config validation, then the deployment is unhealthy
-	// healthy := true
-	// for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
-	// 	for _, d := range diagnostic.Logs {
-	// 		deploymentItem.Diagnostics = append(deploymentItem.Diagnostics, target.Diagnostic{
-	// 			Level:   string(d.Level),
-	// 			Message: d.Msg,
-	// 		})
-	// 	}
-	// 	if !diagnostic.Success {
-	// 		healthy = false
-	// 	}
-	// }
-
-	// deploymentItem.ProviderDescription = describeRes
-	// deploymentItem.Healthy = healthy
-
-	// if deploymentItem.TargetGroupAssignment != nil {
-	// 	//lookup target group
-	// 	targetGroup := storage.GetTargetGroup{ID: deploymentItem.TargetGroupAssignment.TargetGroupID}
-
-	// 	_, err := s.DB.Query(ctx, &targetGroup)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	deploymentItem.TargetGroupAssignment.Valid = s.validateProviderSchema(targetGroup.Result.TargetSchema.Schema.AdditionalProperties, describeRes.Schema.Target.AdditionalProperties["Default"].Schema.AdditionalProperties)
-
-	// }
-
-	// 	// update the deployment
-
-	// 	upsertItems = append(upsertItems, &deploymentItem)
-	// }
 
 	err = s.DB.PutBatch(ctx, upsertItems...)
 	if err != nil {
