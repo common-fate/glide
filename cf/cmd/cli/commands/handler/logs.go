@@ -1,4 +1,4 @@
-package deployment
+package handler
 
 import (
 	"github.com/TylerBrock/saw/blade"
@@ -13,8 +13,8 @@ import (
 
 var LogsCommand = cli.Command{
 	Name:        "logs",
-	Description: "View log groups for a deployment",
-	Usage:       "View log groups for a deployment",
+	Description: "View log groups for a handler",
+	Usage:       "View log groups for a handler",
 	Subcommands: []*cli.Command{
 		&WatchCommand,
 		&GetCommand,
@@ -23,7 +23,7 @@ var LogsCommand = cli.Command{
 
 var WatchCommand = cli.Command{
 	Name:        "watch",
-	Description: "Stream logs for a deployment",
+	Description: "Stream logs for a handler",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 	},
@@ -35,7 +35,7 @@ var WatchCommand = cli.Command{
 			return err
 		}
 
-		// logGroup for deployments uses the id of the deployment as its name
+		// logGroup for handlers uses the id of the handler as its name
 		// this is defined in the cloudformation template
 		logGroup := "/aws/lambda/" + c.String("id")
 		clio.Infof("Starting to watch logs for log group id: %s", logGroup)
@@ -61,7 +61,7 @@ func watchEvents(group string, region string, filter string) {
 
 var GetCommand = cli.Command{
 	Name:        "get",
-	Description: "Get logs for a deployment",
+	Description: "Get logs for a handler",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "start", Usage: "Start time", Value: "-5m", Required: false},
@@ -101,7 +101,7 @@ var GetCommand = cli.Command{
 		if hasLogs {
 			getEvents(GetEventsOpts{Group: logGroup, Start: start, End: end}, cfg.Region, c.String("filter"))
 		} else {
-			clio.Warnf("The deployment may not have been invoked yet. Log group id: %s", logGroup)
+			clio.Warnf("The handler may not have been invoked yet. Log group id: %s", logGroup)
 		}
 
 		return nil

@@ -1,4 +1,4 @@
-package deployment
+package handler
 
 import (
 	"errors"
@@ -9,9 +9,9 @@ import (
 )
 
 var Command = cli.Command{
-	Name:        "deployment",
-	Description: "Manage provider deployments",
-	Usage:       "Manage provider deployments",
+	Name:        "handler",
+	Description: "Manage handlers",
+	Usage:       "Manage handlers",
 	Subcommands: []*cli.Command{
 		&RegisterCommand,
 		&ValidateCommand,
@@ -37,8 +37,8 @@ go run cf/cmd/cli/main.go deployment register --runtime=aws-lambda --id=okta-1 -
 
 var RegisterCommand = cli.Command{
 	Name:        "register",
-	Description: "Register a provider deployment in Common Fate",
-	Usage:       "Register a provider deployment in Common Fate",
+	Description: "Register a handler in Common Fate",
+	Usage:       "Register a handler in Common Fate",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 		&cli.StringFlag{Name: "runtime", Required: true, Value: "aws-lambda"},
@@ -68,7 +68,7 @@ var RegisterCommand = cli.Command{
 
 		switch result.StatusCode() {
 		case 201:
-			clio.Successf("Successfully registered deployment '%s' with Common Fate", c.String("id"))
+			clio.Successf("Successfully registered handler '%s' with Common Fate", c.String("id"))
 			return nil
 		default:
 			return errors.New(string(result.Body))

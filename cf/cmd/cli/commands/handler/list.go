@@ -1,4 +1,4 @@
-package deployment
+package handler
 
 import (
 	"errors"
@@ -13,8 +13,8 @@ import (
 
 var ListCommand = cli.Command{
 	Name:        "list",
-	Description: "List deployments",
-	Usage:       "List deployments",
+	Description: "List handlers",
+	Usage:       "List handlers",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 		ctx := c.Context
 		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")

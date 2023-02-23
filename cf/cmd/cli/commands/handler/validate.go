@@ -1,4 +1,4 @@
-package deployment
+package handler
 
 import (
 	"errors"
@@ -13,8 +13,8 @@ import (
 
 var ValidateCommand = cli.Command{
 	Name:        "validate",
-	Description: "Validate a deployment by invoking the deployment directly",
-	Usage:       "Validate a deployment",
+	Description: "Validate a handler by invoking the handler directly",
+	Usage:       "Validate a handler",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true, Usage: "unique identifier for handler lambda invokation"},
 		&cli.StringFlag{Name: "aws-region", Required: true},

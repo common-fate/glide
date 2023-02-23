@@ -1,4 +1,4 @@
-package deployment
+package handler
 
 import (
 	"errors"
@@ -14,8 +14,8 @@ import (
 
 var DiagnosticCommand = cli.Command{
 	Name:        "diagnostic",
-	Description: "List diagnostic logs for a deployment",
-	Usage:       "List diagnostic logs for a deployment",
+	Description: "List diagnostic logs for a handler",
+	Usage:       "List diagnostic logs for a handler",
 	Flags: []cli.Flag{
 		&cli.StringFlag{Name: "id", Required: true},
 	},
