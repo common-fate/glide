@@ -2,13 +2,17 @@ package pdk
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+	"go.uber.org/zap"
 )
 
 type LambdaRuntime struct {
@@ -71,10 +75,22 @@ type LambdaResponse struct {
 }
 
 func (l *LambdaRuntime) Describe(ctx context.Context) (info *providerregistrysdk.DescribeResponse, err error) {
-	_, response, err := l.Invoke(ctx, NewProviderDescribeEvent())
+	lr, response, err := l.Invoke(ctx, NewProviderDescribeEvent())
 	if err != nil {
 		return nil, err
 	}
+	if lr.FunctionError != nil {
+		var logs string
+		if lr.LogResult != nil {
+			logbyte, err := base64.URLEncoding.DecodeString(*lr.LogResult)
+			if err != nil {
+				logger.Get(ctx).Errorw("error decoding lambda log", zap.Error(err))
+			}
+			logs = string(logbyte)
+		}
+		return nil, fmt.Errorf("lambda execution error: %s: %s", *lr.FunctionError, logs)
+	}
+
 	b, err := json.Marshal(response.Body)
 	if err != nil {
 		return nil, err
