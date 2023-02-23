@@ -17,13 +17,13 @@ import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 
 import {
+  Diagnostic,
+  TGHandler,
   TargetGroup,
-  TargetGroupDeployment,
-  TargetGroupDiagnostic,
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 import {
-  useAdminListTargetGroupDeployments,
+  useAdminListHandlers,
   useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
 
@@ -38,14 +38,14 @@ export const ProvidersV2Tabs = () => {
 };
 
 const AdminProvidersTable = () => {
-  const paginator = usePaginatorApi<typeof useAdminListTargetGroupDeployments>({
-    swrHook: useAdminListTargetGroupDeployments,
+  const paginator = usePaginatorApi<typeof useAdminListHandlers>({
+    swrHook: useAdminListHandlers,
     hookProps: {},
   });
 
   const clippy = useClipboard("");
 
-  const cols: Column<TargetGroupDeployment>[] = useMemo(
+  const cols: Column<TGHandler>[] = useMemo(
     () => [
       {
         accessor: "id",
@@ -84,7 +84,7 @@ const AdminProvidersTable = () => {
         Cell: ({ value }) => {
           // Strip out the code from the diagnostics, it's currently an empty field
           const strippedCode = JSON.stringify(
-            (value as Partial<TargetGroupDiagnostic>[]).map((v) => {
+            (value as Partial<Diagnostic>[]).map((v) => {
               delete v["code"];
               return v;
             })
@@ -121,7 +121,7 @@ const AdminProvidersTable = () => {
     []
   );
 
-  return TableRenderer<TargetGroupDeployment>({
+  return TableRenderer<TGHandler>({
     columns: cols,
     data: paginator?.data?.res,
     emptyText: "No providers have been set up yet.",
