@@ -21,13 +21,13 @@ func TestHealthCheckValidity(t *testing.T) {
 		{
 			name: "identical-valid",
 			schema1: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "abc",
 					ResourceName: aws.String("abc"),
 				},
 			},
 			schema2: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "abc",
 					ResourceName: aws.String("abc"),
 				},
@@ -37,13 +37,13 @@ func TestHealthCheckValidity(t *testing.T) {
 		{
 			name: "different-invalid",
 			schema1: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "123",
 					ResourceName: aws.String("123"),
 				},
 			},
 			schema2: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "abc",
 					ResourceName: aws.String("abc"),
 				},
@@ -53,13 +53,13 @@ func TestHealthCheckValidity(t *testing.T) {
 		{
 			name: "different-invalid",
 			schema1: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "123",
 					ResourceName: aws.String("123"),
 				},
 			},
 			schema2: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "abc",
 					ResourceName: aws.String("abc"),
 				},
@@ -69,13 +69,13 @@ func TestHealthCheckValidity(t *testing.T) {
 		{
 			name: "resource-name-nil-valid",
 			schema1: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "abc",
 					ResourceName: nil,
 				},
 			},
 			schema2: map[string]providerregistrysdk.TargetArgument{
-				"1": providerregistrysdk.TargetArgument{
+				"1": {
 					Id:           "abc",
 					ResourceName: nil,
 				},
