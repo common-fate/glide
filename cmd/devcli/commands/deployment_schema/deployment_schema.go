@@ -11,10 +11,11 @@ import (
 )
 
 // DeploymentSchemaCommand
-// to run in dev
+// to run in dev:
 // go run cmd/devcli/main.go deployment-schema
 var DeploymentSchemaCommand = cli.Command{
-	Name: "deployment-schema",
+	Name:  "deployment-schema",
+	Usage: "This command generates a json schema for the deployment.yml files. This schema will add intellisense to vscode when editing deployment.yml files.",
 	Action: cli.ActionFunc(func(c *cli.Context) error {
 
 		r := new(jsonschema.Reflector)
@@ -30,7 +31,10 @@ var DeploymentSchemaCommand = cli.Command{
 
 		// save this to local fs using os in file name ./vscode/schemas/commonfate-deployment-schema.json
 		// if it doesnt exist make it
-		os.MkdirAll("./.vscode/schemas", 0755)
+		err = os.MkdirAll("./.vscode/schemas", 0755)
+		if err != nil {
+			return err
+		}
 		err = os.WriteFile("./.vscode/schemas/commonfate-deployment-schema.json", marshalled, 0644)
 		if err != nil {
 			return err
