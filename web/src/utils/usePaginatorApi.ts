@@ -50,6 +50,10 @@ export const usePaginatorApi = <
 
   const [nextToken, setNextToken] = useState<string | undefined>();
 
+  /**
+   * tokenStack is used to keep track of the nextToken for each page,
+   * this is only received per response, so we must keep track of it on the client
+   */
   const [tokenStack, setTokenStack] = useState<(string | undefined)[]>([
     undefined,
   ]);
@@ -65,9 +69,14 @@ export const usePaginatorApi = <
   const [pageOptions, setPageOptions] = useState<number[]>([pageIndex]);
 
   useEffect(() => {
-    if (data?.next && pageOptions?.length === 1) {
-      setPageOptions((curr) => [...curr, pageIndex + 1]);
-      setTokenStack((curr) => [...curr, data.next]);
+    if (data?.next) {
+      if (!pageOptions.includes(pageIndex + 1)) {
+        setPageOptions((curr) => [...curr, pageIndex + 1]);
+      }
+      // if the nextToken is not present in the stack, add it
+      if (!tokenStack.includes(data.next)) {
+        setTokenStack((curr) => [...curr, data.next]);
+      }
     }
   }, [data, pageOptions, pageIndex]);
 
