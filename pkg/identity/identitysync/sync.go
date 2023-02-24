@@ -31,13 +31,15 @@ type IdentitySyncer struct {
 	// used to prevent concurrent calls to sync
 	// prevents unexpected duplication of users and groups when used asyncronously
 	syncMutex sync.Mutex
+	opts      SyncOpts
 }
 
 type SyncOpts struct {
-	TableName      string
-	IdpType        string
-	UserPoolId     string
-	IdentityConfig deploy.FeatureMap
+	TableName           string
+	IdpType             string
+	UserPoolId          string
+	IdentityConfig      deploy.FeatureMap
+	IdentityGroupFilter string
 }
 
 func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, error) {
@@ -83,6 +85,7 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		db:      db,
 		idp:     idp.IdentityProvider,
 		idpType: opts.IdpType,
+		opts:    opts,
 	}, nil
 }
 
@@ -159,11 +162,12 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 
 	*/
-	useIdpGroupsAsFilter := true
+	filter := s.opts.IdentityGroupFilter
+	useIdpGroupsAsFilter := filter != ""
 
 	if useIdpGroupsAsFilter {
 		// overwrite the existing groups with the filtered groups
-		idpGroups, err = FilterGroups(idpGroups, "admins|granted-admins")
+		idpGroups, err = FilterGroups(idpGroups, filter)
 		if err != nil {
 			return err
 		}
@@ -333,15 +337,6 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	}
 
 	for _, idpUser := range idpUserMap {
-
-		// If we are using the IDP groups as a filter, then we only want to add the groups that exist in the IDP
-		if useIdpGroupsAsFilter {
-			for _, g := range idpUser.Groups {
-				if _, ok := idpGroupMap[g]; !ok {
-					continue
-				}
-			}
-		}
 
 		// This map ensures we have a distinct list of ids
 		internalGroupIds := map[string]string{}
