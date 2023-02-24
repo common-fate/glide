@@ -182,6 +182,7 @@ type Parameters struct {
 	AnalyticsURL                    string         `yaml:"AnalyticsURL,omitempty" json:"AnalyticsURL,omitempty"`
 	AnalyticsLogLevel               string         `yaml:"AnalyticsLogLevel,omitempty" json:"AnalyticsLogLevel,omitempty"`
 	AnalyticsDeploymentStage        string         `yaml:"AnalyticsDeploymentStage,omitempty" json:"AnalyticsDeploymentStage,omitempty"`
+	EnableCronHealthCheckInDev      string         `yaml:"EnableCronHealthCheckInDev,omitempty" json:"EnableCronHealthCheckInDev,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns

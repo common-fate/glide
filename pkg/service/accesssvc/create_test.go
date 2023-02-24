@@ -36,7 +36,6 @@ func TestNewRequest(t *testing.T) {
 		withCreateGrantResponse      createGrantResponse
 		withGetGroupResponse         *storage.GetGroup
 		withRequestArgumentsResponse map[string]types.RequestArgument
-		wantValidationError          error
 		currentRequestsForGrant      []access.Request
 	}
 
@@ -237,30 +236,6 @@ func TestNewRequest(t *testing.T) {
 			withRequestArgumentsResponse: map[string]types.RequestArgument{},
 			currentRequestsForGrant:      []access.Request{},
 		},
-		{
-			name: "failed validation should not create request",
-			//just passing the group here, technically a user isnt an approver
-			in: CreateRequestsOpts{User: identity.User{ID: "a", Groups: []string{"a"}}},
-			rule: &rule.AccessRule{
-				Groups: []string{"a"},
-			},
-			want: nil,
-			withCreateGrantResponse: createGrantResponse{
-				request: &access.Request{
-					ID:             "-",
-					Status:         access.APPROVED,
-					CreatedAt:      clk.Now(),
-					UpdatedAt:      clk.Now(),
-					Grant:          &access.Grant{},
-					ApprovalMethod: &autoApproval,
-					SelectedWith:   make(map[string]access.Option),
-				},
-			},
-			wantValidationError:          fmt.Errorf("unexpected response while validating grant"),
-			wantErr:                      fmt.Errorf("1 error occurred:\n\t* unexpected response while validating grant\n\n"),
-			withRequestArgumentsResponse: map[string]types.RequestArgument{},
-			currentRequestsForGrant:      []access.Request{},
-		},
 	}
 
 	for _, tc := range testcases {
@@ -278,9 +253,10 @@ func TestNewRequest(t *testing.T) {
 			ep := accessMocks.NewMockEventPutter(ctrl2)
 			ep.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-			g := accessMocks.NewMockGranter(ctrl)
-			g.EXPECT().CreateGrant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
-			g.EXPECT().ValidateGrant(gomock.Any(), gomock.Any()).Return(tc.wantValidationError).AnyTimes()
+			workflowMock := accessMocks.NewMockWorkflow(ctrl)
+			if tc.withCreateGrantResponse.request != nil {
+				workflowMock.EXPECT().Grant(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request.Grant, tc.withCreateGrantResponse.err).AnyTimes()
+			}
 
 			ca := accessMocks.NewMockCacheService(ctrl)
 			ca.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil, nil, nil).AnyTimes()
@@ -291,10 +267,10 @@ func TestNewRequest(t *testing.T) {
 			s := Service{
 				Clock:       clk,
 				DB:          db,
-				Granter:     g,
 				EventPutter: ep,
 				Cache:       ca,
 				Rules:       rs,
+				Workflow:    workflowMock,
 			}
 			got, err := s.CreateRequests(context.Background(), tc.in)
 			var gotWithoutIDs []CreateRequestResult
