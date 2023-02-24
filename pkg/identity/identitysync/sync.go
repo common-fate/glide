@@ -222,6 +222,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	}
 	idpUserMap := make(map[string]identity.IDPUser)
 	for _, u := range idpUsers {
+
 		if useIdpGroupsAsFilter {
 			idpUserHasMatchingGroup := false
 			for _, g := range u.Groups {
@@ -301,10 +302,12 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	// archive deleted users
 	for k, u := range ddbUserMap {
 		if _, ok := idpUserMap[k]; !ok {
-
 			u.Status = types.IdpStatusARCHIVED
 			// Remove all group associations from archived users
 			u.Groups = []string{}
+			ddbUserMap[k] = u
+		} else {
+			u.Status = types.IdpStatusACTIVE
 			ddbUserMap[k] = u
 		}
 	}

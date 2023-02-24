@@ -456,6 +456,67 @@ func TestIdentitySyncProcessor(t *testing.T) {
 			},
 			useIdpGroupsAsFilter: true,
 		},
+		{
+			name: "user must be updated it ACTIVE if present in IDP, but archived internally",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "admins",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Status:    types.IdpStatusARCHIVED,
+				},
+			},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+			},
+			wantUserMap: map[string]identity.User{
+				"bob@mail.com": {
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+					},
+					Status: types.IdpStatusACTIVE,
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"admins": {
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users: []string{
+						"user1",
+					},
+				},
+			},
+			useIdpGroupsAsFilter: true,
+		},
 	}
 	for _, tc := range testcases {
 
