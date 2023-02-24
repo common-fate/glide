@@ -1135,6 +1135,195 @@ paths:
       description: Update a favorite with new FavoriteDetails
       requestBody:
         $ref: "#/components/requestBodies/CreateFavoriteRequest"
+  "/api/v1/admin/handlers/{id}":
+    get:
+      summary: Get handler
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TGHandler"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-get-handler
+      tags:
+        - Admin
+      description: ""
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+  /api/v1/admin/handlers:
+    get:
+      summary: Get handlers
+      responses:
+        "200":
+          $ref: "#/components/responses/ListHandlersResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-list-handlers
+      description: ""
+      tags:
+        - Admin
+    post:
+      summary: Register a handler
+      operationId: admin-register-handler
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TGHandler"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/RegisterHandlerRequest"
+      tags:
+        - Admin
+      description: ""
+    parameters: []
+  "/api/v1/admin/target-groups/{id}":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: Get target group (detailed)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetGroup"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-get-target-group
+      tags:
+        - Admin
+  /api/v1/admin/target-groups:
+    get:
+      summary: Get target groups
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-list-target-groups
+      tags:
+        - Admin
+    post:
+      summary: Create target group
+      operationId: admin-create-target-group
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetGroup"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/CreateTargetGroupRequest"
+      tags:
+        - Admin
+    parameters: []
+  "/api/v1/admin/target-groups/{id}/link":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        description: Target group ID
+        in: path
+        required: true
+    post:
+      summary: Link a target group deployment to its target group
+      operationId: admin-create-target-group-link
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TargetRoute"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/CreateTargetGroupLink"
+      tags:
+        - Admin
+  "/api/v1/admin/target-groups/{id}/unlink":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        description: Target group ID
+        in: path
+        required: true
+    post:
+      summary: Unlink a target group deployment from its target group
+      operationId: admin-remove-target-group-link
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: deploymentId
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: kind
+          required: true
+      description: ""
+      tags:
+        - Admin
 components:
   schemas:
     User:
@@ -1427,6 +1616,8 @@ components:
           type: object
           additionalProperties:
             $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
+        targetGroup:
+          $ref: "#/components/schemas/TargetGroup"
       required:
         - provider
         - with
@@ -1692,6 +1883,63 @@ components:
           format: time
       required:
         - durationSeconds
+    TargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: tk7obmea4shbx
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/TargetArgument"
+    TargetArgument:
+      title: TargetArgument
+      x-stoplight:
+        id: 1b080aa3276c2
+      type: object
+      description: "Define the metadata, data type and UI elements for the argument"
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        ruleFormElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: "Optional form element for the request form, if not provided, defaults to multiselect"
+        groups:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/TargetArgumentGroup"
+      required:
+        - id
+        - title
+        - ruleFormElement
+        - requestFormElement
+        - groups
+    TargetArgumentGroup:
+      title: TargetArgumentGroup
+      x-stoplight:
+        id: b65de9db1722a
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - title
+      description: An argument group
     ApprovalMethod:
       type: string
       description: "Describes whether a request has been approved automatically or from a review "
@@ -2074,6 +2322,120 @@ components:
         - with
         - timing
       description: "Detailed object for a Favorite. "
+    TGHandler:
+      title: TGHandler
+      x-stoplight:
+        id: dfd783fec606a
+      type: object
+      x-tags:
+        - Target Groups
+      properties:
+        id:
+          type: string
+        runtime:
+          type: string
+        functionArn:
+          type: string
+        awsAccount:
+          type: string
+        awsRegion:
+          type: string
+        healthy:
+          type: boolean
+        diagnostics:
+          type: array
+          items:
+            $ref: "#/components/schemas/Diagnostic"
+      required:
+        - id
+        - runtime
+        - functionArn
+        - awsAccount
+        - awsRegion
+        - healthy
+        - diagnostics
+      description: |-
+        Handler represents a deployment of a provider. 
+        Handlers can be linked to target groups via routes
+    TargetGroup:
+      title: TargetGroup
+      x-stoplight:
+        id: wcyzfn1kp9xkx
+      type: object
+      properties:
+        id:
+          type: string
+        targetSchema:
+          $ref: "#/components/schemas/TargetGroupTargetSchema"
+        icon:
+          type: string
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        updatedAt:
+          type: string
+          x-go-type: time.Time
+          format: time
+      required:
+        - id
+        - targetSchema
+        - icon
+    TargetRoute:
+      type: object
+      x-stoplight:
+        id: a3339ab311211
+      title: TargetRoute
+      properties:
+        targetGroupId:
+          type: string
+        handlerId:
+          type: string
+        kind:
+          type: string
+        priority:
+          type: integer
+        valid:
+          type: boolean
+        diagnostics:
+          type: array
+          items:
+            $ref: "#/components/schemas/Diagnostic"
+      required:
+        - targetGroupId
+        - handlerId
+        - kind
+        - priority
+        - valid
+        - diagnostics
+    TargetGroupTargetSchema:
+      title: TargetSchema
+      x-stoplight:
+        id: 6192c449ffbe9
+      type: object
+      properties:
+        From:
+          type: string
+        Schema:
+          $ref: "#/components/schemas/TargetSchema"
+      required:
+        - From
+        - Schema
+    Diagnostic:
+      title: Diagnostic
+      x-stoplight:
+        id: fb62cbb9bc444
+      type: object
+      properties:
+        level:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - level
+        - code
+        - message
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2318,6 +2680,37 @@ components:
                 type: string
             required:
               - hasToken
+    ListTargetGroupResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              targetGroups:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetGroup"
+              next:
+                type: string
+            required:
+              - targetGroups
+    ListHandlersResponse:
+      description: Response obj for ListTargetGroupDeploymentAPIResponse
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              res:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TGHandler"
+              next:
+                type: string
+            required:
+              - res
+              - next
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2509,6 +2902,63 @@ components:
               - accessRuleId
               - timing
               - name
+    CreateTargetGroupRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              targetSchema:
+                type: string
+              ID:
+                type: string
+            required:
+              - targetSchema
+              - ID
+    RegisterHandlerRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: "The ID of the target group to deploy to. User, provided"
+              runtime:
+                type: string
+                default: aws-lambda
+              awsAccount:
+                type: string
+                pattern: "^[0-9]{12}"
+              awsRegion:
+                type: string
+                pattern: ^(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d$
+                minLength: 9
+                example: us-east-1
+            required:
+              - id
+              - runtime
+              - awsAccount
+              - awsRegion
+    CreateTargetGroupLink:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deploymentId:
+                type: string
+              priority:
+                type: integer
+                maximum: 999
+                minimum: 0
+              kind:
+                type: string
+            required:
+              - deploymentId
+              - priority
+              - kind
 tags:
   - name: End User
   - name: Admin
+  - name: Target Groups

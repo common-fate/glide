@@ -25,7 +25,10 @@ type Config struct {
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
 	// a regex string that is used to filter the identity groups that are returned from the IDP
-	IdentityGroupFilter string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
+	IdentityGroupFilter    string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
+	NoAuthEmail            string `env:"NO_AUTH_EMAIL"`
+	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
+	StateMachineARN        string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type NotificationsConfig struct {
@@ -60,6 +63,11 @@ type CacheSyncConfig struct {
 	Region           string `env:"AWS_REGION,required"`
 	AccessHandlerURL string `env:"COMMONFATE_ACCESS_HANDLER_URL,default=http://0.0.0.0:9092"`
 }
+type HealthCheckerConfig struct {
+	TableName string `env:"COMMONFATE_TABLE_NAME,required"`
+	LogLevel  string `env:"LOG_LEVEL,default=info"`
+	Region    string `env:"AWS_REGION,required"`
+}
 
 type FrontendDeployerConfig struct {
 	LogLevel                             string `env:"LOG_LEVEL,default=info"`
@@ -74,4 +82,20 @@ type FrontendDeployerConfig struct {
 	CloudFrontDistributionID             string `env:"COMMONFATE_CLOUDFRONT_DISTRIBUTION_ID,required"`
 	APIURL                               string `env:"COMMONFATE_API_URL,required"`
 	CLIAppClientID                       string `env:"COMMONFATE_CLI_CLIENT_ID,required"`
+}
+
+type ProviderDeploymentCLI struct {
+	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
+	LogLevel               string `env:"COMMONFATE_LOG_LEVEL,default=info"`
+	Host                   string `env:"COMMONFATE_CLI_HOST,default=0.0.0.0:9000"`
+	LocalFrontendURL       string `env:"COMMONFATE_CLI_LOCAL_FRONTEND_URL,default=http://localhost:9000"`
+	Debug                  bool   `env:"COMMONFATE_CLI_DEBUG"`
+	CommonFateAPIURL       string `env:"COMMONFATE_HOST,default=http://0.0.0.0:8080"`
+}
+
+type TargetGroupGranterConfig struct {
+	LogLevel       string `env:"LOG_LEVEL,default=info"`
+	EventBusArn    string `env:"COMMONFATE_EVENT_BUS_ARN"`
+	EventBusSource string `env:"COMMONFATE_EVENT_BUS_SOURCE"`
+	DynamoTable    string `env:"COMMONFATE_TABLE_NAME,required"`
 }

@@ -7,10 +7,11 @@ import (
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/storage"
-
 	"github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
+	accessMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
 	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -37,12 +38,15 @@ func TestAddReview(t *testing.T) {
 		Duration:  time.Minute,
 		StartTime: &now,
 	}
+	reviewed := types.REVIEWED
 	requestWithOverride := access.Request{
 		Status:         access.APPROVED,
 		Grant:          &access.Grant{},
 		OverrideTiming: overrideTiming,
 		UpdatedAt:      clk.Now(),
+		ApprovalMethod: &reviewed,
 	}
+
 	testcases := []testcase{
 		{
 			name: "ok",
@@ -82,9 +86,10 @@ func TestAddReview(t *testing.T) {
 			},
 			want: &AddReviewResult{
 				Request: access.Request{
-					Status:    access.APPROVED, // request should be approved
-					UpdatedAt: clk.Now(),
-					Grant:     &access.Grant{},
+					Status:         access.APPROVED, // request should be approved
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{},
+					ApprovalMethod: &reviewed,
 				},
 			},
 		},
@@ -188,10 +193,11 @@ func TestAddReview(t *testing.T) {
 			},
 			want: &AddReviewResult{
 				Request: access.Request{
-					Status:      access.APPROVED, // request should be approved
-					RequestedBy: "b",
-					UpdatedAt:   clk.Now(),
-					Grant:       &access.Grant{},
+					Status:         access.APPROVED, // request should be approved
+					RequestedBy:    "b",
+					UpdatedAt:      clk.Now(),
+					Grant:          &access.Grant{},
+					ApprovalMethod: &reviewed,
 				},
 			},
 		},
@@ -201,8 +207,10 @@ func TestAddReview(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			g := mocks.NewMockGranter(ctrl)
-			g.EXPECT().CreateGrant(gomock.Any(), gomock.Eq(tc.wantCreateGrantOpts)).Return(tc.withCreateGrantResponse.request, tc.withCreateGrantResponse.err).AnyTimes()
+			workflowMock := accessMocks.NewMockWorkflow(ctrl)
+			if tc.wantErr == nil {
+				workflowMock.EXPECT().Grant(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponse.request.Grant, tc.withCreateGrantResponse.err).AnyTimes()
+			}
 
 			ctrl2 := gomock.NewController(t)
 			ep := mocks.NewMockEventPutter(ctrl2)
@@ -217,8 +225,8 @@ func TestAddReview(t *testing.T) {
 			s := Service{
 				Clock:       clk,
 				DB:          c,
-				Granter:     g,
 				EventPutter: ep,
+				Workflow:    workflowMock,
 			}
 			got, err := s.AddReviewAndGrantAccess(context.Background(), tc.give)
 			if tc.wantErr == nil {

@@ -36,7 +36,16 @@ import type {
   ProviderSetupInstructions,
   CompleteProviderSetupResponseResponse,
   ProviderSetupStepCompleteRequestBody,
-  IdentityConfigurationResponseResponse
+  IdentityConfigurationResponseResponse,
+  TGHandler,
+  ListHandlersResponseResponse,
+  RegisterHandlerRequestBody,
+  TargetGroup,
+  ListTargetGroupResponseResponse,
+  CreateTargetGroupRequestBody,
+  TargetRoute,
+  CreateTargetGroupLinkBody,
+  AdminRemoveTargetGroupLinkParams
 } from '.././types'
 import type {
   ArgSchema,
@@ -955,4 +964,217 @@ export const useAdminGetIdentityConfiguration = <TError = ErrorType<ErrorRespons
     ...query
   }
 }
+
+/**
+ * @summary Get handler
+ */
+export const adminGetHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<TGHandler>(
+      {url: `/api/v1/admin/handlers/${id}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetHandlerKey = (id: string,) => [`/api/v1/admin/handlers/${id}`];
+
+    
+export type AdminGetHandlerQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetHandler>>>
+export type AdminGetHandlerQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminGetHandler = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetHandler>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetHandlerKey(id) : null);
+  const swrFn = () => adminGetHandler(id, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Get handlers
+ */
+export const adminListHandlers = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListHandlersResponseResponse>(
+      {url: `/api/v1/admin/handlers`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminListHandlersKey = () => [`/api/v1/admin/handlers`];
+
+    
+export type AdminListHandlersQueryResult = NonNullable<Awaited<ReturnType<typeof adminListHandlers>>>
+export type AdminListHandlersQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminListHandlers = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListHandlers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListHandlersKey() : null);
+  const swrFn = () => adminListHandlers(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Register a handler
+ */
+export const adminRegisterHandler = (
+    registerHandlerRequestBody: RegisterHandlerRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<TGHandler>(
+      {url: `/api/v1/admin/handlers`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: registerHandlerRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Get target group (detailed)
+ */
+export const adminGetTargetGroup = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<TargetGroup>(
+      {url: `/api/v1/admin/target-groups/${id}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetTargetGroupKey = (id: string,) => [`/api/v1/admin/target-groups/${id}`];
+
+    
+export type AdminGetTargetGroupQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetTargetGroup>>>
+export type AdminGetTargetGroupQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminGetTargetGroup = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetTargetGroup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetTargetGroupKey(id) : null);
+  const swrFn = () => adminGetTargetGroup(id, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Get target groups
+ */
+export const adminListTargetGroups = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListTargetGroupResponseResponse>(
+      {url: `/api/v1/admin/target-groups`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminListTargetGroupsKey = () => [`/api/v1/admin/target-groups`];
+
+    
+export type AdminListTargetGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListTargetGroups>>>
+export type AdminListTargetGroupsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminListTargetGroups = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetGroups>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListTargetGroupsKey() : null);
+  const swrFn = () => adminListTargetGroups(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * @summary Create target group
+ */
+export const adminCreateTargetGroup = (
+    createTargetGroupRequestBody: CreateTargetGroupRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<TargetGroup>(
+      {url: `/api/v1/admin/target-groups`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Link a target group deployment to its target group
+ */
+export const adminCreateTargetGroupLink = (
+    id: string,
+    createTargetGroupLinkBody: CreateTargetGroupLinkBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<TargetRoute>(
+      {url: `/api/v1/admin/target-groups/${id}/link`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createTargetGroupLinkBody
+    },
+      options);
+    }
+  
+
+/**
+ * @summary Unlink a target group deployment from its target group
+ */
+export const adminRemoveTargetGroupLink = (
+    id: string,
+    params: AdminRemoveTargetGroupLinkParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/target-groups/${id}/unlink`, method: 'post',
+        params
+    },
+      options);
+    }
+  
 

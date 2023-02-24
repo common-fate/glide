@@ -51,6 +51,9 @@ type Output struct {
 	CacheSyncFunctionName         string `json:"CacheSyncFunctionName"`
 	CLIAppClientID                string `json:"CLIAppClientID"`
 	IdentityGroupFilter           string `json:"IdentityGroupFilter"`
+	HealthcheckFunctionName       string `json:"HealthcheckFunctionName"`
+	HealthcheckLogGroupName       string `json:"HealthcheckLogGroupName"`
+	GranterV2StateMachineArn      string `json:"GranterV2StateMachineArn"`
 }
 
 func (c Output) FrontendURL() string {

@@ -17,6 +17,7 @@ import {
 } from "./helpers/registry";
 import { Database } from "./constructs/database";
 import { Governance } from "./constructs/governance";
+import { TargetGroupGranter } from "./constructs/targetgroup-granter";
 
 interface Props extends cdk.StackProps {
   productionReleasesBucket: string;
@@ -254,8 +255,17 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsLogLevel: analyticsLogLevel.valueAsString,
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
       kmsKey: kmsKey,
+      shouldRunCronHealthCheckCacheSync: true,
     });
-
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+        dynamoTable: appBackend.getDynamoTable(),
+      }
+    );
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
       apiUrl: appBackend.getRestApiURL(),
       cloudfrontDistributionId: appFrontend.getDistributionId(),
@@ -308,6 +318,9 @@ export class CommonFateStackProd extends cdk.Stack {
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
+      HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
+      HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
+      GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
     });
   }
 }

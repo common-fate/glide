@@ -13,6 +13,7 @@ import { DevEnvironmentConfig } from "./helpers/dev-accounts";
 import { generateOutputs } from "./helpers/outputs";
 import { IdentityProviderTypes } from "./helpers/registry";
 import { Governance } from "./constructs/governance";
+import { TargetGroupGranter } from "./constructs/targetgroup-granter";
 
 interface Props extends cdk.StackProps {
   stage: string;
@@ -33,6 +34,7 @@ interface Props extends cdk.StackProps {
   analyticsUrl: string;
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
+  shouldRunCronHealthCheckCacheSync: boolean;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -136,7 +138,19 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsLogLevel,
       analyticsDeploymentStage,
       kmsKey: kmsKey,
+      shouldRunCronHealthCheckCacheSync:
+        props.shouldRunCronHealthCheckCacheSync || false,
     });
+
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+        dynamoTable: appBackend.getDynamoTable(),
+      }
+    );
     /* Outputs */
     generateOutputs(this, {
       CognitoClientID: userPool.getUserPoolClientId(),
@@ -175,6 +189,9 @@ export class CommonFateStackDev extends cdk.Stack {
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
       CacheSyncFunctionName: appBackend.getCacheSync().getFunctionName(),
       CLIAppClientID: userPool.getCLIAppClient().userPoolClientId,
+      HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
+      HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
+      GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
     });
   }
 }
