@@ -159,7 +159,15 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 
 	*/
-	useIdpGroupsAsFilter := false
+	useIdpGroupsAsFilter := true
+
+	if useIdpGroupsAsFilter {
+		// overwrite the existing groups with the filtered groups
+		idpGroups, err = FilterGroups(idpGroups, "admins|granted-admins")
+		if err != nil {
+			return err
+		}
+	}
 
 	log.Infow("fetched users and groups from IDP", "users.count", len(idpUsers), "groups.count", len(idpGroups))
 
