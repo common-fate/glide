@@ -4,6 +4,7 @@ package localauth
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -53,6 +54,7 @@ func (a *Authenticator) Authenticate(r *http.Request) (*auth.Claims, error) {
 		return nil, errors.New("multiple values for authorization header")
 	}
 	token := t[0]
+	token = strings.TrimPrefix(token, "Bearer ")
 
 	parsed, err := jwt.Parse(
 		[]byte(token),
