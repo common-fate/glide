@@ -281,3 +281,65 @@ func TestGetHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteHandler(t *testing.T) {
+
+	type testcase struct {
+		name                          string
+		mockGetTargetGroupDepResponse handler.Handler
+		mockGetTargetGroupDepErr      error
+		want                          string
+		wantCode                      int
+	}
+
+	testcases := []testcase{
+		{
+			name:                          "ok",
+			wantCode:                      http.StatusNoContent,
+			mockGetTargetGroupDepResponse: handler.Handler{ID: "123"},
+			want:                          ``,
+		},
+		{
+			name:                     "deployment not found",
+			wantCode:                 http.StatusNotFound,
+			mockGetTargetGroupDepErr: ddb.ErrNoItems,
+			want:                     `{"error":"item query returned no items"}`,
+		},
+		{
+			name:                     "internal error",
+			wantCode:                 http.StatusInternalServerError,
+			mockGetTargetGroupDepErr: errors.New("internal error"),
+			want:                     `{"error":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDepResponse}, tc.mockGetTargetGroupDepErr)
+
+			a := API{DB: db}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("DELETE", "/api/v1/admin/handlers/123", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}

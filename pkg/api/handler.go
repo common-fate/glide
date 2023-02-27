@@ -90,5 +90,5 @@ func (a *API) AdminDeleteHandler(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	apio.JSON(ctx, w, nil, http.StatusNoContent)
 }
