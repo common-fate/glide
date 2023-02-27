@@ -50,7 +50,7 @@ type Output struct {
 	IDPSyncExecutionRoleARN       string `json:"IDPSyncExecutionRoleARN"`
 	CacheSyncFunctionName         string `json:"CacheSyncFunctionName"`
 	CLIAppClientID                string `json:"CLIAppClientID"`
-	IdentityGroupFilter           string `json:"IdentityGroupFilter"`
+	IdentityGroupNameFilter       string `json:"IdentityGroupNameFilter"`
 	HealthcheckFunctionName       string `json:"HealthcheckFunctionName"`
 	HealthcheckLogGroupName       string `json:"HealthcheckLogGroupName"`
 	GranterV2StateMachineArn      string `json:"GranterV2StateMachineArn"`
