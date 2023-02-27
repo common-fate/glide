@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/api"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/config"
@@ -88,7 +89,7 @@ func buildHandler() (*Lambda, error) {
 	if err != nil {
 		return nil, err
 	}
-	registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+	registryClient, err := providerregistrysdk.NewClientWithResponses(build.ProviderRegistryAPIURL)
 	if err != nil {
 		return nil, err
 	}

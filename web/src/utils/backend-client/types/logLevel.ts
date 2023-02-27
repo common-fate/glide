@@ -6,9 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-/**
- * The log level.
- */
 export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
 
 

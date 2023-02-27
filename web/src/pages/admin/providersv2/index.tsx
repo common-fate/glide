@@ -31,7 +31,7 @@ import {
 export const ProvidersV2Tabs = () => {
   return (
     <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
-      <TabsStyledButton href="/admin/providers">Legacy</TabsStyledButton>
+      <TabsStyledButton href="/admin/providers">V1</TabsStyledButton>
       <TabsStyledButton href="/admin/providersv2">V2</TabsStyledButton>
     </ButtonGroup>
   );
@@ -124,7 +124,7 @@ const AdminProvidersTable = () => {
   return TableRenderer<TGHandler>({
     columns: cols,
     data: paginator?.data?.res,
-    emptyText: "No providers have been set up yet.",
+    emptyText: "No Handlers have been set up yet.",
     linkTo: false,
     apiPaginator: paginator,
   });
@@ -149,8 +149,8 @@ const AdminTargetGroupsTable = () => {
 
   return TableRenderer<TargetGroup>({
     columns: cols,
-    data: data?.targetGroups,
-    emptyText: "No providers have been set up yet.",
+    data: [],
+    emptyText: "No Target Groups have been set up yet.",
     linkTo: false,
   });
 };
@@ -168,11 +168,12 @@ const Providers = () => {
         overflowX="auto"
       >
         {/* spacer of 32px to acccount for un-needed UI/CLS */}
-        <div style={{ height: "32px" }} />
-        <ProvidersV2Tabs />
+        <Flex justify="space-between" align="center">
+          <ProvidersV2Tabs />
+        </Flex>
 
         <Container
-          my={12}
+          pb={9}
           // This prevents unbounded widths for small screen widths
           minW={{ base: "100%", xl: "container.xl" }}
           overflowX="auto"
@@ -180,21 +181,14 @@ const Providers = () => {
           Target Groups
           <AdminTargetGroupsTable />
         </Container>
-        {/* <HStack mt={2} spacing={1} w="100%" justify={"center"}>
-          <Text textStyle={"Body/ExtraSmall"}>
-            View the full configuration of each access provider in your{" "}
-          </Text>
-          <Code fontSize={"12px"}>deployment.yml</Code>
-          <Text textStyle={"Body/ExtraSmall"}>file.</Text>
-        </HStack> */}
 
         <Container
-          my={12}
+          pb={9}
           // This prevents unbounded widths for small screen widths
           minW={{ base: "100%", xl: "container.xl" }}
           overflowX="auto"
         >
-          Target Group Deployments
+          Handlers
           <AdminProvidersTable />
         </Container>
       </Container>

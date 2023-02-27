@@ -17,6 +17,7 @@ import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { HealthChecker } from "./healthchecker";
+import { TargetGroupGranter } from "./targetgroup-granter";
 
 interface Props {
   appName: string;
@@ -41,6 +42,7 @@ interface Props {
   apiGatewayWafAclArn: string;
   kmsKey: cdk.aws_kms.Key;
   shouldRunCronHealthCheckCacheSync: boolean;
+  targetGroupGranter: TargetGroupGranter;
 }
 
 export class AppBackend extends Construct {
@@ -124,6 +126,8 @@ export class AppBackend extends Construct {
         COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
           props.accessHandler.getAccessHandlerExecutionRoleArn(),
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
+        COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN:
+          props.targetGroupGranter.getStateMachineARN(),
         COMMONFATE_ACCESS_REMOTE_CONFIG_URL: props.remoteConfigUrl,
         COMMONFATE_REMOTE_CONFIG_HEADERS: props.remoteConfigHeaders,
         CF_ANALYTICS_DISABLED: props.analyticsDisabled,

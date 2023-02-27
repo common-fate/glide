@@ -21,9 +21,9 @@ type Handler struct {
 	ProviderDescription *providerregistrysdk.DescribeResponse `json:"providerDescription" dynamodbav:"providerDescription"`
 }
 type Diagnostic struct {
-	Level   string `json:"level" dynamodbav:"level"`
-	Code    string `json:"code" dynamodbav:"code"`
-	Message string `json:"message" dynamodbav:"message"`
+	Level   types.LogLevel `json:"level" dynamodbav:"level"`
+	Code    string         `json:"code" dynamodbav:"code"`
+	Message string         `json:"message" dynamodbav:"message"`
 }
 
 func (h *Handler) FunctionARN() string {
