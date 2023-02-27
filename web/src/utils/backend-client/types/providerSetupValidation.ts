@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { ProviderSetupValidationStatus } from './providerSetupValidationStatus';
-import type { ProviderSetupDiagnosticLog } from './providerSetupDiagnosticLog';
+import type { Diagnostic } from './diagnostic';
 
 /**
  * A validation against the configuration values of the Access Provider.
@@ -18,5 +18,5 @@ export interface ProviderSetupValidation {
   status: ProviderSetupValidationStatus;
   /** The particular config fields validated, if any. */
   fieldsValidated: unknown[];
-  logs?: ProviderSetupDiagnosticLog[];
+  logs?: Diagnostic[];
 }
