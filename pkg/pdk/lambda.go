@@ -2,13 +2,17 @@ package pdk
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	lambdatypes "github.com/aws/aws-sdk-go-v2/service/lambda/types"
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+	"go.uber.org/zap"
 )
 
 type LambdaRuntime struct {
@@ -25,10 +29,10 @@ func NewLambdaRuntime(ctx context.Context, functionARN string) (*LambdaRuntime, 
 	return &LambdaRuntime{FunctionARN: functionARN, lambdaClient: lambdaClient}, nil
 }
 
-func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.InvokeOutput, *LambdaResponse, error) {
+func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*LambdaResponse, error) {
 	payloadbytes, err := payload.Marshal()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	res, err := l.lambdaClient.Invoke(ctx, &lambda.InvokeInput{
 		FunctionName:   aws.String(l.FunctionARN),
@@ -37,20 +41,30 @@ func (l LambdaRuntime) Invoke(ctx context.Context, payload payload) (*lambda.Inv
 		LogType:        lambdatypes.LogTypeTail,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-
+	if res.FunctionError != nil {
+		var logs string
+		if res.LogResult != nil {
+			logbyte, err := base64.URLEncoding.DecodeString(*res.LogResult)
+			if err != nil {
+				logger.Get(ctx).Errorw("error decoding lambda log", zap.Error(err))
+			}
+			logs = string(logbyte)
+		}
+		return nil, fmt.Errorf("lambda execution error: %s: %s", *res.FunctionError, logs)
+	}
 	var lr LambdaResponse
 	err = json.Unmarshal(res.Payload, &lr)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return res, &lr, nil
+	return &lr, nil
 }
 
 func (l *LambdaRuntime) FetchResources(ctx context.Context, name string, contx interface{}) (resources LoadResourceResponse, err error) {
-	_, response, err := l.Invoke(ctx, NewLoadResourcesEvent(name, contx))
+	response, err := l.Invoke(ctx, NewLoadResourcesEvent(name, contx))
 	if err != nil {
 		return LoadResourceResponse{}, err
 	}
@@ -71,10 +85,11 @@ type LambdaResponse struct {
 }
 
 func (l *LambdaRuntime) Describe(ctx context.Context) (info *providerregistrysdk.DescribeResponse, err error) {
-	_, response, err := l.Invoke(ctx, NewProviderDescribeEvent())
+	response, err := l.Invoke(ctx, NewProviderDescribeEvent())
 	if err != nil {
 		return nil, err
 	}
+
 	b, err := json.Marshal(response.Body)
 	if err != nil {
 		return nil, err
@@ -87,10 +102,11 @@ func (l *LambdaRuntime) Describe(ctx context.Context) (info *providerregistrysdk
 	return
 }
 func (l *LambdaRuntime) Grant(ctx context.Context, subject string, target Target) (err error) {
-	_, _, err = l.Invoke(ctx, NewGrantEvent(subject, target))
+	_, err = l.Invoke(ctx, NewGrantEvent(subject, target))
 	return err
 }
+
 func (l *LambdaRuntime) Revoke(ctx context.Context, subject string, target Target) (err error) {
-	_, _, err = l.Invoke(ctx, NewRevokeEvent(subject, target))
+	_, err = l.Invoke(ctx, NewRevokeEvent(subject, target))
 	return err
 }
