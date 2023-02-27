@@ -32,7 +32,6 @@ func (a *API) AdminListUsers(w http.ResponseWriter, r *http.Request, params type
 		return
 	}
 
-	// for some reason, jack@commonfate.io isn't bein return here :(((
 	res := types.ListUserResponse{
 		Users: make([]types.User, len(q.Result)),
 	}
