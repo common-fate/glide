@@ -95,7 +95,7 @@ func (s *Service) Check(ctx context.Context) error {
 			h.Healthy = false
 			log.Warnf("Error getting lambda runtime: %s", h.ID)
 			h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
-				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
+				Level:   types.LogLevelERROR,
 				Message: err.Error(),
 			})
 			upsertItems = append(upsertItems, &h)
@@ -107,7 +107,7 @@ func (s *Service) Check(ctx context.Context) error {
 			h.Healthy = false
 			log.Warnf("Error running healthcheck for deployment: %s", h.ID)
 			h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
-				Level:   string(types.ProviderSetupDiagnosticLogLevelERROR),
+				Level:   types.LogLevelERROR,
 				Message: err.Error(),
 			})
 			upsertItems = append(upsertItems, &h)
@@ -129,7 +129,7 @@ func (s *Service) Check(ctx context.Context) error {
 		for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
 			for _, d := range diagnostic.Logs {
 				h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
-					Level:   string(d.Level),
+					Level:   types.LogLevel(d.Level),
 					Message: d.Msg,
 				})
 			}

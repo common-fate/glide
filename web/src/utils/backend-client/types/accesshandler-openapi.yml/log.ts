@@ -5,14 +5,14 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { LogLevel } from './logLevel';
+import type { LogLevelProperty } from './logLevelProperty';
 
 /**
  * A log entry.
  */
 export interface Log {
   /** The log level. */
-  level: LogLevel;
+  level: LogLevelProperty;
   /** The log message. */
   msg: string;
 }
