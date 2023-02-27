@@ -1713,6 +1713,9 @@ type ClientInterface interface {
 
 	AdminCreateTargetGroup(ctx context.Context, body AdminCreateTargetGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminDeleteTargetGroup request
+	AdminDeleteTargetGroup(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetTargetGroup request
 	AdminGetTargetGroup(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2342,6 +2345,18 @@ func (c *Client) AdminCreateTargetGroupWithBody(ctx context.Context, contentType
 
 func (c *Client) AdminCreateTargetGroup(ctx context.Context, body AdminCreateTargetGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminCreateTargetGroupRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminDeleteTargetGroup(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteTargetGroupRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -4202,6 +4217,40 @@ func NewAdminCreateTargetGroupRequestWithBody(server string, contentType string,
 	return req, nil
 }
 
+// NewAdminDeleteTargetGroupRequest generates requests for AdminDeleteTargetGroup
+func NewAdminDeleteTargetGroupRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/target-groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAdminGetTargetGroupRequest generates requests for AdminGetTargetGroup
 func NewAdminGetTargetGroupRequest(server string, id string) (*http.Request, error) {
 	var err error
@@ -5359,6 +5408,9 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateTargetGroupWithResponse(ctx context.Context, body AdminCreateTargetGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupResponse, error)
 
+	// AdminDeleteTargetGroup request
+	AdminDeleteTargetGroupWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminDeleteTargetGroupResponse, error)
+
 	// AdminGetTargetGroup request
 	AdminGetTargetGroupWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupResponse, error)
 
@@ -6465,6 +6517,27 @@ func (r AdminCreateTargetGroupResponse) StatusCode() int {
 	return 0
 }
 
+type AdminDeleteTargetGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteTargetGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteTargetGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AdminGetTargetGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7523,6 +7596,15 @@ func (c *ClientWithResponses) AdminCreateTargetGroupWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseAdminCreateTargetGroupResponse(rsp)
+}
+
+// AdminDeleteTargetGroupWithResponse request returning *AdminDeleteTargetGroupResponse
+func (c *ClientWithResponses) AdminDeleteTargetGroupWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminDeleteTargetGroupResponse, error) {
+	rsp, err := c.AdminDeleteTargetGroup(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteTargetGroupResponse(rsp)
 }
 
 // AdminGetTargetGroupWithResponse request returning *AdminGetTargetGroupResponse
@@ -9256,6 +9338,22 @@ func ParseAdminCreateTargetGroupResponse(rsp *http.Response) (*AdminCreateTarget
 	return response, nil
 }
 
+// ParseAdminDeleteTargetGroupResponse parses an HTTP response from a AdminDeleteTargetGroupWithResponse call
+func ParseAdminDeleteTargetGroupResponse(rsp *http.Response) (*AdminDeleteTargetGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteTargetGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseAdminGetTargetGroupResponse parses an HTTP response from a AdminGetTargetGroupWithResponse call
 func ParseAdminGetTargetGroupResponse(rsp *http.Response) (*AdminGetTargetGroupResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -10296,6 +10394,9 @@ type ServerInterface interface {
 	// Create target group
 	// (POST /api/v1/admin/target-groups)
 	AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request)
+	// delete target group
+	// (DELETE /api/v1/admin/target-groups/{id})
+	AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request, id string)
 	// Get target group (detailed)
 	// (GET /api/v1/admin/target-groups/{id})
 	AdminGetTargetGroup(w http.ResponseWriter, r *http.Request, id string)
@@ -11340,6 +11441,32 @@ func (siw *ServerInterfaceWrapper) AdminCreateTargetGroup(w http.ResponseWriter,
 	handler(w, r.WithContext(ctx))
 }
 
+// AdminDeleteTargetGroup operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteTargetGroup(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // AdminGetTargetGroup operation middleware
 func (siw *ServerInterfaceWrapper) AdminGetTargetGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -12210,6 +12337,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/target-groups", wrapper.AdminCreateTargetGroup)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/admin/target-groups/{id}", wrapper.AdminDeleteTargetGroup)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/target-groups/{id}", wrapper.AdminGetTargetGroup)
 	})
 	r.Group(func(r chi.Router) {
@@ -12427,30 +12557,30 @@ var swaggerSpec = []string{
 	"ovJy80C5X0ws23lecaXseTyM7vcx51gpFznKKL+xELaR8wu8VU5SKlRnYb6qtI/PsxG17JrGWBh/qRyW",
 	"ZrPqVXgSCb5CHp+nImq+xK0tfPtXyO+zqK4gmv9LEwbengxSbXIZsuh+TesbN4jPztI1siq1flUrq4J+",
 	"39nti8OvH+0tPdd2YsWUXqf69DoamS76sFUKEq643U6twtV9X84kT+Q1PFeieNn4Ie2/yleCXNEJlsPM",
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

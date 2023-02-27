@@ -1222,6 +1222,17 @@ paths:
       operationId: admin-get-target-group
       tags:
         - Admin
+    delete:
+      summary: delete target group
+      operationId: admin-delete-target-group
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+        "404":
+          description: Not Found
+      description: delete target group
   /api/v1/admin/target-groups:
     get:
       summary: Get target groups
