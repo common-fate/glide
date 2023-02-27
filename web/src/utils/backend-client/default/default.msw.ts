@@ -8,14 +8,8 @@
 import {
   rest
 } from 'msw'
-import {
-  faker
-} from '@faker-js/faker'
-import {
-  LogLevel
-} from '.././types'
 
-export const getAdminDeleteHandlerMock = () => ({id: faker.random.word(), runtime: faker.random.word(), functionArn: faker.random.word(), awsAccount: faker.random.word(), awsRegion: faker.random.word(), healthy: faker.datatype.boolean(), diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(Object.values(LogLevel)), code: faker.random.word(), message: faker.random.word()}))})
+export const getAdminDeleteHandlerMock = () => ({})
 
 export const getDefaultMSW = () => [
 rest.delete('*/api/v1/admin/handlers/:id', (_req, res, ctx) => {

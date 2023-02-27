@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type {
-  TGHandler
+  AdminDeleteHandler204
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 
@@ -26,7 +26,7 @@ import { customInstance } from '../../custom-instance'
 export const adminDeleteHandler = (
     id: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<TGHandler>(
+      return customInstance<AdminDeleteHandler204>(
       {url: `/api/v1/admin/handlers/${id}`, method: 'delete'
     },
       options);
