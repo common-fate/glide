@@ -25,9 +25,8 @@ type Config struct {
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
 
-	NoAuthEmail            string `env:"NO_AUTH_EMAIL"`
-	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
-	StateMachineARN        string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
+	NoAuthEmail     string `env:"NO_AUTH_EMAIL"`
+	StateMachineARN string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type NotificationsConfig struct {
@@ -83,12 +82,11 @@ type FrontendDeployerConfig struct {
 }
 
 type ProviderDeploymentCLI struct {
-	ProviderRegistryAPIURL string `env:"COMMONFATE_PROVIDER_REGISTRY_API_URL,default=http://localhost:9001"`
-	LogLevel               string `env:"COMMONFATE_LOG_LEVEL,default=info"`
-	Host                   string `env:"COMMONFATE_CLI_HOST,default=0.0.0.0:9000"`
-	LocalFrontendURL       string `env:"COMMONFATE_CLI_LOCAL_FRONTEND_URL,default=http://localhost:9000"`
-	Debug                  bool   `env:"COMMONFATE_CLI_DEBUG"`
-	CommonFateAPIURL       string `env:"COMMONFATE_HOST,default=http://0.0.0.0:8080"`
+	LogLevel         string `env:"COMMONFATE_LOG_LEVEL,default=info"`
+	Host             string `env:"COMMONFATE_CLI_HOST,default=0.0.0.0:9000"`
+	LocalFrontendURL string `env:"COMMONFATE_CLI_LOCAL_FRONTEND_URL,default=http://localhost:9000"`
+	Debug            bool   `env:"COMMONFATE_CLI_DEBUG"`
+	CommonFateAPIURL string `env:"COMMONFATE_HOST,default=http://0.0.0.0:8080"`
 }
 
 type TargetGroupGranterConfig struct {

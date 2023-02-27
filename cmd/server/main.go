@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
 	ahServer "github.com/common-fate/common-fate/accesshandler/pkg/server"
 	"github.com/common-fate/common-fate/internal"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/api"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/auth/localauth"
@@ -120,7 +121,7 @@ func run() error {
 		return err
 	}
 
-	registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+	registryClient, err := providerregistrysdk.NewClientWithResponses(build.ProviderRegistryAPIURL)
 	if err != nil {
 		return err
 	}
