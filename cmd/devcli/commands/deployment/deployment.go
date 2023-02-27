@@ -24,6 +24,7 @@ import (
 	"github.com/common-fate/cloudform/console"
 	"github.com/common-fate/cloudform/ui"
 	"github.com/common-fate/common-fate/cf/pkg/bootstrapper"
+	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -144,7 +145,7 @@ var Command = cli.Command{
 
 		//bootstrap provider
 
-		registryClient, err := providerregistrysdk.NewClientWithResponses(cfg.ProviderRegistryAPIURL)
+		registryClient, err := providerregistrysdk.NewClientWithResponses(build.ProviderRegistryAPIURL)
 		if err != nil {
 			return errors.New("error configuring provider registry client")
 		}
