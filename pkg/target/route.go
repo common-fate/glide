@@ -16,9 +16,9 @@ type Route struct {
 }
 
 type Diagnostic struct {
-	Level   string `json:"level" dynamodbav:"level"`
-	Code    string `json:"code" dynamodbav:"code"`
-	Message string `json:"message" dynamodbav:"message"`
+	Level   types.LogLevel `json:"level" dynamodbav:"level"`
+	Code    string         `json:"code" dynamodbav:"code"`
+	Message string         `json:"message" dynamodbav:"message"`
 	// Allows diagnostics to be grouped by an arbitrary key, for use in UI
 	// This can be set in a response from a provider
 	GroupBy *string `json:"groupBy" dynamodbav:"groupBy"`
