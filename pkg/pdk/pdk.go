@@ -23,7 +23,7 @@ func (p payload) Marshal() ([]byte, error) {
 type Target struct {
 	// Mode is defines which behaviour of the provider to use, e.g SSO or Group
 	// The modes are defined by the provider schema, and each deployment is registered with its mode configuration in the database
-	Mode      string            `json:"mode"`
+	Mode      string            `json:"kind"`
 	Arguments map[string]string `json:"arguments"`
 }
 
