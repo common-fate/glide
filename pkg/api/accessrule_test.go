@@ -365,7 +365,7 @@ func TestUserListAccessRules(t *testing.T) {
 			t.Parallel()
 
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListAccessRulesForGroupsAndStatus{Result: tc.rules}, tc.mockRulesErr)
+			db.MockQueryWithErr(&storage.ListAccessRulesForStatus{Result: tc.rules}, tc.mockRulesErr)
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
 
