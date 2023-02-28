@@ -40,7 +40,6 @@ var CreateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
 		res, err := cfApi.AdminCreateTargetGroupWithResponse(ctx, types.AdminCreateTargetGroupJSONRequestBody{
 			ID:           id,
 			TargetSchema: schemaFrom,
@@ -55,10 +54,8 @@ var CreateCommand = cli.Command{
 			// if ok-if-exists flag is provided then gracefully return no error.
 			if c.Bool("ok-if-exists") {
 				clio.Infof("Targetgroup with that ID already exists: '%s'", id)
-
 				return nil
 			}
-
 			return clierr.New(fmt.Sprintf("Duplicate targetgroup ID provided. Targetgroup with that ID '%s' already exist", id))
 		case http.StatusUnauthorized:
 			return errors.New(res.JSON401.Error)
@@ -68,7 +65,6 @@ var CreateCommand = cli.Command{
 			return clierr.New("Unhandled response from the Common Fate API", clierr.Infof("Status Code: %d", res.StatusCode()), clierr.Error(string(res.Body)))
 		}
 		return nil
-
 	},
 }
 
@@ -89,7 +85,6 @@ var LinkCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-
 		res, err := cfApi.AdminCreateTargetGroupLinkWithResponse(ctx, c.String("target-group"), types.AdminCreateTargetGroupLinkJSONRequestBody{
 			DeploymentId: c.String("handler"),
 			Priority:     c.Int("priority"),
