@@ -36,7 +36,7 @@ func TestCreateTargetGroup(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"ID": "test", "targetSchema": "v1.0.1"}`,
+			give: `{"id": "test", "targetSchema": "v1.0.1"}`,
 			mockCreate: &target.Group{
 				ID:           "test",
 				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.TargetMode_Schema{}},
@@ -47,9 +47,16 @@ func TestCreateTargetGroup(t *testing.T) {
 		},
 		{
 			name:          "id already exists",
-			give:          `{"ID": "test", "targetSchema": "v1.0.1"}`,
+			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
 			mockCreateErr: targetsvc.ErrTargetGroupIdAlreadyExists,
 			wantCode:      http.StatusConflict,
+			wantBody:      `{"error":"target group id already exists"}`,
+		},
+		{
+			name:          "id already exists",
+			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
+			mockCreateErr: targetsvc.ErrProviderNotFoundInRegistry,
+			wantCode:      http.StatusNotFound,
 			wantBody:      `{"error":"target group id already exists"}`,
 		},
 	}

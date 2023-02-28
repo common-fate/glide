@@ -966,7 +966,6 @@ export const useAdminGetIdentityConfiguration = <TError = ErrorType<ErrorRespons
 }
 
 /**
- * Gets a handler
  * @summary Get handler
  */
 export const adminGetHandler = (

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -45,9 +44,8 @@ func (a *API) AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusConflict))
 		return
 	}
-
-	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("provider not found"), Status: http.StatusNotFound})
+	if err == targetsvc.ErrProviderNotFoundInRegistry {
+		apio.Error(ctx, w, apio.NewRequestError(targetsvc.ErrProviderNotFoundInRegistry, http.StatusNotFound))
 		return
 	}
 	if err != nil {
