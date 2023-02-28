@@ -8,5 +8,5 @@
 
 export type CreateTargetGroupRequestBody = {
   targetSchema: string;
-  ID: string;
+  id: string;
 };

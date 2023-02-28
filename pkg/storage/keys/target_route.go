@@ -12,6 +12,8 @@ type targetRouteKeys struct {
 	GSI1PK          func(group string) string
 	GSI1SK          func(valid bool, priority int) string
 	GSI1SKValid     func(valid bool) string
+	GSI2PK          func(handler string) string
+	GSI2SK          func(group string) string
 }
 
 var TargetRoute = targetRouteKeys{
@@ -24,12 +26,18 @@ var TargetRoute = targetRouteKeys{
 	},
 	SK1Group: func(group string) string { return group + "#" },
 	GSI1PK: func(group string) string {
-		return TargetRouteKey + group + "#"
+		return TargetRouteKey + "GROUP#" + group + "#"
 	},
 	GSI1SK: func(valid bool, priority int) string {
 		return fmt.Sprintf("%v#%d#", valid, priority)
 	},
 	GSI1SKValid: func(valid bool) string {
 		return fmt.Sprintf("%v#", valid)
+	},
+	GSI2PK: func(handler string) string {
+		return TargetRouteKey + "HANDLER#" + handler + "#"
+	},
+	GSI2SK: func(group string) string {
+		return group + "#"
 	},
 }

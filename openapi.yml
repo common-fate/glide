@@ -1154,7 +1154,7 @@ paths:
       operationId: admin-get-handler
       tags:
         - Admin
-      description: Gets a handler
+      description: ""
     parameters:
       - schema:
           type: string
@@ -2932,11 +2932,11 @@ components:
             properties:
               targetSchema:
                 type: string
-              ID:
+              id:
                 type: string
             required:
               - targetSchema
-              - ID
+              - id
     RegisterHandlerRequest:
       content:
         application/json:

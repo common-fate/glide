@@ -84,11 +84,10 @@ func (a *API) AdminDeleteHandler(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	err = a.DB.Delete(ctx, q.Result)
+	err = a.HandlerService.DeleteHandler(ctx, q.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-
 	apio.JSON(ctx, w, nil, http.StatusNoContent)
 }
