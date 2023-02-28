@@ -1154,13 +1154,31 @@ paths:
       operationId: admin-get-handler
       tags:
         - Admin
-      description: ""
+      description: Gets a handler
     parameters:
       - schema:
           type: string
         name: id
         in: path
         required: true
+    delete:
+      summary: ""
+      operationId: admin-delete-handler
+      responses:
+        "204":
+          description: Returns no content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Removes a handler
   /api/v1/admin/handlers:
     get:
       summary: Get handlers
