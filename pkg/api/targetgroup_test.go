@@ -53,11 +53,11 @@ func TestCreateTargetGroup(t *testing.T) {
 			wantBody:      `{"error":"target group id already exists"}`,
 		},
 		{
-			name:          "id already exists",
+			name:          "provider not found in registry",
 			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
 			mockCreateErr: targetsvc.ErrProviderNotFoundInRegistry,
 			wantCode:      http.StatusNotFound,
-			wantBody:      `{"error":"target group id already exists"}`,
+			wantBody:      `{"error":"provider not found in registry"}`,
 		},
 	}
 

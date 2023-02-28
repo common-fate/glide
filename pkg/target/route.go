@@ -30,6 +30,8 @@ func (r *Route) DDBKeys() (ddb.Keys, error) {
 		SK:     keys.TargetRoute.SK1(r.Group, r.Handler, r.Kind),
 		GSI1PK: keys.TargetRoute.GSI1PK(r.Group),
 		GSI1SK: keys.TargetRoute.GSI1SK(r.Valid, r.Priority),
+		GSI2PK: keys.TargetRoute.GSI2PK(r.Handler),
+		GSI2SK: keys.TargetRoute.GSI2SK(r.Group),
 	}
 	return keys, nil
 }

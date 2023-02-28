@@ -36,6 +36,20 @@ func (m *MockHandlerService) EXPECT() *MockHandlerServiceMockRecorder {
 	return m.recorder
 }
 
+// DeleteHandler mocks base method.
+func (m *MockHandlerService) DeleteHandler(arg0 context.Context, arg1 *handler.Handler) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteHandler", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteHandler indicates an expected call of DeleteHandler.
+func (mr *MockHandlerServiceMockRecorder) DeleteHandler(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteHandler", reflect.TypeOf((*MockHandlerService)(nil).DeleteHandler), arg0, arg1)
+}
+
 // RegisterHandler mocks base method.
 func (m *MockHandlerService) RegisterHandler(arg0 context.Context, arg1 types.RegisterHandlerRequest) (*handler.Handler, error) {
 	m.ctrl.T.Helper()

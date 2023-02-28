@@ -285,31 +285,39 @@ func TestGetHandler(t *testing.T) {
 func TestDeleteHandler(t *testing.T) {
 
 	type testcase struct {
-		name                          string
-		mockGetTargetGroupDepResponse handler.Handler
-		mockGetTargetGroupDepErr      error
-		want                          string
-		wantCode                      int
+		name                   string
+		mockGetHandlerResponse handler.Handler
+		mockGetHandlerErr      error
+		mockDeleteHandlerErr   error
+		want                   string
+		wantCode               int
 	}
 
 	testcases := []testcase{
 		{
-			name:                          "ok",
-			wantCode:                      http.StatusNoContent,
-			mockGetTargetGroupDepResponse: handler.Handler{ID: "123"},
-			want:                          ``,
+			name:                   "ok",
+			wantCode:               http.StatusNoContent,
+			mockGetHandlerResponse: handler.Handler{ID: "123"},
+			want:                   ``,
 		},
 		{
-			name:                     "deployment not found",
-			wantCode:                 http.StatusNotFound,
-			mockGetTargetGroupDepErr: ddb.ErrNoItems,
-			want:                     `{"error":"item query returned no items"}`,
+			name:              "deployment not found",
+			wantCode:          http.StatusNotFound,
+			mockGetHandlerErr: ddb.ErrNoItems,
+			want:              `{"error":"item query returned no items"}`,
 		},
 		{
-			name:                     "internal error",
-			wantCode:                 http.StatusInternalServerError,
-			mockGetTargetGroupDepErr: errors.New("internal error"),
-			want:                     `{"error":"Internal Server Error"}`,
+			name:              "internal error",
+			wantCode:          http.StatusInternalServerError,
+			mockGetHandlerErr: errors.New("internal error"),
+			want:              `{"error":"Internal Server Error"}`,
+		},
+		{
+			name:                   "internal error from delete",
+			wantCode:               http.StatusInternalServerError,
+			mockGetHandlerResponse: handler.Handler{ID: "123"},
+			mockDeleteHandlerErr:   errors.New("some error"),
+			want:                   `{"error":"Internal Server Error"}`,
 		},
 	}
 
@@ -317,9 +325,12 @@ func TestDeleteHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDepResponse}, tc.mockGetTargetGroupDepErr)
+			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetHandlerResponse}, tc.mockGetHandlerErr)
+			ctrl := gomock.NewController(t)
 
-			a := API{DB: db}
+			mockHandler := mocks.NewMockHandlerService(ctrl)
+			mockHandler.EXPECT().DeleteHandler(gomock.Any(), &tc.mockGetHandlerResponse).Return(tc.mockDeleteHandlerErr).AnyTimes()
+			a := API{DB: db, HandlerService: mockHandler}
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("DELETE", "/api/v1/admin/handlers/123", nil)
