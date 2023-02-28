@@ -85,7 +85,7 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 		return
 	}
 
-	if q.Result.ID != "" {
+	if q.Result != nil {
 		apio.JSON(ctx, w,
 			&ahTypes.Provider{
 				Id:   q.Result.ID,
@@ -122,16 +122,8 @@ func (a *API) AdminGetProvider(w http.ResponseWriter, r *http.Request, providerI
 // helper method to check if the provided id is a valid target group.
 func (a *API) isTargetGroup(ctx context.Context, targetGroupId string) bool {
 	q := storage.GetTargetGroup{ID: targetGroupId}
-	_, err := a.DB.Query(ctx, &q)
-	if err != nil {
-		return false
-	}
-
-	if q.Result.ID != "" {
-		return true
-	}
-
-	return false
+	_, _ = a.DB.Query(ctx, &q)
+	return q.Result != nil
 }
 
 func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, providerId string) {
@@ -142,13 +134,7 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 	}
-
-	var isCommunityProvider bool
-	if q.Result.ID != "" {
-		isCommunityProvider = true
-	}
-
-	if isCommunityProvider {
+	if q.Result != nil {
 		apio.JSON(ctx, w, q.Result.TargetSchema.Schema, http.StatusCreated)
 		return
 	}
