@@ -104,8 +104,9 @@ func (s *Service) Check(ctx context.Context) error {
 		// now we can call the describe endpoint
 		describeRes, err := runtime.Describe(ctx)
 		if err != nil {
+
 			h.Healthy = false
-			log.Warnf("Error running healthcheck for deployment: %s", h.ID)
+			log.Warnw("Error running healthcheck for handler", "id", h.ID, "error", err)
 			h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
 				Level:   types.LogLevelERROR,
 				Message: err.Error(),

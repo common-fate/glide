@@ -14,7 +14,8 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
+
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -305,11 +306,11 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 	}
 
 	_, err = a.Workflow.Revoke(ctx, req, uid)
-	if err == grantsvc.ErrGrantInactive {
+	if err == workflowsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
-	if err == grantsvc.ErrNoGrant {
+	if err == workflowsvc.ErrNoGrant {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
 	}
