@@ -61,8 +61,12 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 		return nil, err
 	}
 
-	if result.StatusCode() != 200 {
+	switch result.StatusCode() {
+	case 404:
+		return nil, ddb.ErrNoItems
+	case 500:
 		return nil, errors.New(string(result.Body))
+
 	}
 
 	now := s.Clock.Now()

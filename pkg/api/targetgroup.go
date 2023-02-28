@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -42,6 +43,11 @@ func (a *API) AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 	if err == targetsvc.ErrTargetGroupIdAlreadyExists {
 		// the user supplied id already exists
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusConflict))
+		return
+	}
+
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("provider not found"), Status: http.StatusNotFound})
 		return
 	}
 	if err != nil {
