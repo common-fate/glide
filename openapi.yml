@@ -1240,6 +1240,21 @@ paths:
       operationId: admin-get-target-group
       tags:
         - Admin
+    delete:
+      summary: delete target group
+      operationId: admin-delete-target-group
+      responses:
+        "204":
+          description: No Content
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: delete target group
+      tags:
+        - Admin
   /api/v1/admin/target-groups:
     get:
       summary: Get target groups

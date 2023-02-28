@@ -362,3 +362,70 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteTargetGroup(t *testing.T) {
+	type testcase struct {
+		name                     string
+		mockGetTargetGroup       *target.Group
+		mockGetTargetGroupErr    error
+		mockDeleteTargetGroupErr error
+		want                     string
+		wantCode                 int
+	}
+
+	testcases := []testcase{
+		{
+			name:     "ok",
+			wantCode: http.StatusNoContent,
+			want:     ``,
+		},
+		{
+			name:                  "not found",
+			wantCode:              http.StatusNotFound,
+			mockGetTargetGroupErr: ddb.ErrNoItems,
+			want:                  `{"error":"item query returned no items"}`,
+		},
+		{
+			name:                     "internal error",
+			wantCode:                 http.StatusInternalServerError,
+			mockDeleteTargetGroupErr: errors.New("some error"),
+			want:                     `{"error":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroup}, tc.mockGetTargetGroupErr)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			m := mocks.NewMockTargetService(ctrl)
+			m.EXPECT().DeleteGroup(gomock.Any(), gomock.Any()).Return(tc.mockDeleteTargetGroupErr).AnyTimes()
+			a := API{DB: db, TargetService: m}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("DELETE", "/api/v1/admin/target-groups/123", strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}

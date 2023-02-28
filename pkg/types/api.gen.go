@@ -1716,6 +1716,9 @@ type ClientInterface interface {
 
 	AdminCreateTargetGroup(ctx context.Context, body AdminCreateTargetGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminDeleteTargetGroup request
+	AdminDeleteTargetGroup(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetTargetGroup request
 	AdminGetTargetGroup(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2357,6 +2360,18 @@ func (c *Client) AdminCreateTargetGroupWithBody(ctx context.Context, contentType
 
 func (c *Client) AdminCreateTargetGroup(ctx context.Context, body AdminCreateTargetGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminCreateTargetGroupRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminDeleteTargetGroup(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteTargetGroupRequest(c.Server, id)
 	if err != nil {
 		return nil, err
 	}
@@ -4251,6 +4266,40 @@ func NewAdminCreateTargetGroupRequestWithBody(server string, contentType string,
 	return req, nil
 }
 
+// NewAdminDeleteTargetGroupRequest generates requests for AdminDeleteTargetGroup
+func NewAdminDeleteTargetGroupRequest(server string, id string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/target-groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewAdminGetTargetGroupRequest generates requests for AdminGetTargetGroup
 func NewAdminGetTargetGroupRequest(server string, id string) (*http.Request, error) {
 	var err error
@@ -5411,6 +5460,9 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateTargetGroupWithResponse(ctx context.Context, body AdminCreateTargetGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateTargetGroupResponse, error)
 
+	// AdminDeleteTargetGroup request
+	AdminDeleteTargetGroupWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminDeleteTargetGroupResponse, error)
+
 	// AdminGetTargetGroup request
 	AdminGetTargetGroupWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupResponse, error)
 
@@ -6548,6 +6600,36 @@ func (r AdminCreateTargetGroupResponse) StatusCode() int {
 	return 0
 }
 
+type AdminDeleteTargetGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteTargetGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteTargetGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AdminGetTargetGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7615,6 +7697,15 @@ func (c *ClientWithResponses) AdminCreateTargetGroupWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseAdminCreateTargetGroupResponse(rsp)
+}
+
+// AdminDeleteTargetGroupWithResponse request returning *AdminDeleteTargetGroupResponse
+func (c *ClientWithResponses) AdminDeleteTargetGroupWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminDeleteTargetGroupResponse, error) {
+	rsp, err := c.AdminDeleteTargetGroup(ctx, id, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteTargetGroupResponse(rsp)
 }
 
 // AdminGetTargetGroupWithResponse request returning *AdminGetTargetGroupResponse
@@ -9401,6 +9492,52 @@ func ParseAdminCreateTargetGroupResponse(rsp *http.Response) (*AdminCreateTarget
 	return response, nil
 }
 
+// ParseAdminDeleteTargetGroupResponse parses an HTTP response from a AdminDeleteTargetGroupWithResponse call
+func ParseAdminDeleteTargetGroupResponse(rsp *http.Response) (*AdminDeleteTargetGroupResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteTargetGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAdminGetTargetGroupResponse parses an HTTP response from a AdminGetTargetGroupWithResponse call
 func ParseAdminGetTargetGroupResponse(rsp *http.Response) (*AdminGetTargetGroupResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -10444,6 +10581,9 @@ type ServerInterface interface {
 	// Create target group
 	// (POST /api/v1/admin/target-groups)
 	AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request)
+	// delete target group
+	// (DELETE /api/v1/admin/target-groups/{id})
+	AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request, id string)
 	// Get target group (detailed)
 	// (GET /api/v1/admin/target-groups/{id})
 	AdminGetTargetGroup(w http.ResponseWriter, r *http.Request, id string)
@@ -11514,6 +11654,32 @@ func (siw *ServerInterfaceWrapper) AdminCreateTargetGroup(w http.ResponseWriter,
 	handler(w, r.WithContext(ctx))
 }
 
+// AdminDeleteTargetGroup operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteTargetGroup(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // AdminGetTargetGroup operation middleware
 func (siw *ServerInterfaceWrapper) AdminGetTargetGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -12387,6 +12553,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/target-groups", wrapper.AdminCreateTargetGroup)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/admin/target-groups/{id}", wrapper.AdminDeleteTargetGroup)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/target-groups/{id}", wrapper.AdminGetTargetGroup)
 	})
 	r.Group(func(r chi.Router) {
@@ -12604,31 +12773,31 @@ var swaggerSpec = []string{
 	"LHaX+920AvXDetDrZYDiQlf9ABJChYQlbQgFnkm0mCI27VJvWl5u4Sj3i4llO88rrpQ9j4fR/X7NOVbK",
 	"paYyym8shG3+whJvlZMaDNVZmK8q7eOLbEQtu6YxFsZfKoelOcV6FZ5Egq+RTempS5svNGzLD/8Vsiwt",
 	"qiuI5n/ThIG3Z4NUm1yFLLpf0yrTDaLks6SZrFawX9XKatHfd42B5UHwj/aWnmv+sWZitVMDfBONTJfe",
-	"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",
-	"z3f/NwAA//+sg6bwmvgAAA==",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
