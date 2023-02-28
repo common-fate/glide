@@ -105,11 +105,6 @@ func (a *API) AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request,
 // delete target group
 // (DELETE /api/v1/admin/target-groups/{id})
 func (a *API) AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request, id string) {
-
-	// - Access rules connected to the target become invalid
-	// - cannot make a request to an access rule if it has no target (seems obvious)
-	// - workflows around deleting a target group/provider are quite poor currently
-
 	ctx := r.Context()
 	q := storage.GetTargetGroup{ID: id}
 	_, err := a.DB.Query(ctx, &q)
@@ -122,4 +117,10 @@ func (a *API) AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request, id 
 		return
 	}
 
+	err = a.TargetService.DeleteGroup(ctx, q.Result)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusNoContent)
 }
