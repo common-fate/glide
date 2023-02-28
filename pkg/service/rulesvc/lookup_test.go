@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -19,6 +20,9 @@ func TestService_LookupRule(t *testing.T) {
 	rule1AccountID := "123456789012"
 	rule1PermissionSetARN := "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"
 
+	// fill with "G1", "G2"
+	groups := []string{"g1"}
+
 	rule1 := rule.AccessRule{
 		ID: "test",
 		Target: rule.Target{
@@ -29,6 +33,7 @@ func TestService_LookupRule(t *testing.T) {
 				"permissionSetArn": rule1PermissionSetARN,
 			},
 		},
+		Groups: groups,
 	}
 
 	tests := []struct {
@@ -49,6 +54,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -68,6 +76,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: []LookedUpRule{
@@ -90,6 +101,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": rule1PermissionSetARN,
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -105,6 +117,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: []LookedUpRule{
@@ -122,6 +137,7 @@ func TestService_LookupRule(t *testing.T) {
 								"permissionSetArn": rule1PermissionSetARN,
 							},
 						},
+						Groups: rule1.Groups,
 					},
 				},
 			},
@@ -144,6 +160,9 @@ func TestService_LookupRule(t *testing.T) {
 					// doesn't match the existing rules we have
 					RoleName: "NoMatch",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -165,6 +184,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -181,6 +203,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": {rule1PermissionSetARN, "something else"},
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -197,6 +220,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: []LookedUpRule{
 				{
@@ -210,6 +236,7 @@ func TestService_LookupRule(t *testing.T) {
 								"permissionSetArn": {rule1PermissionSetARN, "something else"},
 							},
 						},
+						Groups: rule1.Groups,
 					},
 					SelectableWithOptionValues: []types.KeyValue{
 						{
@@ -238,6 +265,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": {rule1PermissionSetARN, "something else"},
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -253,6 +281,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: []LookedUpRule{
@@ -270,6 +301,7 @@ func TestService_LookupRule(t *testing.T) {
 								"permissionSetArn": {rule1PermissionSetARN, "something else"},
 							},
 						},
+						Groups: rule1.Groups,
 					},
 					SelectableWithOptionValues: []types.KeyValue{
 						{
@@ -297,6 +329,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": rule1PermissionSetARN,
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -313,6 +346,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -324,6 +360,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: nil,
@@ -345,6 +384,7 @@ func TestService_LookupRule(t *testing.T) {
 							},
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -360,6 +400,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			providerArgGroupOption: &cache.ProviderArgGroupOption{
@@ -385,6 +428,7 @@ func TestService_LookupRule(t *testing.T) {
 								},
 							},
 						},
+						Groups: rule1.Groups,
 					},
 				},
 			},
