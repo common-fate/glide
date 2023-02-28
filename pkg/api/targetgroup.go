@@ -107,3 +107,26 @@ func (a *API) AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request,
 	}
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }
+
+// delete target group
+// (DELETE /api/v1/admin/target-groups/{id})
+func (a *API) AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request, id string) {
+	ctx := r.Context()
+	q := storage.GetTargetGroup{ID: id}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	err = a.TargetService.DeleteGroup(ctx, q.Result)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusNoContent)
+}

@@ -9,6 +9,7 @@ export * from './accessRuleTargetDetailArgumentsFormElement';
 export * from './accessRuleTargetDetailArgumentsGroupings';
 export * from './accessRuleTargetDetailWith';
 export * from './accessTokenResponseResponse';
+export * from './adminDeleteHandler204';
 export * from './adminListAccessRulesParams';
 export * from './adminListAccessRulesStatus';
 export * from './adminListGroupsParams';
