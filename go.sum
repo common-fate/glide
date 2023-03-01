@@ -334,6 +334,8 @@ github.com/common-fate/provider-registry-sdk-go v0.1.12-0.20230301005258-e5f3fde
 github.com/common-fate/provider-registry-sdk-go v0.1.12-0.20230301005258-e5f3fdeec453/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
 github.com/common-fate/provider-registry-sdk-go v0.2.0 h1:9rvuwGduqCa4WJi/EO0oef1dn3px7oqb4hphHA8YOOM=
 github.com/common-fate/provider-registry-sdk-go v0.2.0/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
+github.com/common-fate/provider-registry-sdk-go v0.2.1 h1:ouOsvgQGHj7xwwEnhzgfKNUdYRrQxgYIbb7/qnHUA9M=
+github.com/common-fate/provider-registry-sdk-go v0.2.1/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
 github.com/common-fate/testvault v0.1.0 h1:XVhbmcNySGIA203FywYW7wL44Mlcg23UUek3bdg5tzQ=
 github.com/common-fate/testvault v0.1.0/go.mod h1:JJ74LtQZlnjHUj1LuDj2Sz4hEARXf6YOrqzdf3DGFZM=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=

@@ -15,6 +15,15 @@ type Route struct {
 	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
 }
 
+func (r Route) SetValidity(v bool) Route {
+	r.Valid = v
+	return r
+}
+func (r Route) AddDiagnostic(d Diagnostic) Route {
+	r.Diagnostics = append(r.Diagnostics, d)
+	return r
+}
+
 type Diagnostic struct {
 	Level   types.LogLevel `json:"level" dynamodbav:"level"`
 	Code    string         `json:"code" dynamodbav:"code"`
