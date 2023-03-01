@@ -56,7 +56,7 @@ export class IdpSync extends Construct {
 
     //add event bridge trigger to lambda
     this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
-      schedule: events.Schedule.cron({ minute: props.idpSyncSchedule }),
+      schedule: events.Schedule.expression(props.idpSyncSchedule),
     });
 
     // add the Lambda function as a target for the Event Rule
