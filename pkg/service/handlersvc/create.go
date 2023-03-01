@@ -10,12 +10,8 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+// Input data validation is handled by the API layer
 func (s *Service) RegisterHandler(ctx context.Context, req types.RegisterHandlerRequest) (*handler.Handler, error) {
-	// run pre-lim checks to ensure input data is valid
-	if !IsValidAwsAccountNumber(req.AwsAccount) {
-		return nil, ErrInvalidAwsAccountNumber
-	}
-
 	// fetch existing deployment to ensure no overlap
 	q := storage.GetHandler{ID: req.Id}
 	_, err := s.DB.Query(ctx, &q)
@@ -49,17 +45,4 @@ func (s *Service) RegisterHandler(ctx context.Context, req types.RegisterHandler
 	}
 
 	return &dbInput, nil
-}
-
-func allDigits(s string) bool {
-	for _, r := range s {
-		if r < '0' || r > '9' {
-			return false
-		}
-	}
-	return true
-}
-
-func IsValidAwsAccountNumber(s string) bool {
-	return len(s) == 12 && allDigits(s)
 }

@@ -42,6 +42,9 @@ interface Props {
   apiGatewayWafAclArn: string;
   kmsKey: cdk.aws_kms.Key;
   shouldRunCronHealthCheckCacheSync: boolean;
+  idpSyncTimeoutSeconds: number;
+  idpSyncSchedule: string;
+  idpSyncMemory: number;
   targetGroupGranter: TargetGroupGranter;
   identityGroupFilter: string;
 }
@@ -323,6 +326,9 @@ export class AppBackend extends Construct {
       analyticsDisabled: props.analyticsDisabled,
       analyticsUrl: props.analyticsUrl,
       identityGroupFilter: props.identityGroupFilter,
+      idpSyncMemory: props.idpSyncMemory,
+      idpSyncSchedule: props.idpSyncSchedule,
+      idpSyncTimeoutSeconds: props.idpSyncTimeoutSeconds,
     });
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,

@@ -236,24 +236,27 @@ func (a *API) UserListAccessRules(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	admin := auth.IsAdmin(ctx)
-	q := storage.ListAccessRulesForGroupsAndStatus{Groups: u.Groups, Status: rule.ACTIVE}
-	_, err := a.DB.Query(ctx, &q)
+
+	// list the rules
+	q1 := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
+	_, err := a.DB.Query(ctx, &q1)
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 		return
 	}
+	filteredRules := rulesvc.FilterRulesByGroupMap(u.Groups, q1.Result)
 
 	res := types.ListAccessRulesResponse{
-		AccessRules: make([]types.AccessRule, len(q.Result)),
+		AccessRules: make([]types.AccessRule, len(filteredRules)),
 	}
-	for i, r := range q.Result {
+	for i, r := range filteredRules {
 		res.AccessRules[i] = r.ToAPI()
 	}
 	analytics.FromContext(ctx).Track(&analytics.UserInfo{
 		ID:             u.ID,
 		GroupCount:     len(u.Groups),
 		IsAdmin:        admin,
-		AvailableRules: len(q.Result),
+		AvailableRules: len(filteredRules),
 	})
 	apio.JSON(ctx, w, res, http.StatusOK)
 }

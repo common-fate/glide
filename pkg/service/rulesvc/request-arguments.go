@@ -36,7 +36,6 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 				return nil, err
 			}
 
-			arg.FormElement = (*types.RequestArgumentFormElement)(&resource.RequestFormElement)
 			arg.RequiresSelection = true
 
 			for _, o := range v {

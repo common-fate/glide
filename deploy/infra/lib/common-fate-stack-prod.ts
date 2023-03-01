@@ -139,6 +139,32 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
+    //     IDPSyncTimeoutSeconds
+    // IDPSyncSchedule
+    // IDPSyncMemory
+
+    const idpSyncTimeoutSeconds = new CfnParameter(
+      this,
+      "IDPSyncTimeoutSeconds",
+      {
+        type: "Number",
+        description: "Timeout for IDP Sync Lambda Function",
+        default: 30,
+      }
+    );
+
+    const idpSyncSchedule = new CfnParameter(this, "IDPSyncSchedule", {
+      type: "String",
+      description: "Cron schedule for IDP Sync Lambda Function",
+      default: "0/5",
+    });
+
+    const idpSyncMemory = new CfnParameter(this, "IDPSyncMemory", {
+      type: "Number",
+      description: "Memory for IDP Sync Lambda Function",
+      default: 128,
+    });
+
     const cloudfrontWafAclArn = new CfnParameter(this, "CloudfrontWAFACLARN", {
       type: "String",
       description:
@@ -271,6 +297,9 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
       kmsKey: kmsKey,
       shouldRunCronHealthCheckCacheSync: true,
+      idpSyncMemory: idpSyncMemory.valueAsNumber,
+      idpSyncSchedule: idpSyncSchedule.valueAsString,
+      idpSyncTimeoutSeconds: idpSyncTimeoutSeconds.valueAsNumber,
       targetGroupGranter: targetGroupGranter,
       identityGroupFilter: identityGroupFilter.toString(),
     });

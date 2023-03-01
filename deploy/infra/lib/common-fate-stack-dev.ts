@@ -36,6 +36,9 @@ interface Props extends cdk.StackProps {
   analyticsDeploymentStage: string;
   shouldRunCronHealthCheckCacheSync: boolean;
   identityGroupFilter: string;
+  idpSyncTimeoutSeconds: number;
+  idpSyncSchedule: string;
+  idpSyncMemory: number;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -61,6 +64,9 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsLogLevel,
       analyticsDeploymentStage,
       identityGroupFilter,
+      idpSyncTimeoutSeconds,
+      idpSyncSchedule,
+      idpSyncMemory,
     } = props;
     const appName = `common-fate-${stage}`;
 
@@ -148,6 +154,9 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsLogLevel,
       analyticsDeploymentStage,
       kmsKey: kmsKey,
+      idpSyncMemory: idpSyncMemory,
+      idpSyncSchedule: idpSyncSchedule,
+      idpSyncTimeoutSeconds: idpSyncTimeoutSeconds,
       shouldRunCronHealthCheckCacheSync:
         props.shouldRunCronHealthCheckCacheSync || false,
       targetGroupGranter: targetGroupGranter,
@@ -195,7 +204,6 @@ export class CommonFateStackDev extends cdk.Stack {
       HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
       HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
       GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
-      IdentityGroupFilter: identityGroupFilter,
     });
   }
 }

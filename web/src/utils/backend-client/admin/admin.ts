@@ -1095,6 +1095,20 @@ export const useAdminGetTargetGroup = <TError = ErrorType<ErrorResponseResponse>
 }
 
 /**
+ * delete target group
+ * @summary delete target group
+ */
+export const adminDeleteTargetGroup = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/target-groups/${id}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
  * @summary Get target groups
  */
 export const adminListTargetGroups = (

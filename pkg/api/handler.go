@@ -70,3 +70,24 @@ func (a *API) AdminGetHandler(w http.ResponseWriter, r *http.Request, id string)
 	}
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
+
+func (a *API) AdminDeleteHandler(w http.ResponseWriter, r *http.Request, id string) {
+	ctx := r.Context()
+	q := storage.GetHandler{ID: id}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	err = a.HandlerService.DeleteHandler(ctx, q.Result)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	apio.JSON(ctx, w, nil, http.StatusNoContent)
+}

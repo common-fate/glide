@@ -47,13 +47,18 @@ type LookupRuleOpts struct {
 
 // LookupRule finds access rules which will grant access to a desired permission.
 func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]LookedUpRule, error) {
-	q := storage.ListAccessRulesForGroupsAndStatus{Groups: opts.User.Groups, Status: rule.ACTIVE}
 
+	q := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
 	// fetch all active access rules
 	_, err := s.DB.Query(ctx, &q)
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
+
+	filtered := FilterRulesByGroupMap(
+		opts.User.Groups,
+		q.Result,
+	)
 
 	var res []LookedUpRule
 
@@ -73,7 +78,7 @@ func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]Looked
 	providerOptionsCache := newProviderOptionsCache(s.DB)
 	providerGroupOptionsCache := newproviderGroupOptionsCache(s.DB)
 Filterloop:
-	for _, r := range q.Result {
+	for _, r := range filtered {
 		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
 		// select access rules which match the lookup type
 		if "commonfate/"+r.Target.ProviderType == opts.ProviderType {
@@ -170,6 +175,31 @@ Filterloop:
 	}
 
 	return res, nil
+}
+
+// FilterRulesByGroupMap
+// This method is used to filter a set of rule by the groups passed in as input
+// This method could not be co-located in pkg/api due to import cycle errors
+// This method was required as a part of CF-744, and due to intrinsic limitationsn in dynamo db,
+// when filtering by large expressions (i.e. len(groups) > 20)
+func FilterRulesByGroupMap(groups []string, rules []rule.AccessRule) []rule.AccessRule {
+	filteredAccessRules := []rule.AccessRule{}
+	usrGroupsMap := make(map[string]string)
+
+	for _, g := range groups {
+		usrGroupsMap[g] = g
+	}
+
+	for _, rule := range rules {
+		for _, rg := range rule.Groups {
+			_, ok := usrGroupsMap[rg]
+			if ok {
+				filteredAccessRules = append(filteredAccessRules, rule)
+				break
+			}
+		}
+	}
+	return filteredAccessRules
 }
 
 // contains is a helper function to check if a string slice

@@ -36,7 +36,7 @@ func TestCreateTargetGroup(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"ID": "test", "targetSchema": "v1.0.1"}`,
+			give: `{"id": "test", "targetSchema": "v1.0.1"}`,
 			mockCreate: &target.Group{
 				ID:           "test",
 				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.TargetMode_Schema{}},
@@ -47,10 +47,17 @@ func TestCreateTargetGroup(t *testing.T) {
 		},
 		{
 			name:          "id already exists",
-			give:          `{"ID": "test", "targetSchema": "v1.0.1"}`,
+			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
 			mockCreateErr: targetsvc.ErrTargetGroupIdAlreadyExists,
 			wantCode:      http.StatusConflict,
 			wantBody:      `{"error":"target group id already exists"}`,
+		},
+		{
+			name:          "provider not found in registry",
+			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
+			mockCreateErr: targetsvc.ErrProviderNotFoundInRegistry,
+			wantCode:      http.StatusNotFound,
+			wantBody:      `{"error":"provider not found in registry"}`,
 		},
 	}
 
@@ -341,6 +348,73 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 			handler := newTestServer(t, &a)
 
 			req, err := http.NewRequest("POST", fmt.Sprintf("/api/v1/admin/target-groups/123/unlink?deploymentId=%s&kind=%s", tc.deploymentId, tc.kind), strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
+
+func TestDeleteTargetGroup(t *testing.T) {
+	type testcase struct {
+		name                     string
+		mockGetTargetGroup       *target.Group
+		mockGetTargetGroupErr    error
+		mockDeleteTargetGroupErr error
+		want                     string
+		wantCode                 int
+	}
+
+	testcases := []testcase{
+		{
+			name:     "ok",
+			wantCode: http.StatusNoContent,
+			want:     ``,
+		},
+		{
+			name:                  "not found",
+			wantCode:              http.StatusNotFound,
+			mockGetTargetGroupErr: ddb.ErrNoItems,
+			want:                  `{"error":"item query returned no items"}`,
+		},
+		{
+			name:                     "internal error",
+			wantCode:                 http.StatusInternalServerError,
+			mockDeleteTargetGroupErr: errors.New("some error"),
+			want:                     `{"error":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroup}, tc.mockGetTargetGroupErr)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			m := mocks.NewMockTargetService(ctrl)
+			m.EXPECT().DeleteGroup(gomock.Any(), gomock.Any()).Return(tc.mockDeleteTargetGroupErr).AnyTimes()
+			a := API{DB: db, TargetService: m}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("DELETE", "/api/v1/admin/target-groups/123", strings.NewReader(""))
 			if err != nil {
 				t.Fatal(err)
 			}

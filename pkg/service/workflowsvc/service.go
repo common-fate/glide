@@ -15,6 +15,7 @@ import (
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
 type Runtime interface {
 	// isForTargetGroup tells the runtime how to process the request
 	// grant is expected to be asyncronous
@@ -24,11 +25,15 @@ type Runtime interface {
 	Revoke(ctx context.Context, grantID string, isForTargetGroup bool) error
 }
 
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
+type EventPutter interface {
+	Put(ctx context.Context, detail gevent.EventTyper) error
+}
 type Service struct {
 	Runtime  Runtime
 	DB       ddb.Storage
 	Clk      clock.Clock
-	Eventbus *gevent.Sender
+	Eventbus EventPutter
 }
 
 func (s *Service) Grant(ctx context.Context, request access.Request, accessRule rule.AccessRule) (*access.Grant, error) {
