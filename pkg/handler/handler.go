@@ -31,6 +31,20 @@ type Handler struct {
 	// Provider description comes from polling the provider via a healthcheck
 	ProviderDescription *providerregistrysdk.DescribeResponse `json:"providerDescription" dynamodbav:"providerDescription"`
 }
+
+func (ha Handler) SetHealth(h bool) Handler {
+	ha.Healthy = h
+	return ha
+}
+func (ha Handler) SetProviderDescription(p *providerregistrysdk.DescribeResponse) Handler {
+	ha.ProviderDescription = p
+	return ha
+}
+func (ha Handler) AddDiagnostic(d Diagnostic) Handler {
+	ha.Diagnostics = append(ha.Diagnostics, d)
+	return ha
+}
+
 type Diagnostic struct {
 	Level   types.LogLevel `json:"level" dynamodbav:"level"`
 	Code    string         `json:"code" dynamodbav:"code"`
