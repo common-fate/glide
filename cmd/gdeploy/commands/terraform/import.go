@@ -41,7 +41,7 @@ var importTerraformCommand = cli.Command{
 		}
 		rules := l.Result
 
-		out, err := os.Create("test.tf")
+		out, err := os.Create("terraform-exports.tf")
 		if err != nil {
 			return err
 		}

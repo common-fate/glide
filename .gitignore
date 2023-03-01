@@ -37,3 +37,4 @@ trace*.zip
 gomock_reflect_*
 
 prog.go
+terraform-exports.tf
