@@ -53,6 +53,7 @@ var AvailableRegions = []string{
 	"ap-southeast-2",
 	"us-west-2",
 	"us-east-1",
+	"eu-central-1",
 }
 
 type Config struct {
@@ -702,10 +703,8 @@ func SetupReleaseConfig(c *cli.Context) (*Config, error) {
 			return nil, err
 		}
 	}
-	err := checkRegion(region)
-	if err != nil {
-		return nil, err
-	}
+
+	checkRegion(region)
 
 	version, err := getVersion(c, region)
 	if err != nil {
@@ -817,11 +816,12 @@ func getDefaultAvailableRegion() string {
 	return AvailableRegions[0]
 }
 
-func checkRegion(r string) error {
+func checkRegion(r string) {
 	for _, ar := range AvailableRegions {
 		if r == ar {
-			return nil
+			return
 		}
 	}
-	return fmt.Errorf("we don't yet support deployments hosted in %s. Our supported regions are: [%s]", r, strings.Join(AvailableRegions, ", "))
+	// print a warning here
+	clio.Warnf("we don't yet support deployments hosted in %s. Our supported regions are: [%s]", r, strings.Join(AvailableRegions, ", "))
 }
