@@ -182,6 +182,9 @@ type Parameters struct {
 	AnalyticsURL                    string         `yaml:"AnalyticsURL,omitempty"`
 	AnalyticsLogLevel               string         `yaml:"AnalyticsLogLevel,omitempty"`
 	AnalyticsDeploymentStage        string         `yaml:"AnalyticsDeploymentStage,omitempty"`
+	IDPSyncTimeoutSeconds           string         `yaml:"IDPSyncTimeoutSeconds,omitempty"`
+	IDPSyncSchedule                 string         `yaml:"IDPSyncSchedule,omitempty"`
+	IDPSyncMemory                   string         `yaml:"IDPSyncMemory,omitempty"`
 }
 
 // UnmarshalFeatureMap parses the JSON configuration data and returns
@@ -509,6 +512,24 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 		res = append(res, types.Parameter{
 			ParameterKey:   aws.String("AnalyticsDeploymentStage"),
 			ParameterValue: &p.AnalyticsDeploymentStage,
+		})
+	}
+	if c.Deployment.Parameters.IDPSyncMemory != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("IDPSyncMemory"),
+			ParameterValue: &p.IDPSyncMemory,
+		})
+	}
+	if c.Deployment.Parameters.IDPSyncSchedule != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("IDPSyncSchedule"),
+			ParameterValue: &p.IDPSyncSchedule,
+		})
+	}
+	if c.Deployment.Parameters.IDPSyncTimeoutSeconds != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("IDPSyncTimeoutSeconds"),
+			ParameterValue: &p.IDPSyncTimeoutSeconds,
 		})
 	}
 

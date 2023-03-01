@@ -33,6 +33,9 @@ interface Props extends cdk.StackProps {
   analyticsUrl: string;
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
+  idpSyncTimeoutSeconds: number;
+  idpSyncSchedule: string;
+  idpSyncMemory: number;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -57,6 +60,9 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsUrl,
       analyticsLogLevel,
       analyticsDeploymentStage,
+      idpSyncTimeoutSeconds,
+      idpSyncSchedule,
+      idpSyncMemory,
     } = props;
     const appName = `common-fate-${stage}`;
 
@@ -136,6 +142,9 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsLogLevel,
       analyticsDeploymentStage,
       kmsKey: kmsKey,
+      idpSyncMemory: idpSyncMemory,
+      idpSyncSchedule: idpSyncSchedule,
+      idpSyncTimeoutSeconds: idpSyncTimeoutSeconds,
     });
     /* Outputs */
     generateOutputs(this, {

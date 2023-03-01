@@ -39,6 +39,9 @@ interface Props {
   dynamoTable: dynamodb.Table;
   apiGatewayWafAclArn: string;
   kmsKey: cdk.aws_kms.Key;
+  idpSyncTimeoutSeconds: number;
+  idpSyncSchedule: string;
+  idpSyncMemory: number;
 }
 
 export class AppBackend extends Construct {
@@ -300,6 +303,9 @@ export class AppBackend extends Construct {
       analyticsDeploymentStage: props.analyticsDeploymentStage,
       analyticsDisabled: props.analyticsDisabled,
       analyticsUrl: props.analyticsUrl,
+      idpSyncMemory: props.idpSyncMemory,
+      idpSyncSchedule: props.idpSyncSchedule,
+      idpSyncTimeoutSeconds: props.idpSyncTimeoutSeconds,
     });
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,

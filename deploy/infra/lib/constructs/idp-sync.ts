@@ -16,6 +16,9 @@ interface Props {
   analyticsUrl: string;
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
+  idpSyncTimeoutSeconds: number;
+  idpSyncSchedule: string;
+  idpSyncMemory: number;
 }
 
 export class IdpSync extends Construct {
@@ -30,7 +33,9 @@ export class IdpSync extends Construct {
 
     this._lambda = new lambda.Function(this, "HandlerFunction", {
       code,
-      timeout: Duration.seconds(20),
+      timeout: Duration.seconds(props.idpSyncTimeoutSeconds),
+      memorySize: props.idpSyncMemory,
+
       environment: {
         COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
         COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
@@ -49,7 +54,7 @@ export class IdpSync extends Construct {
 
     //add event bridge trigger to lambda
     this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
-      schedule: events.Schedule.cron({ minute: "0/5" }),
+      schedule: events.Schedule.cron({ minute: props.idpSyncSchedule }),
     });
 
     // add the Lambda function as a target for the Event Rule
