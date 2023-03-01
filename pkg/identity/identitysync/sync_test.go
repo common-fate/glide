@@ -556,6 +556,14 @@ func TestIdentitySyncProcessor(t *testing.T) {
 				tc.wantGroupMap[k] = g
 			}
 
+			for _, g := range gotGroups {
+				sort.Strings(g.Users)
+			}
+
+			for _, u := range gotUsers {
+				sort.Strings(u.Groups)
+			}
+
 			assert.Exactly(t, tc.wantUserMap, gotUsers)
 			assert.Exactly(t, tc.wantGroupMap, gotGroups)
 		})
