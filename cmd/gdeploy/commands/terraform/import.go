@@ -3,6 +3,7 @@ package terraform
 import (
 	"bytes"
 	"embed"
+	"fmt"
 	"os"
 	"text/template"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
-	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
 )
 
@@ -69,8 +69,8 @@ var importTerraformCommand = cli.Command{
 			return err
 		}
 		clio.Success("Copied Access Rules to .tf file")
-		clio.Info("Import these rules to your Terraform state, using the following ID's")
-		writeAccessRuleTable(rules)
+		clio.Info("Access rules can be imported to terraform state using the following commands:")
+		writeAccessRuleCommands(rules)
 
 		return nil
 	},
@@ -93,26 +93,14 @@ func WriteAccessRuleToHCL(ar rule.AccessRule) ([]byte, error) {
 	return tpl.Bytes(), nil
 }
 
-func writeAccessRuleTable(ar []rule.AccessRule) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "ID"})
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.SetBorder(false)
+func writeAccessRuleCommands(ar []rule.AccessRule) {
 
 	for _, a := range ar {
+		if a.Metadata.CreatedBy != "bot_governance_api" {
 
-		table.Append([]string{
-			a.Name, a.ID,
-		})
+			fmt.Printf("\n`terraform import commonfate_access_rule.%s %s`\n", a.Name, a.ID)
+		}
 	}
-	table.Render()
 }
 
 var templateString string = `resource "commonfate_access_rule" "{{ .Name }}" {
@@ -125,16 +113,13 @@ var templateString string = `resource "commonfate_access_rule" "{{ .Name }}" {
    {{ range $key, $value := .Target.With}}
 	{
         field="{{$key}}",
-		value="{{$value}}"
+				value="{{$value}}"
 	},
 	{{end}}
-
 	{{ range $key, $value := .Target.WithSelectable}}
 	{
         field="{{$key}}",
-		value=[
-			"{{$value}}"
-		]
+				value=[{{ range $k, $v := $value}}"{{$v}}",{{end}}]
 	},
 	{{end}}
   ]
