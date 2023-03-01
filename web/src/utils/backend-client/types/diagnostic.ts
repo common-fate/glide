@@ -5,9 +5,10 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { LogLevel } from './logLevel';
 
 export interface Diagnostic {
-  level: string;
+  level: LogLevel;
   code: string;
   message: string;
 }

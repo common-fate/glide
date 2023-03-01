@@ -1161,6 +1161,24 @@ paths:
         name: id
         in: path
         required: true
+    delete:
+      summary: ""
+      operationId: admin-delete-handler
+      responses:
+        "204":
+          description: Returns no content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Removes a handler
   /api/v1/admin/handlers:
     get:
       summary: Get handlers
@@ -1220,6 +1238,21 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: admin-get-target-group
+      tags:
+        - Admin
+    delete:
+      summary: delete target group
+      operationId: admin-delete-target-group
+      responses:
+        "204":
+          description: No Content
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: delete target group
       tags:
         - Admin
   /api/v1/admin/target-groups:
@@ -2184,31 +2217,11 @@ components:
         logs:
           type: array
           items:
-            $ref: "#/components/schemas/ProviderSetupDiagnosticLog"
+            $ref: "#/components/schemas/Diagnostic"
       required:
         - id
         - status
         - fieldsValidated
-    ProviderSetupDiagnosticLog:
-      title: ProviderSetupDiagnosticLog
-      x-stoplight:
-        id: 1nm3rev9qez9b
-      type: object
-      description: A log entry related to a provider setup validation.
-      properties:
-        level:
-          type: string
-          description: The log level.
-          enum:
-            - INFO
-            - WARNING
-            - ERROR
-        msg:
-          type: string
-          description: The log message.
-      required:
-        - level
-        - msg
     LookupAccessRule:
       title: LookupAccessRule
       x-stoplight:
@@ -2427,7 +2440,7 @@ components:
       type: object
       properties:
         level:
-          type: string
+          $ref: "#/components/schemas/LogLevel"
         code:
           type: string
         message:
@@ -2436,6 +2449,15 @@ components:
         - level
         - code
         - message
+    LogLevel:
+      title: LogLevel
+      x-stoplight:
+        id: pcykc8l1vd4o2
+      type: string
+      enum:
+        - INFO
+        - WARNING
+        - ERROR
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2910,11 +2932,11 @@ components:
             properties:
               targetSchema:
                 type: string
-              ID:
+              id:
                 type: string
             required:
               - targetSchema
-              - ID
+              - id
     RegisterHandlerRequest:
       content:
         application/json:

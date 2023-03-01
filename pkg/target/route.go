@@ -15,10 +15,19 @@ type Route struct {
 	Diagnostics []Diagnostic `json:"diagnostics" dynamodbav:"diagnostics"`
 }
 
+func (r Route) SetValidity(v bool) Route {
+	r.Valid = v
+	return r
+}
+func (r Route) AddDiagnostic(d Diagnostic) Route {
+	r.Diagnostics = append(r.Diagnostics, d)
+	return r
+}
+
 type Diagnostic struct {
-	Level   string `json:"level" dynamodbav:"level"`
-	Code    string `json:"code" dynamodbav:"code"`
-	Message string `json:"message" dynamodbav:"message"`
+	Level   types.LogLevel `json:"level" dynamodbav:"level"`
+	Code    string         `json:"code" dynamodbav:"code"`
+	Message string         `json:"message" dynamodbav:"message"`
 	// Allows diagnostics to be grouped by an arbitrary key, for use in UI
 	// This can be set in a response from a provider
 	GroupBy *string `json:"groupBy" dynamodbav:"groupBy"`
@@ -30,6 +39,8 @@ func (r *Route) DDBKeys() (ddb.Keys, error) {
 		SK:     keys.TargetRoute.SK1(r.Group, r.Handler, r.Kind),
 		GSI1PK: keys.TargetRoute.GSI1PK(r.Group),
 		GSI1SK: keys.TargetRoute.GSI1SK(r.Valid, r.Priority),
+		GSI2PK: keys.TargetRoute.GSI2PK(r.Handler),
+		GSI2SK: keys.TargetRoute.GSI2SK(r.Group),
 	}
 	return keys, nil
 }

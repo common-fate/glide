@@ -6,7 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateTargetGroupRequestBody = {
-  targetSchema: string;
-  id: string;
-};
+export type AdminDeleteHandler204 = { [key: string]: any };

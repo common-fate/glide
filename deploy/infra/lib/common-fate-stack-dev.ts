@@ -121,7 +121,15 @@ export class CommonFateStackDev extends cdk.Stack {
 
       dynamoTable: db.getTable(),
     });
-
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+        dynamoTable: db.getTable(),
+      }
+    );
     const appBackend = new AppBackend(this, "API", {
       appName: appName,
       userPool: userPool,
@@ -149,17 +157,9 @@ export class CommonFateStackDev extends cdk.Stack {
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds,
       shouldRunCronHealthCheckCacheSync:
         props.shouldRunCronHealthCheckCacheSync || false,
+      targetGroupGranter: targetGroupGranter,
     });
 
-    const targetGroupGranter = new TargetGroupGranter(
-      this,
-      "TargetGroupGranter",
-      {
-        eventBus: events.getEventBus(),
-        eventBusSourceName: events.getEventBusSourceName(),
-        dynamoTable: appBackend.getDynamoTable(),
-      }
-    );
     /* Outputs */
     generateOutputs(this, {
       CognitoClientID: userPool.getUserPoolClientId(),

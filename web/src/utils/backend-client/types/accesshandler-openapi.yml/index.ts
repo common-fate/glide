@@ -18,7 +18,7 @@ export * from './groupOption';
 export * from './groups';
 export * from './healthResponseResponse';
 export * from './log';
-export * from './logLevel';
+export * from './logLevelProperty';
 export * from './option';
 export * from './provider';
 export * from './providerConfigValidation';

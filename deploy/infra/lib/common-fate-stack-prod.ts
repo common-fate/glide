@@ -258,7 +258,15 @@ export class CommonFateStackProd extends cdk.Stack {
       providerConfig: providerConfig.valueAsString,
       dynamoTable: db.getTable(),
     });
-
+    const targetGroupGranter = new TargetGroupGranter(
+      this,
+      "TargetGroupGranter",
+      {
+        eventBus: events.getEventBus(),
+        eventBusSourceName: events.getEventBusSourceName(),
+        dynamoTable: db.getTable(),
+      }
+    );
     const appBackend = new AppBackend(this, "API", {
       appName,
       userPool: userPool,
@@ -282,19 +290,15 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
       kmsKey: kmsKey,
       shouldRunCronHealthCheckCacheSync: true,
+<<<<<<< HEAD
       idpSyncMemory: idpSyncMemory.valueAsNumber,
       idpSyncSchedule: idpSyncSchedule.valueAsString,
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds.valueAsNumber,
+=======
+      targetGroupGranter: targetGroupGranter,
+>>>>>>> main
     });
-    const targetGroupGranter = new TargetGroupGranter(
-      this,
-      "TargetGroupGranter",
-      {
-        eventBus: events.getEventBus(),
-        eventBusSourceName: events.getEventBusSourceName(),
-        dynamoTable: appBackend.getDynamoTable(),
-      }
-    );
+
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
       apiUrl: appBackend.getRestApiURL(),
       cloudfrontDistributionId: appFrontend.getDistributionId(),

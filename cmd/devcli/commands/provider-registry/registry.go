@@ -17,7 +17,9 @@ var Command = cli.Command{
 	Name:        "provider-registry",
 	Description: "Invoke registry apis",
 	Usage:       "Invoke registry apis",
-	Subcommands: []*cli.Command{},
+	Subcommands: []*cli.Command{
+		&ListCommand,
+	},
 }
 
 var ListCommand = cli.Command{

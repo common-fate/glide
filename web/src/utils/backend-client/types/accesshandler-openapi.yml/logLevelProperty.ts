@@ -9,11 +9,11 @@
 /**
  * The log level.
  */
-export type ProviderSetupDiagnosticLogLevel = typeof ProviderSetupDiagnosticLogLevel[keyof typeof ProviderSetupDiagnosticLogLevel];
+export type LogLevelProperty = typeof LogLevelProperty[keyof typeof LogLevelProperty];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ProviderSetupDiagnosticLogLevel = {
+export const LogLevelProperty = {
   INFO: 'INFO',
   WARNING: 'WARNING',
   ERROR: 'ERROR',

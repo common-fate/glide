@@ -65,3 +65,17 @@ func (mr *MockTargetServiceMockRecorder) CreateRoute(arg0, arg1, arg2 interface{
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoute", reflect.TypeOf((*MockTargetService)(nil).CreateRoute), arg0, arg1, arg2)
 }
+
+// DeleteGroup mocks base method.
+func (m *MockTargetService) DeleteGroup(arg0 context.Context, arg1 *target.Group) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockTargetServiceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockTargetService)(nil).DeleteGroup), arg0, arg1)
+}

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/bitfield/script"
 	"github.com/common-fate/common-fate/pkg/deploy"
@@ -32,17 +33,27 @@ func init() {
 		os.Exit(1)
 	}
 	zap.ReplaceGlobals(log)
+	_ = godotenv.Load()
 }
 
 // ldFlags returns the linker flags. These are used to inject the release details into the
 // built binaries.
 func ldFlags() string {
+	flags := []string{}
 	release := os.Getenv("COMMONFATE_RELEASE")
+	apiURL := os.Getenv("COMMONFATE_PROVIDER_REGISTRY_API_URL")
 	if release == "" {
 		release = "dev"
+	} else if apiURL == "" {
+		// commonfate_release will be populated for a production build, using it here to trigger setting teh registry url to the production registry
+		flags = append(flags, `-X 'github.com/common-fate/common-fate/internal/build.ProviderRegistryAPIURL=https://api.registry.commonfate.io'`)
+	} else {
+		// Allows a deve deployment to be configured to use a custom API URL
+		flags = append(flags, fmt.Sprintf(`-X 'github.com/common-fate/common-fate/internal/build.ProviderRegistryAPIURL=%s'`, apiURL))
 	}
 
-	return fmt.Sprintf(`-X 'github.com/common-fate/common-fate/internal/build.Version=%s'`, release)
+	flags = append(flags, fmt.Sprintf(`-X 'github.com/common-fate/common-fate/internal/build.Version=%s'`, release))
+	return strings.Join(flags, " ")
 }
 
 type Deps mg.Namespace

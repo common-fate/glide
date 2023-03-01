@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
 	accessMocks "github.com/common-fate/common-fate/pkg/service/accesssvc/mocks"
-	"github.com/common-fate/common-fate/pkg/service/grantsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbmock"
@@ -28,7 +27,6 @@ func TestAddReview(t *testing.T) {
 		want                    *AddReviewResult
 		wantErr                 error
 		withCreateGrantResponse createGrantResponse
-		wantCreateGrantOpts     grantsvc.CreateGrantOpts
 	}
 
 	clk := clock.NewMock()
@@ -69,11 +67,6 @@ func TestAddReview(t *testing.T) {
 				},
 				Request: access.Request{
 					Status: access.PENDING,
-				},
-			},
-			wantCreateGrantOpts: grantsvc.CreateGrantOpts{
-				Request: access.Request{
-					Status: access.APPROVED,
 				},
 			},
 			withCreateGrantResponse: createGrantResponse{
@@ -117,12 +110,7 @@ func TestAddReview(t *testing.T) {
 				},
 				OverrideTiming: overrideTiming,
 			},
-			wantCreateGrantOpts: grantsvc.CreateGrantOpts{
-				Request: access.Request{
-					Status:         access.APPROVED,
-					OverrideTiming: overrideTiming,
-				},
-			},
+
 			withCreateGrantResponse: createGrantResponse{
 
 				request: &requestWithOverride,
@@ -173,12 +161,6 @@ func TestAddReview(t *testing.T) {
 				ReviewerIsAdmin: true,
 				Request: access.Request{
 					Status:      access.PENDING,
-					RequestedBy: "b",
-				},
-			},
-			wantCreateGrantOpts: grantsvc.CreateGrantOpts{
-				Request: access.Request{
-					Status:      access.APPROVED,
 					RequestedBy: "b",
 				},
 			},

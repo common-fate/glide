@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateTargetGroupDeployment(t *testing.T) {
+func TestCreateHandler(t *testing.T) {
 	type testcase struct {
 		name string
 		// database lookup return object (used to mock ErrTargetGroupDeploymentIdAlreadyExists)
@@ -28,13 +28,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 	}
 
 	testcases := []testcase{
-		{
-			name: "bad aws account number",
-			give: types.RegisterHandlerRequest{
-				AwsAccount: "123_bad_123",
-			},
-			wantErr: ErrInvalidAwsAccountNumber,
-		},
+
 		{
 			name: "existing deployment found",
 			mockGet: &storage.GetHandler{
@@ -64,7 +58,7 @@ func TestCreateTargetGroupDeployment(t *testing.T) {
 				AWSAccount: "123456789012",
 				Diagnostics: []handler.Diagnostic{
 					{
-						Level:   string(types.ProviderSetupDiagnosticLogLevelINFO),
+						Level:   types.LogLevelINFO,
 						Message: "offline: lambda cannot be reached/invoked",
 					},
 				},
