@@ -37,7 +37,6 @@ export type StackOutputs = {
   HealthcheckFunctionName: string;
   HealthcheckLogGroupName: string;
   GranterV2StateMachineArn: string;
-  IdentityGroupFilter: string;
 };
 /**
  * generateOutputs creates a Cloudformation Output for each key-value pair in the type StackOutputs

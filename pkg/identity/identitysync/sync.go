@@ -30,8 +30,8 @@ type IdentitySyncer struct {
 	idpType string
 	// used to prevent concurrent calls to sync
 	// prevents unexpected duplication of users and groups when used asyncronously
-	syncMutex sync.Mutex
-	opts      SyncOpts
+	syncMutex   sync.Mutex
+	groupFilter string
 }
 
 type SyncOpts struct {
@@ -82,10 +82,10 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		return nil, err
 	}
 	return &IdentitySyncer{
-		db:      db,
-		idp:     idp.IdentityProvider,
-		idpType: opts.IdpType,
-		opts:    opts,
+		db:          db,
+		idp:         idp.IdentityProvider,
+		idpType:     opts.IdpType,
+		groupFilter: opts.IdentityGroupFilter,
 	}, nil
 }
 
@@ -162,7 +162,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 
 	*/
-	filter := s.opts.IdentityGroupFilter
+	filter := s.groupFilter
 	useIdpGroupsAsFilter := filter != ""
 
 	if useIdpGroupsAsFilter {
