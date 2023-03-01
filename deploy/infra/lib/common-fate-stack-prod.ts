@@ -141,20 +141,20 @@ export class CommonFateStackProd extends cdk.Stack {
       "IDPSyncTimeoutSeconds",
       {
         type: "Number",
-        description: "Timeout for idp sync lambda",
+        description: "Timeout for IDP Sync Lambda Function",
         default: 30,
       }
     );
 
     const idpSyncSchedule = new CfnParameter(this, "IDPSyncSchedule", {
       type: "String",
-      description: "Cron schedule for idp lambda sync",
+      description: "Cron schedule for IDP Sync Lambda Function",
       default: "0/5",
     });
 
     const idpSyncMemory = new CfnParameter(this, "IDPSyncMemory", {
       type: "Number",
-      description: "Memory amount for idp sync lambda",
+      description: "Memory for IDP Sync Lambda Function",
       default: 128,
     });
 
