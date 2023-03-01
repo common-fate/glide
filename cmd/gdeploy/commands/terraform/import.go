@@ -2,7 +2,6 @@ package terraform
 
 import (
 	"bytes"
-	"embed"
 	"fmt"
 	"os"
 	"text/template"
@@ -14,9 +13,6 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/urfave/cli/v2"
 )
-
-//go:embed templates
-var templateFiles embed.FS
 
 var importTerraformCommand = cli.Command{
 	Name:        "import",
@@ -127,14 +123,3 @@ var templateString string = `resource "commonfate_access_rule" "{{ .Name }}" {
   duration={{ .TimeConstraints.MaxDurationSeconds }}
 }
 `
-
-//  target=[
-//     {
-//       field="accountId"
-//       value=["632700053629"]
-//     },
-//     {
-//       field="permissionSetArn"
-//       value=["arn:aws:sso:::permissionSet/ssoins-825968feece9a0b6/ps-dda57372ebbfeb94"]
-//     }
-//   ]
