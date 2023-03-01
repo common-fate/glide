@@ -16,6 +16,7 @@ interface Props {
   analyticsUrl: string;
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
+  identityGroupFilter: string;
   idpSyncTimeoutSeconds: number;
   idpSyncSchedule: string;
   idpSyncMemory: number;
@@ -45,6 +46,7 @@ export class IdpSync extends Construct {
         CF_ANALYTICS_URL: props.analyticsUrl,
         CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
+        COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "syncer",

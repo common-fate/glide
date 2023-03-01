@@ -80,10 +80,11 @@ func buildHandler() (*Lambda, error) {
 	}
 
 	idsync, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:      cfg.DynamoTable,
-		UserPoolId:     cfg.CognitoUserPoolID,
-		IdpType:        cfg.IdpProvider,
-		IdentityConfig: ic,
+		TableName:           cfg.DynamoTable,
+		UserPoolId:          cfg.CognitoUserPoolID,
+		IdpType:             cfg.IdpProvider,
+		IdentityConfig:      ic,
+		IdentityGroupFilter: cfg.IdentityGroupFilter,
 	})
 	if err != nil {
 		return nil, err

@@ -24,9 +24,10 @@ type Config struct {
 	AccessHandlerExecutionRoleARN string `env:"COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN,required"`
 	RemoteConfigURL               string `env:"COMMONFATE_ACCESS_REMOTE_CONFIG_URL"`
 	RemoteConfigHeaders           string `env:"COMMONFATE_REMOTE_CONFIG_HEADERS"`
-
-	NoAuthEmail     string `env:"NO_AUTH_EMAIL"`
-	StateMachineARN string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
+	// a regex string that is used to filter the identity groups that are returned from the IDP
+	IdentityGroupFilter string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
+	NoAuthEmail         string `env:"NO_AUTH_EMAIL"`
+	StateMachineARN     string `env:"COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"`
 }
 
 type NotificationsConfig struct {
@@ -52,7 +53,8 @@ type SyncConfig struct {
 	LogLevel    string `env:"LOG_LEVEL,default=info"`
 	// This should be an instance of deploy.FeatureMap which is a specific json format for this
 	// Use deploy.UnmarshalFeatureMap to unmarshal this data into a FeatureMap
-	IdentitySettings string `env:"COMMONFATE_IDENTITY_SETTINGS,default={}"`
+	IdentitySettings    string `env:"COMMONFATE_IDENTITY_SETTINGS,default={}"`
+	IdentityGroupFilter string `env:"COMMONFATE_IDENTITY_GROUP_FILTER"`
 }
 type CacheSyncConfig struct {
 	TableName        string `env:"COMMONFATE_TABLE_NAME,required"`

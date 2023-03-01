@@ -370,6 +370,7 @@ func Dotenv() error {
 	myEnv["COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN"] = o.AccessHandlerExecutionRoleARN
 	myEnv["COMMONFATE_ACCESS_REMOTE_CONFIG_URL"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigURL
 	myEnv["COMMONFATE_REMOTE_CONFIG_HEADERS"] = cfg.Deployment.Parameters.ExperimentalRemoteConfigHeaders
+	myEnv["COMMONFATE_IDENTITY_GROUP_FILTER"] = cfg.Deployment.Parameters.IdentityGroupFilter
 	myEnv["COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN"] = o.GranterV2StateMachineArn
 
 	err = godotenv.Write(myEnv, ".env")

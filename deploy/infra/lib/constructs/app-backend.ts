@@ -46,6 +46,7 @@ interface Props {
   idpSyncSchedule: string;
   idpSyncMemory: number;
   targetGroupGranter: TargetGroupGranter;
+  identityGroupFilter: string;
 }
 
 export class AppBackend extends Construct {
@@ -137,6 +138,7 @@ export class AppBackend extends Construct {
         CF_ANALYTICS_URL: props.analyticsUrl,
         CF_ANALYTICS_LOG_LEVEL: props.analyticsLogLevel,
         CF_ANALYTICS_DEPLOYMENT_STAGE: props.analyticsDeploymentStage,
+        COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "commonfate",
@@ -323,6 +325,7 @@ export class AppBackend extends Construct {
       analyticsDeploymentStage: props.analyticsDeploymentStage,
       analyticsDisabled: props.analyticsDisabled,
       analyticsUrl: props.analyticsUrl,
+      identityGroupFilter: props.identityGroupFilter,
       idpSyncMemory: props.idpSyncMemory,
       idpSyncSchedule: props.idpSyncSchedule,
       idpSyncTimeoutSeconds: props.idpSyncTimeoutSeconds,
@@ -331,6 +334,7 @@ export class AppBackend extends Construct {
       dynamoTable: this._dynamoTable,
       accessHandler: props.accessHandler,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
+      identityGroupFilter: props.identityGroupFilter,
     });
     this._healthChecker = new HealthChecker(this, "HealthCheck", {
       dynamoTable: this._dynamoTable,

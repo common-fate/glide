@@ -44,6 +44,7 @@ const idpSyncTimeoutSeconds = parseInt(
 const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
+const identityGroupFilter = app.node.tryGetContext("identityGroupFilter");
 
 let shouldRunCronHealthCheckCacheSync = app.node.tryGetContext(
   "enableCronHealthCheck"
@@ -101,6 +102,7 @@ if (stackTarget === "dev") {
     analyticsDeploymentStage: analyticsDeploymentStage || "",
     shouldRunCronHealthCheckCacheSync:
       shouldRunCronHealthCheckCacheSync || false,
+    identityGroupFilter: identityGroupFilter || "",
     idpSyncMemory: idpSyncMemory || 128,
     idpSyncSchedule: idpSyncSchedule || "0/5",
     idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,
