@@ -23,7 +23,7 @@ func TestValidateProviderSchema(t *testing.T) {
 		valid_want bool
 	}
 	a := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: aws.String("abc")}}
-	b := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: aws.String("abc")}}
+	b := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: aws.String("efg")}}
 	c := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: nil}}
 	testcases := []testcase{
 		{name: "identical-valid", schema1: a, schema2: a, valid_want: true},
