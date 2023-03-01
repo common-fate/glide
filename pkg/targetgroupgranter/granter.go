@@ -6,11 +6,12 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
 
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/pdk"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/pkg/errors"
@@ -58,7 +59,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	if err != nil {
 		return Output{}, err
 	}
-	runtime, err := pdk.GetRuntime(ctx, *deployment)
+	runtime, err := handler.GetRuntime(ctx, *deployment)
 	if err != nil {
 		return Output{}, err
 	}
@@ -78,7 +79,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
 				}
 			}()
-			return runtime.Grant(ctx, string(in.Grant.Subject), pdk.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
+			return runtime.Grant(ctx, string(in.Grant.Subject), handlerruntime.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
 		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
@@ -89,7 +90,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
 				}
 			}()
-			return runtime.Revoke(ctx, string(in.Grant.Subject), pdk.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
+			return runtime.Revoke(ctx, string(in.Grant.Subject), handlerruntime.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
 		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)

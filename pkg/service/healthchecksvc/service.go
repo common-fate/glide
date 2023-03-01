@@ -7,7 +7,6 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/handler"
-	"github.com/common-fate/common-fate/pkg/pdk"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -90,7 +89,7 @@ func (s *Service) Check(ctx context.Context) error {
 		h.Diagnostics = []handler.Diagnostic{}
 
 		// get the lambda runtime
-		runtime, err := pdk.GetRuntime(ctx, h)
+		runtime, err := handler.GetRuntime(ctx, h)
 		if err != nil {
 			h.Healthy = false
 			log.Warnf("Error getting lambda runtime: %s", h.ID)
@@ -115,32 +114,15 @@ func (s *Service) Check(ctx context.Context) error {
 			continue
 		}
 
-		/**
-		What we have here:
-		- healthy response that defaults to any error
-		- every config validation diagnostic stacked onto the one deploymentItem.Diagnostics field
-
-		What we probably want:
-		- an improved deploymentItem.Diagnostics field that is a map data type??
-		- break this down in the future
-		*/
-
-		// if there is an unhealthy config validation, then the deployment is unhealthy
-		healthy := true
-		for _, diagnostic := range describeRes.ConfigValidation.AdditionalProperties {
-			for _, d := range diagnostic.Logs {
-				h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
-					Level:   types.LogLevel(d.Level),
-					Message: d.Msg,
-				})
-			}
-			if !diagnostic.Success {
-				healthy = false
-			}
+		for _, diagnostic := range describeRes.Diagnostics {
+			h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
+				Level:   types.LogLevel(diagnostic.Level),
+				Message: diagnostic.Msg,
+			})
 		}
 
 		h.ProviderDescription = describeRes
-		h.Healthy = healthy
+		h.Healthy = describeRes.Healthy
 
 		for _, handlerRoute := range handlerRoutes[h.ID] {
 			route := handlerRoute.route

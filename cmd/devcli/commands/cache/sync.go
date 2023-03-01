@@ -7,7 +7,7 @@ import (
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/pdk"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/ddb"
@@ -51,7 +51,7 @@ var syncCommand = cli.Command{
 			if len(kv) != 2 {
 				return errors.New("deployment-mapping is invalid")
 			}
-			pdk.LocalDeploymentMap[kv[0]] = kv[1]
+			handler.LocalDeploymentMap[kv[0]] = kv[1]
 		}
 
 		// this configuration means the pdk will use the local test runtime instead of calling out to lambda

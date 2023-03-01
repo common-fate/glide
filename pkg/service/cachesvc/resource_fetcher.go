@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/common-fate/common-fate/pkg/cache"
-	"github.com/common-fate/common-fate/pkg/pdk"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -17,10 +17,10 @@ type ResourceFetcher struct {
 	resources     map[string]cache.TargateGroupResource
 	targetGroupID string
 	eg            *errgroup.Group
-	runtime       pdk.ProviderRuntime
+	runtime       handlerruntime.Runtime
 }
 
-func NewResourceFetcher(targetGroupID string, runtime pdk.ProviderRuntime) *ResourceFetcher {
+func NewResourceFetcher(targetGroupID string, runtime handlerruntime.Runtime) *ResourceFetcher {
 	return &ResourceFetcher{
 		targetGroupID: targetGroupID,
 		runtime:       runtime,
@@ -63,7 +63,7 @@ func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([
 
 // Recursively call the provider lambda handler unless there is no further pending tasks.
 // the response Resource is then appended to `rf.resources` for batch DB update later on.
-func (rf *ResourceFetcher) getResources(ctx context.Context, response pdk.LoadResourceResponse) error {
+func (rf *ResourceFetcher) getResources(ctx context.Context, response handlerruntime.LoadResourceResponse) error {
 	if len(response.PendingTasks) == 0 || len(response.Resources) > 0 {
 
 		rf.resourcesMx.Lock()

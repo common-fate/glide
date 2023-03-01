@@ -1,13 +1,24 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
+
+// make of deploymentID to relative path
+// example: ../../testvault-provider/provider
+var LocalDeploymentMap map[string]string
+
+func init() {
+	LocalDeploymentMap = make(map[string]string)
+}
 
 // represents a lambda TargetGroupDeployment
 type Handler struct {
@@ -57,4 +68,25 @@ func (h *Handler) ToAPI() types.TGHandler {
 		Runtime:     h.Runtime,
 	}
 	return res
+}
+
+func GetRuntime(ctx context.Context, handler Handler) (handlerruntime.Runtime, error) {
+	log := logger.Get(ctx)
+	var pr handlerruntime.Runtime
+	path, ok := LocalDeploymentMap[handler.ID]
+	if ok {
+		log.Debugw("found local runtime configuration for deployment", "deployment", handler, "path", path)
+		pr = handlerruntime.Local{
+			Path: path,
+		}
+
+	} else {
+		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", handler)
+		p, err := handlerruntime.NewLambdaRuntime(ctx, handler.FunctionARN())
+		if err != nil {
+			return nil, err
+		}
+		pr = p
+	}
+	return pr, nil
 }

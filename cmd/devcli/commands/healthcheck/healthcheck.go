@@ -17,7 +17,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/pdk"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -62,7 +62,7 @@ var LocalCommand = cli.Command{
 			if len(kv) != 2 {
 				return errors.New("deployment-mapping is invalid")
 			}
-			pdk.LocalDeploymentMap[kv[0]] = kv[1]
+			handler.LocalDeploymentMap[kv[0]] = kv[1]
 		}
 
 		hc := healthchecksvc.Service{

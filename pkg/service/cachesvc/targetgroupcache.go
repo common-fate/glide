@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/common-fate/common-fate/pkg/cache"
-	"github.com/common-fate/common-fate/pkg/pdk"
+	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
@@ -89,7 +89,7 @@ func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.
 		tasks = append(tasks, k)
 	}
 
-	runtime, err := pdk.GetRuntime(ctx, *deployment)
+	runtime, err := handler.GetRuntime(ctx, *deployment)
 	if err != nil {
 		return nil, err
 	}
