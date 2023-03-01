@@ -1,6 +1,9 @@
 name: Preview
 
 on:
+  push:
+    branches:
+      - release/**
   pull_request:
 
 jobs:
