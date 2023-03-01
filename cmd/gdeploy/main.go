@@ -15,6 +15,7 @@ import (
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/provider"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/release"
 	"github.com/common-fate/common-fate/cmd/gdeploy/commands/restore"
+	"github.com/common-fate/common-fate/cmd/gdeploy/commands/terraform"
 	mw "github.com/common-fate/common-fate/cmd/gdeploy/middleware"
 	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/internal/build"
@@ -58,6 +59,7 @@ func main() {
 			mw.WithBeforeFuncs(&provider.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&notifications.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&dashboard.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
+			mw.WithBeforeFuncs(&terraform.Command, mw.RequireDeploymentConfig(), mw.VerifyGDeployCompatibility(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&cache.Command, mw.RequireDeploymentConfig(), mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&commands.InitCommand, mw.RequireAWSCredentials()),
 			mw.WithBeforeFuncs(&release.Command, mw.RequireDeploymentConfig()),
