@@ -1,6 +1,7 @@
 package identitysync
 
 import (
+	"sort"
 	"testing"
 	"time"
 
@@ -13,14 +14,15 @@ import (
 func TestIdentitySyncProcessor(t *testing.T) {
 
 	type testcase struct {
-		name               string
-		giveIdpUsers       []identity.IDPUser
-		giveIdpGroups      []identity.IDPGroup
-		giveInternalUsers  []identity.User
-		giveInternalGroups []identity.Group
-		wantUserMap        map[string]identity.User
-		wantGroupMap       map[string]identity.Group
-		withIdpType        string
+		name                 string
+		giveIdpUsers         []identity.IDPUser
+		giveIdpGroups        []identity.IDPGroup
+		giveInternalUsers    []identity.User
+		giveInternalGroups   []identity.Group
+		wantUserMap          map[string]identity.User
+		wantGroupMap         map[string]identity.Group
+		withIdpType          string
+		useIdpGroupsAsFilter bool
 	}
 	now := time.Now()
 	testcases := []testcase{
@@ -317,15 +319,215 @@ func TestIdentitySyncProcessor(t *testing.T) {
 				},
 			},
 		},
+		{
+			/*
+				groups
+				{name: "admins", id: "1"}
+				{name: "dev_ops", id: "2"}
+
+				users
+				{name: "bob", id: "1", groups: ["1", "2"]}  // grant access
+				{name: "alice", id: "2", groups: ["3"]}	// deny access
+				{name: "joe", id: "3", groups: ["1", "3"]} // grant access
+
+				{{{ POST processUsersAndGroups }}}
+
+				groups
+				{name: "admins", id: "1"}
+				{name: "dev_ops", id: "2"}
+
+				users
+				{name: "bob", id: "1", groups: ["1", "2"]}  // grant access
+				{name: "joe", id: "3", groups: ["1"]} // grant access
+
+			*/
+			name: "user with non-existent group",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+						"dev_ops",
+					},
+				},
+				{
+					ID:        "user2",
+					FirstName: "alice",
+					Email:     "alice@mail.com",
+					Groups: []string{
+						"accounting-ie-not-included-filtered-groups",
+					},
+				},
+				{
+					ID:        "user3",
+					FirstName: "joe",
+					Email:     "joe@mail.com",
+					Groups: []string{
+						"admins",
+						"accounting-ie-not-included-filtered-groups",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "admins",
+					Name:        "everyone",
+					Description: "a description",
+				},
+				{
+					ID:          "dev_ops",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Status:    types.IdpStatusACTIVE,
+				},
+				{
+					ID:        "user3",
+					FirstName: "joe",
+					Email:     "joe@mail.com",
+					Status:    types.IdpStatusACTIVE,
+				},
+			},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+				{
+					ID:          "dev_ops",
+					IdpID:       "dev_ops",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+			},
+			wantUserMap: map[string]identity.User{
+				"bob@mail.com": {
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+						"dev_ops",
+					},
+					Status: types.IdpStatusACTIVE,
+				},
+				"joe@mail.com": {
+					ID:        "user3",
+					FirstName: "joe",
+					Email:     "joe@mail.com",
+					Groups:    []string{"admins"},
+					Status:    types.IdpStatusACTIVE,
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"admins": {
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users: []string{
+						"user1",
+						"user3",
+					},
+				},
+				"dev_ops": {
+					ID:          "dev_ops",
+					IdpID:       "dev_ops",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users: []string{
+						"user1",
+					},
+				},
+			},
+			useIdpGroupsAsFilter: true,
+		},
+		{
+			name: "user must be updated it ACTIVE if present in IDP, but archived internally",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "admins",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Status:    types.IdpStatusARCHIVED,
+				},
+			},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+			},
+			wantUserMap: map[string]identity.User{
+				"bob@mail.com": {
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+					},
+					Status: types.IdpStatusACTIVE,
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"admins": {
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users: []string{
+						"user1",
+					},
+				},
+			},
+			useIdpGroupsAsFilter: true,
+		},
 	}
 	for _, tc := range testcases {
+
 		t.Run(tc.name, func(t *testing.T) {
-			gotUsers, gotGroups := processUsersAndGroups(tc.withIdpType, tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups)
+			gotUsers, gotGroups := processUsersAndGroups(tc.withIdpType, tc.giveIdpUsers, tc.giveIdpGroups, tc.giveInternalUsers, tc.giveInternalGroups, tc.useIdpGroupsAsFilter)
 			for k, u := range tc.wantUserMap {
 				got := gotUsers[k]
 				u.ID = got.ID
 				if u.Groups == nil {
 					u.Groups = got.Groups
+					sort.Strings(u.Groups)
 				}
 				if u.CreatedAt.IsZero() {
 					u.CreatedAt = got.CreatedAt
@@ -348,8 +550,18 @@ func TestIdentitySyncProcessor(t *testing.T) {
 				}
 				if g.Users == nil {
 					g.Users = got.Users
+					// sort got.Users
+					sort.Strings(g.Users)
 				}
 				tc.wantGroupMap[k] = g
+			}
+
+			for _, g := range gotGroups {
+				sort.Strings(g.Users)
+			}
+
+			for _, u := range gotUsers {
+				sort.Strings(u.Groups)
 			}
 
 			assert.Exactly(t, tc.wantUserMap, gotUsers)

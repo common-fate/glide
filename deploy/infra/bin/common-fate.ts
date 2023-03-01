@@ -44,6 +44,7 @@ const idpSyncTimeoutSeconds = parseInt(
 const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
+const identityGroupFilter = app.node.tryGetContext("identityGroupFilter");
 
 // https://github.com/aws/aws-cdk/issues/11625
 // cdk processes both stacks event if you specify only one
@@ -89,6 +90,7 @@ if (stackTarget === "dev") {
     analyticsUrl: analyticsUrl || "",
     analyticsLogLevel: analyticsLogLevel || "",
     analyticsDeploymentStage: analyticsDeploymentStage || "",
+    identityGroupFilter: identityGroupFilter || "",
     idpSyncMemory: idpSyncMemory || 128,
     idpSyncSchedule: idpSyncSchedule || "0/5",
     idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,

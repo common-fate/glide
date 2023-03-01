@@ -29,10 +29,11 @@ func main() {
 	}
 	//set up the sync handler
 	syncer, err := identitysync.NewIdentitySyncer(ctx, identitysync.SyncOpts{
-		TableName:      cfg.TableName,
-		IdpType:        cfg.IdpProvider,
-		UserPoolId:     cfg.UserPoolId,
-		IdentityConfig: ic,
+		TableName:           cfg.TableName,
+		IdpType:             cfg.IdpProvider,
+		UserPoolId:          cfg.UserPoolId,
+		IdentityConfig:      ic,
+		IdentityGroupFilter: cfg.IdentityGroupFilter,
 	})
 	if err != nil {
 		panic(err)
