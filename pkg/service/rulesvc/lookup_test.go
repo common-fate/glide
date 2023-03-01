@@ -2,9 +2,11 @@ package rulesvc
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -18,6 +20,9 @@ func TestService_LookupRule(t *testing.T) {
 	rule1AccountID := "123456789012"
 	rule1PermissionSetARN := "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341"
 
+	// fill with "G1", "G2"
+	groups := []string{"g1"}
+
 	rule1 := rule.AccessRule{
 		ID: "test",
 		Target: rule.Target{
@@ -28,6 +33,7 @@ func TestService_LookupRule(t *testing.T) {
 				"permissionSetArn": rule1PermissionSetARN,
 			},
 		},
+		Groups: groups,
 	}
 
 	tests := []struct {
@@ -48,6 +54,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -67,6 +76,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: []LookedUpRule{
@@ -89,6 +101,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": rule1PermissionSetARN,
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -104,6 +117,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: []LookedUpRule{
@@ -121,6 +137,7 @@ func TestService_LookupRule(t *testing.T) {
 								"permissionSetArn": rule1PermissionSetARN,
 							},
 						},
+						Groups: rule1.Groups,
 					},
 				},
 			},
@@ -143,6 +160,9 @@ func TestService_LookupRule(t *testing.T) {
 					// doesn't match the existing rules we have
 					RoleName: "NoMatch",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -164,6 +184,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -180,6 +203,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": {rule1PermissionSetARN, "something else"},
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -196,6 +220,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: []LookedUpRule{
 				{
@@ -209,6 +236,7 @@ func TestService_LookupRule(t *testing.T) {
 								"permissionSetArn": {rule1PermissionSetARN, "something else"},
 							},
 						},
+						Groups: rule1.Groups,
 					},
 					SelectableWithOptionValues: []types.KeyValue{
 						{
@@ -237,6 +265,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": {rule1PermissionSetARN, "something else"},
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -252,6 +281,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: []LookedUpRule{
@@ -269,6 +301,7 @@ func TestService_LookupRule(t *testing.T) {
 								"permissionSetArn": {rule1PermissionSetARN, "something else"},
 							},
 						},
+						Groups: rule1.Groups,
 					},
 					SelectableWithOptionValues: []types.KeyValue{
 						{
@@ -296,6 +329,7 @@ func TestService_LookupRule(t *testing.T) {
 							"permissionSetArn": rule1PermissionSetARN,
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -312,6 +346,9 @@ func TestService_LookupRule(t *testing.T) {
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
 				},
+				User: identity.User{
+					Groups: rule1.Groups,
+				},
 			},
 			want: nil,
 		},
@@ -323,6 +360,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			want: nil,
@@ -344,6 +384,7 @@ func TestService_LookupRule(t *testing.T) {
 							},
 						},
 					},
+					Groups: rule1.Groups,
 				},
 			},
 			providerOptions: []cache.ProviderOption{
@@ -359,6 +400,9 @@ func TestService_LookupRule(t *testing.T) {
 				Fields: LookupFields{
 					AccountID: rule1AccountID,
 					RoleName:  "GrantedAdministratorAccess",
+				},
+				User: identity.User{
+					Groups: rule1.Groups,
 				},
 			},
 			providerArgGroupOption: &cache.ProviderArgGroupOption{
@@ -384,6 +428,7 @@ func TestService_LookupRule(t *testing.T) {
 								},
 							},
 						},
+						Groups: rule1.Groups,
 					},
 				},
 			},
@@ -392,7 +437,7 @@ func TestService_LookupRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := ddbmock.New(t)
-			db.MockQuery(&storage.ListAccessRulesForGroupsAndStatus{Result: tt.rules})
+			db.MockQuery(&storage.ListAccessRulesForStatus{Result: tt.rules})
 			db.MockQuery(&storage.ListCachedProviderOptionsForArg{Result: tt.providerOptions})
 			db.MockQuery(&storage.GetCachedProviderArgGroupOptionValueForArg{Result: tt.providerArgGroupOption})
 
@@ -405,6 +450,71 @@ func TestService_LookupRule(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_FilterRulesByGroupMap(t *testing.T) {
+	type args struct {
+		groups []string
+		rules  []rule.AccessRule
+	}
+	tests := []struct {
+		name string
+		args args
+		want []rule.AccessRule
+	}{
+		{
+			name: "no groups",
+			args: args{groups: []string{}},
+			want: []rule.AccessRule{},
+		},
+		{
+			name: "no rules",
+			args: args{groups: []string{"group1"}},
+			want: []rule.AccessRule{},
+		},
+		{
+			name: "no matches",
+			args: args{
+				groups: []string{"group1"},
+				rules: []rule.AccessRule{
+					{
+						ID:     "rule1",
+						Target: rule.Target{},
+						Groups: []string{"group2"},
+					},
+				},
+			},
+			want: []rule.AccessRule{},
+		},
+		{
+			name: "match",
+			args: args{
+				groups: []string{"group2"},
+				rules: []rule.AccessRule{
+					{
+						ID:     "rule1",
+						Target: rule.Target{},
+						Groups: []string{"group2"},
+					},
+				},
+			},
+			want: []rule.AccessRule{
+				{
+					ID:     "rule1",
+					Target: rule.Target{},
+					Groups: []string{"group2"},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FilterRulesByGroupMap(tt.args.groups, tt.args.rules); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("filterRulesByGroupMap() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }
