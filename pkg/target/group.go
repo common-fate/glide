@@ -44,14 +44,17 @@ func (r *GroupTargetSchema) ToAPI() types.TargetGroupTargetSchema {
 	}
 
 	for grsI, grs := range r.Schema.AdditionalProperties {
-		resp.Schema.AdditionalProperties[grsI] = types.TargetArgument{
+		ta := types.TargetArgument{
 			Id:          grs.Id,
 			Description: &grs.Id,
-			// Groups:      grs.Groups,
-			Title:              grs.Title,
-			RequestFormElement: types.TargetArgumentRequestFormElement(grs.RequestFormElement),
-			RuleFormElement:    types.TargetArgumentRuleFormElement(grs.RuleFormElement),
+			Title:       grs.Title,
 		}
+		// if the argument is for a resource that means i should be selected from options
+		// it if is a string argument, resource name is nil meaning it is an input
+		if grs.ResourceName != nil {
+			ta.RuleFormElement = types.TargetArgumentRuleFormElementMULTISELECT
+		}
+		resp.Schema.AdditionalProperties[grsI] = ta
 	}
 	return resp
 }
