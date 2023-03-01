@@ -42,13 +42,10 @@ interface Props {
   apiGatewayWafAclArn: string;
   kmsKey: cdk.aws_kms.Key;
   shouldRunCronHealthCheckCacheSync: boolean;
-<<<<<<< HEAD
   idpSyncTimeoutSeconds: number;
   idpSyncSchedule: string;
   idpSyncMemory: number;
-=======
   targetGroupGranter: TargetGroupGranter;
->>>>>>> main
 }
 
 export class AppBackend extends Construct {
