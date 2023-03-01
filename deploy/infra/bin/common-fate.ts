@@ -39,6 +39,7 @@ const analyticsLogLevel = app.node.tryGetContext("analyticsLogLevel");
 const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
+const identityGroupFilter = app.node.tryGetContext("identityGroupFilter");
 
 let shouldRunCronHealthCheckCacheSync = app.node.tryGetContext(
   "enableCronHealthCheck"
@@ -96,6 +97,7 @@ if (stackTarget === "dev") {
     analyticsDeploymentStage: analyticsDeploymentStage || "",
     shouldRunCronHealthCheckCacheSync:
       shouldRunCronHealthCheckCacheSync || false,
+    identityGroupFilter: identityGroupFilter || "",
   });
 } else if (stackTarget === "prod") {
   new CommonFateStackProd(app, "Granted", {

@@ -167,6 +167,7 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 
 	if useIdpGroupsAsFilter {
 		// overwrite the existing groups with the filtered groups
+		log.Infow("filtering groups", "filter", filter)
 		idpGroups, err = FilterGroups(idpGroups, filter)
 		if err != nil {
 			return err

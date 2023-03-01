@@ -13,6 +13,7 @@ interface Props {
   dynamoTable: Table;
   accessHandler: AccessHandler;
   shouldRunAsCron: boolean;
+  identityGroupFilter: string;
 }
 
 export class CacheSync extends Construct {
@@ -31,6 +32,7 @@ export class CacheSync extends Construct {
       environment: {
         COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
         COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
+        COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "cache-sync",

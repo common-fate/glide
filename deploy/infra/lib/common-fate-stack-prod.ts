@@ -122,6 +122,13 @@ export class CommonFateStackProd extends cdk.Stack {
       }
     );
 
+    const identityGroupFilter = new CfnParameter(this, "IdentityGroupFilter", {
+      type: "String",
+      description:
+        "If provided, only groups matching this filter will be synced to the Common Fate database.",
+      default: "",
+    });
+
     const remoteConfigHeaders = new CfnParameter(
       this,
       "ExperimentalRemoteConfigHeaders",
@@ -265,6 +272,7 @@ export class CommonFateStackProd extends cdk.Stack {
       kmsKey: kmsKey,
       shouldRunCronHealthCheckCacheSync: true,
       targetGroupGranter: targetGroupGranter,
+      identityGroupFilter: identityGroupFilter.toString(),
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {

@@ -35,6 +35,7 @@ interface Props extends cdk.StackProps {
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
   shouldRunCronHealthCheckCacheSync: boolean;
+  identityGroupFilter: string;
 }
 
 export class CommonFateStackDev extends cdk.Stack {
@@ -59,6 +60,7 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsUrl,
       analyticsLogLevel,
       analyticsDeploymentStage,
+      identityGroupFilter,
     } = props;
     const appName = `common-fate-${stage}`;
 
@@ -149,6 +151,7 @@ export class CommonFateStackDev extends cdk.Stack {
       shouldRunCronHealthCheckCacheSync:
         props.shouldRunCronHealthCheckCacheSync || false,
       targetGroupGranter: targetGroupGranter,
+      identityGroupFilter,
     });
 
     /* Outputs */
