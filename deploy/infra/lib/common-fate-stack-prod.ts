@@ -290,13 +290,10 @@ export class CommonFateStackProd extends cdk.Stack {
       analyticsDeploymentStage: analyticsDeploymentStage.valueAsString,
       kmsKey: kmsKey,
       shouldRunCronHealthCheckCacheSync: true,
-<<<<<<< HEAD
       idpSyncMemory: idpSyncMemory.valueAsNumber,
       idpSyncSchedule: idpSyncSchedule.valueAsString,
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds.valueAsNumber,
-=======
       targetGroupGranter: targetGroupGranter,
->>>>>>> main
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
