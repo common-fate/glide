@@ -195,6 +195,7 @@ export class CommonFateStackDev extends cdk.Stack {
       HealthcheckFunctionName: appBackend.getHealthChecker().getFunctionName(),
       HealthcheckLogGroupName: appBackend.getHealthChecker().getLogGroupName(),
       GranterV2StateMachineArn: targetGroupGranter.getStateMachineARN(),
+      IdentityGroupFilter: identityGroupFilter,
     });
   }
 }
