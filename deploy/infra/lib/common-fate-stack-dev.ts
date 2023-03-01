@@ -33,6 +33,7 @@ interface Props extends cdk.StackProps {
   analyticsUrl: string;
   analyticsLogLevel: string;
   analyticsDeploymentStage: string;
+  identityGroupFilter: string;
   idpSyncTimeoutSeconds: number;
   idpSyncSchedule: string;
   idpSyncMemory: number;
@@ -60,6 +61,7 @@ export class CommonFateStackDev extends cdk.Stack {
       analyticsUrl,
       analyticsLogLevel,
       analyticsDeploymentStage,
+      identityGroupFilter,
       idpSyncTimeoutSeconds,
       idpSyncSchedule,
       idpSyncMemory,
@@ -145,6 +147,7 @@ export class CommonFateStackDev extends cdk.Stack {
       idpSyncMemory: idpSyncMemory,
       idpSyncSchedule: idpSyncSchedule,
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds,
+      identityGroupFilter,
     });
     /* Outputs */
     generateOutputs(this, {

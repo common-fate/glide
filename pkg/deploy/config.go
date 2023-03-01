@@ -182,6 +182,7 @@ type Parameters struct {
 	AnalyticsURL                    string         `yaml:"AnalyticsURL,omitempty"`
 	AnalyticsLogLevel               string         `yaml:"AnalyticsLogLevel,omitempty"`
 	AnalyticsDeploymentStage        string         `yaml:"AnalyticsDeploymentStage,omitempty"`
+	IdentityGroupFilter             string         `yaml:"IdentityGroupFilter,omitempty"`
 	IDPSyncTimeoutSeconds           string         `yaml:"IDPSyncTimeoutSeconds,omitempty"`
 	IDPSyncSchedule                 string         `yaml:"IDPSyncSchedule,omitempty"`
 	IDPSyncMemory                   string         `yaml:"IDPSyncMemory,omitempty"`

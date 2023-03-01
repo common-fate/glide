@@ -61,6 +61,9 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.SamlSSOMetadataURL != "" {
 		args = append(args, "-c", fmt.Sprintf("samlMetadataUrl=%s", string(c.Deployment.Parameters.SamlSSOMetadataURL)))
 	}
+	if c.Deployment.Parameters.IdentityGroupFilter != "" {
+		args = append(args, "-c", fmt.Sprintf("identityGroupFilter=%s", string(c.Deployment.Parameters.IdentityGroupFilter)))
+	}
 	if c.Deployment.Parameters.CloudfrontWAFACLARN != "" {
 		args = append(args, "-c", fmt.Sprintf("cloudfrontWafAclArn=%s", string(c.Deployment.Parameters.CloudfrontWAFACLARN)))
 	}
