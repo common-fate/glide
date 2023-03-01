@@ -75,8 +75,9 @@ type Deployment struct {
 	// Note that the S3 bucket must be in the same region as the 'Region' parameter.
 	Release string `yaml:"release"`
 	// Dev is set to true for internal development deployments only.
-	Dev        *bool      `yaml:"dev,omitempty"`
-	Parameters Parameters `yaml:"parameters"`
+	Dev        *bool             `yaml:"dev,omitempty"`
+	Parameters Parameters        `yaml:"parameters"`
+	Tags       map[string]string `yaml:"tags,omitempty"`
 }
 
 type ProviderMap map[string]Provider
