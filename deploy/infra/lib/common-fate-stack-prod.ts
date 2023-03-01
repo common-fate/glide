@@ -301,7 +301,7 @@ export class CommonFateStackProd extends cdk.Stack {
       idpSyncSchedule: idpSyncSchedule.valueAsString,
       idpSyncTimeoutSeconds: idpSyncTimeoutSeconds.valueAsNumber,
       targetGroupGranter: targetGroupGranter,
-      identityGroupFilter: identityGroupFilter.toString(),
+      identityGroupFilter: identityGroupFilter.valueAsString,
     });
 
     new ProductionFrontendDeployer(this, "FrontendDeployer", {
