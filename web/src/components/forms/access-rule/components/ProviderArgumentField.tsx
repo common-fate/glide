@@ -92,7 +92,9 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
   argument,
   providerId,
 }) => {
-  const { formState, watch } = useFormContext<AccessRuleFormData>();
+  const { formState, watch, clearErrors } =
+    useFormContext<AccessRuleFormData>();
+
   const { data: argOptions } = useAdminListProviderArgOptions(
     providerId,
     argument.id
@@ -236,6 +238,9 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
             options={argOptions?.options || []}
             shouldAddSelectAllOption={true}
             id="providerArgumentField"
+            onBlurSecondaryAction={() => {
+              clearErrors("target.multiSelects");
+            }}
           />
           <RefreshButton argId={argument.id} providerId={providerId} mx={20} />
         </HStack>
@@ -302,6 +307,9 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
                         fieldName={`target.argumentGroups.${argument.id}.${group.id}`}
                         options={argOptions.groups[group.id] || []}
                         shouldAddSelectAllOption={true}
+                        onBlurSecondaryAction={() => {
+                          clearErrors(`target.argumentGroups`);
+                        }}
                       />
                     </HStack>
                   </>
