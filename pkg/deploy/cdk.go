@@ -82,6 +82,15 @@ func (c Config) CDKContextArgs() []string {
 	if c.Deployment.Parameters.EnableCronHealthCheckInDev != "" {
 		args = append(args, "-c", fmt.Sprintf("enableCronHealthCheckInDev=%s", string(c.Deployment.Parameters.EnableCronHealthCheckInDev)))
 	}
+	if c.Deployment.Parameters.IDPSyncMemory != "" {
+		args = append(args, "-c", fmt.Sprintf("idpSyncMemory=%s", string(c.Deployment.Parameters.IDPSyncMemory)))
+	}
+	if c.Deployment.Parameters.IDPSyncSchedule != "" {
+		args = append(args, "-c", fmt.Sprintf("idpSyncSchedule=%s", string(c.Deployment.Parameters.IDPSyncSchedule)))
+	}
+	if c.Deployment.Parameters.IDPSyncTimeoutSeconds != "" {
+		args = append(args, "-c", fmt.Sprintf("idpSyncTimeoutSeconds=%s", string(c.Deployment.Parameters.IDPSyncTimeoutSeconds)))
+	}
 
 	// CDK deploys always use the dev analytics endpoint and debug mode
 	args = append(args, "-c", "analyticsUrl=https://t-dev.commonfate.io")

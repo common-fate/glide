@@ -36,6 +36,11 @@ const cloudfrontWafAclArn = app.node.tryGetContext("cloudfrontWafAclArn");
 const analyticsDisabled = app.node.tryGetContext("analyticsDisabled");
 const analyticsUrl = app.node.tryGetContext("analyticsUrl");
 const analyticsLogLevel = app.node.tryGetContext("analyticsLogLevel");
+const idpSyncMemory = parseInt(app.node.tryGetContext("idpSyncMemory"));
+const idpSyncSchedule = app.node.tryGetContext("idpSyncSchedule");
+const idpSyncTimeoutSeconds = parseInt(
+  app.node.tryGetContext("idpSyncTimeoutSeconds")
+);
 const analyticsDeploymentStage = app.node.tryGetContext(
   "analyticsDeploymentStage"
 );
@@ -96,6 +101,9 @@ if (stackTarget === "dev") {
     analyticsDeploymentStage: analyticsDeploymentStage || "",
     shouldRunCronHealthCheckCacheSync:
       shouldRunCronHealthCheckCacheSync || false,
+    idpSyncMemory: idpSyncMemory || 128,
+    idpSyncSchedule: idpSyncSchedule || "0/5",
+    idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,
   });
 } else if (stackTarget === "prod") {
   new CommonFateStackProd(app, "Granted", {
