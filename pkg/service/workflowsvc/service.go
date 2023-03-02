@@ -115,8 +115,17 @@ func (s *Service) Revoke(ctx context.Context, request access.Request, revokerID 
 		return nil, err
 	}
 
+	// fetch the user email for the revoker
+	q2 := &storage.GetUser{
+		ID: revokerID,
+	}
+	_, err = s.DB.Query(ctx, q2)
+	if err != nil {
+		return nil, err
+	}
+
 	//create a request event for audit loggging request change
-	requestEvent := access.NewGrantStatusChangeEvent(request.ID, request.Grant.UpdatedAt, &revokerID, previousStatus, request.Grant.Status)
+	requestEvent := access.NewGrantStatusChangeEvent(request.ID, request.Grant.UpdatedAt, &revokerID, &q2.Result.Email, previousStatus, request.Grant.Status)
 
 	items = append(items, &requestEvent)
 

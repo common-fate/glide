@@ -247,11 +247,12 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
-	uid := auth.UserIDFromContext(ctx)
+	u := auth.UserFromContext(ctx)
 
 	err := a.Access.CancelRequest(ctx, accesssvc.CancelRequestOpts{
-		CancellerID: uid,
-		RequestID:   requestId,
+		CancellerID:    u.ID,
+		CancellerEmail: u.Email,
+		RequestID:      requestId,
 	})
 	if err == ddb.ErrNoItems {
 		err = apio.NewRequestError(err, http.StatusNotFound)

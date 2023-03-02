@@ -1861,6 +1861,8 @@ components:
           format: time
         actor:
           type: string
+        actorEmail:
+          type: string
         fromStatus:
           $ref: "#/components/schemas/RequestStatus"
         toStatus:

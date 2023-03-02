@@ -13,6 +13,7 @@ import (
 
 type AddReviewOpts struct {
 	ReviewerID      string
+	ReviewerEmail   string
 	ReviewerIsAdmin bool
 	Reviewers       []access.Reviewer
 	Decision        access.Decision
@@ -88,11 +89,11 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 
 	if request.OverrideTiming != nil {
 		// audit log event
-		reqEvent := access.NewTimingChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, request.RequestedTiming, *request.OverrideTiming)
+		reqEvent := access.NewTimingChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, &opts.ReviewerEmail, request.RequestedTiming, *request.OverrideTiming)
 		items = append(items, &reqEvent)
 	}
 	// audit log event
-	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, originalStatus, request.Status)
+	reqEvent := access.NewStatusChangeEvent(request.ID, request.UpdatedAt, &opts.ReviewerID, &opts.ReviewerEmail, originalStatus, request.Status)
 
 	items = append(items, &reqEvent)
 	// store the updated items in the database
