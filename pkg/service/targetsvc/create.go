@@ -42,7 +42,7 @@ func SplitProviderString(s string) (Provider, error) {
 	p := Provider{
 		Publisher: splitname[0],
 		Name:      splitname[1],
-		Version:   splitversion[1],
+		Version:   splitKind[0],
 		Kind:      kind,
 	}
 	return p, nil
