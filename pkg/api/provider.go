@@ -134,8 +134,27 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 	}
+
+	// Convert the registry schema to the type required for the API
 	if q.Result != nil {
-		apio.JSON(ctx, w, q.Result.TargetSchema.Schema, http.StatusCreated)
+		schema := ahTypes.ArgSchema{
+			AdditionalProperties: map[string]ahTypes.Argument{},
+		}
+		for k, v := range q.Result.TargetSchema.Schema.AdditionalProperties {
+			a := ahTypes.Argument{
+				Id:              k,
+				Description:     v.Description,
+				ResourceName:    v.ResourceName,
+				Title:           v.Title,
+				RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
+			}
+			if v.ResourceName != nil {
+				a.RuleFormElement = ahTypes.ArgumentRuleFormElementMULTISELECT
+			}
+			schema.AdditionalProperties[k] = a
+		}
+
+		apio.JSON(ctx, w, schema, http.StatusCreated)
 		return
 	}
 
