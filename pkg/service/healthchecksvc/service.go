@@ -24,10 +24,17 @@ type RuntimeGetter interface {
 	GetRuntime(ctx context.Context, handler handler.Handler) (Runtime, error)
 }
 
+type DefaultGetter struct {
+}
+
+func (DefaultGetter) GetRuntime(ctx context.Context, h handler.Handler) (Runtime, error) {
+	return handler.GetRuntime(ctx, h)
+}
+
 // Service holds business logic relating to Access Requests.
 type Service struct {
 	DB ddb.Storage
-	// Normally use handler.GetRuntime
+	// Use DefaultGetter{}
 	// This is interfaced so it can be mocked for testing
 	RuntimeGetter RuntimeGetter
 }
@@ -45,7 +52,6 @@ type handlerRouteMapping struct {
 // The services for deleteing a target group and a handler are written to delete associated routes so this case should not be possible
 // handling for this case has therefor been omitted
 func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMapping, error) {
-	hm := make(map[string]handler.Handler)
 	gm := make(map[string]target.Group)
 	handlerRoutes := make(map[string]handlerRouteMapping)
 	// get all deployments
@@ -55,7 +61,10 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 		return nil, err
 	}
 	for _, h := range listHandlers.Result {
-		hm[h.ID] = h
+		handlerRoutes[h.ID] = handlerRouteMapping{
+			handler:     h,
+			groupRoutes: []groupRoute{},
+		}
 	}
 
 	listGroups := storage.ListTargetGroups{}
@@ -75,7 +84,6 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 	for _, r := range listRoutes.Result {
 		g := gm[r.Group]
 		hgr := handlerRoutes[r.Handler]
-		hgr.handler = hm[r.Handler]
 		hgr.groupRoutes = append(hgr.groupRoutes, groupRoute{
 			group: g,
 			route: r,
@@ -197,29 +205,30 @@ func (s *Service) Check(ctx context.Context) error {
 
 	// for each deployment, run a healthcheck
 	// update the healthiness of the deployment
-	for _, h := range handlerRoutes {
+	for _, hr := range handlerRoutes {
+		h := hr.handler
 		// run a healthcheck
 		// update the healthiness of the deployment
-		log.Infof("Running healthcheck for deployment: %s", h.handler.ID)
+		log.Infof("Running healthcheck for deployment: %s", h.ID)
 
 		// clear previous diagnostics
-		h.handler.Diagnostics = []handler.Diagnostic{}
+		h.Diagnostics = []handler.Diagnostic{}
 
 		// Get the handler to describe the lambda
 		var runtime Runtime
-		h.handler, runtime = s.getRuntime(ctx, h.handler)
+		h, runtime = s.getRuntime(ctx, h)
 		if runtime == nil { // If no runtime is returned, then update the handler and continue to the next handler
-			upsertItems = append(upsertItems, &h.handler)
+			upsertItems = append(upsertItems, &h)
 			continue
 		}
 
 		// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
-		h.handler = describe(ctx, h.handler, runtime)
-		upsertItems = append(upsertItems, &h.handler)
+		h = describe(ctx, h, runtime)
+		upsertItems = append(upsertItems, &h)
 
 		// Next validate the routes against the description, if it is nil, then the routes will all be marked invalid
-		for _, groupRoute := range h.groupRoutes {
-			route := validateRoute(groupRoute.route, groupRoute.group, h.handler.ProviderDescription)
+		for _, groupRoute := range hr.groupRoutes {
+			route := validateRoute(groupRoute.route, groupRoute.group, h.ProviderDescription)
 			// add the route item to be updated
 			upsertItems = append(upsertItems, &route)
 		}

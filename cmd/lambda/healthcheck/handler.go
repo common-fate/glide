@@ -26,7 +26,8 @@ func main() {
 	}
 
 	healthchecker := healthchecksvc.Service{
-		DB: db,
+		DB:            db,
+		RuntimeGetter: healthchecksvc.DefaultGetter{},
 	}
 	log, err := logger.Build(cfg.LogLevel)
 	if err != nil {
