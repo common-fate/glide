@@ -1,213 +1,142 @@
 package workflowsvc
 
-// import (
-// 	"context"
-// 	"testing"
-// 	"time"
+import (
+	"context"
+	"testing"
+	"time"
 
-// 	"github.com/benbjohnson/clock"
-// 	"github.com/common-fate/iso8601"
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/accesshandler/pkg/types"
+	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/mocks"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/ddb/ddbmock"
+	"github.com/common-fate/iso8601"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+)
 
-// 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
-// 	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
-// 	"github.com/common-fate/common-fate/pkg/access"
-// 	"github.com/common-fate/common-fate/pkg/identity"
-// 	"github.com/common-fate/common-fate/pkg/storage"
-// 	"github.com/common-fate/ddb/ddbmock"
-// 	"github.com/golang/mock/gomock"
-// 	"github.com/stretchr/testify/assert"
-// )
+// testAccessTokenChecker is a mock implementation of NeedsAccessToken
+type testAccessTokenChecker struct {
+	NeedsToken bool
+	Err        error
+}
 
-// // testAccessTokenChecker is a mock implementation of NeedsAccessToken
-// type testAccessTokenChecker struct {
-// 	NeedsToken bool
-// 	Err        error
-// }
+func (t testAccessTokenChecker) NeedsAccessToken(ctx context.Context, providerID string) (bool, error) {
+	return t.NeedsToken, t.Err
+}
 
-// func (t testAccessTokenChecker) NeedsAccessToken(ctx context.Context, providerID string) (bool, error) {
-// 	return t.NeedsToken, t.Err
-// }
+func TestCreateGrant(t *testing.T) {
+	type testcase struct {
+		name                       string
+		withCreateGrantResponseErr error
+		withUser                   *identity.User
+		giveRule                   rule.AccessRule
+		giveRequest                access.Request
+		createGrant                ahTypes.CreateGrant
+		wantErr                    error
+		wantUserErr                error
+		want                       *access.Grant
+	}
+	clk := clock.NewMock()
+	// now := clk.Now()
 
-// func TestCreateGrant(t *testing.T) {
-// 	type testcase struct {
-// 		name                           string
-// 		withCreateGrantResponse        *ahTypes.PostGrantsResponse
-// 		withCreateGrantResponseErr     error
-// 		withUser                       identity.User
-// 		give                           CreateGrantOpts
-// 		subject                        string
-// 		wantPostGrantsWithResponseBody ahTypes.PostGrantsJSONRequestBody
-// 		wantValidateRequestToProvider  ahTypes.ValidateGrantJSONRequestBody
-// 		wantValidateRequestResponse    *ahTypes.ValidateGrantResponse
-// 		needsAccessToken               bool
-// 		needsAccessTokenErr            error
+	testcases := []testcase{
+		{
+			name: "ok",
+			createGrant: ahTypes.CreateGrant{
+				Subject:  openapi_types.Email("test@commonfate.io"),
+				Start:    iso8601.New(time.Now().Add(time.Second * 2)),
+				End:      iso8601.New(time.Now().Add(time.Hour)),
+				Provider: "test",
+				Id:       ahTypes.NewGrantID(),
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: map[string]string{
+						"vault": "test",
+					},
+				}},
+			giveRule: rule.AccessRule{ID: "rule1",
+				Status: rule.ACTIVE,
 
-// 		wantRequest *access.Request
-// 		wantErr     error
-// 	}
-// 	clk := clock.NewMock()
-// 	now := clk.Now()
-// 	overrideStart := now.Add(time.Hour)
-// 	grantId := "abcd"
-// 	testcases := []testcase{
-// 		{
-// 			name: "created success",
-// 			give: CreateGrantOpts{
-// 				Request: access.Request{
-// 					Status: access.APPROVED,
-// 					RequestedTiming: access.Timing{
-// 						Duration:  time.Minute,
-// 						StartTime: &now,
-// 					},
-// 				},
-// 			},
-// 			withCreateGrantResponse: &ahTypes.PostGrantsResponse{
-// 				JSON201: &struct {
-// 					Grant ahTypes.Grant "json:\"grant\""
-// 				}{
-// 					Grant: ahTypes.Grant{
-// 						ID:      grantId,
-// 						Start:   iso8601.New(now),
-// 						End:     iso8601.New(now.Add(time.Minute)),
-// 						Subject: "test@test.com",
-// 					},
-// 				},
-// 			},
-// 			withUser: identity.User{
-// 				Email: "test@test.com",
-// 			},
-// 			wantPostGrantsWithResponseBody: ahTypes.PostGrantsJSONRequestBody{
-// 				Start:   iso8601.New(now),
-// 				End:     iso8601.New(now.Add(time.Minute)),
-// 				Subject: "test@test.com",
-// 				With: ahTypes.CreateGrant_With{
-// 					AdditionalProperties: make(map[string]string),
-// 				},
-// 			},
-// 			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
-// 				Id:       "123",
-// 				Provider: "OKTA",
-// 				With: ahTypes.CreateGrant_With{
-// 					AdditionalProperties: make(map[string]string),
-// 				},
-// 				Subject: "test@test.com",
-// 				Start:   iso8601.New(overrideStart),
-// 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-// 			},
-// 			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{},
-// 			wantRequest: &access.Request{
-// 				Status: access.APPROVED,
-// 				RequestedTiming: access.Timing{
-// 					Duration:  time.Minute,
-// 					StartTime: &now,
-// 				},
-// 				Grant: &access.Grant{
-// 					CreatedAt: clk.Now(),
-// 					UpdatedAt: clk.Now(),
-// 					Start:     iso8601.New(now).Time,
-// 					End:       iso8601.New(now.Add(time.Minute)).Time,
-// 					Subject:   "test@test.com",
-// 				},
-// 			},
-// 			subject: "test@test.com",
-// 		},
-// 		{
-// 			name: "created success with override timing",
-// 			give: CreateGrantOpts{
-// 				Request: access.Request{
-// 					Status: access.APPROVED,
-// 					RequestedTiming: access.Timing{
-// 						Duration:  time.Minute,
-// 						StartTime: &now,
-// 					},
-// 					OverrideTiming: &access.Timing{
-// 						Duration:  time.Minute * 2,
-// 						StartTime: &overrideStart,
-// 					},
-// 				},
-// 			},
-// 			subject: "test@test.com",
+				Description: "string",
+				Name:        "string",
+				Groups:      []string{"string"},
+				Target: rule.Target{
+					ProviderID:    "string",
+					With:          map[string]string{},
+					TargetGroupID: "123",
+				}},
+			giveRequest: access.Request{
+				RequestedBy: "user1",
+			},
+			withCreateGrantResponseErr: nil,
+			withUser:                   &identity.User{Groups: []string{"testAdmin"}},
+			wantUserErr:                nil,
+			want:                       &access.Grant{Provider: "string", Subject: "", With: types.Grant_With{AdditionalProperties: map[string]string{}}, Start: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), End: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), Status: "PENDING", CreatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), UpdatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local)},
+		},
+		{
+			name: "user doesn't exist",
+			createGrant: ahTypes.CreateGrant{
+				Subject:  openapi_types.Email("test@commonfate.io"),
+				Start:    iso8601.New(time.Now().Add(time.Second * 2)),
+				End:      iso8601.New(time.Now().Add(time.Hour)),
+				Provider: "test",
+				Id:       ahTypes.NewGrantID(),
+				With: ahTypes.CreateGrant_With{
+					AdditionalProperties: map[string]string{
+						"vault": "test",
+					},
+				}},
+			giveRule: rule.AccessRule{ID: "rule1",
+				Status: rule.ACTIVE,
 
-// 			withCreateGrantResponse: &ahTypes.PostGrantsResponse{
-// 				JSON201: &struct {
-// 					Grant ahTypes.Grant "json:\"grant\""
-// 				}{
-// 					Grant: ahTypes.Grant{
-// 						ID:      grantId,
-// 						Start:   iso8601.New(overrideStart),
-// 						End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-// 						Subject: "test@test.com",
-// 					},
-// 				},
-// 			},
-// 			withUser: identity.User{
-// 				Email: "test@test.com",
-// 			},
-// 			wantPostGrantsWithResponseBody: ahTypes.PostGrantsJSONRequestBody{
-// 				Start:   iso8601.New(overrideStart),
-// 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-// 				Subject: "test@test.com",
-// 				With: ahTypes.CreateGrant_With{
-// 					AdditionalProperties: make(map[string]string),
-// 				},
-// 			},
-// 			wantValidateRequestToProvider: ahTypes.ValidateGrantJSONRequestBody{
-// 				Id:       "123",
-// 				Provider: "OKTA",
-// 				With: ahTypes.CreateGrant_With{
-// 					AdditionalProperties: make(map[string]string),
-// 				},
-// 				Subject: "test@test.com",
-// 				Start:   iso8601.New(overrideStart),
-// 				End:     iso8601.New(overrideStart.Add(time.Minute * 2)),
-// 			},
-// 			wantValidateRequestResponse: &ahTypes.ValidateGrantResponse{},
+				Description: "string",
+				Name:        "string",
+				Groups:      []string{"string"},
+				Target: rule.Target{
+					ProviderID:    "string",
+					With:          map[string]string{},
+					TargetGroupID: "123",
+				}},
+			giveRequest: access.Request{
+				RequestedBy: "user1",
+			},
+			withCreateGrantResponseErr: nil,
+			withUser:                   nil,
+			want:                       nil,
+			wantUserErr:                ddb.ErrNoItems,
+			wantErr:                    ddb.ErrNoItems,
+		},
+	}
 
-// 			wantRequest: &access.Request{
-// 				Status: access.APPROVED,
-// 				RequestedTiming: access.Timing{
-// 					Duration:  time.Minute,
-// 					StartTime: &now,
-// 				},
-// 				OverrideTiming: &access.Timing{
-// 					Duration:  time.Minute * 2,
-// 					StartTime: &overrideStart,
-// 				},
-// 				Grant: &access.Grant{
-// 					CreatedAt: clk.Now(),
-// 					UpdatedAt: clk.Now(),
-// 					Start:     overrideStart,
-// 					End:       overrideStart.Add(time.Minute * 2),
-// 					Subject:   "test@test.com",
-// 				},
-// 			},
-// 		},
-// 	}
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			runtime := mocks.NewMockRuntime(ctrl)
+			runtime.EXPECT().Grant(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			ctrl := gomock.NewController(t)
-// 			g := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-// 			g.EXPECT().ValidateGrantWithResponse(gomock.Any(), gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.wantValidateRequestResponse, tc.withCreateGrantResponseErr).AnyTimes()
+			eventbus := mocks.NewMockEventPutter(ctrl)
+			eventbus.EXPECT().Put(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
 
-// 			g.EXPECT().PostGrantsWithResponse(gomock.Any(), gomock.Eq(tc.wantPostGrantsWithResponseBody)).Return(tc.withCreateGrantResponse, tc.withCreateGrantResponseErr).AnyTimes()
-// 			c := ddbmock.New(t)
-// 			c.MockQuery(&storage.GetUser{Result: &tc.withUser})
+			c := ddbmock.New(t)
+			c.MockQueryWithErr(&storage.GetUser{Result: tc.withUser}, tc.wantUserErr)
 
-// 			s := Granter{
-// 				AHClient: g,
-// 				DB:       c,
-// 				Clock:    clk,
-// 				accessTokenChecker: testAccessTokenChecker{
-// 					NeedsToken: tc.needsAccessToken,
-// 					Err:        tc.needsAccessTokenErr,
-// 				},
-// 			}
+			s := Service{
+				Runtime:  runtime,
+				DB:       c,
+				Clk:      clk,
+				Eventbus: eventbus,
+			}
 
-// 			gotRequest, err := s.CreateGrant(context.Background(), tc.give)
-// 			assert.Equal(t, tc.wantErr, err)
+			gotRequest, err := s.Grant(context.Background(), tc.giveRequest, tc.giveRule)
+			assert.Equal(t, tc.wantErr, err)
 
-// 			assert.Equal(t, tc.wantRequest, gotRequest)
-// 		})
-// 	}
-// }
+			assert.Equal(t, tc.want, gotRequest)
+		})
+	}
+}
