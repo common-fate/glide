@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/pkg/errors"
@@ -20,12 +21,18 @@ type Provider struct {
 	Publisher string
 	Name      string
 	Version   string
+	Kind      *string
 }
 
 func SplitProviderString(s string) (Provider, error) {
 	splitversion := strings.Split(s, "@")
 	if len(splitversion) != 2 {
 		return Provider{}, errors.New("target schema given in incorrect format")
+	}
+	var kind *string
+	splitKind := strings.Split(splitversion[1], "/")
+	if len(splitKind) == 2 {
+		kind = aws.String(splitKind[1])
 	}
 
 	splitname := strings.Split(splitversion[0], "/")
@@ -35,7 +42,8 @@ func SplitProviderString(s string) (Provider, error) {
 	p := Provider{
 		Publisher: splitname[0],
 		Name:      splitname[1],
-		Version:   splitversion[1],
+		Version:   splitKind[0],
+		Kind:      kind,
 	}
 	return p, nil
 }
@@ -59,6 +67,10 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	if err != nil {
 		return nil, err
 	}
+
+	if provider.Kind == nil {
+		return nil, ErrKindIsRequired
+	}
 	response, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, provider.Publisher, provider.Name, provider.Version)
 	if err != nil {
 		return nil, err
@@ -74,12 +86,16 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 		return nil, fmt.Errorf("unhandled response code recieved from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
 	}
 
+	if _, ok := response.JSON200.Schema.Target.AdditionalProperties[*provider.Kind]; !ok {
+		return nil, ErrProviderDoesNotImplementKind
+	}
+
 	now := s.Clock.Now()
 	group := target.Group{
 		ID: req.Id,
 		// The default mode here is a placeholder in our API until multi mode providers are supported fully by the framework
 		// until it is changed, providers will always return the Default mode
-		TargetSchema: target.GroupTargetSchema{From: req.TargetSchema, Schema: response.JSON200.Schema.Target.AdditionalProperties["Default"].Schema},
+		TargetSchema: target.GroupTargetSchema{From: req.TargetSchema, Schema: response.JSON200.Schema.Target.AdditionalProperties[*provider.Kind].Schema},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

@@ -48,6 +48,14 @@ func (a *API) AdminCreateTargetGroup(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, apio.NewRequestError(targetsvc.ErrProviderNotFoundInRegistry, http.StatusNotFound))
 		return
 	}
+	if err == targetsvc.ErrKindIsRequired {
+		apio.Error(ctx, w, apio.NewRequestError(targetsvc.ErrKindIsRequired, http.StatusBadRequest))
+		return
+	}
+	if err == targetsvc.ErrProviderNotFoundInRegistry {
+		apio.Error(ctx, w, apio.NewRequestError(targetsvc.ErrProviderNotFoundInRegistry, http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
