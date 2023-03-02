@@ -21,16 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// testAccessTokenChecker is a mock implementation of NeedsAccessToken
-type testAccessTokenChecker struct {
-	NeedsToken bool
-	Err        error
-}
-
-func (t testAccessTokenChecker) NeedsAccessToken(ctx context.Context, providerID string) (bool, error) {
-	return t.NeedsToken, t.Err
-}
-
 func TestCreateGrant(t *testing.T) {
 	type testcase struct {
 		name                       string
