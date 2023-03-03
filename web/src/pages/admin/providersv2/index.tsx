@@ -8,8 +8,9 @@ import {
   IconButton,
   Text,
   useClipboard,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
@@ -44,6 +45,9 @@ const AdminProvidersTable = () => {
   });
 
   const clippy = useClipboard("");
+
+  const diagnosticModal = useDisclosure();
+  const [diagnosticText, setDiagnosticText] = useState("");
 
   const cols: Column<TGHandler>[] = useMemo(
     () => [
@@ -89,6 +93,11 @@ const AdminProvidersTable = () => {
               return v;
             })
           );
+
+          const maxDiagnosticChars = 200;
+          // if (strippedCode.length > maxDiagnosticChars) {
+          // }
+
           return (
             <Code
               rounded="md"
