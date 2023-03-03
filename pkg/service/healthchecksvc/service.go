@@ -88,6 +88,7 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 			group: g,
 			route: r,
 		})
+		handlerRoutes[r.Handler] = hgr
 	}
 	return handlerRoutes, nil
 }
