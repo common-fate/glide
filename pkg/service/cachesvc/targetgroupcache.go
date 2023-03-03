@@ -85,7 +85,7 @@ func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.
 	if routeResult.Handler.ProviderDescription == nil {
 		return nil, errors.New("expected ProviderDescription to not be nil")
 	}
-	for k := range routeResult.Handler.ProviderDescription.Schema.Audit.ResourceLoaders.AdditionalProperties {
+	for k := range routeResult.Handler.ProviderDescription.Schema.Resources.Loaders {
 		tasks = append(tasks, k)
 	}
 

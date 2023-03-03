@@ -28,9 +28,9 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 		for k, v := range accessRuleTarget.WithSelectable {
 			arg := targetGroupRequestArguments[k]
 			arg.Title = k
-			resource := targetGroup.Result.TargetSchema.Schema.AdditionalProperties[k]
+			resource := targetGroup.Result.TargetSchema.Schema.Properties[k]
 
-			argOptionsQuery := &storage.ListCachedTargetGroupResource{TargetGroupID: accessRuleTarget.TargetGroupID, ResourceType: *resource.ResourceName}
+			argOptionsQuery := &storage.ListCachedTargetGroupResource{TargetGroupID: accessRuleTarget.TargetGroupID, ResourceType: *resource.Resource}
 			_, err := s.DB.Query(ctx, argOptionsQuery)
 			if err != nil && err != ddb.ErrNoItems {
 				return nil, err

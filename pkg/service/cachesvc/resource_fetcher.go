@@ -71,7 +71,7 @@ func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([
 // Recursively call the provider lambda handler unless there is no further pending tasks.
 // the response Resource is then appended to `rf.resources` for batch DB update later on.
 func (rf *ResourceFetcher) getResources(ctx context.Context, response handlerruntime.LoadResourceResponse) error {
-	if len(response.PendingTasks) == 0 || len(response.Resources) > 0 {
+	if len(response.Tasks) == 0 || len(response.Resources) > 0 {
 
 		rf.resourcesMx.Lock()
 		for _, i := range response.Resources {
@@ -88,7 +88,7 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response handlerrun
 		rf.resourcesMx.Unlock()
 	}
 
-	for _, task := range response.PendingTasks {
+	for _, task := range response.Tasks {
 		// copy the loop variable
 		tc := task
 		rf.eg.Go(func() error {
