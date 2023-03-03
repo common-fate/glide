@@ -136,3 +136,21 @@ func (a *API) AdminDeleteTargetGroup(w http.ResponseWriter, r *http.Request, id 
 	}
 	apio.JSON(ctx, w, nil, http.StatusNoContent)
 }
+
+// Your GET endpoint
+// (GET /api/v1/target-groups)
+func (a *API) AdminListTargetRoutes(w http.ResponseWriter, r *http.Request, id string) {
+	ctx := r.Context()
+	response := types.ListTargetGroupRoutes{Routes: []types.TargetRoute{}}
+	q := storage.ListTargetRoutesForGroup{Group: id}
+	_, err := a.DB.Query(ctx, &q)
+	// don't return an error response when there are not rules
+	if err != nil && err != ddb.ErrNoItems {
+		apio.Error(ctx, w, err)
+		return
+	}
+	for _, tg := range q.Result {
+		response.Routes = append(response.Routes, tg.ToAPI())
+	}
+	apio.JSON(ctx, w, response, http.StatusOK)
+}
