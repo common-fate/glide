@@ -158,19 +158,29 @@ func NewDiagKindSchemaNotExist(route target.Route) target.Diagnostic {
 }
 
 // Validate route will assert that the handler description is available and that the schema of the handler is compatible with the schema of the target group for the route
-func validateRoute(route target.Route, group target.Group, providerDescription *providerregistrysdk.DescribeResponse) target.Route {
+func validateRoute(route target.Route, group target.Group, dr *providerregistrysdk.DescribeResponse) target.Route {
 	// clear existing diagnostics
 	route.Diagnostics = []target.Diagnostic{}
 
-	if providerDescription == nil {
+	if dr == nil {
 		route.Valid = false
 		route.Diagnostics = append(route.Diagnostics, NewDiagHandlerUnreachable)
 		return route
 	}
+
+	if dr.Schema.Targets == nil {
+		// provider doesn't provide any targets
+
+		route.Valid = false
+		route.Diagnostics = append(route.Diagnostics, NewDiagHandlerUnreachable)
+		return route
+	}
+
 	// Check first that the target schema defines the Kind of the route, if not then the route is invalid
-	kindSchema, ok := providerDescription.Schema.Target.AdditionalProperties[route.Kind]
+	targets := *dr.Schema.Targets
+	kindSchema, ok := targets[route.Kind]
 	if ok {
-		route.Valid = validateProviderSchema(group.TargetSchema.Schema.AdditionalProperties, kindSchema.Schema.AdditionalProperties)
+		route.Valid = validateProviderSchema(group.TargetSchema.Schema.Properties, kindSchema.Properties)
 	} else {
 		// invalid route because the kind does not exist in the schema
 		route.Valid = false
@@ -186,7 +196,7 @@ func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetArgumen
 	for i := range compare {
 		m := make(map[string]*string)
 		for _, arg := range in[i] {
-			m[arg.Id] = arg.ResourceName
+			m[arg.Id] = arg.Resource
 		}
 		compare[i] = m
 	}

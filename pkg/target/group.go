@@ -24,7 +24,7 @@ type GroupTargetSchema struct {
 	// Reference to the provider and mode from the registry "commonfate/okta@v1.0.0/Group"
 	From string `json:"from" dynamodbav:"from"`
 	// Schema is denomalised and saved here for efficiency
-	Schema providerregistrysdk.TargetMode_Schema `json:"schema" dynamodbav:"schema"`
+	Schema providerregistrysdk.TargetKind `json:"schema" dynamodbav:"schema"`
 }
 
 func (r *Group) DDBKeys() (ddb.Keys, error) {
@@ -43,7 +43,7 @@ func (r *GroupTargetSchema) ToAPI() types.TargetGroupTargetSchema {
 		},
 	}
 
-	for grsI, grs := range r.Schema.AdditionalProperties {
+	for grsI, grs := range r.Schema.Properties {
 		ta := types.TargetArgument{
 			Id:          grs.Id,
 			Description: &grs.Id,
@@ -51,7 +51,7 @@ func (r *GroupTargetSchema) ToAPI() types.TargetGroupTargetSchema {
 		}
 		// if the argument is for a resource that means i should be selected from options
 		// it if is a string argument, resource name is nil meaning it is an input
-		if grs.ResourceName != nil {
+		if grs.Resource != nil {
 			ta.RuleFormElement = types.TargetArgumentRuleFormElementMULTISELECT
 		}
 		resp.Schema.AdditionalProperties[grsI] = ta

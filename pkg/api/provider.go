@@ -140,18 +140,18 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 		schema := ahTypes.ArgSchema{
 			AdditionalProperties: map[string]ahTypes.Argument{},
 		}
-		for k, v := range q.Result.TargetSchema.Schema.AdditionalProperties {
+		for k, v := range q.Result.TargetSchema.Schema.Properties {
 			a := ahTypes.Argument{
 				Id:           k,
 				Description:  v.Description,
-				ResourceName: v.ResourceName,
+				ResourceName: v.Resource,
 				Title:        v.Title,
 				Groups: &ahTypes.Argument_Groups{
 					AdditionalProperties: map[string]ahTypes.Group{},
 				},
 				RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
 			}
-			if v.ResourceName != nil {
+			if v.Resource != nil {
 				a.RuleFormElement = ahTypes.ArgumentRuleFormElementMULTISELECT
 			}
 			schema.AdditionalProperties[k] = a
