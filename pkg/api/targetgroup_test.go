@@ -436,3 +436,85 @@ func TestDeleteTargetGroup(t *testing.T) {
 		})
 	}
 }
+
+func TestListTargetGroupRoutes(t *testing.T) {
+	type testcase struct {
+		name        string
+		routes      []target.Route
+		want        string
+		mockListErr error
+		wantCode    int
+	}
+
+	testcases := []testcase{
+		{
+			name:     "ok",
+			wantCode: http.StatusOK,
+			routes: []target.Route{
+				{
+					Group:       "abc",
+					Handler:     "123",
+					Kind:        "test",
+					Priority:    999,
+					Valid:       true,
+					Diagnostics: []target.Diagnostic{},
+				},
+				{
+					Group:       "abc",
+					Handler:     "123",
+					Kind:        "test",
+					Priority:    999,
+					Valid:       true,
+					Diagnostics: []target.Diagnostic{},
+				},
+			},
+
+			want: `{"routes":[{"diagnostics":[],"handlerId":"123","kind":"test","priority":999,"targetGroupId":"abc","valid":true},{"diagnostics":[],"handlerId":"123","kind":"test","priority":999,"targetGroupId":"abc","valid":true}]}`,
+		},
+		{
+			name:        "no routes returns an empty list not an error",
+			mockListErr: ddb.ErrNoItems,
+			wantCode:    http.StatusOK,
+			routes:      nil,
+
+			want: `{"routes":[]}`,
+		},
+		{
+			name:        "internal error",
+			mockListErr: errors.New("internal error"),
+			wantCode:    http.StatusInternalServerError,
+			routes:      nil,
+
+			want: `{"error":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.ListTargetRoutesForGroup{Result: tc.routes}, tc.mockListErr)
+
+			a := API{DB: db}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("GET", "/api/v1/admin/target-groups/abc/routes", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
