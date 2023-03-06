@@ -218,7 +218,10 @@ func (s *IdentitySyncer) setDeploymentInfo(ctx context.Context, log *zap.Sugared
 // contains all the logic for create/update/archive for users and groups
 // It returns a map of users and groups ready to be inserted to the database
 //
-// If useIdpGroupsAsFilter is true, then only users with groups that exist in the IDP will be returned, this is used conditionally with a regex filter that prefilters any groups. Side effects: users with no groups are removed, only filtered groups show in the UI (loss of information; for better or worse)
+// Expected Behaviour:
+// useIdpGroupsAsFilter == true: only users with groups that exist in the IDP will be returned, this is used conditionally with a regex filter that prefilters any groups. Side effects: users with no groups are removed, only filtered groups show in the UI (loss of information; for better or worse)
+//
+// useIdpGroupsAsFilter == false: users with no groups remain, all groups show in the UI. If a user/group is removed from the IDP, it will be archived in the DB
 func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroups []identity.IDPGroup, internalUsers []identity.User, internalGroups []identity.Group, useIdpGroupsAsFilter bool) (map[string]identity.User, map[string]identity.Group) {
 
 	idpGroupMap := make(map[string]identity.IDPGroup)
@@ -228,22 +231,22 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	idpUserMap := make(map[string]identity.IDPUser)
 	for _, u := range idpUsers {
 
-		if useIdpGroupsAsFilter {
-			idpUserHasMatchingGroup := false
-			for _, g := range u.Groups {
-				if _, ok := idpGroupMap[g]; ok {
-					idpUserHasMatchingGroup = true
-					break
-				} else {
-					continue
-				}
-			}
-			if idpUserHasMatchingGroup {
-				idpUserMap[u.Email] = u
-			}
-		} else {
-			idpUserMap[u.Email] = u
-		}
+		// if useIdpGroupsAsFilter {
+		// 	idpUserHasMatchingGroup := false
+		// 	for _, g := range u.Groups {
+		// 		if _, ok := idpGroupMap[g]; ok {
+		// 			idpUserHasMatchingGroup = true
+		// 			break
+		// 		} else {
+		// 			continue
+		// 		}
+		// 	}
+		// 	if idpUserHasMatchingGroup {
+		// 		idpUserMap[u.Email] = u
+		// 	}
+		// } else {
+		idpUserMap[u.Email] = u
+		// }
 	}
 	ddbUserMap := make(map[string]identity.User)
 	for _, u := range internalUsers {
@@ -253,11 +256,11 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	// This map ensures we have a distinct list of ids
 	internalGroupUsers := make(map[string]map[string]string)
 	for _, g := range internalGroups {
-		if useIdpGroupsAsFilter {
-			if _, ok := idpGroupMap[g.IdpID]; !ok {
-				continue
-			}
-		}
+		// if useIdpGroupsAsFilter {
+		// 	if _, ok := idpGroupMap[g.IdpID]; !ok {
+		// 		continue
+		// 	}
+		// }
 		ddbGroupMap[g.IdpID] = g
 		internalGroupUsers[g.ID] = make(map[string]string)
 	}
@@ -271,25 +274,32 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		} else { // create
 
 			if useIdpGroupsAsFilter {
+				userHasMatchingIdpGroup := false
 				for _, g := range u.Groups {
 					if _, ok := idpGroupMap[g]; ok {
-						idpUserMap[u.Email] = u
+						userHasMatchingIdpGroup = true
+						idpUserMap[u.Email] = u // not covered by tests
 					} else {
 						continue
 					}
 				}
+				if !userHasMatchingIdpGroup {
+					updatedU := u.ToInternalUser()
+					updatedU.Status = types.IdpStatusARCHIVED
+					ddbUserMap[u.Email] = updatedU
+					continue
+				}
 			}
-
 			ddbUserMap[u.Email] = u.ToInternalUser()
 		}
 	}
 	// update/create groups
 	for _, g := range idpGroups {
-		if useIdpGroupsAsFilter {
-			if _, ok := idpGroupMap[g.ID]; !ok {
-				continue
-			}
-		}
+		// if useIdpGroupsAsFilter {
+		// 	if _, ok := idpGroupMap[g.ID]; !ok {
+		// 		continue // not covered by tests
+		// 	}
+		// }
 
 		if existing, ok := ddbGroupMap[g.ID]; ok { //update
 			existing.Description = g.Description
@@ -315,13 +325,24 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 			u.Status = types.IdpStatusACTIVE
 			ddbUserMap[k] = u
 		}
+		// This seems to be needed but it's in the wrong place, should happen at end
+		// // if the user is not in any groups, archive them
+		// if len(u.Groups) == 0 && useIdpGroupsAsFilter {
+		// 	u.Status = types.IdpStatusARCHIVED
+		// 	ddbUserMap[k] = u
+		// }
 	}
 	// archive deleted groups
 	for k, g := range ddbGroupMap {
 
 		if useIdpGroupsAsFilter {
 			if _, ok := idpGroupMap[g.ID]; !ok {
-				continue
+
+				g.Status = types.IdpStatusARCHIVED
+				g.Users = []string{}
+				ddbGroupMap[k] = g
+
+				continue // not covered by tests
 			}
 		}
 
@@ -368,14 +389,14 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 			// If we are using the IDP groups as a filter, then we only want to add the groups that exist in the IDP
 			if useIdpGroupsAsFilter {
 				if _, ok := idpGroupMap[internalGroupId]; !ok {
-					continue
+					continue // not covered by tests
 				}
 			}
 
 			source := ddbGroupMap[internalGroupId].Source
 			if source == identity.INTERNAL {
-				gid := ddbGroupMap[internalGroupId].ID
-				internalGroupIds[gid] = gid
+				gid := ddbGroupMap[internalGroupId].ID // not covered by tests
+				internalGroupIds[gid] = gid            // not covered by tests
 			}
 
 		}
@@ -386,6 +407,10 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		}
 
 		internalUser.Groups = keys
+		// if the user is not in any groups, archive them
+		if len(internalUser.Groups) == 0 && useIdpGroupsAsFilter {
+			internalUser.Status = types.IdpStatusARCHIVED
+		}
 		ddbUserMap[idpUser.Email] = internalUser
 	}
 
