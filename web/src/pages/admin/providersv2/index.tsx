@@ -1,11 +1,15 @@
-import { CopyIcon } from "@chakra-ui/icons";
 import {
   ButtonGroup,
   Circle,
   Code,
   Container,
   Flex,
-  IconButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   Text,
   useClipboard,
   useDisclosure,
@@ -16,17 +20,16 @@ import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
 import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
-
-import {
-  Diagnostic,
-  TGHandler,
-  TargetGroup,
-} from "../../../utils/backend-client/types";
-import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 import {
   useAdminListHandlers,
   useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
+import {
+  Diagnostic,
+  TargetGroup,
+  TGHandler,
+} from "../../../utils/backend-client/types";
+import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 
 // using a chakra tab component and links, link to /admin/providers and /admin/providersv2
 export const ProvidersV2Tabs = () => {
@@ -95,33 +98,53 @@ const AdminProvidersTable = () => {
           );
 
           const maxDiagnosticChars = 200;
-          // if (strippedCode.length > maxDiagnosticChars) {
-          // }
+          let expandCode = false;
+          if (strippedCode.length > maxDiagnosticChars) {
+            expandCode = true;
+          }
+
+          const handleClick = () => {
+            if (expandCode) {
+              diagnosticModal.onOpen();
+              setDiagnosticText(strippedCode);
+            }
+            console.log("im called");
+            console.log(diagnosticModal.isOpen);
+          };
 
           return (
             <Code
               rounded="md"
               fontSize="sm"
+              userSelect="none"
               p={2}
               noOfLines={3}
+              onClick={handleClick}
               position="relative"
+              _hover={{
+                "backgroundColor": expandCode ? "gray.600" : "gray.200",
+                "cursor": expandCode ? "pointer" : "default",
+                "#expandCode": {
+                  display: "block",
+                },
+              }}
             >
+              {expandCode && (
+                <Text
+                  id="expandCode"
+                  display="none"
+                  position="absolute"
+                  left="50%"
+                  top="50%"
+                  transform="translate(-50%, -50%)"
+                  zIndex={2}
+                  size="md"
+                  color="gray.50"
+                >
+                  Expand code
+                </Text>
+              )}
               {strippedCode}
-              <IconButton
-                aria-label="Copy"
-                variant="ghost"
-                icon={<CopyIcon />}
-                size="xs"
-                position="absolute"
-                bottom={0}
-                right={0}
-                opacity={0.5}
-                onClick={() => {
-                  clippy.setValue(strippedCode);
-                  clippy.onCopy();
-                  console.log("copied", strippedCode);
-                }}
-              />
             </Code>
           );
         },
@@ -136,6 +159,20 @@ const AdminProvidersTable = () => {
     emptyText: "No Handlers have been set up yet.",
     linkTo: false,
     apiPaginator: paginator,
+    additionalChildren: (
+      <Modal isOpen={diagnosticModal.isOpen} onClose={diagnosticModal.onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Diagnostics</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={4}>
+            <Code rounded="md" minH="200px" fontSize="sm" p={2}>
+              {diagnosticText}
+            </Code>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    ),
   });
 };
 
