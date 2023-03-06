@@ -11,11 +11,6 @@ import (
 )
 
 // The processor contains all the mapping logic for create/update/map for users and groups
-//
-// TODO:
-// This fn has a failed assumption that the ARCHIVED groups & users should be *removed* from the output
-// Side effect: db.Put(...) operation in subsequent calls is not called for the ARCHIVED groups & users,
-// meaning they are not updated (and effectively archived) in the db.
 func TestIdentitySyncProcessor(t *testing.T) {
 
 	type testcase struct {
@@ -595,6 +590,14 @@ func TestIdentitySyncProcessor(t *testing.T) {
 						"user1",
 					},
 				},
+				"group_no_longer_in_idp": {
+					ID:          "group_no_longer_in_idp",
+					IdpID:       "group_no_longer_in_idp",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusARCHIVED,
+					Users:       []string{},
+				},
 			},
 			useIdpGroupsAsFilter: true,
 		},
@@ -632,6 +635,8 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Name:        "everyone",
 					Description: "a description",
 					Status:      types.IdpStatusACTIVE,
+					Source:      identity.INTERNAL,
+					Users:       []string{},
 				},
 				{
 					ID:          "group_no_longer_in_idp",
@@ -639,6 +644,8 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Name:        "everyone",
 					Description: "a description",
 					Status:      types.IdpStatusACTIVE,
+					Users:       []string{},
+					Source:      identity.INTERNAL,
 				},
 			},
 			wantUserMap: map[string]identity.User{
@@ -658,6 +665,7 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Description: "a description",
 					Status:      types.IdpStatusACTIVE,
 					Users:       []string{},
+					Source:      identity.INTERNAL,
 				},
 				"group_no_longer_in_idp": {
 					ID:          "group_no_longer_in_idp",
@@ -665,8 +673,11 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Name:        "everyone",
 					Description: "a description",
 					Status:      types.IdpStatusARCHIVED,
+					Users:       []string{},
+					Source:      identity.INTERNAL,
 				},
 			},
+			withIdpType:          identity.INTERNAL,
 			useIdpGroupsAsFilter: true,
 		},
 	}
