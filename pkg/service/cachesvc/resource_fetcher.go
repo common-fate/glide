@@ -92,7 +92,7 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response msg.LoadRe
 		// copy the loop variable
 		tc := task
 		rf.eg.Go(func() error {
-			response, err := rf.runtime.FetchResources(ctx, msg.LoadResources{Task: tc.Task, Ctx: tc.Ctx})
+			response, err := rf.runtime.FetchResources(ctx, msg.LoadResources(tc))
 			if err != nil {
 				var ee *exec.ExitError
 				if errors.As(err, &ee) {
