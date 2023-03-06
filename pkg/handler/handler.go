@@ -8,7 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
@@ -84,23 +84,16 @@ func (h *Handler) ToAPI() types.TGHandler {
 	return res
 }
 
-func GetRuntime(ctx context.Context, handler Handler) (handlerruntime.Runtime, error) {
+func GetRuntime(ctx context.Context, handler Handler) (*handlerclient.Client, error) {
 	log := logger.Get(ctx)
-	var pr handlerruntime.Runtime
 	path, ok := LocalDeploymentMap[handler.ID]
 	if ok {
 		log.Debugw("found local runtime configuration for deployment", "deployment", handler, "path", path)
-		pr = handlerruntime.Local{
-			Path: path,
-		}
+		client := handlerclient.Client{Executor: handlerclient.Local{Path: path}}
+		return &client, nil
 
 	} else {
 		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", handler)
-		p, err := handlerruntime.NewLambdaRuntime(ctx, handler.FunctionARN())
-		if err != nil {
-			return nil, err
-		}
-		pr = p
+		return handlerclient.NewLambdaRuntime(ctx, handler.FunctionARN())
 	}
-	return pr, nil
 }
