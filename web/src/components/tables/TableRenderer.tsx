@@ -32,6 +32,8 @@ interface TableRendererProps<T extends object> {
   rowProps?: (row: Row<T>) => TableRowProps;
   apiPaginator?: PaginationProps<any>;
   linkTo?: boolean;
+  /** this can be useful if you want to in-line a modal or some other component on the table */
+  additionalChildren?: React.ReactNode;
 }
 
 export function TableRenderer<T extends object>(
@@ -39,53 +41,55 @@ export function TableRenderer<T extends object>(
 ) {
   if (!props.data) {
     return (
-      <Table roundedTop="lg">
-        <Thead h="45px">
-          <Tr bg="neutrals.100" h="45px">
-            {props.columns.map((column, index) =>
-              column?.Header ? (
-                <Th
-                  h="45px"
-                  fontFamily="Rubik"
-                  color="neutrals.700"
-                  fontWeight={400}
-                  textTransform="none"
-                  _first={{
-                    roundedTopLeft: "xl",
-                  }}
-                  _last={{
-                    roundedTopRight: "xl",
-                  }}
-                  key={"column-" + column.Header + index}
-                >
-                  {column?.Header.toString()}
-                </Th>
-              ) : (
-                <Th key={column.id} h="45px" />
-              )
-            )}
-          </Tr>
-        </Thead>
-        <Tbody>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-            <Tr key={s}>
-              {props.columns.map((i) =>
-                i.Header ? (
-                  <Td
-                    // maxHeight="32px"
-                    py="10px"
-                    key={i.id}
+      <>
+        <Table roundedTop="lg">
+          <Thead h="45px">
+            <Tr bg="neutrals.100" h="45px">
+              {props.columns.map((column, index) =>
+                column?.Header ? (
+                  <Th
+                    h="45px"
+                    fontFamily="Rubik"
+                    color="neutrals.700"
+                    fontWeight={400}
+                    textTransform="none"
+                    _first={{
+                      roundedTopLeft: "xl",
+                    }}
+                    _last={{
+                      roundedTopRight: "xl",
+                    }}
+                    key={"column-" + column.Header + index}
                   >
-                    <SkeletonText noOfLines={1} w="12ch" h="20px" />
-                  </Td>
+                    {column?.Header.toString()}
+                  </Th>
                 ) : (
-                  <Td py="10px" key={i.id} />
+                  <Th key={column.id} h="45px" />
                 )
               )}
             </Tr>
-          ))}
-        </Tbody>
-      </Table>
+          </Thead>
+          <Tbody>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+              <Tr key={s}>
+                {props.columns.map((i) =>
+                  i.Header ? (
+                    <Td
+                      // maxHeight="32px"
+                      py="10px"
+                      key={i.id}
+                    >
+                      <SkeletonText noOfLines={1} w="12ch" h="20px" />
+                    </Td>
+                  ) : (
+                    <Td py="10px" key={i.id} />
+                  )
+                )}
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </>
     );
   }
 
@@ -97,6 +101,7 @@ export function TableRenderer<T extends object>(
       rowProps={props.rowProps}
       paginator={props.apiPaginator}
       linkTo={props.linkTo}
+      additionalChildren={props.additionalChildren}
     />
   );
 }
@@ -108,6 +113,8 @@ interface _TableRendererProps {
   rowProps?: (row: Row<any>) => TableRowProps;
   paginator?: PaginationProps<any>;
   linkTo?: boolean;
+  /** this can be useful if you want to in-line a modal or some other component on the table */
+  additionalChildren?: React.ReactNode;
 }
 export const _TableRenderer: React.FC<_TableRendererProps> = ({
   rowProps,
@@ -264,6 +271,7 @@ export const _TableRenderer: React.FC<_TableRendererProps> = ({
           <Pagination {...instance} />
         </Center>
       ) : null}
+      {props?.additionalChildren}
     </Box>
   );
 };
