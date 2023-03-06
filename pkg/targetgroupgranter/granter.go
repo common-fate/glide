@@ -55,11 +55,11 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	if err != nil {
 		return Output{}, err
 	}
-	deployment, err := g.RequestRouter.Route(ctx, *tgq.Result)
+	routeResult, err := g.RequestRouter.Route(ctx, *tgq.Result)
 	if err != nil {
 		return Output{}, err
 	}
-	runtime, err := handler.GetRuntime(ctx, *deployment)
+	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
 	if err != nil {
 		return Output{}, err
 	}
@@ -76,10 +76,13 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 			defer func() {
 				if r := recover(); r != nil {
 					log.Errorw("recovered panic while granting access", "error", r, "target group", in.Grant.Provider)
-					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", in.Grant.Provider, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			return runtime.Grant(ctx, string(in.Grant.Subject), handlerruntime.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
+			return runtime.Grant(ctx, string(in.Grant.Subject), handlerruntime.Target{
+				Kind:      routeResult.Route.Kind,
+				Arguments: in.Grant.With.AdditionalProperties,
+			})
 		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
@@ -87,10 +90,13 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 			defer func() {
 				if r := recover(); r != nil {
 					log.Errorw("recovered panic while deactivating access", "error", r, "target group", in.Grant.Provider)
-					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", in.Grant.Provider, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			return runtime.Revoke(ctx, string(in.Grant.Subject), handlerruntime.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
+			return runtime.Revoke(ctx, string(in.Grant.Subject), handlerruntime.Target{
+				Kind:      routeResult.Route.Kind,
+				Arguments: in.Grant.With.AdditionalProperties,
+			})
 		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)

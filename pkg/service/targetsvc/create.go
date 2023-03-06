@@ -85,8 +85,11 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	default:
 		return nil, fmt.Errorf("unhandled response code recieved from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
 	}
-
-	if _, ok := response.JSON200.Schema.Target.AdditionalProperties[*provider.Kind]; !ok {
+	targets := response.JSON200.Schema.Targets
+	if targets == nil {
+		return nil, errors.New("provider does not provide any targets")
+	}
+	if _, ok := (*targets)[*provider.Kind]; !ok {
 		return nil, ErrProviderDoesNotImplementKind
 	}
 
@@ -95,7 +98,7 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 		ID: req.Id,
 		// The default mode here is a placeholder in our API until multi mode providers are supported fully by the framework
 		// until it is changed, providers will always return the Default mode
-		TargetSchema: target.GroupTargetSchema{From: req.TargetSchema, Schema: response.JSON200.Schema.Target.AdditionalProperties[*provider.Kind].Schema},
+		TargetSchema: target.GroupTargetSchema{From: req.TargetSchema, Schema: (*targets)[*provider.Kind]},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}

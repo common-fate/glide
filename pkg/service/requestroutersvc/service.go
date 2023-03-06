@@ -13,10 +13,15 @@ type Service struct {
 	DB ddb.Storage
 }
 
+type RouteResult struct {
+	Route   target.Route
+	Handler handler.Handler
+}
+
 // Route is a very basic router that just chooses the highest priority valid and healthy deployment
 // returns an error if none is found
 // has no way of falling back to lower priority
-func (s *Service) Route(ctx context.Context, tg target.Group) (*handler.Handler, error) {
+func (s *Service) Route(ctx context.Context, tg target.Group) (*RouteResult, error) {
 	routes := storage.ListValidTargetRoutesForGroupByPriority{
 		Group: tg.ID,
 	}
@@ -25,7 +30,7 @@ func (s *Service) Route(ctx context.Context, tg target.Group) (*handler.Handler,
 		return nil, err
 	}
 
-	var chosenRoute *handler.Handler
+	var chosenRoute *RouteResult
 	for _, route := range routes.Result {
 		q := storage.GetHandler{
 			ID: route.Handler,
@@ -38,7 +43,10 @@ func (s *Service) Route(ctx context.Context, tg target.Group) (*handler.Handler,
 			return nil, err
 		}
 		if q.Result.Healthy {
-			chosenRoute = q.Result
+			chosenRoute = &RouteResult{
+				Route:   route,
+				Handler: *q.Result,
+			}
 			break
 		}
 	}

@@ -112,7 +112,7 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 
 		for argumentID, argument := range in.With.AdditionalProperties {
 			// check if the provided argId is a valid argument id in TargetGroup's schema.
-			arg, ok := q.Result.TargetSchema.Schema.Get(argumentID)
+			arg, ok := q.Result.TargetSchema.Schema.Properties[argumentID]
 			if !ok {
 				return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
 			}
@@ -121,8 +121,8 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 				return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
 			}
 
-			if arg.ResourceName != nil {
-				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.ResourceName}
+			if arg.Resource != nil {
+				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.Resource}
 				_, err := s.DB.Query(ctx, &qGetResourcesForTG)
 				if err != nil {
 					return rule.Target{}, err

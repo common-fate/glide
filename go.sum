@@ -338,6 +338,14 @@ github.com/common-fate/provider-registry-sdk-go v0.2.1 h1:ouOsvgQGHj7xwwEnhzgfKN
 github.com/common-fate/provider-registry-sdk-go v0.2.1/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
 github.com/common-fate/provider-registry-sdk-go v0.2.3 h1:7Tco7By7k97nC+/Vkw2WjCt3mthoZtxeHCibMu05//I=
 github.com/common-fate/provider-registry-sdk-go v0.2.3/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
+github.com/common-fate/provider-registry-sdk-go v0.2.4 h1:PbTvm3MfviU2K7eP0i+4t73m+lTTjP6LsIP4XVfAHYE=
+github.com/common-fate/provider-registry-sdk-go v0.2.4/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
+github.com/common-fate/provider-registry-sdk-go v0.2.5 h1:PCoCe/tgFUeYfBFTHdDfpy652tcuE4gzpxrjw35ucPc=
+github.com/common-fate/provider-registry-sdk-go v0.2.5/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
+github.com/common-fate/provider-registry-sdk-go v0.4.0 h1:WMSM7frwphQyxxe6D16pGwT5dkkZueimYYSoZhCsxps=
+github.com/common-fate/provider-registry-sdk-go v0.4.0/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
+github.com/common-fate/provider-registry-sdk-go v0.5.0 h1:cE/xFYAxgOuyGLuCEvJWRAjFNJ2/NiUEMjj/6oCebCw=
+github.com/common-fate/provider-registry-sdk-go v0.5.0/go.mod h1:L7Ub4A1IQ9yoQ1r0/lCRyQOvMp7YA7+YJ/hYEKWxzuw=
 github.com/common-fate/testvault v0.1.0 h1:XVhbmcNySGIA203FywYW7wL44Mlcg23UUek3bdg5tzQ=
 github.com/common-fate/testvault v0.1.0/go.mod h1:JJ74LtQZlnjHUj1LuDj2Sz4hEARXf6YOrqzdf3DGFZM=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
