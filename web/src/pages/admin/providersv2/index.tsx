@@ -116,7 +116,7 @@ const AdminProvidersTable = () => {
             <Code
               rounded="md"
               fontSize="sm"
-              userSelect="none"
+              userSelect={expandCode ? "none" : "auto"}
               p={2}
               noOfLines={3}
               onClick={handleClick}
