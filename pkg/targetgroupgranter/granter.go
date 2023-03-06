@@ -6,7 +6,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/config"
@@ -42,7 +42,6 @@ type Output struct {
 }
 
 func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, error) {
-
 	grant := in.Grant
 	log := logger.Get(ctx).With("grant.id", grant.ID)
 	log.Infow("Handling event", "event", in)
@@ -79,10 +78,25 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", in.Grant.Provider, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			return runtime.Grant(ctx, string(in.Grant.Subject), handlerruntime.Target{
-				Kind:      routeResult.Route.Kind,
-				Arguments: in.Grant.With.AdditionalProperties,
-			})
+
+			req := msg.Grant{
+				Subject: string(in.Grant.Subject),
+				Target: msg.Target{
+					Kind:      routeResult.Route.Kind,
+					Arguments: in.Grant.With.AdditionalProperties,
+				},
+				Request: msg.AccessRequest{
+					ID: in.Grant.ID,
+				},
+			}
+
+			_, err = runtime.Grant(ctx, req)
+			if err != nil {
+				return err
+			}
+			// TODO: add the returned state here
+
+			return nil
 		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
@@ -93,10 +107,18 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", in.Grant.Provider, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			return runtime.Revoke(ctx, string(in.Grant.Subject), handlerruntime.Target{
-				Kind:      routeResult.Route.Kind,
-				Arguments: in.Grant.With.AdditionalProperties,
-			})
+			req := msg.Revoke{
+				Subject: string(in.Grant.Subject),
+				Target: msg.Target{
+					Kind:      routeResult.Route.Kind,
+					Arguments: in.Grant.With.AdditionalProperties,
+				},
+				Request: msg.AccessRequest{
+					ID: in.Grant.ID,
+				},
+			}
+
+			return runtime.Revoke(ctx, req)
 		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
