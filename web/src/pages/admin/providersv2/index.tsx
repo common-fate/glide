@@ -108,8 +108,6 @@ const AdminProvidersTable = () => {
               diagnosticModal.onOpen();
               setDiagnosticText(strippedCode);
             }
-            console.log("im called");
-            console.log(diagnosticModal.isOpen);
           };
 
           return (
