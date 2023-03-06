@@ -135,7 +135,10 @@ const AdminProvidersTable = () => {
 };
 
 const AdminTargetGroupsTable = () => {
-  const { data } = useAdminListTargetGroups();
+  const paginator = usePaginatorApi<typeof useAdminListTargetGroups>({
+    swrHook: useAdminListTargetGroups,
+    hookProps: {},
+  });
   // @ts-ignore this is required because ts cannot infer the nexted object types correctly
   const cols: Column<TargetGroup>[] = useMemo(
     () => [
@@ -153,7 +156,7 @@ const AdminTargetGroupsTable = () => {
 
   return TableRenderer<TargetGroup>({
     columns: cols,
-    data: data?.targetGroups,
+    data: paginator?.data?.targetGroups,
     emptyText: "No Target Groups have been set up yet.",
     linkTo: false,
   });
