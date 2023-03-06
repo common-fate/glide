@@ -31,8 +31,12 @@ import {
 export const ProvidersV2Tabs = () => {
   return (
     <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
-      <TabsStyledButton href="/admin/providers">V1</TabsStyledButton>
-      <TabsStyledButton href="/admin/providersv2">V2</TabsStyledButton>
+      <TabsStyledButton href="/admin/providers">
+        Built-In Providers
+      </TabsStyledButton>
+      <TabsStyledButton href="/admin/providersv2">
+        PDK Providers
+      </TabsStyledButton>
     </ButtonGroup>
   );
 };
@@ -149,7 +153,7 @@ const AdminTargetGroupsTable = () => {
 
   return TableRenderer<TargetGroup>({
     columns: cols,
-    data: [],
+    data: data?.targetGroups,
     emptyText: "No Target Groups have been set up yet.",
     linkTo: false,
   });
