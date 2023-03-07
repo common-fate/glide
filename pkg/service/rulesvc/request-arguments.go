@@ -13,10 +13,9 @@ import (
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
-func (s *Service) processArgument(ctx context.Context, targetGroupID string, argument providerregistrysdk.TargetArgument, value string) types.RequestArgument {
+func (s *Service) processArgument(ctx context.Context, targetGroupID string, argument providerregistrysdk.TargetField, value string) types.RequestArgument {
 	ra := types.RequestArgument{
 		Description: argument.Description,
-		Title:       argument.Title,
 		Options: []types.WithOption{
 			{
 				Label: value,
@@ -25,12 +24,15 @@ func (s *Service) processArgument(ctx context.Context, targetGroupID string, arg
 			},
 		},
 	}
+	if argument.Title != nil {
+		ra.Title = *argument.Title
+	}
+
 	if argument.Resource != nil {
 		resourceQuery := &storage.GetCachedTargetGroupResource{TargetGroupID: targetGroupID, ResourceType: *argument.Resource, ResourceID: value}
 		_, err := s.DB.Query(ctx, resourceQuery)
 		if err != ddb.ErrNoItems {
 			ra.Description = argument.Description
-			ra.Title = argument.Title
 			ra.Options = []types.WithOption{{
 				Label: resourceQuery.Result.Resource.Name,
 				Valid: true,
@@ -40,13 +42,17 @@ func (s *Service) processArgument(ctx context.Context, targetGroupID string, arg
 	}
 	return ra
 }
-func (s *Service) processArguments(ctx context.Context, targetGroupID string, argument providerregistrysdk.TargetArgument, values []string) types.RequestArgument {
+func (s *Service) processArguments(ctx context.Context, targetGroupID string, argument providerregistrysdk.TargetField, values []string) types.RequestArgument {
 	ra := types.RequestArgument{
 		Description:       argument.Description,
-		Title:             argument.Title,
 		RequiresSelection: true,
 		Options:           []types.WithOption{},
 	}
+
+	if argument.Title != nil {
+		ra.Title = *argument.Title
+	}
+
 	if argument.Resource != nil {
 		for _, value := range values {
 			resourceQuery := &storage.GetCachedTargetGroupResource{TargetGroupID: targetGroupID, ResourceType: *argument.Resource, ResourceID: value}

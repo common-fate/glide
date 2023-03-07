@@ -190,13 +190,13 @@ func validateRoute(route target.Route, group target.Group, dr *providerregistrys
 }
 
 // validateProviderSchema asserts that the target schemas are equivalent in structure, comparing only the keys and value types
-func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetArgument, schema2 map[string]providerregistrysdk.TargetArgument) bool {
-	var in = []map[string]providerregistrysdk.TargetArgument{schema1, schema2}
+func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetField, schema2 map[string]providerregistrysdk.TargetField) bool {
+	var in = []map[string]providerregistrysdk.TargetField{schema1, schema2}
 	var compare = make([]map[string]*string, 2)
 	for i := range compare {
 		m := make(map[string]*string)
-		for _, arg := range in[i] {
-			m[arg.Id] = arg.Resource
+		for key, arg := range in[i] {
+			m[key] = arg.Resource
 		}
 		compare[i] = m
 	}

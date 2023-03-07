@@ -145,12 +145,15 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 				Id:           k,
 				Description:  v.Description,
 				ResourceName: v.Resource,
-				Title:        v.Title,
 				Groups: &ahTypes.Argument_Groups{
 					AdditionalProperties: map[string]ahTypes.Group{},
 				},
 				RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
 			}
+			if v.Title != nil {
+				a.Title = *v.Title
+			}
+
 			if v.Resource != nil {
 				a.RuleFormElement = ahTypes.ArgumentRuleFormElementMULTISELECT
 			}

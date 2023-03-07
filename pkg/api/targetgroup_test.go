@@ -39,7 +39,7 @@ func TestCreateTargetGroup(t *testing.T) {
 			give: `{"id": "test", "targetSchema": "v1.0.1"}`,
 			mockCreate: &target.Group{
 				ID:           "test",
-				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.TargetKind{}},
+				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.Target{}},
 			},
 			wantCode: http.StatusCreated,
 
@@ -112,12 +112,12 @@ func TestListTargetGroup(t *testing.T) {
 			targetgroups: []target.Group{
 				{
 					ID:           "tg1",
-					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetKind{Properties: map[string]providerregistrysdk.TargetArgument{}}},
+					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.Target{Properties: map[string]providerregistrysdk.TargetField{}}},
 					Icon:         "test",
 				},
 				{
 					ID:           "tg2",
-					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetKind{Properties: map[string]providerregistrysdk.TargetArgument{}}},
+					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.Target{Properties: map[string]providerregistrysdk.TargetField{}}},
 					Icon:         "test",
 				},
 			},

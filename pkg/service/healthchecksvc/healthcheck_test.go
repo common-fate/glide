@@ -18,13 +18,13 @@ import (
 func TestValidateProviderSchema(t *testing.T) {
 	type testcase struct {
 		name       string
-		schema1    map[string]providerregistrysdk.TargetArgument
-		schema2    map[string]providerregistrysdk.TargetArgument
+		schema1    map[string]providerregistrysdk.TargetField
+		schema2    map[string]providerregistrysdk.TargetField
 		valid_want bool
 	}
-	a := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", Resource: aws.String("abc")}}
-	b := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", Resource: aws.String("efg")}}
-	c := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", Resource: nil}}
+	a := map[string]providerregistrysdk.TargetField{"1": {Resource: aws.String("abc")}}
+	b := map[string]providerregistrysdk.TargetField{"1": {Resource: aws.String("efg")}}
+	c := map[string]providerregistrysdk.TargetField{"1": {Resource: nil}}
 	testcases := []testcase{
 		{name: "identical-valid", schema1: a, schema2: a, valid_want: true},
 		{name: "different-invalid", schema1: a, schema2: b, valid_want: false},
@@ -64,8 +64,8 @@ func TestValidateRoute(t *testing.T) {
 			route: test2Route,
 			group: target.Group{},
 			providerDescription: &providerregistrysdk.DescribeResponse{
-				Schema: providerregistrysdk.ProviderSchema{
-					Targets: &providerregistrysdk.TargetSchema{},
+				Schema: providerregistrysdk.Schema{
+					Targets: &map[string]providerregistrysdk.Target{},
 				},
 			},
 			want: test2Route.SetValidity(false).AddDiagnostic(NewDiagKindSchemaNotExist(test2Route)),
@@ -75,8 +75,8 @@ func TestValidateRoute(t *testing.T) {
 			route: test2Route,
 			group: target.Group{},
 			providerDescription: &providerregistrysdk.DescribeResponse{
-				Schema: providerregistrysdk.ProviderSchema{
-					Targets: &providerregistrysdk.TargetSchema{
+				Schema: providerregistrysdk.Schema{
+					Targets: &map[string]providerregistrysdk.Target{
 						test2Route.Kind: {},
 					},
 				},
