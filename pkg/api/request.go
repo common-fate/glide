@@ -274,7 +274,7 @@ func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestI
 func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
 	isAdmin := auth.IsAdmin(ctx)
-	uid := auth.UserIDFromContext(ctx)
+	u := auth.UserFromContext(ctx)
 	var req access.Request
 	q := storage.GetRequest{ID: requestID}
 	_, err := a.DB.Query(ctx, &q)
@@ -305,7 +305,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		req = q.Result.Request
 	}
 
-	_, err = a.Workflow.Revoke(ctx, req, uid)
+	_, err = a.Workflow.Revoke(ctx, req, u.ID, u.Email)
 	if err == workflowsvc.ErrGrantInactive {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
 		return
