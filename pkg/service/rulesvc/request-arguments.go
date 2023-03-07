@@ -66,6 +66,14 @@ func (s *Service) processArguments(ctx context.Context, targetGroupID string, ar
 			}
 		}
 
+	} else {
+		for _, value := range values {
+			ra.Options = append(ra.Options, types.WithOption{
+				Label: value,
+				Valid: false,
+				Value: value,
+			})
+		}
 	}
 	return ra
 }
