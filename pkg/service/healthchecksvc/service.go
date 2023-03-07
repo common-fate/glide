@@ -130,7 +130,7 @@ func describe(ctx context.Context, h handler.Handler, runtime Runtime) handler.H
 	describeRes, err := runtime.Describe(ctx)
 	if err != nil {
 		h.Healthy = false
-		log.Error("Error running healthcheck for handler", "id", h.ID, "error", err)
+		log.Errorw("Error running healthcheck for handler", "id", h.ID, "error", err)
 		h.Diagnostics = append(h.Diagnostics, NewDiagFailedToDescribe(err))
 		return h
 	}
