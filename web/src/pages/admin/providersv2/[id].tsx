@@ -2,46 +2,32 @@ import { ArrowBackIcon } from "@chakra-ui/icons";
 import {
   Box,
   Center,
-  IconButton,
-  Skeleton,
-  useToast,
-  ButtonGroup,
   Circle,
   Code,
   Container,
   Flex,
+  IconButton,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  Skeleton,
   Text,
-  useClipboard,
-  useDisclosure,
   VStack,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { Link } from "react-location";
-import UpdateAccessRuleForm from "../../../components/forms/access-rule/UpdateForm";
-import { AdminLayout } from "../../../components/Layout";
-import { useMatch } from "react-location";
-import {
-  useAdminGetAccessRule,
-  useAdminGetTargetGroup,
-} from "../../../utils/backend-client/admin/admin";
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
-import { useAdminListTargetRoutes } from "../../../utils/backend-client/default/default";
-import {
-  Diagnostic,
-  TGHandler,
-  TargetGroup,
-  TargetRoute,
-} from "../../../utils/backend-client/types";
-import { usePaginatorApi } from "../../../utils/usePaginatorApi";
+import { Link, useMatch } from "react-location";
 import { Column } from "react-table";
-import { useState, useMemo } from "react";
+import { AdminLayout } from "../../../components/Layout";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
-import { group } from "console";
+import { useAdminGetTargetGroup } from "../../../utils/backend-client/admin/admin";
+import { useAdminListTargetRoutes } from "../../../utils/backend-client/default/default";
+import { Diagnostic, TargetRoute } from "../../../utils/backend-client/types";
+import React from "react";
 
 const AdminRoutesTable = () => {
   const {
@@ -54,10 +40,6 @@ const AdminRoutesTable = () => {
 
   const cols: Column<TargetRoute>[] = useMemo(
     () => [
-      {
-        accessor: "targetGroupId",
-        Header: "Target Group",
-      },
       {
         accessor: "handlerId",
         Header: "Handler",
@@ -72,7 +54,7 @@ const AdminRoutesTable = () => {
       },
       {
         accessor: "valid",
-        Header: "Valid",
+        Header: "Status",
         Cell: ({ value }) => (
           <Flex minW="75px" align="center">
             <Circle
@@ -97,11 +79,8 @@ const AdminRoutesTable = () => {
             })
           );
 
-          const maxDiagnosticChars = 200;
-          let expandCode = false;
-          if (strippedCode.length > maxDiagnosticChars) {
-            expandCode = true;
-          }
+          // Forces the modal prompt to always show
+          let expandCode = strippedCode.length !== 2;
 
           const handleClick = () => {
             if (expandCode) {
@@ -112,6 +91,7 @@ const AdminRoutesTable = () => {
 
           return (
             <Code
+              maxW="400px"
               rounded="md"
               fontSize="sm"
               userSelect={expandCode ? "none" : "auto"}
@@ -209,7 +189,6 @@ const Index = () => {
               direction={["column", "row"]}
               rounded="md"
               bg="neutrals.100"
-              w={{ base: "100%", md: "500px", lg: "716px" }}
               p={8}
             >
               <VStack align={"left"} spacing={3} flex={1} mr={4}>
