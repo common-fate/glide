@@ -4,6 +4,7 @@ import {
   Code,
   Container,
   Flex,
+  Heading,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -11,6 +12,7 @@ import {
   ModalHeader,
   ModalOverlay,
   Text,
+  VStack,
   useClipboard,
   useDisclosure,
 } from "@chakra-ui/react";
@@ -69,11 +71,6 @@ const AdminProvidersTable = () => {
       {
         accessor: "awsAccount",
         Header: "Account",
-      },
-      {
-        // @ts-ignore this is required because ts cannot infer the nexted object types correctly
-        accessor: "targetGroupAssignment.TargetGroupId",
-        Header: "Target Group Id",
       },
       {
         accessor: "healthy",
@@ -203,7 +200,7 @@ const AdminTargetGroupsTable = () => {
     data: paginator?.data?.targetGroups,
     apiPaginator: paginator,
     emptyText: "No Target Groups have been set up yet.",
-    linkTo: false,
+    linkTo: true,
   });
 };
 
@@ -224,25 +221,15 @@ const Providers = () => {
           <ProvidersV2Tabs />
         </Flex>
 
-        <Container
-          pb={9}
-          // This prevents unbounded widths for small screen widths
-          minW={{ base: "100%", xl: "container.xl" }}
-          overflowX="auto"
-        >
-          Target Groups
+        <VStack pb={9} align={"left"}>
+          <Text textStyle="Heading/H4">Target Groups</Text>
           <AdminTargetGroupsTable />
-        </Container>
+        </VStack>
 
-        <Container
-          pb={9}
-          // This prevents unbounded widths for small screen widths
-          minW={{ base: "100%", xl: "container.xl" }}
-          overflowX="auto"
-        >
-          Handlers
+        <VStack pb={9} align={"left"}>
+          <Text textStyle="Heading/H4">Handlers</Text>
           <AdminProvidersTable />
-        </Container>
+        </VStack>
       </Container>
     </AdminLayout>
   );

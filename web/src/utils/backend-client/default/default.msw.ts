@@ -8,14 +8,20 @@
 import {
   rest
 } from 'msw'
+import {
+  faker
+} from '@faker-js/faker'
+import {
+  LogLevel
+} from '.././types'
 
-export const getAdminDeleteHandlerMock = () => ({})
+export const getAdminListTargetRoutesMock = () => ({routes: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({targetGroupId: faker.random.word(), handlerId: faker.random.word(), kind: faker.random.word(), priority: faker.datatype.number({min: undefined, max: undefined}), valid: faker.datatype.boolean(), diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(Object.values(LogLevel)), code: faker.random.word(), message: faker.random.word()}))})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getDefaultMSW = () => [
-rest.delete('*/api/v1/admin/handlers/:id', (_req, res, ctx) => {
+rest.get('*/api/v1/admin/target-groups/:id/routes', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
-ctx.json(getAdminDeleteHandlerMock()),
+ctx.json(getAdminListTargetRoutesMock()),
         )
       }),]
