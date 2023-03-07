@@ -45,7 +45,7 @@ func TestRegisterHandler(t *testing.T) {
 		{
 			name:     "create.success.201",
 			wantCode: http.StatusCreated,
-			wantBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","diagnostics":[],"functionArn":"arn:aws:lambda:ap-southeast-2:123456789012:function:cf-handler-handler","healthy":false,"id":"handler","runtime":"aws-lambda"}`,
+			wantBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","diagnostics":[],"functionArn":"arn:aws:lambda:ap-southeast-2:123456789012:function:handler","healthy":false,"id":"handler","runtime":"aws-lambda"}`,
 			withRegisterResult: &handler.Handler{
 				ID:          "handler",
 				Runtime:     "aws-lambda",
@@ -168,7 +168,7 @@ func TestListHandlers(t *testing.T) {
 					Diagnostics: []handler.Diagnostic{},
 				},
 			},
-			want: `{"next":"","res":[{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:cf-handler-dep1","healthy":false,"id":"dep1","runtime":"string"},{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:cf-handler-dep2","healthy":true,"id":"dep2","runtime":"string"}]}`,
+			want: `{"next":"","res":[{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep1","healthy":false,"id":"dep1","runtime":"string"},{"awsAccount":"string","awsRegion":"","diagnostics":[],"functionArn":"arn:aws:lambda::string:function:dep2","healthy":true,"id":"dep2","runtime":"string"}]}`,
 		},
 		{
 			name:     "no handlers returns an empty list not an error",
