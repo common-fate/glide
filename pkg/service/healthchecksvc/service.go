@@ -224,17 +224,18 @@ func (s *Service) Check(ctx context.Context) error {
 
 		// clear previous diagnostics
 		h.Diagnostics = []handler.Diagnostic{}
-
+		h.ProviderDescription = nil
 		// Get the handler to describe the lambda
 		var runtime Runtime
+
 		h, runtime = s.getRuntime(ctx, h)
-		if runtime == nil { // If no runtime is returned, then update the handler and continue to the next handler
-			upsertItems = append(upsertItems, &h)
-			continue
+		// If the runtime is not nil, then we can describe
+		// else, when the routes are validated, they will be marked as invalid
+		if runtime != nil {
+			// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
+			h = describe(ctx, h, runtime)
 		}
 
-		// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
-		h = describe(ctx, h, runtime)
 		upsertItems = append(upsertItems, &h)
 
 		// Next validate the routes against the description, if it is nil, then the routes will all be marked invalid
