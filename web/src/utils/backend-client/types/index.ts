@@ -59,6 +59,7 @@ export * from './listProviderSetupsResponseResponse';
 export * from './listRequestEventsResponseResponse';
 export * from './listRequestsResponseResponse';
 export * from './listTargetGroupResponseResponse';
+export * from './listTargetGroupRoutesResponse';
 export * from './listUserResponseResponse';
 export * from './logLevel';
 export * from './lookupAccessRule';

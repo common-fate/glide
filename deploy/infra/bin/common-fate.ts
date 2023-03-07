@@ -104,7 +104,7 @@ if (stackTarget === "dev") {
       shouldRunCronHealthCheckCacheSync || false,
     identityGroupFilter: identityGroupFilter || "",
     idpSyncMemory: idpSyncMemory || 128,
-    idpSyncSchedule: idpSyncSchedule || "0/5",
+    idpSyncSchedule: idpSyncSchedule || "rate(5 minutes)",
     idpSyncTimeoutSeconds: idpSyncTimeoutSeconds || 30,
   });
 } else if (stackTarget === "prod") {

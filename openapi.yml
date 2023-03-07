@@ -1179,6 +1179,8 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       description: Removes a handler
+      tags:
+        - Admin
   /api/v1/admin/handlers:
     get:
       summary: Get handlers
@@ -1357,6 +1359,25 @@ paths:
       description: ""
       tags:
         - Admin
+  "/api/v1/admin/target-groups/{id}/routes":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        description: Target group ID
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: admin-list-target-routes
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupRoutes"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Lists all routes for a given Target Group
 components:
   schemas:
     User:
@@ -1650,7 +1671,7 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
         targetGroup:
-          $ref: "#/components/schemas/TargetGroup"
+          type: string
       required:
         - provider
         - with
@@ -2733,6 +2754,21 @@ components:
             required:
               - res
               - next
+    ListTargetGroupRoutes:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              routes:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetRoute"
+              next:
+                type: string
+            required:
+              - routes
   examples: {}
   securitySchemes: {}
   requestBodies:

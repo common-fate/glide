@@ -10,7 +10,73 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
+
+func (s *Service) processArgument(ctx context.Context, targetGroupID string, argument providerregistrysdk.TargetArgument, value string) types.RequestArgument {
+	ra := types.RequestArgument{
+		Description: argument.Description,
+		Title:       argument.Title,
+		Options: []types.WithOption{
+			{
+				Label: value,
+				Valid: false,
+				Value: value,
+			},
+		},
+	}
+	if argument.Resource != nil {
+		resourceQuery := &storage.GetCachedTargetGroupResource{TargetGroupID: targetGroupID, ResourceType: *argument.Resource, ResourceID: value}
+		_, err := s.DB.Query(ctx, resourceQuery)
+		if err != ddb.ErrNoItems {
+			ra.Description = argument.Description
+			ra.Title = argument.Title
+			ra.Options = []types.WithOption{{
+				Label: resourceQuery.Result.Resource.Name,
+				Valid: true,
+				Value: value,
+			}}
+		}
+	}
+	return ra
+}
+func (s *Service) processArguments(ctx context.Context, targetGroupID string, argument providerregistrysdk.TargetArgument, values []string) types.RequestArgument {
+	ra := types.RequestArgument{
+		Description:       argument.Description,
+		Title:             argument.Title,
+		RequiresSelection: true,
+		Options:           []types.WithOption{},
+	}
+	if argument.Resource != nil {
+		for _, value := range values {
+			resourceQuery := &storage.GetCachedTargetGroupResource{TargetGroupID: targetGroupID, ResourceType: *argument.Resource, ResourceID: value}
+			_, err := s.DB.Query(ctx, resourceQuery)
+			if err != ddb.ErrNoItems {
+				ra.Options = append(ra.Options, types.WithOption{
+					Label: resourceQuery.Result.Resource.Name,
+					Valid: true,
+					Value: value,
+				})
+			} else {
+				ra.Options = append(ra.Options, types.WithOption{
+					Label: value,
+					Valid: false,
+					Value: value,
+				})
+			}
+		}
+
+	} else {
+		for _, value := range values {
+			ra.Options = append(ra.Options, types.WithOption{
+				Label: value,
+				Valid: false,
+				Value: value,
+			})
+		}
+	}
+	return ra
+}
 
 // RequestArguments takes an access rule and prepares a list of request arguments which contains all the available options that a user may chose from when creating a request
 // this can also be used to validate the input to a create request api call
@@ -25,32 +91,14 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 			return nil, err
 		}
 
-		for k, v := range accessRuleTarget.WithSelectable {
-			arg := targetGroupRequestArguments[k]
-			arg.Title = k
-			resource := targetGroup.Result.TargetSchema.Schema.AdditionalProperties[k]
-
-			argOptionsQuery := &storage.ListCachedTargetGroupResource{TargetGroupID: accessRuleTarget.TargetGroupID, ResourceType: *resource.ResourceName}
-			_, err := s.DB.Query(ctx, argOptionsQuery)
-			if err != nil && err != ddb.ErrNoItems {
-				return nil, err
+		for k, v := range targetGroup.Result.TargetSchema.Schema.Properties {
+			if value, ok := accessRuleTarget.With[k]; ok {
+				targetGroupRequestArguments[k] = s.processArgument(ctx, accessRuleTarget.TargetGroupID, v, value)
+			}
+			if values, ok := accessRuleTarget.WithSelectable[k]; ok {
+				targetGroupRequestArguments[k] = s.processArguments(ctx, accessRuleTarget.TargetGroupID, v, values)
 			}
 
-			arg.RequiresSelection = true
-
-			for _, o := range v {
-				for _, j := range argOptionsQuery.Result {
-					if j.Resource.ID == o {
-						arg.Options = append(arg.Options, types.WithOption{
-							Label: j.Resource.Name,
-							Value: o,
-							Valid: true,
-						})
-					}
-				}
-			}
-
-			targetGroupRequestArguments[k] = arg
 		}
 
 		return targetGroupRequestArguments, nil

@@ -77,19 +77,19 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargateGroupResource, error) {
 	var tasks []string
 
-	deployment, err := s.RequestRouter.Route(ctx, tg)
+	routeResult, err := s.RequestRouter.Route(ctx, tg)
 	if err != nil {
 		return nil, err
 	}
 
-	if deployment.ProviderDescription == nil {
+	if routeResult.Handler.ProviderDescription == nil {
 		return nil, errors.New("expected ProviderDescription to not be nil")
 	}
-	for k := range deployment.ProviderDescription.Schema.Audit.ResourceLoaders.AdditionalProperties {
+	for k := range routeResult.Handler.ProviderDescription.Schema.Resources.Loaders {
 		tasks = append(tasks, k)
 	}
 
-	runtime, err := handler.GetRuntime(ctx, *deployment)
+	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
 	if err != nil {
 		return nil, err
 	}

@@ -24,10 +24,17 @@ type RuntimeGetter interface {
 	GetRuntime(ctx context.Context, handler handler.Handler) (Runtime, error)
 }
 
+type DefaultGetter struct {
+}
+
+func (DefaultGetter) GetRuntime(ctx context.Context, h handler.Handler) (Runtime, error) {
+	return handler.GetRuntime(ctx, h)
+}
+
 // Service holds business logic relating to Access Requests.
 type Service struct {
 	DB ddb.Storage
-	// Normally use handler.GetRuntime
+	// Use DefaultGetter{}
 	// This is interfaced so it can be mocked for testing
 	RuntimeGetter RuntimeGetter
 }
@@ -45,7 +52,6 @@ type handlerRouteMapping struct {
 // The services for deleteing a target group and a handler are written to delete associated routes so this case should not be possible
 // handling for this case has therefor been omitted
 func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMapping, error) {
-	hm := make(map[string]handler.Handler)
 	gm := make(map[string]target.Group)
 	handlerRoutes := make(map[string]handlerRouteMapping)
 	// get all deployments
@@ -55,7 +61,10 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 		return nil, err
 	}
 	for _, h := range listHandlers.Result {
-		hm[h.ID] = h
+		handlerRoutes[h.ID] = handlerRouteMapping{
+			handler:     h,
+			groupRoutes: []groupRoute{},
+		}
 	}
 
 	listGroups := storage.ListTargetGroups{}
@@ -75,11 +84,11 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 	for _, r := range listRoutes.Result {
 		g := gm[r.Group]
 		hgr := handlerRoutes[r.Handler]
-		hgr.handler = hm[r.Handler]
 		hgr.groupRoutes = append(hgr.groupRoutes, groupRoute{
 			group: g,
 			route: r,
 		})
+		handlerRoutes[r.Handler] = hgr
 	}
 	return handlerRoutes, nil
 }
@@ -149,19 +158,29 @@ func NewDiagKindSchemaNotExist(route target.Route) target.Diagnostic {
 }
 
 // Validate route will assert that the handler description is available and that the schema of the handler is compatible with the schema of the target group for the route
-func validateRoute(route target.Route, group target.Group, providerDescription *providerregistrysdk.DescribeResponse) target.Route {
+func validateRoute(route target.Route, group target.Group, dr *providerregistrysdk.DescribeResponse) target.Route {
 	// clear existing diagnostics
 	route.Diagnostics = []target.Diagnostic{}
 
-	if providerDescription == nil {
+	if dr == nil {
 		route.Valid = false
 		route.Diagnostics = append(route.Diagnostics, NewDiagHandlerUnreachable)
 		return route
 	}
+
+	if dr.Schema.Targets == nil {
+		// provider doesn't provide any targets
+
+		route.Valid = false
+		route.Diagnostics = append(route.Diagnostics, NewDiagHandlerUnreachable)
+		return route
+	}
+
 	// Check first that the target schema defines the Kind of the route, if not then the route is invalid
-	kindSchema, ok := providerDescription.Schema.Target.AdditionalProperties[route.Kind]
+	targets := *dr.Schema.Targets
+	kindSchema, ok := targets[route.Kind]
 	if ok {
-		route.Valid = validateProviderSchema(group.TargetSchema.Schema.AdditionalProperties, kindSchema.Schema.AdditionalProperties)
+		route.Valid = validateProviderSchema(group.TargetSchema.Schema.Properties, kindSchema.Properties)
 	} else {
 		// invalid route because the kind does not exist in the schema
 		route.Valid = false
@@ -177,7 +196,7 @@ func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetArgumen
 	for i := range compare {
 		m := make(map[string]*string)
 		for _, arg := range in[i] {
-			m[arg.Id] = arg.ResourceName
+			m[arg.Id] = arg.Resource
 		}
 		compare[i] = m
 	}
@@ -197,29 +216,31 @@ func (s *Service) Check(ctx context.Context) error {
 
 	// for each deployment, run a healthcheck
 	// update the healthiness of the deployment
-	for _, h := range handlerRoutes {
+	for _, hr := range handlerRoutes {
+		h := hr.handler
 		// run a healthcheck
 		// update the healthiness of the deployment
-		log.Infof("Running healthcheck for deployment: %s", h.handler.ID)
+		log.Infof("Running healthcheck for deployment: %s", h.ID)
 
 		// clear previous diagnostics
-		h.handler.Diagnostics = []handler.Diagnostic{}
-
+		h.Diagnostics = []handler.Diagnostic{}
+		h.ProviderDescription = nil
 		// Get the handler to describe the lambda
 		var runtime Runtime
-		h.handler, runtime = s.getRuntime(ctx, h.handler)
-		if runtime == nil { // If no runtime is returned, then update the handler and continue to the next handler
-			upsertItems = append(upsertItems, &h.handler)
-			continue
+
+		h, runtime = s.getRuntime(ctx, h)
+		// If the runtime is not nil, then we can describe
+		// else, when the routes are validated, they will be marked as invalid
+		if runtime != nil {
+			// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
+			h = describe(ctx, h, runtime)
 		}
 
-		// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
-		h.handler = describe(ctx, h.handler, runtime)
-		upsertItems = append(upsertItems, &h.handler)
+		upsertItems = append(upsertItems, &h)
 
 		// Next validate the routes against the description, if it is nil, then the routes will all be marked invalid
-		for _, groupRoute := range h.groupRoutes {
-			route := validateRoute(groupRoute.route, groupRoute.group, h.handler.ProviderDescription)
+		for _, groupRoute := range hr.groupRoutes {
+			route := validateRoute(groupRoute.route, groupRoute.group, h.ProviderDescription)
 			// add the route item to be updated
 			upsertItems = append(upsertItems, &route)
 		}

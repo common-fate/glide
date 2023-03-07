@@ -48,7 +48,7 @@ func TestCreateTargetGroup(t *testing.T) {
 				Version:   "v1.0.1",
 				Schema:    providerregistrysdk.ProviderSchema{},
 			},
-			want:              &target.Group{ID: tg_name, TargetSchema: target.GroupTargetSchema{From: fmt.Sprintf("commonfate/%s@v1.0.1", tg_name), Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument(nil)}}, Icon: "", CreatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), UpdatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local)},
+			want:              &target.Group{ID: tg_name, TargetSchema: target.GroupTargetSchema{From: fmt.Sprintf("commonfate/%s@v1.0.1", tg_name), Schema: providerregistrysdk.TargetKind{}}, Icon: "", CreatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), UpdatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local)},
 			wantErr:           nil,
 			tgLookupwantErr:   ddb.ErrNoItems,
 			groupId:           tg_name,

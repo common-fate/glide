@@ -66,7 +66,8 @@ var LocalCommand = cli.Command{
 		}
 
 		hc := healthchecksvc.Service{
-			DB: db,
+			DB:            db,
+			RuntimeGetter: healthchecksvc.DefaultGetter{},
 		}
 
 		err = hc.Check(ctx)

@@ -134,8 +134,30 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 	}
+
+	// Convert the registry schema to the type required for the API
 	if q.Result != nil {
-		apio.JSON(ctx, w, q.Result.TargetSchema.Schema, http.StatusCreated)
+		schema := ahTypes.ArgSchema{
+			AdditionalProperties: map[string]ahTypes.Argument{},
+		}
+		for k, v := range q.Result.TargetSchema.Schema.Properties {
+			a := ahTypes.Argument{
+				Id:           k,
+				Description:  v.Description,
+				ResourceName: v.Resource,
+				Title:        v.Title,
+				Groups: &ahTypes.Argument_Groups{
+					AdditionalProperties: map[string]ahTypes.Group{},
+				},
+				RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
+			}
+			if v.Resource != nil {
+				a.RuleFormElement = ahTypes.ArgumentRuleFormElementMULTISELECT
+			}
+			schema.AdditionalProperties[k] = a
+		}
+
+		apio.JSON(ctx, w, schema, http.StatusCreated)
 		return
 	}
 
@@ -175,7 +197,7 @@ func (a *API) fetchProviderResourcesByResourceType(ctx context.Context, provider
 		return []ahTypes.Option{}, err
 	}
 
-	var opts []ahTypes.Option
+	opts := []ahTypes.Option{}
 	for _, k := range cachedResources.Result {
 		opts = append(opts, ahTypes.Option{
 			Label: k.Resource.Name,

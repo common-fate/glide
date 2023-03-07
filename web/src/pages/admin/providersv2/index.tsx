@@ -1,38 +1,46 @@
-import { CopyIcon } from "@chakra-ui/icons";
 import {
   ButtonGroup,
   Circle,
   Code,
   Container,
   Flex,
-  IconButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   Text,
   useClipboard,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
 import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
-
-import {
-  Diagnostic,
-  TGHandler,
-  TargetGroup,
-} from "../../../utils/backend-client/types";
-import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 import {
   useAdminListHandlers,
   useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
+import {
+  Diagnostic,
+  TargetGroup,
+  TGHandler,
+} from "../../../utils/backend-client/types";
+import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 
 // using a chakra tab component and links, link to /admin/providers and /admin/providersv2
 export const ProvidersV2Tabs = () => {
   return (
     <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
-      <TabsStyledButton href="/admin/providers">V1</TabsStyledButton>
-      <TabsStyledButton href="/admin/providersv2">V2</TabsStyledButton>
+      <TabsStyledButton href="/admin/providers">
+        Built-In Providers
+      </TabsStyledButton>
+      <TabsStyledButton href="/admin/providersv2">
+        PDK Providers
+      </TabsStyledButton>
     </ButtonGroup>
   );
 };
@@ -44,6 +52,9 @@ const AdminProvidersTable = () => {
   });
 
   const clippy = useClipboard("");
+
+  const diagnosticModal = useDisclosure();
+  const [diagnosticText, setDiagnosticText] = useState("");
 
   const cols: Column<TGHandler>[] = useMemo(
     () => [
@@ -89,30 +100,53 @@ const AdminProvidersTable = () => {
               return v;
             })
           );
+
+          const maxDiagnosticChars = 200;
+          let expandCode = false;
+          if (strippedCode.length > maxDiagnosticChars) {
+            expandCode = true;
+          }
+
+          const handleClick = () => {
+            if (expandCode) {
+              diagnosticModal.onOpen();
+              setDiagnosticText(strippedCode);
+            }
+          };
+
           return (
             <Code
               rounded="md"
               fontSize="sm"
+              userSelect={expandCode ? "none" : "auto"}
               p={2}
               noOfLines={3}
+              onClick={handleClick}
               position="relative"
+              _hover={{
+                "backgroundColor": expandCode ? "gray.600" : "gray.200",
+                "cursor": expandCode ? "pointer" : "default",
+                "#expandCode": {
+                  display: "block",
+                },
+              }}
             >
+              {expandCode && (
+                <Text
+                  id="expandCode"
+                  display="none"
+                  position="absolute"
+                  left="50%"
+                  top="50%"
+                  transform="translate(-50%, -50%)"
+                  zIndex={2}
+                  size="md"
+                  color="gray.50"
+                >
+                  Expand code
+                </Text>
+              )}
               {strippedCode}
-              <IconButton
-                aria-label="Copy"
-                variant="ghost"
-                icon={<CopyIcon />}
-                size="xs"
-                position="absolute"
-                bottom={0}
-                right={0}
-                opacity={0.5}
-                onClick={() => {
-                  clippy.setValue(strippedCode);
-                  clippy.onCopy();
-                  console.log("copied", strippedCode);
-                }}
-              />
             </Code>
           );
         },
@@ -127,11 +161,28 @@ const AdminProvidersTable = () => {
     emptyText: "No Handlers have been set up yet.",
     linkTo: false,
     apiPaginator: paginator,
+    additionalChildren: (
+      <Modal isOpen={diagnosticModal.isOpen} onClose={diagnosticModal.onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Diagnostics</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={4}>
+            <Code rounded="md" minH="200px" fontSize="sm" p={2}>
+              {diagnosticText}
+            </Code>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    ),
   });
 };
 
 const AdminTargetGroupsTable = () => {
-  const { data } = useAdminListTargetGroups();
+  const paginator = usePaginatorApi<typeof useAdminListTargetGroups>({
+    swrHook: useAdminListTargetGroups,
+    hookProps: {},
+  });
   // @ts-ignore this is required because ts cannot infer the nexted object types correctly
   const cols: Column<TargetGroup>[] = useMemo(
     () => [
@@ -149,7 +200,7 @@ const AdminTargetGroupsTable = () => {
 
   return TableRenderer<TargetGroup>({
     columns: cols,
-    data: [],
+    data: paginator?.data?.targetGroups,
     emptyText: "No Target Groups have been set up yet.",
     linkTo: false,
   });
