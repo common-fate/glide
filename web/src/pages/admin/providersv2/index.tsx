@@ -198,6 +198,7 @@ const AdminTargetGroupsTable = () => {
   return TableRenderer<TargetGroup>({
     columns: cols,
     data: paginator?.data?.targetGroups,
+    apiPaginator: paginator,
     emptyText: "No Target Groups have been set up yet.",
     linkTo: true,
   });
