@@ -5,10 +5,18 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import useSwr from 'swr'
 import type {
-  AdminDeleteHandler204
+  SWRConfiguration,
+  Key
+} from 'swr'
+import type {
+  AdminDeleteHandler204,
+  ErrorResponseResponse,
+  ListTargetGroupRoutesResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
+import type { ErrorType } from '../../custom-instance'
 
 
   
@@ -32,4 +40,42 @@ export const adminDeleteHandler = (
       options);
     }
   
+
+/**
+ * Lists all routes for a given Target Group
+ */
+export const adminListTargetRoutes = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListTargetGroupRoutesResponse>(
+      {url: `/api/v1/admin/target-groups/${id}/routes`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminListTargetRoutesKey = (id: string,) => [`/api/v1/admin/target-groups/${id}/routes`];
+
+    
+export type AdminListTargetRoutesQueryResult = NonNullable<Awaited<ReturnType<typeof adminListTargetRoutes>>>
+export type AdminListTargetRoutesQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminListTargetRoutes = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetRoutes>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListTargetRoutesKey(id) : null);
+  const swrFn = () => adminListTargetRoutes(id, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 

@@ -202,7 +202,7 @@ const AdminTargetGroupsTable = () => {
     columns: cols,
     data: paginator?.data?.targetGroups,
     emptyText: "No Target Groups have been set up yet.",
-    linkTo: false,
+    linkTo: true,
   });
 };
 
