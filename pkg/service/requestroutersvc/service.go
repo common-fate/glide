@@ -3,7 +3,6 @@ package requestroutersvc
 import (
 	"context"
 
-	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
@@ -23,45 +22,40 @@ type RouteResult struct {
 // returns an error if none is found
 // has no way of falling back to lower priority
 func (s *Service) Route(ctx context.Context, tg target.Group) (*RouteResult, error) {
-	routes := storage.ListValidTargetRoutesForGroupByPriority{
+
+	groupRoutes := storage.ListTargetRoutesForGroup{
 		Group: tg.ID,
 	}
-	_, err := s.DB.Query(ctx, &routes)
+	// First, check that there are routes for the target group
+	if len(groupRoutes.Result) == 0 {
+		return nil, ErrNoRoutes
+	}
+
+	// Next get the highest priority valid route
+	validRoute := storage.ListValidTargetRoutesForGroupByPriority{
+		Group: tg.ID,
+	}
+	_, err := s.DB.Query(ctx, &validRoute, ddb.Limit(1))
 	if err != nil {
 		return nil, err
 	}
-	//check to see if target group has a routed handler
-	//fetching resources will fail unless the tg is linked with a handler
 
-	log := logger.Get(ctx)
-	if err == ddb.ErrNoItems || len(routes.Result) < 1 {
-		//dont attempt refresh with no routes
-		log.Infow("no valid routes found when attempting to refetch target group resources", "target group:", tg.ID)
-		return nil, ErrNoValidRoute
-	}
-
-	var chosenRoute *RouteResult
-	for _, route := range routes.Result {
-		q := storage.GetHandler{
-			ID: route.Handler,
-		}
-		_, err := s.DB.Query(ctx, &q)
-		if err == ddb.ErrNoItems {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-		if q.Result.Healthy {
-			chosenRoute = &RouteResult{
-				Route:   route,
-				Handler: *q.Result,
-			}
-			break
-		}
-	}
-	if chosenRoute == nil {
+	if len(validRoute.Result) != 1 {
 		return nil, ErrCannotRoute
 	}
-	return chosenRoute, nil
+
+	handlerQuery := storage.GetHandler{
+		ID: validRoute.Result[0].Handler,
+	}
+	_, err = s.DB.Query(ctx, &handlerQuery)
+	if err == ddb.ErrNoItems {
+		return nil, ErrCannotRoute
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &RouteResult{
+		Route:   validRoute.Result[0],
+		Handler: *handlerQuery.Result,
+	}, nil
 }
