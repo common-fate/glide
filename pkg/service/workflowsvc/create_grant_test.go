@@ -34,15 +34,14 @@ func TestCreateGrant(t *testing.T) {
 		want                       *access.Grant
 	}
 	clk := clock.NewMock()
-	// now := clk.Now()
 
 	testcases := []testcase{
 		{
 			name: "ok",
 			createGrant: ahTypes.CreateGrant{
 				Subject:  openapi_types.Email("test@commonfate.io"),
-				Start:    iso8601.New(time.Now().Add(time.Second * 2)),
-				End:      iso8601.New(time.Now().Add(time.Hour)),
+				Start:    iso8601.New(clk.Now().Add(time.Second * 2)),
+				End:      iso8601.New(clk.Now().Add(time.Hour)),
 				Provider: "test",
 				Id:       ahTypes.NewGrantID(),
 				With: ahTypes.CreateGrant_With{
@@ -67,7 +66,7 @@ func TestCreateGrant(t *testing.T) {
 			withCreateGrantResponseErr: nil,
 			withUser:                   &identity.User{Groups: []string{"testAdmin"}},
 			wantUserErr:                nil,
-			want:                       &access.Grant{Provider: "string", Subject: "", With: types.Grant_With{AdditionalProperties: map[string]string{}}, Start: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), End: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), Status: "PENDING", CreatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local), UpdatedAt: time.Date(1970, time.January, 1, 10, 0, 0, 0, time.Local)},
+			want:                       &access.Grant{Provider: "string", Subject: "", With: types.Grant_With{AdditionalProperties: map[string]string{}}, Start: clk.Now(), End: clk.Now(), Status: "PENDING", CreatedAt: clk.Now(), UpdatedAt: clk.Now()},
 		},
 		{
 			name: "user doesn't exist",
@@ -123,10 +122,10 @@ func TestCreateGrant(t *testing.T) {
 				Eventbus: eventbus,
 			}
 
-			gotRequest, err := s.Grant(context.Background(), tc.giveRequest, tc.giveRule)
+			gotGrant, err := s.Grant(context.Background(), tc.giveRequest, tc.giveRule)
 			assert.Equal(t, tc.wantErr, err)
 
-			assert.Equal(t, tc.want, gotRequest)
+			assert.Equal(t, tc.want, gotGrant)
 		})
 	}
 }

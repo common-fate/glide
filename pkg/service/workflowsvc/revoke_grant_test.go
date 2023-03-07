@@ -32,7 +32,6 @@ func TestRevokeGrant(t *testing.T) {
 		withGetRuleVersionResponseErr error
 	}
 	clk := clock.NewMock()
-	// now := clk.Now()
 
 	testcases := []testcase{
 		{
