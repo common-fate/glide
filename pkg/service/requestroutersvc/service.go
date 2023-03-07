@@ -26,6 +26,10 @@ func (s *Service) Route(ctx context.Context, tg target.Group) (*RouteResult, err
 	groupRoutes := storage.ListTargetRoutesForGroup{
 		Group: tg.ID,
 	}
+	_, err := s.DB.Query(ctx, &groupRoutes, ddb.Limit(1))
+	if err != nil {
+		return nil, err
+	}
 	// First, check that there are routes for the target group
 	if len(groupRoutes.Result) == 0 {
 		return nil, ErrNoRoutes
@@ -35,7 +39,7 @@ func (s *Service) Route(ctx context.Context, tg target.Group) (*RouteResult, err
 	validRoute := storage.ListValidTargetRoutesForGroupByPriority{
 		Group: tg.ID,
 	}
-	_, err := s.DB.Query(ctx, &validRoute, ddb.Limit(1))
+	_, err = s.DB.Query(ctx, &validRoute, ddb.Limit(1))
 	if err != nil {
 		return nil, err
 	}
