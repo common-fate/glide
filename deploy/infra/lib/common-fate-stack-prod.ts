@@ -348,6 +348,7 @@ export class CommonFateStackProd extends cdk.Stack {
       SAMLIdentityProviderName:
         userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
+      IdentityGroupFilter: identityGroupFilter.valueAsString,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
       AccessHandlerExecutionRoleARN:
         accessHandler.getAccessHandlerExecutionRoleArn(),
