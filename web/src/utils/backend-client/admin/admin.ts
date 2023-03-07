@@ -38,6 +38,7 @@ import type {
   ProviderSetupStepCompleteRequestBody,
   IdentityConfigurationResponseResponse,
   TGHandler,
+  AdminDeleteHandler204,
   ListHandlersResponseResponse,
   RegisterHandlerRequestBody,
   TargetGroup,
@@ -1002,6 +1003,19 @@ export const useAdminGetHandler = <TError = ErrorType<ErrorResponseResponse>>(
     ...query
   }
 }
+
+/**
+ * Removes a handler
+ */
+export const adminDeleteHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AdminDeleteHandler204>(
+      {url: `/api/v1/admin/handlers/${id}`, method: 'delete'
+    },
+      options);
+    }
+  
 
 /**
  * @summary Get handlers
