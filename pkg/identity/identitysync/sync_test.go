@@ -430,6 +430,13 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					Groups:    []string{"admins"},
 					Status:    types.IdpStatusACTIVE,
 				},
+				"alice@mail.com": {
+					ID:        "user3",
+					FirstName: "alice",
+					Email:     "alice@mail.com",
+					Groups:    []string{},
+					Status:    types.IdpStatusARCHIVED,
+				},
 			},
 			wantGroupMap: map[string]identity.Group{
 				"admins": {
@@ -515,6 +522,162 @@ func TestIdentitySyncProcessor(t *testing.T) {
 					},
 				},
 			},
+			useIdpGroupsAsFilter: true,
+		},
+		{
+			name: "group must be updated to ARCHIVED if NOT present in IDP, but ACTIVE internally",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+						"group_no_longer_in_idp",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "admins",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Status:    types.IdpStatusACTIVE,
+				},
+			},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+				{
+					ID:          "group_no_longer_in_idp",
+					IdpID:       "group_no_longer_in_idp",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+				},
+			},
+			wantUserMap: map[string]identity.User{
+				"bob@mail.com": {
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"admins",
+					},
+					Status: types.IdpStatusACTIVE,
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"admins": {
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users: []string{
+						"user1",
+					},
+				},
+				"group_no_longer_in_idp": {
+					ID:          "group_no_longer_in_idp",
+					IdpID:       "group_no_longer_in_idp",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusARCHIVED,
+					Users:       []string{},
+				},
+			},
+			useIdpGroupsAsFilter: true,
+		},
+		{
+			name: "user must be ARCHIVED if NOT in ACTIVE idp group",
+			giveIdpUsers: []identity.IDPUser{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups: []string{
+						"group_no_longer_in_idp",
+					},
+				},
+			},
+			giveIdpGroups: []identity.IDPGroup{
+				{
+					ID:          "admins",
+					Name:        "everyone",
+					Description: "a description",
+				},
+			},
+			giveInternalUsers: []identity.User{
+				{
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Status:    types.IdpStatusACTIVE,
+				},
+			},
+			giveInternalGroups: []identity.Group{
+				{
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Source:      identity.INTERNAL,
+					Users:       []string{},
+				},
+				{
+					ID:          "group_no_longer_in_idp",
+					IdpID:       "group_no_longer_in_idp",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users:       []string{},
+					Source:      identity.INTERNAL,
+				},
+			},
+			wantUserMap: map[string]identity.User{
+				"bob@mail.com": {
+					ID:        "user1",
+					FirstName: "bob",
+					Email:     "bob@mail.com",
+					Groups:    []string{},
+					Status:    types.IdpStatusARCHIVED,
+				},
+			},
+			wantGroupMap: map[string]identity.Group{
+				"admins": {
+					ID:          "admins",
+					IdpID:       "admins",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusACTIVE,
+					Users:       []string{},
+					Source:      identity.INTERNAL,
+				},
+				"group_no_longer_in_idp": {
+					ID:          "group_no_longer_in_idp",
+					IdpID:       "group_no_longer_in_idp",
+					Name:        "everyone",
+					Description: "a description",
+					Status:      types.IdpStatusARCHIVED,
+					Users:       []string{},
+					Source:      identity.INTERNAL,
+				},
+			},
+			withIdpType:          identity.INTERNAL,
 			useIdpGroupsAsFilter: true,
 		},
 	}

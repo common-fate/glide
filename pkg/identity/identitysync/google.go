@@ -100,7 +100,7 @@ func (c *GoogleSync) ListUsers(ctx context.Context) ([]identity.IDPUser, error) 
 
 }
 
-// userFromOktaUser converts a Google user to the identityprovider interface user type
+// idpUserFromGoogleUser converts a Google user to the identityprovider interface user type
 func (c *GoogleSync) idpUserFromGoogleUser(ctx context.Context, googleUser *admin.User) (identity.IDPUser, error) {
 	u := identity.IDPUser{
 		ID:        googleUser.Id,
