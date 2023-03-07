@@ -59,7 +59,10 @@ func (GrantExpired) EventType() string {
 // access to), this event will not be emitted.
 type GrantRevoked struct {
 	Grant types.Grant `json:"grant"`
-	Actor string      `json:"actor"`
+	// the commonfate internal id of the actor who revoked the grant
+	Actor string `json:"actor"`
+	// the email address of the actor who revoked the grant
+	ActorEmail string `json:"actorEmail"`
 }
 
 func (GrantRevoked) EventType() string {

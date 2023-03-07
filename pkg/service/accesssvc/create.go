@@ -199,7 +199,7 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 		return CreateRequestResult{}, err
 	}
 
-	err = s.EventPutter.Put(ctx, gevent.RequestCreated{Request: req})
+	err = s.EventPutter.Put(ctx, gevent.RequestCreated{Request: req, RequestorEmail: in.User.Email})
 	// in a future PR we will shift these events out to be triggered by dynamo db streams
 	// This will currently put the app in a strange state if this fails
 	if err != nil {

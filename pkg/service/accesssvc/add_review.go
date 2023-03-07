@@ -13,6 +13,7 @@ import (
 
 type AddReviewOpts struct {
 	ReviewerID      string
+	ReviewerEmail   string
 	ReviewerIsAdmin bool
 	Reviewers       []access.Reviewer
 	Decision        access.Decision
@@ -103,9 +104,9 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 
 	switch r.Decision {
 	case access.DecisionApproved:
-		err = s.EventPutter.Put(ctx, gevent.RequestApproved{Request: request, ReviewerID: r.ReviewerID})
+		err = s.EventPutter.Put(ctx, gevent.RequestApproved{Request: request, ReviewerEmail: opts.ReviewerEmail, ReviewerID: r.ReviewerID})
 	case access.DecisionDECLINED:
-		err = s.EventPutter.Put(ctx, gevent.RequestDeclined{Request: request, ReviewerID: r.ReviewerID})
+		err = s.EventPutter.Put(ctx, gevent.RequestDeclined{Request: request, ReviewerEmail: opts.ReviewerEmail, ReviewerID: r.ReviewerID})
 	}
 
 	// In a future PR we will shift these events out to be triggered by dynamo db streams

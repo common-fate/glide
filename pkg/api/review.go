@@ -80,6 +80,7 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 	}
 	result, err := a.Access.AddReviewAndGrantAccess(ctx, accesssvc.AddReviewOpts{
 		ReviewerID:      user.ID,
+		ReviewerEmail:   user.Email,
 		Decision:        access.Decision(b.Decision),
 		ReviewerIsAdmin: user.BelongsToGroup(a.AdminGroup),
 		Request:         *req,
