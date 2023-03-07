@@ -10,7 +10,7 @@ func TestGroup(opt ...func(*Group)) Group {
 		Icon: "aws-sso",
 		TargetSchema: GroupTargetSchema{
 			From:   "test/test/v1.1.1",
-			Schema: providerregistrysdk.TargetKind{Properties: map[string]providerregistrysdk.TargetArgument{}},
+			Schema: providerregistrysdk.Target{Properties: map[string]providerregistrysdk.TargetField{}},
 		},
 	}
 

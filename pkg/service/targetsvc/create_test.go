@@ -40,7 +40,7 @@ func TestCreateTargetGroup(t *testing.T) {
 			name:              "ok",
 			version:           "v1.0.1",
 			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
-			want:              &target.Group{ID: tg_name, TargetSchema: target.GroupTargetSchema{From: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name), Schema: providerregistrysdk.TargetKind{}}, Icon: "", CreatedAt: clk.Now(), UpdatedAt: clk.Now()},
+			want:              &target.Group{ID: tg_name, TargetSchema: target.GroupTargetSchema{From: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name), Schema: providerregistrysdk.Target{}}, Icon: "", CreatedAt: clk.Now(), UpdatedAt: clk.Now()},
 			wantErr:           nil,
 			tgLookupwantErr:   ddb.ErrNoItems,
 			groupId:           tg_name,
@@ -49,9 +49,9 @@ func TestCreateTargetGroup(t *testing.T) {
 				Publisher: "commonfate",
 				Name:      tg_name,
 				Version:   "v1.0.1",
-				Schema: providerregistrysdk.ProviderSchema{
-					Targets: &providerregistrysdk.TargetSchema{
-						"Kind": providerregistrysdk.TargetKind{},
+				Schema: providerregistrysdk.Schema{
+					Targets: &map[string]providerregistrysdk.Target{
+						"Kind": {},
 					},
 				},
 			}},
