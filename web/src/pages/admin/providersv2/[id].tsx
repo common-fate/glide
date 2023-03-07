@@ -80,7 +80,7 @@ const AdminRoutesTable = () => {
           );
 
           // Forces the modal prompt to always show
-          let expandCode = strippedCode.length !== 2;
+          const expandCode = strippedCode.length !== 2;
 
           const handleClick = () => {
             if (expandCode) {
