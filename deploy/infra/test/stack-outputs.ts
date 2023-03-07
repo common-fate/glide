@@ -35,6 +35,7 @@ const testOutputs: StackOutputs = {
   CacheSyncLogGroupName: "abcdefg",
   RestAPIExecutionRoleARN: "abcdefg",
   IDPSyncExecutionRoleARN: "abcdefg",
+  IdentityGroupFilter: "abcdefg",
   CacheSyncFunctionName: "abcdefg",
   CLIAppClientID: "abcdefg",
   HealthcheckFunctionName: "abcdefg",

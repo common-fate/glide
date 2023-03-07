@@ -66,6 +66,7 @@ func TestOutputStructMatchesTSType(t *testing.T) {
 		RestAPIExecutionRoleARN:       "abcdefg",
 		IDPSyncExecutionRoleARN:       "abcdefg",
 		CacheSyncFunctionName:         "abcdefg",
+		IdentityGroupFilter:           "abcdefg",
 		GovernanceURL:                 "abcdefg",
 		CLIAppClientID:                "abcdefg",
 		HealthcheckFunctionName:       "abcdefg",
@@ -113,6 +114,7 @@ func TestOutput_Get(t *testing.T) {
 		EventBusLogGroupName          string
 		EventsHandlerLogGroupName     string
 		GranterLogGroupName           string
+		IdentityGroupFilter           string
 		SlackNotifierLogGroupName     string
 		DynamoDBTable                 string
 		GranterStateMachineArn        string
@@ -176,6 +178,7 @@ func TestOutput_Get(t *testing.T) {
 				WebhookURL:                    tt.fields.WebhookURL,
 				APILogGroupName:               tt.fields.APILogGroupName,
 				IDPSyncLogGroupName:           tt.fields.IDPSyncLogGroupName,
+				IdentityGroupFilter:           tt.fields.IdentityGroupFilter,
 				AccessHandlerLogGroupName:     tt.fields.AccessHandlerLogGroupName,
 				EventBusLogGroupName:          tt.fields.EventBusLogGroupName,
 				EventsHandlerLogGroupName:     tt.fields.EventsHandlerLogGroupName,

@@ -23,6 +23,7 @@ export type StackOutputs = {
   DynamoDBTable: string;
   GranterStateMachineArn: string;
   EventBusArn: string;
+  IdentityGroupFilter: string;
   EventBusSource: string;
   IdpSyncFunctionName: string;
   SAMLIdentityProviderName: string;
