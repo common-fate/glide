@@ -182,6 +182,7 @@ export class CommonFateStackDev extends cdk.Stack {
       EventBusLogGroupName: events.getLogGroupName(),
       EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
       GranterLogGroupName: accessHandler.getGranter().getLogGroupName(),
+      IdentityGroupFilter: identityGroupFilter,
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
