@@ -10,9 +10,8 @@ import (
 )
 
 type CancelRequestOpts struct {
-	CancellerID    string
-	CancellerEmail string
-	RequestID      string
+	CancellerID string
+	RequestID   string
 }
 
 // CancelRequest cancels a request if it is in pending status.
@@ -42,7 +41,7 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 		return err
 	}
 	// audit log event
-	reqEvent := access.NewStatusChangeEvent(req.ID, req.UpdatedAt, &opts.CancellerID, &opts.CancellerEmail, originalStatus, req.Status)
+	reqEvent := access.NewStatusChangeEvent(req.ID, req.UpdatedAt, &opts.CancellerID, originalStatus, req.Status)
 
 	err = s.EventPutter.Put(ctx, gevent.RequestCancelled{Request: *req})
 	// In a future PR we will shift these events out to be triggered by dynamo db streams

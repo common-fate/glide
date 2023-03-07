@@ -62,7 +62,6 @@ func (r *Runtime) RevokeGrant(ctx context.Context, grantID string, revoker strin
 		return nil, err
 	}
 	lastState := statefn.Events[len(statefn.Events)-1]
-
 	//if the state of the grant is in the active state
 	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
 		err = prov.Provider.Revoke(ctx, string(grant.Subject), args, grant.ID)

@@ -157,19 +157,7 @@ func (s *Server) Routes() http.Handler {
 			return
 		}
 
-		// fetch the user email for the revoker
-		email := ""
-		q2 := &storage.GetUser{
-			ID: gr.Result.RequestedBy,
-		}
-		_, err = s.db.Query(ctx, q2)
-		if err != nil {
-			apio.Error(ctx, w, errors.Wrap(err, "querying for request actor"))
-		} else {
-			email = q2.Result.Email
-		}
-
-		e := access.NewRecordedEvent(gr.Result.ID, &gr.Result.RequestedBy, &email, time.Now(), b.Data)
+		e := access.NewRecordedEvent(gr.Result.ID, &gr.Result.RequestedBy, time.Now(), b.Data)
 		err = s.db.Put(ctx, &e)
 		if err != nil {
 			apio.Error(ctx, w, err)

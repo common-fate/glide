@@ -84,7 +84,7 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 		log.Infow("inserting request event for grant failed")
 
 	} else {
-		requestEvent = access.NewGrantStatusChangeEvent(gq.Result.ID, event.Time, nil, nil, oldStatus, newStatus)
+		requestEvent = access.NewGrantStatusChangeEvent(gq.Result.ID, event.Time, nil, oldStatus, newStatus)
 		log.Infow("inserting request event for grant status change")
 	}
 	items, err := dbupdate.GetUpdateRequestItems(ctx, n.db, *gq.Result)

@@ -176,7 +176,7 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 	log.Debugw("saving request", "request", req, "reviewers", reviewers)
 
 	// audit log event
-	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy, &in.User.Email)
+	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy)
 
 	//before saving the request check to see if there already is a active approved rule
 	if !in.Rule.Approval.IsRequired() {
