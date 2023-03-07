@@ -1179,6 +1179,8 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       description: Removes a handler
+      tags:
+        - Admin
   /api/v1/admin/handlers:
     get:
       summary: Get handlers
@@ -1669,7 +1671,7 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
         targetGroup:
-          $ref: "#/components/schemas/TargetGroup"
+          type: string
       required:
         - provider
         - with
