@@ -206,9 +206,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	}
 
 	if t.TargetGroupID != "" {
-		at.TargetGroup = &types.TargetGroup{
-			Id: t.TargetGroupID,
-		}
+		at.TargetGroup = &t.TargetGroupID
 
 		for k, v := range t.With {
 			argument := at.With.AdditionalProperties[k]

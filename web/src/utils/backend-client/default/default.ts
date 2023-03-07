@@ -11,9 +11,8 @@ import type {
   Key
 } from 'swr'
 import type {
-  AdminDeleteHandler204,
-  ErrorResponseResponse,
-  ListTargetGroupRoutesResponse
+  ListTargetGroupRoutesResponse,
+  ErrorResponseResponse
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -27,19 +26,6 @@ import type { ErrorType } from '../../custom-instance'
 ) => any
   ? P
   : never;
-
-/**
- * Removes a handler
- */
-export const adminDeleteHandler = (
-    id: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<AdminDeleteHandler204>(
-      {url: `/api/v1/admin/handlers/${id}`, method: 'delete'
-    },
-      options);
-    }
-  
 
 /**
  * Lists all routes for a given Target Group
