@@ -52,7 +52,7 @@ type Diagnostic struct {
 }
 
 func (h *Handler) FunctionARN() string {
-	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", h.AWSRegion, h.AWSAccount, h.ID)
+	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:cf-handler-%s", h.AWSRegion, h.AWSAccount, h.ID)
 }
 
 func (h *Handler) DDBKeys() (ddb.Keys, error) {
@@ -89,7 +89,7 @@ func GetRuntime(ctx context.Context, handler Handler) (*handlerclient.Client, er
 	path, ok := LocalDeploymentMap[handler.ID]
 	if ok {
 		log.Debugw("found local runtime configuration for deployment", "deployment", handler, "path", path)
-		client := handlerclient.Client{Executor: handlerclient.Local{Path: path}}
+		client := handlerclient.Client{Executor: handlerclient.Local{Dir: path}}
 		return &client, nil
 
 	} else {
