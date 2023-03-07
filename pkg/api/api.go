@@ -148,7 +148,7 @@ type HandlerService interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, request access.Request, revokerID string) (*access.Request, error)
+	Revoke(ctx context.Context, request access.Request, revokerID string, revokerEmail string) (*access.Request, error)
 }
 
 // API must meet the generated REST API interface.

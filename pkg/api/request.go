@@ -288,10 +288,10 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		return
 	}
 	// user can revoke their own request and admins can revoke any request
-	if q.Result.RequestedBy == uid || isAdmin {
+	if q.Result.RequestedBy == u.ID || isAdmin {
 		req = *q.Result
 	} else { // reviewers can revoke reviewable requests
-		q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: uid}
+		q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
 		_, err := a.DB.Query(ctx, &q)
 		if err == ddb.ErrNoItems {
 			//grant not found return 404
@@ -321,7 +321,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 
 	analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
 		RequestedBy: req.RequestedBy,
-		RevokedBy:   uid,
+		RevokedBy:   u.ID,
 		RuleID:      req.Rule,
 		Timing:      req.RequestedTiming.ToAnalytics(),
 		HasReason:   req.HasReason(),
