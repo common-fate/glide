@@ -52,7 +52,7 @@ type Diagnostic struct {
 }
 
 func (h *Handler) FunctionARN() string {
-	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:cf-handler-%s", h.AWSRegion, h.AWSAccount, h.ID)
+	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", h.AWSRegion, h.AWSAccount, h.ID)
 }
 
 func (h *Handler) DDBKeys() (ddb.Keys, error) {
