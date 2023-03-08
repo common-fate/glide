@@ -65,3 +65,16 @@ export const useAdminListTargetRoutes = <TError = ErrorType<ErrorResponseRespons
   }
 }
 
+/**
+ * runs a healthcheck for lambda
+ */
+export const adminRunHealthcheck = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/healthcheck`, method: 'post'
+    },
+      options);
+    }
+  
+

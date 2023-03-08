@@ -58,18 +58,9 @@ export const usePaginatorApi = <
     undefined,
   ]);
 
-  console.log(
-    {
-      hookProps,
-      // id: hookProps,
-      nextToken: nextToken,
-    },
-    swrProps
-  );
   const { data, mutate } = swrHook(
     {
       ...hookProps,
-      // id: hookProps,
       nextToken: nextToken,
     },
     swrProps
