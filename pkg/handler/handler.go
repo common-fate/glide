@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -55,6 +59,10 @@ func (h *Handler) FunctionARN() string {
 	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", h.AWSRegion, h.AWSAccount, h.ID)
 }
 
+func (h *Handler) InvokeRoleARN() string {
+	return fmt.Sprintf("arn:aws:iam::%s:role/%s-invoke", h.AWSAccount, h.ID)
+}
+
 func (h *Handler) DDBKeys() (ddb.Keys, error) {
 	k := ddb.Keys{
 		PK: keys.Handler.PK1,
@@ -91,9 +99,17 @@ func GetRuntime(ctx context.Context, handler Handler) (*handlerclient.Client, er
 		log.Debugw("found local runtime configuration for deployment", "deployment", handler, "path", path)
 		client := handlerclient.Client{Executor: handlerclient.Local{Dir: path}}
 		return &client, nil
-
 	} else {
 		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", handler)
-		return handlerclient.NewLambdaRuntime(ctx, handler.FunctionARN())
+		cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(handler.AWSRegion))
+		if err != nil {
+			return nil, err
+		}
+		stsClient := sts.NewFromConfig(cfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, handler.InvokeRoleARN())
+		cfg.Credentials = aws.NewCredentialsCache(provider)
+
+		client := handlerclient.NewLambdaRuntimeFromConfig(cfg, handler.FunctionARN())
+		return client, nil
 	}
 }
