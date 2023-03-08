@@ -479,6 +479,12 @@ func (c *Config) CfnParams() ([]types.Parameter, error) {
 			ParameterValue: &p.CloudfrontWAFACLARN,
 		})
 	}
+	if c.Deployment.Parameters.IdentityGroupFilter != "" {
+		res = append(res, types.Parameter{
+			ParameterKey:   aws.String("IdentityGroupFilter"),
+			ParameterValue: &p.IdentityGroupFilter,
+		})
+	}
 
 	if c.Deployment.Parameters.ExperimentalRemoteConfigURL != "" {
 		res = append(res, types.Parameter{
