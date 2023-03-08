@@ -466,6 +466,7 @@ func TestRevokeRequest(t *testing.T) {
 		name                 string
 		give                 string
 		withUID              string
+		withUEmail           string
 		withRevokeGrantErr   error
 		wantCode             int
 		withGetRequestError  error
@@ -488,8 +489,9 @@ func TestRevokeRequest(t *testing.T) {
 			request: access.Request{
 				RequestedBy: "user1",
 			},
-			withUID:  "user1",
-			wantCode: http.StatusOK,
+			withUID:    "user1",
+			withUEmail: "user1@mail.com",
+			wantCode:   http.StatusOK,
 		},
 		{
 			name: "admin can revoke any request",
@@ -497,6 +499,7 @@ func TestRevokeRequest(t *testing.T) {
 				RequestedBy: "user1",
 			},
 			withUID:     "admin",
+			withUEmail:  "admin@mail.com",
 			withIsAdmin: true,
 			wantCode:    http.StatusOK,
 		},
@@ -506,6 +509,7 @@ func TestRevokeRequest(t *testing.T) {
 				RequestedBy: "user1",
 			},
 			withUID:              "user2",
+			withUEmail:           "user2@mail.com",
 			withGetReviewerError: ddb.ErrNoItems,
 			wantCode:             http.StatusNotFound,
 			wantBody:             `{"error":"request not found or you don't have access to it"}`,
@@ -515,8 +519,9 @@ func TestRevokeRequest(t *testing.T) {
 			request: access.Request{
 				RequestedBy: "user1",
 			},
-			withUID:  "user2",
-			wantCode: http.StatusOK,
+			withUID:    "user2",
+			withUEmail: "user2@mail.com",
+			wantCode:   http.StatusOK,
 		},
 	}
 
@@ -528,7 +533,7 @@ func TestRevokeRequest(t *testing.T) {
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: &access.Reviewer{Request: tc.request}}, tc.withGetReviewerError)
 			ctrl := gomock.NewController(t)
 			workflowMock := mocks.NewMockWorkflow(ctrl)
-			workflowMock.EXPECT().Revoke(gomock.Any(), tc.request, tc.withUID).AnyTimes().Return(nil, tc.withRevokeGrantErr)
+			workflowMock.EXPECT().Revoke(gomock.Any(), tc.request, tc.withUID, tc.withUEmail).AnyTimes().Return(nil, tc.withRevokeGrantErr)
 
 			a := API{DB: db, Workflow: workflowMock}
 			handler := newTestServer(t, &a, withIsAdmin(tc.withIsAdmin), withRequestUser(identity.User{ID: tc.withUID}))
