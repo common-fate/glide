@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -90,6 +91,10 @@ func (a *API) AdminCreateTargetGroupLink(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	route, err := a.TargetService.CreateRoute(ctx, id, linkGroupRequest)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, &apio.APIError{Err: fmt.Errorf("target group or handler does not exist"), Status: http.StatusNotFound})
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
