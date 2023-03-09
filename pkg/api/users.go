@@ -18,33 +18,52 @@ import (
 // (GET /api/v1/users/)
 func (a *API) AdminListUsers(w http.ResponseWriter, r *http.Request, params types.AdminListUsersParams) {
 	ctx := r.Context()
+	isSearchQuery := params.Query != nil
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
 	if params.NextToken != nil {
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	q := storage.ListUsersForStatus{Status: types.IdpStatusACTIVE}
+	res := types.ListUserResponse{}
 
-	qr, err := a.DB.Query(ctx, &q, queryOpts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
+	if isSearchQuery {
 
-	res := types.ListUserResponse{
-		Users: make([]types.User, len(q.Result)),
-	}
-	if qr != nil && qr.NextPage != "" {
-		res.Next = &qr.NextPage
-	}
+		// check if empty string, return empty res
+		if *params.Query == "" {
+			apio.JSON(ctx, w, res, http.StatusOK)
+			return
+		}
 
-	for i, u := range q.Result {
-		res.Users[i] = u.ToAPI()
+		q := storage.ListUsersByFirstName{FirstName: *params.Query}
+
+		_, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		res.Users = make([]types.User, len(q.Result))
+		for i, u := range q.Result {
+			res.Users[i] = u.ToAPI()
+		}
+	} else {
+		q := storage.ListUsersForStatus{Status: types.IdpStatusACTIVE}
+
+		qr, err := a.DB.Query(ctx, &q, queryOpts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		res.Users = make([]types.User, len(q.Result))
+		for i, u := range q.Result {
+			res.Users[i] = u.ToAPI()
+		}
+		if qr != nil && qr.NextPage != "" {
+			res.Next = &qr.NextPage
+		}
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
-
 }
 
 // Returns a user based on userId

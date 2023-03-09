@@ -635,6 +635,11 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
+        - schema:
+            type: string
+          in: query
+          name: query
+          description: a optional query string that results in a search lookup i.e. "Jo" returns all users starting with "Jo" in their name
     post:
       summary: Create User
       operationId: admin-create-user

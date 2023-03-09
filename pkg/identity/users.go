@@ -102,6 +102,8 @@ func (u *User) DDBKeys() (ddb.Keys, error) {
 		GSI1SK: keys.Users.GSI1SK(string(u.Status), u.ID),
 		GSI2PK: keys.Users.GSI2PK,
 		GSI2SK: keys.Users.GSI2SK(u.Email),
+		GSI3PK: keys.Users.GSI3PK,
+		GSI3SK: keys.Users.GSI3SK(string(u.Status), u.FirstName, u.ID),
 	}
 
 	return keys, nil

@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AdminListUsersParams = { nextToken?: string };
+export type AdminListUsersParams = { nextToken?: string; query?: string };
