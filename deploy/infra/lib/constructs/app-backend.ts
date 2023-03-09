@@ -18,7 +18,10 @@ import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { HealthChecker } from "./healthchecker";
 import { TargetGroupGranter } from "./targetgroup-granter";
-import { grantInvokeCommunityProviders } from "../helpers/permissions";
+import {
+  grantAssumeHandlerRole,
+  grantAssumeIdentitySyncRole,
+} from "../helpers/permissions";
 
 interface Props {
   appName: string;
@@ -145,8 +148,6 @@ export class AppBackend extends Construct {
       handler: "commonfate",
     });
 
-    grantInvokeCommunityProviders(this._lambda);
-
     this._KMSkey.grantEncryptDecrypt(this._lambda);
 
     this._lambda.addToRolePolicy(
@@ -193,19 +194,6 @@ export class AppBackend extends Construct {
 
     this._lambda.addToRolePolicy(
       new PolicyStatement({
-        actions: ["sts:AssumeRole"],
-        resources: ["*"],
-        conditions: {
-          StringEquals: {
-            "iam:ResourceTag/common-fate-abac-role":
-              "aws-sso-identity-provider",
-          },
-        },
-      })
-    );
-
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
         actions: [
           "states:StopExecution",
           "states:StartExecution",
@@ -217,7 +205,8 @@ export class AppBackend extends Construct {
         resources: ["*"],
       })
     );
-
+    grantAssumeIdentitySyncRole(this._lambda);
+    grantAssumeHandlerRole(this._lambda);
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 
@@ -342,7 +331,6 @@ export class AppBackend extends Construct {
     this._healthChecker = new HealthChecker(this, "HealthCheck", {
       dynamoTable: this._dynamoTable,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
-      restApiHandler: this._lambda,
     });
   }
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -19,7 +18,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
-	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
@@ -75,38 +74,15 @@ var LocalCommand = cli.Command{
 			return err
 		}
 
-		opts := []types.ClientOption{}
-
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080", opts...)
+		q := storage.ListHandlers{}
+		_, err = db.Query(ctx, &q)
 		if err != nil {
 			return err
 		}
 
-		// now run a fetch
-		listRes, err := cfApi.AdminListHandlersWithResponse(ctx)
-		if err != nil {
-			return err
+		for _, handler := range q.Result {
+			clio.Infow(fmt.Sprintf("Handler %s is healthy: %v", handler.ID, handler.Healthy), "diagnostics", handler.Diagnostics)
 		}
-
-		healthyCount := 0
-		unhealthyCount := 0
-
-		if listRes.StatusCode() != http.StatusOK {
-			clio.Error(err)
-			return errors.New("failed to list deployments from API")
-		}
-
-		for _, deployment := range listRes.JSON200.Res {
-			if deployment.Healthy {
-				healthyCount++
-			} else {
-				unhealthyCount++
-			}
-		}
-
-		clio.Log("healthcheck result")
-		clio.Logf("healthy: %d", healthyCount)
-		clio.Logf("unhealthy: %d", unhealthyCount)
 
 		return nil
 	}),
@@ -165,36 +141,26 @@ var LambdaCommand = cli.Command{
 			return fmt.Errorf("healthcheck sync failed with lambda invoke status code: %d", res.StatusCode)
 		}
 
-		cfApi, err := types.NewClientWithResponses("http://0.0.0.0:8080")
+		// Read from the .env file
+		var hccfg config.HealthCheckerConfig
+		_ = godotenv.Load()
+		err = envconfig.Process(ctx, &hccfg)
+		if err != nil {
+			return err
+		}
+		db, err := ddb.New(ctx, hccfg.TableName)
+		if err != nil {
+			return err
+		}
+		q := storage.ListHandlers{}
+		_, err = db.Query(ctx, &q)
 		if err != nil {
 			return err
 		}
 
-		// now run a fetch
-		listRes, err := cfApi.AdminListHandlersWithResponse(ctx)
-		if err != nil {
-			return err
+		for _, handler := range q.Result {
+			clio.Infow(fmt.Sprintf("Handler %s is healthy: %v", handler.ID, handler.Healthy), "diagnostics", handler.Diagnostics)
 		}
-
-		healthyCount := 0
-		unhealthyCount := 0
-
-		if listRes.StatusCode() != http.StatusOK {
-			clio.Error(err)
-			return errors.New("failed to list deployments from API")
-		}
-
-		for _, deployment := range listRes.JSON200.Res {
-			if deployment.Healthy {
-				healthyCount++
-			} else {
-				unhealthyCount++
-			}
-		}
-
-		clio.Log("healthcheck result")
-		clio.Logf("healthy: %d", healthyCount)
-		clio.Logf("unhealthy: %d", unhealthyCount)
 
 		return nil
 	}),
