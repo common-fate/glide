@@ -1383,8 +1383,8 @@ paths:
       summary: Healthcheck Handlers
       operationId: admin-healthcheck-handlers
       responses:
-        '200':
-          description: OK
+        '204':
+          description: No Content
         '401':
           $ref: '#/components/responses/ErrorResponse'
         '500':
