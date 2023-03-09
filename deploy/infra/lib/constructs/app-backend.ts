@@ -18,6 +18,10 @@ import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { HealthChecker } from "./healthchecker";
 import { TargetGroupGranter } from "./targetgroup-granter";
+import {
+  grantAssumeHandlerRole,
+  grantAssumeIdentitySyncRole,
+} from "../helpers/permissions";
 
 interface Props {
   appName: string;
@@ -190,19 +194,6 @@ export class AppBackend extends Construct {
 
     this._lambda.addToRolePolicy(
       new PolicyStatement({
-        actions: ["sts:AssumeRole"],
-        resources: ["*"],
-        conditions: {
-          StringEquals: {
-            "iam:ResourceTag/common-fate-abac-role":
-              "aws-sso-identity-provider",
-          },
-        },
-      })
-    );
-
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
         actions: [
           "states:StopExecution",
           "states:StartExecution",
@@ -214,7 +205,8 @@ export class AppBackend extends Construct {
         resources: ["*"],
       })
     );
-
+    grantAssumeIdentitySyncRole(this._lambda);
+    grantAssumeHandlerRole(this._lambda);
     const api = this._apigateway.root.addResource("api");
     const apiv1 = api.addResource("v1");
 
