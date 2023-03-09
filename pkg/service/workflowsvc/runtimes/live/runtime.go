@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
@@ -153,12 +154,17 @@ func (r *Runtime) revokeProvider(ctx context.Context, grantID string) error {
 	if err != nil {
 		return err
 	}
-	if response.JSON200 != nil {
+
+	switch response.StatusCode() {
+	case http.StatusOK:
 		return nil
-	}
-	if response.JSON400.Error != nil {
+	case http.StatusBadRequest:
 		return fmt.Errorf(*response.JSON400.Error)
+	case http.StatusInternalServerError:
+		return fmt.Errorf(*response.JSON500.Error)
+	default:
+		logger.Get(ctx).Errorw("unhandled Access Handler response", "body", string(response.Body))
+		return errors.New("unhandled response code from access provider service when revoking access")
 	}
-	logger.Get(ctx).Errorw("unhandled Access Handler response", "body", string(response.Body))
-	return errors.New("unhandled response code from access provider service when granting")
+
 }
