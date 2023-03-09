@@ -11,6 +11,7 @@ import { grantInvokeCommunityProviders } from "../helpers/permissions";
 interface Props {
   dynamoTable: Table;
   shouldRunAsCron: boolean;
+  restApiHandler: lambda.Function;
 }
 
 export class HealthChecker extends Construct {

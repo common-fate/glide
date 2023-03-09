@@ -18,6 +18,7 @@ import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
 import { HealthChecker } from "./healthchecker";
 import { TargetGroupGranter } from "./targetgroup-granter";
+import { grantInvokeCommunityProviders } from "../helpers/permissions";
 
 interface Props {
   appName: string;
@@ -143,6 +144,8 @@ export class AppBackend extends Construct {
       runtime: lambda.Runtime.GO_1_X,
       handler: "commonfate",
     });
+
+    grantInvokeCommunityProviders(this._lambda);
 
     this._KMSkey.grantEncryptDecrypt(this._lambda);
 
@@ -339,6 +342,7 @@ export class AppBackend extends Construct {
     this._healthChecker = new HealthChecker(this, "HealthCheck", {
       dynamoTable: this._dynamoTable,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
+      restApiHandler: this._lambda,
     });
   }
 
