@@ -33,7 +33,7 @@ import {
 } from "../../../utils/backend-client/admin/admin";
 
 import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
-import { CommunityProvidersTabs } from "../community-providers";
+import { CommunityProvidersTabs } from "../providersv2";
 
 const AdminProvidersTable = () => {
   const { data } = useAdminListProviders();
