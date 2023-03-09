@@ -26,6 +26,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
+	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
@@ -75,11 +76,12 @@ type API struct {
 	Cache          CacheService
 	IdentitySyncer auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
-	Cognito          CognitoService
-	InternalIdentity InternalIdentityService
-	TargetService    TargetService
-	HandlerService   HandlerService
-	Workflow         Workflow
+	Cognito            CognitoService
+	InternalIdentity   InternalIdentityService
+	TargetService      TargetService
+	HandlerService     HandlerService
+	Workflow           Workflow
+	HealthcheckService HealthcheckService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -149,6 +151,11 @@ type HandlerService interface {
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
 	Revoke(ctx context.Context, request access.Request, revokerID string) (*access.Request, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_healthcheck_service.go -package=mocks . HealthcheckService
+type HealthcheckService interface {
+	Check(ctx context.Context) error
 }
 
 // API must meet the generated REST API interface.
@@ -282,6 +289,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:       db,
 			Clk:      clk,
 			Eventbus: opts.EventSender,
+		},
+		HealthcheckService: &healthchecksvc.Service{
+			DB:            db,
+			RuntimeGetter: healthchecksvc.DefaultGetter{},
 		},
 	}
 

@@ -1378,6 +1378,21 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       description: Lists all routes for a given Target Group
+  /api/v1/admin/healthcheck-handlers:
+    post:
+      summary: Healthcheck Handlers
+      operationId: admin-healthcheck-handlers
+      responses:
+        "204":
+          description: No Content
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Runs the healthcheck for handlers
+      tags:
+        - Admin
+    parameters: []
 components:
   schemas:
     User:
