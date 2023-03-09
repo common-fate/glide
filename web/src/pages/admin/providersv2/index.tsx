@@ -274,7 +274,7 @@ const Providers = () => {
             ></Button>
             <Tooltip
               hasArrow
-              label="Healthcheck will poll any deployed lambda providers to validate health and validity"
+              label="Calls all deployed Handlers to check health and validity"
             >
               <Text textStyle={"Body/Small"}>Run Health Check</Text>
             </Tooltip>
