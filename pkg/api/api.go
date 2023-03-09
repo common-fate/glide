@@ -153,7 +153,7 @@ type Workflow interface {
 	Revoke(ctx context.Context, request access.Request, revokerID string) (*access.Request, error)
 }
 
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_healthcheck_service.go -package=mocks . Healthcheck
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_healthcheck_service.go -package=mocks . HealthcheckService
 type HealthcheckService interface {
 	Check(ctx context.Context) error
 }

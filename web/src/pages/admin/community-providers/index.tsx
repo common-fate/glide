@@ -29,6 +29,7 @@ import { AdminLayout } from "../../../components/Layout";
 import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
+  adminHealthcheckHandlers,
   useAdminListHandlers,
   useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
@@ -39,11 +40,11 @@ import {
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
 import { HealthCheckIcon, RefreshIcon } from "../../../components/icons/Icons";
-import { adminRunHealthcheck } from "../../../utils/backend-client/default/default";
+
 import axios from "axios";
 
 // using a chakra tab component and links, link to /admin/providers and /admin/providersv2
-export const ProvidersV2Tabs = () => {
+export const CommunityProvidersTabs = () => {
   return (
     <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
       <TabsStyledButton href="/admin/providers">
@@ -219,7 +220,7 @@ const Providers = () => {
   const onClick = async () => {
     setLoading(true);
 
-    await adminRunHealthcheck()
+    await adminHealthcheckHandlers()
       .then(() => {
         toast({
           title: "Health check run",
@@ -259,7 +260,7 @@ const Providers = () => {
       >
         {/* spacer of 32px to acccount for un-needed UI/CLS */}
         <Flex justify="space-between" align="center">
-          <ProvidersV2Tabs />
+          <CommunityProvidersTabs />
           <HStack spacing="1px">
             <Button
               isLoading={loading}

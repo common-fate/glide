@@ -1206,3 +1206,17 @@ export const adminRemoveTargetGroupLink = (
     }
   
 
+/**
+ * Runs the healthcheck for handlers
+ * @summary Healthcheck Handlers
+ */
+export const adminHealthcheckHandlers = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/healthcheck-handlers`, method: 'post'
+    },
+      options);
+    }
+  
+
