@@ -12,8 +12,7 @@ export const grantAssumeHandlerRole = (_lambda: lambda.Function) => {
       actions: ["sts:AssumeRole"],
       conditions: {
         StringEquals: {
-          "iam:ResourceTag/common-fate-abac-role":
-            "access-provider-invocation-role",
+          "iam:ResourceTag/common-fate-abac-role": "handler-invoke",
         },
       },
     })
