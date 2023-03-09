@@ -5,7 +5,7 @@ import { Construct } from "constructs";
 import { Duration, Stack } from "aws-cdk-lib";
 import * as path from "path";
 import { EventBus } from "aws-cdk-lib/aws-events";
-import { grantInvokeCommunityProviders } from "../helpers/permissions";
+import { grantAssumeHandlerRole } from "../helpers/permissions";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 
 interface Props {
@@ -45,7 +45,7 @@ export class TargetGroupGranter extends Construct {
     props.dynamoTable.grantReadData(this._lambda);
     props.eventBus.grantPutEventsTo(this._lambda);
 
-    grantInvokeCommunityProviders(this._lambda);
+    grantAssumeHandlerRole(this._lambda);
 
     // this lambda needs to be able to invoke provider deployments
     const definition = {
