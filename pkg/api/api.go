@@ -27,6 +27,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
@@ -241,6 +242,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 					StateMachineARN: opts.StateMachineARN,
 					AHClient:        opts.AccessHandlerClient,
 					Eventbus:        opts.EventSender,
+					DB:              db,
+					RequestRouter: &requestroutersvc.Service{
+						DB: db,
+					},
 				},
 				DB:       db,
 				Clk:      clk,
@@ -285,6 +290,10 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				StateMachineARN: opts.StateMachineARN,
 				AHClient:        opts.AccessHandlerClient,
 				Eventbus:        opts.EventSender,
+				DB:              db,
+				RequestRouter: &requestroutersvc.Service{
+					DB: db,
+				},
 			},
 			DB:       db,
 			Clk:      clk,
