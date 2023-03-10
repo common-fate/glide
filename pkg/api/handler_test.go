@@ -57,6 +57,13 @@ func TestRegisterHandler(t *testing.T) {
 			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"handler","runtime":"aws-lambda"}`,
 		},
 		{
+			name:               "invalid handlerID",
+			wantCode:           http.StatusBadRequest,
+			wantBody:           `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": string doesn't match the regular expression \"^[-a-zA-Z0-9]*$\""}`,
+			withRegisterResult: nil,
+			giveBody:           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"handler with space","runtime":"aws-lambda"}`,
+		},
+		{
 			name:                   "error == handlersvc.ErrHandlerIdAlreadyExists",
 			mockRegisterHandlerErr: handlersvc.ErrHandlerIdAlreadyExists,
 			wantCode:               http.StatusBadRequest,
@@ -95,7 +102,7 @@ func TestRegisterHandler(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 
 			ctrl := gomock.NewController(t)
 
