@@ -1662,6 +1662,9 @@ type ClientInterface interface {
 	// AdminGetHandler request
 	AdminGetHandler(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminHealthcheckHandlers request
+	AdminHealthcheckHandlers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetIdentityConfiguration request
 	AdminGetIdentityConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2117,6 +2120,18 @@ func (c *Client) AdminDeleteHandler(ctx context.Context, id string, reqEditors .
 
 func (c *Client) AdminGetHandler(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetHandlerRequest(c.Server, id)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) AdminHealthcheckHandlers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminHealthcheckHandlersRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -3615,6 +3630,33 @@ func NewAdminGetHandlerRequest(server string, id string) (*http.Request, error) 
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewAdminHealthcheckHandlersRequest generates requests for AdminHealthcheckHandlers
+func NewAdminHealthcheckHandlersRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/healthcheck-handlers")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5455,6 +5497,9 @@ type ClientWithResponsesInterface interface {
 	// AdminGetHandler request
 	AdminGetHandlerWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*AdminGetHandlerResponse, error)
 
+	// AdminHealthcheckHandlers request
+	AdminHealthcheckHandlersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminHealthcheckHandlersResponse, error)
+
 	// AdminGetIdentityConfiguration request
 	AdminGetIdentityConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetIdentityConfigurationResponse, error)
 
@@ -6180,6 +6225,33 @@ func (r AdminGetHandlerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AdminGetHandlerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type AdminHealthcheckHandlersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminHealthcheckHandlersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminHealthcheckHandlersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7602,6 +7674,15 @@ func (c *ClientWithResponses) AdminGetHandlerWithResponse(ctx context.Context, i
 	return ParseAdminGetHandlerResponse(rsp)
 }
 
+// AdminHealthcheckHandlersWithResponse request returning *AdminHealthcheckHandlersResponse
+func (c *ClientWithResponses) AdminHealthcheckHandlersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminHealthcheckHandlersResponse, error) {
+	rsp, err := c.AdminHealthcheckHandlers(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminHealthcheckHandlersResponse(rsp)
+}
+
 // AdminGetIdentityConfigurationWithResponse request returning *AdminGetIdentityConfigurationResponse
 func (c *ClientWithResponses) AdminGetIdentityConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetIdentityConfigurationResponse, error) {
 	rsp, err := c.AdminGetIdentityConfiguration(ctx, reqEditors...)
@@ -8911,6 +8992,43 @@ func ParseAdminGetHandlerResponse(rsp *http.Response) (*AdminGetHandlerResponse,
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseAdminHealthcheckHandlersResponse parses an HTTP response from a AdminHealthcheckHandlersWithResponse call
+func ParseAdminHealthcheckHandlersResponse(rsp *http.Response) (*AdminHealthcheckHandlersResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminHealthcheckHandlersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
@@ -10672,6 +10790,9 @@ type ServerInterface interface {
 	// Get handler
 	// (GET /api/v1/admin/handlers/{id})
 	AdminGetHandler(w http.ResponseWriter, r *http.Request, id string)
+	// Healthcheck Handlers
+	// (POST /api/v1/admin/healthcheck-handlers)
+	AdminHealthcheckHandlers(w http.ResponseWriter, r *http.Request)
 	// Get identity configuration
 	// (GET /api/v1/admin/identity)
 	AdminGetIdentityConfiguration(w http.ResponseWriter, r *http.Request)
@@ -11354,6 +11475,21 @@ func (siw *ServerInterfaceWrapper) AdminGetHandler(w http.ResponseWriter, r *htt
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminGetHandler(w, r, id)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminHealthcheckHandlers operation middleware
+func (siw *ServerInterfaceWrapper) AdminHealthcheckHandlers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminHealthcheckHandlers(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -12673,6 +12809,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/handlers/{id}", wrapper.AdminGetHandler)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/admin/healthcheck-handlers", wrapper.AdminHealthcheckHandlers)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/identity", wrapper.AdminGetIdentityConfiguration)
 	})
 	r.Group(func(r chi.Router) {
@@ -12933,49 +13072,50 @@ var swaggerSpec = []string{
 	"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",
-	"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",
+	"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",
+	"f3Djlnnr7vPd/w8AAP//+bWKmT/+AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

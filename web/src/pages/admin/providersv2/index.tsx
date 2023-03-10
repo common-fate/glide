@@ -1,10 +1,13 @@
 import {
+  Button,
   ButtonGroup,
   Circle,
   Code,
   Container,
   Flex,
+  HStack,
   Heading,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -15,7 +18,10 @@ import {
   VStack,
   useClipboard,
   useDisclosure,
+  useToast,
+  Tooltip,
 } from "@chakra-ui/react";
+
 import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Column } from "react-table";
@@ -23,6 +29,7 @@ import { AdminLayout } from "../../../components/Layout";
 import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
 import {
+  adminHealthcheckHandlers,
   useAdminListHandlers,
   useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
@@ -32,9 +39,12 @@ import {
   TGHandler,
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
+import { HealthCheckIcon, RefreshIcon } from "../../../components/icons/Icons";
+
+import axios from "axios";
 
 // using a chakra tab component and links, link to /admin/providers and /admin/providersv2
-export const ProvidersV2Tabs = () => {
+export const CommunityProvidersTabs = () => {
   return (
     <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
       <TabsStyledButton href="/admin/providers">
@@ -205,6 +215,38 @@ const AdminTargetGroupsTable = () => {
 };
 
 const Providers = () => {
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const onClick = async () => {
+    setLoading(true);
+
+    await adminHealthcheckHandlers()
+      .then(() => {
+        toast({
+          title: "Health check run",
+          status: "success",
+          variant: "subtle",
+          duration: 2200,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        let description: string | undefined;
+        if (axios.isAxiosError(err)) {
+          // @ts-ignore
+          description = err?.response?.data.error;
+        }
+        toast({
+          title: "Error running health check",
+          description,
+          status: "error",
+          variant: "subtle",
+          duration: 2200,
+          isClosable: true,
+        });
+      });
+    setLoading(false);
+  };
   return (
     <AdminLayout>
       <Helmet>
@@ -218,7 +260,25 @@ const Providers = () => {
       >
         {/* spacer of 32px to acccount for un-needed UI/CLS */}
         <Flex justify="space-between" align="center">
-          <ProvidersV2Tabs />
+          <CommunityProvidersTabs />
+          <HStack spacing="1px">
+            <Button
+              isLoading={loading}
+              onClick={() => onClick()}
+              size="s"
+              padding="5px"
+              variant="ghost"
+              iconSpacing="0px"
+              leftIcon={<HealthCheckIcon boxSize="24px" />}
+              data-testid="create-access-rule-button"
+            ></Button>
+            <Tooltip
+              hasArrow
+              label="Calls all deployed Handlers to check health and validity"
+            >
+              <Text textStyle={"Body/Small"}>Run Health Check</Text>
+            </Tooltip>
+          </HStack>
         </Flex>
 
         <VStack pb={9} align={"left"}>

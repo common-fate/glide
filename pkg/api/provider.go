@@ -43,11 +43,6 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	code := res.StatusCode()
 	switch code {
 	case 200:
-		// A nil array gets serialised as null, make sure we return an empty array to avoid this
-		if res.JSON200 == nil || len(*res.JSON200) == 0 {
-			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
-			return
-		}
 
 		targetGroups := a.fetchTargetGroups(ctx)
 		if err != nil {
@@ -55,7 +50,10 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		combinedResponse := *res.JSON200
+		combinedResponse := []ahTypes.Provider{}
+		if res.JSON200 != nil {
+			combinedResponse = append(combinedResponse, *res.JSON200...)
+		}
 
 		for _, target := range targetGroups {
 			combinedResponse = append(combinedResponse, ahTypes.Provider{

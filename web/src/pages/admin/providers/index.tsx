@@ -33,7 +33,7 @@ import {
 } from "../../../utils/backend-client/admin/admin";
 
 import { Provider, ProviderSetup } from "../../../utils/backend-client/types";
-import { ProvidersV2Tabs } from "../providersv2";
+import { CommunityProvidersTabs } from "../providersv2";
 
 const AdminProvidersTable = () => {
   const { data } = useAdminListProviders();
@@ -84,7 +84,7 @@ const Providers = () => {
           </Stack>
         )}
         <Flex justify="space-between" align="center">
-          <ProvidersV2Tabs />
+          <CommunityProvidersTabs />
           <Button
             my={5}
             size="sm"

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
@@ -42,7 +43,10 @@ func (p *Provider) Config() gconfig.Config {
 }
 
 func (p *Provider) Init(ctx context.Context) error {
-	opts := []func(*config.LoadOptions) error{config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso")))}
+	opts := []func(*config.LoadOptions) error{config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso"))), config.WithRetryer(func() aws.Retryer {
+		return retry.AddWithMaxAttempts(retry.NewStandard(), 20)
+	}),
+	}
 	if p.region.IsSet() {
 		opts = append(opts, config.WithRegion(p.region.Get()))
 	}
@@ -56,7 +60,6 @@ func (p *Provider) Init(ctx context.Context) error {
 	// Hardcoded use east 1 region so that I can search organization accounts using the resource tagging api
 	// not sure how this works for other regions?
 	// resourcesCfg.Region = "us-east-1"
-	cfg.RetryMaxAttempts = 5
 	p.awsConfig = cfg
 	p.client = ssoadmin.NewFromConfig(cfg)
 	p.orgClient = organizations.NewFromConfig(cfg)
