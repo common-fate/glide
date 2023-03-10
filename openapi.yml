@@ -2985,6 +2985,8 @@ components:
                 type: string
               id:
                 type: string
+                maxLength: 64
+                pattern: "^[-a-zA-Z0-9]*$"
             required:
               - targetSchema
               - id
@@ -2997,6 +2999,8 @@ components:
               id:
                 type: string
                 description: "The ID of the target group to deploy to. User, provided"
+                pattern: "^[-a-zA-Z0-9]*$"
+                maxLength: 64
               runtime:
                 type: string
                 default: aws-lambda

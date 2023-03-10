@@ -43,7 +43,19 @@ func TestCreateTargetGroup(t *testing.T) {
 			},
 			wantCode: http.StatusCreated,
 
-			wantBody: `{"icon":"","id":"test","targetDeployments":null,"targetSchema":{"From":"v1.0.1","Schema":{}}}`,
+			wantBody: `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"test","targetSchema":{"From":"v1.0.1","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
+		},
+		{
+			name:     "invalid-target-id",
+			give:     `{"id": "target id with space", "targetSchema": "v1.0.1"}`,
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": string doesn't match the regular expression \"^[-a-zA-Z0-9]*$\""}`,
+		},
+		{
+			name:     "maximum length exceeded for target id",
+			give:     `{"id": "target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-", "targetSchema": "v1.0.1"}`,
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": maximum string length is 64"}`,
 		},
 		{
 			name:          "id already exists",
@@ -63,12 +75,15 @@ func TestCreateTargetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			m := mocks.NewMockTargetService(ctrl)
-			m.EXPECT().CreateGroup(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+
+			if tc.mockCreate != nil || tc.mockCreateErr != nil {
+				m.EXPECT().CreateGroup(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+			}
 
 			a := API{TargetService: m}
 			handler := newTestServer(t, &a)
