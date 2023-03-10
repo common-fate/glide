@@ -42,7 +42,7 @@ export class TargetGroupGranter extends Construct {
       handler: "targetgroup-granter",
     });
 
-    props.dynamoTable.grantReadData(this._lambda);
+    props.dynamoTable.grantReadWriteData(this._lambda);
     props.eventBus.grantPutEventsTo(this._lambda);
 
     grantAssumeHandlerRole(this._lambda);

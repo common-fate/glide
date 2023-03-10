@@ -350,6 +350,26 @@ func (a *API) UserGetAccessInstructions(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	if a.isTargetGroup(ctx, q.Result.Grant.Provider) {
+		q := storage.GetRequestInstructions{ID: requestId}
+		_, err := a.DB.Query(ctx, &q)
+		if err == ddb.ErrNoItems {
+			// we couldn't find the request
+			apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+			return
+		}
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+		i := ahtypes.AccessInstructions{
+			Instructions: &q.Result.Instructions,
+		}
+		apio.JSON(ctx, w, i, http.StatusOK)
+		return
+	}
+
 	args, err := json.Marshal(q.Result.Grant.With)
 	if err != nil {
 		apio.Error(ctx, w, err)
