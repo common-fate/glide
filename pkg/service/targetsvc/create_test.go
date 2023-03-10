@@ -90,25 +90,6 @@ func TestCreateTargetGroup(t *testing.T) {
 			providerLookupErr:      ErrProviderNotFoundInRegistry,
 			providerLookupResponse: &providerregistrysdk.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 404}},
 		},
-		{
-			name:            "incompatible schema",
-			version:         "v1.0.1",
-			give:            types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
-			wantErr:         true,
-			tgLookupwantErr: ddb.ErrNoItems,
-			groupId:         tg_name,
-			providerLookupResponse: &providerregistrysdk.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &providerregistrysdk.ProviderDetail{
-				Publisher: "commonfate",
-				Name:      tg_name,
-				Version:   "v1.0.1",
-				Schema: providerregistrysdk.Schema{
-					Schema: "invalid-schema",
-					Targets: &map[string]providerregistrysdk.Target{
-						"Kind": {},
-					},
-				},
-			}},
-		},
 	}
 
 	for _, tc := range testcases {
