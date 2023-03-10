@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
@@ -152,8 +153,19 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	out := GrantState{
 		Grant: grant,
 	}
+
 	if grantResponse != nil {
 		out.State = grantResponse.State
+		instructions := access.Instructions{
+			Instructions: grantResponse.AccessInstructions,
+			ID:           grant.ID,
+		}
+		err = g.DB.Put(ctx, &instructions)
+		// If there is an error writing instructions, don't return the error.
+		// instead just continue so that the grant can be revoked
+		if err != nil {
+			log.Errorw("failed to write access instructions to dynamoDB", "error", err)
+		}
 	}
 	return out, nil
 }
