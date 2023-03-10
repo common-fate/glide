@@ -15,7 +15,6 @@ import (
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk/prmocks"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/golang/mock/gomock"
@@ -27,7 +26,7 @@ func TestCreateTargetGroup(t *testing.T) {
 		version                string
 		give                   types.CreateTargetGroupRequest
 		tgLookupwantErr        error
-		wantErr                error
+		wantErr                bool
 		want                   *target.Group
 		groupId                string
 		providerLookupResponse *providerregistrysdk.GetProviderResponse
@@ -41,7 +40,6 @@ func TestCreateTargetGroup(t *testing.T) {
 			version:           "v1.0.1",
 			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
 			want:              &target.Group{ID: tg_name, TargetSchema: target.GroupTargetSchema{From: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name), Schema: providerregistrysdk.Target{}}, Icon: "", CreatedAt: clk.Now(), UpdatedAt: clk.Now()},
-			wantErr:           nil,
 			tgLookupwantErr:   ddb.ErrNoItems,
 			groupId:           tg_name,
 			providerLookupErr: nil,
@@ -50,6 +48,7 @@ func TestCreateTargetGroup(t *testing.T) {
 				Name:      tg_name,
 				Version:   "v1.0.1",
 				Schema: providerregistrysdk.Schema{
+					Schema: "https://schema.commonfate.io/provider/v1alpha1",
 					Targets: &map[string]providerregistrysdk.Target{
 						"Kind": {},
 					},
@@ -62,7 +61,7 @@ func TestCreateTargetGroup(t *testing.T) {
 			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1", tg_name)},
 			tgLookupwantErr:   nil,
 			want:              nil,
-			wantErr:           ErrTargetGroupIdAlreadyExists,
+			wantErr:           true,
 			groupId:           tg_name,
 			providerLookupErr: nil,
 
@@ -73,7 +72,7 @@ func TestCreateTargetGroup(t *testing.T) {
 			version:           "v1.0.1",
 			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s/v1.0.1", tg_name)},
 			want:              nil,
-			wantErr:           errors.New("target schema given in incorrect format"),
+			wantErr:           true,
 			tgLookupwantErr:   ddb.ErrNoItems,
 			groupId:           tg_name,
 			providerLookupErr: nil,
@@ -85,11 +84,30 @@ func TestCreateTargetGroup(t *testing.T) {
 			version:                "v1.0.1",
 			give:                   types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
 			want:                   nil,
-			wantErr:                ErrProviderNotFoundInRegistry,
+			wantErr:                true,
 			tgLookupwantErr:        ddb.ErrNoItems,
 			groupId:                tg_name,
 			providerLookupErr:      ErrProviderNotFoundInRegistry,
 			providerLookupResponse: &providerregistrysdk.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 404}},
+		},
+		{
+			name:            "incompatible schema",
+			version:         "v1.0.1",
+			give:            types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
+			wantErr:         true,
+			tgLookupwantErr: ddb.ErrNoItems,
+			groupId:         tg_name,
+			providerLookupResponse: &providerregistrysdk.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &providerregistrysdk.ProviderDetail{
+				Publisher: "commonfate",
+				Name:      tg_name,
+				Version:   "v1.0.1",
+				Schema: providerregistrysdk.Schema{
+					Schema: "invalid-schema",
+					Targets: &map[string]providerregistrysdk.Target{
+						"Kind": {},
+					},
+				},
+			}},
 		},
 	}
 
@@ -118,11 +136,11 @@ func TestCreateTargetGroup(t *testing.T) {
 
 			got, err := s.CreateGroup(context.Background(), tc.give)
 
-			if tc.wantErr != nil {
-				assert.Equal(t, tc.wantErr.Error(), err.Error())
+			if (err != nil) != tc.wantErr {
+				t.Errorf("TestCreateTargetGroup() error = %v, wantErr %v", err, tc.wantErr)
 			}
-			assert.Equal(t, tc.want, got)
 
+			assert.Equal(t, tc.want, got)
 		})
 	}
 

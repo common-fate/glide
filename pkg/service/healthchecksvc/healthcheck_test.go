@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/providerschema"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc/mocks"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -107,6 +108,9 @@ func TestDescribe(t *testing.T) {
 	}
 	healthyDescribe := providerregistrysdk.DescribeResponse{
 		Healthy: true,
+		Schema: providerregistrysdk.Schema{
+			Schema: "https://schema.commonfate.io/provider/v1alpha1",
+		},
 	}
 	unhealthyDescribe := providerregistrysdk.DescribeResponse{
 		Healthy: false,
@@ -116,7 +120,24 @@ func TestDescribe(t *testing.T) {
 				Msg:   "hello",
 			},
 		},
+		Schema: providerregistrysdk.Schema{
+			Schema: "https://schema.commonfate.io/provider/v1alpha1",
+		},
 	}
+
+	incompatibleSchemaDescribe := providerregistrysdk.DescribeResponse{
+		Healthy: true,
+		Schema: providerregistrysdk.Schema{
+			Schema: "incompatible-schema",
+		},
+	}
+
+	// derive the error dynamically here, so that we don't need to update
+	// this test every time we introduce additional supported schemas.
+	// the important thing we want to check is that the error is surfaced
+	// as a warning.
+	schemaError := providerschema.IsSupported("incompatible-schema")
+
 	testcases := []testcase{
 		{
 			name:        "describe failed",
@@ -138,6 +159,15 @@ func TestDescribe(t *testing.T) {
 				Level:   types.LogLevelERROR,
 				Message: "hello",
 			}).SetProviderDescription(&unhealthyDescribe),
+		},
+		{
+			name:             "incompatible schema",
+			handler:          test1Handler,
+			describeResponse: &incompatibleSchemaDescribe,
+			want: test1Handler.SetHealth(true).AddDiagnostic(handler.Diagnostic{
+				Level:   types.LogLevelWARNING,
+				Message: schemaError.Error(),
+			}).SetProviderDescription(&incompatibleSchemaDescribe),
 		},
 	}
 	for _, tc := range testcases {

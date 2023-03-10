@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/common-fate/common-fate/pkg/providerschema"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/pkg/errors"
@@ -81,10 +82,16 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	case http.StatusNotFound:
 		return nil, ErrProviderNotFoundInRegistry
 	case http.StatusInternalServerError:
-		return nil, errors.Wrap(fmt.Errorf(response.JSON500.Error), "recieved 500 error from registry service when fetching provider")
+		return nil, errors.Wrap(fmt.Errorf(response.JSON500.Error), "received 500 error from registry service when fetching provider")
 	default:
-		return nil, fmt.Errorf("unhandled response code recieved from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
+		return nil, fmt.Errorf("unhandled response code received from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
 	}
+
+	err = providerschema.IsSupported(response.JSON200.Schema.Schema)
+	if err != nil {
+		return nil, err
+	}
+
 	targets := response.JSON200.Schema.Targets
 	if targets == nil {
 		return nil, errors.New("provider does not provide any targets")
