@@ -164,7 +164,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 		// If there is an error writing instructions, don't return the error.
 		// instead just continue so that the grant can be revoked
 		if err != nil {
-			log.Errorw("failed to write access instructions to dynamoDB", "error", err)
+			log.Errorw("failed to write access instructions to DynamoDB", "error", err)
 		}
 	}
 	return out, nil
