@@ -105,9 +105,11 @@ export class TargetGroupGranter extends Construct {
           OutputPath: "$.Payload",
           Parameters: {
             FunctionName: this._lambda.functionArn,
+            // This passes the output into the revoke action which may or may not include state
             Payload: {
               "action": "DEACTIVATE",
               "grant.$": "$.grant",
+              "state.$": "$.state",
             },
           },
           Retry: [

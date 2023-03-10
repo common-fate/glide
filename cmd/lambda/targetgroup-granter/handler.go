@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"go.uber.org/zap"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
@@ -30,6 +32,11 @@ func main() {
 			DB: db,
 		},
 	}
+	log, err := logger.Build(cfg.LogLevel)
+	if err != nil {
+		panic(err)
+	}
+	zap.ReplaceGlobals(log.Desugar())
 
 	lambda.Start(granter.HandleRequest)
 }
