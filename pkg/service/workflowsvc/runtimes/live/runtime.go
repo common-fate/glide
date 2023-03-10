@@ -10,8 +10,8 @@ import (
 
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/apikit/logger"
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
@@ -145,8 +145,21 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 		return err
 	}
 	lastState := statefn.Events[len(statefn.Events)-1]
+
 	//if the state of the grant is in the active state
 	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
+
+		// Pull the state from the output of the activate step so it can be used when revoking access
+		exitActivateStepEvent := statefn.Events[len(statefn.Events)-2]
+		if exitActivateStepEvent.Type != "TaskStateExited" || exitActivateStepEvent.StateExitedEventDetails == nil {
+			return errors.New("unexpected workflow state")
+		}
+
+		var gs targetgroupgranter.GrantState
+		err = json.Unmarshal([]byte(aws.ToString(exitActivateStepEvent.StateExitedEventDetails.Output)), &gs)
+		if err != nil {
+			return err
+		}
 		//call the provider revoke
 		req := msg.Revoke{
 			Subject: string(input.Grant.Subject),
@@ -157,6 +170,7 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 			Request: msg.AccessRequest{
 				ID: grantID,
 			},
+			State: gs.State,
 		}
 
 		err = runtime.Revoke(ctx, req)
