@@ -5,9 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { CreateTargetGroupFrom } from './createTargetGroupFrom';
+import type { TargetGroupFrom } from './targetGroupFrom';
 
 export type CreateTargetGroupRequestBody = {
-  from: CreateTargetGroupFrom;
+  from: TargetGroupFrom;
   id: string;
 };

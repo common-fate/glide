@@ -9,7 +9,7 @@
 /**
  * Specifies a particular Access Provider to create a Target Group schema from.
  */
-export interface CreateTargetGroupFrom {
+export interface TargetGroupFrom {
   publisher: string;
   name: string;
   version: string;
