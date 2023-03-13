@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/providerschema"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -140,6 +141,16 @@ func describe(ctx context.Context, h handler.Handler, runtime Runtime) handler.H
 			Message: diagnostic.Msg,
 		})
 	}
+
+	// warn the user if the handler uses an unsupported schema
+	schemaErr := providerschema.IsSupported(describeRes.Schema.Schema)
+	if schemaErr != nil {
+		h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
+			Level:   types.LogLevelWARNING,
+			Message: schemaErr.Error(),
+		})
+	}
+
 	h.ProviderDescription = describeRes
 	h.Healthy = describeRes.Healthy
 	return h

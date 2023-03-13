@@ -81,10 +81,11 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	case http.StatusNotFound:
 		return nil, ErrProviderNotFoundInRegistry
 	case http.StatusInternalServerError:
-		return nil, errors.Wrap(fmt.Errorf(response.JSON500.Error), "recieved 500 error from registry service when fetching provider")
+		return nil, errors.Wrap(fmt.Errorf(response.JSON500.Error), "received 500 error from registry service when fetching provider")
 	default:
-		return nil, fmt.Errorf("unhandled response code recieved from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
+		return nil, fmt.Errorf("unhandled response code received from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
 	}
+
 	targets := response.JSON200.Schema.Targets
 	if targets == nil {
 		return nil, errors.New("provider does not provide any targets")
