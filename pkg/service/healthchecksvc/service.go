@@ -191,7 +191,7 @@ func validateRoute(route target.Route, group target.Group, dr *providerregistrys
 	targets := *dr.Schema.Targets
 	kindSchema, ok := targets[route.Kind]
 	if ok {
-		route.Valid = validateProviderSchema(group.TargetSchema.Schema.Properties, kindSchema.Properties)
+		route.Valid = validateProviderSchema(group.Schema.Properties, kindSchema.Properties)
 	} else {
 		// invalid route because the kind does not exist in the schema
 		route.Valid = false

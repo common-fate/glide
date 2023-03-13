@@ -35,6 +35,7 @@ export * from './createProviderSetupRequestBody';
 export * from './createRequestRequestBody';
 export * from './createRequestWith';
 export * from './createRequestWithSubRequest';
+export * from './createTargetGroupFrom';
 export * from './createTargetGroupLinkBody';
 export * from './createTargetGroupRequestBody';
 export * from './createUserRequestBody';

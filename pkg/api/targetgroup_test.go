@@ -36,37 +36,40 @@ func TestCreateTargetGroup(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"id": "test", "targetSchema": "v1.0.1"}`,
+			give: `{"id": "test", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			mockCreate: &target.Group{
-				ID:           "test",
-				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.Target{}},
+				ID: "test",
+				From: target.From{
+					Name: "test",
+				},
+				Schema: providerregistrysdk.Target{},
 			},
 			wantCode: http.StatusCreated,
 
-			wantBody: `{"createdAt":"0001-01-01T00:00:00Z","icon":"","id":"test","targetSchema":{"From":"v1.0.1","Schema":{}},"updatedAt":"0001-01-01T00:00:00Z"}`,
+			wantBody: `{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"","name":"test","publisher":"","version":""},"icon":"","id":"test","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}`,
 		},
 		{
 			name:     "invalid-target-id",
-			give:     `{"id": "target id with space", "targetSchema": "v1.0.1"}`,
+			give:     `{"id": "target id with space", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			wantCode: http.StatusBadRequest,
 			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": string doesn't match the regular expression \"^[-a-zA-Z0-9]*$\""}`,
 		},
 		{
 			name:     "maximum length exceeded for target id",
-			give:     `{"id": "target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-", "targetSchema": "v1.0.1"}`,
+			give:     `{"id": "target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			wantCode: http.StatusBadRequest,
 			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": maximum string length is 64"}`,
 		},
 		{
 			name:          "id already exists",
-			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
+			give:          `{"id": "test", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			mockCreateErr: targetsvc.ErrTargetGroupIdAlreadyExists,
 			wantCode:      http.StatusConflict,
 			wantBody:      `{"error":"target group id already exists"}`,
 		},
 		{
 			name:          "provider not found in registry",
-			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
+			give:          `{"id": "test", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			mockCreateErr: targetsvc.ErrProviderNotFoundInRegistry,
 			wantCode:      http.StatusNotFound,
 			wantBody:      `{"error":"provider not found in registry"}`,
@@ -126,14 +129,24 @@ func TestListTargetGroup(t *testing.T) {
 			wantCode: http.StatusOK,
 			targetgroups: []target.Group{
 				{
-					ID:           "tg1",
-					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.Target{Properties: map[string]providerregistrysdk.TargetField{}}},
-					Icon:         "test",
+					ID: "tg1",
+					From: target.From{
+						Publisher: "common-fate",
+						Name:      "test",
+						Version:   "v1",
+						Kind:      "Kind",
+					},
+					Icon: "test",
 				},
 				{
-					ID:           "tg2",
-					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.Target{Properties: map[string]providerregistrysdk.TargetField{}}},
-					Icon:         "test",
+					ID: "tg2",
+					From: target.From{
+						Publisher: "common-fate",
+						Name:      "second",
+						Version:   "v2",
+						Kind:      "Kind",
+					},
+					Icon: "test",
 				},
 			},
 

@@ -32,20 +32,34 @@ func TestCreateTargetGroup(t *testing.T) {
 		providerLookupResponse *providerregistrysdk.GetProviderResponse
 		providerLookupErr      error
 	}
-	tg_name := fmt.Sprintf("test_%d", rand.Intn(999))
+
+	name := fmt.Sprintf("test_%d", rand.Intn(999))
 	clk := clock.NewMock()
+
+	from := types.TargetGroupFrom{
+		Kind:      "Kind",
+		Name:      name,
+		Publisher: "commonfate",
+		Version:   "v1.0.1",
+	}
+
 	testcases := []testcase{
 		{
-			name:              "ok",
-			version:           "v1.0.1",
-			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
-			want:              &target.Group{ID: tg_name, TargetSchema: target.GroupTargetSchema{From: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name), Schema: providerregistrysdk.Target{}}, Icon: "", CreatedAt: clk.Now(), UpdatedAt: clk.Now()},
+			name:    "ok",
+			version: "v1.0.1",
+			give:    types.CreateTargetGroupRequest{Id: name, From: from},
+			want: &target.Group{
+				ID:        name,
+				From:      target.FromFieldFromAPI(from),
+				CreatedAt: clk.Now(),
+				UpdatedAt: clk.Now(),
+			},
 			tgLookupwantErr:   ddb.ErrNoItems,
-			groupId:           tg_name,
+			groupId:           name,
 			providerLookupErr: nil,
 			providerLookupResponse: &providerregistrysdk.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &providerregistrysdk.ProviderDetail{
 				Publisher: "commonfate",
-				Name:      tg_name,
+				Name:      name,
 				Version:   "v1.0.1",
 				Schema: providerregistrysdk.Schema{
 					Schema: "https://schema.commonfate.io/provider/v1alpha1",
@@ -56,25 +70,24 @@ func TestCreateTargetGroup(t *testing.T) {
 			}},
 		},
 		{
-			name:              "target group already exists",
-			version:           "v1.0.1",
-			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1", tg_name)},
-			tgLookupwantErr:   nil,
-			want:              nil,
-			wantErr:           true,
-			groupId:           tg_name,
-			providerLookupErr: nil,
-
+			name:                   "target group already exists",
+			version:                "v1.0.1",
+			give:                   types.CreateTargetGroupRequest{Id: name, From: from},
+			tgLookupwantErr:        nil,
+			want:                   nil,
+			wantErr:                true,
+			groupId:                name,
+			providerLookupErr:      nil,
 			providerLookupResponse: nil,
 		},
 		{
 			name:              "Incorrect target schema format",
 			version:           "v1.0.1",
-			give:              types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s/v1.0.1", tg_name)},
+			give:              types.CreateTargetGroupRequest{Id: name, From: types.TargetGroupFrom{Publisher: "commonfate", Version: "v1", Name: "test"}}, // no Kind provided
 			want:              nil,
 			wantErr:           true,
 			tgLookupwantErr:   ddb.ErrNoItems,
-			groupId:           tg_name,
+			groupId:           name,
 			providerLookupErr: nil,
 
 			providerLookupResponse: nil,
@@ -82,11 +95,11 @@ func TestCreateTargetGroup(t *testing.T) {
 		{
 			name:                   "provider not found",
 			version:                "v1.0.1",
-			give:                   types.CreateTargetGroupRequest{Id: tg_name, TargetSchema: fmt.Sprintf("commonfate/%s@v1.0.1/Kind", tg_name)},
+			give:                   types.CreateTargetGroupRequest{Id: name, From: from},
 			want:                   nil,
 			wantErr:                true,
 			tgLookupwantErr:        ddb.ErrNoItems,
-			groupId:                tg_name,
+			groupId:                name,
 			providerLookupErr:      ErrProviderNotFoundInRegistry,
 			providerLookupResponse: &providerregistrysdk.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 404}},
 		},

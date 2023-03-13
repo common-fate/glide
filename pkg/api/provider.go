@@ -138,7 +138,7 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 		schema := ahTypes.ArgSchema{
 			AdditionalProperties: map[string]ahTypes.Argument{},
 		}
-		for k, v := range q.Result.TargetSchema.Schema.Properties {
+		for k, v := range q.Result.Schema.Properties {
 			a := ahTypes.Argument{
 				Id:           k,
 				Description:  v.Description,
