@@ -1179,6 +1179,8 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       description: Removes a handler
+      tags:
+        - Admin
   /api/v1/admin/handlers:
     get:
       summary: Get handlers
@@ -1357,6 +1359,40 @@ paths:
       description: ""
       tags:
         - Admin
+  "/api/v1/admin/target-groups/{id}/routes":
+    parameters:
+      - schema:
+          type: string
+        name: id
+        description: Target group ID
+        in: path
+        required: true
+    get:
+      summary: ""
+      operationId: admin-list-target-routes
+      responses:
+        "200":
+          $ref: "#/components/responses/ListTargetGroupRoutes"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Lists all routes for a given Target Group
+  /api/v1/admin/healthcheck-handlers:
+    post:
+      summary: Healthcheck Handlers
+      operationId: admin-healthcheck-handlers
+      responses:
+        "204":
+          description: No Content
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Runs the healthcheck for handlers
+      tags:
+        - Admin
+    parameters: []
 components:
   schemas:
     User:
@@ -1650,7 +1686,7 @@ components:
           additionalProperties:
             $ref: "#/components/schemas/AccessRuleTargetDetailArguments"
         targetGroup:
-          $ref: "#/components/schemas/TargetGroup"
+          type: string
       required:
         - provider
         - with
@@ -2370,6 +2406,26 @@ components:
       description: |-
         Handler represents a deployment of a provider. 
         Handlers can be linked to target groups via routes
+    TargetGroupFrom:
+      title: TargetGroupFrom
+      x-stoplight:
+        id: 1beeb9df4c57d
+      type: object
+      properties:
+        publisher:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        kind:
+          type: string
+      required:
+        - publisher
+        - name
+        - version
+        - kind
+      description: Specifies a particular Access Provider to create a Target Group schema from.
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2378,8 +2434,10 @@ components:
       properties:
         id:
           type: string
-        targetSchema:
-          $ref: "#/components/schemas/TargetGroupTargetSchema"
+        schema:
+          $ref: "#/components/schemas/TargetSchema"
+        from:
+          $ref: "#/components/schemas/TargetGroupFrom"
         icon:
           type: string
         createdAt:
@@ -2391,7 +2449,8 @@ components:
           format: time
       required:
         - id
-        - targetSchema
+        - schema
+        - from
         - icon
     TargetRoute:
       type: object
@@ -2420,19 +2479,6 @@ components:
         - priority
         - valid
         - diagnostics
-    TargetGroupTargetSchema:
-      title: TargetSchema
-      x-stoplight:
-        id: 6192c449ffbe9
-      type: object
-      properties:
-        From:
-          type: string
-        Schema:
-          $ref: "#/components/schemas/TargetSchema"
-      required:
-        - From
-        - Schema
     Diagnostic:
       title: Diagnostic
       x-stoplight:
@@ -2733,6 +2779,21 @@ components:
             required:
               - res
               - next
+    ListTargetGroupRoutes:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              routes:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetRoute"
+              next:
+                type: string
+            required:
+              - routes
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -2930,12 +2991,14 @@ components:
           schema:
             type: object
             properties:
-              targetSchema:
-                type: string
+              from:
+                $ref: "#/components/schemas/TargetGroupFrom"
               id:
                 type: string
+                maxLength: 64
+                pattern: "^[-a-zA-Z0-9]*$"
             required:
-              - targetSchema
+              - from
               - id
     RegisterHandlerRequest:
       content:
@@ -2946,6 +3009,8 @@ components:
               id:
                 type: string
                 description: "The ID of the target group to deploy to. User, provided"
+                pattern: "^[-a-zA-Z0-9]*$"
+                maxLength: 64
               runtime:
                 type: string
                 default: aws-lambda

@@ -43,11 +43,6 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 	code := res.StatusCode()
 	switch code {
 	case 200:
-		// A nil array gets serialised as null, make sure we return an empty array to avoid this
-		if res.JSON200 == nil || len(*res.JSON200) == 0 {
-			apio.JSON(ctx, w, []ahTypes.Provider{}, code)
-			return
-		}
 
 		targetGroups := a.fetchTargetGroups(ctx)
 		if err != nil {
@@ -55,7 +50,10 @@ func (a *API) AdminListProviders(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		combinedResponse := *res.JSON200
+		combinedResponse := []ahTypes.Provider{}
+		if res.JSON200 != nil {
+			combinedResponse = append(combinedResponse, *res.JSON200...)
+		}
 
 		for _, target := range targetGroups {
 			combinedResponse = append(combinedResponse, ahTypes.Provider{
@@ -134,8 +132,33 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 	if err != nil && err != ddb.ErrNoItems {
 		apio.Error(ctx, w, err)
 	}
+
+	// Convert the registry schema to the type required for the API
 	if q.Result != nil {
-		apio.JSON(ctx, w, q.Result.TargetSchema.Schema, http.StatusCreated)
+		schema := ahTypes.ArgSchema{
+			AdditionalProperties: map[string]ahTypes.Argument{},
+		}
+		for k, v := range q.Result.Schema.Properties {
+			a := ahTypes.Argument{
+				Id:           k,
+				Description:  v.Description,
+				ResourceName: v.Resource,
+				Groups: &ahTypes.Argument_Groups{
+					AdditionalProperties: map[string]ahTypes.Group{},
+				},
+				RuleFormElement: ahTypes.ArgumentRuleFormElementINPUT,
+			}
+			if v.Title != nil {
+				a.Title = *v.Title
+			}
+
+			if v.Resource != nil {
+				a.RuleFormElement = ahTypes.ArgumentRuleFormElementMULTISELECT
+			}
+			schema.AdditionalProperties[k] = a
+		}
+
+		apio.JSON(ctx, w, schema, http.StatusCreated)
 		return
 	}
 
@@ -175,7 +198,7 @@ func (a *API) fetchProviderResourcesByResourceType(ctx context.Context, provider
 		return []ahTypes.Option{}, err
 	}
 
-	var opts []ahTypes.Option
+	opts := []ahTypes.Option{}
 	for _, k := range cachedResources.Result {
 		opts = append(opts, ahTypes.Option{
 			Label: k.Resource.Name,

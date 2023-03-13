@@ -1,11 +1,12 @@
 import { Duration, Stack } from "aws-cdk-lib";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
-import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import * as events from "aws-cdk-lib/aws-events";
-import * as targets from "aws-cdk-lib/aws-events-targets";
-import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { grantAssumeIdentitySyncRole } from "../helpers/permissions";
 import { WebUserPool } from "./app-user-pool";
 
 interface Props {
@@ -56,7 +57,7 @@ export class IdpSync extends Construct {
 
     //add event bridge trigger to lambda
     this.eventRule = new events.Rule(this, "EventBridgeCronRule", {
-      schedule: events.Schedule.cron({ minute: props.idpSyncSchedule }),
+      schedule: events.Schedule.expression(props.idpSyncSchedule),
     });
 
     // add the Lambda function as a target for the Event Rule
@@ -91,18 +92,7 @@ export class IdpSync extends Construct {
       })
     );
 
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        actions: ["sts:AssumeRole"],
-        resources: ["*"],
-        conditions: {
-          StringEquals: {
-            "iam:ResourceTag/common-fate-abac-role":
-              "aws-sso-identity-provider",
-          },
-        },
-      })
-    );
+    grantAssumeIdentitySyncRole(this._lambda);
     //allow the lambda to write to the table
     props.dynamoTable.grantWriteData(this._lambda);
   }

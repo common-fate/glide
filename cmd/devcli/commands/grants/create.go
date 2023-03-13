@@ -2,6 +2,7 @@ package grants
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
@@ -21,6 +22,11 @@ import (
 
 var CreateCommand = cli.Command{
 	Name: "create",
+	Flags: []cli.Flag{
+		&cli.StringFlag{Name: "subject", Required: true},
+		&cli.StringFlag{Name: "provider", Required: true},
+		&cli.StringSliceFlag{Name: "with", Usage: "key:value"},
+	},
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 		// Read from the .env file
@@ -39,16 +45,20 @@ var CreateCommand = cli.Command{
 		if err != nil {
 			return err
 		}
+		m := map[string]string{}
+
+		for _, kv := range c.StringSlice("with") {
+			s := strings.Split(kv, ":")
+			m[s[0]] = s[1]
+		}
 		grant := ahTypes.CreateGrant{
-			Subject:  openapi_types.Email("josh@commonfate.io"),
+			Subject:  openapi_types.Email(c.String("subject")),
 			Start:    iso8601.New(time.Now().Add(time.Second * 2)),
-			End:      iso8601.New(time.Now().Add(time.Hour)),
-			Provider: "josh-example",
+			End:      iso8601.New(time.Now().Add(time.Second * 5)),
+			Provider: c.String("provider"),
 			Id:       ahTypes.NewGrantID(),
 			With: ahTypes.CreateGrant_With{
-				AdditionalProperties: map[string]string{
-					"vault": "test",
-				},
+				AdditionalProperties: m,
 			},
 		}
 		in := targetgroupgranter.WorkflowInput{Grant: grant}

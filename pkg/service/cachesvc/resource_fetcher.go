@@ -2,10 +2,14 @@ package cachesvc
 
 import (
 	"context"
+	"errors"
+	"os/exec"
 	"sync"
 
+	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cache"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -17,10 +21,10 @@ type ResourceFetcher struct {
 	resources     map[string]cache.TargateGroupResource
 	targetGroupID string
 	eg            *errgroup.Group
-	runtime       handlerruntime.Runtime
+	runtime       *handlerclient.Client
 }
 
-func NewResourceFetcher(targetGroupID string, runtime handlerruntime.Runtime) *ResourceFetcher {
+func NewResourceFetcher(targetGroupID string, runtime *handlerclient.Client) *ResourceFetcher {
 	return &ResourceFetcher{
 		targetGroupID: targetGroupID,
 		runtime:       runtime,
@@ -38,13 +42,16 @@ func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([
 		rf.eg.Go(func() error {
 			// Initializing empty context for initial lambda invocation as context
 			// as context value for first invocation is irrelevant.
-			var emptyContext struct{}
-			response, err := rf.runtime.FetchResources(gctx, tc, emptyContext)
+			response, err := rf.runtime.FetchResources(gctx, msg.LoadResources{Task: tc, Ctx: map[string]any{}})
 			if err != nil {
+				var ee *exec.ExitError
+				if errors.As(err, &ee) {
+					logger.Get(gctx).Errorw("failed to invoke local python code", "stderr", string(ee.Stderr))
+				}
 				return err
 			}
 
-			return rf.getResources(gctx, response)
+			return rf.getResources(gctx, *response)
 		})
 	}
 
@@ -63,16 +70,16 @@ func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([
 
 // Recursively call the provider lambda handler unless there is no further pending tasks.
 // the response Resource is then appended to `rf.resources` for batch DB update later on.
-func (rf *ResourceFetcher) getResources(ctx context.Context, response handlerruntime.LoadResourceResponse) error {
-	if len(response.PendingTasks) == 0 || len(response.Resources) > 0 {
+func (rf *ResourceFetcher) getResources(ctx context.Context, response msg.LoadResponse) error {
+	if len(response.Tasks) == 0 || len(response.Resources) > 0 {
 
 		rf.resourcesMx.Lock()
 		for _, i := range response.Resources {
 			tgr := cache.TargateGroupResource{
 				ResourceType: i.Type,
 				Resource: cache.Resource{
-					ID:   i.Data.ID,
-					Name: i.Data.Name,
+					ID:   i.ID,
+					Name: i.Name,
 				},
 				TargetGroupID: rf.targetGroupID,
 			}
@@ -81,15 +88,19 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response handlerrun
 		rf.resourcesMx.Unlock()
 	}
 
-	for _, task := range response.PendingTasks {
+	for _, task := range response.Tasks {
 		// copy the loop variable
 		tc := task
 		rf.eg.Go(func() error {
-			response, err := rf.runtime.FetchResources(ctx, tc.Name, tc.Ctx)
+			response, err := rf.runtime.FetchResources(ctx, msg.LoadResources(tc))
 			if err != nil {
+				var ee *exec.ExitError
+				if errors.As(err, &ee) {
+					logger.Get(ctx).Errorw("failed to invoke local python code", "stderr", string(ee.Stderr))
+				}
 				return err
 			}
-			return rf.getResources(ctx, response)
+			return rf.getResources(ctx, *response)
 		})
 	}
 	return nil

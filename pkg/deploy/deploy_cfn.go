@@ -37,7 +37,7 @@ func (c *Config) DeployCloudFormation(ctx context.Context, confirm bool) (string
 		return "", err
 	}
 
-	changeSetName, createErr := cfnClient.CreateChangeSet(ctx, template, params, nil, c.Deployment.StackName, "")
+	changeSetName, createErr := cfnClient.CreateChangeSet(ctx, template, params, c.Deployment.Tags, c.Deployment.StackName, "")
 
 	si.Stop()
 

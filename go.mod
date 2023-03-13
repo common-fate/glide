@@ -21,7 +21,7 @@ require (
 	github.com/awslabs/aws-lambda-go-api-proxy v0.13.3
 	github.com/bitfield/script v0.20.2
 	github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed
-	github.com/common-fate/cloudform v0.3.0
+	github.com/common-fate/cloudform v0.6.0
 	github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73
 	github.com/common-fate/iso8601 v1.0.2
 	github.com/deepmap/oapi-codegen v1.11.0
@@ -35,7 +35,7 @@ require (
 	github.com/okta/okta-sdk-golang/v2 v2.13.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
-	github.com/sethvargo/go-retry v0.2.3
+	github.com/sethvargo/go-retry v0.2.4
 	go.uber.org/zap v1.23.0
 	golang.org/x/oauth2 v0.1.0
 	google.golang.org/api v0.103.0
@@ -141,7 +141,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.15 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.15
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.23 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.29 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.23 // indirect
@@ -173,7 +173,7 @@ require (
 )
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.5
+	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/TylerBrock/saw v0.2.2
 	github.com/aws-cloudformation/rain v1.2.0 // indirect
@@ -187,11 +187,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
-	github.com/briandowns/spinner v1.18.1
-	github.com/common-fate/analytics-go v0.1.0
-	github.com/common-fate/clio v1.0.0
+	github.com/briandowns/spinner v1.23.0
+	github.com/common-fate/analytics-go v0.2.0
+	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.0
-	github.com/common-fate/provider-registry-sdk-go v0.2.1
+	github.com/common-fate/provider-registry-sdk-go v0.15.0
 	github.com/common-fate/testvault v0.1.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

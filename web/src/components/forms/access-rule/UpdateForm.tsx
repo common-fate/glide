@@ -23,10 +23,12 @@ import {
   adminUpdateAccessRule,
   useAdminGetAccessRule,
   adminArchiveAccessRule,
+  useAdminGetTargetGroup,
 } from "../../../utils/backend-client/admin/admin";
 import {
   AccessRuleDetail,
   AccessRuleTargetDetailArgumentsFormElement,
+  TargetGroup,
 } from "../../../utils/backend-client/types";
 import {
   AccessRuleFormData,
@@ -47,24 +49,42 @@ interface Props {
 
 //converts target api data to form data
 export const accessRuleTargetApiToTargetFormData = (
-  apiData: AccessRuleDetail
+  apiData: AccessRuleDetail,
+  targetGroup: TargetGroup | undefined
 ): AccessRuleFormDataTarget => {
+  console.log({ apiData, targetGroup });
   const t: AccessRuleFormDataTarget = {
     providerId: apiData.target.provider.id,
     multiSelects: {},
     argumentGroups: {},
     inputs: {},
   };
-  Object.entries(apiData.target.with).forEach(([k, v]) => {
-    if (
-      v.formElement === AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
-    ) {
-      t.multiSelects[k] = v.values;
-      t.argumentGroups[k] = v.groupings;
-    } else {
-      t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
-    }
-  });
+  if (targetGroup !== undefined) {
+    Object.entries(targetGroup.schema).forEach(([k, v]) => {
+      if (
+        v.ruleFormElement ===
+        AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+      ) {
+        t.multiSelects[k] = apiData.target.with[k].values;
+      } else {
+        t.inputs[k] =
+          apiData.target.with[k].values.length == 1
+            ? apiData.target.with[k].values[0]
+            : "";
+      }
+    });
+  } else {
+    Object.entries(apiData.target.with).forEach(([k, v]) => {
+      if (
+        v.formElement === AccessRuleTargetDetailArgumentsFormElement.MULTISELECT
+      ) {
+        t.multiSelects[k] = v.values;
+        t.argumentGroups[k] = v.groupings;
+      } else {
+        t.inputs[k] = v.values.length == 1 ? v.values[0] : "";
+      }
+    });
+  }
 
   return t;
 };
@@ -85,12 +105,19 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
 
   const [isArchiving, setIsArchiving] = useState<boolean>(false);
 
-  const [cachedRule, setCachedRule] = useState<AccessRuleDetail | undefined>();
   const { mutate } = useAdminGetAccessRule(ruleId);
+  const { data: targetGroup } = useAdminGetTargetGroup(
+    data.target.targetGroup ?? "",
+    {
+      swr: {
+        enabled: data.target.targetGroup !== undefined,
+      },
+    }
+  );
 
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
-    if (data && (!cachedRule || cachedRule != data)) {
+    if (data !== undefined) {
       //set accessRuleTargetData from rule details from api
 
       const f: AccessRuleFormData = {
@@ -106,15 +133,11 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
           users: data.approval.users,
           groups: data.approval.groups,
         },
-        target: accessRuleTargetApiToTargetFormData(data),
+        target: accessRuleTargetApiToTargetFormData(data, targetGroup),
       };
       methods.reset(f);
-      setCachedRule(data);
     }
-    return () => {
-      setCachedRule(undefined);
-    };
-  }, [data, methods]);
+  }, [data, methods, targetGroup]);
 
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data for edit", { data });

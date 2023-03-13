@@ -7,7 +7,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { AccessHandler } from "./access-handler";
-import { grantInvokeCommunityProviders } from "../helpers/permissions";
+import { grantAssumeHandlerRole } from "../helpers/permissions";
 
 interface Props {
   dynamoTable: Table;
@@ -32,7 +32,6 @@ export class CacheSync extends Construct {
       environment: {
         COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
         COMMONFATE_TABLE_NAME: props.dynamoTable.tableName,
-        COMMONFATE_IDENTITY_GROUP_FILTER: props.identityGroupFilter,
       },
       runtime: lambda.Runtime.GO_1_X,
       handler: "cache-sync",
@@ -60,7 +59,7 @@ export class CacheSync extends Construct {
       })
     );
     // allows to invoke the function from any account if they have the correct tag
-    grantInvokeCommunityProviders(this._lambda);
+    grantAssumeHandlerRole(this._lambda);
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;

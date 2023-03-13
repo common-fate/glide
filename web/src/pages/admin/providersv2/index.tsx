@@ -1,38 +1,59 @@
-import { CopyIcon } from "@chakra-ui/icons";
 import {
+  Button,
   ButtonGroup,
   Circle,
   Code,
   Container,
   Flex,
-  IconButton,
+  HStack,
+  Heading,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   Text,
+  VStack,
   useClipboard,
+  useDisclosure,
+  useToast,
+  Tooltip,
 } from "@chakra-ui/react";
-import { useMemo } from "react";
+
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Column } from "react-table";
 import { AdminLayout } from "../../../components/Layout";
 import { TabsStyledButton } from "../../../components/nav/Navbar";
 import { TableRenderer } from "../../../components/tables/TableRenderer";
-
 import {
-  Diagnostic,
-  TGHandler,
-  TargetGroup,
-} from "../../../utils/backend-client/types";
-import { usePaginatorApi } from "../../../utils/usePaginatorApi";
-import {
+  adminHealthcheckHandlers,
   useAdminListHandlers,
   useAdminListTargetGroups,
 } from "../../../utils/backend-client/admin/admin";
+import {
+  Diagnostic,
+  TargetGroup,
+  TargetGroupFrom,
+  TGHandler,
+} from "../../../utils/backend-client/types";
+import { usePaginatorApi } from "../../../utils/usePaginatorApi";
+import { HealthCheckIcon, RefreshIcon } from "../../../components/icons/Icons";
+
+import axios from "axios";
 
 // using a chakra tab component and links, link to /admin/providers and /admin/providersv2
-export const ProvidersV2Tabs = () => {
+export const CommunityProvidersTabs = () => {
   return (
     <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
-      <TabsStyledButton href="/admin/providers">V1</TabsStyledButton>
-      <TabsStyledButton href="/admin/providersv2">V2</TabsStyledButton>
+      <TabsStyledButton href="/admin/providers">
+        Built-In Providers
+      </TabsStyledButton>
+      <TabsStyledButton href="/admin/providersv2">
+        PDK Providers
+      </TabsStyledButton>
     </ButtonGroup>
   );
 };
@@ -44,6 +65,9 @@ const AdminProvidersTable = () => {
   });
 
   const clippy = useClipboard("");
+
+  const diagnosticModal = useDisclosure();
+  const [diagnosticText, setDiagnosticText] = useState("");
 
   const cols: Column<TGHandler>[] = useMemo(
     () => [
@@ -58,11 +82,6 @@ const AdminProvidersTable = () => {
       {
         accessor: "awsAccount",
         Header: "Account",
-      },
-      {
-        // @ts-ignore this is required because ts cannot infer the nexted object types correctly
-        accessor: "targetGroupAssignment.TargetGroupId",
-        Header: "Target Group Id",
       },
       {
         accessor: "healthy",
@@ -89,30 +108,53 @@ const AdminProvidersTable = () => {
               return v;
             })
           );
+
+          const maxDiagnosticChars = 200;
+          let expandCode = false;
+          if (strippedCode.length > maxDiagnosticChars) {
+            expandCode = true;
+          }
+
+          const handleClick = () => {
+            if (expandCode) {
+              diagnosticModal.onOpen();
+              setDiagnosticText(strippedCode);
+            }
+          };
+
           return (
             <Code
               rounded="md"
               fontSize="sm"
+              userSelect={expandCode ? "none" : "auto"}
               p={2}
               noOfLines={3}
+              onClick={handleClick}
               position="relative"
+              _hover={{
+                "backgroundColor": expandCode ? "gray.600" : "gray.200",
+                "cursor": expandCode ? "pointer" : "default",
+                "#expandCode": {
+                  display: "block",
+                },
+              }}
             >
+              {expandCode && (
+                <Text
+                  id="expandCode"
+                  display="none"
+                  position="absolute"
+                  left="50%"
+                  top="50%"
+                  transform="translate(-50%, -50%)"
+                  zIndex={2}
+                  size="md"
+                  color="gray.50"
+                >
+                  Expand code
+                </Text>
+              )}
               {strippedCode}
-              <IconButton
-                aria-label="Copy"
-                variant="ghost"
-                icon={<CopyIcon />}
-                size="xs"
-                position="absolute"
-                bottom={0}
-                right={0}
-                opacity={0.5}
-                onClick={() => {
-                  clippy.setValue(strippedCode);
-                  clippy.onCopy();
-                  console.log("copied", strippedCode);
-                }}
-              />
             </Code>
           );
         },
@@ -127,35 +169,87 @@ const AdminProvidersTable = () => {
     emptyText: "No Handlers have been set up yet.",
     linkTo: false,
     apiPaginator: paginator,
+    additionalChildren: (
+      <Modal isOpen={diagnosticModal.isOpen} onClose={diagnosticModal.onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Diagnostics</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={4}>
+            <Code rounded="md" minH="200px" fontSize="sm" p={2}>
+              {diagnosticText}
+            </Code>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    ),
   });
 };
 
+export const targetGroupFromToString = (from: TargetGroupFrom): string => {
+  return `${from.publisher}/${from.name}@${from.version}/${from.kind}`;
+};
+
+const cols: Column<TargetGroup>[] = [
+  {
+    accessor: "id",
+    Header: "ID",
+  },
+  {
+    accessor: "from",
+    Cell: (props) => <span>{targetGroupFromToString(props.value)}</span>,
+    Header: "From",
+  },
+];
+
 const AdminTargetGroupsTable = () => {
-  const { data } = useAdminListTargetGroups();
-  // @ts-ignore this is required because ts cannot infer the nexted object types correctly
-  const cols: Column<TargetGroup>[] = useMemo(
-    () => [
-      {
-        accessor: "id",
-        Header: "ID",
-      },
-      {
-        accessor: "targetSchema.From",
-        Header: "From",
-      },
-    ],
-    []
-  );
+  const paginator = usePaginatorApi<typeof useAdminListTargetGroups>({
+    swrHook: useAdminListTargetGroups,
+    hookProps: {},
+  });
 
   return TableRenderer<TargetGroup>({
     columns: cols,
-    data: [],
+    data: paginator?.data?.targetGroups,
+    apiPaginator: paginator,
     emptyText: "No Target Groups have been set up yet.",
-    linkTo: false,
+    linkTo: true,
   });
 };
 
 const Providers = () => {
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const onClick = async () => {
+    setLoading(true);
+
+    await adminHealthcheckHandlers()
+      .then(() => {
+        toast({
+          title: "Health check run",
+          status: "success",
+          variant: "subtle",
+          duration: 2200,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        let description: string | undefined;
+        if (axios.isAxiosError(err)) {
+          // @ts-ignore
+          description = err?.response?.data.error;
+        }
+        toast({
+          title: "Error running health check",
+          description,
+          status: "error",
+          variant: "subtle",
+          duration: 2200,
+          isClosable: true,
+        });
+      });
+    setLoading(false);
+  };
   return (
     <AdminLayout>
       <Helmet>
@@ -169,28 +263,36 @@ const Providers = () => {
       >
         {/* spacer of 32px to acccount for un-needed UI/CLS */}
         <Flex justify="space-between" align="center">
-          <ProvidersV2Tabs />
+          <CommunityProvidersTabs />
+          <HStack spacing="1px">
+            <Button
+              isLoading={loading}
+              onClick={() => onClick()}
+              size="s"
+              padding="5px"
+              variant="ghost"
+              iconSpacing="0px"
+              leftIcon={<HealthCheckIcon boxSize="24px" />}
+              data-testid="create-access-rule-button"
+            ></Button>
+            <Tooltip
+              hasArrow
+              label="Calls all deployed Handlers to check health and validity"
+            >
+              <Text textStyle={"Body/Small"}>Run Health Check</Text>
+            </Tooltip>
+          </HStack>
         </Flex>
 
-        <Container
-          pb={9}
-          // This prevents unbounded widths for small screen widths
-          minW={{ base: "100%", xl: "container.xl" }}
-          overflowX="auto"
-        >
-          Target Groups
+        <VStack pb={9} align={"left"}>
+          <Text textStyle="Heading/H4">Target Groups</Text>
           <AdminTargetGroupsTable />
-        </Container>
+        </VStack>
 
-        <Container
-          pb={9}
-          // This prevents unbounded widths for small screen widths
-          minW={{ base: "100%", xl: "container.xl" }}
-          overflowX="auto"
-        >
-          Handlers
+        <VStack pb={9} align={"left"}>
+          <Text textStyle="Heading/H4">Handlers</Text>
           <AdminProvidersTable />
-        </Container>
+        </VStack>
       </Container>
     </AdminLayout>
   );

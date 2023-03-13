@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/providerschema"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc/mocks"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -18,13 +19,13 @@ import (
 func TestValidateProviderSchema(t *testing.T) {
 	type testcase struct {
 		name       string
-		schema1    map[string]providerregistrysdk.TargetArgument
-		schema2    map[string]providerregistrysdk.TargetArgument
+		schema1    map[string]providerregistrysdk.TargetField
+		schema2    map[string]providerregistrysdk.TargetField
 		valid_want bool
 	}
-	a := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: aws.String("abc")}}
-	b := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: aws.String("efg")}}
-	c := map[string]providerregistrysdk.TargetArgument{"1": {Id: "abc", ResourceName: nil}}
+	a := map[string]providerregistrysdk.TargetField{"1": {Resource: aws.String("abc")}}
+	b := map[string]providerregistrysdk.TargetField{"1": {Resource: aws.String("efg")}}
+	c := map[string]providerregistrysdk.TargetField{"1": {Resource: nil}}
 	testcases := []testcase{
 		{name: "identical-valid", schema1: a, schema2: a, valid_want: true},
 		{name: "different-invalid", schema1: a, schema2: b, valid_want: false},
@@ -64,10 +65,8 @@ func TestValidateRoute(t *testing.T) {
 			route: test2Route,
 			group: target.Group{},
 			providerDescription: &providerregistrysdk.DescribeResponse{
-				Schema: providerregistrysdk.ProviderSchema{
-					Target: providerregistrysdk.TargetSchema{
-						AdditionalProperties: map[string]providerregistrysdk.TargetMode{},
-					},
+				Schema: providerregistrysdk.Schema{
+					Targets: &map[string]providerregistrysdk.Target{},
 				},
 			},
 			want: test2Route.SetValidity(false).AddDiagnostic(NewDiagKindSchemaNotExist(test2Route)),
@@ -77,11 +76,9 @@ func TestValidateRoute(t *testing.T) {
 			route: test2Route,
 			group: target.Group{},
 			providerDescription: &providerregistrysdk.DescribeResponse{
-				Schema: providerregistrysdk.ProviderSchema{
-					Target: providerregistrysdk.TargetSchema{
-						AdditionalProperties: map[string]providerregistrysdk.TargetMode{
-							test2Route.Kind: {},
-						},
+				Schema: providerregistrysdk.Schema{
+					Targets: &map[string]providerregistrysdk.Target{
+						test2Route.Kind: {},
 					},
 				},
 			},
@@ -111,6 +108,9 @@ func TestDescribe(t *testing.T) {
 	}
 	healthyDescribe := providerregistrysdk.DescribeResponse{
 		Healthy: true,
+		Schema: providerregistrysdk.Schema{
+			Schema: "https://schema.commonfate.io/provider/v1alpha1",
+		},
 	}
 	unhealthyDescribe := providerregistrysdk.DescribeResponse{
 		Healthy: false,
@@ -120,7 +120,24 @@ func TestDescribe(t *testing.T) {
 				Msg:   "hello",
 			},
 		},
+		Schema: providerregistrysdk.Schema{
+			Schema: "https://schema.commonfate.io/provider/v1alpha1",
+		},
 	}
+
+	incompatibleSchemaDescribe := providerregistrysdk.DescribeResponse{
+		Healthy: true,
+		Schema: providerregistrysdk.Schema{
+			Schema: "incompatible-schema",
+		},
+	}
+
+	// derive the error dynamically here, so that we don't need to update
+	// this test every time we introduce additional supported schemas.
+	// the important thing we want to check is that the error is surfaced
+	// as a warning.
+	schemaError := providerschema.IsSupported("incompatible-schema")
+
 	testcases := []testcase{
 		{
 			name:        "describe failed",
@@ -142,6 +159,15 @@ func TestDescribe(t *testing.T) {
 				Level:   types.LogLevelERROR,
 				Message: "hello",
 			}).SetProviderDescription(&unhealthyDescribe),
+		},
+		{
+			name:             "incompatible schema",
+			handler:          test1Handler,
+			describeResponse: &incompatibleSchemaDescribe,
+			want: test1Handler.SetHealth(true).AddDiagnostic(handler.Diagnostic{
+				Level:   types.LogLevelWARNING,
+				Message: schemaError.Error(),
+			}).SetProviderDescription(&incompatibleSchemaDescribe),
 		},
 	}
 	for _, tc := range testcases {

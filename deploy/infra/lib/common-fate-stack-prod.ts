@@ -156,7 +156,7 @@ export class CommonFateStackProd extends cdk.Stack {
     const idpSyncSchedule = new CfnParameter(this, "IDPSyncSchedule", {
       type: "String",
       description: "Cron schedule for IDP Sync Lambda Function",
-      default: "0/5",
+      default: "rate(5 minutes)",
     });
 
     const idpSyncMemory = new CfnParameter(this, "IDPSyncMemory", {

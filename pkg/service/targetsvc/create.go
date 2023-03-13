@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/pkg/errors"
@@ -20,12 +21,18 @@ type Provider struct {
 	Publisher string
 	Name      string
 	Version   string
+	Kind      *string
 }
 
 func SplitProviderString(s string) (Provider, error) {
 	splitversion := strings.Split(s, "@")
 	if len(splitversion) != 2 {
 		return Provider{}, errors.New("target schema given in incorrect format")
+	}
+	var kind *string
+	splitKind := strings.Split(splitversion[1], "/")
+	if len(splitKind) == 2 {
+		kind = aws.String(splitKind[1])
 	}
 
 	splitname := strings.Split(splitversion[0], "/")
@@ -35,7 +42,8 @@ func SplitProviderString(s string) (Provider, error) {
 	p := Provider{
 		Publisher: splitname[0],
 		Name:      splitname[1],
-		Version:   splitversion[1],
+		Version:   splitKind[0],
+		Kind:      kind,
 	}
 	return p, nil
 }
@@ -54,12 +62,16 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
-	//look up target schema for the provider version
-	provider, err := SplitProviderString(req.TargetSchema)
-	if err != nil {
-		return nil, err
+	// //look up target schema for the provider version
+	// provider, err := SplitProviderString(req.TargetSchema)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	if req.From.Kind == "" {
+		return nil, ErrKindIsRequired
 	}
-	response, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, provider.Publisher, provider.Name, provider.Version)
+	response, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, req.From.Publisher, req.From.Name, req.From.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -69,19 +81,29 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	case http.StatusNotFound:
 		return nil, ErrProviderNotFoundInRegistry
 	case http.StatusInternalServerError:
-		return nil, errors.Wrap(fmt.Errorf(response.JSON500.Error), "recieved 500 error from registry service when fetching provider")
+		return nil, errors.Wrap(fmt.Errorf(response.JSON500.Error), "received 500 error from registry service when fetching provider")
 	default:
-		return nil, fmt.Errorf("unhandled response code recieved from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
+		return nil, fmt.Errorf("unhandled response code received from registry service when querying for a provider status Code: %d Body: %s", response.StatusCode(), string(response.Body))
+	}
+
+	targets := response.JSON200.Schema.Targets
+	if targets == nil {
+		return nil, errors.New("provider does not provide any targets")
+	}
+
+	schema, ok := (*targets)[req.From.Kind]
+
+	if !ok {
+		return nil, ErrProviderDoesNotImplementKind
 	}
 
 	now := s.Clock.Now()
 	group := target.Group{
-		ID: req.Id,
-		// The default mode here is a placeholder in our API until multi mode providers are supported fully by the framework
-		// until it is changed, providers will always return the Default mode
-		TargetSchema: target.GroupTargetSchema{From: req.TargetSchema, Schema: response.JSON200.Schema.Target.AdditionalProperties["Default"].Schema},
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:        req.Id,
+		Schema:    schema,
+		From:      target.FromFieldFromAPI(req.From),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 	//based on the target schema provider type set the Icon
 

@@ -307,7 +307,7 @@ func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.Sug
 	var labelArr []types.With
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.ProviderType)
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
 	for k, v := range request.SelectedWith {
 		with := types.With{
 			Label: v.Label,

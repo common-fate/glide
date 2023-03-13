@@ -2,13 +2,14 @@ package cachesvc
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
+	"github.com/pkg/errors"
 )
 
 // RefreshCachedTargetGroupResources deletes any cached options and then refetches them from the available deployment.
@@ -77,19 +78,19 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargateGroupResource, error) {
 	var tasks []string
 
-	deployment, err := s.RequestRouter.Route(ctx, tg)
+	routeResult, err := s.RequestRouter.Route(ctx, tg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to route to a handler when fetching resources for target group %s", tg.ID))
 	}
 
-	if deployment.ProviderDescription == nil {
+	if routeResult.Handler.ProviderDescription == nil {
 		return nil, errors.New("expected ProviderDescription to not be nil")
 	}
-	for k := range deployment.ProviderDescription.Schema.Audit.ResourceLoaders.AdditionalProperties {
+	for k := range routeResult.Handler.ProviderDescription.Schema.Resources.Loaders {
 		tasks = append(tasks, k)
 	}
 
-	runtime, err := handler.GetRuntime(ctx, *deployment)
+	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
 	if err != nil {
 		return nil, err
 	}

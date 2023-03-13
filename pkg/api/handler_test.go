@@ -18,6 +18,60 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestHealthcheckHandler(t *testing.T) {
+
+	type testcase struct {
+		name               string
+		mockHealthcheckErr error
+		want               string
+		wantCode           int
+	}
+
+	testcases := []testcase{
+		{
+			name:     "ok",
+			wantCode: http.StatusNoContent,
+			want:     ``,
+		},
+		{
+			name:               "error",
+			mockHealthcheckErr: errors.New("an error"),
+			wantCode:           http.StatusInternalServerError,
+			want:               `{"error":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+
+			mockHealthcheck := mocks.NewMockHealthcheckService(ctrl)
+			mockHealthcheck.EXPECT().Check(gomock.Any()).Return(tc.mockHealthcheckErr).AnyTimes()
+			a := API{HealthcheckService: mockHealthcheck}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("POST", "/api/v1/admin/healthcheck-handlers", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
+
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
+
 func TestRegisterHandler(t *testing.T) {
 
 	// test cases:
@@ -55,6 +109,13 @@ func TestRegisterHandler(t *testing.T) {
 				Diagnostics: []handler.Diagnostic{},
 			},
 			giveBody: `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"handler","runtime":"aws-lambda"}`,
+		},
+		{
+			name:               "invalid handlerID",
+			wantCode:           http.StatusBadRequest,
+			wantBody:           `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": string doesn't match the regular expression \"^[-a-zA-Z0-9]*$\""}`,
+			withRegisterResult: nil,
+			giveBody:           `{"awsAccount":"123456789012","awsRegion":"ap-southeast-2","id":"handler with space","runtime":"aws-lambda"}`,
 		},
 		{
 			name:                   "error == handlersvc.ErrHandlerIdAlreadyExists",
@@ -95,7 +156,7 @@ func TestRegisterHandler(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 
 			ctrl := gomock.NewController(t)
 

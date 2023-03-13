@@ -6,9 +6,10 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 
 	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
@@ -32,17 +33,18 @@ const (
 	DEACTIVATE EventType = "DEACTIVATE"
 )
 
+type GrantState struct {
+	Grant ahTypes.Grant  `json:"grant"`
+	State map[string]any `json:"state"`
+}
 type InputEvent struct {
 	Action EventType     `json:"action"`
 	Grant  ahTypes.Grant `json:"grant"`
+	// Will be available for revoke events
+	State map[string]any `json:"state,omitempty"`
 }
 
-type Output struct {
-	Grant ahTypes.Grant `json:"grant"`
-}
-
-func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, error) {
-
+func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState, error) {
 	grant := in.Grant
 	log := logger.Get(ctx).With("grant.id", grant.ID)
 	log.Infow("Handling event", "event", in)
@@ -53,44 +55,68 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 
 	_, err := g.DB.Query(ctx, &tgq)
 	if err != nil {
-		return Output{}, err
+		return GrantState{}, err
 	}
-	deployment, err := g.RequestRouter.Route(ctx, *tgq.Result)
+	routeResult, err := g.RequestRouter.Route(ctx, *tgq.Result)
 	if err != nil {
-		return Output{}, err
+		return GrantState{}, err
 	}
-	runtime, err := handler.GetRuntime(ctx, *deployment)
+	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
 	if err != nil {
-		return Output{}, err
+		return GrantState{}, err
 	}
 	_ = runtime
 	eventsBus, err := gevent.NewSender(ctx, gevent.SenderOpts{EventBusARN: g.Cfg.EventBusArn})
 	if err != nil {
-		return Output{}, err
+		return GrantState{}, err
 	}
-
+	var grantResponse *msg.GrantResponse
 	switch in.Action {
 	case ACTIVATE:
 		log.Infow("activating grant")
-		err = func() (err error) {
+		grantResponse, err = func() (out *msg.GrantResponse, err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while granting access", "error", r, "target group", in.Grant.Provider)
-					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
+					log.Errorw("recovered panic while granting access", "error", r, "target group", grant.Provider)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.Provider, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			return runtime.Grant(ctx, string(in.Grant.Subject), handlerruntime.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
+
+			req := msg.Grant{
+				Subject: string(grant.Subject),
+				Target: msg.Target{
+					Kind:      routeResult.Route.Kind,
+					Arguments: grant.With.AdditionalProperties,
+				},
+				Request: msg.AccessRequest{
+					ID: grant.ID,
+				},
+			}
+
+			return runtime.Grant(ctx, req)
 		}()
 	case DEACTIVATE:
 		log.Infow("deactivating grant")
 		err = func() (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Errorw("recovered panic while deactivating access", "error", r, "target group", in.Grant.Provider)
-					err = fmt.Errorf("internal server error invoking targetgroup:deployment: %s:%s", in.Grant.Provider, deployment.ID)
+					log.Errorw("recovered panic while deactivating access", "error", r, "target group", grant.Provider)
+					err = fmt.Errorf("internal server error invoking targetgroup:handler:kind %s:%s:%s", grant.Provider, routeResult.Handler.ID, routeResult.Route.Kind)
 				}
 			}()
-			return runtime.Revoke(ctx, string(in.Grant.Subject), handlerruntime.NewDefaultModeTarget(in.Grant.With.AdditionalProperties))
+			req := msg.Revoke{
+				Subject: string(grant.Subject),
+				Target: msg.Target{
+					Kind:      routeResult.Route.Kind,
+					Arguments: grant.With.AdditionalProperties,
+				},
+				Request: msg.AccessRequest{
+					ID: grant.ID,
+				},
+				State: in.State,
+			}
+
+			return runtime.Revoke(ctx, req)
 		}()
 	default:
 		err = fmt.Errorf("invocation type: %s not supported, type must be one of [ACTIVATE, DEACTIVATE]", in.Action)
@@ -99,34 +125,47 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (Output, err
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
-		in.Grant.Status = ahTypes.GrantStatusERROR
+		grant.Status = ahTypes.GrantStatusERROR
 
-		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: in.Grant, Reason: err.Error()})
+		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
-			return Output{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())
+			return GrantState{}, errors.Wrapf(err, "failed to emit event, emit error: %s", eventErr.Error())
 		}
-		return Output{}, err
+		return GrantState{}, err
 	}
 
 	// Emit an event based on whether we activated or deactivated the grant.
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		in.Grant.Status = ahTypes.GrantStatusACTIVE
-		evt = &gevent.GrantActivated{Grant: in.Grant}
+		grant.Status = ahTypes.GrantStatusACTIVE
+		evt = &gevent.GrantActivated{Grant: grant}
 	case DEACTIVATE:
-		in.Grant.Status = ahTypes.GrantStatusEXPIRED
-		evt = &gevent.GrantExpired{Grant: in.Grant}
+		grant.Status = ahTypes.GrantStatusEXPIRED
+		evt = &gevent.GrantExpired{Grant: grant}
 	}
 
 	log.Infow("emitting event", "event", evt, "action", in.Action)
 	err = eventsBus.Put(ctx, evt)
 	if err != nil {
-		return Output{}, err
+		return GrantState{}, err
 	}
-
-	o := Output{
+	out := GrantState{
 		Grant: grant,
 	}
-	return o, nil
+
+	if grantResponse != nil {
+		out.State = grantResponse.State
+		instructions := access.Instructions{
+			Instructions: grantResponse.AccessInstructions,
+			ID:           grant.ID,
+		}
+		err = g.DB.Put(ctx, &instructions)
+		// If there is an error writing instructions, don't return the error.
+		// instead just continue so that the grant can be revoked
+		if err != nil {
+			log.Errorw("failed to write access instructions to DynamoDB", "error", err)
+		}
+	}
+	return out, nil
 }

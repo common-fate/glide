@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerruntime"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/handlerclient"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
@@ -55,6 +59,10 @@ func (h *Handler) FunctionARN() string {
 	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", h.AWSRegion, h.AWSAccount, h.ID)
 }
 
+func (h *Handler) InvokeRoleARN() string {
+	return fmt.Sprintf("arn:aws:iam::%s:role/%s-invoke", h.AWSAccount, h.ID)
+}
+
 func (h *Handler) DDBKeys() (ddb.Keys, error) {
 	k := ddb.Keys{
 		PK: keys.Handler.PK1,
@@ -84,23 +92,24 @@ func (h *Handler) ToAPI() types.TGHandler {
 	return res
 }
 
-func GetRuntime(ctx context.Context, handler Handler) (handlerruntime.Runtime, error) {
+func GetRuntime(ctx context.Context, handler Handler) (*handlerclient.Client, error) {
 	log := logger.Get(ctx)
-	var pr handlerruntime.Runtime
 	path, ok := LocalDeploymentMap[handler.ID]
 	if ok {
 		log.Debugw("found local runtime configuration for deployment", "deployment", handler, "path", path)
-		pr = handlerruntime.Local{
-			Path: path,
-		}
-
+		client := handlerclient.Client{Executor: handlerclient.Local{Dir: path}}
+		return &client, nil
 	} else {
 		log.Debugw("no local runtime configuration for deployment, using lambda runtime", "deployment", handler)
-		p, err := handlerruntime.NewLambdaRuntime(ctx, handler.FunctionARN())
+		cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(handler.AWSRegion))
 		if err != nil {
 			return nil, err
 		}
-		pr = p
+		stsClient := sts.NewFromConfig(cfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, handler.InvokeRoleARN())
+		cfg.Credentials = aws.NewCredentialsCache(provider)
+
+		client := handlerclient.NewLambdaRuntimeFromConfig(cfg, handler.FunctionARN())
+		return client, nil
 	}
-	return pr, nil
 }

@@ -5,7 +5,7 @@ type InputParams<T extends (...args: any[]) => any> = {
   pageSize?: number | undefined;
   /** This will be called within usePaginatorAPI, the resulting nextToken will be extracted */
   swrHook: T;
-  hookProps: Parameters<T>[0];
+  hookProps: Parameters<T>[0] | Parameters<T>;
   swrProps?: Parameters<T>[1];
 };
 

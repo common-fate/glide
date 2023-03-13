@@ -6,7 +6,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as path from "path";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { grantInvokeCommunityProviders } from "../helpers/permissions";
+import { grantAssumeHandlerRole } from "../helpers/permissions";
 
 interface Props {
   dynamoTable: Table;
@@ -48,7 +48,7 @@ export class HealthChecker extends Construct {
     targets.addLambdaPermission(this.eventRule, this._lambda);
 
     // allows to invoke the function from any account if they have the correct tag
-    grantInvokeCommunityProviders(this._lambda);
+    grantAssumeHandlerRole(this._lambda);
   }
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;

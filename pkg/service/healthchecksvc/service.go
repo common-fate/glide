@@ -7,6 +7,7 @@ import (
 
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/handler"
+	"github.com/common-fate/common-fate/pkg/providerschema"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -88,6 +89,7 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 			group: g,
 			route: r,
 		})
+		handlerRoutes[r.Handler] = hgr
 	}
 	return handlerRoutes, nil
 }
@@ -129,7 +131,7 @@ func describe(ctx context.Context, h handler.Handler, runtime Runtime) handler.H
 	describeRes, err := runtime.Describe(ctx)
 	if err != nil {
 		h.Healthy = false
-		log.Error("Error running healthcheck for handler", "id", h.ID, "error", err)
+		log.Errorw("Error running healthcheck for handler", "id", h.ID, "error", err)
 		h.Diagnostics = append(h.Diagnostics, NewDiagFailedToDescribe(err))
 		return h
 	}
@@ -139,6 +141,16 @@ func describe(ctx context.Context, h handler.Handler, runtime Runtime) handler.H
 			Message: diagnostic.Msg,
 		})
 	}
+
+	// warn the user if the handler uses an unsupported schema
+	schemaErr := providerschema.IsSupported(describeRes.Schema.Schema)
+	if schemaErr != nil {
+		h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
+			Level:   types.LogLevelWARNING,
+			Message: schemaErr.Error(),
+		})
+	}
+
 	h.ProviderDescription = describeRes
 	h.Healthy = describeRes.Healthy
 	return h
@@ -157,19 +169,29 @@ func NewDiagKindSchemaNotExist(route target.Route) target.Diagnostic {
 }
 
 // Validate route will assert that the handler description is available and that the schema of the handler is compatible with the schema of the target group for the route
-func validateRoute(route target.Route, group target.Group, providerDescription *providerregistrysdk.DescribeResponse) target.Route {
+func validateRoute(route target.Route, group target.Group, dr *providerregistrysdk.DescribeResponse) target.Route {
 	// clear existing diagnostics
 	route.Diagnostics = []target.Diagnostic{}
 
-	if providerDescription == nil {
+	if dr == nil {
 		route.Valid = false
 		route.Diagnostics = append(route.Diagnostics, NewDiagHandlerUnreachable)
 		return route
 	}
+
+	if dr.Schema.Targets == nil {
+		// provider doesn't provide any targets
+
+		route.Valid = false
+		route.Diagnostics = append(route.Diagnostics, NewDiagHandlerUnreachable)
+		return route
+	}
+
 	// Check first that the target schema defines the Kind of the route, if not then the route is invalid
-	kindSchema, ok := providerDescription.Schema.Target.AdditionalProperties[route.Kind]
+	targets := *dr.Schema.Targets
+	kindSchema, ok := targets[route.Kind]
 	if ok {
-		route.Valid = validateProviderSchema(group.TargetSchema.Schema.AdditionalProperties, kindSchema.Schema.AdditionalProperties)
+		route.Valid = validateProviderSchema(group.Schema.Properties, kindSchema.Properties)
 	} else {
 		// invalid route because the kind does not exist in the schema
 		route.Valid = false
@@ -179,13 +201,13 @@ func validateRoute(route target.Route, group target.Group, providerDescription *
 }
 
 // validateProviderSchema asserts that the target schemas are equivalent in structure, comparing only the keys and value types
-func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetArgument, schema2 map[string]providerregistrysdk.TargetArgument) bool {
-	var in = []map[string]providerregistrysdk.TargetArgument{schema1, schema2}
+func validateProviderSchema(schema1 map[string]providerregistrysdk.TargetField, schema2 map[string]providerregistrysdk.TargetField) bool {
+	var in = []map[string]providerregistrysdk.TargetField{schema1, schema2}
 	var compare = make([]map[string]*string, 2)
 	for i := range compare {
 		m := make(map[string]*string)
-		for _, arg := range in[i] {
-			m[arg.Id] = arg.ResourceName
+		for key, arg := range in[i] {
+			m[key] = arg.Resource
 		}
 		compare[i] = m
 	}
@@ -213,17 +235,18 @@ func (s *Service) Check(ctx context.Context) error {
 
 		// clear previous diagnostics
 		h.Diagnostics = []handler.Diagnostic{}
-
+		h.ProviderDescription = nil
 		// Get the handler to describe the lambda
 		var runtime Runtime
+
 		h, runtime = s.getRuntime(ctx, h)
-		if runtime == nil { // If no runtime is returned, then update the handler and continue to the next handler
-			upsertItems = append(upsertItems, &h)
-			continue
+		// If the runtime is not nil, then we can describe
+		// else, when the routes are validated, they will be marked as invalid
+		if runtime != nil {
+			// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
+			h = describe(ctx, h, runtime)
 		}
 
-		// Next describe the provider, if there is an error describing, then the handler will be returned with diagnostics logs and no providerDescription
-		h = describe(ctx, h, runtime)
 		upsertItems = append(upsertItems, &h)
 
 		// Next validate the routes against the description, if it is nil, then the routes will all be marked invalid

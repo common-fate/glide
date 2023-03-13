@@ -38,6 +38,7 @@ import type {
   ProviderSetupStepCompleteRequestBody,
   IdentityConfigurationResponseResponse,
   TGHandler,
+  AdminDeleteHandler204,
   ListHandlersResponseResponse,
   RegisterHandlerRequestBody,
   TargetGroup,
@@ -1004,6 +1005,19 @@ export const useAdminGetHandler = <TError = ErrorType<ErrorResponseResponse>>(
 }
 
 /**
+ * Removes a handler
+ */
+export const adminDeleteHandler = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AdminDeleteHandler204>(
+      {url: `/api/v1/admin/handlers/${id}`, method: 'delete'
+    },
+      options);
+    }
+  
+
+/**
  * @summary Get handlers
  */
 export const adminListHandlers = (
@@ -1187,6 +1201,20 @@ export const adminRemoveTargetGroupLink = (
       return customInstance<void>(
       {url: `/api/v1/admin/target-groups/${id}/unlink`, method: 'post',
         params
+    },
+      options);
+    }
+  
+
+/**
+ * Runs the healthcheck for handlers
+ * @summary Healthcheck Handlers
+ */
+export const adminHealthcheckHandlers = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/admin/healthcheck-handlers`, method: 'post'
     },
       options);
     }

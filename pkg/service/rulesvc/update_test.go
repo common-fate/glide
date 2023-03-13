@@ -54,10 +54,10 @@ func TestUpdateAccessRule(t *testing.T) {
 			UpdatedBy: userID,
 		},
 		Target: rule.Target{
-			ProviderID:     "hello",
-			ProviderType:   "awssso",
-			With:           map[string]string{},
-			WithSelectable: map[string][]string{},
+			ProviderID:          "hello",
+			BuiltInProviderType: "awssso",
+			With:                map[string]string{},
+			WithSelectable:      map[string][]string{},
 		},
 	}
 
@@ -100,7 +100,7 @@ func TestUpdateAccessRule(t *testing.T) {
 		Version: versionID,
 		Target: rule.Target{
 			ProviderID:               "newTarget",
-			ProviderType:             "awssso",
+			BuiltInProviderType:      "awssso",
 			With:                     make(map[string]string),
 			WithSelectable:           make(map[string][]string),
 			WithArgumentGroupOptions: make(map[string]map[string][]string),

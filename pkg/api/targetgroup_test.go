@@ -36,25 +36,40 @@ func TestCreateTargetGroup(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"id": "test", "targetSchema": "v1.0.1"}`,
+			give: `{"id": "test", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			mockCreate: &target.Group{
-				ID:           "test",
-				TargetSchema: target.GroupTargetSchema{From: "v1.0.1", Schema: providerregistrysdk.TargetMode_Schema{}},
+				ID: "test",
+				From: target.From{
+					Name: "test",
+				},
+				Schema: providerregistrysdk.Target{},
 			},
 			wantCode: http.StatusCreated,
 
-			wantBody: `{"icon":"","id":"test","targetDeployments":null,"targetSchema":{"From":"v1.0.1","Schema":{}}}`,
+			wantBody: `{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"","name":"test","publisher":"","version":""},"icon":"","id":"test","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}`,
+		},
+		{
+			name:     "invalid-target-id",
+			give:     `{"id": "target id with space", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": string doesn't match the regular expression \"^[-a-zA-Z0-9]*$\""}`,
+		},
+		{
+			name:     "maximum length exceeded for target id",
+			give:     `{"id": "target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-target-id-max-length-test-", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
+			wantCode: http.StatusBadRequest,
+			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/id\": maximum string length is 64"}`,
 		},
 		{
 			name:          "id already exists",
-			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
+			give:          `{"id": "test", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			mockCreateErr: targetsvc.ErrTargetGroupIdAlreadyExists,
 			wantCode:      http.StatusConflict,
 			wantBody:      `{"error":"target group id already exists"}`,
 		},
 		{
 			name:          "provider not found in registry",
-			give:          `{"id": "test", "targetSchema": "v1.0.1"}`,
+			give:          `{"id": "test", "from": {"publisher": "common-fate", "name": "test", "version": "v1", "kind": "Kind"}}`,
 			mockCreateErr: targetsvc.ErrProviderNotFoundInRegistry,
 			wantCode:      http.StatusNotFound,
 			wantBody:      `{"error":"provider not found in registry"}`,
@@ -63,12 +78,15 @@ func TestCreateTargetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			m := mocks.NewMockTargetService(ctrl)
-			m.EXPECT().CreateGroup(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+
+			if tc.mockCreate != nil || tc.mockCreateErr != nil {
+				m.EXPECT().CreateGroup(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
+			}
 
 			a := API{TargetService: m}
 			handler := newTestServer(t, &a)
@@ -111,14 +129,24 @@ func TestListTargetGroup(t *testing.T) {
 			wantCode: http.StatusOK,
 			targetgroups: []target.Group{
 				{
-					ID:           "tg1",
-					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
-					Icon:         "test",
+					ID: "tg1",
+					From: target.From{
+						Publisher: "common-fate",
+						Name:      "test",
+						Version:   "v1",
+						Kind:      "Kind",
+					},
+					Icon: "test",
 				},
 				{
-					ID:           "tg2",
-					TargetSchema: target.GroupTargetSchema{From: "test", Schema: providerregistrysdk.TargetMode_Schema{AdditionalProperties: map[string]providerregistrysdk.TargetArgument{}}},
-					Icon:         "test",
+					ID: "tg2",
+					From: target.From{
+						Publisher: "common-fate",
+						Name:      "second",
+						Version:   "v2",
+						Kind:      "Kind",
+					},
+					Icon: "test",
 				},
 			},
 
@@ -421,6 +449,88 @@ func TestDeleteTargetGroup(t *testing.T) {
 
 			req.Header.Add("Content-Type", "application/json")
 
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.wantCode, rr.Code)
+
+			data, err := io.ReadAll(rr.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tc.want, string(data))
+		})
+	}
+}
+
+func TestListTargetGroupRoutes(t *testing.T) {
+	type testcase struct {
+		name        string
+		routes      []target.Route
+		want        string
+		mockListErr error
+		wantCode    int
+	}
+
+	testcases := []testcase{
+		{
+			name:     "ok",
+			wantCode: http.StatusOK,
+			routes: []target.Route{
+				{
+					Group:       "abc",
+					Handler:     "123",
+					Kind:        "test",
+					Priority:    999,
+					Valid:       true,
+					Diagnostics: []target.Diagnostic{},
+				},
+				{
+					Group:       "abc",
+					Handler:     "123",
+					Kind:        "test",
+					Priority:    999,
+					Valid:       true,
+					Diagnostics: []target.Diagnostic{},
+				},
+			},
+
+			want: `{"routes":[{"diagnostics":[],"handlerId":"123","kind":"test","priority":999,"targetGroupId":"abc","valid":true},{"diagnostics":[],"handlerId":"123","kind":"test","priority":999,"targetGroupId":"abc","valid":true}]}`,
+		},
+		{
+			name:        "no routes returns an empty list not an error",
+			mockListErr: ddb.ErrNoItems,
+			wantCode:    http.StatusOK,
+			routes:      nil,
+
+			want: `{"routes":[]}`,
+		},
+		{
+			name:        "internal error",
+			mockListErr: errors.New("internal error"),
+			wantCode:    http.StatusInternalServerError,
+			routes:      nil,
+
+			want: `{"error":"Internal Server Error"}`,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db := ddbmock.New(t)
+			db.MockQueryWithErr(&storage.ListTargetRoutesForGroup{Result: tc.routes}, tc.mockListErr)
+
+			a := API{DB: db}
+			handler := newTestServer(t, &a)
+
+			req, err := http.NewRequest("GET", "/api/v1/admin/target-groups/abc/routes", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 
 			handler.ServeHTTP(rr, req)
