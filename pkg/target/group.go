@@ -3,6 +3,7 @@ package target
 import (
 	"time"
 
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -40,6 +41,15 @@ type From struct {
 	Name      string `json:"name" dynamodbav:"name"`
 	Version   string `json:"version" dynamodbav:"version"`
 	Kind      string `json:"kind" dynamodbav:"kind"`
+}
+
+func (f From) ToAnalytics() analytics.Provider {
+	return analytics.Provider{
+		Publisher: f.Publisher,
+		Name:      f.Name,
+		Version:   f.Version,
+		Kind:      f.Kind,
+	}
 }
 
 func (f From) ToAPI() types.TargetGroupFrom {

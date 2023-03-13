@@ -6,6 +6,7 @@ import (
 	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
 	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -150,10 +151,17 @@ func (a *Approval) IsRequired() bool {
 // I expect this will be different to what gets returned in the api response
 type Target struct {
 	// References the provider's unique ID
-	ProviderID    string            `json:"providerId"  dynamodbav:"providerId"`
-	TargetGroupID string            `json:"targetGroupId" dynamodbav:"targetGroupId"`
-	ProviderType  string            `json:"providerType"  dynamodbav:"providerType"`
-	With          map[string]string `json:"with"  dynamodbav:"with"`
+	ProviderID    string `json:"providerId"  dynamodbav:"providerId"`
+	TargetGroupID string `json:"targetGroupId" dynamodbav:"targetGroupId"`
+
+	// BuiltInProviderType is only used for built-in providers
+	BuiltInProviderType string `json:"providerType"  dynamodbav:"providerType"`
+
+	// TargetGroupFrom is only used for PDK providers and is a denormalised copy of the
+	// 'From' field in a Target Group.
+	TargetGroupFrom target.From `json:"targetGroupFrom"  dynamodbav:"targetGroupFrom"`
+
+	With map[string]string `json:"with"  dynamodbav:"with"`
 	// when target can have multiple values
 	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
 	// when target doesn't have values but instead belongs to a group
@@ -168,7 +176,7 @@ func (t Target) UsesSelectableOptions() bool {
 }
 
 // IsForTargetGroup check if this target has a targetgroup ID
-// if so, it means this rule is for a targetgroup not a v1 provider
+// if so, it means this rule is for a targetgroup not a built-in provider
 func (t Target) IsForTargetGroup() bool {
 	return t.TargetGroupID != ""
 }
@@ -182,7 +190,7 @@ func (t Target) UsesDynamicOptions() bool {
 func (t Target) ProviderToAPI() types.Provider {
 	return types.Provider{
 		Id:   t.ProviderID,
-		Type: t.ProviderType,
+		Type: t.BuiltInProviderType,
 	}
 }
 
@@ -198,7 +206,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	at := types.AccessRuleTargetDetail{
 		Provider: types.Provider{
 			Id:   t.ProviderID,
-			Type: t.ProviderType,
+			Type: t.BuiltInProviderType,
 		},
 		With: types.AccessRuleTargetDetail_With{
 			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
@@ -233,7 +241,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	}
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.ProviderType)
+	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.BuiltInProviderType)
 
 	for k, v := range t.With {
 		argument := at.With.AdditionalProperties[k]

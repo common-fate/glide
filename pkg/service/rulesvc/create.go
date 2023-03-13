@@ -97,7 +97,7 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 	if isTargetGroup {
 		targetgroup := rule.Target{
 			ProviderID:               in.ProviderId,
-			ProviderType:             "",
+			BuiltInProviderType:      "",
 			TargetGroupID:            in.ProviderId,
 			With:                     make(map[string]string),
 			WithSelectable:           make(map[string][]string),
@@ -109,6 +109,8 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		if err != nil && err != ddb.ErrNoItems {
 			return rule.Target{}, err
 		}
+
+		targetgroup.TargetGroupFrom = q.Result.From
 
 		for argumentID, argument := range in.With.AdditionalProperties {
 			// check if the provided argId is a valid argument id in TargetGroup's schema.
@@ -172,7 +174,7 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 	}
 	target := rule.Target{
 		ProviderID:               in.ProviderId,
-		ProviderType:             provider.Type,
+		BuiltInProviderType:      provider.Type,
 		With:                     make(map[string]string),
 		WithSelectable:           make(map[string][]string),
 		WithArgumentGroupOptions: make(map[string]map[string][]string),
@@ -254,7 +256,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
 		CreatedBy:             userID,
 		RuleID:                rul.ID,
-		Provider:              rul.Target.ProviderType,
+		BuiltInProvider:       rul.Target.BuiltInProviderType,
+		Provider:              rul.Target.TargetGroupFrom.ToAnalytics(),
+		PDKProvider:           rul.Target.IsForTargetGroup(),
 		MaxDurationSeconds:    in.TimeConstraints.MaxDurationSeconds,
 		UsesSelectableOptions: rul.Target.UsesSelectableOptions(),
 		UsesDynamicOptions:    rul.Target.UsesDynamicOptions(),

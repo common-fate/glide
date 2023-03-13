@@ -227,7 +227,9 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
 		RequestedBy:      req.RequestedBy,
-		Provider:         in.Rule.Target.ProviderType,
+		BuiltInProvider:  in.Rule.Target.BuiltInProviderType,
+		Provider:         in.Rule.Target.TargetGroupFrom.ToAnalytics(),
+		PDKProvider:      in.Rule.Target.IsForTargetGroup(),
 		RuleID:           req.Rule,
 		Timing:           req.RequestedTiming.ToAnalytics(),
 		HasReason:        req.HasReason(),

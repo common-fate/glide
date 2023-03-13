@@ -81,8 +81,8 @@ Filterloop:
 	for _, r := range filtered {
 		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
 		// select access rules which match the lookup type
-		if "commonfate/"+r.Target.ProviderType == opts.ProviderType {
-			switch r.Target.ProviderType {
+		if "commonfate/"+r.Target.BuiltInProviderType == opts.ProviderType {
+			switch r.Target.BuiltInProviderType {
 			// aws-sso is the short type for the provider, this switch case just runs the appropriate lookup code for the provider type
 			case "aws-sso":
 				// we must support string and []string for With/WithSelectable

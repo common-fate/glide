@@ -26,8 +26,8 @@ func TestService_LookupRule(t *testing.T) {
 	rule1 := rule.AccessRule{
 		ID: "test",
 		Target: rule.Target{
-			ProviderID:   "test-provider",
-			ProviderType: "aws-sso",
+			ProviderID:          "test-provider",
+			BuiltInProviderType: "aws-sso",
 			With: map[string]string{
 				"accountId":        rule1AccountID,
 				"permissionSetArn": rule1PermissionSetARN,
@@ -94,8 +94,8 @@ func TestService_LookupRule(t *testing.T) {
 				{
 					ID: "second",
 					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
+						ProviderID:          "test-provider",
+						BuiltInProviderType: "aws-sso",
 						With: map[string]string{
 							"accountId":        rule1AccountID,
 							"permissionSetArn": rule1PermissionSetARN,
@@ -130,8 +130,8 @@ func TestService_LookupRule(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "second",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							With: map[string]string{
 								"accountId":        rule1AccountID,
 								"permissionSetArn": rule1PermissionSetARN,
@@ -196,8 +196,8 @@ func TestService_LookupRule(t *testing.T) {
 				{
 					ID: "test",
 					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
+						ProviderID:          "test-provider",
+						BuiltInProviderType: "aws-sso",
 						WithSelectable: map[string][]string{
 							"accountId":        {rule1AccountID, "second option"},
 							"permissionSetArn": {rule1PermissionSetARN, "something else"},
@@ -229,8 +229,8 @@ func TestService_LookupRule(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "test",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							WithSelectable: map[string][]string{
 								"accountId":        {rule1AccountID, "second option"},
 								"permissionSetArn": {rule1PermissionSetARN, "something else"},
@@ -258,8 +258,8 @@ func TestService_LookupRule(t *testing.T) {
 				{
 					ID: "test",
 					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
+						ProviderID:          "test-provider",
+						BuiltInProviderType: "aws-sso",
 						WithSelectable: map[string][]string{
 							"accountId":        {rule1AccountID, "second option"},
 							"permissionSetArn": {rule1PermissionSetARN, "something else"},
@@ -294,8 +294,8 @@ func TestService_LookupRule(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "test",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							WithSelectable: map[string][]string{
 								"accountId":        {rule1AccountID, "second option"},
 								"permissionSetArn": {rule1PermissionSetARN, "something else"},
@@ -322,8 +322,8 @@ func TestService_LookupRule(t *testing.T) {
 				{
 					ID: "test",
 					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "something different",
+						ProviderID:          "test-provider",
+						BuiltInProviderType: "something different",
 						With: map[string]string{
 							"accountId":        rule1AccountID,
 							"permissionSetArn": rule1PermissionSetARN,
@@ -373,8 +373,8 @@ func TestService_LookupRule(t *testing.T) {
 				{
 					ID: "test",
 					Target: rule.Target{
-						ProviderID:   "test-provider",
-						ProviderType: "aws-sso",
+						ProviderID:          "test-provider",
+						BuiltInProviderType: "aws-sso",
 						With: map[string]string{
 							"permissionSetArn": rule1PermissionSetARN,
 						},
@@ -417,8 +417,8 @@ func TestService_LookupRule(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "test",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							With: map[string]string{
 								"permissionSetArn": rule1PermissionSetARN,
 							},
