@@ -102,7 +102,7 @@ export * from './targetArgumentGroups';
 export * from './targetArgumentRequestFormElement';
 export * from './targetArgumentRuleFormElement';
 export * from './targetGroup';
-export * from './targetGroupTargetSchema';
+export * from './targetGroupFrom';
 export * from './targetRoute';
 export * from './targetSchema';
 export * from './timeConstraints';

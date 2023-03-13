@@ -60,7 +60,7 @@ export const accessRuleTargetApiToTargetFormData = (
     inputs: {},
   };
   if (targetGroup !== undefined) {
-    Object.entries(targetGroup.targetSchema.Schema).forEach(([k, v]) => {
+    Object.entries(targetGroup.schema).forEach(([k, v]) => {
       if (
         v.ruleFormElement ===
         AccessRuleTargetDetailArgumentsFormElement.MULTISELECT

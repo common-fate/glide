@@ -2406,6 +2406,26 @@ components:
       description: |-
         Handler represents a deployment of a provider. 
         Handlers can be linked to target groups via routes
+    TargetGroupFrom:
+      title: TargetGroupFrom
+      x-stoplight:
+        id: 1beeb9df4c57d
+      type: object
+      properties:
+        publisher:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        kind:
+          type: string
+      required:
+        - publisher
+        - name
+        - version
+        - kind
+      description: Specifies a particular Access Provider to create a Target Group schema from.
     TargetGroup:
       title: TargetGroup
       x-stoplight:
@@ -2414,8 +2434,10 @@ components:
       properties:
         id:
           type: string
-        targetSchema:
-          $ref: "#/components/schemas/TargetGroupTargetSchema"
+        schema:
+          $ref: "#/components/schemas/TargetSchema"
+        from:
+          $ref: "#/components/schemas/TargetGroupFrom"
         icon:
           type: string
         createdAt:
@@ -2427,7 +2449,8 @@ components:
           format: time
       required:
         - id
-        - targetSchema
+        - schema
+        - from
         - icon
     TargetRoute:
       type: object
@@ -2456,19 +2479,6 @@ components:
         - priority
         - valid
         - diagnostics
-    TargetGroupTargetSchema:
-      title: TargetSchema
-      x-stoplight:
-        id: 6192c449ffbe9
-      type: object
-      properties:
-        From:
-          type: string
-        Schema:
-          $ref: "#/components/schemas/TargetSchema"
-      required:
-        - From
-        - Schema
     Diagnostic:
       title: Diagnostic
       x-stoplight:
@@ -2981,14 +2991,14 @@ components:
           schema:
             type: object
             properties:
-              targetSchema:
-                type: string
+              from:
+                $ref: "#/components/schemas/TargetGroupFrom"
               id:
                 type: string
                 maxLength: 64
                 pattern: "^[-a-zA-Z0-9]*$"
             required:
-              - targetSchema
+              - from
               - id
     RegisterHandlerRequest:
       content:

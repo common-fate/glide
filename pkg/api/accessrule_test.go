@@ -222,9 +222,9 @@ func TestAdminListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:   "string",
-						ProviderType: "okta",
-						With:         map[string]string{},
+						ProviderID:          "string",
+						BuiltInProviderType: "okta",
+						With:                map[string]string{},
 					},
 					// This should not be included in the response for users
 					Approval: rule.Approval{
@@ -239,9 +239,9 @@ func TestAdminListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:   "string",
-						ProviderType: "okta",
-						With:         map[string]string{},
+						ProviderID:          "string",
+						BuiltInProviderType: "okta",
+						With:                map[string]string{},
 					},
 				},
 			},
@@ -318,9 +318,9 @@ func TestUserListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:   "string",
-						ProviderType: "okta",
-						With:         map[string]string{},
+						ProviderID:          "string",
+						BuiltInProviderType: "okta",
+						With:                map[string]string{},
 					},
 					// This should not be included in the response for users
 					Approval: rule.Approval{
@@ -335,9 +335,9 @@ func TestUserListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:   "string",
-						ProviderType: "okta",
-						With:         map[string]string{},
+						ProviderID:          "string",
+						BuiltInProviderType: "okta",
+						With:                map[string]string{},
 					},
 				},
 			},
@@ -594,8 +594,8 @@ func TestLookupAccessRules(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "test",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							With: map[string]string{
 								"accountId":        "123456789012",
 								"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
@@ -615,8 +615,8 @@ func TestLookupAccessRules(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "test",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							With: map[string]string{
 								"accountId":        "123456789012",
 								"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
@@ -628,8 +628,8 @@ func TestLookupAccessRules(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "second",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							With: map[string]string{
 								"accountId":        "123456789012",
 								"permissionSetArn": "arn:aws:sso:::permissionSet/ssoins-1234/ps-12341",
@@ -649,8 +649,8 @@ func TestLookupAccessRules(t *testing.T) {
 					Rule: rule.AccessRule{
 						ID: "test",
 						Target: rule.Target{
-							ProviderID:   "test-provider",
-							ProviderType: "aws-sso",
+							ProviderID:          "test-provider",
+							BuiltInProviderType: "aws-sso",
 							WithSelectable: map[string][]string{
 								"accountId":        {"123456789012", "other"},
 								"permissionSetArn": {"arn:aws:sso:::permissionSet/ssoins-1234/ps-12341", "other"},

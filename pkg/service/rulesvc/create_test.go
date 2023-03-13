@@ -57,7 +57,7 @@ func TestCreateAccessRule(t *testing.T) {
 		},
 		Target: rule.Target{
 			ProviderID:               in.Target.ProviderId,
-			ProviderType:             "okta",
+			BuiltInProviderType:      "okta",
 			With:                     make(map[string]string),
 			WithSelectable:           make(map[string][]string),
 			WithArgumentGroupOptions: make(map[string]map[string][]string),
@@ -175,7 +175,7 @@ func TestProcessTarget(t *testing.T) {
 			},
 			want: rule.Target{
 				ProviderID:               "abcd",
-				ProviderType:             "testvault",
+				BuiltInProviderType:      "testvault",
 				With:                     map[string]string{"vault": "example-vault"},
 				WithSelectable:           map[string][]string{},
 				WithArgumentGroupOptions: map[string]map[string][]string{},
@@ -220,7 +220,7 @@ func TestProcessTarget(t *testing.T) {
 			},
 			want: rule.Target{
 				ProviderID:               "abcd",
-				ProviderType:             "awssso",
+				BuiltInProviderType:      "awssso",
 				With:                     map[string]string{"accountId": "account1", "permissionSetArn": "abcdefg"},
 				WithSelectable:           map[string][]string{},
 				WithArgumentGroupOptions: map[string]map[string][]string{},
@@ -264,7 +264,7 @@ func TestProcessTarget(t *testing.T) {
 			},
 			want: rule.Target{
 				ProviderID:               "abcd",
-				ProviderType:             "awssso",
+				BuiltInProviderType:      "awssso",
 				With:                     map[string]string{"permissionSetArn": "abcdefg"},
 				WithSelectable:           map[string][]string{"accountId": {"account1", "account2"}},
 				WithArgumentGroupOptions: map[string]map[string][]string{},
@@ -308,7 +308,7 @@ func TestProcessTarget(t *testing.T) {
 			},
 			want: rule.Target{
 				ProviderID:               "abcd",
-				ProviderType:             "awssso",
+				BuiltInProviderType:      "awssso",
 				With:                     map[string]string{"permissionSetArn": "abcdefg"},
 				WithSelectable:           map[string][]string{"accountId": {"account1", "account2"}},
 				WithArgumentGroupOptions: map[string]map[string][]string{"accountId": {"organizationalUnit": {"orgunit1", "orgunit2"}}},

@@ -36,6 +36,7 @@ import {
 import {
   Diagnostic,
   TargetGroup,
+  TargetGroupFrom,
   TGHandler,
 } from "../../../utils/backend-client/types";
 import { usePaginatorApi } from "../../../utils/usePaginatorApi";
@@ -185,25 +186,27 @@ const AdminProvidersTable = () => {
   });
 };
 
+export const targetGroupFromToString = (from: TargetGroupFrom): string => {
+  return `${from.publisher}/${from.name}@${from.version}/${from.kind}`;
+};
+
+const cols: Column<TargetGroup>[] = [
+  {
+    accessor: "id",
+    Header: "ID",
+  },
+  {
+    accessor: "from",
+    Cell: (props) => <span>{targetGroupFromToString(props.value)}</span>,
+    Header: "From",
+  },
+];
+
 const AdminTargetGroupsTable = () => {
   const paginator = usePaginatorApi<typeof useAdminListTargetGroups>({
     swrHook: useAdminListTargetGroups,
     hookProps: {},
   });
-  // @ts-ignore this is required because ts cannot infer the nexted object types correctly
-  const cols: Column<TargetGroup>[] = useMemo(
-    () => [
-      {
-        accessor: "id",
-        Header: "ID",
-      },
-      {
-        accessor: "targetSchema.From",
-        Header: "From",
-      },
-    ],
-    []
-  );
 
   return TableRenderer<TargetGroup>({
     columns: cols,

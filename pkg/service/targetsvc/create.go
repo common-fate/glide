@@ -62,16 +62,16 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
-	//look up target schema for the provider version
-	provider, err := SplitProviderString(req.TargetSchema)
-	if err != nil {
-		return nil, err
-	}
+	// //look up target schema for the provider version
+	// provider, err := SplitProviderString(req.TargetSchema)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if provider.Kind == nil {
+	if req.From.Kind == "" {
 		return nil, ErrKindIsRequired
 	}
-	response, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, provider.Publisher, provider.Name, provider.Version)
+	response, err := s.ProviderRegistryClient.GetProviderWithResponse(ctx, req.From.Publisher, req.From.Name, req.From.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -90,18 +90,20 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 	if targets == nil {
 		return nil, errors.New("provider does not provide any targets")
 	}
-	if _, ok := (*targets)[*provider.Kind]; !ok {
+
+	schema, ok := (*targets)[req.From.Kind]
+
+	if !ok {
 		return nil, ErrProviderDoesNotImplementKind
 	}
 
 	now := s.Clock.Now()
 	group := target.Group{
-		ID: req.Id,
-		// The default mode here is a placeholder in our API until multi mode providers are supported fully by the framework
-		// until it is changed, providers will always return the Default mode
-		TargetSchema: target.GroupTargetSchema{From: req.TargetSchema, Schema: (*targets)[*provider.Kind]},
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:        req.Id,
+		Schema:    schema,
+		From:      target.FromFieldFromAPI(req.From),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 	//based on the target schema provider type set the Icon
 

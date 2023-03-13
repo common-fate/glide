@@ -97,7 +97,7 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 			return nil, err
 		}
 
-		for k, v := range targetGroup.Result.TargetSchema.Schema.Properties {
+		for k, v := range targetGroup.Result.Schema.Properties {
 			if value, ok := accessRuleTarget.With[k]; ok {
 				targetGroupRequestArguments[k] = s.processArgument(ctx, accessRuleTarget.TargetGroupID, v, value)
 			}

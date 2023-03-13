@@ -188,7 +188,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
 	github.com/briandowns/spinner v1.23.0
-	github.com/common-fate/analytics-go v0.1.0
+	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
 	github.com/common-fate/ddb v0.15.0
 	github.com/common-fate/provider-registry-sdk-go v0.15.0

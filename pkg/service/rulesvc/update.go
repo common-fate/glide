@@ -56,7 +56,9 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
 		UpdatedBy:             in.UpdaterID,
 		RuleID:                in.Rule.ID,
-		Provider:              in.Rule.Target.ProviderType,
+		BuiltInProvider:       in.Rule.Target.BuiltInProviderType,
+		Provider:              in.Rule.Target.TargetGroupFrom.ToAnalytics(),
+		PDKProvider:           in.Rule.Target.IsForTargetGroup(),
 		MaxDurationSeconds:    in.Rule.TimeConstraints.MaxDurationSeconds,
 		UsesSelectableOptions: in.Rule.Target.UsesSelectableOptions(),
 		UsesDynamicOptions:    in.Rule.Target.UsesDynamicOptions(),

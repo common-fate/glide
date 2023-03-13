@@ -28,6 +28,7 @@ import { useAdminGetTargetGroup } from "../../../utils/backend-client/admin/admi
 import { useAdminListTargetRoutes } from "../../../utils/backend-client/default/default";
 import { Diagnostic, TargetRoute } from "../../../utils/backend-client/types";
 import React from "react";
+import { targetGroupFromToString } from ".";
 
 const AdminRoutesTable = () => {
   const {
@@ -195,7 +196,9 @@ const Index = () => {
                 <Text textStyle="Body/Medium">Name</Text>
                 <Text textStyle="Body/Small">{data?.id}</Text>
                 <Text textStyle="Body/Medium">Target Schema</Text>
-                <Text textStyle="Body/Small">{data?.targetSchema.From}</Text>
+                <Text textStyle="Body/Small">
+                  {data?.from ? targetGroupFromToString(data.from) : ""}
+                </Text>
                 <Text textStyle="Body/Medium">Routes</Text>
 
                 <AdminRoutesTable />

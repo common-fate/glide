@@ -39,9 +39,9 @@ func TestGovListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:   "string",
-						ProviderType: "okta",
-						With:         map[string]string{},
+						ProviderID:          "string",
+						BuiltInProviderType: "okta",
+						With:                map[string]string{},
 					},
 					Approval: rule.Approval{
 						Groups: []string{"a"},
@@ -55,9 +55,9 @@ func TestGovListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:   "string",
-						ProviderType: "okta",
-						With:         map[string]string{},
+						ProviderID:          "string",
+						BuiltInProviderType: "okta",
+						With:                map[string]string{},
 					},
 				},
 			},
