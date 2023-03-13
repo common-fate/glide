@@ -105,7 +105,6 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
 
   const [isArchiving, setIsArchiving] = useState<boolean>(false);
 
-  const [cachedRule, setCachedRule] = useState<AccessRuleDetail | undefined>();
   const { mutate } = useAdminGetAccessRule(ruleId);
   const { data: targetGroup } = useAdminGetTargetGroup(
     data.target.targetGroup ?? "",
@@ -118,12 +117,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
 
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
-    if (
-      data.target.targetGroup &&
-      targetGroup != undefined &&
-      data &&
-      (!cachedRule || cachedRule != data)
-    ) {
+    if (data !== undefined) {
       //set accessRuleTargetData from rule details from api
 
       const f: AccessRuleFormData = {
@@ -142,11 +136,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
         target: accessRuleTargetApiToTargetFormData(data, targetGroup),
       };
       methods.reset(f);
-      setCachedRule(data);
     }
-    return () => {
-      setCachedRule(undefined);
-    };
   }, [data, methods, targetGroup]);
 
   const onSubmit = async (data: AccessRuleFormData) => {
