@@ -54,7 +54,6 @@ func (n *EventHandler) HandleGrantEvent(ctx context.Context, log *zap.SugaredLog
 	if gq.Result.Grant == nil {
 		return fmt.Errorf("request: %s does not have a grant", grantEvent.Grant.ID)
 	}
-
 	if event.DetailType == gevent.GrantRevokedType {
 		log.Infow("Ignored grant revoke event")
 		return nil

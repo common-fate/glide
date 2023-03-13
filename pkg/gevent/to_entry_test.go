@@ -20,7 +20,7 @@ func (e testEvent) EventType() string {
 // to serialize, to ensure behaviour of ToEvent()
 // remains consistent with these types of events.
 // In practice though we don't usually expect
-//  to have events that don't contain any data.
+// to have events that don't contain any data.
 type emptyBodyEvent struct{}
 
 func (e emptyBodyEvent) EventType() string {

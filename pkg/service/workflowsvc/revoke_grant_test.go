@@ -164,7 +164,7 @@ func TestRevokeGrant(t *testing.T) {
 				Eventbus: eventbus,
 			}
 
-			gotRequest, err := s.Revoke(context.Background(), tc.giveRequest, tc.revokerID)
+			gotRequest, err := s.Revoke(context.Background(), tc.giveRequest, tc.revokerID, tc.withUser.Email)
 			assert.Equal(t, tc.withRevokeGrantResponseErr, err)
 
 			assert.Equal(t, tc.want, gotRequest)

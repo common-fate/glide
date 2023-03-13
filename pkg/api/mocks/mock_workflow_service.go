@@ -36,16 +36,16 @@ func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 }
 
 // Revoke mocks base method.
-func (m *MockWorkflow) Revoke(arg0 context.Context, arg1 access.Request, arg2 string) (*access.Request, error) {
+func (m *MockWorkflow) Revoke(arg0 context.Context, arg1 access.Request, arg2, arg3 string) (*access.Request, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Revoke", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Revoke", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*access.Request)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Revoke indicates an expected call of Revoke.
-func (mr *MockWorkflowMockRecorder) Revoke(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockWorkflowMockRecorder) Revoke(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockWorkflow)(nil).Revoke), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockWorkflow)(nil).Revoke), arg0, arg1, arg2, arg3)
 }
