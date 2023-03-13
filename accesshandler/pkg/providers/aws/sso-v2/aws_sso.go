@@ -42,11 +42,28 @@ func (p *Provider) Config() gconfig.Config {
 	}
 }
 
+// https://github.com/aws/aws-sdk-go-v2/issues/543#issuecomment-620124268
+type NoOpRateLimit struct{}
+
+func (NoOpRateLimit) AddTokens(uint) error { return nil }
+func (NoOpRateLimit) GetToken(context.Context, uint) (func() error, error) {
+	return noOpToken, nil
+}
+func noOpToken() error { return nil }
+
+// retryer returns an AWS retryer with a higher MaxAttempts value.
+//
+// Additionally, the client-side rate limiter is removed
+// as this was causing errors when used in Goroutines.
+func retryer() aws.Retryer {
+	return retry.NewStandard(func(o *retry.StandardOptions) {
+		o.MaxAttempts = 30
+		o.RateLimiter = NoOpRateLimit{}
+	})
+}
+
 func (p *Provider) Init(ctx context.Context) error {
-	opts := []func(*config.LoadOptions) error{config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso"))), config.WithRetryer(func() aws.Retryer {
-		return retry.AddWithMaxAttempts(retry.NewStandard(), 20)
-	}),
-	}
+	opts := []func(*config.LoadOptions) error{config.WithCredentialsProvider(cfaws.NewAssumeRoleCredentialsCache(ctx, p.ssoRoleARN.Get(), cfaws.WithRoleSessionName("accesshandler-aws-sso")))}
 	if p.region.IsSet() {
 		opts = append(opts, config.WithRegion(p.region.Get()))
 	}
@@ -54,6 +71,8 @@ func (p *Provider) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	cfg.Retryer = retryer
 
 	// NOTE: commented until "tags" group option is release.
 	// resourcesCfg := cfg.Copy()
