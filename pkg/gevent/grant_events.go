@@ -62,7 +62,7 @@ type GrantRevoked struct {
 	// the commonfate internal id of the actor who revoked the grant
 	Actor string `json:"actor"`
 	// the email address of the actor who revoked the grant
-	ActorEmail string `json:"actorEmail"`
+	RevokerEmail string `json:"revokerEmail"`
 }
 
 func (GrantRevoked) EventType() string {

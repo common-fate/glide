@@ -128,7 +128,7 @@ func (s *Service) Revoke(ctx context.Context, request access.Request, revokerID 
 	// We have chosen to emit events from the Common Fate app for grant revocation rather than from the access handler because we are using a syncronous API.
 	// All effects from revoking will be implemented in this syncronous api rather than triggered from the events.
 	// So we update the grant status here and save the grant before emitting the event
-	err = s.Eventbus.Put(ctx, gevent.GrantRevoked{Grant: request.Grant.ToAHGrant(request.ID), Actor: revokerID, ActorEmail: revokerEmail})
+	err = s.Eventbus.Put(ctx, gevent.GrantRevoked{Grant: request.Grant.ToAHGrant(request.ID), Actor: revokerID, RevokerEmail: revokerEmail})
 	if err != nil {
 		return nil, err
 	}
