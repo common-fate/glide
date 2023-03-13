@@ -186,7 +186,7 @@ const AdminProvidersTable = () => {
   });
 };
 
-const targetGroupFromToString = (from: TargetGroupFrom): string => {
+export const targetGroupFromToString = (from: TargetGroupFrom): string => {
   return `${from.publisher}/${from.name}@${from.version}/${from.kind}`;
 };
 
