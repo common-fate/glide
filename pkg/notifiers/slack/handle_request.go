@@ -43,6 +43,9 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 	switch event.DetailType {
 	case gevent.RequestCreatedType:
+		// only send slack notification if access request requires approval.
+		// if access request was automatically approved then no slack notification is sent.
+		// this is done to reduce slack notification noise. More here: CF-831
 		if requestedRule.Approval.IsRequired() {
 			msg := fmt.Sprintf("Your request to access *%s* requires approval. We've notified the approvers and will let you know once your request has been reviewed.", requestedRule.Name)
 			fallback := fmt.Sprintf("Your request to access %s requires approval.", requestedRule.Name)
@@ -148,13 +151,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				}
 				wg.Wait()
 			}
-		} else {
-			//Review not required
-			// this will only apply to oauth clients, webhooks are handled conditionally within
-			oauthMsg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been automatically approved.\n", requestedRule.Name)
-			oauthFallback := fmt.Sprintf("Your request to access %s has been automatically approved.", requestedRule.Name)
-
-			n.sendRequestDetailsMessage(ctx, log, request, requestedRule, *requestingUserQuery.Result, oauthMsg, oauthFallback)
 		}
 	case gevent.RequestApprovedType:
 		msg := fmt.Sprintf(":white_check_mark: Your request to access *%s* has been approved.", requestedRule.Name)
