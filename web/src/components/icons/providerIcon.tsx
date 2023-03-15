@@ -1,14 +1,16 @@
 import { IconProps } from "@chakra-ui/react";
 import React from "react";
+import { CommonFateIcon } from "./Logos";
 import {
+  AWSCloudwatch,
   AWSIcon,
   AzureIcon,
   ECSIcon,
   EKSIcon,
   FlaskIcon,
+  GoogleIcon,
   OktaIcon,
 } from "./Icons";
-import { CommonFateIcon, CommonFateLogo } from "./Logos";
 
 interface Props extends IconProps {
   /**
@@ -49,11 +51,11 @@ export const ProviderIcon: React.FC<Props> = ({
   }
 
   switch (shortType) {
-    case "aws-sso":
+    case "aws-sso" || "aws":
       return <AWSIcon {...rest} />;
     case "okta":
       return <OktaIcon {...rest} />;
-    case "azure-ad":
+    case "azure-ad" || "azure":
       return <AzureIcon {...rest} />;
     case "aws-eks-roles-sso":
       return <EKSIcon {...rest} />;
@@ -61,6 +63,11 @@ export const ProviderIcon: React.FC<Props> = ({
       return <ECSIcon {...rest} />;
     case "flask":
       return <FlaskIcon {...rest} />;
+    case "aws-cloudwatch":
+      return <AWSCloudwatch {...rest} />;
+    case "google":
+      return <GoogleIcon {...rest} />;
   }
+
   return <CommonFateIcon {...rest} />;
 };
