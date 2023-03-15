@@ -301,8 +301,8 @@ github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73 h1:JZt+aGT
 github.com/common-fate/frontmatter v0.0.0-20220825121704-2d2ec51f9c73/go.mod h1:wzIx7x7HUJ7wtLG1pTgRJhHkPqxntv7r45t19obL/gQ=
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
-github.com/common-fate/provider-registry-sdk-go v0.15.0 h1:llZ3/8oGOFZmtcste4FX2/K7Ekx24YAKK95/Sxs+N9U=
-github.com/common-fate/provider-registry-sdk-go v0.15.0/go.mod h1:DqkX+vG4k0m2MyedeuYHM53TJO1MpkXpxiefXzKIwZk=
+github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=
+github.com/common-fate/provider-registry-sdk-go v0.17.1/go.mod h1:DqkX+vG4k0m2MyedeuYHM53TJO1MpkXpxiefXzKIwZk=
 github.com/common-fate/testvault v0.1.0 h1:XVhbmcNySGIA203FywYW7wL44Mlcg23UUek3bdg5tzQ=
 github.com/common-fate/testvault v0.1.0/go.mod h1:JJ74LtQZlnjHUj1LuDj2Sz4hEARXf6YOrqzdf3DGFZM=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
