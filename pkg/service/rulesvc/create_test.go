@@ -44,7 +44,7 @@ func TestCreateAccessRule(t *testing.T) {
 	mockRule := rule.AccessRule{
 		ID:          ruleID,
 		Version:     versionID,
-		Approval:    rule.Approval(in.Approval),
+		Approval:    rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
 		Status:      rule.ACTIVE,
 		Description: in.Description,
 		Name:        in.Name,
