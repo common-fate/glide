@@ -34,13 +34,13 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	// fields to be updated
 	newVersion.Description = in.UpdateRequest.Description
 	newVersion.Name = in.UpdateRequest.Name
-	if *in.UpdateRequest.Approval.Users != nil {
+	if in.UpdateRequest.Approval.Users != nil {
 		newVersion.Approval.Users = *in.UpdateRequest.Approval.Users
 
 	} else {
 		newVersion.Approval.Groups = []string{}
 	}
-	if *in.UpdateRequest.Approval.Groups != nil {
+	if in.UpdateRequest.Approval.Groups != nil {
 		newVersion.Approval.Groups = *in.UpdateRequest.Approval.Groups
 	} else {
 		newVersion.Approval.Groups = []string{}

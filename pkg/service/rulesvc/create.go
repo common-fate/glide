@@ -227,11 +227,11 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	approvals := rule.Approval{}
 
-	if *in.Approval.Groups != nil {
+	if in.Approval.Groups != nil {
 		approvals.Groups = *in.Approval.Groups
 	}
 
-	if *in.Approval.Users != nil {
+	if in.Approval.Users != nil {
 		approvals.Users = *in.Approval.Users
 	}
 
