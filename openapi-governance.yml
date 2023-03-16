@@ -92,13 +92,13 @@ paths:
               schema:
                 $ref: ./openapi.yml#/components/schemas/AccessRuleDetail
         '400':
-          description: Bad Request
+          $ref: '#/components/responses/ErrorResponse'
         '401':
-          description: Unauthorized
+          $ref: '#/components/responses/ErrorResponse'
         '404':
-          description: Not Found
+          $ref: '#/components/responses/ErrorResponse'
         '500':
-          description: Internal Server Error
+          $ref: '#/components/responses/ErrorResponse'
       requestBody:
         $ref: ./openapi.yml#/components/requestBodies/CreateAccessRuleRequest
       description: Updates an Access Rule. Updating a rule creates a new version.
