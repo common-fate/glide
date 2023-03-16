@@ -63,6 +63,36 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//check if user and group exists
+
+	for _, u := range *createRequest.Approval.Users {
+		userLookup := storage.GetUser{ID: u}
+
+		_, err := a.DB.Query(ctx, &userLookup)
+		if err == ddb.ErrNoItems {
+			err = apio.NewRequestError(errors.New("approving user not found"), http.StatusNotFound)
+		}
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+	}
+
+	for _, u := range *createRequest.Approval.Groups {
+		groupLookup := storage.GetGroup{ID: u}
+
+		_, err := a.DB.Query(ctx, &groupLookup)
+		if err == ddb.ErrNoItems {
+			err = apio.NewRequestError(errors.New("approving group not found"), http.StatusNotFound)
+		}
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+	}
+
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
 
 	if err == rulesvc.ErrRuleIdAlreadyExists {
@@ -114,6 +144,36 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 		return
 	}
 	rule = ruleq.Result
+
+	//check if user and group exists
+
+	for _, u := range *updateRequest.Approval.Users {
+		userLookup := storage.GetUser{ID: u}
+
+		_, err := a.DB.Query(ctx, &userLookup)
+		if err == ddb.ErrNoItems {
+			err = apio.NewRequestError(errors.New("approving user not found"), http.StatusNotFound)
+		}
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+	}
+
+	for _, u := range *updateRequest.Approval.Groups {
+		groupLookup := storage.GetGroup{ID: u}
+
+		_, err := a.DB.Query(ctx, &groupLookup)
+		if err == ddb.ErrNoItems {
+			err = apio.NewRequestError(errors.New("approving group not found"), http.StatusNotFound)
+		}
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+
+	}
 
 	updatedRule, err := a.Rules.UpdateRule(ctx, &rulesvc.UpdateOpts{
 		UpdaterID:     "bot_governance_api",
