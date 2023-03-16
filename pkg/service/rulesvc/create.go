@@ -225,9 +225,19 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		return nil, errors.New("access rule cannot be longer than 6 months")
 	}
 
+	approvals := rule.Approval{}
+
+	if *in.Approval.Groups != nil {
+		approvals.Groups = *in.Approval.Groups
+	}
+
+	if *in.Approval.Users != nil {
+		approvals.Users = *in.Approval.Users
+	}
+
 	rul := rule.AccessRule{
 		ID:          id,
-		Approval:    rule.Approval{Users: *in.Approval.Users, Groups: *in.Approval.Groups},
+		Approval:    approvals,
 		Status:      rule.ACTIVE,
 		Description: in.Description,
 		Name:        in.Name,
