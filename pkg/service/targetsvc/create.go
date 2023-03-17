@@ -97,11 +97,17 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 		return nil, ErrProviderDoesNotImplementKind
 	}
 
+	var icon string
+	if response.JSON200.Icon != nil {
+		icon = *response.JSON200.Icon
+	}
+
 	now := s.Clock.Now()
 	group := target.Group{
 		ID:        req.Id,
 		Schema:    schema,
 		From:      target.FromFieldFromAPI(req.From),
+		Icon:      icon,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
