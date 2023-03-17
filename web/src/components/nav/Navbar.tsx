@@ -102,8 +102,8 @@ export const Navbar: React.FC = () => {
             <HStack spacing="4" pos="relative" w="100%">
               <VStack>
                 <ChakraLink
-                  as={Link}
-                  to={"/requests"}
+                  href={"https://docs.commonfate.io/common-fate/introduction/"}
+                  isExternal
                   transition="all .2s ease"
                   rounded="sm"
                 >
