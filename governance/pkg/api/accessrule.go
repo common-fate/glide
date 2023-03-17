@@ -71,7 +71,7 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		_, err := a.DB.Query(ctx, &userLookup)
 		if err == ddb.ErrNoItems {
 			apio.Error(ctx, w, apio.NewRequestError(errors.New("user not found"), http.StatusNotFound))
-
+			return
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
@@ -86,7 +86,7 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		_, err := a.DB.Query(ctx, &groupLookup)
 		if err == ddb.ErrNoItems {
 			apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
-
+			return
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
@@ -155,7 +155,7 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 		_, err := a.DB.Query(ctx, &userLookup)
 		if err == ddb.ErrNoItems {
 			apio.Error(ctx, w, apio.NewRequestError(errors.New("user not found"), http.StatusNotFound))
-
+			return
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
@@ -170,7 +170,7 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 		_, err := a.DB.Query(ctx, &groupLookup)
 		if err == ddb.ErrNoItems {
 			apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
-
+			return
 		}
 		if err != nil {
 			apio.Error(ctx, w, err)
