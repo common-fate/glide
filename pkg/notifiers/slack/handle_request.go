@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
+
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
@@ -303,58 +301,59 @@ func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.Sug
 	var labelArr []types.With
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
-	for k, v := range request.SelectedWith {
-		with := types.With{
-			Label: v.Label,
-			Value: v.Value,
-			Title: k,
-		}
-		// attempt to get the title for the argument from the provider arg schema
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				t, ok := s.ArgSchema()[k]
-				if ok {
-					with.Title = t.Title
-				}
-			}
-		}
-		labelArr = append(labelArr, with)
-	}
+	//TODO: FIX THIS FOR TARGET GROUP PROVIDERS
+	// _, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
+	// for k, v := range request.SelectedWith {
+	// 	with := types.With{
+	// 		Label: v.Label,
+	// 		Value: v.Value,
+	// 		Title: k,
+	// 	}
+	// 	// attempt to get the title for the argument from the provider arg schema
+	// 	if provider != nil {
+	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+	// 			t, ok := s.ArgSchema()[k]
+	// 			if ok {
+	// 				with.Title = t.Title
+	// 			}
+	// 		}
+	// 	}
+	// 	labelArr = append(labelArr, with)
+	// }
 
-	for k, v := range rule.Target.With {
-		// only include the with values if it does not have any groups selected,
-		// if it does have groups selected, it means that it was a selectable field
-		// so this check avoids duplicate/inaccurate values in the slack message
-		if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
-			with := types.With{
-				Value: v,
-				Title: k,
-				Label: v,
-			}
-			// attempt to get the title for the argument from the provider arg schema
-			if provider != nil {
-				if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-					t, ok := s.ArgSchema()[k]
-					if ok {
-						with.Title = t.Title
-					}
-				}
-			}
-			for _, ao := range pq.Result {
-				// if a value is found, set it to true with a label
-				if ao.Arg == k && ao.Value == v {
-					with.Label = ao.Label
-					break
-				}
-			}
-			labelArr = append(labelArr, with)
-		}
-	}
+	// for k, v := range rule.Target.With {
+	// 	// only include the with values if it does not have any groups selected,
+	// 	// if it does have groups selected, it means that it was a selectable field
+	// 	// so this check avoids duplicate/inaccurate values in the slack message
+	// 	if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
+	// 		with := types.With{
+	// 			Value: v,
+	// 			Title: k,
+	// 			Label: v,
+	// 		}
+	// 		// attempt to get the title for the argument from the provider arg schema
+	// 		if provider != nil {
+	// 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+	// 				t, ok := s.ArgSchema()[k]
+	// 				if ok {
+	// 					with.Title = t.Title
+	// 				}
+	// 			}
+	// 		}
+	// 		for _, ao := range pq.Result {
+	// 			// if a value is found, set it to true with a label
+	// 			if ao.Arg == k && ao.Value == v {
+	// 				with.Label = ao.Label
+	// 				break
+	// 			}
+	// 		}
+	// 		labelArr = append(labelArr, with)
+	// 	}
+	// }
 
-	// now sort labelArr by Title
-	sort.Slice(labelArr, func(i, j int) bool {
-		return labelArr[i].Title < labelArr[j].Title
-	})
+	// // now sort labelArr by Title
+	// sort.Slice(labelArr, func(i, j int) bool {
+	// 	return labelArr[i].Title < labelArr[j].Title
+	// })
 	return labelArr, nil
 }

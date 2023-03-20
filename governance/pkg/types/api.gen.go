@@ -17,8 +17,7 @@ import (
 	"path"
 	"strings"
 
-	externalRef0 "github.com/common-fate/common-fate/accesshandler/pkg/types"
-	externalRef1 "github.com/common-fate/common-fate/pkg/types"
+	externalRef0 "github.com/common-fate/common-fate/pkg/types"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
@@ -31,20 +30,20 @@ type ErrorResponse struct {
 
 // ListAccessRulesDetailResponse defines model for ListAccessRulesDetailResponse.
 type ListAccessRulesDetailResponse struct {
-	AccessRules []externalRef1.AccessRuleDetail `json:"accessRules"`
+	AccessRules []externalRef0.AccessRuleDetail `json:"accessRules"`
 	Next        *string                         `json:"next"`
 }
 
 // ListAccessRulesResponse defines model for ListAccessRulesResponse.
 type ListAccessRulesResponse struct {
-	AccessRules []externalRef1.AccessRule `json:"accessRules"`
+	AccessRules []externalRef0.AccessRule `json:"accessRules"`
 	Next        *string                   `json:"next"`
 }
 
 // CreateAccessRuleRequest defines model for CreateAccessRuleRequest.
 type CreateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    externalRef1.ApproverConfig `json:"approval"`
+	Approval    externalRef0.ApproverConfig `json:"approval"`
 	Description string                      `json:"description"`
 
 	// The group IDs that the access rule applies to.
@@ -52,22 +51,22 @@ type CreateAccessRuleRequest struct {
 	Name   string   `json:"name"`
 
 	// a request body for creating a Access Rule Target
-	Target externalRef1.CreateAccessRuleTarget `json:"target"`
+	Target externalRef0.CreateAccessRuleTarget `json:"target"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints externalRef1.TimeConstraints `json:"timeConstraints"`
+	TimeConstraints externalRef0.TimeConstraints `json:"timeConstraints"`
 }
 
 // UpdateAccessRuleRequest defines model for UpdateAccessRuleRequest.
 type UpdateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    externalRef1.ApproverConfig `json:"approval"`
+	Approval    externalRef0.ApproverConfig `json:"approval"`
 	Description string                      `json:"description"`
 	Groups      []string                    `json:"groups"`
 	Name        string                      `json:"name"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints externalRef1.TimeConstraints `json:"timeConstraints"`
+	TimeConstraints externalRef0.TimeConstraints `json:"timeConstraints"`
 	UpdateMessage   *string                      `json:"updateMessage,omitempty"`
 }
 
@@ -84,10 +83,10 @@ type GovListAccessRulesParams struct {
 type GovListAccessRulesParamsStatus string
 
 // GovCreateAccessRuleJSONRequestBody defines body for GovCreateAccessRule for application/json ContentType.
-type GovCreateAccessRuleJSONRequestBody externalRef1.CreateAccessRuleRequest
+type GovCreateAccessRuleJSONRequestBody externalRef0.CreateAccessRuleRequest
 
 // GovUpdateAccessRuleJSONRequestBody defines body for GovUpdateAccessRule for application/json ContentType.
-type GovUpdateAccessRuleJSONRequestBody externalRef1.CreateAccessRuleRequest
+type GovUpdateAccessRuleJSONRequestBody externalRef0.CreateAccessRuleRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -551,7 +550,7 @@ type GovListAccessRulesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AccessRules []externalRef1.AccessRuleDetail `json:"accessRules"`
+		AccessRules []externalRef0.AccessRuleDetail `json:"accessRules"`
 		Next        *string                         `json:"next"`
 	}
 }
@@ -575,7 +574,7 @@ func (r GovListAccessRulesResponse) StatusCode() int {
 type GovCreateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *externalRef1.AccessRuleDetail
+	JSON201      *externalRef0.AccessRuleDetail
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
@@ -603,7 +602,7 @@ func (r GovCreateAccessRuleResponse) StatusCode() int {
 type GovGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AccessRuleDetail
+	JSON200      *externalRef0.AccessRuleDetail
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -631,7 +630,7 @@ func (r GovGetAccessRuleResponse) StatusCode() int {
 type GovUpdateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AccessRuleDetail
+	JSON200      *externalRef0.AccessRuleDetail
 }
 
 // Status returns HTTPResponse.Status
@@ -653,7 +652,7 @@ func (r GovUpdateAccessRuleResponse) StatusCode() int {
 type GovArchiveAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.AccessRuleDetail
+	JSON200      *externalRef0.AccessRuleDetail
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -758,7 +757,7 @@ func ParseGovListAccessRulesResponse(rsp *http.Response) (*GovListAccessRulesRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AccessRules []externalRef1.AccessRuleDetail `json:"accessRules"`
+			AccessRules []externalRef0.AccessRuleDetail `json:"accessRules"`
 			Next        *string                         `json:"next"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -786,7 +785,7 @@ func ParseGovCreateAccessRuleResponse(rsp *http.Response) (*GovCreateAccessRuleR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRuleDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -830,7 +829,7 @@ func ParseGovGetAccessRuleResponse(rsp *http.Response) (*GovGetAccessRuleRespons
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRuleDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -874,7 +873,7 @@ func ParseGovUpdateAccessRuleResponse(rsp *http.Response) (*GovUpdateAccessRuleR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRuleDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -900,7 +899,7 @@ func ParseGovArchiveAccessRuleResponse(rsp *http.Response) (*GovArchiveAccessRul
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.AccessRuleDetail
+		var dest externalRef0.AccessRuleDetail
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1297,13 +1296,7 @@ func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
 
 	pathPrefix := path.Dir(pathToFile)
 
-	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "./accesshandler/openapi.yml")) {
-		if _, ok := res[rawPath]; ok {
-			// it is not possible to compare functions in golang, so always overwrite the old value
-		}
-		res[rawPath] = rawFunc
-	}
-	for rawPath, rawFunc := range externalRef1.PathToRawSpec(path.Join(pathPrefix, "./openapi.yml")) {
+	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "./openapi.yml")) {
 		if _, ok := res[rawPath]; ok {
 			// it is not possible to compare functions in golang, so always overwrite the old value
 		}

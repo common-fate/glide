@@ -25,6 +25,7 @@ import type {
   ReviewResponseResponse,
   ReviewRequestBody,
   UserCancelRequest200,
+  AccessInstructions,
   AccessTokenResponseResponse,
   User,
   AuthUserResponseResponse,
@@ -34,9 +35,6 @@ import type {
   FavoriteDetail,
   CreateFavoriteRequestBody
 } from '.././types'
-import type {
-  AccessInstructions
-} from '.././types/accesshandler-openapi.yml'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
 

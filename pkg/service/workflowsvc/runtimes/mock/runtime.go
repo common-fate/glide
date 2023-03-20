@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/common-fate/apikit/logger"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 // The mock runtime always returns success
 type Runtime struct {
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant ahTypes.CreateGrant, isForTargetGroup bool) error {
+func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant, isForTargetGroup bool) error {
 	go func() {
 		ctx := context.Background()
 		waitFor := time.Until(grant.Start.Time)

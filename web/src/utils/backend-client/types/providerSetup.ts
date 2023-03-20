@@ -8,7 +8,7 @@
 import type { ProviderSetupStatus } from './providerSetupStatus';
 import type { ProviderSetupStepOverview } from './providerSetupStepOverview';
 import type { ProviderSetupConfigValues } from './providerSetupConfigValues';
-import type { ProviderConfigValidation } from './accesshandler-openapi.yml/providerConfigValidation';
+import type { ProviderConfigValidation } from './providerConfigValidation';
 
 /**
  * A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.

@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/awslabs/aws-lambda-go-api-proxy/handlerfunc"
 	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/internal/build"
 	"github.com/common-fate/common-fate/pkg/api"
 	"github.com/common-fate/common-fate/pkg/auth"
@@ -53,11 +51,6 @@ func buildHandler() (*Lambda, error) {
 	zap.ReplaceGlobals(log.Desugar())
 	auth := &auth.LambdaAuthenticator{}
 
-	ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{Region: cfg.Region, AccessHandlerURL: cfg.AccessHandlerURL, MockAccessHandler: cfg.MockAccessHandler})
-	if err != nil {
-		return nil, err
-	}
-
 	eventBus, err := gevent.NewSender(ctx, gevent.SenderOpts{
 		EventBusARN: cfg.EventBusArn,
 	})
@@ -68,10 +61,6 @@ func buildHandler() (*Lambda, error) {
 	dc, err := deploy.GetDeploymentConfig()
 	if err != nil {
 		return nil, err
-	}
-
-	td := psetup.TemplateData{
-		AccessHandlerExecutionRoleARN: cfg.AccessHandlerExecutionRoleARN,
 	}
 
 	ic, err := deploy.UnmarshalFeatureMap(cfg.IdentitySettings)
@@ -94,13 +83,12 @@ func buildHandler() (*Lambda, error) {
 		return nil, err
 	}
 	api, err := api.New(ctx, api.Opts{
-		Log:                    log,
-		DynamoTable:            cfg.DynamoTable,
-		PaginationKMSKeyARN:    cfg.PaginationKMSKeyARN,
-		AccessHandlerClient:    ahc,
+		Log:                 log,
+		DynamoTable:         cfg.DynamoTable,
+		PaginationKMSKeyARN: cfg.PaginationKMSKeyARN,
+
 		EventSender:            eventBus,
 		AdminGroup:             cfg.AdminGroup,
-		TemplateData:           td,
 		DeploymentSuffix:       cfg.DeploymentSuffix,
 		IdentitySyncer:         idsync,
 		CognitoUserPoolID:      cfg.CognitoUserPoolID,

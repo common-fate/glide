@@ -9,4 +9,3 @@ output-options:
 output: governance/pkg/types/api.gen.go
 import-mapping:
   ./openapi.yml: github.com/common-fate/common-fate/pkg/types
-  ./accesshandler/openapi.yml: github.com/common-fate/common-fate/accesshandler/pkg/types

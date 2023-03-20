@@ -3,13 +3,13 @@ package mock
 import (
 	"context"
 
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 type Runtime struct {
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant ahTypes.CreateGrant, isForTargetGroup bool) error {
+func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant, isForTargetGroup bool) error {
 	return nil
 }
 

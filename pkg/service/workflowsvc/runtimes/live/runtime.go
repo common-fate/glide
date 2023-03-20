@@ -4,42 +4,41 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"net/http"
 	"strings"
 
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
-	"github.com/common-fate/apikit/logger"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/cfaws"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 )
 
 type Runtime struct {
 	StateMachineARN string
-	AHClient        ahTypes.ClientWithResponsesInterface
 	Eventbus        *gevent.Sender
 	DB              ddb.Storage
 	RequestRouter   *requestroutersvc.Service
 }
 
-func (r *Runtime) Grant(ctx context.Context, grant ahTypes.CreateGrant, isForTargetGroup bool) error {
-	if isForTargetGroup {
-		return r.grantTargetGroup(ctx, grant)
-	}
-	return r.grantProvider(ctx, grant)
-}
+func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant) error {
 
-func (r *Runtime) grantTargetGroup(ctx context.Context, grant ahTypes.CreateGrant) error {
+	return r.grantTargetGroup(ctx, grant)
+
+}
+func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
+
+	return r.revokeTargetGroup(ctx, grantID)
+
+}
+func (r *Runtime) grantTargetGroup(ctx context.Context, grant types.CreateGrant) error {
 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
 	if err != nil {
 		return err
@@ -63,28 +62,6 @@ func (r *Runtime) grantTargetGroup(ctx context.Context, grant ahTypes.CreateGran
 	_, err = sfnClient.StartExecution(ctx, sei)
 	return err
 
-}
-
-func (r *Runtime) grantProvider(ctx context.Context, grant ahTypes.CreateGrant) error {
-	response, err := r.AHClient.PostGrantsWithResponse(ctx, grant)
-	if err != nil {
-		return err
-	}
-	if response.JSON201 != nil {
-		return nil
-	}
-	if response.JSON400.Error != nil {
-		return fmt.Errorf(*response.JSON400.Error)
-	}
-	logger.Get(ctx).Errorw("unhandled Access Handler response", "body", string(response.Body))
-	return errors.New("unhandled response code from access provider service when granting")
-}
-
-func (r *Runtime) Revoke(ctx context.Context, grantID string, isForTargetGroup bool) error {
-	if isForTargetGroup {
-		return r.revokeTargetGroup(ctx, grantID)
-	}
-	return r.revokeProvider(ctx, grantID)
 }
 
 func BuildExecutionARN(stateMachineARN string, grantID string) string {
@@ -185,27 +162,4 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 	}
 
 	return nil
-}
-
-func (r *Runtime) revokeProvider(ctx context.Context, grantID string) error {
-	response, err := r.AHClient.PostGrantsRevokeWithResponse(ctx, grantID, ahTypes.PostGrantsRevokeJSONRequestBody{
-		// @Note revoker ID is unused in the access handler code so it has been left empty here as it will not be included in this new runtime interface
-		RevokerId: "",
-	})
-	if err != nil {
-		return err
-	}
-
-	switch response.StatusCode() {
-	case http.StatusOK:
-		return nil
-	case http.StatusBadRequest:
-		return fmt.Errorf(*response.JSON400.Error)
-	case http.StatusInternalServerError:
-		return fmt.Errorf(*response.JSON500.Error)
-	default:
-		logger.Get(ctx).Errorw("unhandled Access Handler response", "body", string(response.Body))
-		return errors.New("unhandled response code from access provider service when revoking access")
-	}
-
 }
