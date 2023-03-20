@@ -10,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { ArgumentRuleFormElement } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
 import {
   adminListProviderArgOptions,
   useAdminGetProvider,
@@ -25,7 +24,7 @@ import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 import { FormStep } from "./FormStep";
-import { Provider } from "src/utils/backend-client/types";
+import { Provider } from "../../../../utils/backend-client/types";
 
 interface PreviewProps {
   target: AccessRuleFormDataTarget;

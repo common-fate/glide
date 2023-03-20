@@ -5,14 +5,14 @@ import { Box, Text } from "@chakra-ui/react";
 import {
   adminListGroups,
   adminListUsers,
-  useAdminListUsers,
 } from "../../../../utils/backend-client/admin/admin";
 import { colors } from "../../../../utils/theme/colors";
-import { Option } from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+
 import {
   AdminListGroupsSource,
   Group,
   User,
+  Option,
 } from "../../../../utils/backend-client/types";
 interface BaseSelectProps {
   fieldName: string;

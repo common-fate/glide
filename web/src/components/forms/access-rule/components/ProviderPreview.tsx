@@ -14,17 +14,18 @@ import {
   useAdminGetProviderArgs,
   useAdminListProviderArgOptions,
 } from "../../../../utils/backend-client/admin/admin";
-import {
-  Argument,
-  ArgumentRuleFormElement,
-  GroupOption,
-  Option,
-  Provider,
-} from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
 import { ProviderIcon } from "../../../icons/providerIcon";
 import { AccessRuleFormData } from "../CreateForm";
+import {
+  Argument,
+  ArgumentRuleFormElement,
+  GroupOption,
+  Provider,
+  Option,
+} from "../../../../utils/backend-client/types";
 
 interface ProviderPreviewProps {
   provider: Provider;
