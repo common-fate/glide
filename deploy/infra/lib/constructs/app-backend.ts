@@ -27,7 +27,6 @@ interface Props {
   appName: string;
   userPool: WebUserPool;
   frontendUrl: string;
-  accessHandler: AccessHandler;
   governanceHandler: Governance;
   eventBusSourceName: string;
   eventBus: EventBus;
@@ -124,15 +123,13 @@ export class AppBackend extends Construct {
         COMMONFATE_IDENTITY_PROVIDER: props.userPool.getIdpType(),
         COMMONFATE_ADMIN_GROUP: props.adminGroupId,
         COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-        COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
         COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
         // COMMONFATE_SENTRY_DSN: can be added here
         COMMONFATE_EVENT_BUS_ARN: props.eventBus.eventBusArn,
         COMMONFATE_EVENT_BUS_SOURCE: props.eventBusSourceName,
         COMMONFATE_IDENTITY_SETTINGS: props.identityProviderSyncConfiguration,
         COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
-        COMMONFATE_ACCESS_HANDLER_EXECUTION_ROLE_ARN:
-          props.accessHandler.getAccessHandlerExecutionRoleArn(),
+
         COMMONFATE_DEPLOYMENT_SUFFIX: props.deploymentSuffix,
         COMMONFATE_GRANTER_V2_STATE_MACHINE_ARN:
           props.targetGroupGranter.getStateMachineARN(),
@@ -283,13 +280,6 @@ export class AppBackend extends Construct {
 
     this._dynamoTable.grantReadWriteData(this._lambda);
 
-    // Grant the Common Fate app access to invoke the access handler api
-    this._lambda.addToRolePolicy(
-      new PolicyStatement({
-        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
-        actions: ["execute-api:Invoke"],
-      })
-    );
     props.eventBus.grantPutEventsTo(this._lambda);
     props.apiGatewayWafAclArn && this.wafAssociation(props.apiGatewayWafAclArn);
     this._eventHandler = new EventHandler(this, "EventHandler", {
@@ -324,7 +314,6 @@ export class AppBackend extends Construct {
     });
     this._cacheSync = new CacheSync(this, "CacheSync", {
       dynamoTable: this._dynamoTable,
-      accessHandler: props.accessHandler,
       shouldRunAsCron: props.shouldRunCronHealthCheckCacheSync,
       identityGroupFilter: props.identityGroupFilter,
     });

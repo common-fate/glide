@@ -260,7 +260,6 @@ export class CommonFateStackProd extends cdk.Stack {
 
     const governance = new Governance(this, "Governance", {
       appName,
-      accessHandler: accessHandler,
       kmsKey: kmsKey,
       providerConfig: providerConfig.valueAsString,
       dynamoTable: db.getTable(),
@@ -278,7 +277,6 @@ export class CommonFateStackProd extends cdk.Stack {
       appName,
       userPool: userPool,
       frontendUrl: "https://" + appFrontend.getDomainName(),
-      accessHandler: accessHandler,
       governanceHandler: governance,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
@@ -333,15 +331,12 @@ export class CommonFateStackProd extends cdk.Stack {
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
-      AccessHandlerLogGroupName: accessHandler.getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
       EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
-      GranterLogGroupName: accessHandler.getGranter().getLogGroupName(),
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
       DynamoDBTable: appBackend.getDynamoTableName(),
-      GranterStateMachineArn: accessHandler.getGranter().getStateMachineARN(),
       EventBusArn: events.getEventBus().eventBusArn,
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
@@ -349,8 +344,6 @@ export class CommonFateStackProd extends cdk.Stack {
         userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN:
-        accessHandler.getAccessHandlerExecutionRoleArn(),
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),
