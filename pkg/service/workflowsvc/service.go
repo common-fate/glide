@@ -57,8 +57,8 @@ func (s *Service) Grant(ctx context.Context, request access.Request, accessRule 
 		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
 			ID:       createGrant.Id,
 			Provider: createGrant.Provider,
-			End:      createGrant.End,
-			Start:    createGrant.Start,
+			End:      createGrant.End.Time,
+			Start:    createGrant.Start.Time,
 			Status:   types.GrantStatusPENDING,
 			Subject:  createGrant.Subject,
 			With:     types.Grant_With(createGrant.With),
@@ -71,8 +71,8 @@ func (s *Service) Grant(ctx context.Context, request access.Request, accessRule 
 	return &access.Grant{
 		Provider:  createGrant.Provider,
 		Subject:   string(createGrant.Subject),
-		Start:     createGrant.Start,
-		End:       createGrant.End,
+		Start:     createGrant.Start.Time,
+		End:       createGrant.End.Time,
 		Status:    types.GrantStatusPENDING,
 		With:      types.Grant_With(createGrant.With),
 		CreatedAt: now,

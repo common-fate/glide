@@ -1767,13 +1767,13 @@ components:
           format: date-time
           description: The start time of the grant in ISO8601 format.
           example: "2022-06-13T03:39:30.921Z"
-          x-go-type: iso8601.Time
+
         end:
           type: string
           format: date-time
           description: The end time of the grant in ISO8601 format.
           example: "2022-06-13T11:39:30.921Z"
-          x-go-type: iso8601.Time
+
       required:
         - id
         - status
