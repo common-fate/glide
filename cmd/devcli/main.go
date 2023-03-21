@@ -10,6 +10,7 @@ import (
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	registry "github.com/common-fate/common-fate/cmd/devcli/commands/provider-registry"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
+	"github.com/common-fate/common-fate/cmd/devcli/commands/targetgroup"
 
 	"github.com/common-fate/common-fate/cmd/devcli/commands/healthcheck"
 	"github.com/fatih/color"
@@ -31,6 +32,7 @@ func main() {
 			&cache.CacheCommand,
 			&healthcheck.Command,
 			&registry.Command,
+			&targetgroup.Command,
 		},
 	}
 

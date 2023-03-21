@@ -193,6 +193,36 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
+		Access: &accesssvc.Service{
+			Clock:       clk,
+			DB:          db,
+			EventPutter: opts.EventSender,
+			// Cache: &cachesvc.Service{
+			// 	ProviderConfigReader: opts.DeploymentConfig,
+			// 	DB:                   db,
+			// },
+			Rules: &rulesvc.Service{
+				Clock: clk,
+				DB:    db,
+				// Cache: &cachesvc.Service{
+				// 	ProviderConfigReader: opts.DeploymentConfig,
+				// 	DB:                   db,
+				// },
+			},
+			Workflow: &workflowsvc.Service{
+				Runtime: &live.Runtime{
+					StateMachineARN: opts.StateMachineARN,
+					Eventbus:        opts.EventSender,
+					DB:              db,
+					RequestRouter: &requestroutersvc.Service{
+						DB: db,
+					},
+				},
+				DB:       db,
+				Clk:      clk,
+				Eventbus: opts.EventSender,
+			},
+		},
 
 		// Cache: &cachesvc.Service{
 		// 	ProviderConfigReader: opts.DeploymentConfig,
