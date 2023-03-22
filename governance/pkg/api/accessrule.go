@@ -63,39 +63,11 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check if user and group exists
-
-	for _, u := range *createRequest.Approval.Users {
-		userLookup := storage.GetUser{ID: u}
-
-		_, err := a.DB.Query(ctx, &userLookup)
-		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("user not found"), http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
-	}
-
-	for _, u := range *createRequest.Approval.Groups {
-		groupLookup := storage.GetGroup{ID: u}
-
-		_, err := a.DB.Query(ctx, &groupLookup)
-		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
-	}
-
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("not found"), http.StatusNotFound))
+		return
+	}
 
 	if err == rulesvc.ErrRuleIdAlreadyExists {
 		// the user supplied id already exists
@@ -147,43 +119,16 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 	}
 	rule = ruleq.Result
 
-	//check if user and group exists
-
-	for _, u := range *updateRequest.Approval.Users {
-		userLookup := storage.GetUser{ID: u}
-
-		_, err := a.DB.Query(ctx, &userLookup)
-		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("user not found"), http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
-	}
-
-	for _, u := range *updateRequest.Approval.Groups {
-		groupLookup := storage.GetGroup{ID: u}
-
-		_, err := a.DB.Query(ctx, &groupLookup)
-		if err == ddb.ErrNoItems {
-			apio.Error(ctx, w, apio.NewRequestError(errors.New("group not found"), http.StatusNotFound))
-			return
-		}
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
-	}
-
 	updatedRule, err := a.Rules.UpdateRule(ctx, &rulesvc.UpdateOpts{
 		UpdaterID:     "bot_governance_api",
 		Rule:          *rule,
 		UpdateRequest: updateRequest,
 	})
+
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("not found"), http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return

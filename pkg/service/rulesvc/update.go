@@ -5,7 +5,9 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type UpdateOpts struct {
@@ -17,6 +19,30 @@ type UpdateOpts struct {
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
 	clk := s.Clock
+
+	//check if user and group exists
+	g, gctx := errgroup.WithContext(ctx)
+	for _, u := range *in.UpdateRequest.Approval.Users {
+		g.Go(func() error {
+			userLookup := storage.GetUser{ID: u}
+
+			_, err := s.DB.Query(gctx, &userLookup)
+
+			return err
+		})
+
+	}
+
+	for _, u := range *in.UpdateRequest.Approval.Groups {
+		g.Go(func() error {
+			groupLookup := storage.GetGroup{ID: u}
+
+			_, err := s.DB.Query(ctx, &groupLookup)
+
+			return err
+		})
+
+	}
 
 	var isTargetGroup bool
 	if in.Rule.Target.TargetGroupID != "" {

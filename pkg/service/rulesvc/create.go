@@ -15,6 +15,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 // validateTargetAgainstSchema checks that all the arguments match the schema of the provider
@@ -207,6 +208,30 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
+
+	//check if user and group exists
+	g, gctx := errgroup.WithContext(ctx)
+	for _, u := range *in.Approval.Users {
+		g.Go(func() error {
+			userLookup := storage.GetUser{ID: u}
+
+			_, err := s.DB.Query(gctx, &userLookup)
+
+			return err
+		})
+
+	}
+
+	for _, u := range *in.Approval.Groups {
+		g.Go(func() error {
+			groupLookup := storage.GetGroup{ID: u}
+
+			_, err := s.DB.Query(ctx, &groupLookup)
+
+			return err
+		})
+
+	}
 
 	q := storage.GetTargetGroup{ID: in.Target.ProviderId}
 	_, err := s.DB.Query(ctx, &q)
