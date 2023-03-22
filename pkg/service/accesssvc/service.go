@@ -5,7 +5,6 @@ import (
 
 	"github.com/benbjohnson/clock"
 
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/gevent"
@@ -49,5 +48,5 @@ type AccessRuleService interface {
 }
 
 type AHClient interface {
-	ahTypes.ClientWithResponsesInterface
+	types.ClientWithResponsesInterface
 }

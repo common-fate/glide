@@ -4,12 +4,10 @@ import (
 	"time"
 
 	"github.com/common-fate/analytics-go"
-	ac_types "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/iso8601"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
 
@@ -24,29 +22,18 @@ const (
 )
 
 type Grant struct {
-	Provider string              `json:"provider" dynamodbav:"provider"`
-	Subject  string              `json:"subject" dynamodbav:"subject"`
-	With     ac_types.Grant_With `json:"with" dynamodbav:"with"`
+	Provider string           `json:"provider" dynamodbav:"provider"`
+	Subject  string           `json:"subject" dynamodbav:"subject"`
+	With     types.Grant_With `json:"with" dynamodbav:"with"`
 	//the time which the grant starts
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
-	End       time.Time            `json:"end" dynamodbav:"end"`
-	Status    ac_types.GrantStatus `json:"status" dynamodbav:"status"`
-	CreatedAt time.Time            `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt" dynamodbav:"updatedAt"`
+	End       time.Time         `json:"end" dynamodbav:"end"`
+	Status    types.GrantStatus `json:"status" dynamodbav:"status"`
+	CreatedAt time.Time         `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt time.Time         `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
-func (g *Grant) ToAHGrant(requestID string) ac_types.Grant {
-	return ac_types.Grant{
-		ID:       requestID,
-		Start:    iso8601.New(g.Start),
-		End:      iso8601.New(g.End),
-		Provider: g.Provider,
-		Subject:  openapi_types.Email(g.Subject),
-		Status:   g.Status,
-		With:     g.With,
-	}
-}
 func (g *Grant) ToAPI() types.Grant {
 	req := types.Grant{
 		Start:    g.Start,
@@ -223,7 +210,7 @@ func (r *Request) DDBKeys() (ddb.Keys, error) {
 		if r.Grant != nil {
 			//any grant status other than revoked or error should be equal to grant.end.
 			//this is to make sure the error and revoke grants are pushed to the past column in the frontend
-			if !(r.Grant.Status == ac_types.GrantStatusREVOKED || r.Grant.Status == ac_types.GrantStatusERROR) {
+			if !(r.Grant.Status == types.GrantStatusREVOKED || r.Grant.Status == types.GrantStatusERROR) {
 				end = r.Grant.End
 			}
 		} else if r.IsScheduled() {

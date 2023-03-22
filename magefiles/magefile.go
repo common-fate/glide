@@ -84,28 +84,12 @@ func (Build) Backend() error {
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/commonfate", "cmd/lambda/commonfate/handler.go")
 }
 
-func (Build) Granter() error {
-	env := map[string]string{
-		"GOOS":   "linux",
-		"GOARCH": "amd64",
-	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/granter", "cmd/lambda/granter/handler.go")
-}
-
 func (Build) FrontendDeployer() error {
 	env := map[string]string{
 		"GOOS":   "linux",
 		"GOARCH": "amd64",
 	}
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/frontend-deployer", "cmd/lambda/frontend-deployer/handler.go")
-}
-
-func (Build) AccessHandler() error {
-	env := map[string]string{
-		"GOOS":   "linux",
-		"GOARCH": "amd64",
-	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/access-handler", "cmd/lambda/access-handler/handler.go")
 }
 
 func (Build) Syncer() error {
@@ -229,27 +213,15 @@ func PackageHealthChecker() error {
 }
 
 func Package() {
-	mg.Deps(PackageBackend, PackageGranter, PackageAccessHandler, PackageSlackNotifier)
+	mg.Deps(PackageBackend, PackageSlackNotifier)
 	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
 	mg.Deps(PackageCacheSyncer, PackageHealthChecker, PackageTargetGroupGranter)
-}
-
-// PackageGranter zips the Go granter so that it can be deployed to Lambda.
-func PackageGranter() error {
-	mg.Deps(Build.Granter)
-	return sh.Run("zip", "--junk-paths", "bin/granter.zip", "bin/granter")
 }
 
 // PackageFrontendDeployer zips the Go frontend deployer so that it can be deployed to Lambda.
 func PackageFrontendDeployer() error {
 	mg.Deps(Build.FrontendDeployer)
 	return sh.Run("zip", "--junk-paths", "bin/frontend-deployer.zip", "bin/frontend-deployer")
-}
-
-// PackageAccessHandler zips the Go access handler API so that it can be deployed to Lambda.
-func PackageAccessHandler() error {
-	mg.Deps(Build.AccessHandler)
-	return sh.Run("zip", "--junk-paths", "bin/access-handler.zip", "bin/access-handler")
 }
 
 // PackageSyncer zips the Go Syncer function handler so that it can be deployed to Lambda.

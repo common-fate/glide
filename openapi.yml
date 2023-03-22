@@ -286,7 +286,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./accesshandler/openapi.yml#/components/schemas/AccessInstructions
+                $ref: "#/components/schemas/AccessInstructions"
       operationId: user-get-access-instructions
       description: |-
         Get access instructions for a request.
@@ -815,7 +815,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgSchema
+                $ref: "#/components/schemas/ArgSchema"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -844,7 +844,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ./accesshandler/openapi.yml#/components/schemas/ArgOptions
+                $ref: "#/components/schemas/ArgOptions"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -857,139 +857,6 @@ paths:
           in: query
           name: refresh
           description: invalidate the cache and refresh the provider's options.
-  /api/v1/admin/providersetups:
-    get:
-      summary: List the provider setups in progress
-      tags:
-        - Admin
-      responses:
-        "200":
-          $ref: "#/components/responses/ListProviderSetupsResponse"
-      operationId: admin-list-providersetups
-      description: List providers which are still in the process of being set up.
-    parameters: []
-    post:
-      summary: Begin the setup process for a new Access Provider
-      operationId: admin-create-providersetup
-      tags:
-        - Admin
-      responses:
-        "201":
-          $ref: "#/components/responses/ProviderSetupResponse"
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-      description: Begins the guided setup process for a new Access Provider.
-      requestBody:
-        $ref: "#/components/requestBodies/CreateProviderSetupRequest"
-  "/api/v1/admin/providersetups/{providersetupId}":
-    get:
-      summary: Get an in-progress provider setup
-      tags:
-        - Admin
-      responses:
-        "200":
-          $ref: "#/components/responses/ProviderSetupResponse"
-      operationId: admin-get-providersetup
-      description: Get the setup instructions for an Access Provider.
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    delete:
-      summary: Delete an in-progress provider setup
-      operationId: admin-delete-providersetup
-      tags:
-        - Admin
-      responses:
-        "200":
-          $ref: "#/components/responses/ProviderSetupResponse"
-      description: |-
-        Removes an in-progress provider setup and deletes all data relating to it.
-
-        Returns the deleted provider.
-  "/api/v1/admin/providersetups/{providersetupId}/instructions":
-    get:
-      summary: Get the setup instructions for an Access Provider
-      tags:
-        - Admin
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProviderSetupInstructions"
-      operationId: admin-get-providersetup-instructions
-      description: Get the setup instructions for an Access Provider.
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-  "/api/v1/admin/providersetups/{providersetupId}/validate":
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    post:
-      summary: Validate the configuration for a Provider Setup
-      operationId: admin-validate-providersetup
-      responses:
-        "200":
-          $ref: "#/components/responses/ProviderSetupResponse"
-      tags:
-        - Admin
-      description: |-
-        Validates the configuration values for an access provider being setup.
-
-        Will return a HTTP200 OK response even if there are validation errors. The errors can be found by inspecting the validation diagnostics in the `configValidation` field.
-
-        Will return a HTTP400 response if the provider cannot be validated (for example, the config values for the provider are incomplete).
-  "/api/v1/admin/providersetups/{providersetupId}/complete":
-    parameters:
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    post:
-      summary: Complete a ProviderSetup
-      operationId: admin-complete-providersetup
-      tags:
-        - Admin
-      description: "If Runtime Configuration is enabled, this will write the Access Provider to the configuration storage and activate it. If Runtime Configuration is disabled, this endpoint does nothing."
-      responses:
-        "200":
-          $ref: "#/components/responses/CompleteProviderSetupResponse"
-  "/api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete":
-    parameters:
-      - schema:
-          type: integer
-        name: stepIndex
-        in: path
-        required: true
-        description: The step index to update the completion status for.
-      - schema:
-          type: string
-        name: providersetupId
-        in: path
-        required: true
-    put:
-      summary: Update the completion status for a Provider setup step
-      operationId: admin-submit-providersetup-step
-      responses:
-        "200":
-          $ref: "#/components/responses/ProviderSetupResponse"
-      description: The updated provider setup.
-      requestBody:
-        $ref: "#/components/requestBodies/ProviderSetupStepCompleteRequest"
-      tags:
-        - Admin
   /api/v1/admin/identity/sync:
     parameters: []
     post:
@@ -1690,6 +1557,19 @@ components:
       required:
         - provider
         - with
+    AccessInstructions:
+      title: AccessInstructions
+      x-stoplight:
+        id: 56g6qww0dpbvx
+      type: object
+      description: |-
+        Instructions on how to access the requested resource.
+
+        The `instructions` field will be null if no instructions are available.
+      properties:
+        instructions:
+          description: Instructions on how to access the role or resource.
+          type: string
     CreateAccessRuleTarget:
       title: CreateAccessRuleTarget
       type: object
@@ -1843,16 +1723,30 @@ components:
       description: A temporary assignment of a user to a principal.
       type: object
       title: Grant
+      x-examples:
+        Okta:
+          id: aba0dcba-0a8c-4393-ad92-69510326b29a
+          status: PENDING
+          subject: user@example.com
+          provider: okta
+          with:
+            group: Admins
+          start: "2022-06-13T03:39:30.921Z"
+          end: "2022-06-13T11:39:30.921Z"
       properties:
+        id:
+          type: string
+          example: aba0dcba-0a8c-4393-ad92-69510326b29a
+          x-go-name: ID
         status:
           type: string
           description: The current state of the grant.
           enum:
             - PENDING
             - ACTIVE
-            - ERROR
             - REVOKED
             - EXPIRED
+            - ERROR
         subject:
           type: string
           minLength: 1
@@ -1863,22 +1757,29 @@ components:
           minLength: 1
           description: The ID of the provider to grant access to.
           example: okta
+        with:
+          type: object
+          additionalProperties:
+            type: string
+          description: Provider-specific grant data. Must match the provider's schema.
         start:
           type: string
           format: date-time
-          description: The start time of the grant.
+          description: The start time of the grant in ISO8601 format.
           example: "2022-06-13T03:39:30.921Z"
-          x-go-type: time.Time
+
         end:
           type: string
           format: date-time
-          description: The end time of the grant.
-          example: "2022-06-13T03:39:30.921Z"
-          x-go-type: time.Time
+          description: The end time of the grant in ISO8601 format.
+          example: "2022-06-13T11:39:30.921Z"
+
       required:
+        - id
         - status
         - subject
         - provider
+        - with
         - start
         - end
     RequestEvent:
@@ -2135,7 +2036,7 @@ components:
         configValidation:
           type: array
           items:
-            $ref: ./accesshandler/openapi.yml#/components/schemas/ProviderConfigValidation
+            $ref: "#/components/schemas/ProviderConfigValidation"
       required:
         - id
         - type
@@ -2504,6 +2405,232 @@ components:
         - INFO
         - WARNING
         - ERROR
+    CreateGrant:
+      description: A grant to be created.
+      type: object
+      title: CreateGrant
+      x-examples:
+        Okta:
+          subject: user@example.com
+          provider: okta
+          with:
+            group: Admins
+          start: "2022-06-13T03:39:30.921Z"
+          end: "2022-06-13T11:39:30.921Z"
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          description: The email address of the user to grant access to.
+          format: email
+        provider:
+          type: string
+          minLength: 1
+          description: The ID of the provider to grant access to.
+          example: okta
+        with:
+          type: object
+          additionalProperties:
+            type: string
+          description: Provider-specific grant data. Must match the provider's schema.
+        start:
+          type: string
+          format: date-time
+          description: The start time of the grant in ISO8601 format.
+          example: "2022-06-13T03:39:30.921Z"
+          x-go-type: iso8601.Time
+        end:
+          type: string
+          format: date-time
+          description: The end time of the grant in ISO8601 format.
+          example: "2022-06-13T11:39:30.921Z"
+          x-go-type: iso8601.Time
+        id:
+          type: string
+          description: An id to assign to this new grant
+      required:
+        - subject
+        - provider
+        - with
+        - start
+        - end
+        - id
+    ProviderHealth:
+      title: ProviderHealth
+      type: object
+      x-examples: {}
+      properties:
+        id:
+          type: string
+          example: okta
+          description: The provider ID.
+          x-go-name: ID
+        healthy:
+          type: boolean
+          description: Whether the provider is healthy.
+        error:
+          type: string
+          example: API_TOKEN secret has not been provided
+          description: "A descriptive error message, if the provider isn't healthy."
+          nullable: true
+      required:
+        - id
+        - healthy
+    Option:
+      title: Option
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+        description:
+          type: string
+      required:
+        - label
+        - value
+    ProviderConfigValidation:
+      title: ProviderConfigValidation
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A validation against the configuration values of the Access Provider.
+      properties:
+        id:
+          type: string
+          description: "The ID of the validation, such as `list-sso-users`."
+        name:
+          type: string
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - SUCCESS
+            - PENDING
+            - ERROR
+          description: The status of the validation.
+        fieldsValidated:
+          type: array
+          description: "The particular config fields validated, if any."
+          items:
+            type: string
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Log"
+      required:
+        - id
+        - name
+        - status
+        - fieldsValidated
+        - logs
+    Log:
+      title: Log
+      x-stoplight:
+        id: 1nm3rev9qez9b
+      type: object
+      description: A log entry.
+      properties:
+        level:
+          type: string
+          description: The log level.
+          enum:
+            - INFO
+            - WARNING
+            - ERROR
+        msg:
+          type: string
+          description: The log message.
+      required:
+        - level
+        - msg
+    Argument:
+      title: Argument
+      x-stoplight:
+        id: 8z6izf547yuch
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        resourceName:
+          type: string
+        description:
+          type: string
+        ruleFormElement:
+          type: string
+          enum:
+            - INPUT
+            - MULTISELECT
+            - SELECT
+        requestFormElement:
+          type: string
+          enum:
+            - SELECT
+          description: "Optional form element for the request form, if not provided, defaults to multiselect"
+        groups:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Group"
+      required:
+        - id
+        - title
+        - ruleFormElement
+    Groups:
+      title: Groups
+      x-stoplight:
+        id: igcye0lpfpqdh
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: "#/components/schemas/GroupOption"
+    GroupOption:
+      title: GroupOption
+      x-stoplight:
+        id: d4xwup330jrg4
+      type: object
+      properties:
+        label:
+          type: string
+        description:
+          type: string
+        value:
+          type: string
+        children:
+          type: array
+          items:
+            type: string
+        labelPrefix:
+          type: string
+          description: A label prefix allows additional context to be prefixed to the label when displayed in a form
+      required:
+        - label
+        - value
+        - children
+    ArgSchema:
+      title: ArgSchema
+      x-stoplight:
+        id: 3kwu2i69r0rpg
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/Argument"
+    ArgOptions:
+      title: ArgOptions
+      x-stoplight:
+        id: kqdjopr9owqlr
+      type: object
+      properties:
+        options:
+          type: array
+          description: The suggested options.
+          items:
+            $ref: "#/components/schemas/Option"
+        groups:
+          $ref: "#/components/schemas/Groups"
+      required:
+        - options
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -2595,6 +2722,12 @@ components:
             properties:
               request:
                 $ref: "#/components/schemas/Request"
+    ArgOptionsResponse:
+      description: Options for an Grant argument.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ArgOptions"
     ListAccessRuleApproversResponse:
       description: A list of user ids who can approver an access rule request
       content:

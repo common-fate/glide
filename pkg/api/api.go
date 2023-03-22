@@ -6,12 +6,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/benbjohnson/clock"
 	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
-	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/common-fate/accesshandler/pkg/psetup"
-	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/cache"
@@ -21,26 +18,20 @@ import (
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
-	"github.com/common-fate/common-fate/pkg/providersetup"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
-	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
-	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
-	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
+	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
-	"github.com/common-fate/common-fate/pkg/service/psetupsvc"
+	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/live"
 	"github.com/common-fate/common-fate/pkg/target"
-
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
@@ -66,13 +57,11 @@ type API struct {
 	DB               ddb.Storage
 	DeploymentConfig deploy.DeployConfigReader
 	// Requests is the service which provides business logic for Access Requests.
-	Access              AccessService
-	Rules               AccessRuleService
-	ProviderSetup       ProviderSetupService
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
-	AdminGroup          string
-	IdentityProvider    string
-	FrontendURL         string
+	Access           AccessService
+	Rules            AccessRuleService
+	AdminGroup       string
+	IdentityProvider string
+	FrontendURL      string
 
 	Cache          CacheService
 	IdentitySyncer auth.IdentitySyncer
@@ -89,14 +78,6 @@ type API struct {
 type CognitoService interface {
 	AdminCreateUser(ctx context.Context, in cognitosvc.CreateUserOpts) (*identity.User, error)
 	AdminUpdateUserGroups(ctx context.Context, in cognitosvc.UpdateUserGroupsOpts) (*identity.User, error)
-}
-
-//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_providersetup_service.go -package=mocks . ProviderSetupService
-
-// ProviderSetupService contains business logic for managing the guided provider setup workflows.
-type ProviderSetupService interface {
-	Create(ctx context.Context, providerType string, existingProviders deploy.ProviderMap, r providerregistry.ProviderRegistry) (*providersetup.Setup, error)
-	CompleteStep(ctx context.Context, setupID string, stepIndex int, body types.ProviderSetupStepCompleteRequest) (*providersetup.Setup, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_access_service.go -package=mocks . AccessService
@@ -164,7 +145,6 @@ var _ types.ServerInterface = &API{}
 
 type Opts struct {
 	Log                    *zap.SugaredLogger
-	AccessHandlerClient    ahtypes.ClientWithResponsesInterface
 	ProviderRegistryClient registry_types.ClientWithResponsesInterface
 	EventSender            *gevent.Sender
 	IdentitySyncer         auth.IdentitySyncer
@@ -172,7 +152,6 @@ type Opts struct {
 	DynamoTable            string
 	PaginationKMSKeyARN    string
 	AdminGroup             string
-	TemplateData           psetup.TemplateData
 	DeploymentSuffix       string
 	CognitoUserPoolID      string
 	IDPType                string
@@ -185,9 +164,6 @@ type Opts struct {
 func New(ctx context.Context, opts Opts) (*API, error) {
 	if opts.Log == nil {
 		return nil, errors.New("opts.Log must be provided")
-	}
-	if opts.AccessHandlerClient == nil {
-		return nil, errors.New("AccessHandlerClient must be provided")
 	}
 
 	if opts.ProviderRegistryClient == nil {
@@ -221,26 +197,21 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			Clock:       clk,
 			DB:          db,
 			EventPutter: opts.EventSender,
-			Cache: &cachesvc.Service{
-				ProviderConfigReader: opts.DeploymentConfig,
-				DB:                   db,
-				AccessHandlerClient:  opts.AccessHandlerClient,
-			},
+			// Cache: &cachesvc.Service{
+			// 	ProviderConfigReader: opts.DeploymentConfig,
+			// 	DB:                   db,
+			// },
 			Rules: &rulesvc.Service{
-				Clock:    clk,
-				DB:       db,
-				AHClient: opts.AccessHandlerClient,
-				Cache: &cachesvc.Service{
-					ProviderConfigReader: opts.DeploymentConfig,
-					DB:                   db,
-					AccessHandlerClient:  opts.AccessHandlerClient,
-				},
+				Clock: clk,
+				DB:    db,
+				// Cache: &cachesvc.Service{
+				// 	ProviderConfigReader: opts.DeploymentConfig,
+				// 	DB:                   db,
+				// },
 			},
-			AHClient: opts.AccessHandlerClient,
 			Workflow: &workflowsvc.Service{
 				Runtime: &live.Runtime{
 					StateMachineARN: opts.StateMachineARN,
-					AHClient:        opts.AccessHandlerClient,
 					Eventbus:        opts.EventSender,
 					DB:              db,
 					RequestRouter: &requestroutersvc.Service{
@@ -252,30 +223,19 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 				Eventbus: opts.EventSender,
 			},
 		},
-		Cache: &cachesvc.Service{
-			ProviderConfigReader: opts.DeploymentConfig,
-			DB:                   db,
-			AccessHandlerClient:  opts.AccessHandlerClient,
-		},
+
+		// Cache: &cachesvc.Service{
+		// 	ProviderConfigReader: opts.DeploymentConfig,
+		// 	DB:                   db,
+		// },
 		Rules: &rulesvc.Service{
-			Clock:    clk,
-			DB:       db,
-			AHClient: opts.AccessHandlerClient,
-			Cache: &cachesvc.Service{
-				ProviderConfigReader: opts.DeploymentConfig,
-				DB:                   db,
-				AccessHandlerClient:  opts.AccessHandlerClient,
-			},
+			Clock: clk,
+			DB:    db,
 		},
-		ProviderSetup: &psetupsvc.Service{
-			DB:               db,
-			TemplateData:     opts.TemplateData,
-			DeploymentSuffix: opts.DeploymentSuffix,
-		},
-		AccessHandlerClient: opts.AccessHandlerClient,
-		DB:                  db,
-		IdentitySyncer:      opts.IdentitySyncer,
-		IdentityProvider:    opts.IDPType,
+
+		DB:               db,
+		IdentitySyncer:   opts.IdentitySyncer,
+		IdentityProvider: opts.IDPType,
 		TargetService: &targetsvc.Service{
 			DB:                     db,
 			Clock:                  clk,
@@ -288,7 +248,6 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 		Workflow: &workflowsvc.Service{
 			Runtime: &live.Runtime{
 				StateMachineARN: opts.StateMachineARN,
-				AHClient:        opts.AccessHandlerClient,
 				Eventbus:        opts.EventSender,
 				DB:              db,
 				RequestRouter: &requestroutersvc.Service{

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/benbjohnson/clock"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/mocks"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
@@ -50,7 +50,7 @@ func TestRevokeGrant(t *testing.T) {
 			giveRequest: access.Request{
 				RequestedBy: "user1",
 				Grant: &access.Grant{
-					Status: ahTypes.GrantStatus(ahTypes.GrantStatusACTIVE),
+					Status: types.GrantStatus(types.GrantStatusACTIVE),
 					End:    time.Now().Add(time.Hour),
 				},
 			},
@@ -77,7 +77,7 @@ func TestRevokeGrant(t *testing.T) {
 			giveRequest: access.Request{
 				RequestedBy: "user1",
 				Grant: &access.Grant{
-					Status: ahTypes.GrantStatus(ahTypes.GrantStatusACTIVE),
+					Status: types.GrantStatus(types.GrantStatusACTIVE),
 					End:    time.Now().Add(time.Hour),
 				},
 			},
@@ -104,7 +104,7 @@ func TestRevokeGrant(t *testing.T) {
 			giveRequest: access.Request{
 				RequestedBy: "user1",
 				Grant: &access.Grant{
-					Status: ahTypes.GrantStatusEXPIRED,
+					Status: types.GrantStatusEXPIRED,
 				},
 			},
 			withRevokeGrantResponseErr: ErrGrantInactive,
@@ -129,7 +129,7 @@ func TestRevokeGrant(t *testing.T) {
 			giveRequest: access.Request{
 				RequestedBy: "user1",
 				Grant: &access.Grant{
-					Status: ahTypes.GrantStatus(ahTypes.GrantStatusACTIVE),
+					Status: types.GrantStatus(types.GrantStatusACTIVE),
 					End:    time.Now().Add(time.Hour),
 				},
 			},
@@ -147,7 +147,7 @@ func TestRevokeGrant(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			runtime := mocks.NewMockRuntime(ctrl)
-			runtime.EXPECT().Revoke(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withRevokeGrantResponseErr).AnyTimes()
+			runtime.EXPECT().Revoke(gomock.Any(), gomock.Any()).Return(tc.withRevokeGrantResponseErr).AnyTimes()
 
 			eventbus := mocks.NewMockEventPutter(ctrl)
 			eventbus.EXPECT().Put(gomock.Any(), gomock.Any()).Return(tc.withRevokeGrantResponseErr).AnyTimes()

@@ -6,11 +6,9 @@ import (
 	"net/http"
 
 	"github.com/benbjohnson/clock"
-	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	gov_types "github.com/common-fate/common-fate/governance/pkg/types"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/service/cachesvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -40,8 +38,6 @@ type Opts struct {
 	PaginationKMSKeyARN string
 	DynamoTable         string
 	DeploymentConfig    deploy.DeployConfigReader
-
-	AccessHandlerClient ahtypes.ClientWithResponsesInterface
 }
 
 // New creates a new API.
@@ -63,14 +59,8 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 
 	a := API{
 		Rules: &rulesvc.Service{
-			Clock:    clk,
-			DB:       db,
-			AHClient: opts.AccessHandlerClient,
-			Cache: &cachesvc.Service{
-				ProviderConfigReader: opts.DeploymentConfig,
-				DB:                   db,
-				AccessHandlerClient:  opts.AccessHandlerClient,
-			},
+			Clock: clk,
+			DB:    db,
 		},
 		DB:  db,
 		log: *opts.Log,

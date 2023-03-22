@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -20,7 +18,7 @@ import (
 // validateTargetAgainstSchema checks that all the arguments match the schema of the provider
 // It validates that all required arguments were provided with at least 1 value
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
+func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema *types.ArgSchema) error {
 	if len(providerArgSchema.AdditionalProperties) != len(in.With.AdditionalProperties) {
 		return apio.NewRequestError(errors.New("target is missing required arguments from the provider schema"), http.StatusBadRequest)
 	}
@@ -49,9 +47,9 @@ func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSch
 // validateTargetArgumentAgainstCachedOptions checks that all the argument values and argument group values currently exist in the cache.
 // this prevents being able to create an access rule with arguments which are invalid for the provider.
 // returns apio.APIError so it will bubble up as a 400 error from api usage
-func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *ahTypes.ArgSchema) error {
+func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *types.ArgSchema) error {
 	for argumentID, argument := range in.With.AdditionalProperties {
-		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != ahTypes.ArgumentRuleFormElementINPUT {
+		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != types.ArgumentRuleFormElementINPUT {
 			_, argOptions, groupOptions, err := s.Cache.RefreshCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
 			// _, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
 			if err != nil {
@@ -92,114 +90,67 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 	}
 	return nil
 }
-func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget, isTargetGroup bool) (rule.Target, error) {
+func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
 
-	if isTargetGroup {
-		targetgroup := rule.Target{
-			ProviderID:               in.ProviderId,
-			BuiltInProviderType:      "",
-			TargetGroupID:            in.ProviderId,
-			With:                     make(map[string]string),
-			WithSelectable:           make(map[string][]string),
-			WithArgumentGroupOptions: make(map[string]map[string][]string),
-		}
-
-		q := storage.GetTargetGroup{ID: in.ProviderId}
-		_, err := s.DB.Query(ctx, &q)
-		if err != nil && err != ddb.ErrNoItems {
-			return rule.Target{}, err
-		}
-
-		targetgroup.TargetGroupFrom = q.Result.From
-
-		for argumentID, argument := range in.With.AdditionalProperties {
-			// check if the provided argId is a valid argument id in TargetGroup's schema.
-			arg, ok := q.Result.Schema.Properties[argumentID]
-			if !ok {
-				return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
-			}
-
-			if len(argument.Values) < 1 {
-				return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
-			}
-
-			if arg.Resource != nil {
-				qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.Resource}
-				_, err := s.DB.Query(ctx, &qGetResourcesForTG)
-				if err != nil {
-					return rule.Target{}, err
-				}
-
-				// check if the provided value is a valid resource id in cached resources.
-				for _, providedValue := range argument.Values {
-					isValidArgValue := false
-					for _, cachedResource := range qGetResourcesForTG.Result {
-						if cachedResource.Resource.ID == providedValue {
-							isValidArgValue = true
-						}
-					}
-
-					if !isValidArgValue {
-						return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
-					}
-				}
-			}
-
-			if len(argument.Values) == 1 {
-				targetgroup.With[argumentID] = argument.Values[0]
-			} else {
-				targetgroup.WithSelectable[argumentID] = argument.Values
-			}
-		}
-
-		return targetgroup, nil
-	}
-
-	// After verifying the provider, we can save the provider type to the rule for convenience
-	provider, err := s.getProviderByID(ctx, in.ProviderId)
-	if err != nil {
-		return rule.Target{}, err
-	}
-	providerArgSchema, err := s.getProviderArgSchemaByID(ctx, in.ProviderId)
-	if err != nil {
-		return rule.Target{}, err
-	}
-	err = validateTargetAgainstSchema(in, providerArgSchema)
-	if err != nil {
-		return rule.Target{}, err
-	}
-	err = s.validateTargetArgumentAgainstCachedOptions(ctx, in, providerArgSchema)
-	if err != nil {
-		return rule.Target{}, err
-	}
-	target := rule.Target{
+	targetgroup := rule.Target{
 		ProviderID:               in.ProviderId,
-		BuiltInProviderType:      provider.Type,
+		BuiltInProviderType:      "",
+		TargetGroupID:            in.ProviderId,
 		With:                     make(map[string]string),
 		WithSelectable:           make(map[string][]string),
 		WithArgumentGroupOptions: make(map[string]map[string][]string),
 	}
 
-	for argumentID, argument := range in.With.AdditionalProperties {
-		for groupId, groupValues := range argument.Groupings.AdditionalProperties {
-			if len(groupValues) > 0 {
+	q := storage.GetTargetGroup{ID: in.ProviderId}
+	_, err := s.DB.Query(ctx, &q)
+	if err != nil && err != ddb.ErrNoItems {
+		return rule.Target{}, err
+	}
 
-				argumentGroupOptions := target.WithArgumentGroupOptions[argumentID]
-				if argumentGroupOptions == nil {
-					argumentGroupOptions = make(map[string][]string)
+	targetgroup.TargetGroupFrom = q.Result.From
+
+	for argumentID, argument := range in.With.AdditionalProperties {
+		// check if the provided argId is a valid argument id in TargetGroup's schema.
+		arg, ok := q.Result.Schema.Properties[argumentID]
+		if !ok {
+			return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
+		}
+
+		if len(argument.Values) < 1 {
+			return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
+		}
+
+		if arg.Resource != nil {
+			qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.Resource}
+			_, err := s.DB.Query(ctx, &qGetResourcesForTG)
+			if err != nil {
+				return rule.Target{}, err
+			}
+
+			// check if the provided value is a valid resource id in cached resources.
+			for _, providedValue := range argument.Values {
+				isValidArgValue := false
+				for _, cachedResource := range qGetResourcesForTG.Result {
+					if cachedResource.Resource.ID == providedValue {
+						isValidArgValue = true
+					}
 				}
-				argumentGroupOptions[groupId] = groupValues
-				target.WithArgumentGroupOptions[argumentID] = argumentGroupOptions
+
+				if !isValidArgValue {
+					return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
+				}
 			}
 		}
+
 		if len(argument.Values) == 1 {
-			target.With[argumentID] = argument.Values[0]
+			targetgroup.With[argumentID] = argument.Values[0]
 		} else {
-			target.WithSelectable[argumentID] = argument.Values
+			targetgroup.WithSelectable[argumentID] = argument.Values
 		}
 	}
 
-	return target, nil
+	return targetgroup, nil
+
 }
 
 func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
@@ -213,9 +164,8 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	if err != nil && err != ddb.ErrNoItems {
 		return nil, err
 	}
-	isTargetGroup := err != ddb.ErrNoItems
 
-	target, err := s.ProcessTarget(ctx, in.Target, isTargetGroup)
+	target, err := s.ProcessTarget(ctx, in.Target)
 	if err != nil {
 		return nil, err
 	}
@@ -266,40 +216,4 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	})
 
 	return &rul, nil
-}
-
-// getProviderByID fetches the provider and returns it if it exists
-func (s *Service) getProviderByID(ctx context.Context, providerID string) (*ahTypes.Provider, error) {
-	providerResponse, err := s.AHClient.GetProviderWithResponse(ctx, providerID)
-	if err != nil {
-		return nil, err
-	}
-	switch providerResponse.StatusCode() {
-	case http.StatusOK:
-		return providerResponse.JSON200, nil
-	case http.StatusNotFound:
-		return nil, ErrProviderNotFound
-	case http.StatusInternalServerError:
-		return nil, errors.Wrap(errors.New(aws.ToString(providerResponse.JSON500.Error)), "error while fetching provider by ID when creating an access rule")
-	}
-
-	return nil, ErrUnhandledResponseFromAccessHandler
-}
-
-// getProviderArgSchemaByID fetches the provider argschema and returns it if it exists
-func (s *Service) getProviderArgSchemaByID(ctx context.Context, providerID string) (*ahTypes.ArgSchema, error) {
-	argResponse, err := s.AHClient.GetProviderArgsWithResponse(ctx, providerID)
-	if err != nil {
-		return nil, err
-	}
-	switch argResponse.StatusCode() {
-	case http.StatusOK:
-		return argResponse.JSON200, nil
-	case http.StatusNotFound:
-		return nil, ErrProviderNotFound
-	case http.StatusInternalServerError:
-		return nil, errors.Wrap(errors.New(aws.ToString(argResponse.JSON500.Error)), "error while fetching provider argsSchema by ID when creating an access rule")
-	}
-
-	return nil, ErrUnhandledResponseFromAccessHandler
 }

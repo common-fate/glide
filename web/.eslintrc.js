@@ -27,7 +27,7 @@ module.exports = {
     "**/client.d.ts",
     "*.spec.tsx",
     "playwright-ct.config.ts",
-    "playwright/**"
+    "playwright/**",
   ],
   plugins: ["@typescript-eslint"],
   rules: {

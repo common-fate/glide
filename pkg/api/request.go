@@ -1,16 +1,12 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/apikit/logger"
-	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
@@ -363,42 +359,11 @@ func (a *API) UserGetAccessInstructions(w http.ResponseWriter, r *http.Request, 
 			return
 		}
 
-		i := ahtypes.AccessInstructions{
+		i := types.AccessInstructions{
 			Instructions: &q.Result.Instructions,
 		}
 		apio.JSON(ctx, w, i, http.StatusOK)
 		return
-	}
-
-	args, err := json.Marshal(q.Result.Grant.With)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	logger.Get(ctx).Infow("getting access instructions", "frontendURL", a.FrontendURL)
-
-	res, err := a.AccessHandlerClient.GetAccessInstructionsWithResponse(ctx, q.Result.Grant.Provider, &ahtypes.GetAccessInstructionsParams{
-		Subject:     q.Result.Grant.Subject,
-		Args:        string(args),
-		GrantId:     q.ID,
-		FrontendUrl: a.FrontendURL,
-	})
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	switch res.StatusCode() {
-	case http.StatusOK:
-		apio.JSON(ctx, w, res.JSON200, http.StatusOK)
-	case http.StatusNotFound:
-		// Not found error means that the provider does not exist, in this case, return an empty instructions response instead of 404
-		apio.JSON(ctx, w, ahtypes.AccessInstructions{}, http.StatusOK)
-	case http.StatusBadRequest:
-		apio.JSON(ctx, w, res.JSON400.Error, res.StatusCode())
-	default:
-		apio.Error(ctx, w, fmt.Errorf("unexpected status code: %d", res.StatusCode()))
 	}
 
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/common-fate/common-fate/internal"
 	"github.com/common-fate/common-fate/pkg/cachesync"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/handler"
@@ -41,10 +40,6 @@ var syncCommand = cli.Command{
 		if err != nil {
 			return err
 		}
-		ahc, err := internal.BuildAccessHandlerClient(ctx, internal.BuildAccessHandlerClientOpts{})
-		if err != nil {
-			return err
-		}
 
 		for _, dm := range c.StringSlice("deployment-mappings") {
 			kv := strings.Split(dm, ":")
@@ -62,9 +57,7 @@ var syncCommand = cli.Command{
 				RequestRouter: &requestroutersvc.Service{
 					DB: db,
 				},
-				AccessHandlerClient: ahc,
 			},
-			AccessHandlerClient: ahc,
 		}
 
 		err = syncer.Sync(ctx)

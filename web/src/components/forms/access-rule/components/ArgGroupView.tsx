@@ -2,10 +2,7 @@ import React from "react";
 import { FormLabel, Text } from "@chakra-ui/react";
 
 import { MultiSelect } from "./Select";
-import {
-  Group,
-  GroupOption,
-} from "../../../../utils/backend-client/types/accesshandler-openapi.yml";
+import { Group, GroupOption } from "../../../../utils/backend-client/types";
 
 interface FilterViewProps {
   providerId: string;
@@ -19,7 +16,7 @@ const ArgGroupView = (props: FilterViewProps) => {
   return (
     <>
       <FormLabel>
-        <Text textStyle={"Body/Medium"}>{group.title}</Text>
+        <Text textStyle={"Body/Medium"}>{group.name}</Text>
       </FormLabel>
       <MultiSelect
         fieldName={`target.argumentGroups.${argId}.${group.id}`}

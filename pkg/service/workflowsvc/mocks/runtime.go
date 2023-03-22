@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,29 +36,29 @@ func (m *MockRuntime) EXPECT() *MockRuntimeMockRecorder {
 }
 
 // Grant mocks base method.
-func (m *MockRuntime) Grant(arg0 context.Context, arg1 types.CreateGrant, arg2 bool) error {
+func (m *MockRuntime) Grant(arg0 context.Context, arg1 types.CreateGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Grant", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Grant", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Grant indicates an expected call of Grant.
-func (mr *MockRuntimeMockRecorder) Grant(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockRuntimeMockRecorder) Grant(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Grant", reflect.TypeOf((*MockRuntime)(nil).Grant), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Grant", reflect.TypeOf((*MockRuntime)(nil).Grant), arg0, arg1)
 }
 
 // Revoke mocks base method.
-func (m *MockRuntime) Revoke(arg0 context.Context, arg1 string, arg2 bool) error {
+func (m *MockRuntime) Revoke(arg0 context.Context, arg1 string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Revoke", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Revoke", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Revoke indicates an expected call of Revoke.
-func (mr *MockRuntimeMockRecorder) Revoke(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockRuntimeMockRecorder) Revoke(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockRuntime)(nil).Revoke), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockRuntime)(nil).Revoke), arg0, arg1)
 }

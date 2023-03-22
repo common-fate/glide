@@ -1,9 +1,10 @@
 import { Box, BoxProps, Flex, HStack, Text } from "@chakra-ui/react";
 import React from "react";
 import { Link } from "react-location";
-import { useAdminGetAccessRule } from "../utils/backend-client/admin/admin";
-import { useUserGetAccessRule } from "../utils/backend-client/end-user/end-user";
+
 import { ProviderIcon } from "./icons/providerIcon";
+import { useUserGetAccessRule } from "../utils/backend-client/end-user/end-user";
+import { useAdminGetAccessRule } from "../utils/backend-client/admin/admin";
 
 type Props = {
   reason?: string;

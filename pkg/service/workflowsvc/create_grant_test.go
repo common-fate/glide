@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/benbjohnson/clock"
-	"github.com/common-fate/common-fate/accesshandler/pkg/types"
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/mocks"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/common-fate/iso8601"
@@ -28,7 +27,7 @@ func TestCreateGrant(t *testing.T) {
 		withUser                   *identity.User
 		giveRule                   rule.AccessRule
 		giveRequest                access.Request
-		createGrant                ahTypes.CreateGrant
+		createGrant                types.CreateGrant
 		wantErr                    error
 		wantUserErr                error
 		want                       *access.Grant
@@ -38,13 +37,13 @@ func TestCreateGrant(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			createGrant: ahTypes.CreateGrant{
+			createGrant: types.CreateGrant{
 				Subject:  openapi_types.Email("test@commonfate.io"),
 				Start:    iso8601.New(clk.Now().Add(time.Second * 2)),
 				End:      iso8601.New(clk.Now().Add(time.Hour)),
 				Provider: "test",
-				Id:       ahTypes.NewGrantID(),
-				With: ahTypes.CreateGrant_With{
+				Id:       types.NewGrantID(),
+				With: types.CreateGrant_With{
 					AdditionalProperties: map[string]string{
 						"vault": "test",
 					},
@@ -70,13 +69,13 @@ func TestCreateGrant(t *testing.T) {
 		},
 		{
 			name: "user doesn't exist",
-			createGrant: ahTypes.CreateGrant{
+			createGrant: types.CreateGrant{
 				Subject:  openapi_types.Email("test@commonfate.io"),
 				Start:    iso8601.New(time.Now().Add(time.Second * 2)),
 				End:      iso8601.New(time.Now().Add(time.Hour)),
 				Provider: "test",
-				Id:       ahTypes.NewGrantID(),
-				With: ahTypes.CreateGrant_With{
+				Id:       types.NewGrantID(),
+				With: types.CreateGrant_With{
 					AdditionalProperties: map[string]string{
 						"vault": "test",
 					},
@@ -107,7 +106,7 @@ func TestCreateGrant(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			runtime := mocks.NewMockRuntime(ctrl)
-			runtime.EXPECT().Grant(gomock.Any(), gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
+			runtime.EXPECT().Grant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
 
 			eventbus := mocks.NewMockEventPutter(ctrl)
 			eventbus.EXPECT().Put(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()

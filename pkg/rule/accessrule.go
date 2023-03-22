@@ -3,8 +3,6 @@ package rule
 import (
 	"time"
 
-	"github.com/common-fate/common-fate/accesshandler/pkg/providerregistry"
-	"github.com/common-fate/common-fate/accesshandler/pkg/providers"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -213,91 +211,18 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 		},
 	}
 
-	if t.TargetGroupID != "" {
-		at.TargetGroup = &t.TargetGroupID
-
-		for k, v := range t.With {
-			argument := at.With.AdditionalProperties[k]
-			argument.Values = append(argument.Values, v)
-
-			at.With.AdditionalProperties[k] = argument
-		}
-		for k, v := range t.WithSelectable {
-			argument := at.With.AdditionalProperties[k]
-			argument.Values = append(argument.Values, v...)
-
-			at.With.AdditionalProperties[k] = argument
-		}
-
-		// It is essential that all slices be initialised for the apitypes otherwise it will be serialised as null instead of empty
-		for k, v := range at.With.AdditionalProperties {
-			if v.Values == nil {
-				v.Values = make([]string, 0)
-			}
-			at.With.AdditionalProperties[k] = v
-		}
-
-		return at
-	}
-	// Lookup the provider, ignore errors
-	// if provider is not found, fallback to using the argument key as the title
-	_, provider, _ := providerregistry.Registry().GetLatestByShortType(t.BuiltInProviderType)
+	at.TargetGroup = &t.TargetGroupID
 
 	for k, v := range t.With {
 		argument := at.With.AdditionalProperties[k]
 		argument.Values = append(argument.Values, v)
 
-		// FormElement is used here when loading the UpdateAccessRule form for the first time
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchema()
-				if arg, ok := schema[k]; ok {
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
-				} else {
-					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
-				}
-			}
-		}
 		at.With.AdditionalProperties[k] = argument
 	}
 	for k, v := range t.WithSelectable {
 		argument := at.With.AdditionalProperties[k]
 		argument.Values = append(argument.Values, v...)
-		// FormElement is used here when loading the UpdateAccessRule form for the first time
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchema()
-				if arg, ok := schema[k]; ok {
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
-				} else {
-					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
-				}
-			}
-		}
-		at.With.AdditionalProperties[k] = argument
-	}
-	for k, v := range t.WithArgumentGroupOptions {
-		argument := at.With.AdditionalProperties[k]
-		argument.Groupings.AdditionalProperties = make(map[string][]string)
-		for k2, v2 := range v {
-			group := argument.Groupings.AdditionalProperties[k2]
-			group = append(group, v2...)
-			argument.Groupings.AdditionalProperties[k2] = group
-		}
-		// FormElement is used here when loading the UpdateAccessRule form for the first time
-		if provider != nil {
-			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-				schema := s.ArgSchema()
-				if arg, ok := schema[k]; ok {
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElement(arg.RuleFormElement)
-				} else {
-					// I don't expect this should ever fail to find a match, however if it does, default to input.
-					argument.FormElement = types.AccessRuleTargetDetailArgumentsFormElementINPUT
-				}
-			}
-		}
+
 		at.With.AdditionalProperties[k] = argument
 	}
 
@@ -310,6 +235,7 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 	}
 
 	return at
+
 }
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {

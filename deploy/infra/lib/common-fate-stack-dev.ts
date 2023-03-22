@@ -95,15 +95,6 @@ export class CommonFateStackDev extends cdk.Stack {
       appName: appName,
     });
 
-    const accessHandler = new AccessHandler(this, "AccessHandler", {
-      appName: appName,
-      eventBus: events.getEventBus(),
-      eventBusSourceName: events.getEventBusSourceName(),
-      providerConfig: props.providerConfig,
-      remoteConfigUrl,
-      remoteConfigHeaders,
-    });
-
     //KMS key is used in governance api as well as appBackend - both for tokinization for ddb use
     const kmsKey = new kms.Key(this, "PaginationKMSKey", {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -116,8 +107,6 @@ export class CommonFateStackDev extends cdk.Stack {
     const governance = new Governance(this, "Governance", {
       appName: appName,
       kmsKey: kmsKey,
-
-      accessHandler: accessHandler,
 
       providerConfig: props.providerConfig,
 
@@ -136,7 +125,6 @@ export class CommonFateStackDev extends cdk.Stack {
       appName: appName,
       userPool: userPool,
       frontendUrl: "https://" + cdn.getDomainName(),
-      accessHandler: accessHandler,
       governanceHandler: governance,
       eventBus: events.getEventBus(),
       eventBusSourceName: events.getEventBusSourceName(),
@@ -178,15 +166,12 @@ export class CommonFateStackDev extends cdk.Stack {
       APILogGroupName: appBackend.getLogGroupName(),
       WebhookLogGroupName: appBackend.getWebhookLogGroupName(),
       IDPSyncLogGroupName: appBackend.getIdpSync().getLogGroupName(),
-      AccessHandlerLogGroupName: accessHandler.getLogGroupName(),
       EventBusLogGroupName: events.getLogGroupName(),
       EventsHandlerLogGroupName: appBackend.getEventHandler().getLogGroupName(),
-      GranterLogGroupName: accessHandler.getGranter().getLogGroupName(),
       SlackNotifierLogGroupName: appBackend
         .getNotifiers()
         .getSlackLogGroupName(),
       DynamoDBTable: appBackend.getDynamoTableName(),
-      GranterStateMachineArn: accessHandler.getGranter().getStateMachineARN(),
       EventBusArn: events.getEventBus().eventBusArn,
       EventBusSource: events.getEventBusSourceName(),
       IdpSyncFunctionName: appBackend.getIdpSync().getFunctionName(),
@@ -194,8 +179,7 @@ export class CommonFateStackDev extends cdk.Stack {
         userPool.getSamlUserPoolClient()?.getUserPoolName() || "",
       Region: this.region,
       PaginationKMSKeyARN: appBackend.getKmsKeyArn(),
-      AccessHandlerExecutionRoleARN:
-        accessHandler.getAccessHandlerExecutionRoleArn(),
+
       CacheSyncLogGroupName: appBackend.getCacheSync().getLogGroupName(),
       IDPSyncExecutionRoleARN: appBackend.getIdpSync().getExecutionRoleArn(),
       RestAPIExecutionRoleARN: appBackend.getExecutionRoleArn(),

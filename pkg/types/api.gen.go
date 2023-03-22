@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	externalRef0 "github.com/common-fate/common-fate/accesshandler/pkg/types"
+	"github.com/common-fate/iso8601"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -43,6 +43,18 @@ const (
 	REVIEWED  ApprovalMethod = "REVIEWED"
 )
 
+// Defines values for ArgumentRequestFormElement.
+const (
+	ArgumentRequestFormElementSELECT ArgumentRequestFormElement = "SELECT"
+)
+
+// Defines values for ArgumentRuleFormElement.
+const (
+	ArgumentRuleFormElementINPUT       ArgumentRuleFormElement = "INPUT"
+	ArgumentRuleFormElementMULTISELECT ArgumentRuleFormElement = "MULTISELECT"
+	ArgumentRuleFormElementSELECT      ArgumentRuleFormElement = "SELECT"
+)
+
 // Defines values for GrantStatus.
 const (
 	GrantStatusACTIVE  GrantStatus = "ACTIVE"
@@ -63,6 +75,14 @@ const (
 	LogLevelERROR   LogLevel = "ERROR"
 	LogLevelINFO    LogLevel = "INFO"
 	LogLevelWARNING LogLevel = "WARNING"
+)
+
+// Defines values for ProviderConfigValidationStatus.
+const (
+	ProviderConfigValidationStatusERROR      ProviderConfigValidationStatus = "ERROR"
+	ProviderConfigValidationStatusINPROGRESS ProviderConfigValidationStatus = "IN_PROGRESS"
+	ProviderConfigValidationStatusPENDING    ProviderConfigValidationStatus = "PENDING"
+	ProviderConfigValidationStatusSUCCESS    ProviderConfigValidationStatus = "SUCCESS"
 )
 
 // Defines values for ProviderSetupStatus.
@@ -115,8 +135,8 @@ const (
 
 // Defines values for ReviewDecision.
 const (
-	APPROVED ReviewDecision = "APPROVED"
-	DECLINED ReviewDecision = "DECLINED"
+	ReviewDecisionAPPROVED ReviewDecision = "APPROVED"
+	ReviewDecisionDECLINED ReviewDecision = "DECLINED"
 )
 
 // Defines values for TargetArgumentRequestFormElement.
@@ -130,6 +150,14 @@ const (
 	TargetArgumentRuleFormElementMULTISELECT TargetArgumentRuleFormElement = "MULTISELECT"
 	TargetArgumentRuleFormElementSELECT      TargetArgumentRuleFormElement = "SELECT"
 )
+
+// Instructions on how to access the requested resource.
+//
+// The `instructions` field will be null if no instructions are available.
+type AccessInstructions struct {
+	// Instructions on how to access the role or resource.
+	Instructions *string `json:"instructions,omitempty"`
+}
 
 // Access Rule contains information for an end user to make a request for access.
 type AccessRule struct {
@@ -235,6 +263,43 @@ type ApproverConfig struct {
 	Users []string `json:"users"`
 }
 
+// ArgOptions defines model for ArgOptions.
+type ArgOptions struct {
+	Groups *Groups `json:"groups,omitempty"`
+
+	// The suggested options.
+	Options []Option `json:"options"`
+}
+
+// ArgSchema defines model for ArgSchema.
+type ArgSchema struct {
+	AdditionalProperties map[string]Argument `json:"-"`
+}
+
+// Argument defines model for Argument.
+type Argument struct {
+	Description *string          `json:"description,omitempty"`
+	Groups      *Argument_Groups `json:"groups,omitempty"`
+	Id          string           `json:"id"`
+
+	// Optional form element for the request form, if not provided, defaults to multiselect
+	RequestFormElement *ArgumentRequestFormElement `json:"requestFormElement,omitempty"`
+	ResourceName       *string                     `json:"resourceName,omitempty"`
+	RuleFormElement    ArgumentRuleFormElement     `json:"ruleFormElement"`
+	Title              string                      `json:"title"`
+}
+
+// Argument_Groups defines model for Argument.Groups.
+type Argument_Groups struct {
+	AdditionalProperties map[string]Group `json:"-"`
+}
+
+// Optional form element for the request form, if not provided, defaults to multiselect
+type ArgumentRequestFormElement string
+
+// ArgumentRuleFormElement defines model for Argument.RuleFormElement.
+type ArgumentRuleFormElement string
+
 // a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
 	ProviderId string                      `json:"providerId"`
@@ -255,6 +320,32 @@ type CreateAccessRuleTargetDetailArguments struct {
 // CreateAccessRuleTargetDetailArguments_Groupings defines model for CreateAccessRuleTargetDetailArguments.Groupings.
 type CreateAccessRuleTargetDetailArguments_Groupings struct {
 	AdditionalProperties map[string][]string `json:"-"`
+}
+
+// A grant to be created.
+type CreateGrant struct {
+	// The end time of the grant in ISO8601 format.
+	End iso8601.Time `json:"end"`
+
+	// An id to assign to this new grant
+	Id string `json:"id"`
+
+	// The ID of the provider to grant access to.
+	Provider string `json:"provider"`
+
+	// The start time of the grant in ISO8601 format.
+	Start iso8601.Time `json:"start"`
+
+	// The email address of the user to grant access to.
+	Subject openapi_types.Email `json:"subject"`
+
+	// Provider-specific grant data. Must match the provider's schema.
+	With CreateGrant_With `json:"with"`
+}
+
+// Provider-specific grant data. Must match the provider's schema.
+type CreateGrant_With struct {
+	AdditionalProperties map[string]string `json:"-"`
 }
 
 // CreateRequestWith defines model for CreateRequestWith.
@@ -290,13 +381,14 @@ type FavoriteDetail struct {
 
 // A temporary assignment of a user to a principal.
 type Grant struct {
-	// The end time of the grant.
+	// The end time of the grant in ISO8601 format.
 	End time.Time `json:"end"`
+	ID  string    `json:"id"`
 
 	// The ID of the provider to grant access to.
 	Provider string `json:"provider"`
 
-	// The start time of the grant.
+	// The start time of the grant in ISO8601 format.
 	Start time.Time `json:"start"`
 
 	// The current state of the grant.
@@ -304,10 +396,18 @@ type Grant struct {
 
 	// The email address of the user to grant access to.
 	Subject openapi_types.Email `json:"subject"`
+
+	// Provider-specific grant data. Must match the provider's schema.
+	With Grant_With `json:"with"`
 }
 
 // The current state of the grant.
 type GrantStatus string
+
+// Provider-specific grant data. Must match the provider's schema.
+type Grant_With struct {
+	AdditionalProperties map[string]string `json:"-"`
+}
 
 // Group defines model for Group.
 type Group struct {
@@ -319,6 +419,22 @@ type Group struct {
 	Source      string   `json:"source"`
 }
 
+// GroupOption defines model for GroupOption.
+type GroupOption struct {
+	Children    []string `json:"children"`
+	Description *string  `json:"description,omitempty"`
+	Label       string   `json:"label"`
+
+	// A label prefix allows additional context to be prefixed to the label when displayed in a form
+	LabelPrefix *string `json:"labelPrefix,omitempty"`
+	Value       string  `json:"value"`
+}
+
+// Groups defines model for Groups.
+type Groups struct {
+	AdditionalProperties map[string][]GroupOption `json:"-"`
+}
+
 // IdpStatus defines model for IdpStatus.
 type IdpStatus string
 
@@ -328,7 +444,16 @@ type KeyValue struct {
 	Value string `json:"value"`
 }
 
-// LogLevel defines model for LogLevel.
+// A log entry.
+type Log struct {
+	// The log level.
+	Level LogLevel `json:"level"`
+
+	// The log message.
+	Msg string `json:"msg"`
+}
+
+// The log level.
 type LogLevel string
 
 // A matched access rule with option values if they are required for the access rule request
@@ -338,6 +463,13 @@ type LookupAccessRule struct {
 
 	// If the matched access rule has selectable fields, this array will contain the matched values to be used to prefill the form when requesting
 	SelectableWithOptionValues *[]KeyValue `json:"selectableWithOptionValues,omitempty"`
+}
+
+// Option defines model for Option.
+type Option struct {
+	Description *string `json:"description,omitempty"`
+	Label       string  `json:"label"`
+	Value       string  `json:"value"`
 }
 
 // Provider
@@ -362,6 +494,23 @@ type ProviderConfigField struct {
 	SecretPath *string `json:"secretPath,omitempty"`
 }
 
+// A validation against the configuration values of the Access Provider.
+type ProviderConfigValidation struct {
+	// The particular config fields validated, if any.
+	FieldsValidated []string `json:"fieldsValidated"`
+
+	// The ID of the validation, such as `list-sso-users`.
+	Id   string `json:"id"`
+	Logs []Log  `json:"logs"`
+	Name string `json:"name"`
+
+	// The status of the validation.
+	Status ProviderConfigValidationStatus `json:"status"`
+}
+
+// The status of the validation.
+type ProviderConfigValidationStatus string
+
 // ProviderConfigValue defines model for ProviderConfigValue.
 type ProviderConfigValue struct {
 	// The ID of the config field.
@@ -371,9 +520,21 @@ type ProviderConfigValue struct {
 	Value string `json:"value"`
 }
 
+// ProviderHealth defines model for ProviderHealth.
+type ProviderHealth struct {
+	// A descriptive error message, if the provider isn't healthy.
+	Error *string `json:"error"`
+
+	// Whether the provider is healthy.
+	Healthy bool `json:"healthy"`
+
+	// The provider ID.
+	ID string `json:"id"`
+}
+
 // A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
 type ProviderSetup struct {
-	ConfigValidation []externalRef0.ProviderConfigValidation `json:"configValidation"`
+	ConfigValidation []ProviderConfigValidation `json:"configValidation"`
 
 	// The current configuration values.
 	ConfigValues map[string]string `json:"configValues"`
@@ -693,6 +854,9 @@ type AccessTokenResponse struct {
 	HasToken bool    `json:"hasToken"`
 	Token    *string `json:"token,omitempty"`
 }
+
+// ArgOptionsResponse defines model for ArgOptionsResponse.
+type ArgOptionsResponse = ArgOptions
 
 // AuthUserResponse defines model for AuthUserResponse.
 type AuthUserResponse struct {
@@ -1015,12 +1179,6 @@ type AdminUpdateGroupJSONRequestBody CreateGroupRequest
 // AdminRegisterHandlerJSONRequestBody defines body for AdminRegisterHandler for application/json ContentType.
 type AdminRegisterHandlerJSONRequestBody RegisterHandlerRequest
 
-// AdminCreateProvidersetupJSONRequestBody defines body for AdminCreateProvidersetup for application/json ContentType.
-type AdminCreateProvidersetupJSONRequestBody CreateProviderSetupRequest
-
-// AdminSubmitProvidersetupStepJSONRequestBody defines body for AdminSubmitProvidersetupStep for application/json ContentType.
-type AdminSubmitProvidersetupStepJSONRequestBody ProviderSetupStepCompleteRequest
-
 // AdminCreateTargetGroupJSONRequestBody defines body for AdminCreateTargetGroup for application/json ContentType.
 type AdminCreateTargetGroupJSONRequestBody CreateTargetGroupRequest
 
@@ -1151,6 +1309,112 @@ func (a AccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error)
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for ArgSchema. Returns the specified
+// element and whether it was found
+func (a ArgSchema) Get(fieldName string) (value Argument, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ArgSchema
+func (a *ArgSchema) Set(fieldName string, value Argument) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Argument)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a *ArgSchema) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Argument)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Argument
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ArgSchema to handle AdditionalProperties
+func (a ArgSchema) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Argument_Groups. Returns the specified
+// element and whether it was found
+func (a Argument_Groups) Get(fieldName string) (value Group, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Argument_Groups
+func (a *Argument_Groups) Set(fieldName string, value Group) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]Group)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a *Argument_Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]Group)
+		for fieldName, fieldBuf := range object {
+			var fieldVal Group
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Argument_Groups to handle AdditionalProperties
+func (a Argument_Groups) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for CreateAccessRuleTarget_With. Returns the specified
 // element and whether it was found
 func (a CreateAccessRuleTarget_With) Get(fieldName string) (value CreateAccessRuleTargetDetailArguments, found bool) {
@@ -1257,6 +1521,59 @@ func (a CreateAccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, 
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for CreateGrant_With. Returns the specified
+// element and whether it was found
+func (a CreateGrant_With) Get(fieldName string) (value string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for CreateGrant_With
+func (a *CreateGrant_With) Set(fieldName string, value string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for CreateGrant_With to handle AdditionalProperties
+func (a *CreateGrant_With) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for CreateGrant_With to handle AdditionalProperties
+func (a CreateGrant_With) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
 // Getter for additional properties for CreateRequestWith. Returns the specified
 // element and whether it was found
 func (a CreateRequestWith) Get(fieldName string) (value []string, found bool) {
@@ -1298,6 +1615,112 @@ func (a *CreateRequestWith) UnmarshalJSON(b []byte) error {
 
 // Override default JSON handling for CreateRequestWith to handle AdditionalProperties
 func (a CreateRequestWith) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Grant_With. Returns the specified
+// element and whether it was found
+func (a Grant_With) Get(fieldName string) (value string, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Grant_With
+func (a *Grant_With) Set(fieldName string, value string) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]string)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Grant_With to handle AdditionalProperties
+func (a *Grant_With) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]string)
+		for fieldName, fieldBuf := range object {
+			var fieldVal string
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Grant_With to handle AdditionalProperties
+func (a Grant_With) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for Groups. Returns the specified
+// element and whether it was found
+func (a Groups) Get(fieldName string) (value []GroupOption, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for Groups
+func (a *Groups) Set(fieldName string, value []GroupOption) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string][]GroupOption)
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a *Groups) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string][]GroupOption)
+		for fieldName, fieldBuf := range object {
+			var fieldVal []GroupOption
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for Groups to handle AdditionalProperties
+func (a Groups) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -1688,34 +2111,6 @@ type ClientInterface interface {
 
 	// AdminListProviderArgOptions request
 	AdminListProviderArgOptions(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminListProvidersetups request
-	AdminListProvidersetups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminCreateProvidersetup request with any body
-	AdminCreateProvidersetupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	AdminCreateProvidersetup(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminDeleteProvidersetup request
-	AdminDeleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminGetProvidersetup request
-	AdminGetProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminCompleteProvidersetup request
-	AdminCompleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminGetProvidersetupInstructions request
-	AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminSubmitProvidersetupStep request with any body
-	AdminSubmitProvidersetupStepWithBody(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	AdminSubmitProvidersetupStep(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminValidateProvidersetup request
-	AdminValidateProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminListRequests request
 	AdminListRequests(ctx context.Context, params *AdminListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2210,126 +2605,6 @@ func (c *Client) AdminGetProviderArgs(ctx context.Context, providerId string, re
 
 func (c *Client) AdminListProviderArgOptions(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminListProviderArgOptionsRequest(c.Server, providerId, argId, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminListProvidersetups(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminListProvidersetupsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminCreateProvidersetupWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminCreateProvidersetupRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminCreateProvidersetup(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminCreateProvidersetupRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminDeleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminDeleteProvidersetupRequest(c.Server, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminGetProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminGetProvidersetupRequest(c.Server, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminCompleteProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminCompleteProvidersetupRequest(c.Server, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminGetProvidersetupInstructions(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminGetProvidersetupInstructionsRequest(c.Server, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminSubmitProvidersetupStepWithBody(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminSubmitProvidersetupStepRequestWithBody(c.Server, providersetupId, stepIndex, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminSubmitProvidersetupStep(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminSubmitProvidersetupStepRequest(c.Server, providersetupId, stepIndex, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminValidateProvidersetup(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminValidateProvidersetupRequest(c.Server, providersetupId)
 	if err != nil {
 		return nil, err
 	}
@@ -3880,297 +4155,6 @@ func NewAdminListProviderArgOptionsRequest(server string, providerId string, arg
 	return req, nil
 }
 
-// NewAdminListProvidersetupsRequest generates requests for AdminListProvidersetups
-func NewAdminListProvidersetupsRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminCreateProvidersetupRequest calls the generic AdminCreateProvidersetup builder with application/json body
-func NewAdminCreateProvidersetupRequest(server string, body AdminCreateProvidersetupJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewAdminCreateProvidersetupRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewAdminCreateProvidersetupRequestWithBody generates requests for AdminCreateProvidersetup with any type of body
-func NewAdminCreateProvidersetupRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewAdminDeleteProvidersetupRequest generates requests for AdminDeleteProvidersetup
-func NewAdminDeleteProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminGetProvidersetupRequest generates requests for AdminGetProvidersetup
-func NewAdminGetProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminCompleteProvidersetupRequest generates requests for AdminCompleteProvidersetup
-func NewAdminCompleteProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/complete", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminGetProvidersetupInstructionsRequest generates requests for AdminGetProvidersetupInstructions
-func NewAdminGetProvidersetupInstructionsRequest(server string, providersetupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/instructions", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminSubmitProvidersetupStepRequest calls the generic AdminSubmitProvidersetupStep builder with application/json body
-func NewAdminSubmitProvidersetupStepRequest(server string, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewAdminSubmitProvidersetupStepRequestWithBody(server, providersetupId, stepIndex, "application/json", bodyReader)
-}
-
-// NewAdminSubmitProvidersetupStepRequestWithBody generates requests for AdminSubmitProvidersetupStep with any type of body
-func NewAdminSubmitProvidersetupStepRequestWithBody(server string, providersetupId string, stepIndex int, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "stepIndex", runtime.ParamLocationPath, stepIndex)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/steps/%s/complete", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewAdminValidateProvidersetupRequest generates requests for AdminValidateProvidersetup
-func NewAdminValidateProvidersetupRequest(server string, providersetupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "providersetupId", runtime.ParamLocationPath, providersetupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/providersetups/%s/validate", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewAdminListRequestsRequest generates requests for AdminListRequests
 func NewAdminListRequestsRequest(server string, params *AdminListRequestsParams) (*http.Request, error) {
 	var err error
@@ -5524,34 +5508,6 @@ type ClientWithResponsesInterface interface {
 	// AdminListProviderArgOptions request
 	AdminListProviderArgOptionsWithResponse(ctx context.Context, providerId string, argId string, params *AdminListProviderArgOptionsParams, reqEditors ...RequestEditorFn) (*AdminListProviderArgOptionsResponse, error)
 
-	// AdminListProvidersetups request
-	AdminListProvidersetupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersetupsResponse, error)
-
-	// AdminCreateProvidersetup request with any body
-	AdminCreateProvidersetupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error)
-
-	AdminCreateProvidersetupWithResponse(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error)
-
-	// AdminDeleteProvidersetup request
-	AdminDeleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminDeleteProvidersetupResponse, error)
-
-	// AdminGetProvidersetup request
-	AdminGetProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupResponse, error)
-
-	// AdminCompleteProvidersetup request
-	AdminCompleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminCompleteProvidersetupResponse, error)
-
-	// AdminGetProvidersetupInstructions request
-	AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error)
-
-	// AdminSubmitProvidersetupStep request with any body
-	AdminSubmitProvidersetupStepWithBodyWithResponse(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error)
-
-	AdminSubmitProvidersetupStepWithResponse(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error)
-
-	// AdminValidateProvidersetup request
-	AdminValidateProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminValidateProvidersetupResponse, error)
-
 	// AdminListRequests request
 	AdminListRequestsWithResponse(ctx context.Context, params *AdminListRequestsParams, reqEditors ...RequestEditorFn) (*AdminListRequestsResponse, error)
 
@@ -6381,7 +6337,7 @@ func (r AdminGetProviderResponse) StatusCode() int {
 type AdminGetProviderArgsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.ArgSchema
+	JSON200      *ArgSchema
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -6409,7 +6365,7 @@ func (r AdminGetProviderArgsResponse) StatusCode() int {
 type AdminListProviderArgOptionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.ArgOptions
+	JSON200      *ArgOptions
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -6428,190 +6384,6 @@ func (r AdminListProviderArgOptionsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AdminListProviderArgOptionsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminListProvidersetupsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		ProviderSetups []ProviderSetup `json:"providerSetups"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminListProvidersetupsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminListProvidersetupsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminCreateProvidersetupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *ProviderSetup
-	JSON400      *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminCreateProvidersetupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminCreateProvidersetupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminDeleteProvidersetupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ProviderSetup
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminDeleteProvidersetupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminDeleteProvidersetupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminGetProvidersetupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ProviderSetup
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminGetProvidersetupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminGetProvidersetupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminCompleteProvidersetupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
-		DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminCompleteProvidersetupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminCompleteProvidersetupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminGetProvidersetupInstructionsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ProviderSetupInstructions
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminGetProvidersetupInstructionsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminGetProvidersetupInstructionsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminSubmitProvidersetupStepResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ProviderSetup
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminSubmitProvidersetupStepResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminSubmitProvidersetupStepResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminValidateProvidersetupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ProviderSetup
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminValidateProvidersetupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminValidateProvidersetupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7236,7 +7008,7 @@ func (r UserGetRequestResponse) StatusCode() int {
 type UserGetAccessInstructionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.AccessInstructions
+	JSON200      *AccessInstructions
 }
 
 // Status returns HTTPResponse.Status
@@ -7741,94 +7513,6 @@ func (c *ClientWithResponses) AdminListProviderArgOptionsWithResponse(ctx contex
 		return nil, err
 	}
 	return ParseAdminListProviderArgOptionsResponse(rsp)
-}
-
-// AdminListProvidersetupsWithResponse request returning *AdminListProvidersetupsResponse
-func (c *ClientWithResponses) AdminListProvidersetupsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminListProvidersetupsResponse, error) {
-	rsp, err := c.AdminListProvidersetups(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminListProvidersetupsResponse(rsp)
-}
-
-// AdminCreateProvidersetupWithBodyWithResponse request with arbitrary body returning *AdminCreateProvidersetupResponse
-func (c *ClientWithResponses) AdminCreateProvidersetupWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error) {
-	rsp, err := c.AdminCreateProvidersetupWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminCreateProvidersetupResponse(rsp)
-}
-
-func (c *ClientWithResponses) AdminCreateProvidersetupWithResponse(ctx context.Context, body AdminCreateProvidersetupJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateProvidersetupResponse, error) {
-	rsp, err := c.AdminCreateProvidersetup(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminCreateProvidersetupResponse(rsp)
-}
-
-// AdminDeleteProvidersetupWithResponse request returning *AdminDeleteProvidersetupResponse
-func (c *ClientWithResponses) AdminDeleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminDeleteProvidersetupResponse, error) {
-	rsp, err := c.AdminDeleteProvidersetup(ctx, providersetupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminDeleteProvidersetupResponse(rsp)
-}
-
-// AdminGetProvidersetupWithResponse request returning *AdminGetProvidersetupResponse
-func (c *ClientWithResponses) AdminGetProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupResponse, error) {
-	rsp, err := c.AdminGetProvidersetup(ctx, providersetupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminGetProvidersetupResponse(rsp)
-}
-
-// AdminCompleteProvidersetupWithResponse request returning *AdminCompleteProvidersetupResponse
-func (c *ClientWithResponses) AdminCompleteProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminCompleteProvidersetupResponse, error) {
-	rsp, err := c.AdminCompleteProvidersetup(ctx, providersetupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminCompleteProvidersetupResponse(rsp)
-}
-
-// AdminGetProvidersetupInstructionsWithResponse request returning *AdminGetProvidersetupInstructionsResponse
-func (c *ClientWithResponses) AdminGetProvidersetupInstructionsWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminGetProvidersetupInstructionsResponse, error) {
-	rsp, err := c.AdminGetProvidersetupInstructions(ctx, providersetupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminGetProvidersetupInstructionsResponse(rsp)
-}
-
-// AdminSubmitProvidersetupStepWithBodyWithResponse request with arbitrary body returning *AdminSubmitProvidersetupStepResponse
-func (c *ClientWithResponses) AdminSubmitProvidersetupStepWithBodyWithResponse(ctx context.Context, providersetupId string, stepIndex int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error) {
-	rsp, err := c.AdminSubmitProvidersetupStepWithBody(ctx, providersetupId, stepIndex, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminSubmitProvidersetupStepResponse(rsp)
-}
-
-func (c *ClientWithResponses) AdminSubmitProvidersetupStepWithResponse(ctx context.Context, providersetupId string, stepIndex int, body AdminSubmitProvidersetupStepJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminSubmitProvidersetupStepResponse, error) {
-	rsp, err := c.AdminSubmitProvidersetupStep(ctx, providersetupId, stepIndex, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminSubmitProvidersetupStepResponse(rsp)
-}
-
-// AdminValidateProvidersetupWithResponse request returning *AdminValidateProvidersetupResponse
-func (c *ClientWithResponses) AdminValidateProvidersetupWithResponse(ctx context.Context, providersetupId string, reqEditors ...RequestEditorFn) (*AdminValidateProvidersetupResponse, error) {
-	rsp, err := c.AdminValidateProvidersetup(ctx, providersetupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminValidateProvidersetupResponse(rsp)
 }
 
 // AdminListRequestsWithResponse request returning *AdminListRequestsResponse
@@ -9237,7 +8921,7 @@ func ParseAdminGetProviderArgsResponse(rsp *http.Response) (*AdminGetProviderArg
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.ArgSchema
+		var dest ArgSchema
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -9281,7 +8965,7 @@ func ParseAdminListProviderArgOptionsResponse(rsp *http.Response) (*AdminListPro
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.ArgOptions
+		var dest ArgOptions
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -9304,228 +8988,6 @@ func ParseAdminListProviderArgOptionsResponse(rsp *http.Response) (*AdminListPro
 			return nil, err
 		}
 		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminListProvidersetupsResponse parses an HTTP response from a AdminListProvidersetupsWithResponse call
-func ParseAdminListProvidersetupsResponse(rsp *http.Response) (*AdminListProvidersetupsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminListProvidersetupsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			ProviderSetups []ProviderSetup `json:"providerSetups"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminCreateProvidersetupResponse parses an HTTP response from a AdminCreateProvidersetupWithResponse call
-func ParseAdminCreateProvidersetupResponse(rsp *http.Response) (*AdminCreateProvidersetupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminCreateProvidersetupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest ProviderSetup
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminDeleteProvidersetupResponse parses an HTTP response from a AdminDeleteProvidersetupWithResponse call
-func ParseAdminDeleteProvidersetupResponse(rsp *http.Response) (*AdminDeleteProvidersetupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminDeleteProvidersetupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProviderSetup
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminGetProvidersetupResponse parses an HTTP response from a AdminGetProvidersetupWithResponse call
-func ParseAdminGetProvidersetupResponse(rsp *http.Response) (*AdminGetProvidersetupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminGetProvidersetupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProviderSetup
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminCompleteProvidersetupResponse parses an HTTP response from a AdminCompleteProvidersetupWithResponse call
-func ParseAdminCompleteProvidersetupResponse(rsp *http.Response) (*AdminCompleteProvidersetupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminCompleteProvidersetupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
-			DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminGetProvidersetupInstructionsResponse parses an HTTP response from a AdminGetProvidersetupInstructionsWithResponse call
-func ParseAdminGetProvidersetupInstructionsResponse(rsp *http.Response) (*AdminGetProvidersetupInstructionsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminGetProvidersetupInstructionsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProviderSetupInstructions
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminSubmitProvidersetupStepResponse parses an HTTP response from a AdminSubmitProvidersetupStepWithResponse call
-func ParseAdminSubmitProvidersetupStepResponse(rsp *http.Response) (*AdminSubmitProvidersetupStepResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminSubmitProvidersetupStepResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProviderSetup
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminValidateProvidersetupResponse parses an HTTP response from a AdminValidateProvidersetupWithResponse call
-func ParseAdminValidateProvidersetupResponse(rsp *http.Response) (*AdminValidateProvidersetupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminValidateProvidersetupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ProviderSetup
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	}
 
@@ -10442,7 +9904,7 @@ func ParseUserGetAccessInstructionsResponse(rsp *http.Response) (*UserGetAccessI
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.AccessInstructions
+		var dest AccessInstructions
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -10817,30 +10279,6 @@ type ServerInterface interface {
 	// List provider arg options
 	// (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
 	AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params AdminListProviderArgOptionsParams)
-	// List the provider setups in progress
-	// (GET /api/v1/admin/providersetups)
-	AdminListProvidersetups(w http.ResponseWriter, r *http.Request)
-	// Begin the setup process for a new Access Provider
-	// (POST /api/v1/admin/providersetups)
-	AdminCreateProvidersetup(w http.ResponseWriter, r *http.Request)
-	// Delete an in-progress provider setup
-	// (DELETE /api/v1/admin/providersetups/{providersetupId})
-	AdminDeleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Get an in-progress provider setup
-	// (GET /api/v1/admin/providersetups/{providersetupId})
-	AdminGetProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Complete a ProviderSetup
-	// (POST /api/v1/admin/providersetups/{providersetupId}/complete)
-	AdminCompleteProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Get the setup instructions for an Access Provider
-	// (GET /api/v1/admin/providersetups/{providersetupId}/instructions)
-	AdminGetProvidersetupInstructions(w http.ResponseWriter, r *http.Request, providersetupId string)
-	// Update the completion status for a Provider setup step
-	// (PUT /api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete)
-	AdminSubmitProvidersetupStep(w http.ResponseWriter, r *http.Request, providersetupId string, stepIndex int)
-	// Validate the configuration for a Provider Setup
-	// (POST /api/v1/admin/providersetups/{providersetupId}/validate)
-	AdminValidateProvidersetup(w http.ResponseWriter, r *http.Request, providersetupId string)
 	// Your GET endpoint
 	// (GET /api/v1/admin/requests)
 	AdminListRequests(w http.ResponseWriter, r *http.Request, params AdminListRequestsParams)
@@ -11642,201 +11080,6 @@ func (siw *ServerInterfaceWrapper) AdminListProviderArgOptions(w http.ResponseWr
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminListProviderArgOptions(w, r, providerId, argId, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminListProvidersetups operation middleware
-func (siw *ServerInterfaceWrapper) AdminListProvidersetups(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminListProvidersetups(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminCreateProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) AdminCreateProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminCreateProvidersetup(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminDeleteProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) AdminDeleteProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminDeleteProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminGetProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) AdminGetProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminGetProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminCompleteProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) AdminCompleteProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminCompleteProvidersetup(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminGetProvidersetupInstructions operation middleware
-func (siw *ServerInterfaceWrapper) AdminGetProvidersetupInstructions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminGetProvidersetupInstructions(w, r, providersetupId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminSubmitProvidersetupStep operation middleware
-func (siw *ServerInterfaceWrapper) AdminSubmitProvidersetupStep(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "stepIndex" -------------
-	var stepIndex int
-
-	err = runtime.BindStyledParameter("simple", false, "stepIndex", chi.URLParam(r, "stepIndex"), &stepIndex)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "stepIndex", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminSubmitProvidersetupStep(w, r, providersetupId, stepIndex)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminValidateProvidersetup operation middleware
-func (siw *ServerInterfaceWrapper) AdminValidateProvidersetup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "providersetupId" -------------
-	var providersetupId string
-
-	err = runtime.BindStyledParameter("simple", false, "providersetupId", chi.URLParam(r, "providersetupId"), &providersetupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "providersetupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminValidateProvidersetup(w, r, providersetupId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -12836,30 +12079,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/admin/providers/{providerId}/args/{argId}/options", wrapper.AdminListProviderArgOptions)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/providersetups", wrapper.AdminListProvidersetups)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/providersetups", wrapper.AdminCreateProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}", wrapper.AdminDeleteProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}", wrapper.AdminGetProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}/complete", wrapper.AdminCompleteProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}/instructions", wrapper.AdminGetProvidersetupInstructions)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}/steps/{stepIndex}/complete", wrapper.AdminSubmitProvidersetupStep)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/providersetups/{providersetupId}/validate", wrapper.AdminValidateProvidersetup)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/requests", wrapper.AdminListRequests)
 	})
 	r.Group(func(r chi.Router) {
@@ -12956,173 +12175,176 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"fb77/wEAAP//qrO4bP3+AAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
@@ -13162,14 +12384,6 @@ func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
 		res[pathToFile] = rawSpec
 	}
 
-	pathPrefix := path.Dir(pathToFile)
-
-	for rawPath, rawFunc := range externalRef0.PathToRawSpec(path.Join(pathPrefix, "./accesshandler/openapi.yml")) {
-		if _, ok := res[rawPath]; ok {
-			// it is not possible to compare functions in golang, so always overwrite the old value
-		}
-		res[rawPath] = rawFunc
-	}
 	return res
 }
 

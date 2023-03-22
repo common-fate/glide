@@ -8,13 +8,13 @@ import (
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
 
-	ahTypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/pkg/errors"
 )
 
@@ -24,7 +24,7 @@ type Granter struct {
 	RequestRouter *requestroutersvc.Service
 }
 type WorkflowInput struct {
-	Grant ahTypes.CreateGrant `json:"grant"`
+	Grant types.CreateGrant `json:"grant"`
 }
 type EventType string
 
@@ -34,12 +34,12 @@ const (
 )
 
 type GrantState struct {
-	Grant ahTypes.Grant  `json:"grant"`
+	Grant types.Grant    `json:"grant"`
 	State map[string]any `json:"state"`
 }
 type InputEvent struct {
-	Action EventType     `json:"action"`
-	Grant  ahTypes.Grant `json:"grant"`
+	Action EventType   `json:"action"`
+	Grant  types.Grant `json:"grant"`
 	// Will be available for revoke events
 	State map[string]any `json:"state,omitempty"`
 }
@@ -125,7 +125,7 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	// emit an event and return early if we failed (de)provisioning the grant
 	if err != nil {
 		log.Errorf("error while handling granter event", "error", err.Error(), "event", in)
-		grant.Status = ahTypes.GrantStatusERROR
+		grant.Status = types.GrantStatusERROR
 
 		eventErr := eventsBus.Put(ctx, gevent.GrantFailed{Grant: grant, Reason: err.Error()})
 		if eventErr != nil {
@@ -138,10 +138,10 @@ func (g *Granter) HandleRequest(ctx context.Context, in InputEvent) (GrantState,
 	var evt gevent.EventTyper
 	switch in.Action {
 	case ACTIVATE:
-		grant.Status = ahTypes.GrantStatusACTIVE
+		grant.Status = types.GrantStatusACTIVE
 		evt = &gevent.GrantActivated{Grant: grant}
 	case DEACTIVATE:
-		grant.Status = ahTypes.GrantStatusEXPIRED
+		grant.Status = types.GrantStatusEXPIRED
 		evt = &gevent.GrantExpired{Grant: grant}
 	}
 

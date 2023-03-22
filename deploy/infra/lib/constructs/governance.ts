@@ -10,7 +10,6 @@ import { AccessHandler } from "./access-handler";
 
 interface Props {
   appName: string;
-  accessHandler: AccessHandler;
   providerConfig: string;
   dynamoTable: dynamodb.Table;
   kmsKey: cdk.aws_kms.Key;
@@ -48,7 +47,6 @@ export class Governance extends Construct {
         environment: {
           COMMONFATE_TABLE_NAME: this._dynamoTable.tableName,
           COMMONFATE_MOCK_ACCESS_HANDLER: "false",
-          COMMONFATE_ACCESS_HANDLER_URL: props.accessHandler.getApiUrl(),
           COMMONFATE_PROVIDER_CONFIG: props.providerConfig,
 
           COMMONFATE_PAGINATION_KMS_KEY_ARN: this._KMSkey.keyArn,
@@ -59,13 +57,6 @@ export class Governance extends Construct {
     );
     this._dynamoTable.grantReadWriteData(this._governanceLambda);
     this._KMSkey.grantEncryptDecrypt(this._governanceLambda);
-
-    this._governanceLambda.addToRolePolicy(
-      new PolicyStatement({
-        resources: [props.accessHandler.getApiGateway().arnForExecuteApi()],
-        actions: ["execute-api:Invoke"],
-      })
-    );
 
     this._apigateway = new apigateway.RestApi(this, "RestAPI", {
       restApiName: this._restApiName,

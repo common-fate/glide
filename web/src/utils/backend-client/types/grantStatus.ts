@@ -16,7 +16,7 @@ export type GrantStatus = typeof GrantStatus[keyof typeof GrantStatus];
 export const GrantStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
-  ERROR: 'ERROR',
   REVOKED: 'REVOKED',
   EXPIRED: 'EXPIRED',
+  ERROR: 'ERROR',
 } as const;
