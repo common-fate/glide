@@ -44,20 +44,6 @@ import { HealthCheckIcon, RefreshIcon } from "../../../components/icons/Icons";
 
 import axios from "axios";
 
-// using a chakra tab component and links, link to /admin/providers and /admin/providersv2
-export const CommunityProvidersTabs = () => {
-  return (
-    <ButtonGroup variant="ghost" spacing="0" mb={"-32px !important;"} my={4}>
-      <TabsStyledButton href="/admin/providers">
-        Built-In Providers
-      </TabsStyledButton>
-      <TabsStyledButton href="/admin/providersv2">
-        PDK Providers
-      </TabsStyledButton>
-    </ButtonGroup>
-  );
-};
-
 const AdminProvidersTable = () => {
   const paginator = usePaginatorApi<typeof useAdminListHandlers>({
     swrHook: useAdminListHandlers,
@@ -262,8 +248,7 @@ const Providers = () => {
         overflowX="auto"
       >
         {/* spacer of 32px to acccount for un-needed UI/CLS */}
-        <Flex justify="space-between" align="center">
-          <CommunityProvidersTabs />
+        <Flex justify="right" align="center">
           <HStack spacing="1px">
             <Button
               isLoading={loading}

@@ -122,14 +122,6 @@ func (Build) SlackNotifier() error {
 	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/slack-notifier", "cmd/lambda/event-handlers/notifiers/slack/handler.go")
 }
 
-func (Build) EventHandler() error {
-	env := map[string]string{
-		"GOOS":   "linux",
-		"GOARCH": "amd64",
-	}
-	return sh.RunWith(env, "go", "build", "-ldflags", ldFlags(), "-o", "bin/event-handler", "cmd/lambda/event-handlers/audit-trail/handler.go")
-}
-
 func (Build) Webhook() error {
 	env := map[string]string{
 		"GOOS":   "linux",
@@ -214,7 +206,7 @@ func PackageHealthChecker() error {
 
 func Package() {
 	mg.Deps(PackageBackend, PackageSlackNotifier)
-	mg.Deps(PackageEventHandler, PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
+	mg.Deps(PackageSyncer, PackageWebhook, PackageGovernance, PackageFrontendDeployer)
 	mg.Deps(PackageCacheSyncer, PackageHealthChecker, PackageTargetGroupGranter)
 }
 
@@ -240,12 +232,6 @@ func PackageCacheSyncer() error {
 func PackageSlackNotifier() error {
 	mg.Deps(Build.SlackNotifier)
 	return sh.Run("zip", "--junk-paths", "bin/slack-notifier.zip", "bin/slack-notifier")
-}
-
-// PackageEventHandler zips the Go event handler so that it can be deployed to Lambda.
-func PackageEventHandler() error {
-	mg.Deps(Build.EventHandler)
-	return sh.Run("zip", "--junk-paths", "bin/event-handler.zip", "bin/event-handler")
 }
 
 // PackageWebhook zips the Go webhook handler so that it can be deployed to Lambda.

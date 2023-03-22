@@ -16,7 +16,6 @@ export type StackOutputs = {
   WebhookLogGroupName: string;
   IDPSyncLogGroupName: string;
   EventBusLogGroupName: string;
-  EventsHandlerLogGroupName: string;
   SlackNotifierLogGroupName: string;
   DynamoDBTable: string;
   EventBusArn: string;
