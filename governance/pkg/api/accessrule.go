@@ -65,7 +65,7 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 
 	c, err := a.Rules.CreateAccessRule(ctx, "bot_governance_api", createRequest)
 	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, apio.NewRequestError(errors.New("not found"), http.StatusNotFound))
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("resource not found"), http.StatusNotFound))
 		return
 	}
 
@@ -126,7 +126,7 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 	})
 
 	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, apio.NewRequestError(errors.New("not found"), http.StatusNotFound))
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("resource not found"), http.StatusNotFound))
 		return
 	}
 	if err != nil {
