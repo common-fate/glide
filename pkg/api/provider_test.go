@@ -5,7 +5,9 @@ package api
 // 	"net/http/httptest"
 // 	"testing"
 
-// 	"github.com/common-fate/provider-registry/pkg/types"
+// 	"github.com/common-fate/common-fate/pkg/storage"
+// 	"github.com/common-fate/common-fate/pkg/target"
+// 	"github.com/common-fate/ddb/ddbmock"
 // 	"github.com/stretchr/testify/assert"
 
 // 	"github.com/golang/mock/gomock"
@@ -14,62 +16,37 @@ package api
 // func TestListProviders(t *testing.T) {
 
 // 	type testcase struct {
-// 		name          string
-// 		mockCreate    *types.ListProvidersResponse
-// 		mockCreateErr error
-// 		wantCode      int
-// 		wantBody      string
+// 		name     string
+// 		listErr  error
+// 		wantList []target.Group
+// 		wantCode int
+// 		wantBody string
 // 	}
-
-// 	list := []types.Provider{
-// 		{
-// 			Id:   "cf-dev",
-// 			Type: "aws-sso",
-// 		},
-// 	}
-
-// 	emptyList := []types.Provider{}
-
-// 	errorMsg := "internal server error"
 
 // 	testcases := []testcase{
 // 		{
 // 			name:     "ok",
 // 			wantCode: http.StatusOK,
-// 			mockCreate: &types.ListProvidersResponse{
-// 				JSON200:      &list,
-// 				HTTPResponse: &http.Response{StatusCode: http.StatusOK},
-// 			},
+// 			wantList: []target.Group{{ID: "123"}},
+
 // 			wantBody: `[{"id":"cf-dev","type":"aws-sso"}]`,
 // 		},
 // 		{
 // 			name:     "empty list should return empty array []",
 // 			wantCode: http.StatusOK,
-// 			mockCreate: &types.ListProvidersResponse{
-// 				JSON200:      &emptyList,
-// 				HTTPResponse: &http.Response{StatusCode: http.StatusOK},
-// 			},
+// 			wantList: []target.Group{},
 // 			wantBody: `[]`,
 // 		},
 // 		{
 // 			name:     "JSON500 should return error message",
 // 			wantCode: http.StatusInternalServerError,
-// 			mockCreate: &types.ListProvidersResponse{
-// 				HTTPResponse: &http.Response{StatusCode: http.StatusInternalServerError},
-// 				JSON500: &struct {
-// 					Error *string "json:\"error,omitempty\""
-// 				}{
-// 					Error: &errorMsg,
-// 				},
-// 			},
+
 // 			wantBody: `{"error":"internal server error"}`,
 // 		},
 // 		{
 // 			name:     "unhandled should return generic error message",
 // 			wantCode: http.StatusInternalServerError,
-// 			mockCreate: &types.ListProvidersResponse{
-// 				HTTPResponse: &http.Response{StatusCode: http.StatusBadGateway},
-// 			},
+
 // 			wantBody: `{"error":"Internal Server Error"}`,
 // 		},
 // 	}
@@ -80,13 +57,10 @@ package api
 
 // 			ctrl := gomock.NewController(t)
 // 			defer ctrl.Finish()
+// 			db := ddbmock.New(t)
+// 			db.MockQueryWithErr(&storage.ListTargetGroups{Result: tc.wantList}, tc.listErr)
 
-// 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-// 			m.EXPECT().ListProvidersWithResponse(gomock.Any(), gomock.Any()).Return(tc.mockCreate, tc.mockCreateErr)
-
-// 			a := API{
-// 				AccessHandlerClient: m,
-// 			}
+// 			a := API{DB: db}
 
 // 			handler := newTestServer(t, &a)
 

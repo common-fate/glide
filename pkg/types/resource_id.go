@@ -49,3 +49,6 @@ func NewProviderSetupID() string {
 func NewDeploymentID() string {
 	return newResourceID("dep")
 }
+func NewGrantID() string {
+	return newResourceID("gra")
+}

@@ -1,22 +1,5 @@
 package rulesvc
 
-// import (
-// 	"context"
-// 	"net/http"
-// 	"testing"
-
-// 	"github.com/benbjohnson/clock"
-// 	types "github.com/common-fate/common-fate/accesshandler/pkg/types"
-// 	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
-// 	"github.com/common-fate/common-fate/pkg/cache"
-// 	"github.com/common-fate/common-fate/pkg/rule"
-// 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
-// 	"github.com/common-fate/common-fate/pkg/types"
-// 	"github.com/common-fate/ddb/ddbmock"
-// 	"github.com/golang/mock/gomock"
-// 	"github.com/stretchr/testify/assert"
-// )
-
 // func TestUpdateAccessRule(t *testing.T) {
 
 // 	type testcase struct {
@@ -133,18 +116,13 @@ package rulesvc
 
 // 			defer ctrl.Finish()
 
-// 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-// 			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId)).Return(&types.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &types.Provider{Type: "awssso"}}, nil)
-// 			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId)).Return(&types.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &types.ArgSchema{}}, nil)
-
 // 			cm := mocks.NewMockCacheService(ctrl)
 // 			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
 
 // 			s := Service{
-// 				Clock:    clk,
-// 				DB:       &dbc,
-// 				AHClient: m,
-// 				Cache:    cm,
+// 				Clock: clk,
+// 				DB:    &dbc,
+// 				Cache: cm,
 // 			}
 
 // 			got, err := s.UpdateRule(context.Background(), &UpdateOpts{

@@ -62,7 +62,7 @@ func TestGovListAccessRules(t *testing.T) {
 				},
 			},
 
-			want: `{"accessRules":[{"approval":{"groups":["a"],"users":["b"]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule2","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
+			want: `{"accessRules":[{"approval":{"groups":["a"],"users":["b"]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"targetGroup":"","with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""},{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule2","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":"okta"},"targetGroup":"","with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}],"next":null}`,
 		},
 		{
 			name:        "no rules returns an empty list not an error",
@@ -140,7 +140,7 @@ func TestGovCreateAccessRule(t *testing.T) {
 				},
 			},
 			wantCode: http.StatusCreated,
-			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"bot_governance_api","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"bot_governance_api","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"targetGroup":"","with":{}},"timeConstraints":{"maxDurationSeconds":0},"version":""}`,
 		},
 		{
 			name:          "id already exists",
