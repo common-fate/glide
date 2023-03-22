@@ -9,10 +9,8 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 import { Construct } from "constructs";
 import * as path from "path";
-import { AccessHandler } from "./access-handler";
 import { WebUserPool } from "./app-user-pool";
 import { CacheSync } from "./cache-sync";
-import { EventHandler } from "./event-handler";
 import { Governance } from "./governance";
 import { IdpSync } from "./idp-sync";
 import { Notifiers } from "./notifiers";
@@ -58,7 +56,6 @@ export class AppBackend extends Construct {
   private _lambda: lambda.Function;
   private _apigateway: apigateway.LambdaRestApi;
   private _notifiers: Notifiers;
-  private _eventHandler: EventHandler;
   private _idpSync: IdpSync;
   private _cacheSync: CacheSync;
   private _healthChecker: HealthChecker;
@@ -282,11 +279,7 @@ export class AppBackend extends Construct {
 
     props.eventBus.grantPutEventsTo(this._lambda);
     props.apiGatewayWafAclArn && this.wafAssociation(props.apiGatewayWafAclArn);
-    this._eventHandler = new EventHandler(this, "EventHandler", {
-      dynamoTable: this._dynamoTable,
-      eventBus: props.eventBus,
-      eventBusSourceName: props.eventBusSourceName,
-    });
+
     this._notifiers = new Notifiers(this, "Notifiers", {
       dynamoTable: this._dynamoTable,
       eventBus: props.eventBus,
@@ -378,9 +371,7 @@ export class AppBackend extends Construct {
   getLogGroupName(): string {
     return this._lambda.logGroup.logGroupName;
   }
-  getEventHandler(): EventHandler {
-    return this._eventHandler;
-  }
+
   getNotifiers(): Notifiers {
     return this._notifiers;
   }
