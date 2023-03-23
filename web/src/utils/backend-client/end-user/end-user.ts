@@ -17,6 +17,7 @@ import type {
   ListAccessRuleApproversResponseResponse,
   ListRequestsResponseResponse,
   UserListRequestsParams,
+  CreateRequestResponseResponse,
   CreateRequestRequestBody,
   UserListRequestsUpcomingParams,
   UserListRequestsPastParams,
@@ -222,7 +223,7 @@ Users must specify an Access Rule when making a request. Users are authorized to
 export const userCreateRequest = (
     createRequestRequestBody: CreateRequestRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
+      return customInstance<CreateRequestResponseResponse>(
       {url: `/api/v1/requests`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createRequestRequestBody

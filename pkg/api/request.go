@@ -221,8 +221,8 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log := zap.S()
-	log.Infow("validating and creating grant")
-	_, err = a.Access.CreateRequests(ctx, accesssvc.CreateRequestsOpts{
+	log.Infow("validating and creating access request")
+	result, err := a.Access.CreateRequests(ctx, accesssvc.CreateRequestsOpts{
 		User: *u,
 		Create: accesssvc.CreateRequests{
 			AccessRuleId: incomingRequest.AccessRuleId,
@@ -240,6 +240,12 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
+	}
+
+	var res types.CreateRequestResponse
+
+	for _, r := range result {
+		res.Requests = append(res.Requests, r.Request.ToAPI())
 	}
 
 	apio.JSON(ctx, w, nil, http.StatusOK)
