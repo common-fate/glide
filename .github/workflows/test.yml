@@ -18,7 +18,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19.0"
+          go-version: "1.19.6"
           cache: true
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.19.0
+          go-version: 1.19.6
       - uses: actions/checkout@v3
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -166,7 +166,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19.0"
+          go-version: "1.19.6"
           cache: true
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -215,7 +215,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19.0"
+          go-version: "1.19.6"
           cache: true
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
