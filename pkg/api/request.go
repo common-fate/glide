@@ -10,6 +10,7 @@ import (
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
+	"github.com/common-fate/clio"
 	ahtypes "github.com/common-fate/common-fate/accesshandler/pkg/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
@@ -244,11 +245,15 @@ func (a *API) UserCreateRequest(w http.ResponseWriter, r *http.Request) {
 
 	var res types.CreateRequestResponse
 
+	var requestIDs []string
 	for _, r := range result {
 		res.Requests = append(res.Requests, r.Request.ToAPI())
+		requestIDs = append(requestIDs, r.Request.ID)
 	}
 
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	clio.Infow("created access requests", "request_ids", requestIDs)
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 func (a *API) UserCancelRequest(w http.ResponseWriter, r *http.Request, requestId string) {
