@@ -1262,65 +1262,67 @@ paths:
     parameters: []
   /api/v1/entitlements:
     get:
-      summary: Your GET endpoint
+      summary: List Entitlements
       tags: []
       responses:
         "200":
           $ref: "#/components/responses/ListEntitlementsResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-entitlements
-      description: Gets all entitlements availiable
-  "/api/v1/entitlements/resources/{resourceId}":
+      description: |-
+        List all entitlement kinds configured in Common Fate.
+        These are derived from the Target Groups.
+  /api/v1/entitlements/resources:
     get:
-      summary: Your GET endpoint
+      summary: List Entitlement Resources
       tags: []
       responses:
         "200":
           $ref: "#/components/responses/ListResourcesResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: user-list-resources
-      description: Gets all resources for a entitlement availiable
+      operationId: user-list-entitlement-resources
+      description: List all resources for a given entitlement and resource type
       parameters:
         - schema:
             type: string
           in: query
           name: kind
-          description: Kind of the entitlement
+          description: The kind of the entitlement
+          required: true
         - schema:
             type: string
           in: query
           name: publisher
-          description: publisher of the entitlement provider
+          description: The publisher of the provider
+          required: true
         - schema:
             type: string
           in: query
           name: name
-          description: name of the entitlement provider
-        - schema:
-            type: string
-          in: query
-          name: provider
-          description: provider name
+          description: The name of provider
+          required: true
         - schema:
             type: string
           in: query
           name: version
-          description: version of the provider
-    parameters:
-      - schema:
-          type: string
-        name: resourceId
-        in: path
-        required: true
+          description: The version of the provider
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: resourceType
+          description: The type of resource to list
+          required: true
+    parameters: []
   /api/v1/requestsv2:
     get:
-      summary: Your GET endpoint
+      summary: List Requests
       tags: []
       responses:
         "200":
@@ -1332,9 +1334,9 @@ paths:
       operationId: user-list-requestsv2
       description: Gets all requests availiable
     parameters: []
-  "/api/v1/requestsv2/{id}":
+  "/api/v1/requestsv2/{requestId}":
     get:
-      summary: Your GET endpoint
+      summary: Get Request
       tags: []
       responses:
         "200":
@@ -1352,12 +1354,12 @@ paths:
     parameters:
       - schema:
           type: string
-        name: id
+        name: requestId
         in: path
         required: true
-  "/api/v1/requestsv2/{id}/groups":
+  "/api/v1/requestsv2/{requestId}/groups":
     get:
-      summary: Your GET endpoint
+      summary: List Request Access Groups
       tags: []
       responses:
         "200":
@@ -1366,18 +1368,17 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: user-list-access-groups
+      operationId: user-list-request-access-groups
       description: Gets all access groups availiable
     parameters:
       - schema:
           type: string
-        name: id
+        name: requestId
         in: path
         required: true
-        description: request id
-  "/api/v1/requestsv2/{id}/groups{gid}":
+  "/api/v1/requestsv2/{requestId}/groups{groupId}":
     get:
-      summary: Your GET endpoint
+      summary: Get Request Access Group
       tags: []
       responses:
         "200":
@@ -1390,24 +1391,22 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: user-get-access-group
+      operationId: user-get-request-access-group
       description: Gets access group
     parameters:
       - schema:
           type: string
-        name: id
+        name: requestId
         in: path
         required: true
-        description: request id
       - schema:
           type: string
-        name: gid
+        name: groupId
         in: path
         required: true
-        description: group id
-  "/api/v1/requestsv2/{id}/groups/{gid}/grants":
+  "/api/v1/requestsv2/{requestId}/groups/{groupId}/grants":
     get:
-      summary: Your GET endpoint
+      summary: List Request Access Group Grants
       tags: []
       responses:
         "200":
@@ -1416,24 +1415,22 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: user-list-grants
-      description: Gets all grants availiable
+      operationId: user-list-request-access-group-grants
+      description: List all grants for a request access group
     parameters:
       - schema:
           type: string
-        name: id
+        name: requestId
         in: path
         required: true
-        description: request id
       - schema:
           type: string
-        name: gid
+        name: groupId
         in: path
         required: true
-        description: access group id
   "/api/v1/requestsv2/{id}/groups/{gid}/grants{grantid}":
     get:
-      summary: Your GET endpoint
+      summary: Get Request Access Group Grant
       tags: []
       responses:
         "200":
@@ -1446,8 +1443,8 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
-      operationId: user-get-grant
-      description: Gets an access grant
+      operationId: user-get-request-access-group-grant
+      description: Gets a request access group grant
     parameters:
       - schema:
           type: string
@@ -2842,19 +2839,13 @@ components:
         id: sjnegiosyst41
       type: object
       properties:
-        id:
-          type: string
-        OptionsSchema:
-          $ref: "#/components/schemas/ArgSchema"
-        Provider:
-          $ref: "#/components/schemas/TargetFrom"
-        AccessRule:
-          type: string
+        Schema:
+          $ref: "#/components/schemas/TargetSchema"
+        Kind:
+          $ref: "#/components/schemas/TargetGroupFrom"
       required:
-        - id
-        - OptionsSchema
-        - Provider
-        - AccessRule
+        - Schema
+        - Kind
     Requestv2:
       title: Requestv2
       x-stoplight:
@@ -2887,25 +2878,19 @@ components:
             $ref: "#/components/schemas/Grantv2"
         time:
           $ref: "#/components/schemas/TimeConstraints"
-        approval:
-          $ref: "#/components/schemas/ApprovalContext"
+        status:
+          type: string
       required:
         - id
         - grants
         - time
-        - approval
+        - status
     Grantv2:
       title: Grantv2
       x-stoplight:
         id: megwei2d0gy72
       type: object
       properties:
-        id:
-          type: string
-        user:
-          $ref: "#/components/schemas/User"
-        entitlement:
-          $ref: "#/components/schemas/Entitlement"
         status:
           type: string
           description: The current state of the grant.
@@ -2915,30 +2900,17 @@ components:
             - REVOKED
             - EXPIRED
             - ERROR
+        id:
+          type: string
+        subject:
+          type: string
+        target:
+          type: object
       required:
-        - id
-        - user
-        - entitlement
         - status
-    TargetFrom:
-      title: TargetFrom
-      x-stoplight:
-        id: 599vxh9adtwgm
-      type: object
-      properties:
-        kind:
-          type: string
-        publisher:
-          type: string
-        name:
-          type: string
-        version:
-          type: string
-      required:
-        - kind
-        - publisher
-        - name
-        - version
+        - id
+        - subject
+        - target
     RequestContext:
       title: RequestContext
       x-stoplight:
@@ -2946,41 +2918,52 @@ components:
       type: object
       properties:
         purpose:
-          type: string
+          type: object
+          required:
+            - reason
+          properties:
+            reason:
+              type: string
+        context:
+          type: object
+          required:
+            - ip
+            - userAgent
+          properties:
+            ip:
+              type: string
+            userAgent:
+              type: string
         metadata:
-          type: string
-    ApprovalContext:
-      title: ApprovalContext
-      x-stoplight:
-        id: lia6i0wicubah
-      type: object
-      properties:
-        id:
-          type: string
+          type: object
+          required:
+            - createdAt
+          properties:
+            createdAt:
+              type: string
       required:
-        - id
+        - purpose
+        - context
+        - metadata
     Resource:
       title: Resource
       x-stoplight:
         id: eu8t53wnldm6r
       type: object
       properties:
-        id:
-          type: string
-        argumentName:
-          type: string
-        argumentValue:
-          type: string
         type:
           type: string
-        ResourceFrom:
+        value:
+          type: string
+        description:
+          type: string
+        name:
           type: string
       required:
-        - id
-        - argumentName
-        - argumentValue
         - type
-        - ResourceFrom
+        - value
+        - description
+        - name
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -3282,21 +3265,9 @@ components:
       content:
         application/json:
           schema:
-            properties:
-              id:
-                type: string
-        application/xml:
-          schema:
-            type: object
-            properties:
-              entitlements:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Entitlement"
-              next:
-                type: string
-            required:
-              - entitlements
+            type: array
+            items:
+              $ref: "#/components/schemas/Entitlement"
     ListRequests2Response:
       description: Example response
       content:
@@ -3305,54 +3276,22 @@ components:
             properties:
               id:
                 type: string
-        application/xml:
-          schema:
-            type: object
-            properties:
-              requests:
-                $ref: "#/components/schemas/Requestv2"
-              next:
-                type: string
-            required:
-              - requests
     ListAccessGroupsResponse:
       description: Example response
       content:
         application/json:
           schema:
-            properties:
-              id:
-                type: string
-        application/xml:
-          schema:
-            type: object
-            properties:
-              groups:
-                $ref: "#/components/schemas/AccessGroup"
-              next:
-                type: string
-            required:
-              - groups
+            type: array
+            items:
+              $ref: "#/components/schemas/AccessGroup"
     ListGrantsv2Response:
       description: Example response
       content:
         application/json:
           schema:
-            properties:
-              id:
-                type: string
-        application/xml:
-          schema:
-            type: object
-            properties:
-              grants:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Grantv2"
-              next:
-                type: string
-            required:
-              - grants
+            type: array
+            items:
+              $ref: "#/components/schemas/Grantv2"
     ListResourcesResponse:
       description: Example response
       content:
@@ -3361,7 +3300,9 @@ components:
             type: object
             properties:
               resources:
-                $ref: "#/components/schemas/Resource"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
               next:
                 type: string
             required:

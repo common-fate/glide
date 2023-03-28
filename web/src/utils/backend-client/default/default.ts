@@ -12,7 +12,16 @@ import type {
 } from 'swr'
 import type {
   ListTargetGroupRoutesResponse,
-  ErrorResponseResponse
+  ErrorResponseResponse,
+  ListEntitlementsResponseResponse,
+  ListResourcesResponseResponse,
+  UserListEntitlementResourcesParams,
+  ListRequests2ResponseResponse,
+  Requestv2,
+  ListAccessGroupsResponseResponse,
+  AccessGroup,
+  ListGrantsv2ResponseResponse,
+  Grantv2
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -56,6 +65,332 @@ export const useAdminListTargetRoutes = <TError = ErrorType<ErrorResponseRespons
   const isEnabled = swrOptions?.enabled !== false && !!(id)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListTargetRoutesKey(id) : null);
   const swrFn = () => adminListTargetRoutes(id, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * List all entitlement kinds configured in Common Fate.
+These are derived from the Target Groups.
+ * @summary List Entitlements
+ */
+export const userListEntitlements = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListEntitlementsResponseResponse>(
+      {url: `/api/v1/entitlements`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListEntitlementsKey = () => [`/api/v1/entitlements`];
+
+    
+export type UserListEntitlementsQueryResult = NonNullable<Awaited<ReturnType<typeof userListEntitlements>>>
+export type UserListEntitlementsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListEntitlements = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlements>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListEntitlementsKey() : null);
+  const swrFn = () => userListEntitlements(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * List all resources for a given entitlement and resource type
+ * @summary List Entitlement Resources
+ */
+export const userListEntitlementResources = (
+    params: UserListEntitlementResourcesParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListResourcesResponseResponse>(
+      {url: `/api/v1/entitlements/resources`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getUserListEntitlementResourcesKey = (params: UserListEntitlementResourcesParams,) => [`/api/v1/entitlements/resources`, ...(params ? [params]: [])];
+
+    
+export type UserListEntitlementResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof userListEntitlementResources>>>
+export type UserListEntitlementResourcesQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListEntitlementResources = <TError = ErrorType<ErrorResponseResponse>>(
+ params: UserListEntitlementResourcesParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlementResources>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListEntitlementResourcesKey(params) : null);
+  const swrFn = () => userListEntitlementResources(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Gets all requests availiable
+ * @summary List Requests
+ */
+export const userListRequestsv2 = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListRequests2ResponseResponse>(
+      {url: `/api/v1/requestsv2`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListRequestsv2Key = () => [`/api/v1/requestsv2`];
+
+    
+export type UserListRequestsv2QueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsv2>>>
+export type UserListRequestsv2QueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListRequestsv2 = <TError = ErrorType<ErrorResponseResponse>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestsv2Key() : null);
+  const swrFn = () => userListRequestsv2(requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Gets information for a requestv2
+ * @summary Get Request
+ */
+export const userGetRequestv2 = (
+    requestId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Requestv2>(
+      {url: `/api/v1/requestsv2/${requestId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetRequestv2Key = (requestId: string,) => [`/api/v1/requestsv2/${requestId}`];
+
+    
+export type UserGetRequestv2QueryResult = NonNullable<Awaited<ReturnType<typeof userGetRequestv2>>>
+export type UserGetRequestv2QueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserGetRequestv2 = <TError = ErrorType<ErrorResponseResponse>>(
+ requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetRequestv2>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(requestId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestv2Key(requestId) : null);
+  const swrFn = () => userGetRequestv2(requestId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Gets all access groups availiable
+ * @summary List Request Access Groups
+ */
+export const userListRequestAccessGroups = (
+    requestId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListAccessGroupsResponseResponse>(
+      {url: `/api/v1/requestsv2/${requestId}/groups`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListRequestAccessGroupsKey = (requestId: string,) => [`/api/v1/requestsv2/${requestId}/groups`];
+
+    
+export type UserListRequestAccessGroupsQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestAccessGroups>>>
+export type UserListRequestAccessGroupsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListRequestAccessGroups = <TError = ErrorType<ErrorResponseResponse>>(
+ requestId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestAccessGroups>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(requestId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestAccessGroupsKey(requestId) : null);
+  const swrFn = () => userListRequestAccessGroups(requestId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Gets access group
+ * @summary Get Request Access Group
+ */
+export const userGetRequestAccessGroup = (
+    requestId: string,
+    groupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AccessGroup>(
+      {url: `/api/v1/requestsv2/${requestId}/groups${groupId}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetRequestAccessGroupKey = (requestId: string,
+    groupId: string,) => [`/api/v1/requestsv2/${requestId}/groups${groupId}`];
+
+    
+export type UserGetRequestAccessGroupQueryResult = NonNullable<Awaited<ReturnType<typeof userGetRequestAccessGroup>>>
+export type UserGetRequestAccessGroupQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserGetRequestAccessGroup = <TError = ErrorType<ErrorResponseResponse>>(
+ requestId: string,
+    groupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetRequestAccessGroup>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(requestId && groupId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestAccessGroupKey(requestId,groupId) : null);
+  const swrFn = () => userGetRequestAccessGroup(requestId,groupId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * List all grants for a request access group
+ * @summary List Request Access Group Grants
+ */
+export const userListRequestAccessGroupGrants = (
+    requestId: string,
+    groupId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListGrantsv2ResponseResponse>(
+      {url: `/api/v1/requestsv2/${requestId}/groups/${groupId}/grants`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserListRequestAccessGroupGrantsKey = (requestId: string,
+    groupId: string,) => [`/api/v1/requestsv2/${requestId}/groups/${groupId}/grants`];
+
+    
+export type UserListRequestAccessGroupGrantsQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestAccessGroupGrants>>>
+export type UserListRequestAccessGroupGrantsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListRequestAccessGroupGrants = <TError = ErrorType<ErrorResponseResponse>>(
+ requestId: string,
+    groupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestAccessGroupGrants>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(requestId && groupId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestAccessGroupGrantsKey(requestId,groupId) : null);
+  const swrFn = () => userListRequestAccessGroupGrants(requestId,groupId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Gets a request access group grant
+ * @summary Get Request Access Group Grant
+ */
+export const userGetRequestAccessGroupGrant = (
+    id: string,
+    gid: string,
+    grantid: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Grantv2>(
+      {url: `/api/v1/requestsv2/${id}/groups/${gid}/grants${grantid}`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getUserGetRequestAccessGroupGrantKey = (id: string,
+    gid: string,
+    grantid: string,) => [`/api/v1/requestsv2/${id}/groups/${gid}/grants${grantid}`];
+
+    
+export type UserGetRequestAccessGroupGrantQueryResult = NonNullable<Awaited<ReturnType<typeof userGetRequestAccessGroupGrant>>>
+export type UserGetRequestAccessGroupGrantQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserGetRequestAccessGroupGrant = <TError = ErrorType<ErrorResponseResponse>>(
+ id: string,
+    gid: string,
+    grantid: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetRequestAccessGroupGrant>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id && gid && grantid)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestAccessGroupGrantKey(id,gid,grantid) : null);
+  const swrFn = () => userGetRequestAccessGroupGrant(id,gid,grantid, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

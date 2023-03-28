@@ -17,11 +17,79 @@ import {
 
 export const getAdminListTargetRoutesMock = () => ({routes: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({targetGroupId: faker.random.word(), handlerId: faker.random.word(), kind: faker.random.word(), priority: faker.datatype.number({min: undefined, max: undefined}), valid: faker.datatype.boolean(), diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(Object.values(LogLevel)), code: faker.random.word(), message: faker.random.word()}))})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
+export const getUserListEntitlementsMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({Schema: {
+        'clfrzrq7d0011xo4554977nma': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'clfrzrq7d0010xo455ncf4p1p': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+      }}
+      }, Kind: {publisher: faker.random.word(), name: faker.random.word(), version: faker.random.word(), kind: faker.random.word()}})))
+
+export const getUserListEntitlementResourcesMock = () => ({resources: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({type: faker.random.word(), value: faker.random.word(), description: faker.random.word(), name: faker.random.word()})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
+
+export const getUserListRequestsv2Mock = () => ({id: faker.helpers.arrayElement([faker.random.word(), undefined])})
+
+export const getUserGetRequestv2Mock = () => ({id: faker.random.word(), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), grants: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), id: faker.random.word(), subject: faker.random.word(), target: {}})), time: {maxDurationSeconds: faker.datatype.number({min: 60, max: 15724800})}, status: faker.random.word()})), context: {purpose: {reason: faker.random.word()}, context: {ip: faker.random.word(), userAgent: faker.random.word()}, metadata: {createdAt: faker.random.word()}}})
+
+export const getUserListRequestAccessGroupsMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), grants: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), id: faker.random.word(), subject: faker.random.word(), target: {}})), time: {maxDurationSeconds: faker.datatype.number({min: 60, max: 15724800})}, status: faker.random.word()})))
+
+export const getUserGetRequestAccessGroupMock = () => ({id: faker.random.word(), grants: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), id: faker.random.word(), subject: faker.random.word(), target: {}})), time: {maxDurationSeconds: faker.datatype.number({min: 60, max: 15724800})}, status: faker.random.word()})
+
+export const getUserListRequestAccessGroupGrantsMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), id: faker.random.word(), subject: faker.random.word(), target: {}})))
+
+export const getUserGetRequestAccessGroupGrantMock = () => ({status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), id: faker.random.word(), subject: faker.random.word(), target: {}})
+
 export const getDefaultMSW = () => [
 rest.get('*/api/v1/admin/target-groups/:id/routes', (_req, res, ctx) => {
         return res(
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
 ctx.json(getAdminListTargetRoutesMock()),
+        )
+      }),rest.get('*/api/v1/entitlements', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserListEntitlementsMock()),
+        )
+      }),rest.get('*/api/v1/entitlements/resources', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserListEntitlementResourcesMock()),
+        )
+      }),rest.get('*/api/v1/requestsv2', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserListRequestsv2Mock()),
+        )
+      }),rest.get('*/api/v1/requestsv2/:requestId', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserGetRequestv2Mock()),
+        )
+      }),rest.get('*/api/v1/requestsv2/:requestId/groups', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserListRequestAccessGroupsMock()),
+        )
+      }),rest.get('*/api/v1/requestsv2/:requestId/groups:groupId', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserGetRequestAccessGroupMock()),
+        )
+      }),rest.get('*/api/v1/requestsv2/:requestId/groups/:groupId/grants', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserListRequestAccessGroupGrantsMock()),
+        )
+      }),rest.get('*/api/v1/requestsv2/:id/groups/:gid/grants:grantid', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserGetRequestAccessGroupGrantMock()),
         )
       }),]
