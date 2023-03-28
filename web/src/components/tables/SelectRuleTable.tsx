@@ -86,7 +86,10 @@ export const SelectRuleTable = ({ rules }: { rules: LookupAccessRule[] }) => {
         Cell: ({ cell }) => {
           return (
             <HStack>
-              <ProviderIcon shortType={cell.value.provider.type} />
+              <ProviderIcon
+                shortType={cell.value.provider.type}
+                id={cell.value.provider.id}
+              />
 
               <Text
                 color="neutrals.700"

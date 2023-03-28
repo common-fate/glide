@@ -235,6 +235,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           <HStack align="center" mr="auto">
             <ProviderIcon
               shortType={request?.accessRule.target.provider.type}
+              id={request?.accessRule.target.provider.id}
             />
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>

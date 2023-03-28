@@ -40,7 +40,7 @@ export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
-        <ProviderIcon shortType={provider.type} />
+        <ProviderIcon shortType={provider.type} id={provider.id} />
         <Text>{provider.id}</Text>
       </HStack>
       {providerArgs &&

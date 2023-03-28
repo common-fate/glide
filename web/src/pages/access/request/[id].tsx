@@ -473,7 +473,10 @@ const AccessRequestForm = (props: AccessRequestProps) => {
                 {rule ? (
                   <>
                     <Flex data-testid="rule-name" align="center" mr="auto">
-                      <ProviderIcon shortType={rule?.target.provider.type} />
+                      <ProviderIcon
+                        shortType={rule?.target.provider.type}
+                        id={rule?.target.provider.id}
+                      />
                       <Text ml={2} textStyle="Body/Medium" color="neutrals.600">
                         {rule?.name}
                       </Text>

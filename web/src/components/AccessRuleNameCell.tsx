@@ -36,7 +36,10 @@ export const RuleNameCell: React.FC<Props> = ({
         {...rest}
       >
         <HStack>
-          <ProviderIcon shortType={data?.target.provider.type} />
+          <ProviderIcon
+            shortType={data?.target.provider.type}
+            id={data?.target.provider.id}
+          />
           <Text
             _groupHover={{
               textDecor: isAdmin ? "underline" : undefined,

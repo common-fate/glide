@@ -8,8 +8,10 @@ import {
   ECSIcon,
   EKSIcon,
   FlaskIcon,
+  GCPIcon,
   GoogleIcon,
   OktaIcon,
+  SnowflakeIcon,
 } from "./Icons";
 
 interface Props extends IconProps {
@@ -24,17 +26,33 @@ interface Props extends IconProps {
    * The type of the provider, including the namespace, e.g. `commonfate/aws-sso`.
    */
   type?: string;
+
+  /**
+   * temporary hack for PDK provider icons not showing
+   */
+  id?: string;
 }
 
 export const ProviderIcon: React.FC<Props> = ({
   shortType,
   type,
+  id,
   ...rest
 }): React.ReactElement => {
   if (shortType === undefined && type === undefined) {
     // @ts-ignore
     return null;
   }
+
+  switch (id) {
+    case "azure":
+      return <AzureIcon {...rest} />;
+    case "gcp":
+      return <GCPIcon {...rest} />;
+    case "snowflake":
+      return <SnowflakeIcon {...rest} />;
+  }
+
   switch (type) {
     case "commonfate/aws-sso":
       return <AWSIcon {...rest} />;

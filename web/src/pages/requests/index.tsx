@@ -292,6 +292,7 @@ const Rules = () => {
                     overflow="hidden"
                   >
                     <ProviderIcon
+                      id={r.target.provider.id}
                       shortType={r.target.provider.type}
                       mb={3}
                       h="8"

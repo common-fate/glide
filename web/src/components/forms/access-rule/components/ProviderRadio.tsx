@@ -61,7 +61,10 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
           />
         )}
         <HStack>
-          <ProviderIcon shortType={props.provider.type} />
+          <ProviderIcon
+            shortType={props.provider.type}
+            id={props.provider.id}
+          />
 
           <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
             {props.provider.id}
