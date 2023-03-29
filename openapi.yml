@@ -3010,9 +3010,13 @@ components:
                 type: string
                 maxLength: 64
                 pattern: "^[-a-zA-Z0-9]*$"
+              source:
+                type: string
+                description: reference to a URL where the provider's source code is hosted
             required:
               - from
               - id
+              - source
     RegisterHandlerRequest:
       content:
         application/json:

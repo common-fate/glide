@@ -107,6 +107,7 @@ func (s *Service) CreateGroup(ctx context.Context, req types.CreateTargetGroupRe
 		ID:        req.Id,
 		Schema:    schema,
 		From:      target.FromFieldFromAPI(req.From),
+		Source:    req.Source,
 		Icon:      icon,
 		CreatedAt: now,
 		UpdatedAt: now,

@@ -24,6 +24,9 @@ type Group struct {
 	// reference to the SVG icon for the target group
 	Icon string `json:"icon" dynamodbav:"icon"`
 
+	// reference to a URL where the provider's source code is hosted
+	Source string `json:"source" dynamodbav:"source"`
+
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 }
