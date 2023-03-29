@@ -18,7 +18,7 @@ func (l *ListEntitlementResources) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk1 and begins_with(SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk1": &types.AttributeValueMemberS{Value: keys.OptionsV2.PK1(l.Argument)},
+			":pk1": &types.AttributeValueMemberS{Value: keys.OptionsV2.PK1},
 			":sk1": &types.AttributeValueMemberS{Value: keys.OptionsV2.SK1All(l.Provider.GetTargetFromString())},
 		},
 	}
