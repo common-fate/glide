@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
@@ -37,27 +39,46 @@ func (a *API) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, 
 // List Entitlements
 // (GET /api/v1/entitlements)
 func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
+
 	ctx := r.Context()
-	apio.JSON(ctx, w, types.ListEntitlementsResponse{{
-		Kind: types.TargetGroupFrom{
-			Kind:      "Account",
-			Name:      "AWS",
-			Publisher: "common-fate",
-			Version:   "v0.1.0",
-		},
-		Schema: types.TargetSchema{
-			AdditionalProperties: map[string]types.TargetArgument{
-				"accountId":        {Title: "Account"},
-				"permissionSetArn": {Title: "Permission Set"},
-			},
-		},
-	},
-	}, http.StatusOK)
+	q := storage.ListEntitlements{}
+	_, err := a.DB.Query(ctx, &q)
+
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListEntitlementsResponse{}
+
+	for _, e := range q.Result {
+		res = append(res, e.ToAPI())
+	}
+	apio.JSON(ctx, w, res, http.StatusOK)
+
 }
 
 // List Entitlement Resources
 // (GET /api/v1/entitlements/resources)
 func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementResourcesParams) {
 	ctx := r.Context()
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	q := storage.ListEntitlementResources{Provider: requestsv2.TargetFrom{
+		Publisher: params.Publisher,
+		Name:      params.Name,
+		Kind:      params.Kind,
+		Version:   params.Version,
+	}, Argument: params.ResourceType}
+	_, err := a.DB.Query(ctx, &q)
+
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListResourcesResponse{}
+
+	for _, e := range q.Result {
+		res.Resources = append(res.Resources, e.ToAPI())
+	}
+	apio.JSON(ctx, w, res, http.StatusOK)
 }

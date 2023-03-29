@@ -15,13 +15,15 @@ var Entitlement = entitlementKeys{
 const OptionsKey = "OPTIONV2#"
 
 type optionsKeys struct {
-	PK1 string
-	SK1 func(targetKind string, resourceName string) string
+	PK1    func(resourceName string) string
+	SK1    func(targetKind string, resourceValue string) string
+	SK1All func(targetKind string) string
 }
 
 var OptionsV2 = optionsKeys{
-	PK1: OptionsKey,
-	SK1: func(targetKind string, resourceName string) string { return targetKind + "#" + resourceName + "#" },
+	PK1:    func(resourceName string) string { return OptionsKey + resourceName + "#" },
+	SK1:    func(targetKind string, resourceValue string) string { return targetKind + "#" + resourceValue + "#" },
+	SK1All: func(targetKind string) string { return targetKind + "#" },
 }
 
 const RequestV2Key = "REQUESTV2#"

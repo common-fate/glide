@@ -52,3 +52,11 @@ func NewDeploymentID() string {
 func NewGrantID() string {
 	return newResourceID("gra")
 }
+
+func NewEntitlementID() string {
+	return newResourceID("ent")
+}
+
+func NewOptionID() string {
+	return newResourceID("opt")
+}

@@ -7,7 +7,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // Status of an Access Request.
@@ -28,20 +27,32 @@ type TargetFrom struct {
 }
 
 type Entitlement struct {
-	ID           string                                     `json:"id" dynamodbav:"id"`
-	Provider     TargetFrom                                 `json:"provider" dynamodbav:"provider"`
-	Description  string                                     `json:"description" dynamodbav:"description"`
-	OptionSchema map[string]providerregistrysdk.TargetField `json:"optionSchema" dynamodbav:"optionSchema"`
-	User         string                                     `json:"user" dynamodbav:"user"`
-	AccessRule   rule.AccessRule                            `json:"accessRule" dynamodbav:"accessRule"`
+	ID           string             `json:"id" dynamodbav:"id"`
+	Kind         TargetFrom         `json:"provider" dynamodbav:"provider"`
+	Description  string             `json:"description" dynamodbav:"description"`
+	OptionSchema types.TargetSchema `json:"optionSchema" dynamodbav:"optionSchema"`
+	User         string             `json:"user" dynamodbav:"user"`
+	AccessRule   rule.AccessRule    `json:"accessRule" dynamodbav:"accessRule"`
 }
 
 func (i *Entitlement) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.Entitlement.PK1,
-		SK: keys.Entitlement.SK1(i.AccessRule.ID),
+		SK: keys.Entitlement.SK1(i.ID),
 	}
 	return keys, nil
+}
+
+func (e *Entitlement) ToAPI() types.Entitlement {
+	return types.Entitlement{
+		Kind: types.TargetGroupFrom{
+			Kind:      e.Kind.Kind,
+			Publisher: e.Kind.Publisher,
+			Name:      e.Kind.Name,
+			Version:   e.Kind.Version,
+		},
+		Schema: e.OptionSchema,
+	}
 }
 
 type Option struct {
@@ -51,16 +62,23 @@ type Option struct {
 	Provider    TargetFrom `json:"provider" dynamodbav:"provider"`
 }
 
-func (o *Option) GetTargetFromString() string {
-	return fmt.Sprintf("%s#%s#%s#%s#", o.Provider.Kind, o.Provider.Publisher, o.Provider.Name, o.Provider.Version)
+func (o *TargetFrom) GetTargetFromString() string {
+	return fmt.Sprintf("%s#%s#%s#%s", o.Kind, o.Publisher, o.Name, o.Version)
 }
 
 func (i *Option) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.OptionsV2.PK1,
-		SK: keys.OptionsV2.SK1(i.GetTargetFromString(), i.Label),
+		PK: keys.OptionsV2.PK1(i.Label),
+		SK: keys.OptionsV2.SK1(i.Provider.GetTargetFromString(), i.Value),
 	}
 	return keys, nil
+}
+
+func (e *Option) ToAPI() types.Resource {
+	return types.Resource{
+		Name:  e.Label,
+		Value: e.Value,
+	}
 }
 
 type Requestv2 struct {
