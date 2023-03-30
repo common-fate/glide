@@ -10,4 +10,6 @@ import type { TargetGroupFrom } from './targetGroupFrom';
 export type CreateTargetGroupRequestBody = {
   from: TargetGroupFrom;
   id: string;
+  /** reference to a URL where the provider's source code is hosted */
+  source: string;
 };
