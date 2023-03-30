@@ -2411,6 +2411,7 @@ components:
       x-stoplight:
         id: 1beeb9df4c57d
       type: object
+      description: Specifies a particular Access Provider to create a Target Group schema from.
       properties:
         publisher:
           type: string
@@ -2420,12 +2421,14 @@ components:
           type: string
         kind:
           type: string
+        source:
+          type: string
+          description: reference to a URL where the provider's source code is hosted
       required:
         - publisher
         - name
         - version
         - kind
-      description: Specifies a particular Access Provider to create a Target Group schema from.
     TargetGroup:
       title: TargetGroup
       x-stoplight:

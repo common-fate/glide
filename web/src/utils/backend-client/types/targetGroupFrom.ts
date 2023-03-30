@@ -14,4 +14,6 @@ export interface TargetGroupFrom {
   name: string;
   version: string;
   kind: string;
+  /** reference to a URL where the provider's source code is hosted */
+  source?: string;
 }
