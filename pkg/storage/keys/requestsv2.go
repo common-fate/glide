@@ -15,13 +15,14 @@ var Entitlement = entitlementKeys{
 const OptionsKey = "OPTIONV2#"
 
 type optionsKeys struct {
-	PK1    string
+	PK1 func(resourceName string) string
+
 	SK1    func(targetKind string, resourceName string) string
 	SK1All func(targetKind string) string
 }
 
 var OptionsV2 = optionsKeys{
-	PK1:    OptionsKey,
+	PK1:    func(resourceName string) string { return OptionsKey + resourceName },
 	SK1:    func(targetKind string, resourceName string) string { return targetKind + "#" + resourceName + "#" },
 	SK1All: func(targetKind string) string { return targetKind + "#" },
 }
@@ -62,4 +63,18 @@ type grantKeys struct {
 var Grant = grantKeys{
 	PK1: GrantV2Key,
 	SK1: func(accessGroupId string) string { return accessGroupId + "#" },
+}
+
+const UserV2Key = "USERV2#"
+
+type Userv2Keys struct {
+	PK1 string
+	SK1 func(userId string) string
+	// GSI1PK string
+	// GSI1SK func(userId string) string
+}
+
+var User = Userv2Keys{
+	PK1: UserV2Key,
+	SK1: func(userId string) string { return userId + "#" },
 }

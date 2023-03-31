@@ -1319,6 +1319,11 @@ paths:
           name: resourceType
           description: The type of resource to list
           required: true
+        - schema:
+            type: string
+          in: query
+          name: filters
+          description: filter options
     parameters: []
   /api/v1/requestsv2:
     get:

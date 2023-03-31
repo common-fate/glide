@@ -192,6 +192,9 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
 		vi := v
+		//todo: remove
+
+		vi.AccessRules = []string{"test"}
 		items = append(items, &vi)
 	}
 	for _, v := range groupsMap {

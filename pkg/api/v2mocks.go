@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requestsv2.go"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -62,12 +63,22 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 // (GET /api/v1/entitlements/resources)
 func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementResourcesParams) {
 	ctx := r.Context()
-	q := storage.ListEntitlementResources{Provider: requestsv2.TargetFrom{
-		Publisher: params.Publisher,
-		Name:      params.Name,
-		Kind:      params.Kind,
-		Version:   params.Version,
-	}, Argument: params.ResourceType}
+
+	u := auth.UserFromContext(ctx)
+
+	q := storage.ListEntitlementResources{
+		Provider: requestsv2.TargetFrom{
+			Publisher: params.Publisher,
+			Name:      params.Name,
+			Kind:      params.Kind,
+			Version:   params.Version,
+		},
+		Argument: params.ResourceType,
+		Groups:   u.AccessRules,
+	}
+	if params.Filters != nil {
+		q.FilterValues = append(q.FilterValues, *params.Filters)
+	}
 	_, err := a.DB.Query(ctx, &q)
 
 	if err != nil {

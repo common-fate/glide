@@ -66,7 +66,7 @@ var SeedCommand = cli.Command{
 		items = append(items, &ent2)
 
 		//create some options
-		opt1 := requestsv2.Option{
+		opt1 := requestsv2.ResourceOption{
 
 			Label: "accountId",
 			Value: "123456789012",
@@ -76,10 +76,16 @@ var SeedCommand = cli.Command{
 				Publisher: "common-fate",
 				Version:   "v0.1.0",
 			},
+			Type:        "Account",
+			TargetGroup: "test",
+			AccessRules: []string{
+				"test",
+			},
 		}
-		opt2 := requestsv2.Option{
-			Label: "permissionSet",
-			Value: "123-abc",
+		opt1a := requestsv2.ResourceOption{
+
+			Label: "accountId",
+			Value: "13579012345",
 			Provider: requestsv2.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
@@ -87,8 +93,72 @@ var SeedCommand = cli.Command{
 				Version:   "v0.1.0",
 			},
 		}
+		opt1b := requestsv2.ResourceOption{
 
-		opt3 := requestsv2.Option{
+			Label: "accountId",
+			Value: "583847583929",
+			Provider: requestsv2.TargetFrom{
+				Kind:      "Account",
+				Name:      "AWS",
+				Publisher: "common-fate",
+				Version:   "v0.1.0",
+			},
+			Type:        "Account",
+			TargetGroup: "test",
+			AccessRules: []string{
+				"test",
+			},
+		}
+		opt2 := requestsv2.ResourceOption{
+			Label: "permissionSetArn",
+			Value: "123-abc",
+			Provider: requestsv2.TargetFrom{
+				Kind:      "Account",
+				Name:      "AWS",
+				Publisher: "common-fate",
+				Version:   "v0.1.0",
+			},
+			Type:        "Account",
+			TargetGroup: "test",
+			AccessRules: []string{
+				"test",
+			},
+			ChildOf: []string{"123456789012"},
+		}
+		opt2a := requestsv2.ResourceOption{
+			Label: "permissionSetArn",
+			Value: "bar",
+			Provider: requestsv2.TargetFrom{
+				Kind:      "Account",
+				Name:      "AWS",
+				Publisher: "common-fate",
+				Version:   "v0.1.0",
+			},
+			Type:        "Account",
+			TargetGroup: "test",
+			AccessRules: []string{
+				"test",
+			},
+			ChildOf: []string{"123456789012"},
+		}
+		opt2b := requestsv2.ResourceOption{
+			Label: "permissionSetArn",
+			Value: "foo",
+			Provider: requestsv2.TargetFrom{
+				Kind:      "Account",
+				Name:      "AWS",
+				Publisher: "common-fate",
+				Version:   "v0.1.0",
+			},
+			Type:        "Account",
+			TargetGroup: "test",
+			AccessRules: []string{
+				"test",
+			},
+			ChildOf: []string{"123456789012"},
+		}
+
+		opt3 := requestsv2.ResourceOption{
 			Label: "groupName",
 			Value: "This is a okta group",
 			Provider: requestsv2.TargetFrom{
@@ -97,9 +167,18 @@ var SeedCommand = cli.Command{
 				Publisher: "common-fate",
 				Version:   "v0.1.0",
 			},
+			Type:        "Account",
+			TargetGroup: "test",
+			AccessRules: []string{
+				"diff-group",
+			},
 		}
 		items = append(items, &opt1)
+		items = append(items, &opt1a)
+		items = append(items, &opt1b)
 		items = append(items, &opt2)
+		items = append(items, &opt2a)
+		items = append(items, &opt2b)
 		items = append(items, &opt3)
 
 		err = db.PutBatch(ctx, items...)

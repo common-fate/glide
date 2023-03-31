@@ -6,6 +6,7 @@ import {
   Heading,
   Select,
   VStack,
+  Text,
 } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 import { UserLayout } from "../../components/Layout";
@@ -14,50 +15,50 @@ import {
   useUserListEntitlementResources,
   useUserListEntitlements,
 } from "../../utils/backend-client/default/default";
-import { useState } from "react";
 
-type EntitlementContext = {
-  Kind: string;
-  Publisher: string;
-  Name: string;
-  Version: string;
-  ResourceType: string;
-};
+import { Entitlement } from "../../utils/backend-client/types";
+import { useEffect, useState } from "react";
+
+interface EntitlementStore {
+  [key: string]: Entitlement;
+}
 
 const Home = () => {
-  const [Entitlement, setEntitlement] = useState<EntitlementContext>({
-    Publisher: "common-fate",
-    Name: "AWS",
-    Version: "v0.1.0",
-    Kind: "Account",
-    ResourceType: "accountId",
-  });
-
   const { data } = useUserListEntitlements();
 
-  // const select = document.getElementById("entitlement-select");
-  // if (select) {
-  //   //@ts-ignore
-  //   if (select.options.length > 0 && select.selectedIndex) {
-  //     //@ts-ignore
-  //     const value = select.options[select.selectedIndex].value;
-  //     const splitEnt = value.split("-");
-  //     setEntitlement({
-  //       Publisher: splitEnt[0],
-  //       Name: splitEnt[1],
-  //       Version: splitEnt[2],
-  //       Kind: splitEnt[3],
-  //       ResourceType: "accountId",
-  //     });
-  //   }
-  // }
+  //@ts-ignore
+  const [ent, setEnt] = useState<Entitlement>({});
 
+  const [filters, setFilters] = useState<string[]>([]);
+
+  const entitlementStore: EntitlementStore = {};
+
+  useEffect(() => {
+    if (data) {
+      setEnt(data[1]);
+    }
+  }, [data]);
+  // //key value pair to figure out which entitlement we have selected
+  if (data) {
+    data.forEach((e) => {
+      const name =
+        e.Kind.publisher +
+        "-" +
+        e.Kind.name +
+        "-" +
+        e.Kind.version +
+        "-" +
+        e.Kind.kind;
+      entitlementStore[name] = e;
+    });
+  }
   const { data: resources } = useUserListEntitlementResources({
-    kind: Entitlement.Kind,
-    name: Entitlement.Name,
-    publisher: Entitlement.Publisher,
-    resourceType: Entitlement.ResourceType,
-    version: Entitlement.Version,
+    kind: data && ent.Kind ? ent.Kind.kind : "",
+    publisher: data && ent.Kind ? ent.Kind.publisher : "",
+    name: data && ent.Kind ? ent.Kind.name : "",
+    version: data && ent.Kind ? ent.Kind.version : "",
+    resourceType: data && ent.Kind ? "accountId" : "accountId",
+    filters: filters.length > 0 ? filters[0] : undefined,
   });
 
   return (
@@ -71,7 +72,12 @@ const Home = () => {
             <VStack>
               <FormControl>
                 <FormLabel>Select an entitlement</FormLabel>
-                <Select>
+                <Select
+                  onChange={(e) =>
+                    // console.log(entitlementStore[e.target.value])
+                    setEnt(entitlementStore[e.target.value])
+                  }
+                >
                   {data?.map((e) => {
                     return (
                       <option
@@ -90,17 +96,41 @@ const Home = () => {
                 </Select>
               </FormControl>
             </VStack>
-
-            {/* <VStack>
-              <Heading>Select an option for Account</Heading>
-              {resources?.resources && (
-                <Select>
-                  {resources?.resources.map((e) => {
-                    return <option>{`${e.name}: ${e.value} `}</option>;
-                  })}
-                </Select>
-              )}
-            </VStack> */}
+            {!resources ||
+              (!resources.resources && (
+                <Text>You dont seem to have access to this entitlement</Text>
+              ))}
+            {ent.Kind &&
+              resources &&
+              resources.resources &&
+              Object.entries(ent.Schema).map(([key, obj]) => {
+                return (
+                  <VStack>
+                    <Heading>
+                      {`Select an option for
+                       ${key}`}
+                    </Heading>
+                    {resources && resources?.resources && (
+                      <Select
+                        onChange={(e) =>
+                          // console.log(entitlementStore[e.target.value])
+                          setFilters((f) => f.concat(e.target.value))
+                        }
+                      >
+                        {resources?.resources
+                          .filter((r) => r.name == key)
+                          .map((e) => {
+                            return (
+                              <option
+                                value={e.value}
+                              >{`${e.name}: ${e.value} `}</option>
+                            );
+                          })}
+                      </Select>
+                    )}
+                  </VStack>
+                );
+              })}
           </Container>
         </Box>
       </UserLayout>

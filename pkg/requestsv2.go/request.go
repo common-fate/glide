@@ -55,18 +55,23 @@ func (e *Entitlement) ToAPI() types.Entitlement {
 	}
 }
 
-type Option struct {
+type ResourceOption struct {
+	ID          string     `json:"id" dynamodbav:"id"`
+	Type        string     `json:"type" dynamodbav:"type"`
 	Value       string     `json:"value" dynamodbav:"value"`
 	Label       string     `json:"label" dynamodbav:"label"`
 	Description *string    `json:"description" dynamodbav:"description"`
 	Provider    TargetFrom `json:"provider" dynamodbav:"provider"`
+	TargetGroup string     `json:"targetGroup" dynamodbav:"targetGroup"`
+	AccessRules []string   `json:"accessRules" dynamodbav:"accessRules"`
+	ChildOf     []string   `json:"childOf" dynamodbav:"childOf"`
 }
 
 func (o *TargetFrom) GetTargetFromString() string {
 	return fmt.Sprintf("%s#%s#%s#%s", o.Kind, o.Publisher, o.Name, o.Version)
 }
 
-func (i *Option) DDBKeys() (ddb.Keys, error) {
+func (i *ResourceOption) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.OptionsV2.PK1(i.Label),
 		SK: keys.OptionsV2.SK1(i.Provider.GetTargetFromString(), i.Value),
@@ -74,7 +79,7 @@ func (i *Option) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
-func (e *Option) ToAPI() types.Resource {
+func (e *ResourceOption) ToAPI() types.Resource {
 	return types.Resource{
 		Name:  e.Label,
 		Value: e.Value,
