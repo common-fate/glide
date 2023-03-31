@@ -37,8 +37,36 @@ func TestListEntitlementResources(t *testing.T) {
 			accessRules:  []string{accessRule1},
 			resourceName: "accountId",
 
-			want:    CreateAccountIdOptions(accessRule1),
-			notWant: []requestsv2.ResourceOption{},
+			want:    CreateAccountIdOptions(accessRule1, accessRule2),
+			notWant: CreatePermissionSetOptions(accessRule2),
+		},
+		{
+
+			name:         "resource with multiple access rule relations only returns its own",
+			insertBefore: testData,
+			accessRules:  []string{accessRule2},
+			resourceName: "accountId",
+
+			want: []requestsv2.ResourceOption{
+				requestsv2.ResourceOption{
+
+					Label: "accountId",
+					Value: "123456789012",
+					Provider: requestsv2.TargetFrom{
+						Kind:      "Account",
+						Name:      "AWS",
+						Publisher: "common-fate",
+						Version:   "v0.1.0",
+					},
+					Type:        "Account",
+					TargetGroup: "test",
+					AccessRules: []string{
+						accessRule1,
+						accessRule2,
+					},
+				},
+			},
+			notWant: CreatePermissionSetOptions(accessRule2),
 		},
 		{
 
@@ -48,7 +76,51 @@ func TestListEntitlementResources(t *testing.T) {
 			resourceName: "accountId",
 
 			want:    []requestsv2.ResourceOption{},
-			notWant: []requestsv2.ResourceOption{},
+			notWant: CreatePermissionSetOptions(accessRule2),
+		},
+		{
+
+			name:         "get filtered options returns correct results",
+			insertBefore: testData,
+			accessRules:  []string{accessRule1},
+			resourceName: "permissionSetArn",
+			filters:      []string{"123456789012"},
+
+			want: []requestsv2.ResourceOption{
+				{
+					Label: "permissionSetArn",
+					Value: "123-abc",
+					Provider: requestsv2.TargetFrom{
+						Kind:      "Account",
+						Name:      "AWS",
+						Publisher: "common-fate",
+						Version:   "v0.1.0",
+					},
+					Type:        "Account",
+					TargetGroup: "test",
+					AccessRules: []string{
+						accessRule1,
+					},
+					ChildOf: []string{"123456789012"},
+				},
+				{
+					Label: "permissionSetArn",
+					Value: "bar",
+					Provider: requestsv2.TargetFrom{
+						Kind:      "Account",
+						Name:      "AWS",
+						Publisher: "common-fate",
+						Version:   "v0.1.0",
+					},
+					Type:        "Account",
+					TargetGroup: "test",
+					AccessRules: []string{
+						accessRule1,
+					},
+					ChildOf: []string{"123456789012"},
+				},
+			},
+			notWant: CreateAccountIdOptions(accessRule1, accessRule2),
 		},
 	}
 	for _, tc := range testcases {
@@ -84,17 +156,17 @@ func TestListEntitlementResources(t *testing.T) {
 			if tc.wantErr != nil {
 				assert.Equal(t, tc.wantErr, err)
 			}
-			for _, item := range got {
-				assert.Contains(t, tc.want, item)
+			for _, item := range tc.want {
+				assert.Contains(t, got, item)
 			}
-			// for _, item := range tc.notWant {
-			// 	assert.NotContains(t, got, item, "expected item to not be in results")
-			// }
+			for _, item := range tc.notWant {
+				assert.NotContains(t, got, item, "expected item to not be in results")
+			}
 		})
 	}
 }
 
-func CreateAccountIdOptions(accessRule1 string) []requestsv2.ResourceOption {
+func CreateAccountIdOptions(accessRule1 string, accessRule2 string) []requestsv2.ResourceOption {
 	opt1 := requestsv2.ResourceOption{
 
 		Label: "accountId",
@@ -109,6 +181,7 @@ func CreateAccountIdOptions(accessRule1 string) []requestsv2.ResourceOption {
 		TargetGroup: "test",
 		AccessRules: []string{
 			accessRule1,
+			accessRule2,
 		},
 	}
 	opt1a := requestsv2.ResourceOption{
@@ -193,15 +266,15 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		AccessRules: []string{
 			accessRule1,
 		},
-		ChildOf: []string{"123456789012"},
+		ChildOf: []string{"different"},
 	}
 
 	return []requestsv2.ResourceOption{opt2, opt2a, opt2b}
 }
 
 func CreateSeedData(accessRule1 string, accessRule2 string) []requestsv2.ResourceOption {
-	accountIds := CreateAccountIdOptions(accessRule1)
-	permissionSets := CreatePermissionSetOptions(accessRule2)
+	accountIds := CreateAccountIdOptions(accessRule1, accessRule2)
+	permissionSets := CreatePermissionSetOptions(accessRule1)
 
 	opt3 := requestsv2.ResourceOption{
 		Label: "groupName",
