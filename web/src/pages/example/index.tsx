@@ -16,11 +16,15 @@ import {
   useUserListEntitlements,
 } from "../../utils/backend-client/default/default";
 
-import { Entitlement } from "../../utils/backend-client/types";
+import { Entitlement, Resource } from "../../utils/backend-client/types";
 import { useEffect, useState } from "react";
 
 interface EntitlementStore {
   [key: string]: Entitlement;
+}
+
+interface ResourceStore {
+  [key: string]: Resource[];
 }
 
 const Home = () => {
@@ -32,6 +36,7 @@ const Home = () => {
   const [filters, setFilters] = useState<string[]>([]);
 
   const entitlementStore: EntitlementStore = {};
+  const resourceStore: ResourceStore = {};
 
   useEffect(() => {
     if (data) {
@@ -50,6 +55,11 @@ const Home = () => {
         "-" +
         e.Kind.kind;
       entitlementStore[name] = e;
+
+      //initialise resource store
+      Object.entries(ent.Schema).map(([key, val]) => {
+        resourceStore[key] = [];
+      });
     });
   }
   const { data: resources } = useUserListEntitlementResources({
@@ -117,15 +127,13 @@ const Home = () => {
                           setFilters((f) => f.concat(e.target.value))
                         }
                       >
-                        {resources?.resources
-                          .filter((r) => r.name == key)
-                          .map((e) => {
-                            return (
-                              <option
-                                value={e.value}
-                              >{`${e.name}: ${e.value} `}</option>
-                            );
-                          })}
+                        {resourceStore[key].map((e: Resource) => {
+                          return (
+                            <option
+                              value={e.value}
+                            >{`${e.name}: ${e.value} `}</option>
+                          );
+                        })}
                       </Select>
                     )}
                   </VStack>

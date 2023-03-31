@@ -73,8 +73,8 @@ func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Reques
 			Kind:      params.Kind,
 			Version:   params.Version,
 		},
-		Argument: params.ResourceType,
-		Groups:   u.AccessRules,
+		Argument:        params.ResourceType,
+		UserAccessRules: u.AccessRules,
 	}
 	if params.Filters != nil {
 		q.FilterValues = append(q.FilterValues, *params.Filters)

@@ -11,10 +11,10 @@ import (
 )
 
 type ListEntitlementResources struct {
-	Provider     requestsv2.TargetFrom
-	Argument     string
-	FilterValues []string
-	Groups       []string
+	Provider        requestsv2.TargetFrom
+	Argument        string
+	FilterValues    []string
+	UserAccessRules []string
 
 	Result []requestsv2.ResourceOption `ddb:"result"`
 }
@@ -29,10 +29,10 @@ func (l *ListEntitlementResources) BuildQuery() (*dynamodb.QueryInput, error) {
 	}
 
 	expr := "("
-	for i, g := range l.Groups {
+	for i, g := range l.UserAccessRules {
 		key := fmt.Sprintf(":group_%d", i)
 		expr += fmt.Sprintf("contains(accessRules, %s)", key)
-		if i < len(l.Groups)-1 {
+		if i < len(l.UserAccessRules)-1 {
 			expr += " OR "
 		}
 		qi.ExpressionAttributeValues[key] = &types.AttributeValueMemberS{Value: g}

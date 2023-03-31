@@ -143,9 +143,9 @@ func TestListEntitlementResources(t *testing.T) {
 					Publisher: "common-fate",
 					Version:   "v0.1.0",
 				},
-				Argument:     tc.resourceName,
-				Groups:       tc.accessRules,
-				FilterValues: tc.filters,
+				Argument:        tc.resourceName,
+				UserAccessRules: tc.accessRules,
+				FilterValues:    tc.filters,
 			}
 			_, err := s.Query(ctx, &q)
 			if err != nil && tc.wantErr == nil {
