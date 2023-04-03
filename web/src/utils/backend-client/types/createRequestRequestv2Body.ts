@@ -6,4 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export type TargetWith = {[key: string]: string};
+export type CreateRequestRequestv2Body = {
+  preflightId: string;
+};

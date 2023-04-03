@@ -47,6 +47,7 @@ export * from './createPreflightRequestBodyOne';
 export * from './createPreflightRequestBodyTwo';
 export * from './createProviderSetupRequestBody';
 export * from './createRequestRequestBody';
+export * from './createRequestRequestv2Body';
 export * from './createRequestWith';
 export * from './createRequestWithSubRequest';
 export * from './createTargetGroupLinkBody';

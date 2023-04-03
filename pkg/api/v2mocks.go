@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -9,6 +10,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 )
 
 // List Requests
@@ -180,6 +182,29 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/requestsv2)
 func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	// u := auth.UserFromContext(ctx)
+
+	var createRequest types.CreateRequestRequestv2
+	err := apio.DecodeJSONBody(w, r, &createRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	preflight := storage.GetPreflight{
+		ID: createRequest.PreflightId,
+	}
+
+	_, err = a.DB.Query(ctx, &preflight)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("preflight id not found"), Status: http.StatusNotFound})
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	//request service to initiate the granting process...
 
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }

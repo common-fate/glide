@@ -12,5 +12,5 @@ export interface Target {
   accessRule: string;
   reason: string;
   timeConstraints: TimeConstraints;
-  With: TargetWith;
+  with: TargetWith;
 }

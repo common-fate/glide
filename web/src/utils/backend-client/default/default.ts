@@ -17,6 +17,7 @@ import type {
   ListResourcesResponseResponse,
   UserListEntitlementResourcesParams,
   ListRequests2ResponseResponse,
+  CreateRequestRequestv2Body,
   PreflightResponseResponse,
   CreatePreflightRequestBody,
   Requestv2,
@@ -199,10 +200,12 @@ export const useUserListRequestsv2 = <TError = ErrorType<ErrorResponseResponse>>
  * Initiates the granting process for a group of requests
  */
 export const userPostRequestsv2 = (
-    
+    createRequestRequestv2Body: CreateRequestRequestv2Body,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
-      {url: `/api/v1/requestsv2`, method: 'post'
+      {url: `/api/v1/requestsv2`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createRequestRequestv2Body
     },
       options);
     }
