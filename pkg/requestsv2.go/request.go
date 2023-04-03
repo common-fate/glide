@@ -99,6 +99,29 @@ func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
+type Preflight struct {
+	// ID is a read-only field after the request has been created.
+	ID string `json:"id" dynamodbav:"id"`
+
+	Requests map[string]PreflightRequest `json:"requests" dynamodbav:"requests"`
+	User     string                      `json:"user" dynamodbav:"user"`
+}
+
+type PreflightRequest struct {
+	AccessRule      string                `json:"accessRule" dynamodbav:"accessRule"`
+	Reason          string                `json:"reason" dynamodbav:"reason"`
+	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	With            []map[string]string   `json:"with" dynamodbav:"with"`
+}
+
+func (i *Preflight) DDBKeys() (ddb.Keys, error) {
+	keys := ddb.Keys{
+		PK: keys.Preflight.PK1,
+		SK: keys.Preflight.SK1(i.ID),
+	}
+	return keys, nil
+}
+
 type RequestContext struct {
 	Purpose  string `json:"purpose" dynamodbav:"purpose"`
 	Metadata string `json:"metadata" dynamodbav:"metadata"`

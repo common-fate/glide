@@ -18,7 +18,7 @@ import type {
   UserListEntitlementResourcesParams,
   ListRequests2ResponseResponse,
   PreflightResponseResponse,
-  CreateRequestPreflightRequestBody,
+  CreatePreflightRequestBody,
   Requestv2,
   ListAccessGroupsResponseResponse,
   AccessGroup,
@@ -212,12 +212,12 @@ export const userPostRequestsv2 = (
  * Verify and validate a collection of request items
  */
 export const userRequestPreflight = (
-    createRequestPreflightRequestBody: CreateRequestPreflightRequestBody,
+    createPreflightRequestBody: CreatePreflightRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<PreflightResponseResponse>(
       {url: `/api/v1/requestsv2/preflight`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: createRequestPreflightRequestBody
+      data: createPreflightRequestBody
     },
       options);
     }

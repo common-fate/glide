@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateRequestPreflightRequestBodyTwo = { [key: string]: any };
+export type CreatePreflightRequestBodyTwo = { [key: string]: any };

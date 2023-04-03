@@ -60,3 +60,7 @@ func NewEntitlementID() string {
 func NewOptionID() string {
 	return newResourceID("opt")
 }
+
+func NewPreflightID() string {
+	return newResourceID("pre")
+}

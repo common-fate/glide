@@ -102,6 +102,76 @@ func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Reques
 // (POST /api/v1/requestsv2/preflight)
 func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
+
+	var createPreflightRequest types.CreatePreflightRequest
+	err := apio.DecodeJSONBody(w, r, &createPreflightRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	preflight := requestsv2.Preflight{
+		ID:       types.NewPreflightID(),
+		Requests: map[string]requestsv2.PreflightRequest{},
+		User:     u.ID,
+	}
+
+	//todo: move business logic into a service
+
+	//loop through targets and match them to access rules
+
+	for _, target := range createPreflightRequest.Targets {
+
+		//Look up where
+		//does this access rule exist in the preflight request map?
+
+		_, ok := preflight.Requests[target.AccessRule]
+
+		//if exists add to the array of targets
+
+		//if not exists create the entry in the map and add target
+
+		if !ok {
+			newTarget := map[string]string{}
+
+			for key, val := range target.With.AdditionalProperties {
+				newTarget[key] = val
+			}
+
+			preflight.Requests[target.AccessRule] = requestsv2.PreflightRequest{
+				AccessRule:      target.AccessRule,
+				Reason:          target.Reason,
+				TimeConstraints: target.TimeConstraints,
+				With:            []map[string]string{newTarget},
+			}
+
+		} else {
+
+			newTarget := map[string]string{}
+
+			for key, val := range target.With.AdditionalProperties {
+				newTarget[key] = val
+			}
+
+			if thisRequest, ok := preflight.Requests[target.AccessRule]; ok {
+				thisRequest.With = append(thisRequest.With, newTarget)
+				preflight.Requests[target.AccessRule] = thisRequest
+			}
+
+		}
+
+	}
+	//validate current user has access to access rules
+
+	//group requests based on duration and purpose
+
+	//create a preflight object in the db
+	a.DB.Put(ctx, &preflight)
+
+	//if successful return with preflight id
+
+	//if not successful, return preflight id, attach diagnostics
 
 	apio.JSON(ctx, w, nil, http.StatusOK)
 
