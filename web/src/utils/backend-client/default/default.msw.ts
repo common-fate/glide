@@ -17,15 +17,21 @@ import {
 
 export const getAdminListTargetRoutesMock = () => ({routes: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({targetGroupId: faker.random.word(), handlerId: faker.random.word(), kind: faker.random.word(), priority: faker.datatype.number({min: undefined, max: undefined}), valid: faker.datatype.boolean(), diagnostics: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({level: faker.helpers.arrayElement(Object.values(LogLevel)), code: faker.random.word(), message: faker.random.word()}))})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
-export const getUserListEntitlementsMock = () => (Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({Schema: {
-        'clfvsxg9j0011v3onakzs6xjh': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
-        'clfvsxg9j0010v3on1aildzjl': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
+export const getUserListEntitlementsMock = () => ({targetGroups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), schema: {
+        'clg04ya6e00117von1fmvdtxs': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement(['SELECT']), groups: {
+        'clg04ya6e00107vonfnix49r8': {id: faker.random.word(), title: faker.random.word(), description: faker.helpers.arrayElement([faker.random.word(), undefined])}
       }}
-      }, Kind: {publisher: faker.random.word(), name: faker.random.word(), version: faker.random.word(), kind: faker.random.word()}})))
+      }, from: {publisher: faker.random.word(), name: faker.random.word(), version: faker.random.word(), kind: faker.random.word()}, icon: faker.random.word(), createdAt: faker.helpers.arrayElement([faker.random.word(), undefined]), updatedAt: faker.helpers.arrayElement([faker.random.word(), undefined])})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
-export const getUserListEntitlementResourcesMock = () => ({resources: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({type: faker.random.word(), value: faker.random.word(), description: faker.random.word(), name: faker.random.word()})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
+export const getUserListEntitlementResourcesMock = () => ({resources: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({type: faker.random.word(), value: faker.random.word(), description: faker.random.word(), label: faker.random.word(), related: {}})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
 
 export const getUserListRequestsv2Mock = () => ({id: faker.helpers.arrayElement([faker.random.word(), undefined])})
+
+export const getUserRequestPreflightMock = () => ({targets: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+        'clg04ya6m00137von0rnjcql0': {id: faker.random.word(), title: faker.random.word(), resourceName: faker.helpers.arrayElement([faker.random.word(), undefined]), description: faker.helpers.arrayElement([faker.random.word(), undefined]), ruleFormElement: faker.helpers.arrayElement(['INPUT','MULTISELECT','SELECT']), requestFormElement: faker.helpers.arrayElement([faker.helpers.arrayElement(['SELECT']), undefined]), groups: faker.helpers.arrayElement([{
+        'clg04ya6m00127von136qak20': {name: faker.random.word(), description: faker.random.word(), id: faker.random.word(), memberCount: faker.datatype.number({min: undefined, max: undefined}), members: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word())), source: faker.random.word()}
+      }, undefined])}
+      })), preflightId: faker.random.word()})
 
 export const getUserGetRequestv2Mock = () => ({id: faker.random.word(), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), grants: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), id: faker.random.word(), subject: faker.random.word(), target: {}})), time: {maxDurationSeconds: faker.datatype.number({min: 60, max: 15724800})}, status: faker.random.word()})), context: {purpose: {reason: faker.random.word()}, context: {ip: faker.random.word(), userAgent: faker.random.word()}, metadata: {createdAt: faker.random.word()}}})
 
@@ -61,6 +67,17 @@ ctx.json(getUserListEntitlementResourcesMock()),
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
 ctx.json(getUserListRequestsv2Mock()),
+        )
+      }),rest.post('*/api/v1/requestsv2', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+        )
+      }),rest.post('*/api/v1/requestsv2/preflight', (_req, res, ctx) => {
+        return res(
+          ctx.delay(1000),
+          ctx.status(200, 'Mocked status'),
+ctx.json(getUserRequestPreflightMock()),
         )
       }),rest.get('*/api/v1/requestsv2/:requestId', (_req, res, ctx) => {
         return res(

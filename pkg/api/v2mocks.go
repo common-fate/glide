@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requestsv2.go"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
@@ -42,7 +43,7 @@ func (a *API) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, 
 func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-	q := storage.ListEntitlements{}
+	q := storage.ListTargetGroups{}
 	_, err := a.DB.Query(ctx, &q)
 
 	if err != nil {
@@ -50,10 +51,16 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := types.ListEntitlementsResponse{}
+	deduplicated := make(map[string]target.Group)
+	//filter out the duplicates
+	for _, g := range q.Result {
+		deduplicated[g.From.Kind+g.From.Publisher+g.From.Name+g.From.Version] = g
+	}
 
-	for _, e := range q.Result {
-		res = append(res, e.ToAPI())
+	res := types.ListTargetGroupResponse{}
+
+	for _, e := range deduplicated {
+		res.TargetGroups = append(res.TargetGroups, e.ToAPI())
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
 
@@ -73,12 +80,10 @@ func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Reques
 			Kind:      params.Kind,
 			Version:   params.Version,
 		},
-		Argument:        params.ResourceType,
+		Argument:        params.ResourceType, // update name here
 		UserAccessRules: u.AccessRules,
 	}
-	if params.Filters != nil {
-		q.FilterValues = append(q.FilterValues, *params.Filters)
-	}
+
 	_, err := a.DB.Query(ctx, &q)
 
 	if err != nil {
@@ -92,4 +97,19 @@ func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Reques
 		res.Resources = append(res.Resources, e.ToAPI())
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
+}
+
+// (POST /api/v1/requestsv2/preflight)
+func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	apio.JSON(ctx, w, nil, http.StatusOK)
+
+}
+
+// (POST /api/v1/requestsv2)
+func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }

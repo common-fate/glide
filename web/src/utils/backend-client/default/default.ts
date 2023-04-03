@@ -13,10 +13,12 @@ import type {
 import type {
   ListTargetGroupRoutesResponse,
   ErrorResponseResponse,
-  ListEntitlementsResponseResponse,
+  ListTargetGroupResponseResponse,
   ListResourcesResponseResponse,
   UserListEntitlementResourcesParams,
   ListRequests2ResponseResponse,
+  PreflightResponseResponse,
+  CreateRequestPreflightRequestBody,
   Requestv2,
   ListAccessGroupsResponseResponse,
   AccessGroup,
@@ -82,7 +84,7 @@ These are derived from the Target Groups.
 export const userListEntitlements = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListEntitlementsResponseResponse>(
+      return customInstance<ListTargetGroupResponseResponse>(
       {url: `/api/v1/entitlements`, method: 'get'
     },
       options);
@@ -192,6 +194,34 @@ export const useUserListRequestsv2 = <TError = ErrorType<ErrorResponseResponse>>
     ...query
   }
 }
+
+/**
+ * Initiates the granting process for a group of requests
+ */
+export const userPostRequestsv2 = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/requestsv2`, method: 'post'
+    },
+      options);
+    }
+  
+
+/**
+ * Verify and validate a collection of request items
+ */
+export const userRequestPreflight = (
+    createRequestPreflightRequestBody: CreateRequestPreflightRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<PreflightResponseResponse>(
+      {url: `/api/v1/requestsv2/preflight`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createRequestPreflightRequestBody
+    },
+      options);
+    }
+  
 
 /**
  * Gets information for a requestv2

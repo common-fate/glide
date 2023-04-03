@@ -5,10 +5,12 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { ResourceRelated } from './resourceRelated';
 
 export interface Resource {
   type: string;
   value: string;
   description: string;
-  name: string;
+  label: string;
+  related: ResourceRelated;
 }

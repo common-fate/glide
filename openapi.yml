@@ -1266,7 +1266,7 @@ paths:
       tags: []
       responses:
         "200":
-          $ref: "#/components/responses/ListEntitlementsResponse"
+          $ref: "#/components/responses/ListTargetGroupResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-entitlements
@@ -1319,11 +1319,6 @@ paths:
           name: resourceType
           description: The type of resource to list
           required: true
-        - schema:
-            type: string
-          in: query
-          name: filters
-          description: filter options
     parameters: []
   /api/v1/requestsv2:
     get:
@@ -1339,6 +1334,32 @@ paths:
       operationId: user-list-requestsv2
       description: Gets all requests availiable
     parameters: []
+    post:
+      summary: ""
+      operationId: user-post-requestsv2
+      responses:
+        "200":
+          description: OK
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Initiates the granting process for a group of requests
+  /api/v1/requestsv2/preflight:
+    parameters: []
+    post:
+      summary: ""
+      operationId: user-request-preflight
+      responses:
+        "200":
+          $ref: "#/components/responses/PreflightResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Verify and validate a collection of request items
+      requestBody:
+        $ref: "#/components/requestBodies/CreateRequestPreflightRequest"
   "/api/v1/requestsv2/{requestId}":
     get:
       summary: Get Request
@@ -2962,13 +2983,16 @@ components:
           type: string
         description:
           type: string
-        name:
+        label:
           type: string
+        related:
+          type: object
       required:
         - type
         - value
         - description
-        - name
+        - label
+        - related
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -3312,6 +3336,22 @@ components:
                 type: string
             required:
               - resources
+    PreflightResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              targets:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ArgSchema"
+              preflightId:
+                type: string
+            required:
+              - targets
+              - preflightId
   examples: {}
   securitySchemes: {}
   requestBodies:
@@ -3563,6 +3603,17 @@ components:
               - deploymentId
               - priority
               - kind
+    CreateRequestPreflightRequest:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ArgSchema"
+        application/xml:
+          schema:
+            type: object
+            properties: {}
 tags:
   - name: End User
   - name: Admin

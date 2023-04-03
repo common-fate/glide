@@ -1,10 +1,12 @@
 package requestsv2
 
 import (
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/requestsv2.go"
-	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/joho/godotenv"
 	"github.com/sethvargo/go-envconfig"
 	"github.com/urfave/cli/v2"
@@ -30,34 +32,52 @@ var SeedCommand = cli.Command{
 		items := []ddb.Keyer{}
 
 		//create an entitlement
-		ent := requestsv2.Entitlement{
-			ID: types.NewEntitlementID(),
-			Kind: requestsv2.TargetFrom{
+
+		ent := target.Group{
+			ID: "aws-tg",
+			From: target.From{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
 				Version:   "v0.1.0",
 			},
-			OptionSchema: types.TargetSchema{
-				AdditionalProperties: map[string]types.TargetArgument{
-					"accountId":        {Title: "Account"},
-					"permissionSetArn": {Title: "Permission Set"},
+			Schema: providerregistrysdk.Target{
+				Type: "",
+				Properties: map[string]providerregistrysdk.TargetField{
+					"accountId":        {Title: aws.String("Account")},
+					"permissionSetArn": {Title: aws.String("Permission Set")},
 				},
 			},
 		}
 
-		ent2 := requestsv2.Entitlement{
-			ID: types.NewEntitlementID(),
+		// ent := requestsv2.Entitlement{
+		// 	ID: types.NewEntitlementID(),
+		// 	Kind: requestsv2.TargetFrom{
+		// 		Kind:      "Account",
+		// 		Name:      "AWS",
+		// 		Publisher: "common-fate",
+		// 		Version:   "v0.1.0",
+		// 	},
+		// 	OptionSchema: types.TargetSchema{
+		// 		AdditionalProperties: map[string]types.TargetArgument{
+		// 			"accountId":        {Title: "Account"},
+		// 			"permissionSetArn": {Title: "Permission Set"},
+		// 		},
+		// 	},
+		// }
 
-			Kind: requestsv2.TargetFrom{
+		ent2 := target.Group{
+			ID: "okta-tg",
+			From: target.From{
 				Kind:      "Group",
 				Name:      "Okta",
 				Publisher: "common-fate",
 				Version:   "v0.1.0",
 			},
-			OptionSchema: types.TargetSchema{
-				AdditionalProperties: map[string]types.TargetArgument{
-					"groupName": {Title: "Group Name"},
+			Schema: providerregistrysdk.Target{
+				Type: "",
+				Properties: map[string]providerregistrysdk.TargetField{
+					"groupName": {Title: aws.String("Group Name")},
 				},
 			},
 		}
@@ -123,7 +143,7 @@ var SeedCommand = cli.Command{
 			AccessRules: []string{
 				"test",
 			},
-			ChildOf: []string{"123456789012"},
+			RelatedTo: []string{"123456789012"},
 		}
 		opt2a := requestsv2.ResourceOption{
 			Label: "permissionSetArn",
@@ -139,7 +159,7 @@ var SeedCommand = cli.Command{
 			AccessRules: []string{
 				"test",
 			},
-			ChildOf: []string{"123456789012"},
+			RelatedTo: []string{"123456789012"},
 		}
 		opt2b := requestsv2.ResourceOption{
 			Label: "permissionSetArn",
@@ -155,7 +175,7 @@ var SeedCommand = cli.Command{
 			AccessRules: []string{
 				"test",
 			},
-			ChildOf: []string{"123456789012"},
+			RelatedTo: []string{"123456789012"},
 		}
 
 		opt3 := requestsv2.ResourceOption{

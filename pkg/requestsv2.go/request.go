@@ -3,7 +3,6 @@ package requestsv2
 import (
 	"fmt"
 
-	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -31,8 +30,6 @@ type Entitlement struct {
 	Kind         TargetFrom         `json:"provider" dynamodbav:"provider"`
 	Description  string             `json:"description" dynamodbav:"description"`
 	OptionSchema types.TargetSchema `json:"optionSchema" dynamodbav:"optionSchema"`
-	User         string             `json:"user" dynamodbav:"user"`
-	AccessRule   rule.AccessRule    `json:"accessRule" dynamodbav:"accessRule"`
 }
 
 func (i *Entitlement) DDBKeys() (ddb.Keys, error) {
@@ -64,7 +61,7 @@ type ResourceOption struct {
 	Provider    TargetFrom `json:"provider" dynamodbav:"provider"`
 	TargetGroup string     `json:"targetGroup" dynamodbav:"targetGroup"`
 	AccessRules []string   `json:"accessRules" dynamodbav:"accessRules"`
-	ChildOf     []string   `json:"childOf" dynamodbav:"childOf"`
+	RelatedTo   []string   `json:"childOf" dynamodbav:"childOf"`
 }
 
 func (o *TargetFrom) GetTargetFromString() string {
@@ -81,7 +78,7 @@ func (i *ResourceOption) DDBKeys() (ddb.Keys, error) {
 
 func (e *ResourceOption) ToAPI() types.Resource {
 	return types.Resource{
-		Name:  e.Label,
+		Label: e.Label,
 		Value: e.Value,
 	}
 }

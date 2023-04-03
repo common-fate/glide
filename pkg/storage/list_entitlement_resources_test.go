@@ -101,7 +101,7 @@ func TestListEntitlementResources(t *testing.T) {
 					AccessRules: []string{
 						accessRule1,
 					},
-					ChildOf: []string{"123456789012"},
+					RelatedTo: []string{"123456789012"},
 				},
 				{
 					Label: "permissionSetArn",
@@ -117,7 +117,7 @@ func TestListEntitlementResources(t *testing.T) {
 					AccessRules: []string{
 						accessRule1,
 					},
-					ChildOf: []string{"123456789012"},
+					RelatedTo: []string{"123456789012"},
 				},
 			},
 			notWant: CreateAccountIdOptions(accessRule1, accessRule2),
@@ -234,7 +234,7 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		AccessRules: []string{
 			accessRule1,
 		},
-		ChildOf: []string{"123456789012"},
+		RelatedTo: []string{"123456789012"},
 	}
 	opt2a := requestsv2.ResourceOption{
 		Label: "permissionSetArn",
@@ -250,7 +250,7 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		AccessRules: []string{
 			accessRule1,
 		},
-		ChildOf: []string{"123456789012"},
+		RelatedTo: []string{"123456789012"},
 	}
 	opt2b := requestsv2.ResourceOption{
 		Label: "permissionSetArn",
@@ -266,7 +266,7 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		AccessRules: []string{
 			accessRule1,
 		},
-		ChildOf: []string{"different"},
+		RelatedTo: []string{"different"},
 	}
 
 	return []requestsv2.ResourceOption{opt2, opt2a, opt2b}

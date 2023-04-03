@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type UserListEntitlementResourcesParams = { kind: string; publisher: string; name: string; version: string; resourceType: string; filters?: string };
+export type UserListEntitlementResourcesParams = { kind: string; publisher: string; name: string; version: string; resourceType: string };

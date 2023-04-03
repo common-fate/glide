@@ -16,11 +16,11 @@ import {
   useUserListEntitlements,
 } from "../../utils/backend-client/default/default";
 
-import { Entitlement, Resource } from "../../utils/backend-client/types";
+import { TargetGroup, Resource } from "../../utils/backend-client/types";
 import { useEffect, useState } from "react";
 
 interface EntitlementStore {
-  [key: string]: Entitlement;
+  [key: string]: TargetGroup;
 }
 
 interface ResourceStore {
@@ -31,7 +31,7 @@ const Home = () => {
   const { data } = useUserListEntitlements();
 
   //@ts-ignore
-  const [ent, setEnt] = useState<Entitlement>({});
+  const [ent, setEnt] = useState<TargetGroup>({});
 
   const [filters, setFilters] = useState<string[]>([]);
 
@@ -40,35 +40,34 @@ const Home = () => {
 
   useEffect(() => {
     if (data) {
-      setEnt(data[1]);
+      setEnt(data.targetGroups[1]);
     }
   }, [data]);
   // //key value pair to figure out which entitlement we have selected
   if (data) {
-    data.forEach((e) => {
+    data.targetGroups.forEach((e) => {
       const name =
-        e.Kind.publisher +
+        e.from.publisher +
         "-" +
-        e.Kind.name +
+        e.from.name +
         "-" +
-        e.Kind.version +
+        e.from.version +
         "-" +
-        e.Kind.kind;
+        e.from.kind;
       entitlementStore[name] = e;
 
       //initialise resource store
-      Object.entries(ent.Schema).map(([key, val]) => {
+      Object.entries(ent.schema).map(([key, val]) => {
         resourceStore[key] = [];
       });
     });
   }
   const { data: resources } = useUserListEntitlementResources({
-    kind: data && ent.Kind ? ent.Kind.kind : "",
-    publisher: data && ent.Kind ? ent.Kind.publisher : "",
-    name: data && ent.Kind ? ent.Kind.name : "",
-    version: data && ent.Kind ? ent.Kind.version : "",
-    resourceType: data && ent.Kind ? "accountId" : "accountId",
-    filters: filters.length > 0 ? filters[0] : undefined,
+    kind: data && ent.from ? ent.from.kind : "",
+    publisher: data && ent.from ? ent.from.publisher : "",
+    name: data && ent.from ? ent.from.name : "",
+    version: data && ent.from ? ent.from.version : "",
+    resourceType: data && ent.from ? "accountId" : "accountId",
   });
 
   return (
@@ -88,19 +87,19 @@ const Home = () => {
                     setEnt(entitlementStore[e.target.value])
                   }
                 >
-                  {data?.map((e) => {
+                  {data?.targetGroups?.map((e) => {
                     return (
                       <option
                         value={
-                          e.Kind.publisher +
+                          e.from.publisher +
                           "-" +
-                          e.Kind.name +
+                          e.from.name +
                           "-" +
-                          e.Kind.version +
+                          e.from.version +
                           "-" +
-                          e.Kind.kind
+                          e.from.kind
                         }
-                      >{`${e.Kind.name} ${e.Kind.version}`}</option>
+                      >{`${e.from.name} ${e.from.version}`}</option>
                     );
                   })}
                 </Select>
@@ -110,10 +109,10 @@ const Home = () => {
               (!resources.resources && (
                 <Text>You dont seem to have access to this entitlement</Text>
               ))}
-            {ent.Kind &&
+            {ent.from &&
               resources &&
               resources.resources &&
-              Object.entries(ent.Schema).map(([key, obj]) => {
+              Object.entries(ent.schema).map(([key, obj]) => {
                 return (
                   <VStack>
                     <Heading>

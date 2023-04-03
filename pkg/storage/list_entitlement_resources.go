@@ -41,18 +41,19 @@ func (l *ListEntitlementResources) BuildQuery() (*dynamodb.QueryInput, error) {
 
 	//then we do an AND expression to filter for related fields if they exist
 
-	if len(l.FilterValues) > 0 {
-		expr += " AND ("
-		for i, g := range l.FilterValues {
-			key := fmt.Sprintf(":filter_%d", i)
-			expr += fmt.Sprintf("contains(childOf, %s)", key)
-			if i < len(l.FilterValues)-1 {
-				expr += " OR "
-			}
-			qi.ExpressionAttributeValues[key] = &types.AttributeValueMemberS{Value: g}
-		}
-		expr += ")"
-	}
+	//resource filtering at the storage layer is disabled with favour to doing it in the frontend
+	// if len(l.FilterValues) > 0 {
+	// 	expr += " AND ("
+	// 	for i, g := range l.FilterValues {
+	// 		key := fmt.Sprintf(":filter_%d", i)
+	// 		expr += fmt.Sprintf("contains(childOf, %s)", key)
+	// 		if i < len(l.FilterValues)-1 {
+	// 			expr += " OR "
+	// 		}
+	// 		qi.ExpressionAttributeValues[key] = &types.AttributeValueMemberS{Value: g}
+	// 	}
+	// 	expr += ")"
+	// }
 
 	qi.FilterExpression = &expr
 	return &qi, nil
