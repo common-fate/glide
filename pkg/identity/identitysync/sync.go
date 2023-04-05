@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/service/identitysvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -30,8 +31,9 @@ type IdentitySyncer struct {
 	idpType string
 	// used to prevent concurrent calls to sync
 	// prevents unexpected duplication of users and groups when used asyncronously
-	syncMutex   sync.Mutex
-	groupFilter string
+	syncMutex       sync.Mutex
+	groupFilter     string
+	IdentityService identitysvc.Service
 }
 
 type SyncOpts struct {
@@ -86,6 +88,9 @@ func NewIdentitySyncer(ctx context.Context, opts SyncOpts) (*IdentitySyncer, err
 		idp:         idp.IdentityProvider,
 		idpType:     opts.IdpType,
 		groupFilter: opts.IdentityGroupFilter,
+		IdentityService: identitysvc.Service{
+			DB: db,
+		},
 	}, nil
 }
 
@@ -189,12 +194,17 @@ func (s *IdentitySyncer) Sync(ctx context.Context) error {
 		return err
 	}
 	usersMap, groupsMap := processUsersAndGroups(s.idpType, idpUsers, idpGroups, uq.Result, gq.Result, useIdpGroupsAsFilter)
+
+	//update users access rules
+	usersMap, err = s.IdentityService.UpdateUserAccessRules(ctx, usersMap, groupsMap)
+	if err != nil {
+		return err
+	}
+
 	items := make([]ddb.Keyer, 0, len(usersMap)+len(groupsMap))
 	for _, v := range usersMap {
 		vi := v
-		//todo: remove
 
-		vi.AccessRules = []string{"test"}
 		items = append(items, &vi)
 	}
 	for _, v := range groupsMap {
