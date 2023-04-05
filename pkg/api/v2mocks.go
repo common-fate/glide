@@ -113,6 +113,11 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	out, err := a.PreflightService.GroupTargets(ctx, createPreflightRequest.Targets)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	//TODO: validate grouped targets. Either here or in the preflight service.
 
 	//save the preflight if successful
 	a.DB.Put(ctx, &out)
