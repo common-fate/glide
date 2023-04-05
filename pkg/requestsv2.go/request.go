@@ -122,6 +122,12 @@ func (i *Preflight) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
+func (i *Preflight) ToAPI() types.PreflightResponse {
+	return types.PreflightResponse{
+		PreflightId: i.ID,
+	}
+}
+
 type RequestContext struct {
 	Purpose  string `json:"purpose" dynamodbav:"purpose"`
 	Metadata string `json:"metadata" dynamodbav:"metadata"`

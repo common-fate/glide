@@ -3,13 +3,15 @@ package cache
 import (
 	"strings"
 
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
 
 type Resource struct {
-	ID   string `json:"id" dynamodbav:"id"`
-	Name string `json:"name" dynamodbav:"name"`
+	ID          string            `json:"id" dynamodbav:"id"`
+	Name        string            `json:"name" dynamodbav:"name"`
+	AccessRules []rule.AccessRule `json:"accessRules" dynamodbav:"accessRules"`
 }
 
 type TargateGroupResource struct {
