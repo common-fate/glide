@@ -41,18 +41,6 @@ var RequestV2 = requestKeys{
 	SK1:           func(userId string, requestId string) string { return userId + "#" + requestId + "#" },
 }
 
-const RequestGroup = "PREFLIGHT#"
-
-type requestgroupKeys struct {
-	PK1 string
-	SK1 func(preflightId string) string
-}
-
-var RequestGroups = requestgroupKeys{
-	PK1: RequestGroup,
-	SK1: func(requestGroup string) string { return requestGroup + "#" },
-}
-
 const AccessGroupKey = "ACCESS_GROUP#"
 
 type accessGroupKeys struct {

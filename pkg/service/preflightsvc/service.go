@@ -15,17 +15,17 @@ type Service struct {
 }
 
 type PreflightService interface {
-	GroupTargets(ctx context.Context, targets []types.Target) (requestsv2.RequestGroup, error)
+	GroupTargets(ctx context.Context, targets []types.Target) (requestsv2.Requestv2, error)
 }
 
-func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*requestsv2.RequestGroup, error) {
+func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*requestsv2.Requestv2, error) {
 
 	u := auth.UserFromContext(ctx)
 
-	preflight := requestsv2.RequestGroup{
-		ID:       types.NewPreflightID(),
-		Requests: map[string]requestsv2.RequestGroupRequest{},
-		User:     *u,
+	preflight := requestsv2.Requestv2{
+		ID:     types.NewRequestID(),
+		Groups: map[string]requestsv2.AccessGroup{},
+		User:   *u,
 	}
 
 	//Go through each target in the request and group them up based on access rule
@@ -37,7 +37,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 	for _, target := range targets {
 
 		//Grouping up targets based on which access rule they are apart of
-		_, ok := preflight.Requests[target.AccessRule]
+		_, ok := preflight.Groups[target.AccessRule]
 		if !ok {
 			newTarget := map[string]string{}
 
@@ -54,7 +54,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 				return nil, err
 			}
 
-			preflight.Requests[target.AccessRule] = requestsv2.RequestGroupRequest{
+			preflight.Groups[target.AccessRule] = requestsv2.AccessGroup{
 				AccessRule:      *ac.Result,
 				Reason:          target.Reason,
 				TimeConstraints: target.TimeConstraints,
@@ -69,9 +69,9 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 				newTarget[key] = val
 			}
 
-			if thisRequest, ok := preflight.Requests[target.AccessRule]; ok {
+			if thisRequest, ok := preflight.Groups[target.AccessRule]; ok {
 				thisRequest.With = append(thisRequest.With, newTarget)
-				preflight.Requests[target.AccessRule] = thisRequest
+				preflight.Groups[target.AccessRule] = thisRequest
 			}
 
 		}

@@ -27,33 +27,6 @@ type TargetFrom struct {
 	Kind      string `json:"kind" dynamodbav:"kind"`
 }
 
-type Entitlement struct {
-	ID           string             `json:"id" dynamodbav:"id"`
-	Kind         TargetFrom         `json:"provider" dynamodbav:"provider"`
-	Description  string             `json:"description" dynamodbav:"description"`
-	OptionSchema types.TargetSchema `json:"optionSchema" dynamodbav:"optionSchema"`
-}
-
-func (i *Entitlement) DDBKeys() (ddb.Keys, error) {
-	keys := ddb.Keys{
-		PK: keys.Entitlement.PK1,
-		SK: keys.Entitlement.SK1(i.ID),
-	}
-	return keys, nil
-}
-
-func (e *Entitlement) ToAPI() types.Entitlement {
-	return types.Entitlement{
-		Kind: types.TargetGroupFrom{
-			Kind:      e.Kind.Kind,
-			Publisher: e.Kind.Publisher,
-			Name:      e.Kind.Name,
-			Version:   e.Kind.Version,
-		},
-		Schema: e.OptionSchema,
-	}
-}
-
 type ResourceOption struct {
 	ID          string     `json:"id" dynamodbav:"id"`
 	Type        string     `json:"type" dynamodbav:"type"`
@@ -85,90 +58,43 @@ func (e *ResourceOption) ToAPI() types.Resource {
 	}
 }
 
+//request hold all the groupings and reasonings
+//access groups hold all the target information, different group for each access rule
+//grants hold all the information surrounding the active grant
+
 type Requestv2 struct {
 	// ID is a read-only field after the request has been created.
-	ID      string         `json:"id" dynamodbav:"id"`
-	Groups  []AccessGroup  `json:"groups" dynamodbav:"groups"`
-	Context RequestContext `json:"context" dynamodbav:"context"`
-	User    string         `json:"user" dynamodbav:"user"`
+	ID      string                 `json:"id" dynamodbav:"id"`
+	Groups  map[string]AccessGroup `json:"groups" dynamodbav:"groups"`
+	Context RequestContext         `json:"context" dynamodbav:"context"`
+	User    identity.User          `json:"user" dynamodbav:"user"`
+	Status  string                 `json:"status" dynamodbav:"status"`
 }
 
 func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.RequestV2.PK1,
-		SK: keys.RequestV2.SK1(i.User, i.ID),
+		SK: keys.RequestV2.SK1(i.User.ID, i.ID),
 	}
 	return keys, nil
-}
-
-type RequestGroup struct {
-	// ID is a read-only field after the request has been created.
-	ID string `json:"id" dynamodbav:"id"`
-
-	Requests map[string]RequestGroupRequest `json:"requests" dynamodbav:"requests"`
-	User     identity.User                  `json:"user" dynamodbav:"user"`
-}
-
-//What the requestgroup request looks like
-// RequestGroup {
-// 	Id: "",
-// 	User: "",
-// 	requests: [
-// 			{
-// 				"access-rule-id" :{
-// 					AccessRuleId: "",
-// 					Reason:       "",
-// 					Timing:       "",
-// 					With: [
-// 						{
-// 							"accountId": "value",
-// 							"permissionSetArn": "value",
-// 						},
-// 						{
-// 							"accountId": "value2",
-// 							"permissionSetArn": "value2",
-// 						},
-// 					],
-// 				}
-// 			},
-
-// 	],
-
-// }
-
-type RequestGroupRequest struct {
-	AccessRule      rule.AccessRule       `json:"accessRule" dynamodbav:"accessRule"`
-	Reason          string                `json:"reason" dynamodbav:"reason"`
-	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	With            []map[string]string   `json:"with" dynamodbav:"with"`
-}
-
-func (i *RequestGroup) DDBKeys() (ddb.Keys, error) {
-	keys := ddb.Keys{
-		PK: keys.RequestGroups.PK1,
-		SK: keys.RequestGroups.SK1(i.ID),
-	}
-	return keys, nil
-}
-
-func (i *RequestGroup) ToAPI() types.PreflightResponse {
-	return types.PreflightResponse{
-		PreflightId: i.ID,
-	}
 }
 
 type RequestContext struct {
 	Purpose  string `json:"purpose" dynamodbav:"purpose"`
 	Metadata string `json:"metadata" dynamodbav:"metadata"`
+
+	Reason string `json:"reason" dynamodbav:"reason"`
 }
 
 type AccessGroup struct {
+	AccessRule rule.AccessRule     `json:"accessRule" dynamodbav:"accessRule"`
+	Reason     string              `json:"reason" dynamodbav:"reason"`
+	With       []map[string]string `json:"with" dynamodbav:"with"`
 	// ID is a read-only field after the request has been created.
 	ID              string                `json:"id" dynamodbav:"id"`
 	Request         string                `json:"request" dynamodbav:"request"`
 	Grants          []Grantv2             `json:"grants" dynamodbav:"grants"`
 	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	Approval        string                `json:"Approval" dynamodbav:"Approval"`
 }
 
 func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
@@ -180,11 +106,10 @@ func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
 }
 
 type Grantv2 struct {
-	ID          string      `json:"id" dynamodbav:"id"`
-	User        string      `json:"user" dynamodbav:"user"`
-	Entitlement Entitlement `json:"entitlement" dynamodbav:"entitlement"`
-	Status      Status      `json:"status" dynamodbav:"status"`
-	AccessGroup string      `json:"accessGroup" dynamodbav:"accessGroup"`
+	ID          string `json:"id" dynamodbav:"id"`
+	User        string `json:"user" dynamodbav:"user"`
+	Status      Status `json:"status" dynamodbav:"status"`
+	AccessGroup string `json:"accessGroup" dynamodbav:"accessGroup"`
 }
 
 func (i *Grantv2) DDBKeys() (ddb.Keys, error) {

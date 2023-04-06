@@ -61,6 +61,6 @@ func NewOptionID() string {
 	return newResourceID("opt")
 }
 
-func NewPreflightID() string {
-	return newResourceID("pre")
+func NewRequestId() string {
+	return newResourceID("req")
 }

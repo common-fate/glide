@@ -99,13 +99,13 @@ type createRequestOptsV2 struct {
 	User             identity.User
 	Request          CreateRequest
 	Rule             rule.AccessRule
-	PreflightRequest requestsv2.RequestGroup
+	PreflightRequest requestsv2.Requestv2
 }
 
-func (s *Service) CreateSubmitRequests(ctx context.Context, in requestsv2.RequestGroup) ([]CreateRequestResult, error) {
+func (s *Service) CreateSubmitRequests(ctx context.Context, in requestsv2.Requestv2) ([]CreateRequestResult, error) {
 	var results []CreateRequestResult
 
-	for _, target := range in.Requests {
+	for _, target := range in.Groups {
 		for _, args := range target.With {
 			now := time.Now()
 
