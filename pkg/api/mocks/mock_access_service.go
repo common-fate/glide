@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	access "github.com/common-fate/common-fate/pkg/access"
+	requestsv2 "github.com/common-fate/common-fate/pkg/requestsv2.go"
 	accesssvc "github.com/common-fate/common-fate/pkg/service/accesssvc"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -93,6 +94,21 @@ func (m *MockAccessService) CreateRequests(arg0 context.Context, arg1 accesssvc.
 func (mr *MockAccessServiceMockRecorder) CreateRequests(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequests", reflect.TypeOf((*MockAccessService)(nil).CreateRequests), arg0, arg1)
+}
+
+// CreateSubmitRequests mocks base method.
+func (m *MockAccessService) CreateSubmitRequests(arg0 context.Context, arg1 requestsv2.RequestGroup) ([]accesssvc.CreateRequestResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSubmitRequests", arg0, arg1)
+	ret0, _ := ret[0].([]accesssvc.CreateRequestResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSubmitRequests indicates an expected call of CreateSubmitRequests.
+func (mr *MockAccessServiceMockRecorder) CreateSubmitRequests(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubmitRequests", reflect.TypeOf((*MockAccessService)(nil).CreateSubmitRequests), arg0, arg1)
 }
 
 // UpdateFavorite mocks base method.
