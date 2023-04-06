@@ -97,7 +97,7 @@ func (mr *MockAccessServiceMockRecorder) CreateRequests(arg0, arg1 interface{}) 
 }
 
 // CreateSubmitRequests mocks base method.
-func (m *MockAccessService) CreateSubmitRequests(arg0 context.Context, arg1 requestsv2.RequestGroup) ([]accesssvc.CreateRequestResult, error) {
+func (m *MockAccessService) CreateSubmitRequests(arg0 context.Context, arg1 requestsv2.Requestv2) ([]accesssvc.CreateRequestResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSubmitRequests", arg0, arg1)
 	ret0, _ := ret[0].([]accesssvc.CreateRequestResult)

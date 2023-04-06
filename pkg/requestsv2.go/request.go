@@ -79,6 +79,18 @@ func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
+func (i *Requestv2) ToAPI() types.Requestv2 {
+	out := types.Requestv2{
+		Id:      i.ID,
+		Context: types.RequestContext{},
+	}
+	for _, g := range i.Groups {
+		out.Groups = append(out.Groups, g.ToAPI())
+	}
+
+	return out
+}
+
 type RequestContext struct {
 	Purpose  string `json:"purpose" dynamodbav:"purpose"`
 	Metadata string `json:"metadata" dynamodbav:"metadata"`
@@ -103,6 +115,13 @@ func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
 		SK: keys.AccessGroup.SK1(i.Request),
 	}
 	return keys, nil
+}
+
+func (i *AccessGroup) ToAPI() types.AccessGroup {
+	return types.AccessGroup{
+		Grants: []types.Grantv2{},
+		//TODO: How to have []map[string]string in the api?
+	}
 }
 
 type Grantv2 struct {

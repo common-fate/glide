@@ -117,7 +117,6 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	//TODO: validate grouped targets. Either here or in the preflight service.
 
 	//save the preflight if successful
 	a.DB.Put(ctx, &out)
@@ -129,7 +128,7 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 // (POST /api/v1/requestsv2)
 func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// u := auth.UserFromContext(ctx)
+	u := auth.UserFromContext(ctx)
 
 	var createRequest types.CreateRequestRequestv2
 	err := apio.DecodeJSONBody(w, r, &createRequest)
@@ -137,8 +136,9 @@ func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	requestGroup := storage.GetRequestGroup{
-		ID: createRequest.PreflightId,
+	requestGroup := storage.GetRequestV2{
+		ID:     createRequest.PreflightId,
+		UserId: u.ID,
 	}
 
 	_, err = a.DB.Query(ctx, &requestGroup)
