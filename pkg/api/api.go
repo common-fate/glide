@@ -18,6 +18,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
+	"github.com/common-fate/common-fate/pkg/requestsv2.go"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
@@ -87,6 +88,7 @@ type CognitoService interface {
 // RequestServices can create Access Requests.
 type AccessService interface {
 	CreateRequests(ctx context.Context, in accesssvc.CreateRequestsOpts) ([]accesssvc.CreateRequestResult, error)
+	CreateSubmitRequests(ctx context.Context, in requestsv2.RequestGroup) ([]accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
 	CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)

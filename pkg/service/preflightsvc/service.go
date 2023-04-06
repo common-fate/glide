@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
@@ -14,30 +15,29 @@ type Service struct {
 }
 
 type PreflightService interface {
-	GroupTargets(ctx context.Context, targets []types.Target) (requestsv2.Preflight, error)
+	GroupTargets(ctx context.Context, targets []types.Target) (requestsv2.RequestGroup, error)
 }
 
-func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (requestsv2.Preflight, error) {
+func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*requestsv2.RequestGroup, error) {
 
 	u := auth.UserFromContext(ctx)
 
-	preflight := requestsv2.Preflight{
+	preflight := requestsv2.RequestGroup{
 		ID:       types.NewPreflightID(),
-		Requests: map[string]requestsv2.PreflightRequest{},
-		User:     u.ID,
+		Requests: map[string]requestsv2.RequestGroupRequest{},
+		User:     *u,
 	}
 
+	//Go through each target in the request and group them up based on access rule
+
+	//eg. a preflight request could have targets from multiple fields in the same access rule
+	//as well as targets from a different access rule. Eg. Aws sso and OKTA groups
+	//goal here is to have a list of these groups which can be saved to the database and be easily read back
+	//to be processed into grants on submission
 	for _, target := range targets {
 
-		//Look up where
-		//does this access rule exist in the preflight request map?
-
+		//Grouping up targets based on which access rule they are apart of
 		_, ok := preflight.Requests[target.AccessRule]
-
-		//if exists add to the array of targets
-
-		//if not exists create the entry in the map and add target
-
 		if !ok {
 			newTarget := map[string]string{}
 
@@ -45,8 +45,17 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (req
 				newTarget[key] = val
 			}
 
-			preflight.Requests[target.AccessRule] = requestsv2.PreflightRequest{
-				AccessRule:      target.AccessRule,
+			//lookup access rule
+
+			ac := storage.GetAccessRuleCurrent{ID: target.AccessRule}
+
+			_, err := s.DB.Query(ctx, &ac)
+			if err != nil {
+				return nil, err
+			}
+
+			preflight.Requests[target.AccessRule] = requestsv2.RequestGroupRequest{
+				AccessRule:      *ac.Result,
 				Reason:          target.Reason,
 				TimeConstraints: target.TimeConstraints,
 				With:            []map[string]string{newTarget},
@@ -73,5 +82,5 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (req
 	//group requests based on duration and purpose
 
 	//create a preflight object in the db
-	return preflight, nil
+	return &preflight, nil
 }

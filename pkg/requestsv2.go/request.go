@@ -3,6 +3,8 @@ package requestsv2
 import (
 	"fmt"
 
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -99,30 +101,57 @@ func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
-type Preflight struct {
+type RequestGroup struct {
 	// ID is a read-only field after the request has been created.
 	ID string `json:"id" dynamodbav:"id"`
 
-	Requests map[string]PreflightRequest `json:"requests" dynamodbav:"requests"`
-	User     string                      `json:"user" dynamodbav:"user"`
+	Requests map[string]RequestGroupRequest `json:"requests" dynamodbav:"requests"`
+	User     identity.User                  `json:"user" dynamodbav:"user"`
 }
 
-type PreflightRequest struct {
-	AccessRule      string                `json:"accessRule" dynamodbav:"accessRule"`
+//What the requestgroup request looks like
+// RequestGroup {
+// 	Id: "",
+// 	User: "",
+// 	requests: [
+// 			{
+// 				"access-rule-id" :{
+// 					AccessRuleId: "",
+// 					Reason:       "",
+// 					Timing:       "",
+// 					With: [
+// 						{
+// 							"accountId": "value",
+// 							"permissionSetArn": "value",
+// 						},
+// 						{
+// 							"accountId": "value2",
+// 							"permissionSetArn": "value2",
+// 						},
+// 					],
+// 				}
+// 			},
+
+// 	],
+
+// }
+
+type RequestGroupRequest struct {
+	AccessRule      rule.AccessRule       `json:"accessRule" dynamodbav:"accessRule"`
 	Reason          string                `json:"reason" dynamodbav:"reason"`
 	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 	With            []map[string]string   `json:"with" dynamodbav:"with"`
 }
 
-func (i *Preflight) DDBKeys() (ddb.Keys, error) {
+func (i *RequestGroup) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.Preflight.PK1,
-		SK: keys.Preflight.SK1(i.ID),
+		PK: keys.RequestGroups.PK1,
+		SK: keys.RequestGroups.SK1(i.ID),
 	}
 	return keys, nil
 }
 
-func (i *Preflight) ToAPI() types.PreflightResponse {
+func (i *RequestGroup) ToAPI() types.PreflightResponse {
 	return types.PreflightResponse{
 		PreflightId: i.ID,
 	}

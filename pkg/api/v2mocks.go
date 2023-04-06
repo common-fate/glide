@@ -137,13 +137,13 @@ func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	preflight := storage.GetPreflight{
+	requestGroup := storage.GetRequestGroup{
 		ID: createRequest.PreflightId,
 	}
 
-	_, err = a.DB.Query(ctx, &preflight)
+	_, err = a.DB.Query(ctx, &requestGroup)
 	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("preflight id not found"), Status: http.StatusNotFound})
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("request group id not found"), Status: http.StatusNotFound})
 		return
 	}
 	if err != nil {
@@ -153,5 +153,11 @@ func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 
 	//request service to initiate the granting process...
 
+	_, err = a.Access.CreateSubmitRequests(ctx, *requestGroup.Result)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	//do we need to return anything via this api?
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }

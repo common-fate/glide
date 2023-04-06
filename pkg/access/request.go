@@ -80,6 +80,9 @@ type Request struct {
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+
+	//reference to the preflight request that encompasses this request being made
+	PreflightRequest string `json:"preflightRequest" dynamodbav:"preflightRequest"`
 }
 
 type GetIntervalOpts struct {
