@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -19,9 +19,9 @@ func TestListEntitlementResources(t *testing.T) {
 		filters      []string
 		resourceName string
 
-		insertBefore []requestsv2.ResourceOption
-		want         []requestsv2.ResourceOption
-		notWant      []requestsv2.ResourceOption
+		insertBefore []requests.ResourceOption
+		want         []requests.ResourceOption
+		notWant      []requests.ResourceOption
 		wantErr      error
 	}
 	accessRule1 := "test"
@@ -47,12 +47,12 @@ func TestListEntitlementResources(t *testing.T) {
 			accessRules:  []string{accessRule2},
 			resourceName: "accountId",
 
-			want: []requestsv2.ResourceOption{
-				requestsv2.ResourceOption{
+			want: []requests.ResourceOption{
+				requests.ResourceOption{
 
 					Label: "accountId",
 					Value: "123456789012",
-					Provider: requestsv2.TargetFrom{
+					Provider: requests.TargetFrom{
 						Kind:      "Account",
 						Name:      "AWS",
 						Publisher: "common-fate",
@@ -75,7 +75,7 @@ func TestListEntitlementResources(t *testing.T) {
 			accessRules:  []string{accessRule2},
 			resourceName: "accountId",
 
-			want:    []requestsv2.ResourceOption{},
+			want:    []requests.ResourceOption{},
 			notWant: CreatePermissionSetOptions(accessRule2),
 		},
 		{
@@ -86,11 +86,11 @@ func TestListEntitlementResources(t *testing.T) {
 			resourceName: "permissionSetArn",
 			filters:      []string{"123456789012"},
 
-			want: []requestsv2.ResourceOption{
+			want: []requests.ResourceOption{
 				{
 					Label: "permissionSetArn",
 					Value: "123-abc",
-					Provider: requestsv2.TargetFrom{
+					Provider: requests.TargetFrom{
 						Kind:      "Account",
 						Name:      "AWS",
 						Publisher: "common-fate",
@@ -106,7 +106,7 @@ func TestListEntitlementResources(t *testing.T) {
 				{
 					Label: "permissionSetArn",
 					Value: "bar",
-					Provider: requestsv2.TargetFrom{
+					Provider: requests.TargetFrom{
 						Kind:      "Account",
 						Name:      "AWS",
 						Publisher: "common-fate",
@@ -137,7 +137,7 @@ func TestListEntitlementResources(t *testing.T) {
 			}
 
 			q := ListEntitlementResources{
-				Provider: requestsv2.TargetFrom{
+				Provider: requests.TargetFrom{
 					Kind:      "Account",
 					Name:      "AWS",
 					Publisher: "common-fate",
@@ -166,12 +166,12 @@ func TestListEntitlementResources(t *testing.T) {
 	}
 }
 
-func CreateAccountIdOptions(accessRule1 string, accessRule2 string) []requestsv2.ResourceOption {
-	opt1 := requestsv2.ResourceOption{
+func CreateAccountIdOptions(accessRule1 string, accessRule2 string) []requests.ResourceOption {
+	opt1 := requests.ResourceOption{
 
 		Label: "accountId",
 		Value: "123456789012",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Account",
 			Name:      "AWS",
 			Publisher: "common-fate",
@@ -184,11 +184,11 @@ func CreateAccountIdOptions(accessRule1 string, accessRule2 string) []requestsv2
 			accessRule2,
 		},
 	}
-	opt1a := requestsv2.ResourceOption{
+	opt1a := requests.ResourceOption{
 
 		Label: "accountId",
 		Value: "13579012345",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Account",
 			Name:      "AWS",
 			Publisher: "common-fate",
@@ -200,11 +200,11 @@ func CreateAccountIdOptions(accessRule1 string, accessRule2 string) []requestsv2
 			accessRule1,
 		},
 	}
-	opt1b := requestsv2.ResourceOption{
+	opt1b := requests.ResourceOption{
 
 		Label: "accountId",
 		Value: "583847583929",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Account",
 			Name:      "AWS",
 			Publisher: "common-fate",
@@ -216,14 +216,14 @@ func CreateAccountIdOptions(accessRule1 string, accessRule2 string) []requestsv2
 			accessRule1,
 		},
 	}
-	return []requestsv2.ResourceOption{opt1, opt1a, opt1b}
+	return []requests.ResourceOption{opt1, opt1a, opt1b}
 }
 
-func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption {
-	opt2 := requestsv2.ResourceOption{
+func CreatePermissionSetOptions(accessRule1 string) []requests.ResourceOption {
+	opt2 := requests.ResourceOption{
 		Label: "permissionSetArn",
 		Value: "123-abc",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Account",
 			Name:      "AWS",
 			Publisher: "common-fate",
@@ -236,10 +236,10 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		},
 		RelatedTo: []string{"123456789012"},
 	}
-	opt2a := requestsv2.ResourceOption{
+	opt2a := requests.ResourceOption{
 		Label: "permissionSetArn",
 		Value: "bar",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Account",
 			Name:      "AWS",
 			Publisher: "common-fate",
@@ -252,10 +252,10 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		},
 		RelatedTo: []string{"123456789012"},
 	}
-	opt2b := requestsv2.ResourceOption{
+	opt2b := requests.ResourceOption{
 		Label: "permissionSetArn",
 		Value: "foo",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Account",
 			Name:      "AWS",
 			Publisher: "common-fate",
@@ -269,17 +269,17 @@ func CreatePermissionSetOptions(accessRule1 string) []requestsv2.ResourceOption 
 		RelatedTo: []string{"different"},
 	}
 
-	return []requestsv2.ResourceOption{opt2, opt2a, opt2b}
+	return []requests.ResourceOption{opt2, opt2a, opt2b}
 }
 
-func CreateSeedData(accessRule1 string, accessRule2 string) []requestsv2.ResourceOption {
+func CreateSeedData(accessRule1 string, accessRule2 string) []requests.ResourceOption {
 	accountIds := CreateAccountIdOptions(accessRule1, accessRule2)
 	permissionSets := CreatePermissionSetOptions(accessRule1)
 
-	opt3 := requestsv2.ResourceOption{
+	opt3 := requests.ResourceOption{
 		Label: "groupName",
 		Value: "This is a okta group",
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Kind:      "Group",
 			Name:      "Okta",
 			Publisher: "common-fate",
@@ -292,7 +292,7 @@ func CreateSeedData(accessRule1 string, accessRule2 string) []requestsv2.Resourc
 		},
 	}
 
-	res := []requestsv2.ResourceOption{}
+	res := []requests.ResourceOption{}
 
 	res = append(res, accountIds...)
 	res = append(res, permissionSets...)

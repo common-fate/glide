@@ -1,9 +1,9 @@
-package requestsv2
+package requests
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/common-fate/common-fate/pkg/config"
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
@@ -50,9 +50,9 @@ var SeedCommand = cli.Command{
 			},
 		}
 
-		// ent := requestsv2.Entitlement{
+		// ent := requests.Entitlement{
 		// 	ID: types.NewEntitlementID(),
-		// 	Kind: requestsv2.TargetFrom{
+		// 	Kind: requests.TargetFrom{
 		// 		Kind:      "Account",
 		// 		Name:      "AWS",
 		// 		Publisher: "common-fate",
@@ -86,11 +86,11 @@ var SeedCommand = cli.Command{
 		items = append(items, &ent2)
 
 		//create some options
-		opt1 := requestsv2.ResourceOption{
+		opt1 := requests.ResourceOption{
 
 			Label: "accountId",
 			Value: "123456789012",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
@@ -102,22 +102,22 @@ var SeedCommand = cli.Command{
 				"test",
 			},
 		}
-		opt1a := requestsv2.ResourceOption{
+		opt1a := requests.ResourceOption{
 
 			Label: "accountId",
 			Value: "13579012345",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
 				Version:   "v0.1.0",
 			},
 		}
-		opt1b := requestsv2.ResourceOption{
+		opt1b := requests.ResourceOption{
 
 			Label: "accountId",
 			Value: "583847583929",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
@@ -129,10 +129,10 @@ var SeedCommand = cli.Command{
 				"test",
 			},
 		}
-		opt2 := requestsv2.ResourceOption{
+		opt2 := requests.ResourceOption{
 			Label: "permissionSetArn",
 			Value: "123-abc",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
@@ -145,10 +145,10 @@ var SeedCommand = cli.Command{
 			},
 			RelatedTo: []string{"123456789012"},
 		}
-		opt2a := requestsv2.ResourceOption{
+		opt2a := requests.ResourceOption{
 			Label: "permissionSetArn",
 			Value: "bar",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
@@ -161,10 +161,10 @@ var SeedCommand = cli.Command{
 			},
 			RelatedTo: []string{"123456789012"},
 		}
-		opt2b := requestsv2.ResourceOption{
+		opt2b := requests.ResourceOption{
 			Label: "permissionSetArn",
 			Value: "foo",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Account",
 				Name:      "AWS",
 				Publisher: "common-fate",
@@ -178,10 +178,10 @@ var SeedCommand = cli.Command{
 			RelatedTo: []string{"123456789012"},
 		}
 
-		opt3 := requestsv2.ResourceOption{
+		opt3 := requests.ResourceOption{
 			Label: "groupName",
 			Value: "This is a okta group",
-			Provider: requestsv2.TargetFrom{
+			Provider: requests.TargetFrom{
 				Kind:      "Group",
 				Name:      "Okta",
 				Publisher: "common-fate",

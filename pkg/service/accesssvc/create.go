@@ -13,7 +13,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
@@ -99,10 +99,10 @@ type createRequestOptsV2 struct {
 	User             identity.User
 	Request          CreateRequest
 	Rule             rule.AccessRule
-	PreflightRequest requestsv2.Requestv2
+	PreflightRequest requests.Requestv2
 }
 
-func (s *Service) CreateSubmitRequests(ctx context.Context, in requestsv2.Requestv2) ([]CreateRequestResult, error) {
+func (s *Service) CreateSubmitRequests(ctx context.Context, in requests.Requestv2) ([]CreateRequestResult, error) {
 	var results []CreateRequestResult
 
 	for _, target := range in.Groups {

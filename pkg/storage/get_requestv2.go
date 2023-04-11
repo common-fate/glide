@@ -4,14 +4,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
 type GetRequestV2 struct {
 	ID     string
 	UserId string
-	Result *requestsv2.Requestv2
+	Result *requests.Requestv2
 }
 
 func (g *GetRequestV2) BuildQuery() (*dynamodb.QueryInput, error) {

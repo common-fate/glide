@@ -6,17 +6,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
 type ListEntitlementResources struct {
-	Provider        requestsv2.TargetFrom
+	Provider        requests.TargetFrom
 	Argument        string
 	FilterValues    []string
 	UserAccessRules []string
 
-	Result []requestsv2.ResourceOption `ddb:"result"`
+	Result []requests.ResourceOption `ddb:"result"`
 }
 
 func (l *ListEntitlementResources) BuildQuery() (*dynamodb.QueryInput, error) {

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -15,16 +15,16 @@ type Service struct {
 }
 
 type PreflightService interface {
-	GroupTargets(ctx context.Context, targets []types.Target) (requestsv2.Requestv2, error)
+	GroupTargets(ctx context.Context, targets []types.Target) (requests.Requestv2, error)
 }
 
-func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*requestsv2.Requestv2, error) {
+func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*requests.Requestv2, error) {
 
 	u := auth.UserFromContext(ctx)
 
-	preflight := requestsv2.Requestv2{
+	preflight := requests.Requestv2{
 		ID:     types.NewRequestID(),
-		Groups: map[string]requestsv2.AccessGroup{},
+		Groups: map[string]requests.AccessGroup{},
 		User:   *u,
 	}
 
@@ -54,7 +54,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 				return nil, err
 			}
 
-			preflight.Groups[target.AccessRule] = requestsv2.AccessGroup{
+			preflight.Groups[target.AccessRule] = requests.AccessGroup{
 				AccessRule:      *ac.Result,
 				Reason:          target.Reason,
 				TimeConstraints: target.TimeConstraints,

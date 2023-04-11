@@ -6,7 +6,7 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/requestsv2.go"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -14,29 +14,29 @@ import (
 )
 
 // List Requests
-// (GET /api/v1/requestsv2)
+// (GET /api/v1/requests)
 func (a *API) UserListRequestsv2(w http.ResponseWriter, r *http.Request) {}
 
 // Get Request Access Group Grant
-// (GET /api/v1/requestsv2/{id}/groups/{gid}/grants{grantid})
+// (GET /api/v1/requests/{id}/groups/{gid}/grants{grantid})
 func (a *API) UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request, id string, gid string, grantid string) {
 }
 
 // Get Request
-// (GET /api/v1/requestsv2/{requestId})
+// (GET /api/v1/requests/{requestId})
 func (a *API) UserGetRequestv2(w http.ResponseWriter, r *http.Request, requestId string) {}
 
 // List Request Access Groups
-// (GET /api/v1/requestsv2/{requestId}/groups)
+// (GET /api/v1/requests/{requestId}/groups)
 func (a *API) UserListRequestAccessGroups(w http.ResponseWriter, r *http.Request, requestId string) {}
 
 // List Request Access Group Grants
-// (GET /api/v1/requestsv2/{requestId}/groups/{groupId}/grants)
+// (GET /api/v1/requests/{requestId}/groups/{groupId}/grants)
 func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
 }
 
 // Get Request Access Group
-// (GET /api/v1/requestsv2/{requestId}/groups{groupId})
+// (GET /api/v1/requests/{requestId}/groups{groupId})
 func (a *API) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
 }
 
@@ -76,7 +76,7 @@ func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Reques
 	u := auth.UserFromContext(ctx)
 
 	q := storage.ListEntitlementResources{
-		Provider: requestsv2.TargetFrom{
+		Provider: requests.TargetFrom{
 			Publisher: params.Publisher,
 			Name:      params.Name,
 			Kind:      params.Kind,
@@ -101,7 +101,7 @@ func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Reques
 	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
-// (POST /api/v1/requestsv2/preflight)
+// (POST /api/v1/requests/preflight)
 func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -125,7 +125,7 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// (POST /api/v1/requestsv2)
+// (POST /api/v1/requests)
 func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
