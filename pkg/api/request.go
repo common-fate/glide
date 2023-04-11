@@ -170,7 +170,7 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 		apio.Error(ctx, w, err)
 		return
 	}
-	qr := storage.GetAccessRuleVersion{ID: q.Result.Rule, VersionID: q.Result.RuleVersion}
+	qr := storage.GetAccessRuleCurrent{ID: q.Result.Rule}
 	_, err = a.DB.Query(ctx, &qr)
 	// Any error fetching the access rule is an internal server error because it should exist if the request exists
 	if err != nil {

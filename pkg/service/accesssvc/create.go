@@ -152,7 +152,6 @@ func (s *Service) createRequestV2(ctx context.Context, in createRequestOptsV2) (
 		Status:           access.PENDING,
 		RequestedTiming:  access.TimingFromRequestTiming(in.Request.Timing),
 		Rule:             in.Rule.ID,
-		RuleVersion:      in.Rule.Version,
 		SelectedWith:     make(map[string]access.Option),
 		PreflightRequest: in.PreflightRequest.ID,
 	}
@@ -248,9 +247,7 @@ func (s *Service) createRequestV2(ctx context.Context, in createRequestOptsV2) (
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
 		RequestedBy:      req.RequestedBy,
-		BuiltInProvider:  in.Rule.Target.BuiltInProviderType,
 		Provider:         in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		PDKProvider:      in.Rule.Target.IsForTargetGroup(),
 		RuleID:           req.Rule,
 		Timing:           req.RequestedTiming.ToAnalytics(),
 		HasReason:        req.HasReason(),
@@ -279,7 +276,6 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 		Status:          access.PENDING,
 		RequestedTiming: access.TimingFromRequestTiming(in.Request.Timing),
 		Rule:            in.Rule.ID,
-		RuleVersion:     in.Rule.Version,
 		SelectedWith:    make(map[string]access.Option),
 	}
 	if in.Request.With != nil {
@@ -397,9 +393,7 @@ func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (Crea
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
 		RequestedBy:      req.RequestedBy,
-		BuiltInProvider:  in.Rule.Target.BuiltInProviderType,
 		Provider:         in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		PDKProvider:      in.Rule.Target.IsForTargetGroup(),
 		RuleID:           req.Rule,
 		Timing:           req.RequestedTiming.ToAnalytics(),
 		HasReason:        req.HasReason(),

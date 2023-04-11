@@ -26,7 +26,7 @@ func (n *SlackNotifier) HandleGrantEvent(ctx context.Context, log *zap.SugaredLo
 	if err != nil {
 		return err
 	}
-	rq := storage.GetAccessRuleVersion{ID: gq.Result.Rule, VersionID: gq.Result.RuleVersion}
+	rq := storage.GetAccessRuleCurrent{ID: gq.Result.Rule}
 	_, err = n.DB.Query(ctx, &rq)
 	if err != nil {
 		return err

@@ -470,55 +470,6 @@ paths:
       description: |-
         Marks an access rule as archived.
         Any pending requests for this access rule will be cancelled.
-  '/api/v1/admin/access-rules/{ruleId}/versions':
-    get:
-      summary: Get Access Rule version history
-      tags:
-        - Admin
-      responses:
-        '200':
-          $ref: '#/components/responses/ListAccessRulesDetailResponse'
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-      operationId: admin-get-access-rule-versions
-      description: Returns a version history for a particular Access Rule.
-    parameters:
-      - schema:
-          type: string
-        name: ruleId
-        in: path
-        required: true
-  '/api/v1/admin/access-rules/{ruleId}/versions/{version}':
-    get:
-      summary: Get Access Rule Version
-      tags:
-        - Admin
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccessRuleDetail'
-        '401':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-      operationId: admin-get-access-rule-version
-      description: Returns a specific version for an Access Rule.
-    parameters:
-      - schema:
-          type: string
-        name: ruleId
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: version
-        in: path
-        required: true
   /api/v1/admin/deployment/version:
     get:
       summary: Get deployment version details
@@ -1770,7 +1721,7 @@ components:
       description: A target for an access rule
       properties:
         provider:
-          $ref: '#/components/schemas/Provider'
+          $ref: '#/components/schemas/TargetGroup'
       required:
         - provider
     AccessRuleTargetDetail:
@@ -1778,16 +1729,14 @@ components:
       type: object
       description: A detailed target for an access rule
       properties:
-        provider:
-          $ref: '#/components/schemas/Provider'
+        targetGroup:
+          $ref: '#/components/schemas/TargetGroup'
         with:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/AccessRuleTargetDetailArguments'
-        targetGroup:
-          type: string
       required:
-        - provider
+        - targetGroup
         - with
     AccessInstructions:
       title: AccessInstructions

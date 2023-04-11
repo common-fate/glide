@@ -53,20 +53,20 @@ func (s *Service) Grant(ctx context.Context, request access.Request, accessRule 
 	// There is still some issues with a race condition here, for asap requests, the grant could start in step functions before this event it sent.
 	// or they could arrive at the same times, if instead this event is produced by the step functions or local mock workflow, then the race condition won't exist
 	// SHIFT THIS TO THE STEP FUNCTION
-	if accessRule.Target.IsForTargetGroup() {
-		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
-			ID:       createGrant.Id,
-			Provider: createGrant.Provider,
-			End:      createGrant.End.Time,
-			Start:    createGrant.Start.Time,
-			Status:   types.GrantStatusPENDING,
-			Subject:  createGrant.Subject,
-			With:     types.Grant_With(createGrant.With),
-		}})
-		if err != nil {
-			return nil, err
-		}
+
+	err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
+		ID:       createGrant.Id,
+		Provider: createGrant.Provider,
+		End:      createGrant.End.Time,
+		Start:    createGrant.Start.Time,
+		Status:   types.GrantStatusPENDING,
+		Subject:  createGrant.Subject,
+		With:     types.Grant_With(createGrant.With),
+	}})
+	if err != nil {
+		return nil, err
 	}
+
 	now := s.Clk.Now()
 	return &access.Grant{
 		Provider:  createGrant.Provider,
@@ -93,9 +93,8 @@ func (s *Service) Revoke(ctx context.Context, request access.Request, revokerID 
 		return nil, ErrGrantInactive
 	}
 
-	q := storage.GetAccessRuleVersion{
-		ID:        request.Rule,
-		VersionID: request.RuleVersion,
+	q := storage.GetAccessRuleCurrent{
+		ID: request.Rule,
 	}
 
 	_, err := s.DB.Query(ctx, &q)
@@ -148,7 +147,7 @@ func (s *Service) prepareCreateGrantRequest(ctx context.Context, request access.
 	start, end := request.GetInterval(access.WithNow(s.Clk.Now()))
 	req := types.CreateGrant{
 		Id:       request.ID,
-		Provider: accessRule.Target.ProviderID,
+		Provider: accessRule.Target.TargetGroupID,
 		With: types.CreateGrant_With{
 			AdditionalProperties: make(map[string]string),
 		},

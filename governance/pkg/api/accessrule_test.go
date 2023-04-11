@@ -39,9 +39,8 @@ func TestGovListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:          "string",
-						BuiltInProviderType: "okta",
-						With:                map[string]string{},
+						TargetGroupID: "string",
+						With:          map[string]string{},
 					},
 					Approval: rule.Approval{
 						Groups: []string{"a"},
@@ -55,9 +54,8 @@ func TestGovListAccessRules(t *testing.T) {
 					Name:        "string",
 					Groups:      []string{"string"},
 					Target: rule.Target{
-						ProviderID:          "string",
-						BuiltInProviderType: "okta",
-						With:                map[string]string{},
+						TargetGroupID: "string",
+						With:          map[string]string{},
 					},
 				},
 			},
@@ -132,8 +130,8 @@ func TestGovCreateAccessRule(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID: "string",
-					With:       map[string]string{},
+					TargetGroupID: "string",
+					With:          map[string]string{},
 				},
 				Metadata: rule.AccessRuleMetadata{
 					CreatedBy: "bot_governance_api",

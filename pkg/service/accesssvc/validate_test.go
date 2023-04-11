@@ -57,11 +57,7 @@ func TestValidateFavorite(t *testing.T) {
 				TimeConstraints: types.TimeConstraints{
 					MaxDurationSeconds: 3600,
 				},
-				Target: rule.Target{
-					WithSelectable: map[string][]string{
-						"accountId": {"a", "b"},
-					},
-				},
+				Target: rule.Target{},
 			},
 			withRequestArgumentsResponse: map[string]types.RequestArgument{
 				"accountId": {
@@ -139,11 +135,7 @@ func TestValidateCreate(t *testing.T) {
 		TimeConstraints: types.TimeConstraints{
 			MaxDurationSeconds: 3600,
 		},
-		Target: rule.Target{
-			WithSelectable: map[string][]string{
-				"accountId": {"a", "b"},
-			},
-		},
+		Target: rule.Target{},
 	}
 	requestArguments := map[string]types.RequestArgument{
 		"accountId": {

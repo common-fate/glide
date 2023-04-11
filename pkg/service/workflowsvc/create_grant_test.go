@@ -55,7 +55,6 @@ func TestCreateGrant(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID:    "string",
 					With:          map[string]string{},
 					TargetGroupID: "123",
 				}},
@@ -87,7 +86,6 @@ func TestCreateGrant(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID:    "string",
 					With:          map[string]string{},
 					TargetGroupID: "123",
 				}},

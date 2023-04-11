@@ -265,7 +265,7 @@ func TestUserGetRequest(t *testing.T) {
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetRequest{Result: tc.mockGetRequest}, tc.mockGetRequestErr)
 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: tc.mockGetReviewer}, tc.mockGetReviewerErr)
-			db.MockQuery(&storage.GetAccessRuleVersion{Result: tc.mockGetAccessRuleVersion})
+			db.MockQuery(&storage.GetAccessRuleCurrent{Result: tc.mockGetAccessRuleVersion})
 			db.MockQuery(&storage.ListCachedProviderOptions{Result: []cache.ProviderOption{}})
 			ctrl := gomock.NewController(t)
 			rs := mocks.NewMockAccessRuleService(ctrl)

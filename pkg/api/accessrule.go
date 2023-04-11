@@ -6,7 +6,6 @@ import (
 
 	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
@@ -157,75 +156,75 @@ func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, rule
 	apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusAccepted)
 }
 
-func (a *API) AdminGetAccessRuleVersions(w http.ResponseWriter, r *http.Request, ruleId string) {
-	ctx := r.Context()
-	q := storage.ListAccessRuleVersions{ID: ruleId}
-	_, err := a.DB.Query(ctx, &q)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	versions := q.Result
-	res := types.ListAccessRulesDetailResponse{
-		AccessRules: make([]types.AccessRuleDetail, len(versions)),
-	}
+// func (a *API) AdminGetAccessRuleVersions(w http.ResponseWriter, r *http.Request, ruleId string) {
+// 	ctx := r.Context()
+// 	q := storage.ListAccessRuleVersions{ID: ruleId}
+// 	_, err := a.DB.Query(ctx, &q)
+// 	if err != nil {
+// 		apio.Error(ctx, w, err)
+// 		return
+// 	}
+// 	versions := q.Result
+// 	res := types.ListAccessRulesDetailResponse{
+// 		AccessRules: make([]types.AccessRuleDetail, len(versions)),
+// 	}
 
-	for i, v := range versions {
-		res.AccessRules[i] = v.ToAPIDetail()
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
-}
+// 	for i, v := range versions {
+// 		res.AccessRules[i] = v.ToAPIDetail()
+// 	}
+// 	apio.JSON(ctx, w, res, http.StatusOK)
+// }
 
 // Returns a rule for a given ruleId
 // (GET /api/v1/access-rules/{ruleId}/versions/{version})
-func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, ruleId string, version string) {
-	ctx := r.Context()
-	q := storage.GetAccessRuleVersion{ID: ruleId, VersionID: version}
-	_, err := a.DB.Query(ctx, &q)
-	if err == ddb.ErrNoItems {
-		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule or version does not exist"), Status: http.StatusNotFound})
-		return
-	}
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	apio.JSON(ctx, w, q.Result.ToAPIDetail(), http.StatusOK)
-}
+// func (a *API) AdminGetAccessRuleVersion(w http.ResponseWriter, r *http.Request, ruleId string, version string) {
+// 	ctx := r.Context()
+// 	q := storage.GetAccessRuleCurrent{ID: ruleId}
+// 	_, err := a.DB.Query(ctx, &q)
+// 	if err == ddb.ErrNoItems {
+// 		apio.Error(ctx, w, &apio.APIError{Err: errors.New("this rule or version does not exist"), Status: http.StatusNotFound})
+// 		return
+// 	}
+// 	if err != nil {
+// 		apio.Error(ctx, w, err)
+// 		return
+// 	}
+// 	apio.JSON(ctx, w, q.Result.ToAPIDetail(), http.StatusOK)
+// }
 
 // Your GET endpoint
 // (GET /api/v1/access-rules/lookup)
 func (a *API) UserLookupAccessRule(w http.ResponseWriter, r *http.Request, params types.UserLookupAccessRuleParams) {
 	ctx := r.Context()
 
-	if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
-		// prevent us from panicking with a nil pointer error if one of the required parameters isn't provided.
-		apio.ErrorString(ctx, w, "invalid query params", http.StatusBadRequest)
-		return
-	}
+	// if params.AccountId == nil || params.PermissionSetArnLabel == nil || params.Type == nil {
+	// 	// prevent us from panicking with a nil pointer error if one of the required parameters isn't provided.
+	// 	apio.ErrorString(ctx, w, "invalid query params", http.StatusBadRequest)
+	// 	return
+	// }
 
-	logger.Get(ctx).Infow("looking up access rule", "params", params)
+	// logger.Get(ctx).Infow("looking up access rule", "params", params)
 
-	u := auth.UserFromContext(ctx)
+	// u := auth.UserFromContext(ctx)
 
-	rules, err := a.Rules.LookupRule(ctx, rulesvc.LookupRuleOpts{
-		User:         *u,
-		ProviderType: string(*params.Type),
-		Fields: rulesvc.LookupFields{
-			AccountID: *params.AccountId,
-			RoleName:  *params.PermissionSetArnLabel,
-		},
-	})
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
+	// rules, err := a.Rules.LookupRule(ctx, rulesvc.LookupRuleOpts{
+	// 	User:         *u,
+	// 	ProviderType: string(*params.Type),
+	// 	Fields: rulesvc.LookupFields{
+	// 		AccountID: *params.AccountId,
+	// 		RoleName:  *params.PermissionSetArnLabel,
+	// 	},
+	// })
+	// if err != nil {
+	// 	apio.Error(ctx, w, err)
+	// 	return
+	// }
 
 	res := []types.LookupAccessRule{}
 
-	for _, r := range rules {
-		res = append(res, r.ToAPI())
-	}
+	// for _, r := range rules {
+	// 	res = append(res, r.ToAPI())
+	// }
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 }

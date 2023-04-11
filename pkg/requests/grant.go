@@ -7,11 +7,12 @@ import (
 )
 
 type Grantv2 struct {
-	ID          string `json:"id" dynamodbav:"id"`
-	User        string `json:"user" dynamodbav:"user"`
-	Status      Status `json:"status" dynamodbav:"status"`
-	AccessGroup string `json:"accessGroup" dynamodbav:"accessGroup"`
-	Request     string `json:"request" dynamodbav:"request"`
+	ID                 string `json:"id" dynamodbav:"id"`
+	User               string `json:"user" dynamodbav:"user"`
+	Status             Status `json:"status" dynamodbav:"status"`
+	AccessGroup        string `json:"accessGroup" dynamodbav:"accessGroup"`
+	Request            string `json:"request" dynamodbav:"request"`
+	AccessInstructions string `json:"accessInstructions" dynamodbav:"accessInstructions"`
 }
 
 func (i *Grantv2) DDBKeys() (ddb.Keys, error) {

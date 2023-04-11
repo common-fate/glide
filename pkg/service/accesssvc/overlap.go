@@ -49,7 +49,7 @@ func overlapsExistingGrantCheck(req access.Request, upcomingRequests []access.Re
 	for _, r := range upcomingRequestAndRules {
 
 		//check provider is the same
-		if r.rule.Target.ProviderID != currentRequestRule.Target.ProviderID {
+		if r.rule.Target.TargetGroupID != currentRequestRule.Target.TargetGroupID {
 			continue
 		}
 

@@ -27,7 +27,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		return err
 	}
 	request := requestEvent.Request
-	requestedRuleQuery := storage.GetAccessRuleVersion{ID: request.Rule, VersionID: request.RuleVersion}
+	requestedRuleQuery := storage.GetAccessRuleCurrent{ID: request.Rule}
 	_, err = n.DB.Query(ctx, &requestedRuleQuery)
 	if err != nil {
 		return errors.Wrap(err, "getting access rule")
@@ -292,11 +292,11 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request access.Request, rule rule.AccessRule) ([]types.With, error) {
 	// Consider adding a fallback if the cache lookup fails
 	pq := storage.ListCachedProviderOptions{
-		ProviderID: rule.Target.ProviderID,
+		ProviderID: rule.Target.TargetGroupID,
 	}
 	_, err := n.DB.Query(ctx, &pq)
 	if err != nil && err != ddb.ErrNoItems {
-		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.ProviderID, zap.Error(err))
+		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.TargetGroupID, zap.Error(err))
 	}
 	var labelArr []types.With
 	// Lookup the provider, ignore errors

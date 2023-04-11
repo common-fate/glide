@@ -34,12 +34,10 @@ func TestArchiveAccessRule(t *testing.T) {
 			UpdatedAt: now.Add(time.Minute),
 			UpdatedBy: "hello",
 		},
-		Current: true,
 	}
 	want := mockRule
 	want.Status = rule.ARCHIVED
 	want.Metadata.UpdatedAt = now
-	want.Current = true
 
 	testcases := []testcase{
 		{
@@ -70,14 +68,6 @@ func TestArchiveAccessRule(t *testing.T) {
 			}
 
 			got, err := s.ArchiveAccessRule(context.Background(), "", tc.givenRule)
-
-			// This is the only thing from service layer that we can't mock yet, hence the override
-			if err == nil {
-				// Rule id and version id must not be empty strings, we check this prior to overwriting them
-				assert.NotEmpty(t, got.Version)
-				got.Version = tc.want.Version
-
-			}
 
 			assert.Equal(t, tc.wantErr, err)
 			assert.Equal(t, tc.want, got)

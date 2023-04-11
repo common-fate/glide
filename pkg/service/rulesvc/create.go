@@ -93,12 +93,8 @@ func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context
 func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
 
 	targetgroup := rule.Target{
-		ProviderID:               in.ProviderId,
-		BuiltInProviderType:      "",
-		TargetGroupID:            in.ProviderId,
-		With:                     make(map[string]string),
-		WithSelectable:           make(map[string][]string),
-		WithArgumentGroupOptions: make(map[string]map[string][]string),
+		TargetGroupID: in.ProviderId,
+		With:          make(map[string]string),
 	}
 
 	q := storage.GetTargetGroup{ID: in.ProviderId}
@@ -144,8 +140,6 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 
 		if len(argument.Values) == 1 {
 			targetgroup.With[argumentID] = argument.Values[0]
-		} else {
-			targetgroup.WithSelectable[argumentID] = argument.Values
 		}
 	}
 
@@ -190,8 +184,6 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		},
 		Target:          target,
 		TimeConstraints: in.TimeConstraints,
-		Version:         types.NewVersionID(),
-		Current:         true,
 	}
 
 	log.Debugw("saving access rule", "rule", rul)
@@ -204,15 +196,12 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
-		CreatedBy:             userID,
-		RuleID:                rul.ID,
-		BuiltInProvider:       rul.Target.BuiltInProviderType,
-		Provider:              rul.Target.TargetGroupFrom.ToAnalytics(),
-		PDKProvider:           rul.Target.IsForTargetGroup(),
-		MaxDurationSeconds:    in.TimeConstraints.MaxDurationSeconds,
-		UsesSelectableOptions: rul.Target.UsesSelectableOptions(),
-		UsesDynamicOptions:    rul.Target.UsesDynamicOptions(),
-		RequiresApproval:      rul.Approval.IsRequired(),
+		CreatedBy:          userID,
+		RuleID:             rul.ID,
+		Provider:           rul.Target.TargetGroupFrom.ToAnalytics(),
+		MaxDurationSeconds: in.TimeConstraints.MaxDurationSeconds,
+
+		RequiresApproval: rul.Approval.IsRequired(),
 	})
 
 	return &rul, nil

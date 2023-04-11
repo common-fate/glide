@@ -25,12 +25,8 @@ func TestAccessRule(opt ...func(*AccessRule)) AccessRule {
 			UpdatedAt: now,
 			UpdatedBy: userID,
 		},
-		Name: "test rule",
-		Target: Target{
-			ProviderID: "prov",
-		},
-		Version: types.NewVersionID(),
-		Current: true,
+		Name:   "test rule",
+		Target: Target{},
 	}
 
 	for _, o := range opt {
@@ -58,12 +54,5 @@ func WithName(name string) func(*AccessRule) {
 func WithStatus(status Status) func(*AccessRule) {
 	return func(ar *AccessRule) {
 		ar.Status = status
-	}
-}
-
-// WithCurrent sets the current of the AccessRule.
-func WithCurrent(current bool) func(*AccessRule) {
-	return func(ar *AccessRule) {
-		ar.Current = current
 	}
 }

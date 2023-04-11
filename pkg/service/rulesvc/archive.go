@@ -8,7 +8,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -21,11 +20,6 @@ func (s *Service) ArchiveAccessRule(ctx context.Context, userId string, in rule.
 	newVersion := in
 	newVersion.Status = rule.ARCHIVED
 	newVersion.Metadata.UpdatedAt = s.Clock.Now()
-	newVersion.Version = types.NewVersionID()
-	newVersion.Current = true
-
-	// Set the existing version to not current
-	in.Current = false
 
 	// creates a new version entry as well as setting the current version
 	items := []ddb.Keyer{&newVersion, &in}

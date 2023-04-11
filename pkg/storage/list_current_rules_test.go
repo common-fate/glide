@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbtest"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,8 +14,7 @@ func TestListCurrentAccessRules(t *testing.T) {
 
 	current := rule.TestAccessRule()
 	archived := current
-	archived.Current = false
-	current.Version = types.NewVersionID()
+
 	ddbtest.PutFixtures(t, db, []*rule.AccessRule{&current, &archived})
 	q := &ListCurrentAccessRules{}
 	_, err := db.Query(context.TODO(), q)

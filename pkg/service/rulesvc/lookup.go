@@ -2,16 +2,13 @@ package rulesvc
 
 import (
 	"context"
-	"sort"
 
-	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"go.uber.org/zap"
 )
 
 // LookedUpRule is a rule found by the LookupRule method.
@@ -46,136 +43,136 @@ type LookupRuleOpts struct {
 }
 
 // LookupRule finds access rules which will grant access to a desired permission.
-func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]LookedUpRule, error) {
+// func (s *Service) LookupRule(ctx context.Context, opts LookupRuleOpts) ([]LookedUpRule, error) {
 
-	q := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
-	// fetch all active access rules
-	_, err := s.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
-		return nil, err
-	}
+// 	q := storage.ListAccessRulesForStatus{Status: rule.ACTIVE}
+// 	// fetch all active access rules
+// 	_, err := s.DB.Query(ctx, &q)
+// 	if err != nil && err != ddb.ErrNoItems {
+// 		return nil, err
+// 	}
 
-	filtered := FilterRulesByGroupMap(
-		opts.User.Groups,
-		q.Result,
-	)
+// 	filtered := FilterRulesByGroupMap(
+// 		opts.User.Groups,
+// 		q.Result,
+// 	)
 
-	var res []LookedUpRule
+// 	var res []LookedUpRule
 
-	// 1. The provider type parameter validation happens in the APISchema, it is restricted to only commonfate/aws-sso at the moment via an enum
-	// Update the API schema to add more options
-	//
-	// 2. query access rules for the requesting user which are active
-	//
-	// 3. Only process access rules which match the requested type
-	//
-	// 4. for SSO, fetch permission set options for the provider ID on the access rule being checked and cache the results
-	//
-	// 5. for SSO, attempt to match the permission set name to the label of the permission sets
-	//
-	// store the matching rules and return results
+// 	// 1. The provider type parameter validation happens in the APISchema, it is restricted to only commonfate/aws-sso at the moment via an enum
+// 	// Update the API schema to add more options
+// 	//
+// 	// 2. query access rules for the requesting user which are active
+// 	//
+// 	// 3. Only process access rules which match the requested type
+// 	//
+// 	// 4. for SSO, fetch permission set options for the provider ID on the access rule being checked and cache the results
+// 	//
+// 	// 5. for SSO, attempt to match the permission set name to the label of the permission sets
+// 	//
+// 	// store the matching rules and return results
 
-	providerOptionsCache := newProviderOptionsCache(s.DB)
-	providerGroupOptionsCache := newproviderGroupOptionsCache(s.DB)
-Filterloop:
-	for _, r := range filtered {
-		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
-		// select access rules which match the lookup type
-		if "commonfate/"+r.Target.BuiltInProviderType == opts.ProviderType {
-			switch r.Target.BuiltInProviderType {
-			// aws-sso is the short type for the provider, this switch case just runs the appropriate lookup code for the provider type
-			case "aws-sso":
-				// we must support string and []string for With/WithSelectable
-				ruleAccIds := []string{}
-				accountID, ok := r.Target.With["accountId"]
-				if ok {
-					ruleAccIds = append(ruleAccIds, accountID)
-				}
-				selectable, ok := r.Target.WithSelectable["accountId"]
-				if ok {
-					ruleAccIds = append(ruleAccIds, selectable...)
-				}
-				groups, ok := r.Target.WithArgumentGroupOptions["accountId"]
-				if ok {
-					for group, values := range groups {
-						for _, value := range values {
-							accounts, err := providerGroupOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "accountId", group, value)
-							if err != nil {
-								logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
-								continue Filterloop
-							}
-							ruleAccIds = append(ruleAccIds, accounts...)
-						}
+// 	providerOptionsCache := newProviderOptionsCache(s.DB)
+// 	providerGroupOptionsCache := newproviderGroupOptionsCache(s.DB)
+// Filterloop:
+// 	for _, r := range filtered {
+// 		// The type stored on the access rule is a short version of the type and needs to be updated eventually to be the full prefixed type
+// 		// select access rules which match the lookup type
+// 		if "commonfate/"+r.Target.BuiltInProviderType == opts.ProviderType {
+// 			switch r.Target.BuiltInProviderType {
+// 			// aws-sso is the short type for the provider, this switch case just runs the appropriate lookup code for the provider type
+// 			case "aws-sso":
+// 				// we must support string and []string for With/WithSelectable
+// 				ruleAccIds := []string{}
+// 				accountID, ok := r.Target.With["accountId"]
+// 				if ok {
+// 					ruleAccIds = append(ruleAccIds, accountID)
+// 				}
+// 				selectable, ok := r.Target.WithSelectable["accountId"]
+// 				if ok {
+// 					ruleAccIds = append(ruleAccIds, selectable...)
+// 				}
+// 				groups, ok := r.Target.WithArgumentGroupOptions["accountId"]
+// 				if ok {
+// 					for group, values := range groups {
+// 						for _, value := range values {
+// 							accounts, err := providerGroupOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "accountId", group, value)
+// 							if err != nil {
+// 								logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+// 								continue Filterloop
+// 							}
+// 							ruleAccIds = append(ruleAccIds, accounts...)
+// 						}
 
-					}
+// 					}
 
-				}
-				if contains(ruleAccIds, opts.Fields.AccountID) {
-					// we must support string and []string for With/WithSelectable
-					rulePermissionSetARNs := []string{}
-					singleRulePermissionSetARN, ok := r.Target.With["permissionSetArn"]
-					if ok {
-						rulePermissionSetARNs = append(rulePermissionSetARNs, singleRulePermissionSetARN)
-					}
-					selectable, ok := r.Target.WithSelectable["permissionSetArn"]
-					if ok {
-						rulePermissionSetARNs = append(rulePermissionSetARNs, selectable...)
-					}
-					// lookup the permission set options from the cache, the cache allows us to only looks these up once
-					permissionSets, err := providerOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "permissionSetArn")
-					if err != nil {
-						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
-						continue Filterloop
-					}
-					for _, po := range permissionSets {
-						if po.Label == opts.Fields.RoleName {
-							// Does this rule contain the matched permission set as an option?
-							// if so then we included it in the results
-							if contains(rulePermissionSetARNs, po.Value) {
-								lookupAccessRule := LookedUpRule{
-									Rule: r,
-								}
+// 				}
+// 				if contains(ruleAccIds, opts.Fields.AccountID) {
+// 					// we must support string and []string for With/WithSelectable
+// 					rulePermissionSetARNs := []string{}
+// 					singleRulePermissionSetARN, ok := r.Target.With["permissionSetArn"]
+// 					if ok {
+// 						rulePermissionSetARNs = append(rulePermissionSetARNs, singleRulePermissionSetARN)
+// 					}
+// 					selectable, ok := r.Target.WithSelectable["permissionSetArn"]
+// 					if ok {
+// 						rulePermissionSetARNs = append(rulePermissionSetARNs, selectable...)
+// 					}
+// 					// lookup the permission set options from the cache, the cache allows us to only looks these up once
+// 					permissionSets, err := providerOptionsCache.FetchOptions(ctx, r.Target.ProviderID, "permissionSetArn")
+// 					if err != nil {
+// 						logger.Get(ctx).Errorw("error finding provider options", zap.Error(err))
+// 						continue Filterloop
+// 					}
+// 					for _, po := range permissionSets {
+// 						if po.Label == opts.Fields.RoleName {
+// 							// Does this rule contain the matched permission set as an option?
+// 							// if so then we included it in the results
+// 							if contains(rulePermissionSetARNs, po.Value) {
+// 								lookupAccessRule := LookedUpRule{
+// 									Rule: r,
+// 								}
 
-								if len(r.Target.WithSelectable) > 0 {
-									var kv []types.KeyValue
-									for k := range r.Target.WithSelectable {
-										switch k {
-										case "accountId":
-											kv = append(kv, types.KeyValue{
-												Key:   k,
-												Value: opts.Fields.AccountID,
-											})
-										case "permissionSetArn":
-											kv = append(kv, types.KeyValue{
-												Key:   k,
-												Value: po.Value,
-											})
-										}
-									}
+// 								if len(r.Target.WithSelectable) > 0 {
+// 									var kv []types.KeyValue
+// 									for k := range r.Target.WithSelectable {
+// 										switch k {
+// 										case "accountId":
+// 											kv = append(kv, types.KeyValue{
+// 												Key:   k,
+// 												Value: opts.Fields.AccountID,
+// 											})
+// 										case "permissionSetArn":
+// 											kv = append(kv, types.KeyValue{
+// 												Key:   k,
+// 												Value: po.Value,
+// 											})
+// 										}
+// 									}
 
-									// sort the slice in a predictable way to make testing easier.
-									sort.Slice(kv, func(i, j int) bool {
-										if kv[i].Key == kv[j].Key {
-											return kv[i].Value < kv[j].Value
-										}
+// 									// sort the slice in a predictable way to make testing easier.
+// 									sort.Slice(kv, func(i, j int) bool {
+// 										if kv[i].Key == kv[j].Key {
+// 											return kv[i].Value < kv[j].Value
+// 										}
 
-										return kv[i].Key < kv[j].Key
-									})
+// 										return kv[i].Key < kv[j].Key
+// 									})
 
-									// SelectableWithOptionValues are key value pairs used in the frontend to prefill the request form when a rule is matched
-									lookupAccessRule.SelectableWithOptionValues = kv
-								}
-								res = append(res, lookupAccessRule)
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+// 									// SelectableWithOptionValues are key value pairs used in the frontend to prefill the request form when a rule is matched
+// 									lookupAccessRule.SelectableWithOptionValues = kv
+// 								}
+// 								res = append(res, lookupAccessRule)
+// 							}
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 
-	return res, nil
-}
+// 	return res, nil
+// }
 
 // FilterRulesByGroupMap
 // This method is used to filter a set of rule by the groups passed in as input

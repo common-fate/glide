@@ -16,9 +16,10 @@ type ListAccessRulesForStatus struct {
 func (l *ListAccessRulesForStatus) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		IndexName:              &keys.IndexNames.GSI1,
-		KeyConditionExpression: aws.String("GSI1PK = :pk"),
+		KeyConditionExpression: aws.String("GSI1PK = :pk AND GSI1SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI1PK(string(l.Status))},
+			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI1PK},
+			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI1SK(string(l.Status))},
 		},
 	}
 	return &qi, nil

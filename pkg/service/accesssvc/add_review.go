@@ -133,13 +133,13 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		PendingDurationSeconds: s.Clock.Since(request.CreatedAt).Seconds(),
 		Review:                 string(r.Decision),
 		OverrideTiming:         ot,
-		PDKProvider:            opts.AccessRule.Target.IsForTargetGroup(),
-		Provider:               opts.AccessRule.Target.TargetGroupFrom.ToAnalytics(),
-		ReviewerIsAdmin:        opts.ReviewerIsAdmin,
-		BuiltInProvider:        opts.AccessRule.Target.BuiltInProviderType,
-		RuleID:                 request.Rule,
-		Timing:                 request.RequestedTiming.ToAnalytics(),
-		HasReason:              request.HasReason(),
+		// PDKProvider:            opts.AccessRule.Target.IsForTargetGroup(),
+		Provider:        opts.AccessRule.Target.TargetGroupFrom.ToAnalytics(),
+		ReviewerIsAdmin: opts.ReviewerIsAdmin,
+		// BuiltInProvider:        opts.AccessRule.Target.BuiltInProviderType,
+		RuleID:    request.Rule,
+		Timing:    request.RequestedTiming.ToAnalytics(),
+		HasReason: request.HasReason(),
 	})
 
 	return &res, nil

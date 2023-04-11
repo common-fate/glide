@@ -16,14 +16,12 @@ import (
 // and then insert the new version with Current = true
 // This will correctly set the keys and enable the access patterns
 type AccessRule struct {
-	// Current is true if this is the current version
-	// When a new version is added, the previous version should be updated to set Current to false
-	Current bool `json:"current" dynamodbav:"current"`
+
 	// Approver config for access rules
-	Approval    Approval `json:"approval" dynamodbav:"approval"`
-	Version     string   `json:"version" dynamodbav:"version"`
-	Status      Status   `json:"status" dynamodbav:"status"`
-	Description string   `json:"description" dynamodbav:"description"`
+	Approval Approval `json:"approval" dynamodbav:"approval"`
+
+	Status      Status `json:"status" dynamodbav:"status"`
+	Description string `json:"description" dynamodbav:"description"`
 
 	// Array of group names that the access rule applies to
 	Groups          []string              `json:"groups" dynamodbav:"groups"`
@@ -76,9 +74,7 @@ func (a AccessRule) ToAPIDetail() types.AccessRuleDetail {
 
 		Target: a.Target.ToAPIDetail(),
 
-		Status:    status,
-		Version:   a.Version,
-		IsCurrent: a.Current,
+		Status: status,
 	}
 }
 
@@ -87,7 +83,6 @@ func (a AccessRule) ToAPI() types.AccessRule {
 
 	return types.AccessRule{
 		ID:          a.ID,
-		Version:     a.Version,
 		Description: a.Description,
 		Name:        a.Name,
 		TimeConstraints: types.TimeConstraints{
@@ -95,7 +90,6 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		},
 
 		Target:    a.Target.ToAPI(),
-		IsCurrent: a.Current,
 		CreatedAt: a.Metadata.CreatedAt,
 		UpdatedAt: a.Metadata.UpdatedAt,
 	}
@@ -104,13 +98,10 @@ func (a AccessRule) ToAPI() types.AccessRule {
 // This is used to serve a user making a request, it contains all the available arguments and options with title, description and labels
 func (a AccessRule) ToRequestAccessRuleAPI(requestArguments map[string]types.RequestArgument, canRequest bool) types.RequestAccessRule {
 	return types.RequestAccessRule{
-		Version:     a.Version,
 		Description: a.Description,
 		Name:        a.Name,
-		IsCurrent:   a.Current,
 		ID:          a.ID,
 		Target: types.RequestAccessRuleTarget{
-			Provider: a.Target.ProviderToAPI(),
 			Arguments: types.RequestAccessRuleTarget_Arguments{
 				AdditionalProperties: requestArguments,
 			},
@@ -148,80 +139,34 @@ func (a *Approval) IsRequired() bool {
 // Provider defines model for Provider.
 // I expect this will be different to what gets returned in the api response
 type Target struct {
-	// References the provider's unique ID
-	ProviderID    string `json:"providerId"  dynamodbav:"providerId"`
 	TargetGroupID string `json:"targetGroupId" dynamodbav:"targetGroupId"`
-
-	// BuiltInProviderType is only used for built-in providers
-	BuiltInProviderType string `json:"providerType"  dynamodbav:"providerType"`
 
 	// TargetGroupFrom is only used for PDK providers and is a denormalised copy of the
 	// 'From' field in a Target Group.
 	TargetGroupFrom target.From `json:"targetGroupFrom"  dynamodbav:"targetGroupFrom"`
 
 	With map[string]string `json:"with"  dynamodbav:"with"`
-	// when target can have multiple values
-	WithSelectable map[string][]string `json:"withSelectable"  dynamodbav:"withSelectable"`
-	// when target doesn't have values but instead belongs to a group
-	// which can be dynamically fetched at access request time.
-	WithArgumentGroupOptions map[string]map[string][]string `json:"withArgumentGroupOptions"  dynamodbav:"withArgumentGroupOptions"`
-}
-
-// UsesSelectableOptions is true if the rule allows users to select an option
-// when making a request.
-func (t Target) UsesSelectableOptions() bool {
-	return t.WithSelectable != nil && len(t.WithSelectable) > 0
-}
-
-// IsForTargetGroup check if this target has a targetgroup ID
-// if so, it means this rule is for a targetgroup not a built-in provider
-func (t Target) IsForTargetGroup() bool {
-	return t.TargetGroupID != ""
-}
-
-// UsesDynamicOptions is true if the rule uses dynamic options that are automatically
-// updated, such as AWS Organizational Units.
-func (t Target) UsesDynamicOptions() bool {
-	return t.WithArgumentGroupOptions != nil && len(t.WithArgumentGroupOptions) > 0
-}
-
-func (t Target) ProviderToAPI() types.Provider {
-	return types.Provider{
-		Id:   t.ProviderID,
-		Type: t.BuiltInProviderType,
-	}
 }
 
 // converts to basic api type
 func (t Target) ToAPI() types.AccessRuleTarget {
-	return types.AccessRuleTarget{
-		Provider: t.ProviderToAPI(),
-	}
+	return types.AccessRuleTarget{}
 }
 
 func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 
 	at := types.AccessRuleTargetDetail{
-		Provider: types.Provider{
-			Id:   t.ProviderID,
-			Type: t.BuiltInProviderType,
-		},
+
 		With: types.AccessRuleTargetDetail_With{
 			AdditionalProperties: make(map[string]types.AccessRuleTargetDetailArguments),
 		},
 	}
 
-	at.TargetGroup = &t.TargetGroupID
+	at.TargetGroup = types.TargetGroup{Id: t.TargetGroupID, From: t.TargetGroupFrom.ToAPI()}
 
 	for k, v := range t.With {
 		argument := at.With.AdditionalProperties[k]
 		argument.Values = append(argument.Values, v)
-
-		at.With.AdditionalProperties[k] = argument
-	}
-	for k, v := range t.WithSelectable {
-		argument := at.With.AdditionalProperties[k]
-		argument.Values = append(argument.Values, v...)
 
 		at.With.AdditionalProperties[k] = argument
 	}
@@ -240,19 +185,10 @@ func (t Target) ToAPIDetail() types.AccessRuleTargetDetail {
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {
 	// If this is a current version of the rule, then the GSI keys are used
-	if r.Current {
-		return ddb.Keys{
-			PK:     keys.AccessRule.PK1,
-			SK:     keys.AccessRule.SK1(r.ID, r.Version),
-			GSI1PK: keys.AccessRule.GSI1PK(string(r.Status)),
-			GSI1SK: keys.AccessRule.GSI1SK(r.ID),
-			GSI2PK: keys.AccessRule.GSI2PK,
-			GSI2SK: keys.AccessRule.GSI2SK(r.ID),
-		}, nil
-	}
-	// If this is not a current version of the rule, only the primary keys are used
+
 	return ddb.Keys{
 		PK: keys.AccessRule.PK1,
-		SK: keys.AccessRule.SK1(r.ID, r.Version),
+		SK: keys.AccessRule.SK1(r.ID),
 	}, nil
+
 }

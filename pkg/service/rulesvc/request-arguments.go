@@ -97,9 +97,9 @@ func (s *Service) RequestArguments(ctx context.Context, accessRuleTarget rule.Ta
 		if value, ok := accessRuleTarget.With[k]; ok {
 			targetGroupRequestArguments[k] = s.processArgument(ctx, accessRuleTarget.TargetGroupID, v, value)
 		}
-		if values, ok := accessRuleTarget.WithSelectable[k]; ok {
-			targetGroupRequestArguments[k] = s.processArguments(ctx, accessRuleTarget.TargetGroupID, v, values)
-		}
+		// if values, ok := accessRuleTarget.WithSelectable[k]; ok {
+		// 	targetGroupRequestArguments[k] = s.processArguments(ctx, accessRuleTarget.TargetGroupID, v, values)
+		// }
 
 	}
 

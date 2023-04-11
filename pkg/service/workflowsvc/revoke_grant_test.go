@@ -43,7 +43,6 @@ func TestRevokeGrant(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID:    "string",
 					With:          map[string]string{},
 					TargetGroupID: "123",
 				}},
@@ -70,7 +69,6 @@ func TestRevokeGrant(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID:    "string",
 					With:          map[string]string{},
 					TargetGroupID: "123",
 				}},
@@ -97,7 +95,6 @@ func TestRevokeGrant(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID:    "string",
 					With:          map[string]string{},
 					TargetGroupID: "123",
 				}},
@@ -122,7 +119,6 @@ func TestRevokeGrant(t *testing.T) {
 				Name:        "string",
 				Groups:      []string{"string"},
 				Target: rule.Target{
-					ProviderID:    "string",
 					With:          map[string]string{},
 					TargetGroupID: "123",
 				}},
@@ -154,7 +150,7 @@ func TestRevokeGrant(t *testing.T) {
 
 			c := ddbmock.New(t)
 			c.MockQueryWithErr(&storage.GetUser{Result: tc.withUser}, tc.wantUserErr)
-			c.MockQueryWithErr(&storage.GetAccessRuleVersion{Result: &tc.getRule}, tc.withGetRuleVersionResponseErr)
+			c.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: &tc.getRule}, tc.withGetRuleVersionResponseErr)
 			c.MockQueryWithErr(&storage.ListRequestReviewers{Result: tc.requestReviewers}, tc.wantUserErr)
 
 			s := Service{

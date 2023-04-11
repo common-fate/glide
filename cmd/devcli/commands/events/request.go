@@ -65,8 +65,7 @@ var requestCommand = cli.Command{
 				RequestedTiming: access.Timing{
 					Duration: time.Hour,
 				},
-				Rule:        q.Result.ID,
-				RuleVersion: q.Result.Version,
+				Rule: q.Result.ID,
 			},
 		}
 

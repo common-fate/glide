@@ -35,11 +35,7 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	newVersion.Metadata.UpdatedBy = in.UpdaterID
 	newVersion.Metadata.UpdatedAt = clk.Now()
 	newVersion.TimeConstraints = in.UpdateRequest.TimeConstraints
-	newVersion.Version = types.NewVersionID()
 	newVersion.Target = target
-
-	// Set the existing version to not current
-	in.Rule.Current = false
 
 	// updated the previous version to be a version and inserts the new one as current
 	err = s.DB.PutBatch(ctx, &newVersion, &in.Rule)
@@ -49,15 +45,11 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
-		UpdatedBy:             in.UpdaterID,
-		RuleID:                in.Rule.ID,
-		BuiltInProvider:       in.Rule.Target.BuiltInProviderType,
-		Provider:              in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		PDKProvider:           in.Rule.Target.IsForTargetGroup(),
-		MaxDurationSeconds:    in.Rule.TimeConstraints.MaxDurationSeconds,
-		UsesSelectableOptions: in.Rule.Target.UsesSelectableOptions(),
-		UsesDynamicOptions:    in.Rule.Target.UsesDynamicOptions(),
-		RequiresApproval:      in.Rule.Approval.IsRequired(),
+		UpdatedBy:          in.UpdaterID,
+		RuleID:             in.Rule.ID,
+		Provider:           in.Rule.Target.TargetGroupFrom.ToAnalytics(),
+		MaxDurationSeconds: in.Rule.TimeConstraints.MaxDurationSeconds,
+		RequiresApproval:   in.Rule.Approval.IsRequired(),
 	})
 
 	return &newVersion, nil
