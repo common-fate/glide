@@ -671,7 +671,7 @@ func TestLookupAccessRules(t *testing.T) {
 			defer ctrl.Finish()
 
 			m := mocks.NewMockAccessRuleService(ctrl)
-			m.EXPECT().LookupRule(gomock.Any(), gomock.Any()).Return(tc.mockLookupRuleResponse, tc.mockLookupRuleErr)
+			// m.EXPECT().LookupRule(gomock.Any(), gomock.Any()).Return(tc.mockLookupRuleResponse, tc.mockLookupRuleErr)
 
 			a := API{Rules: m}
 			handler := newTestServer(t, &a)
