@@ -44,25 +44,35 @@ var RequestV2 = requestKeys{
 const AccessGroupKey = "ACCESS_GROUP#"
 
 type accessGroupKeys struct {
-	PK1 string
-	SK1 func(requestId string) string
+	PK1         string
+	SKAllGroups func(requestId string) string
+
+	SK1 func(requestId string, groupId string) string
 }
 
 var AccessGroup = accessGroupKeys{
-	PK1: AccessGroupKey,
-	SK1: func(requestId string) string { return requestId + "#" },
+	PK1:         AccessGroupKey,
+	SKAllGroups: func(requestId string) string { return requestId + "#" },
+
+	SK1: func(requestId string, groupId string) string { return requestId + "#" + groupId + "#" },
 }
 
 const GrantV2Key = "GRANTV2#"
 
 type grantKeys struct {
-	PK1 string
-	SK1 func(accessGroupId string) string
+	PK1         string
+	SKAllGrants func(requestId string, groupId string) string
+
+	SK1 func(requestId string, groupId string, grantId string) string
 }
 
 var Grant = grantKeys{
-	PK1: GrantV2Key,
-	SK1: func(accessGroupId string) string { return accessGroupId + "#" },
+	PK1:         GrantV2Key,
+	SKAllGrants: func(requestId string, groupId string) string { return requestId + "#" + groupId + "#" },
+
+	SK1: func(requestId string, groupId string, grantId string) string {
+		return requestId + "#" + groupId + "#" + grantId + "#"
+	},
 }
 
 const UserV2Key = "USERV2#"

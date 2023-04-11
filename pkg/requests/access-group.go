@@ -21,7 +21,7 @@ type AccessGroup struct {
 func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.AccessGroup.PK1,
-		SK: keys.AccessGroup.SK1(i.Request),
+		SK: keys.AccessGroup.SK1(i.Request, i.ID),
 	}
 	return keys, nil
 }

@@ -31,7 +31,9 @@ func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 func (i *Requestv2) ToAPI() types.Requestv2 {
 	out := types.Requestv2{
 		Id:      i.ID,
-		Context: types.RequestContext{},
+		Context: i.Context.ToAPI(),
+		Status:  i.Status,
+		User:    i.User.ID,
 	}
 	for _, g := range i.Groups {
 		out.Groups = append(out.Groups, g.ToAPI())
@@ -45,4 +47,12 @@ type RequestContext struct {
 	Metadata string `json:"metadata" dynamodbav:"metadata"`
 
 	Reason string `json:"reason" dynamodbav:"reason"`
+}
+
+func (c *RequestContext) ToAPI() types.RequestContext {
+	return types.RequestContext{
+		Purpose: struct {
+			Reason string "json:\"reason\""
+		}{c.Reason},
+	}
 }
