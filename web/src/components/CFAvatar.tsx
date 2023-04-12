@@ -22,8 +22,8 @@ export const CFAvatar: React.FC<CFAvatarProps> = ({ userId }) => {
         variant="withBorder"
         textProps={{
           textStyle: "Body/Small",
-          maxW: "20ch",
-          noOfLines: 1,
+          // maxW: "20ch",
+          // noOfLines: 1,
           color: "neutrals.700",
         }}
       />
