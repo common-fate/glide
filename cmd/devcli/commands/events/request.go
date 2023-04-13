@@ -3,7 +3,6 @@ package events
 import (
 	"time"
 
-	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/requests"
@@ -32,7 +31,7 @@ var requestCommand = cli.Command{
 			return err
 		}
 
-		reason := "Deploying Terraform for CF-123"
+		// reason := "Deploying Terraform for CF-123"
 
 		db, err := ddb.New(ctx, o.DynamoDBTable)
 		if err != nil {
@@ -54,19 +53,12 @@ var requestCommand = cli.Command{
 		}
 
 		e := gevent.RequestCreated{
-			Request: access.Request{
+			Request: requests.Requestv2{
 				ID:        types.NewRequestID(),
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
-				Status:    access.PENDING,
-				Data: access.RequestData{
-					Reason: &reason,
-				},
-				RequestedBy: u.Result.ID,
-				RequestedTiming: requests.Timing{
-					Duration: time.Hour,
-				},
-				Rule: q.Result.ID,
+
+				RequestedBy: *u.Result,
 			},
 		}
 

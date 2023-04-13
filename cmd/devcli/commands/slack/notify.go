@@ -60,7 +60,7 @@ var requestMessageCommand = cli.Command{
 			return fmt.Errorf("request-id is required")
 		}
 
-		q := storage.GetRequest{ID: id}
+		q := storage.GetRequestV2{ID: id}
 		_, err = db.Query(ctx, &q)
 		if err != nil {
 			return err
