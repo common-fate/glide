@@ -2,6 +2,7 @@ package preflightsvc
 
 import (
 	"context"
+	"time"
 
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requests"
@@ -23,12 +24,12 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 	u := auth.UserFromContext(ctx)
 
 	preflight := requests.Requestv2{
-		ID:     types.NewRequestID(),
-		Groups: map[string]requests.AccessGroup{},
-		User:   *u,
+		ID:          types.NewRequestID(),
+		Groups:      map[string]requests.AccessGroup{},
+		RequestedBy: *u,
 	}
 
-	//Go through each target in the request and group them up based on access rule
+	//Go through each1 target in the request and group them up based on access rule
 
 	//eg. a preflight request could have targets from multiple fields in the same access rule
 	//as well as targets from a different access rule. Eg. Aws sso and OKTA groups
@@ -54,10 +55,11 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 				return nil, err
 			}
 
+			now := time.Now()
 			preflight.Groups[target.AccessRule] = requests.AccessGroup{
 				AccessRule:      *ac.Result,
 				Reason:          target.Reason,
-				TimeConstraints: target.TimeConstraints,
+				TimeConstraints: requests.Timing{Duration: time.Duration(target.TimeConstraints.MaxDurationSeconds), StartTime: &now},
 				With:            []map[string]string{newTarget},
 			}
 

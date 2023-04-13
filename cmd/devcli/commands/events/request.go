@@ -6,6 +6,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -62,7 +63,7 @@ var requestCommand = cli.Command{
 					Reason: &reason,
 				},
 				RequestedBy: u.Result.ID,
-				RequestedTiming: access.Timing{
+				RequestedTiming: requests.Timing{
 					Duration: time.Hour,
 				},
 				Rule: q.Result.ID,

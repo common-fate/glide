@@ -5,9 +5,10 @@ import (
 
 	"github.com/benbjohnson/clock"
 
-	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -24,9 +25,16 @@ type Service struct {
 	Workflow    Workflow
 }
 
+type CreateGrantOpts struct {
+	ID          string
+	With        map[string]string
+	AccessRule  rule.AccessRule
+	RequestedBy identity.User
+}
+
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/workflow.go -package=mocks . Workflow
 type Workflow interface {
-	Grant(ctx context.Context, request access.Request, accessRule rule.AccessRule) (*access.Grant, error)
+	Grant(ctx context.Context, request requests.AccessGroup, subject string) ([]requests.Grantv2, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter

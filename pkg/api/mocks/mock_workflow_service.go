@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	access "github.com/common-fate/common-fate/pkg/access"
+	requests "github.com/common-fate/common-fate/pkg/requests"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,10 +36,10 @@ func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 }
 
 // Revoke mocks base method.
-func (m *MockWorkflow) Revoke(arg0 context.Context, arg1 access.Request, arg2, arg3 string) (*access.Request, error) {
+func (m *MockWorkflow) Revoke(arg0 context.Context, arg1 requests.Requestv2, arg2, arg3 string) (*requests.Requestv2, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Revoke", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*access.Request)
+	ret0, _ := ret[0].(*requests.Requestv2)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

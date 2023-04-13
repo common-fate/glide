@@ -3,6 +3,7 @@ package access
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -15,8 +16,8 @@ type Favorite struct {
 	Name   string `json:"name" dynamodbav:"name"`
 	// Rule is the ID of the Access Rule which the request relates to.
 	Rule            string                `json:"rule" dynamodbav:"rule"`
-	Data            RequestData           `json:"data" dynamodbav:"data"`
-	RequestedTiming Timing                `json:"requestedTiming" dynamodbav:"requestedTiming"`
+	Data            requests.RequestData  `json:"data" dynamodbav:"data"`
+	RequestedTiming requests.Timing       `json:"requestedTiming" dynamodbav:"requestedTiming"`
 	With            []map[string][]string `json:"with" dynamodbav:"with"`
 	CreatedAt       time.Time             `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt       time.Time             `json:"updatedAt" dynamodbav:"updatedAt"`

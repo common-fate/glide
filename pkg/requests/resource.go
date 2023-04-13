@@ -8,16 +8,6 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-// Status of an Access Request.
-type Status string
-
-const (
-	APPROVED  Status = "APPROVED"
-	DECLINED  Status = "DECLINED"
-	CANCELLED Status = "CANCELLED"
-	PENDING   Status = "PENDING"
-)
-
 type TargetFrom struct {
 	Publisher string `json:"publisher" dynamodbav:"publisher"`
 	Name      string `json:"name" dynamodbav:"name"`

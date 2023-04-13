@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/api/mocks"
 	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -43,7 +44,7 @@ func TestReviewRequest(t *testing.T) {
 			give: `{"decision": "APPROVED"}`,
 			addReviewResult: &accesssvc.AddReviewResult{
 				// fill the struct a little bit to verify it is included in the HTTP response
-				Request: access.Request{
+				AccessGroup: requests.AccessGroup{
 					ID: "test",
 				},
 			},
@@ -56,15 +57,15 @@ func TestReviewRequest(t *testing.T) {
 			give: `{"decision": "APPROVED","overrideTiming":{"durationSeconds":3600,"startTime":"2020-01-01T16:20:10Z"}}`,
 			addReviewResult: &accesssvc.AddReviewResult{
 				// fill the struct a little bit to verify it is included in the HTTP responses
-				Request: access.Request{
+				AccessGroup: requests.AccessGroup{
 					ID: "test",
-					OverrideTiming: &access.Timing{
+					OverrideTiming: &requests.Timing{
 						Duration:  time.Second * 3600,
 						StartTime: &overrideTime,
 					},
 				},
 			},
-			wantAddReviewOpts: accesssvc.AddReviewOpts{Decision: access.DecisionApproved, OverrideTiming: &access.Timing{
+			wantAddReviewOpts: accesssvc.AddReviewOpts{Decision: access.DecisionApproved, OverrideTiming: &requests.Timing{
 				Duration:  time.Second * 3600,
 				StartTime: &overrideTime,
 			}},
@@ -117,7 +118,6 @@ func TestReviewRequest(t *testing.T) {
 
 			mockAccess.EXPECT().AddReviewAndGrantAccess(gomock.Any(), tc.wantAddReviewOpts).Return(tc.addReviewResult, tc.addReviewErr).AnyTimes()
 			db.MockQueryWithErr(&storage.ListRequestReviewers{}, tc.reviewersErr)
-			db.MockQueryWithErr(&storage.GetRequest{Result: &access.Request{}}, tc.requestErr)
 			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: &rule.AccessRule{}}, nil)
 
 			a := API{Access: mockAccess, DB: db, AdminGroup: "testAdmin"}

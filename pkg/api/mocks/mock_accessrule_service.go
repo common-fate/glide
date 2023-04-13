@@ -83,21 +83,6 @@ func (mr *MockAccessRuleServiceMockRecorder) GetRule(arg0, arg1, arg2, arg3 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRule", reflect.TypeOf((*MockAccessRuleService)(nil).GetRule), arg0, arg1, arg2, arg3)
 }
 
-// RequestArguments mocks base method.
-func (m *MockAccessRuleService) RequestArguments(arg0 context.Context, arg1 rule.Target) (map[string]types.RequestArgument, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RequestArguments", arg0, arg1)
-	ret0, _ := ret[0].(map[string]types.RequestArgument)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RequestArguments indicates an expected call of RequestArguments.
-func (mr *MockAccessRuleServiceMockRecorder) RequestArguments(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestArguments", reflect.TypeOf((*MockAccessRuleService)(nil).RequestArguments), arg0, arg1)
-}
-
 // UpdateRule mocks base method.
 func (m *MockAccessRuleService) UpdateRule(arg0 context.Context, arg1 *rulesvc.UpdateOpts) (*rule.AccessRule, error) {
 	m.ctrl.T.Helper()

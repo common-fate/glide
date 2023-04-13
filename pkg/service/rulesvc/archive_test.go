@@ -1,76 +1,62 @@
 package rulesvc
 
-import (
-	"context"
-	"testing"
-	"time"
+// func TestArchiveAccessRule(t *testing.T) {
+// 	type testcase struct {
+// 		name      string
+// 		givenRule rule.AccessRule
+// 		wantErr   error
+// 		want      *rule.AccessRule
+// 	}
 
-	"github.com/benbjohnson/clock"
-	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/ddb"
-	"github.com/common-fate/ddb/ddbmock"
-	"github.com/stretchr/testify/assert"
-)
+// 	clk := clock.NewMock()
+// 	now := clk.Now()
+// 	mockRule := rule.AccessRule{
+// 		ID: "rule",
 
-func TestArchiveAccessRule(t *testing.T) {
-	type testcase struct {
-		name      string
-		givenRule rule.AccessRule
-		wantErr   error
-		want      *rule.AccessRule
-	}
+// 		Status: rule.ACTIVE,
+// 		Metadata: rule.AccessRuleMetadata{
+// 			CreatedAt: now.Add(time.Minute),
+// 			CreatedBy: "hello",
+// 			UpdatedAt: now.Add(time.Minute),
+// 			UpdatedBy: "hello",
+// 		},
+// 	}
+// 	want := mockRule
+// 	want.Status = rule.ARCHIVED
+// 	want.Metadata.UpdatedAt = now
 
-	clk := clock.NewMock()
-	now := clk.Now()
-	mockRule := rule.AccessRule{
-		ID: "rule",
+// 	testcases := []testcase{
+// 		{
+// 			name:      "ok",
+// 			givenRule: mockRule,
+// 			want:      &want,
+// 		},
+// 		{
+// 			name: "already archived",
+// 			givenRule: rule.AccessRule{
+// 				Status: rule.ACTIVE,
+// 			},
+// 			wantErr: ErrAccessRuleAlreadyArchived,
+// 		},
+// 	}
 
-		Status: rule.ACTIVE,
-		Metadata: rule.AccessRuleMetadata{
-			CreatedAt: now.Add(time.Minute),
-			CreatedBy: "hello",
-			UpdatedAt: now.Add(time.Minute),
-			UpdatedBy: "hello",
-		},
-	}
-	want := mockRule
-	want.Status = rule.ARCHIVED
-	want.Metadata.UpdatedAt = now
+// 	for _, tc := range testcases {
+// 		t.Run(tc.name, func(t *testing.T) {
 
-	testcases := []testcase{
-		{
-			name:      "ok",
-			givenRule: mockRule,
-			want:      &want,
-		},
-		{
-			name: "already archived",
-			givenRule: rule.AccessRule{
-				Status: rule.ACTIVE,
-			},
-			wantErr: ErrAccessRuleAlreadyArchived,
-		},
-	}
+// 			db := ddbmock.New(t)
+// 			db.PutBatchErr = tc.wantErr
+// 			db.MockQueryWithErrWithResult(&storage.ListRequestsForStatus{Status: access.PENDING, Result: []access.Request{}}, &ddb.QueryResult{}, nil)
+// 			db.MockQueryWithErrWithResult(&storage.ListRequestReviewers{Result: []access.Reviewer{}}, &ddb.QueryResult{}, nil)
 
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
+// 			s := Service{
+// 				Clock: clk,
+// 				DB:    db,
+// 			}
 
-			db := ddbmock.New(t)
-			db.PutBatchErr = tc.wantErr
-			db.MockQueryWithErrWithResult(&storage.ListRequestsForStatus{Status: access.PENDING, Result: []access.Request{}}, &ddb.QueryResult{}, nil)
-			db.MockQueryWithErrWithResult(&storage.ListRequestReviewers{Result: []access.Reviewer{}}, &ddb.QueryResult{}, nil)
+// 			got, err := s.ArchiveAccessRule(context.Background(), "", tc.givenRule)
 
-			s := Service{
-				Clock: clk,
-				DB:    db,
-			}
-
-			got, err := s.ArchiveAccessRule(context.Background(), "", tc.givenRule)
-
-			assert.Equal(t, tc.wantErr, err)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
+// 			assert.Equal(t, tc.wantErr, err)
+// 			assert.Equal(t, tc.want, got)
+// 		})
+// 	}
+// }

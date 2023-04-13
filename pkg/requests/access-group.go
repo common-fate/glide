@@ -1,10 +1,22 @@
 package requests
 
 import (
+	"time"
+
+	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+)
+
+type Status string
+
+const (
+	APPROVED  Status = "APPROVED"
+	DECLINED  Status = "DECLINED"
+	CANCELLED Status = "CANCELLED"
+	PENDING   Status = "PENDING"
 )
 
 type AccessGroup struct {
@@ -12,10 +24,14 @@ type AccessGroup struct {
 	Reason     string              `json:"reason" dynamodbav:"reason"`
 	With       []map[string]string `json:"with" dynamodbav:"with"`
 	// ID is a read-only field after the request has been created.
-	ID              string                `json:"id" dynamodbav:"id"`
-	Request         string                `json:"request" dynamodbav:"request"`
-	Grants          []Grantv2             `json:"grants" dynamodbav:"grants"`
-	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	ID              string    `json:"id" dynamodbav:"id"`
+	Request         string    `json:"request" dynamodbav:"request"`
+	Grants          []Grantv2 `json:"grants" dynamodbav:"grants"`
+	TimeConstraints Timing    `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	OverrideTiming  *Timing   `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+
+	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+	Status    Status    `json:"status" dynamodbav:"status"`
 }
 
 func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
@@ -31,4 +47,76 @@ func (i *AccessGroup) ToAPI() types.AccessGroup {
 		Grants: []types.Grantv2{},
 		//TODO: How to have []map[string]string in the api?
 	}
+}
+
+func (r *AccessGroup) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time, end time.Time) {
+	if r.OverrideTiming != nil {
+		return r.OverrideTiming.GetInterval(opts...)
+	}
+	return r.TimeConstraints.GetInterval(opts...)
+}
+
+// Timing represents all the timing options available
+// Duration should always be set
+// StartTime should be set if this is a scheduled access
+// The combination of startTime and duration make up the start and end times of a grant
+type Timing struct {
+	Duration time.Duration `json:"duration" dynamodbav:"duration"`
+	// If the start time is not nil, this request is for scheduled access, if it is nil, then the request is for asap access
+	StartTime *time.Time `json:"start,omitempty" dynamodbav:"start,omitempty"`
+}
+
+func (t Timing) ToAnalytics() analytics.Timing {
+	mode := analytics.TimingModeASAP
+	if t.IsScheduled() {
+		mode = analytics.TimingModeScheduled
+	}
+
+	return analytics.Timing{
+		Mode:            mode,
+		DurationSeconds: t.Duration.Seconds(),
+	}
+}
+
+// TimingFromRequestTiming converts from the api type to the internal type
+func TimingFromRequestTiming(r types.RequestTiming) Timing {
+	return Timing{
+		Duration:  time.Second * time.Duration(r.DurationSeconds),
+		StartTime: r.StartTime,
+	}
+}
+
+// IsScheduled is true if the startTime is not nil
+func (t *Timing) IsScheduled() bool {
+	return t.StartTime != nil
+}
+
+// ToAPI returns the api representation of the timing information
+func (t *Timing) ToAPI() types.RequestTiming {
+	return types.RequestTiming{
+		DurationSeconds: int(t.Duration.Seconds()),
+		StartTime:       t.StartTime,
+	}
+}
+
+// GetInterval returns a start and end time for this timing information
+// it will either return times for scheduled access if the timing represents scheduled access.
+// Or it will use the time.Now() as the start time.
+//
+// To override the start time for asap timing, pass in the WithNow(t time.Time) function
+func (t *Timing) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time, end time.Time) {
+	if t.IsScheduled() {
+		return *t.StartTime, t.StartTime.Add(t.Duration)
+	}
+	cfg := GetIntervalOpts{
+		Now: time.Now(),
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return cfg.Now, cfg.Now.Add(t.Duration)
+}
+
+type GetIntervalOpts struct {
+	Now time.Time
 }

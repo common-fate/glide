@@ -87,8 +87,7 @@ type CognitoService interface {
 
 // RequestServices can create Access Requests.
 type AccessService interface {
-	CreateRequests(ctx context.Context, in accesssvc.CreateRequestsOpts) ([]accesssvc.CreateRequestResult, error)
-	CreateSubmitRequests(ctx context.Context, in requests.Requestv2) ([]accesssvc.CreateRequestResult, error)
+	CreateRequests(ctx context.Context, in requests.Requestv2) ([]accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
 	CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
@@ -104,7 +103,7 @@ type AccessRuleService interface {
 	// LookupRule(ctx context.Context, opts rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error)
 	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.GetAccessRuleResponse, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
-	RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
+	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
 
 type CacheService interface {
@@ -136,7 +135,7 @@ type HandlerService interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, request access.Request, revokerID string, revokerEmail string) (*access.Request, error)
+	Revoke(ctx context.Context, request requests.Requestv2, revokerID string, revokerEmail string) (*requests.Requestv2, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_healthcheck_service.go -package=mocks . HealthcheckService

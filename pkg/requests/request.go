@@ -1,6 +1,8 @@
 package requests
 
 import (
+	"time"
+
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -13,17 +15,22 @@ import (
 
 type Requestv2 struct {
 	// ID is a read-only field after the request has been created.
-	ID      string                 `json:"id" dynamodbav:"id"`
-	Groups  map[string]AccessGroup `json:"groups" dynamodbav:"groups"`
-	Context RequestContext         `json:"context" dynamodbav:"context"`
-	User    identity.User          `json:"user" dynamodbav:"user"`
-	Status  string                 `json:"status" dynamodbav:"status"`
+	ID          string                 `json:"id" dynamodbav:"id"`
+	Groups      map[string]AccessGroup `json:"groups" dynamodbav:"groups"`
+	Context     RequestContext         `json:"context" dynamodbav:"context"`
+	RequestedBy identity.User          `json:"requestedBy" dynamodbav:"requestedBy"`
+
+	// RequestedBy is the ID of the user who has made the request.
+
+	// CreatedAt is a read-only field after the request has been created.
+	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
 func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.RequestV2.PK1,
-		SK: keys.RequestV2.SK1(i.User.ID, i.ID),
+		SK: keys.RequestV2.SK1(i.RequestedBy.ID, i.ID),
 	}
 	return keys, nil
 }
@@ -32,8 +39,7 @@ func (i *Requestv2) ToAPI() types.Requestv2 {
 	out := types.Requestv2{
 		Id:      i.ID,
 		Context: i.Context.ToAPI(),
-		Status:  i.Status,
-		User:    i.User.ID,
+		User:    i.RequestedBy.ID,
 	}
 	for _, g := range i.Groups {
 		out.Groups = append(out.Groups, g.ToAPI())
@@ -46,13 +52,24 @@ type RequestContext struct {
 	Purpose  string `json:"purpose" dynamodbav:"purpose"`
 	Metadata string `json:"metadata" dynamodbav:"metadata"`
 
-	Reason string `json:"reason" dynamodbav:"reason"`
+	Reason *string `json:"reason" dynamodbav:"reason"`
 }
 
 func (c *RequestContext) ToAPI() types.RequestContext {
 	return types.RequestContext{
 		Purpose: struct {
 			Reason string "json:\"reason\""
-		}{c.Reason},
+		}{*c.Reason},
 	}
+}
+
+// // RequestData is information provided by the user when they make the request,
+// // through filling in form fields in the web application.
+type RequestData struct {
+	Reason *string `json:"reason,omitempty" dynamodbav:"reason,omitempty"`
+}
+
+// // WithNow allows you to override the now time used by getInterval
+func WithNow(t time.Time) func(o *GetIntervalOpts) {
+	return func(o *GetIntervalOpts) { o.Now = t }
 }

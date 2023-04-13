@@ -1,6 +1,7 @@
 package access
 
 import (
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
@@ -19,18 +20,18 @@ const (
 // When an approver completes the review the status of the Review is
 // updated to be COMPLETE.
 type Review struct {
-	ID              string   `json:"id" dynamodbav:"id"`
-	RequestID       string   `json:"requestId" dynamodbav:"requestId"`
-	ReviewerID      string   `json:"reviewerId" dynamodbav:"reviewerId"`
-	Decision        Decision `json:"decision" dynamodbav:"decision"`
-	Comment         *string  `json:"comment,omitempty" dynamodbav:"comment,omitempty"`
-	OverrideTimings *Timing  `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	ID              string           `json:"id" dynamodbav:"id"`
+	AccessGroupID   string           `json:"accessGroupId" dynamodbav:"accessGroupId"`
+	ReviewerID      string           `json:"reviewerId" dynamodbav:"reviewerId"`
+	Decision        Decision         `json:"decision" dynamodbav:"decision"`
+	Comment         *string          `json:"comment,omitempty" dynamodbav:"comment,omitempty"`
+	OverrideTimings *requests.Timing `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
 }
 
 func (r *Review) DDBKeys() (ddb.Keys, error) {
 	k := ddb.Keys{
 		PK: keys.AccessReview.PK1(r.ReviewerID),
-		SK: keys.AccessReview.SK1(r.RequestID, r.ID),
+		SK: keys.AccessReview.SK1(r.AccessGroupID, r.ID),
 	}
 	return k, nil
 }

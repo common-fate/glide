@@ -8,8 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	access "github.com/common-fate/common-fate/pkg/access"
-	rule "github.com/common-fate/common-fate/pkg/rule"
+	requests "github.com/common-fate/common-fate/pkg/requests"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -37,10 +36,10 @@ func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 }
 
 // Grant mocks base method.
-func (m *MockWorkflow) Grant(arg0 context.Context, arg1 access.Request, arg2 rule.AccessRule) (*access.Grant, error) {
+func (m *MockWorkflow) Grant(arg0 context.Context, arg1 requests.AccessGroup, arg2 string) ([]requests.Grantv2, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Grant", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*access.Grant)
+	ret0, _ := ret[0].([]requests.Grantv2)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

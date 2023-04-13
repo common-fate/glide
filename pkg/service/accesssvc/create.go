@@ -2,28 +2,18 @@ package accesssvc
 
 import (
 	"context"
-	"errors"
 	"net/http"
-	"sync"
-	"time"
 
-	"github.com/common-fate/analytics-go"
 	"github.com/common-fate/apikit/apio"
-	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/service/rulesvc"
-	"github.com/common-fate/common-fate/pkg/storage/dbupdate"
 	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/common-fate/ddb"
-	"github.com/hashicorp/go-multierror"
 )
 
 type CreateRequestResult struct {
-	Request   access.Request
+	Request   requests.Requestv2
 	Reviewers []access.Reviewer
 }
 
@@ -39,47 +29,47 @@ type CreateRequestsOpts struct {
 	Create CreateRequests
 }
 
-// CreateRequests splits the multi request into invividual request after checking for some basic validation errors
-// individual requests may fail, these will be returned via a multi error and any requests which were successful will be returned as well
-// so be sure to check both teh error and the response
-func (s *Service) CreateRequests(ctx context.Context, in CreateRequestsOpts) ([]CreateRequestResult, error) {
-	validated, err := s.validateCreateRequests(ctx, in)
+func (s *Service) CreateRequests(ctx context.Context, in requests.Requestv2) ([]CreateRequestResult, error) {
+	var results []CreateRequestResult
+
+	createResult, err := s.createRequestV2(ctx, in)
 	if err != nil {
 		return nil, err
 	}
-	var createError multierror.Error
-	var mu sync.Mutex
-	var wg sync.WaitGroup
-	var results []CreateRequestResult
-	for _, combinationToCreate := range validated.argumentCombinations {
-		wg.Add(1)
-		go func(c map[string]string) {
-			defer wg.Done()
-			res, err := s.createRequest(ctx, createRequestOpts{
-				User: in.User,
-				Request: CreateRequest{
-					AccessRuleId: in.Create.AccessRuleId,
-					Reason:       in.Create.Reason,
-					Timing:       in.Create.Timing,
-					With:         c,
-				},
-				Rule:             validated.rule,
-				RequestArguments: validated.requestArguments,
-			})
-			mu.Lock()
-			if err != nil {
-				createError.Errors = append(createError.Errors, err)
-			} else {
-				results = append(results, res)
-			}
-			mu.Unlock()
-		}(combinationToCreate)
+	results = append(results, createResult)
+
+	return results, nil
+}
+
+// createRequest creates a new request and saves it in the database.
+func (s *Service) createRequestV2(ctx context.Context, in requests.Requestv2) (CreateRequestResult, error) {
+
+	for _, access_group := range in.Groups {
+		// check to see if it valid for instant approval
+
+		//create grants for all entitlements in the group
+		//returns an array of grants
+		_, err := s.Workflow.Grant(ctx, access_group, in.RequestedBy.Email)
+		if err != nil {
+			return CreateRequestResult{}, err
+		}
+
+		// analytics event
+		// analytics.FromContext(ctx).Track(&analytics.RequestCreated{
+		// 	RequestedBy: req.RequestedBy.ID,
+		// 	Provider:    in.Rule.Target.TargetGroupFrom.ToAnalytics(),
+		// 	// RuleID:           req.,
+		// 	// Timing:           req.RequestedTiming.ToAnalytics(),
+		// 	// HasReason:        req.HasReason(),
+		// 	RequiresApproval: in.Rule.Approval.IsRequired(),
+		// })
+
 	}
-	wg.Wait()
-	if createError.Errors == nil {
-		return results, nil
-	}
-	return results, &createError
+
+	return CreateRequestResult{
+		Request:   in,
+		Reviewers: []access.Reviewer{},
+	}, nil
 }
 
 type CreateRequest struct {
@@ -93,317 +83,6 @@ type createRequestOpts struct {
 	Request          CreateRequest
 	Rule             rule.AccessRule
 	RequestArguments map[string]types.RequestArgument
-}
-
-type createRequestOptsV2 struct {
-	User             identity.User
-	Request          CreateRequest
-	Rule             rule.AccessRule
-	PreflightRequest requests.Requestv2
-}
-
-func (s *Service) CreateSubmitRequests(ctx context.Context, in requests.Requestv2) ([]CreateRequestResult, error) {
-	var results []CreateRequestResult
-
-	for _, target := range in.Groups {
-		for _, args := range target.With {
-			now := time.Now()
-
-			opts := createRequestOptsV2{
-				User: in.User,
-				Request: CreateRequest{
-					AccessRuleId: target.AccessRule.ID,
-					Reason:       &target.Reason,
-					Timing: types.RequestTiming{
-						DurationSeconds: target.TimeConstraints.MaxDurationSeconds,
-						StartTime:       &now,
-					},
-					With: args,
-				},
-				PreflightRequest: in,
-				Rule:             target.AccessRule,
-			}
-
-			createResult, err := s.createRequestV2(ctx, opts)
-			if err != nil {
-				return nil, err
-			}
-			results = append(results, createResult)
-
-		}
-
-	}
-	return results, nil
-}
-
-// createRequest creates a new request and saves it in the database.
-func (s *Service) createRequestV2(ctx context.Context, in createRequestOptsV2) (CreateRequestResult, error) {
-	now := s.Clock.Now()
-	log := logger.Get(ctx).With("user.id", in.User.ID)
-	// the request is valid, so create it.
-	req := access.Request{
-		ID:          types.NewRequestID(),
-		RequestedBy: in.User.ID,
-		Data: access.RequestData{
-			Reason: in.Request.Reason,
-		},
-		CreatedAt:        now,
-		UpdatedAt:        now,
-		Status:           access.PENDING,
-		RequestedTiming:  access.TimingFromRequestTiming(in.Request.Timing),
-		Rule:             in.Rule.ID,
-		SelectedWith:     make(map[string]access.Option),
-		PreflightRequest: in.PreflightRequest.ID,
-	}
-
-	// If the approval is not required, auto-approve the request
-	auto := types.AUTOMATIC
-	revd := types.REVIEWED
-
-	if !in.Rule.Approval.IsRequired() {
-		req.Status = access.APPROVED
-		req.ApprovalMethod = &auto
-	} else {
-		req.ApprovalMethod = &revd
-	}
-
-	approvers, err := rulesvc.GetApprovers(ctx, s.DB, in.Rule)
-	if err != nil {
-		return CreateRequestResult{}, err
-	}
-
-	// track items to insert in the database.
-	items := []ddb.Keyer{&req}
-
-	// create Reviewers for each approver in the Access Rule. Reviewers will see the request in the End User portal.
-	var reviewers []access.Reviewer
-	for _, u := range approvers {
-		// users cannot approve their own requests.
-		// We don't create a Reviewer for them, even if they are an approver on the Access Rule.
-		if u == req.RequestedBy {
-			continue
-		}
-
-		r := access.Reviewer{
-			ReviewerID: u,
-			Request:    req,
-		}
-
-		reviewers = append(reviewers, r)
-		items = append(items, &r)
-	}
-
-	log.Debugw("saving request", "request", req, "reviewers", reviewers)
-
-	// audit log event
-	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy)
-
-	//before saving the request check to see if there already is a active approved rule
-	if !in.Rule.Approval.IsRequired() {
-
-		// This will check against the requests which do have grants already
-		overlaps, err := s.overlapsExistingGrant(ctx, req)
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-		if overlaps {
-			return CreateRequestResult{}, ErrRequestOverlapsExistingGrant
-		}
-
-	}
-
-	items = append(items, &reqEvent)
-	// save the request.
-	err = s.DB.PutBatch(ctx, items...)
-	if err != nil {
-		return CreateRequestResult{}, err
-	}
-
-	// err = s.EventPutter.Put(ctx, gevent.RequestCreated{Request: req, RequestorEmail: in.User.Email})
-	// // in a future PR we will shift these events out to be triggered by dynamo db streams
-	// // This will currently put the app in a strange state if this fails
-	// if err != nil {
-	// 	return CreateRequestResult{}, err
-	// }
-
-	// check to see if it valid for instant approval
-	if !in.Rule.Approval.IsRequired() {
-		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
-		grant, err := s.Workflow.Grant(ctx, req, in.Rule)
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-		req.Grant = grant
-		items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, req, dbupdate.WithReviewers(reviewers))
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-		err = s.DB.PutBatch(ctx, items...)
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-	}
-
-	// analytics event
-	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
-		RequestedBy:      req.RequestedBy,
-		Provider:         in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		RuleID:           req.Rule,
-		Timing:           req.RequestedTiming.ToAnalytics(),
-		HasReason:        req.HasReason(),
-		RequiresApproval: in.Rule.Approval.IsRequired(),
-	})
-
-	return CreateRequestResult{
-		Request:   req,
-		Reviewers: reviewers,
-	}, nil
-}
-
-// createRequest creates a new request and saves it in the database.
-func (s *Service) createRequest(ctx context.Context, in createRequestOpts) (CreateRequestResult, error) {
-	now := s.Clock.Now()
-	log := logger.Get(ctx).With("user.id", in.User.ID)
-	// the request is valid, so create it.
-	req := access.Request{
-		ID:          types.NewRequestID(),
-		RequestedBy: in.User.ID,
-		Data: access.RequestData{
-			Reason: in.Request.Reason,
-		},
-		CreatedAt:       now,
-		UpdatedAt:       now,
-		Status:          access.PENDING,
-		RequestedTiming: access.TimingFromRequestTiming(in.Request.Timing),
-		Rule:            in.Rule.ID,
-		SelectedWith:    make(map[string]access.Option),
-	}
-	if in.Request.With != nil {
-		for k, v := range in.Request.With {
-			argument := in.RequestArguments[k]
-			found := false
-			for _, option := range argument.Options {
-				// because validation has passed, we can have certainty that the matching value will be found here
-				// as a fallback, return an error if it is not found because something has gone seriously wrong with validation
-				if option.Value == v {
-					req.SelectedWith[k] = access.Option{
-						Value:       option.Value,
-						Label:       option.Label,
-						Description: option.Description,
-					}
-					found = true
-					break
-				}
-			}
-			if !found {
-				// this should never happen but here just in case
-				return CreateRequestResult{}, errors.New("unexpected error, failed to find a matching option for a with argument when creating a new access request")
-			}
-		}
-	}
-
-	// If the approval is not required, auto-approve the request
-	auto := types.AUTOMATIC
-	revd := types.REVIEWED
-
-	if !in.Rule.Approval.IsRequired() {
-		req.Status = access.APPROVED
-		req.ApprovalMethod = &auto
-	} else {
-		req.ApprovalMethod = &revd
-	}
-
-	approvers, err := rulesvc.GetApprovers(ctx, s.DB, in.Rule)
-	if err != nil {
-		return CreateRequestResult{}, err
-	}
-
-	// track items to insert in the database.
-	items := []ddb.Keyer{&req}
-
-	// create Reviewers for each approver in the Access Rule. Reviewers will see the request in the End User portal.
-	var reviewers []access.Reviewer
-	for _, u := range approvers {
-		// users cannot approve their own requests.
-		// We don't create a Reviewer for them, even if they are an approver on the Access Rule.
-		if u == req.RequestedBy {
-			continue
-		}
-
-		r := access.Reviewer{
-			ReviewerID: u,
-			Request:    req,
-		}
-
-		reviewers = append(reviewers, r)
-		items = append(items, &r)
-	}
-
-	log.Debugw("saving request", "request", req, "reviewers", reviewers)
-
-	// audit log event
-	reqEvent := access.NewRequestCreatedEvent(req.ID, req.CreatedAt, &req.RequestedBy)
-
-	//before saving the request check to see if there already is a active approved rule
-	if !in.Rule.Approval.IsRequired() {
-
-		// This will check against the requests which do have grants already
-		overlaps, err := s.overlapsExistingGrant(ctx, req)
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-		if overlaps {
-			return CreateRequestResult{}, ErrRequestOverlapsExistingGrant
-		}
-
-	}
-
-	items = append(items, &reqEvent)
-	// save the request.
-	err = s.DB.PutBatch(ctx, items...)
-	if err != nil {
-		return CreateRequestResult{}, err
-	}
-
-	err = s.EventPutter.Put(ctx, gevent.RequestCreated{Request: req, RequestorEmail: in.User.Email})
-	// in a future PR we will shift these events out to be triggered by dynamo db streams
-	// This will currently put the app in a strange state if this fails
-	if err != nil {
-		return CreateRequestResult{}, err
-	}
-
-	// check to see if it valid for instant approval
-	if !in.Rule.Approval.IsRequired() {
-		log.Debugw("auto-approving", "request", req, "reviewers", reviewers)
-		grant, err := s.Workflow.Grant(ctx, req, in.Rule)
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-		req.Grant = grant
-		items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, req, dbupdate.WithReviewers(reviewers))
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-		err = s.DB.PutBatch(ctx, items...)
-		if err != nil {
-			return CreateRequestResult{}, err
-		}
-	}
-
-	// analytics event
-	analytics.FromContext(ctx).Track(&analytics.RequestCreated{
-		RequestedBy:      req.RequestedBy,
-		Provider:         in.Rule.Target.TargetGroupFrom.ToAnalytics(),
-		RuleID:           req.Rule,
-		Timing:           req.RequestedTiming.ToAnalytics(),
-		HasReason:        req.HasReason(),
-		RequiresApproval: in.Rule.Approval.IsRequired(),
-	})
-
-	return CreateRequestResult{
-		Request:   req,
-		Reviewers: reviewers,
-	}, nil
 }
 
 func groupMatches(ruleGroups []string, userGroups []string) error {

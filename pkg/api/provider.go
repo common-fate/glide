@@ -136,31 +136,6 @@ func (a *API) fetchProviderResourcesByResourceType(ctx context.Context, provider
 	return opts, nil
 }
 
-// List provider arg options
-// (GET /api/v1/admin/providers/{providerId}/args/{argId}/options)
-func (a *API) AdminListProviderArgOptions(w http.ResponseWriter, r *http.Request, providerId string, argId string, params types.AdminListProviderArgOptionsParams) {
-	ctx := r.Context()
-
-	res := types.ArgOptionsResponse{
-		Options: []types.Option{},
-		Groups:  &types.Groups{AdditionalProperties: make(map[string][]types.GroupOption)},
-	}
-
-	var err error
-	if a.isTargetGroup(ctx, providerId) {
-		// argId is either an argument's Id or resource's Name
-		res.Options, err = a.fetchProviderResourcesByResourceType(ctx, providerId, argId)
-		if err != nil {
-			apio.Error(ctx, w, err)
-			return
-		}
-
-		apio.JSON(ctx, w, res, http.StatusOK)
-		return
-	}
-
-}
-
 type ListProvidersArgFilterResponse struct {
 	Options []types.Option `json:"options"`
 }

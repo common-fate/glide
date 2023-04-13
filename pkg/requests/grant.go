@@ -1,6 +1,8 @@
 package requests
 
 import (
+	"time"
+
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -9,10 +11,19 @@ import (
 type Grantv2 struct {
 	ID                 string `json:"id" dynamodbav:"id"`
 	User               string `json:"user" dynamodbav:"user"`
-	Status             Status `json:"status" dynamodbav:"status"`
 	AccessGroup        string `json:"accessGroup" dynamodbav:"accessGroup"`
 	Request            string `json:"request" dynamodbav:"request"`
 	AccessInstructions string `json:"accessInstructions" dynamodbav:"accessInstructions"`
+
+	Subject string           `json:"subject" dynamodbav:"subject"`
+	With    types.Grant_With `json:"with" dynamodbav:"with"`
+	//the time which the grant starts
+	Start time.Time `json:"start" dynamodbav:"start"`
+	//the time the grant is scheduled to end
+	End       time.Time         `json:"end" dynamodbav:"end"`
+	Status    types.GrantStatus `json:"status" dynamodbav:"status"`
+	CreatedAt time.Time         `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt time.Time         `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
 func (i *Grantv2) DDBKeys() (ddb.Keys, error) {

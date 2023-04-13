@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/requests"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 
 // InvalidStatusError is returned if a user tries to review a request which wasn't PENDING.
 type InvalidStatusError struct {
-	Status access.Status
+	Status requests.Status
 }
 
 func (e InvalidStatusError) Error() string {

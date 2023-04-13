@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
@@ -69,10 +70,10 @@ func (s *Service) validateFavorite(ctx context.Context, user identity.User, in t
 		UserID: user.ID,
 		Name:   in.Name,
 		Rule:   in.AccessRuleId,
-		Data: access.RequestData{
+		Data: requests.RequestData{
 			Reason: in.Reason,
 		},
-		RequestedTiming: access.TimingFromRequestTiming(in.Timing),
+		RequestedTiming: requests.TimingFromRequestTiming(in.Timing),
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}

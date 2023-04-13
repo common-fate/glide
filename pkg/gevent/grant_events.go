@@ -1,6 +1,9 @@
 package gevent
 
-import "github.com/common-fate/common-fate/pkg/types"
+import (
+	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/types"
+)
 
 const (
 	GrantCreatedType   = "grant.created"
@@ -86,5 +89,5 @@ func (GrantFailed) EventType() string {
 // all Grant events. It is used to conveniently unmarshal
 // the Grant payloads in our event handler code.
 type GrantEventPayload struct {
-	Grant types.Grant `json:"grant"`
+	Grant requests.Grantv2 `json:"grant"`
 }

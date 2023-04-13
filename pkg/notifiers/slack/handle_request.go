@@ -12,6 +12,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/notifiers"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -27,13 +28,13 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		return err
 	}
 	request := requestEvent.Request
-	requestedRuleQuery := storage.GetAccessRuleCurrent{ID: request.Rule}
+	requestedRuleQuery := storage.GetAccessRuleCurrent{ID: ""}
 	_, err = n.DB.Query(ctx, &requestedRuleQuery)
 	if err != nil {
 		return errors.Wrap(err, "getting access rule")
 	}
 	requestedRule := *requestedRuleQuery.Result
-	requestingUserQuery := storage.GetUser{ID: request.RequestedBy}
+	requestingUserQuery := storage.GetUser{ID: request.RequestedBy.ID}
 	_, err = n.DB.Query(ctx, &requestingUserQuery)
 	if err != nil {
 		return errors.Wrap(err, "getting requestor")
@@ -76,7 +77,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
 				Request:          request,
 				RequestArguments: requestArguments,
-				Rule:             requestedRule,
 				RequestorEmail:   requestingUserQuery.Result.Email,
 				ReviewURLs:       reviewURL,
 				IsWebhook:        true,
@@ -107,7 +107,6 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
 					Request:          request,
 					RequestArguments: requestArguments,
-					Rule:             requestedRule,
 					RequestorSlackID: slackUserID,
 					RequestorEmail:   requestingUserQuery.Result.Email,
 					ReviewURLs:       reviewURL,
@@ -116,7 +115,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 				var wg sync.WaitGroup
 				for _, usr := range reviewers.Result {
-					if usr.ReviewerID == request.RequestedBy {
+					if usr.ReviewerID == request.RequestedBy.ID {
 						log.Infow("skipping sending approval message to requestor", "user.id", usr)
 						continue
 					}
@@ -160,29 +159,28 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 	case gevent.RequestDeclinedType:
 		msg := fmt.Sprintf("Your request to access *%s* has been declined.", requestedRule.Name)
 		fallback := fmt.Sprintf("Your request to access %s has been declined.", requestedRule.Name)
-		n.SendDMWithLogOnError(ctx, log, request.RequestedBy, msg, fallback)
+		n.SendDMWithLogOnError(ctx, log, request.RequestedBy.ID, msg, fallback)
 		n.SendUpdatesForRequest(ctx, log, request, requestEvent, requestedRule, requestingUserQuery.Result)
 	}
 	return nil
 }
 
 // sendRequestDetailsMessage sends a message to the user who requested access with details about the request. Sent only on access create/approved
-func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, request access.Request, requestedRule rule.AccessRule, requestingUser identity.User, headingMsg string, summary string) {
-	requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
-	if err != nil {
-		log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-	}
+func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, requestedRule rule.AccessRule, requestingUser identity.User, headingMsg string, summary string) {
+	// requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
+	// if err != nil {
+	// 	log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+	// }
 
 	if n.directMessageClient != nil || len(n.webhooks) > 0 {
 		if n.directMessageClient != nil {
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request:          request,
-				RequestArguments: requestArguments,
-				Rule:             requestedRule,
-				HeadingMessage:   headingMsg,
+				Request: request,
+
+				HeadingMessage: headingMsg,
 			})
 
-			_, err = SendMessageBlocks(ctx, n.directMessageClient.client, requestingUser.Email, msg, summary)
+			_, err := SendMessageBlocks(ctx, n.directMessageClient.client, requestingUser.Email, msg, summary)
 
 			if err != nil {
 				log.Errorw("failed to send slack message", "user", requestingUser, zap.Error(err))
@@ -196,13 +194,12 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 				summary = fmt.Sprintf("%s's request to access %s has been automatically approved.", requestingUser.Email, requestedRule.Name)
 			}
 			_, msg := BuildRequestDetailMessage(RequestDetailMessageOpts{
-				Request:          request,
-				RequestArguments: requestArguments,
-				Rule:             requestedRule,
-				HeadingMessage:   headingMsg,
+				Request: request,
+				// RequestArguments: requestArguments,
+				HeadingMessage: headingMsg,
 			})
 
-			err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
+			err := webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
 			if err != nil {
 				log.Errorw("failed to send slack message to webhook channel", "error", err)
 			}
@@ -210,7 +207,7 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 	}
 }
 
-func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.SugaredLogger, request access.Request, requestEvent gevent.RequestEventPayload, rule rule.AccessRule, requestingUser *identity.User) {
+func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, requestEvent gevent.RequestEventPayload, rule rule.AccessRule, requestingUser *identity.User) {
 	// Loop over the request reviewers
 	reviewers := storage.ListRequestReviewers{RequestID: request.ID}
 	_, err := n.DB.Query(ctx, &reviewers)
@@ -220,7 +217,7 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 	}
 	reqReviewer := storage.GetUser{ID: requestEvent.ReviewerID}
 	_, err = n.DB.Query(ctx, &reqReviewer)
-	if err != nil && request.Status != access.CANCELLED {
+	if err != nil {
 		log.Errorw("failed to fetch reviewer for request which wasn't cancelled", zap.Error(err))
 		return
 	}
@@ -248,7 +245,6 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		_, msg := BuildRequestReviewMessage(RequestMessageOpts{
 			Request:          request,
 			RequestArguments: requestArguments,
-			Rule:             rule,
 			RequestorSlackID: slackUserID,
 			RequestorEmail:   requestingUser.Email,
 			ReviewURLs:       reviewURL,
@@ -272,7 +268,6 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 	summary, msg := BuildRequestReviewMessage(RequestMessageOpts{
 		Request:          request,
 		RequestArguments: requestArguments,
-		Rule:             rule,
 		RequestorEmail:   requestingUser.Email,
 		ReviewURLs:       reviewURL,
 		WasReviewed:      true,
@@ -289,15 +284,9 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 
 // This method maps request arguments in a deprecated way.
 // it should be replaced eventually with a cache lookup for the options available for the access rule
-func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request access.Request, rule rule.AccessRule) ([]types.With, error) {
+func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, rule rule.AccessRule) ([]types.With, error) {
 	// Consider adding a fallback if the cache lookup fails
-	pq := storage.ListCachedProviderOptions{
-		ProviderID: rule.Target.TargetGroupID,
-	}
-	_, err := n.DB.Query(ctx, &pq)
-	if err != nil && err != ddb.ErrNoItems {
-		log.Errorw("failed to fetch provider options while trying to send message in slack", "provider.id", rule.Target.TargetGroupID, zap.Error(err))
-	}
+
 	var labelArr []types.With
 	// Lookup the provider, ignore errors
 	// if provider is not found, fallback to using the argument key as the title

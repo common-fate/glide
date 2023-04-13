@@ -3,6 +3,7 @@ package access
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -15,10 +16,10 @@ type RequestEvent struct {
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	// Actor is the ID of the user who has made the request or nil if it was automated
 	Actor              *string            `json:"actor,omitempty" dynamodbav:"actor,omitempty"`
-	FromStatus         *Status            `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
-	ToStatus           *Status            `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
-	FromTiming         *Timing            `json:"fromTiming,omitempty" dynamodbav:"fromTiming,omitempty"`
-	ToTiming           *Timing            `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
+	FromStatus         *requests.Status   `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
+	ToStatus           *requests.Status   `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
+	FromTiming         *requests.Timing   `json:"fromTiming,omitempty" dynamodbav:"fromTiming,omitempty"`
+	ToTiming           *requests.Timing   `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
 	FromGrantStatus    *types.GrantStatus `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
 	ToGrantStatus      *types.GrantStatus `json:"toGrantStatus,omitempty" dynamodbav:"toGrantStatus,omitempty"`
 	GrantCreated       *bool              `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
@@ -45,11 +46,11 @@ func NewGrantCreatedEvent(requestID string, createdAt time.Time) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, GrantCreated: &t}
 }
 
-func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Status) RequestEvent {
+func NewStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to requests.Status) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromStatus: &from, ToStatus: &to}
 }
 
-func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to Timing) RequestEvent {
+func NewTimingChangeEvent(requestID string, createdAt time.Time, actor *string, from, to requests.Timing) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromTiming: &from, ToTiming: &to}
 }
 

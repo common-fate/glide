@@ -243,7 +243,7 @@ func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 
 	//request service to initiate the granting process...
 
-	_, err = a.Access.CreateSubmitRequests(ctx, *requestGroup.Result)
+	_, err = a.Access.CreateRequests(ctx, *requestGroup.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
