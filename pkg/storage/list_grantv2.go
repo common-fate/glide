@@ -9,8 +9,7 @@ import (
 )
 
 type ListGrantsV2 struct {
-	RequestID string
-	GroupID   string
+	GroupID string
 
 	Result []requests.Grantv2
 }
@@ -20,7 +19,7 @@ func (g *GetGrantV2) BuildQuery() (*dynamodb.QueryInput, error) {
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(PK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.Grant.PK1},
-			":sk": &types.AttributeValueMemberS{Value: keys.Grant.SK1(g.RequestID, g.GroupID, g.GrantId)},
+			":sk": &types.AttributeValueMemberS{Value: keys.Grant.SK1(g.GroupID, g.GrantId)},
 		},
 	}
 	return qi, nil

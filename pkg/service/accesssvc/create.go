@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
@@ -29,29 +30,20 @@ type CreateRequestsOpts struct {
 	Create CreateRequests
 }
 
-func (s *Service) CreateRequests(ctx context.Context, in requests.Requestv2) ([]CreateRequestResult, error) {
-	var results []CreateRequestResult
-
-	createResult, err := s.createRequestV2(ctx, in)
+func (s *Service) CreateRequests(ctx context.Context, in requests.Requestv2) (*CreateRequestResult, error) {
+	accessGroups := storage.ListAccessGroups{RequestID: in.ID}
+	_, err := s.DB.Query(ctx, &accessGroups)
 	if err != nil {
 		return nil, err
 	}
-	results = append(results, createResult)
-
-	return results, nil
-}
-
-// createRequest creates a new request and saves it in the database.
-func (s *Service) createRequestV2(ctx context.Context, in requests.Requestv2) (CreateRequestResult, error) {
-
-	for _, access_group := range in.Groups {
+	for _, access_group := range accessGroups.Result {
 		// check to see if it valid for instant approval
 
 		//create grants for all entitlements in the group
 		//returns an array of grants
 		_, err := s.Workflow.Grant(ctx, access_group, in.RequestedBy.Email)
 		if err != nil {
-			return CreateRequestResult{}, err
+			return nil, err
 		}
 
 		// analytics event
@@ -66,10 +58,11 @@ func (s *Service) createRequestV2(ctx context.Context, in requests.Requestv2) (C
 
 	}
 
-	return CreateRequestResult{
+	return &CreateRequestResult{
 		Request:   in,
 		Reviewers: []access.Reviewer{},
 	}, nil
+
 }
 
 type CreateRequest struct {

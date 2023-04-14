@@ -9,10 +9,9 @@ import (
 )
 
 type GetGrantV2 struct {
-	RequestID string
-	GroupID   string
-	GrantId   string
-	Result    *requests.Grantv2
+	GroupID string
+	GrantId string
+	Result  *requests.Grantv2
 }
 
 func (g *ListGrantsV2) BuildQuery() (*dynamodb.QueryInput, error) {
@@ -20,7 +19,7 @@ func (g *ListGrantsV2) BuildQuery() (*dynamodb.QueryInput, error) {
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(PK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.Grant.PK1},
-			":sk": &types.AttributeValueMemberS{Value: keys.Grant.SKAllGrants(g.RequestID, g.GroupID)},
+			":sk": &types.AttributeValueMemberS{Value: keys.Grant.SKAllGrants(g.GroupID)},
 		},
 	}
 	return qi, nil

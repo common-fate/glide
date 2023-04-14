@@ -2,6 +2,9 @@ package workflowsvc
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/benbjohnson/clock"
@@ -39,8 +42,9 @@ type Service struct {
 func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, subject string) ([]requests.Grantv2, error) {
 	// Contains logic for preparing a grant and emitting events
 
-	now := time.Now()
+	now := s.Clk.Now()
 	items := []ddb.Keyer{}
+	grantList := []requests.Grantv2{}
 
 	if !access_group.AccessRule.Approval.IsRequired() {
 		for _, entitlement := range access_group.With {
@@ -76,10 +80,14 @@ func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, 
 				CreatedAt:   now,
 				UpdatedAt:   now,
 			}
+			//do we still want to keep track of grants on the access group item?
 			access_group.Grants = append(access_group.Grants, grant)
 			items = append(items, &access_group)
+			grantList = append(grantList, grant)
 
 		}
+	} else {
+		//
 	}
 
 	err := s.DB.PutBatch(ctx, items...)
@@ -87,18 +95,34 @@ func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, 
 		return nil, err
 	}
 
-	return nil, nil
+	return grantList, nil
 }
 
 // Revoke attepmts to syncronously revoke access to a request
 // If it is successful, the request is updated in the database, and the updated request is returned from this method
 func (s *Service) Revoke(ctx context.Context, request requests.Requestv2, revokerID string, revokerEmail string) (*requests.Requestv2, error) {
 
-	for _, access_group := range request.Groups {
-		if access_group.Grants == nil || len(access_group.Grants) == 0 {
+	accessGroups := storage.ListAccessGroups{RequestID: request.ID}
+	_, err := s.DB.Query(ctx, &accessGroups)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, access_group := range accessGroups.Result {
+
+		//get all grants
+
+		grants := storage.ListGrantsV2{GroupID: access_group.ID}
+
+		_, err = s.DB.Query(ctx, &grants)
+		if err == ddb.ErrNoItems {
 			return nil, ErrNoGrant
 		}
-		for _, grant := range access_group.Grants {
+		if err != nil {
+			return nil, err
+		}
+
+		for _, grant := range grants.Result {
 
 			//Cannot request to revoke/cancel grant if it is not active or pending (state function has been created and executed)
 			canRevoke := grant.Status == types.GrantStatusACTIVE || grant.Status == types.GrantStatusPENDING
@@ -123,6 +147,8 @@ func (s *Service) Revoke(ctx context.Context, request requests.Requestv2, revoke
 			// previousStatus := grant.Status
 			grant.Status = types.GrantStatusREVOKED
 			grant.UpdatedAt = s.Clk.Now()
+
+			//todo: update request item
 			// items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, request)
 			// if err != nil {
 			// 	return nil, err
@@ -148,7 +174,7 @@ func (s *Service) Revoke(ctx context.Context, request requests.Requestv2, revoke
 		}
 	}
 
-	return nil, nil
+	return &request, nil
 }
 
 // prepareCreateGrantRequest prepares the data for requesting
@@ -157,7 +183,7 @@ func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming r
 	start, end := requestTiming.GetInterval(requests.WithNow(s.Clk.Now()))
 
 	req := types.CreateGrant{
-		Id:       requestId,
+		Id:       CreateGrantIdHash(subject, iso8601.New(start).Time, accessRule.Target.TargetGroupID),
 		Provider: accessRule.Target.TargetGroupID,
 		With: types.CreateGrant_With{
 			AdditionalProperties: make(map[string]string),
@@ -176,4 +202,17 @@ func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming r
 	// }
 
 	return req, nil
+}
+
+// Due to multiple grants being created from one access group I am opting to create dynamic ID's
+// This helps with testing workflow grant creation
+func CreateGrantIdHash(subject string, startTime time.Time, target string) string {
+	h := sha256.New()
+	hashString := subject + strconv.Itoa(int(startTime.Unix())) + target
+
+	h.Write([]byte(hashString))
+
+	bs := h.Sum(nil)
+	return fmt.Sprintf("%x", bs)
+
 }

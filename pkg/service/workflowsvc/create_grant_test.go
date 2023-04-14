@@ -1,108 +1,119 @@
 package workflowsvc
 
-// func TestCreateGrant(t *testing.T) {
-// 	type testcase struct {
-// 		name                       string
-// 		withCreateGrantResponseErr error
-// 		withUser                   *identity.User
-// 		giveRule                   rule.AccessRule
-// 		giveRequest                access.Request
-// 		createGrant                types.CreateGrant
-// 		wantErr                    error
-// 		wantUserErr                error
-// 		want                       *access.Grant
-// 	}
-// 	clk := clock.NewMock()
+import (
+	"context"
+	"testing"
+	"time"
 
-// 	testcases := []testcase{
-// 		{
-// 			name: "ok",
-// 			createGrant: types.CreateGrant{
-// 				Subject:  openapi_types.Email("test@commonfate.io"),
-// 				Start:    iso8601.New(clk.Now().Add(time.Second * 2)),
-// 				End:      iso8601.New(clk.Now().Add(time.Hour)),
-// 				Provider: "test",
-// 				Id:       types.NewGrantID(),
-// 				With: types.CreateGrant_With{
-// 					AdditionalProperties: map[string]string{
-// 						"vault": "test",
-// 					},
-// 				}},
-// 			giveRule: rule.AccessRule{ID: "rule1",
-// 				Status: rule.ACTIVE,
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc/mocks"
+	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb/ddbmock"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+)
 
-// 				Description: "string",
-// 				Name:        "string",
-// 				Groups:      []string{"string"},
-// 				Target: rule.Target{
-// 					With:          map[string]string{},
-// 					TargetGroupID: "123",
-// 				}},
-// 			giveRequest: access.Request{
-// 				RequestedBy: "user1",
-// 			},
-// 			withCreateGrantResponseErr: nil,
-// 			withUser:                   &identity.User{Groups: []string{"testAdmin"}},
-// 			wantUserErr:                nil,
-// 			want:                       &access.Grant{Provider: "string", Subject: "", With: types.Grant_With{AdditionalProperties: map[string]string{}}, Start: clk.Now(), End: clk.Now(), Status: "PENDING", CreatedAt: clk.Now(), UpdatedAt: clk.Now()},
-// 		},
-// 		{
-// 			name: "user doesn't exist",
-// 			createGrant: types.CreateGrant{
-// 				Subject:  openapi_types.Email("test@commonfate.io"),
-// 				Start:    iso8601.New(time.Now().Add(time.Second * 2)),
-// 				End:      iso8601.New(time.Now().Add(time.Hour)),
-// 				Provider: "test",
-// 				Id:       types.NewGrantID(),
-// 				With: types.CreateGrant_With{
-// 					AdditionalProperties: map[string]string{
-// 						"vault": "test",
-// 					},
-// 				}},
-// 			giveRule: rule.AccessRule{ID: "rule1",
-// 				Status: rule.ACTIVE,
+func TestCreateGrant(t *testing.T) {
+	type testcase struct {
+		name                       string
+		withCreateGrantResponseErr error
+		subject                    string
+		giveRequest                requests.AccessGroup
+		wantErr                    error
+		want                       []requests.Grantv2
+	}
+	clk := clock.NewMock()
+	now := clk.Now()
+	testcases := []testcase{
+		{
+			name: "ok",
 
-// 				Description: "string",
-// 				Name:        "string",
-// 				Groups:      []string{"string"},
-// 				Target: rule.Target{
-// 					With:          map[string]string{},
-// 					TargetGroupID: "123",
-// 				}},
-// 			giveRequest: access.Request{
-// 				RequestedBy: "user1",
-// 			},
-// 			withCreateGrantResponseErr: nil,
-// 			withUser:                   nil,
-// 			want:                       nil,
-// 			wantUserErr:                ddb.ErrNoItems,
-// 			wantErr:                    ddb.ErrNoItems,
-// 		},
-// 	}
+			subject: "test@commonfate.io",
+			giveRequest: requests.AccessGroup{
+				AccessRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{TargetGroupID: "test"}},
+				ID:         "123",
+				Reason:     "",
+				Request:    "abc",
+				TimeConstraints: requests.Timing{
+					Duration:  time.Hour,
+					StartTime: &now,
+				},
+				With: []map[string]string{
+					{
+						"accountId":     "123",
+						"permissionSet": "abc",
+					},
+					{
+						"accountId":     "456",
+						"permissionSet": "abc",
+					},
+				},
+			},
+			withCreateGrantResponseErr: nil,
+			want: []requests.Grantv2{
+				{
+					ID:                 CreateGrantIdHash("test@commonfate.io", now, "test"),
+					AccessGroup:        "123",
+					Status:             types.GrantStatus(requests.PENDING),
+					Start:              now,
+					End:                now.Add(time.Hour),
+					AccessInstructions: "",
+					Subject:            "test@commonfate.io",
+					CreatedAt:          now,
+					UpdatedAt:          now,
+					With: types.Grant_With{
+						AdditionalProperties: map[string]string{
+							"accountId":     "123",
+							"permissionSet": "abc",
+						},
+					},
+				},
+				{
+					ID:                 CreateGrantIdHash("test@commonfate.io", now, "test"),
+					AccessGroup:        "123",
+					Status:             types.GrantStatus(requests.PENDING),
+					Start:              now,
+					End:                now.Add(time.Hour),
+					AccessInstructions: "",
+					Subject:            "test@commonfate.io",
+					CreatedAt:          now,
+					UpdatedAt:          now,
+					With: types.Grant_With{
+						AdditionalProperties: map[string]string{
+							"accountId":     "456",
+							"permissionSet": "abc",
+						},
+					},
+				},
+			},
+		},
+	}
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			ctrl := gomock.NewController(t)
-// 			runtime := mocks.NewMockRuntime(ctrl)
-// 			runtime.EXPECT().Grant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			runtime := mocks.NewMockRuntime(ctrl)
+			runtime.EXPECT().Grant(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
 
-// 			eventbus := mocks.NewMockEventPutter(ctrl)
-// 			eventbus.EXPECT().Put(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
+			eventbus := mocks.NewMockEventPutter(ctrl)
+			eventbus.EXPECT().Put(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
 
-// 			c := ddbmock.New(t)
-// 			c.MockQueryWithErr(&storage.GetUser{Result: tc.withUser}, tc.wantUserErr)
+			c := ddbmock.New(t)
+			// c.MockQueryWithErr(&storage.GetUser{Result: tc.withUser}, tc.wantUserErr)
 
-// 			s := Service{
-// 				Runtime:  runtime,
-// 				DB:       c,
-// 				Clk:      clk,
-// 				Eventbus: eventbus,
-// 			}
+			s := Service{
+				Runtime:  runtime,
+				DB:       c,
+				Clk:      clk,
+				Eventbus: eventbus,
+			}
 
-// 			gotGrant, err := s.Grant(context.Background(), tc.giveRequest, tc.giveRule)
-// 			assert.Equal(t, tc.wantErr, err)
+			gotGrants, err := s.Grant(context.Background(), tc.giveRequest, tc.subject)
+			assert.Equal(t, tc.wantErr, err)
 
-// 			assert.Equal(t, tc.want, gotGrant)
-// 		})
-// 	}
-// }
+			assert.Equal(t, tc.want, gotGrants)
+		})
+	}
+}

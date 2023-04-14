@@ -24,10 +24,12 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 	u := auth.UserFromContext(ctx)
 
 	preflight := requests.Requestv2{
-		ID:          types.NewRequestID(),
-		Groups:      map[string]requests.AccessGroup{},
+		ID: types.NewRequestID(),
+		// Groups:      map[string]requests.AccessGroup{},
 		RequestedBy: *u,
 	}
+
+	items := []ddb.Keyer{}
 
 	//Go through each1 target in the request and group them up based on access rule
 
@@ -61,6 +63,9 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 				Reason:          target.Reason,
 				TimeConstraints: requests.Timing{Duration: time.Duration(target.TimeConstraints.MaxDurationSeconds), StartTime: &now},
 				With:            []map[string]string{newTarget},
+				Request:         preflight.ID,
+				UpdatedAt:       now,
+				Status:          requests.PENDING,
 			}
 
 		} else {
@@ -79,10 +84,18 @@ func (s *Service) GroupTargets(ctx context.Context, targets []types.Target) (*re
 		}
 
 	}
-	//validate current user has access to access rules
 
-	//group requests based on duration and purpose
+	//save the group items and the preflight request
+	for _, group := range preflight.Groups {
+		items = append(items, &group)
+	}
 
+	items = append(items, &preflight)
+
+	err := s.DB.PutBatch(ctx, items...)
+	if err != nil {
+		return nil, err
+	}
 	//create a preflight object in the db
 	return &preflight, nil
 }

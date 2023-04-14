@@ -61,17 +61,17 @@ const GrantV2Key = "GRANTV2#"
 
 type grantKeys struct {
 	PK1         string
-	SKAllGrants func(requestId string, groupId string) string
+	SKAllGrants func(groupId string) string
 
-	SK1 func(requestId string, groupId string, grantId string) string
+	SK1 func(groupId string, grantId string) string
 }
 
 var Grant = grantKeys{
 	PK1:         GrantV2Key,
-	SKAllGrants: func(requestId string, groupId string) string { return requestId + "#" + groupId + "#" },
+	SKAllGrants: func(groupId string) string { return groupId + "#" },
 
-	SK1: func(requestId string, groupId string, grantId string) string {
-		return requestId + "#" + groupId + "#" + grantId + "#"
+	SK1: func(groupId string, grantId string) string {
+		return groupId + "#" + grantId + "#"
 	},
 }
 

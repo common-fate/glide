@@ -10,9 +10,7 @@ import (
 
 type Grantv2 struct {
 	ID                 string `json:"id" dynamodbav:"id"`
-	User               string `json:"user" dynamodbav:"user"`
 	AccessGroup        string `json:"accessGroup" dynamodbav:"accessGroup"`
-	Request            string `json:"request" dynamodbav:"request"`
 	AccessInstructions string `json:"accessInstructions" dynamodbav:"accessInstructions"`
 
 	Subject string           `json:"subject" dynamodbav:"subject"`
@@ -29,7 +27,7 @@ type Grantv2 struct {
 func (i *Grantv2) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK: keys.Grant.PK1,
-		SK: keys.Grant.SK1(i.Request, i.AccessGroup, i.ID),
+		SK: keys.Grant.SK1(i.AccessGroup, i.ID),
 	}
 	return keys, nil
 }

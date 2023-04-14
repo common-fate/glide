@@ -95,7 +95,7 @@ func (a *API) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, 
 // (GET /api/v1/requests/{requestId}/groups/{groupId}/grants)
 func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
 	ctx := r.Context()
-	q := storage.ListGrantsV2{RequestID: requestId, GroupID: groupId}
+	q := storage.ListGrantsV2{GroupID: groupId}
 
 	_, err := a.DB.Query(ctx, &q)
 
@@ -118,7 +118,7 @@ func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Re
 // (GET /api/v1/requests/{id}/groups/{gid}/grants{grantid})
 func (a *API) UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request, id string, gid string, grantid string) {
 	ctx := r.Context()
-	q := storage.GetGrantV2{RequestID: id, GroupID: gid, GrantId: grantid}
+	q := storage.GetGrantV2{GroupID: gid, GrantId: grantid}
 
 	_, err := a.DB.Query(ctx, &q)
 
