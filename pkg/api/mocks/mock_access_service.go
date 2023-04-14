@@ -82,10 +82,10 @@ func (mr *MockAccessServiceMockRecorder) CreateFavorite(arg0, arg1 interface{}) 
 }
 
 // CreateRequests mocks base method.
-func (m *MockAccessService) CreateRequests(arg0 context.Context, arg1 requests.Requestv2) ([]accesssvc.CreateRequestResult, error) {
+func (m *MockAccessService) CreateRequests(arg0 context.Context, arg1 requests.Requestv2) (*accesssvc.CreateRequestResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRequests", arg0, arg1)
-	ret0, _ := ret[0].([]accesssvc.CreateRequestResult)
+	ret0, _ := ret[0].(*accesssvc.CreateRequestResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
