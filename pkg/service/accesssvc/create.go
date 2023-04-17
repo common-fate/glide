@@ -44,15 +44,27 @@ func (s *Service) CreateRequests(ctx context.Context, in requests.Requestv2) (*C
 		//create grants for all entitlements in the group
 		//returns an array of grants
 
-		//validates requires review here :TODO
-		updatedGrants, err := s.Workflow.Grant(ctx, access_group, in.RequestedBy.Email)
+		//lookup current access rule
+
+		ar := storage.GetAccessRuleCurrent{ID: access_group.AccessRule.ID}
+
+		_, err := s.DB.Query(ctx, &ar)
 		if err != nil {
 			return nil, err
 		}
 
-		//Update the grant items after we have successfully run the granting process
-		for _, grant := range updatedGrants {
-			items = append(items, &grant)
+		if !ar.Result.Approval.IsRequired() {
+			updatedGrants, err := s.Workflow.Grant(ctx, access_group, in.RequestedBy.Email)
+			if err != nil {
+				return nil, err
+			}
+
+			//Update the grant items after we have successfully run the granting process
+			for _, grant := range updatedGrants {
+				items = append(items, &grant)
+			}
+		} else {
+			//create approval item
 		}
 
 		err = s.DB.PutBatch(ctx, items...)

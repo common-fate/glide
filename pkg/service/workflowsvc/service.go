@@ -46,33 +46,32 @@ func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, 
 	if err != nil {
 		return nil, err
 	}
-	if !access_group.AccessRule.Approval.IsRequired() {
-		for _, entitlement := range grants.Result {
-			createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement.Target)
-			if err != nil {
-				return nil, err
-			}
-			err = s.Runtime.Grant(ctx, createGrant)
-			if err != nil {
-				return nil, err
-			}
 
-			err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
-				ID:       createGrant.Id,
-				Provider: createGrant.Provider,
-				End:      createGrant.End.Time,
-				Start:    createGrant.Start.Time,
-				Status:   types.GrantStatusPENDING,
-				Subject:  createGrant.Subject,
-				With:     types.Grant_With(createGrant.With),
-			}})
-			if err != nil {
-				return nil, err
-			}
-
-			entitlement.Status = types.GrantStatusACTIVE
-
+	for _, entitlement := range grants.Result {
+		createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement.Target)
+		if err != nil {
+			return nil, err
 		}
+		err = s.Runtime.Grant(ctx, createGrant)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
+			ID:       createGrant.Id,
+			Provider: createGrant.Provider,
+			End:      createGrant.End.Time,
+			Start:    createGrant.Start.Time,
+			Status:   types.GrantStatusPENDING,
+			Subject:  createGrant.Subject,
+			With:     types.Grant_With(createGrant.With),
+		}})
+		if err != nil {
+			return nil, err
+		}
+
+		entitlement.Status = types.GrantStatusACTIVE
+
 	}
 
 	return grants.Result, nil

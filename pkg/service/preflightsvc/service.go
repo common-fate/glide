@@ -147,7 +147,7 @@ func (s *Service) getAccessRuleForTarget(ctx context.Context, accessRules []stri
 		return nil, errors.New("no access groups found")
 	}
 
-	var returnRule rule.AccessRule
+	var currentRule rule.AccessRule
 
 	for _, rule := range accessRules {
 		ar := storage.GetAccessRuleCurrent{ID: rule}
@@ -162,17 +162,25 @@ func (s *Service) getAccessRuleForTarget(ctx context.Context, accessRules []stri
 
 		//if first iteration just make the current rule = first
 		//todo: make test cases for these
-		if returnRule.ID == "" {
-			returnRule = *ar.Result
+		if currentRule.ID == "" {
+			currentRule = *ar.Result
 			continue
 		}
 
-		if returnRule.Approval.IsRequired() && !ar.Result.Approval.IsRequired() {
-			returnRule = *ar.Result
+		//if new rule doesnt require approval, override it
+		if currentRule.Approval.IsRequired() && !ar.Result.Approval.IsRequired() {
+			currentRule = *ar.Result
 		}
 
-		if !returnRule.Approval.IsRequired() && !ar.Result.Approval.IsRequired() && ar.Result.TimeConstraints.MaxDurationSeconds > returnRule.TimeConstraints.MaxDurationSeconds {
-			returnRule = *ar.Result
+		//if both rules dont require access, but new rule has longer duration. Override it
+		if !currentRule.Approval.IsRequired() && !ar.Result.Approval.IsRequired() && ar.Result.TimeConstraints.MaxDurationSeconds > currentRule.TimeConstraints.MaxDurationSeconds {
+			currentRule = *ar.Result
+		}
+
+		//if both rules require approval, but new rule has longer duration. Override it.
+		if currentRule.Approval.IsRequired() && ar.Result.Approval.IsRequired() && ar.Result.TimeConstraints.MaxDurationSeconds > currentRule.TimeConstraints.MaxDurationSeconds {
+			currentRule = *ar.Result
+
 		}
 
 	}
