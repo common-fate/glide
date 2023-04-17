@@ -25,6 +25,7 @@ func titleCase(s string) string {
 
 type RequestMessageOpts struct {
 	Request          requests.Requestv2
+	AccessGroups     []requests.AccessGroup
 	RequestArguments []types.With
 
 	ReviewURLs notifiers.ReviewURLs
@@ -41,7 +42,7 @@ type RequestMessageOpts struct {
  */
 func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.Message) {
 
-	for _, access_group := range o.Request.Groups {
+	for _, access_group := range o.AccessGroups {
 		requestor := o.RequestorEmail
 		if o.RequestorSlackID != "" {
 			requestor = fmt.Sprintf("<@%s>", o.RequestorSlackID)
@@ -160,8 +161,8 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 }
 
 type RequestDetailMessageOpts struct {
-	Request requests.Requestv2
-
+	AccessGroups []requests.AccessGroup
+	Request      requests.Requestv2
 	// the message that renders in the header of the slack message
 	HeadingMessage string
 }
@@ -169,7 +170,7 @@ type RequestDetailMessageOpts struct {
 // Builds a contextual request detail message, with an optional HeadingMessage to be rendered in the header, this is fired after a request has been reviewed
 func BuildRequestDetailMessage(o RequestDetailMessageOpts) (summary string, msg slack.Message) {
 
-	for _, access_group := range o.Request.Groups {
+	for _, access_group := range o.AccessGroups {
 		summary = fmt.Sprintf("Request detail for %s", access_group.AccessRule.Name)
 
 		var expires time.Time

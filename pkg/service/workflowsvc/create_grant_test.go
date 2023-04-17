@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
@@ -39,16 +40,6 @@ func TestCreateGrant(t *testing.T) {
 					Duration:  time.Hour,
 					StartTime: &now,
 				},
-				With: []map[string]string{
-					{
-						"accountId":     "123",
-						"permissionSet": "abc",
-					},
-					{
-						"accountId":     "456",
-						"permissionSet": "abc",
-					},
-				},
 			},
 			withCreateGrantResponseErr: nil,
 			want: []requests.Grantv2{
@@ -58,16 +49,10 @@ func TestCreateGrant(t *testing.T) {
 					Status:             types.GrantStatus(requests.PENDING),
 					Start:              now,
 					End:                now.Add(time.Hour),
-					AccessInstructions: "",
+					AccessInstructions: aws.String(""),
 					Subject:            "test@commonfate.io",
 					CreatedAt:          now,
 					UpdatedAt:          now,
-					With: types.Grant_With{
-						AdditionalProperties: map[string]string{
-							"accountId":     "123",
-							"permissionSet": "abc",
-						},
-					},
 				},
 				{
 					ID:                 CreateGrantIdHash("test@commonfate.io", now, "test"),
@@ -75,16 +60,10 @@ func TestCreateGrant(t *testing.T) {
 					Status:             types.GrantStatus(requests.PENDING),
 					Start:              now,
 					End:                now.Add(time.Hour),
-					AccessInstructions: "",
+					AccessInstructions: aws.String(""),
 					Subject:            "test@commonfate.io",
 					CreatedAt:          now,
 					UpdatedAt:          now,
-					With: types.Grant_With{
-						AdditionalProperties: map[string]string{
-							"accountId":     "456",
-							"permissionSet": "abc",
-						},
-					},
 				},
 			},
 		},

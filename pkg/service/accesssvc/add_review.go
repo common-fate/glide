@@ -54,11 +54,10 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		access_group.Status = requests.APPROVED
 		access_group.OverrideTiming = opts.OverrideTiming
 
-		grant, err := s.Workflow.Grant(ctx, access_group, opts.RequestingUser)
+		_, err := s.Workflow.Grant(ctx, access_group, opts.RequestingUser)
 		if err != nil {
 			return nil, err
 		}
-		access_group.Grants = grant
 		// reviewed := types.REVIEWED
 		// access_group.ApprovalMethod = &reviewed
 

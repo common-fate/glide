@@ -73,6 +73,17 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 			if err != nil {
 				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
 			}
+
+			//access groups for a request
+
+			accessGroups := storage.ListAccessGroups{RequestID: request.ID}
+
+			_, err = n.DB.Query(ctx, &accessGroups)
+
+			if err != nil {
+				log.Errorw("failed to find access groups", "error", err)
+			}
+
 			// for webhooks
 			reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
 				Request:          request,
@@ -80,6 +91,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				RequestorEmail:   requestingUserQuery.Result.Email,
 				ReviewURLs:       reviewURL,
 				IsWebhook:        true,
+				AccessGroups:     accessGroups.Result,
 			})
 
 			// log for testing purposes
@@ -111,6 +123,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					RequestorEmail:   requestingUserQuery.Result.Email,
 					ReviewURLs:       reviewURL,
 					IsWebhook:        false,
+					AccessGroups:     accessGroups.Result,
 				})
 
 				var wg sync.WaitGroup
@@ -231,6 +244,15 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
 	}
 	log.Infow("messaging reviewers", "reviewers", reviewers.Result)
+	//access groups for a request
+
+	accessGroups := storage.ListAccessGroups{RequestID: request.ID}
+
+	_, err = n.DB.Query(ctx, &accessGroups)
+
+	if err != nil {
+		log.Errorw("failed to find access groups", "error", err)
+	}
 	if n.directMessageClient != nil {
 		// get the requestor's Slack user ID if it exists to render it nicely in the message to approvers.
 		var slackUserID string
@@ -242,6 +264,7 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		if requestor != nil {
 			slackUserID = requestor.ID
 		}
+
 		_, msg := BuildRequestReviewMessage(RequestMessageOpts{
 			Request:          request,
 			RequestArguments: requestArguments,
@@ -251,6 +274,7 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 			WasReviewed:      true,
 			RequestReviewer:  reqReviewer.Result,
 			IsWebhook:        false,
+			AccessGroups:     accessGroups.Result,
 		})
 		for _, usr := range reviewers.Result {
 			err = n.UpdateMessageBlockForReviewer(ctx, usr, msg)
@@ -273,6 +297,7 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		WasReviewed:      true,
 		RequestReviewer:  reqReviewer.Result,
 		IsWebhook:        true,
+		AccessGroups:     accessGroups.Result,
 	})
 	for _, webhook := range n.webhooks {
 		err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)

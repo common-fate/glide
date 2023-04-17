@@ -51,9 +51,6 @@ func TestRevokeGrant(t *testing.T) {
 				}},
 			giveRequest: requests.Requestv2{
 				RequestedBy: identity.User{ID: "123"},
-				Groups: map[string]requests.AccessGroup{
-					"AWS": {ID: "123"},
-				},
 			},
 			withRevokeGrantResponseErr: nil,
 			Grants: []requests.Grantv2{
@@ -69,9 +66,6 @@ func TestRevokeGrant(t *testing.T) {
 			},
 			want: &requests.Requestv2{
 				RequestedBy: identity.User{ID: "123"},
-				Groups: map[string]requests.AccessGroup{
-					"AWS": {ID: "123"},
-				},
 			},
 			revokerID: "test",
 			// requestReviewers:           []access.Reviewer{{ReviewerID: "123"}},
@@ -92,9 +86,6 @@ func TestRevokeGrant(t *testing.T) {
 				}},
 			giveRequest: requests.Requestv2{
 				RequestedBy: identity.User{ID: "123"},
-				Groups: map[string]requests.AccessGroup{
-					"AWS": {ID: "123"},
-				},
 			},
 			withRevokeGrantResponseErr: ErrNoGrant,
 			Grants:                     nil,
@@ -123,9 +114,6 @@ func TestRevokeGrant(t *testing.T) {
 				}},
 			giveRequest: requests.Requestv2{
 				RequestedBy: identity.User{ID: "123"},
-				Groups: map[string]requests.AccessGroup{
-					"AWS": {ID: "123"},
-				},
 			},
 			withRevokeGrantResponseErr: ddb.ErrNoItems,
 			Grants:                     nil,
@@ -154,9 +142,6 @@ func TestRevokeGrant(t *testing.T) {
 				}},
 			giveRequest: requests.Requestv2{
 				RequestedBy: identity.User{ID: "123"},
-				Groups: map[string]requests.AccessGroup{
-					"AWS": {ID: "123"},
-				},
 			},
 			withRevokeGrantResponseErr: ErrGrantInactive,
 			Grants: []requests.Grantv2{

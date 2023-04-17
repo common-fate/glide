@@ -5,6 +5,7 @@ import (
 
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/ddb"
 )
 
 type CancelRequestOpts struct {
@@ -15,34 +16,46 @@ type CancelRequestOpts struct {
 // CancelRequest cancels a request if it is in pending status.
 // Returns an error if the request is invalid.
 func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) error {
-	q := storage.GetRequestV2{ID: opts.RequestID}
-	_, err := s.DB.Query(ctx, &q)
+	items := []ddb.Keyer{}
+	now := s.Clock.Now()
+	requestGet := storage.GetRequestV2{ID: opts.RequestID}
+	_, err := s.DB.Query(ctx, &requestGet)
 	if err != nil {
 		return err
 	}
-	req := q.Result
+	req := requestGet.Result
 
 	isAllowed := canCancel(opts, *req)
 	if !isAllowed {
 		return ErrUserNotAuthorized
 	}
-	// canBeCancelled := isCancellable(*req)
-	// if !canBeCancelled {
-	// 	return ErrRequestCannotBeCancelled
-	// }
 
-	for _, access_group := range req.Groups {
-		access_group.Status = requests.CANCELLED
+	q := storage.ListAccessGroups{RequestID: opts.RequestID}
+	_, err = s.DB.Query(ctx, &q)
+	if err != nil {
+		return err
 	}
-	req.UpdatedAt = s.Clock.Now()
-	// we need to save the Review, the updated Request in the database.
-	// items, err := dbupdate.GetUpdateRequestItems(ctx, s.DB, *req)
-	// if err != nil {
-	// 	return err
-	// }
+	accessGroups := q.Result
 
-	// return s.DB.PutBatch(ctx, items...)
-	return nil
+	for _, ag := range accessGroups {
+		canBeCancelled := isCancellable(ag)
+		if !canBeCancelled {
+			return ErrRequestCannotBeCancelled
+		}
+
+		ag.Status = requests.CANCELLED
+		ag.UpdatedAt = now
+
+		items = append(items, &ag)
+	}
+
+	// Todo: what should happen with grant types here?
+
+	req.UpdatedAt = now
+
+	items = append(items, req)
+
+	return s.DB.PutBatch(ctx, items...)
 }
 
 // users can cancel their own requests.
@@ -52,6 +65,6 @@ func canCancel(opts CancelRequestOpts, request requests.Requestv2) bool {
 }
 
 // A request can be cancelled if
-// func isCancellable(request access.Request) bool {
-// 	return request.Status == access.PENDING || request.Grant == nil && request.Status != access.CANCELLED
-// }
+func isCancellable(AccessGroup requests.AccessGroup) bool {
+	return AccessGroup.Status == requests.PENDING || AccessGroup.Status != requests.CANCELLED
+}
