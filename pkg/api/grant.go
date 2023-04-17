@@ -10,7 +10,7 @@ import (
 
 // List Request Access Group Grants
 // (GET /api/v1/requests/{requestId}/groups/{groupId}/grants)
-func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
+func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, groupId string) {
 	ctx := r.Context()
 	q := storage.ListGrantsV2{GroupID: groupId}
 
@@ -33,7 +33,7 @@ func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Re
 
 // Get Request Access Group Grant
 // (GET /api/v1/requests/{id}/groups/{gid}/grants{grantid})
-func (a *API) UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request, id string, gid string, grantid string) {
+func (a *API) UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request, gid string, grantid string) {
 	ctx := r.Context()
 	q := storage.GetGrantV2{GroupID: gid, GrantId: grantid}
 

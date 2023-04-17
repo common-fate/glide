@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -15,7 +16,7 @@ import (
 
 // List Requests
 // (GET /api/v1/requests)
-func (a *API) UserListRequestsv2(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	q := storage.ListRequestV2{UserId: u.ID}
@@ -38,7 +39,7 @@ func (a *API) UserListRequestsv2(w http.ResponseWriter, r *http.Request) {
 
 // Get Request
 // (GET /api/v1/requests/{requestId})
-func (a *API) UserGetRequestv2(w http.ResponseWriter, r *http.Request, requestId string) {
+func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	q := storage.GetRequestV2{UserId: u.ID, ID: requestId}
@@ -125,21 +126,25 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := a.PreflightService.GroupTargets(ctx, createPreflightRequest.Targets)
+	out, err := a.PreflightService.GroupTargets(ctx, createPreflightRequest)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
 	//save the preflight if successful
-	a.DB.Put(ctx, &out)
+	err = a.DB.Put(ctx, out)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
 	apio.JSON(ctx, w, out.ToAPI(), http.StatusOK)
 
 }
 
 // (POST /api/v1/requests)
-func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 
@@ -177,51 +182,51 @@ func (a *API) UserPostRequestsv2(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
-	// isAdmin := auth.IsAdmin(ctx)
-	// u := auth.UserFromContext(ctx)
-	// var req access.Request
-	// q := storage.GetRequest{ID: requestID}
-	// _, err := a.DB.Query(ctx, &q)
-	// if err == ddb.ErrNoItems {
-	// 	//grant not found return 404
-	// 	apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
-	// 	return
-	// }
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
-	// // user can revoke their own request and admins can revoke any request
-	// if q.Result.RequestedBy == u.ID || isAdmin {
-	// 	req = *q.Result
-	// } else { // reviewers can revoke reviewable requests
-	// 	q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
-	// 	_, err := a.DB.Query(ctx, &q)
-	// 	if err == ddb.ErrNoItems {
-	// 		//grant not found return 404
-	// 		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
-	// 		return
-	// 	}
-	// 	if err != nil {
-	// 		apio.Error(ctx, w, err)
-	// 		return
-	// 	}
-	// 	req = q.Result.Request
-	// }
+	isAdmin := auth.IsAdmin(ctx)
+	u := auth.UserFromContext(ctx)
+	var req requests.Requestv2
+	q := storage.GetRequestV2{ID: requestID}
+	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		//grant not found return 404
+		apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	// user can revoke their own request and admins can revoke any request
+	if q.Result.RequestedBy.ID == u.ID || isAdmin {
+		req = *q.Result
+	} else { // reviewers can revoke reviewable requests
+		q := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}
+		_, err := a.DB.Query(ctx, &q)
+		if err == ddb.ErrNoItems {
+			//grant not found return 404
+			apio.Error(ctx, w, apio.NewRequestError(errors.New("request not found or you don't have access to it"), http.StatusNotFound))
+			return
+		}
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		// req = q.Result.Request
+	}
 
-	// _, err = a.Workflow.Revoke(ctx, req, u.ID, u.Email)
-	// if err == workflowsvc.ErrGrantInactive {
-	// 	apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-	// 	return
-	// }
-	// if err == workflowsvc.ErrNoGrant {
-	// 	apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
-	// 	return
-	// }
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	_, err = a.Workflow.Revoke(ctx, req, u.ID, u.Email)
+	if err == workflowsvc.ErrGrantInactive {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if err == workflowsvc.ErrNoGrant {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusBadRequest))
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
 	// analytics.FromContext(ctx).Track(&analytics.RequestRevoked{
 	// 	RequestedBy: req.RequestedBy,

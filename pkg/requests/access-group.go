@@ -20,15 +20,12 @@ const (
 )
 
 type AccessGroup struct {
-	AccessRule rule.AccessRule     `json:"accessRule" dynamodbav:"accessRule"`
-	Reason     string              `json:"reason" dynamodbav:"reason"`
-	With       []map[string]string `json:"with" dynamodbav:"with"`
+	AccessRule rule.AccessRule `json:"accessRule" dynamodbav:"accessRule"`
 	// ID is a read-only field after the request has been created.
-	ID              string    `json:"id" dynamodbav:"id"`
-	Request         string    `json:"request" dynamodbav:"request"`
-	Grants          []Grantv2 `json:"grants" dynamodbav:"grants"`
-	TimeConstraints Timing    `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	OverrideTiming  *Timing   `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	ID              string  `json:"id" dynamodbav:"id"`
+	Request         string  `json:"request" dynamodbav:"request"`
+	TimeConstraints Timing  `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	OverrideTiming  *Timing `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
 
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
 	Status    Status    `json:"status" dynamodbav:"status"`
@@ -43,10 +40,22 @@ func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
 }
 
 func (i *AccessGroup) ToAPI() types.AccessGroup {
-	return types.AccessGroup{
-		Grants: []types.Grantv2{},
-		//TODO: How to have []map[string]string in the api?
+	out := types.AccessGroup{
+		Id:     i.ID,
+		Status: string(i.Status),
+		Time: types.TimeConstraints{
+			MaxDurationSeconds: int(i.TimeConstraints.Duration),
+		},
+		Request: i.Request,
+		Grants:  []types.Grantv2{},
 	}
+
+	if i.OverrideTiming != nil {
+		out.OverrideTiming = i.OverrideTiming.ToAPI()
+	}
+
+	return out
+
 }
 
 func (r *AccessGroup) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time, end time.Time) {

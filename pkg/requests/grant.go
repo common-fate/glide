@@ -8,13 +8,31 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-type Grantv2 struct {
-	ID                 string `json:"id" dynamodbav:"id"`
-	AccessGroup        string `json:"accessGroup" dynamodbav:"accessGroup"`
-	AccessInstructions string `json:"accessInstructions" dynamodbav:"accessInstructions"`
+type Target struct {
+	Fields map[string]Field
+}
 
-	Subject string           `json:"subject" dynamodbav:"subject"`
-	With    types.Grant_With `json:"with" dynamodbav:"with"`
+type FieldValue struct {
+	Type  string
+	Value string
+}
+
+type Field struct {
+	Label       string
+	Description *string
+	Id          string
+
+	//todo: Value should support string array iam policy
+	Value FieldValue
+}
+
+type Grantv2 struct {
+	ID                 string  `json:"id" dynamodbav:"id"`
+	AccessGroup        string  `json:"accessGroup" dynamodbav:"accessGroup"`
+	AccessInstructions *string `json:"accessInstructions" dynamodbav:"accessInstructions"`
+
+	Subject string `json:"subject" dynamodbav:"subject"`
+	Target  Target `json:"target" dynamodbav:"target"`
 	//the time which the grant starts
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end

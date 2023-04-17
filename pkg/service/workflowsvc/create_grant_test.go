@@ -34,7 +34,6 @@ func TestCreateGrant(t *testing.T) {
 			giveRequest: requests.AccessGroup{
 				AccessRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{TargetGroupID: "test"}},
 				ID:         "123",
-				Reason:     "",
 				Request:    "abc",
 				TimeConstraints: requests.Timing{
 					Duration:  time.Hour,

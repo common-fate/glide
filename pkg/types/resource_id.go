@@ -60,3 +60,6 @@ func NewEntitlementID() string {
 func NewOptionID() string {
 	return newResourceID("opt")
 }
+func NewAccessGroupID() string {
+	return newResourceID("agi")
+}

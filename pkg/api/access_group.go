@@ -43,5 +43,7 @@ func (a *API) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+	res := q.Result.ToAPI()
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 }

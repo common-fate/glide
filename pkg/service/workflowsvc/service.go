@@ -42,13 +42,20 @@ type Service struct {
 func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, subject string) ([]requests.Grantv2, error) {
 	// Contains logic for preparing a grant and emitting events
 
-	now := s.Clk.Now()
 	items := []ddb.Keyer{}
 	grantList := []requests.Grantv2{}
 
+	//lookup all the grant entitlements for this access group
+
+	grants := storage.ListGrantsV2{GroupID: access_group.ID}
+
+	_, err := s.DB.Query(ctx, &grants)
+	if err != nil {
+		return nil, err
+	}
 	if !access_group.AccessRule.Approval.IsRequired() {
-		for _, entitlement := range access_group.With {
-			createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement)
+		for _, entitlement := range grants.Result {
+			createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement.Target)
 			if err != nil {
 				return nil, err
 			}
@@ -69,28 +76,11 @@ func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, 
 			if err != nil {
 				return nil, err
 			}
-			grant := requests.Grantv2{
-				ID:          createGrant.Id,
-				AccessGroup: access_group.ID,
-				Subject:     string(createGrant.Subject),
-				Start:       createGrant.Start.Time,
-				End:         createGrant.End.Time,
-				Status:      types.GrantStatusPENDING,
-				With:        types.Grant_With(createGrant.With),
-				CreatedAt:   now,
-				UpdatedAt:   now,
-			}
-			//do we still want to keep track of grants on the access group item?
-			access_group.Grants = append(access_group.Grants, grant)
-			items = append(items, &access_group)
-			grantList = append(grantList, grant)
 
 		}
-	} else {
-		//
 	}
 
-	err := s.DB.PutBatch(ctx, items...)
+	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +168,7 @@ func (s *Service) Revoke(ctx context.Context, request requests.Requestv2, revoke
 }
 
 // prepareCreateGrantRequest prepares the data for requesting
-func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming requests.Timing, requestId string, subject string, accessRule rule.AccessRule, with map[string]string) (types.CreateGrant, error) {
+func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming requests.Timing, requestId string, subject string, accessRule rule.AccessRule, target requests.Target) (types.CreateGrant, error) {
 
 	start, end := requestTiming.GetInterval(requests.WithNow(s.Clk.Now()))
 
@@ -194,8 +184,8 @@ func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming r
 	}
 
 	//todo: rework this to be used safely around the codebase
-	for k, v := range with {
-		req.With.AdditionalProperties[k] = v
+	for k, v := range target.Fields {
+		req.With.AdditionalProperties[k] = v.Value.Value
 	}
 	// for k, v := range request.SelectedWith {
 	// 	req.With.AdditionalProperties[k] = v.Value

@@ -15,10 +15,9 @@ import (
 
 type Requestv2 struct {
 	// ID is a read-only field after the request has been created.
-	ID          string                 `json:"id" dynamodbav:"id"`
-	Groups      map[string]AccessGroup `json:"groups" dynamodbav:"groups"`
-	Context     RequestContext         `json:"context" dynamodbav:"context"`
-	RequestedBy identity.User          `json:"requestedBy" dynamodbav:"requestedBy"`
+	ID          string         `json:"id" dynamodbav:"id"`
+	Context     RequestContext `json:"context" dynamodbav:"context"`
+	RequestedBy identity.User  `json:"requestedBy" dynamodbav:"requestedBy"`
 
 	// RequestedBy is the ID of the user who has made the request.
 
@@ -40,9 +39,6 @@ func (i *Requestv2) ToAPI() types.Requestv2 {
 		Id:      i.ID,
 		Context: i.Context.ToAPI(),
 		User:    i.RequestedBy.ID,
-	}
-	for _, g := range i.Groups {
-		out.Groups = append(out.Groups, g.ToAPI())
 	}
 
 	return out
