@@ -44,6 +44,8 @@ func (s *Service) GroupTargets(ctx context.Context, preflightRequest types.Creat
 	//organise each grant from the list of targets and create access group / grant for each entitlement
 	for _, target := range preflightRequest.Targets {
 
+		//todo: validate that resource is apart of access rule with a look up.
+
 		//Grouping up targets based on which access rule they are apart of
 		_, ok := accessGroups[target.AccessRule]
 		if !ok {

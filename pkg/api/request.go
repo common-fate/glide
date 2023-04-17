@@ -238,3 +238,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 
 	apio.JSON(ctx, w, nil, http.StatusOK)
 }
+
+func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
+
+}
