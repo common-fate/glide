@@ -26,7 +26,7 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 	}
 
 	type resource struct {
-		resource     cache.TargateGroupResource
+		resource     cache.TargetGroupResource
 		shouldUpsert bool
 	}
 
@@ -75,7 +75,7 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 	return nil
 }
 
-func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargateGroupResource, error) {
+func (s *Service) fetchResources(ctx context.Context, tg target.Group) ([]cache.TargetGroupResource, error) {
 	var tasks []string
 
 	routeResult, err := s.RequestRouter.Route(ctx, tg)
