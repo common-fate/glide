@@ -36,9 +36,11 @@ func (i *Requestv2) DDBKeys() (ddb.Keys, error) {
 
 func (i *Requestv2) ToAPI() types.Requestv2 {
 	out := types.Requestv2{
-		Id:      i.ID,
-		Context: i.Context.ToAPI(),
-		User:    i.RequestedBy.ID,
+		Id:        i.ID,
+		Context:   i.Context.ToAPI(),
+		User:      i.RequestedBy.ToAPI(),
+		UpdatedAt: i.UpdatedAt,
+		CreatedAt: i.CreatedAt,
 	}
 
 	return out

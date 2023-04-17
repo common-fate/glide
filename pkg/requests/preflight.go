@@ -39,12 +39,11 @@ func (i *Preflight) DDBKeys() (ddb.Keys, error) {
 
 func (i *Preflight) ToAPI() types.Requestv2 {
 	out := types.Requestv2{
-		Id:      i.ID,
-		Context: i.Context.ToAPI(),
-		User:    i.RequestedBy.ID,
-	}
-	for _, g := range i.Groups {
-		out.Groups = append(out.Groups, g.ToAPI())
+		Id:        i.ID,
+		Context:   i.Context.ToAPI(),
+		User:      i.RequestedBy.ToAPI(),
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
 	}
 
 	return out

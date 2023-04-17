@@ -20,15 +20,14 @@ const (
 )
 
 type AccessGroup struct {
-	AccessRule rule.AccessRule `json:"accessRule" dynamodbav:"accessRule"`
-	// ID is a read-only field after the request has been created.
-	ID              string  `json:"id" dynamodbav:"id"`
-	Request         string  `json:"request" dynamodbav:"request"`
-	TimeConstraints Timing  `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	OverrideTiming  *Timing `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
-
-	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
-	Status    Status    `json:"status" dynamodbav:"status"`
+	AccessRule      rule.AccessRule `json:"accessRule" dynamodbav:"accessRule"`
+	ID              string          `json:"id" dynamodbav:"id"`
+	Request         string          `json:"request" dynamodbav:"request"`
+	TimeConstraints Timing          `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	OverrideTiming  *Timing         `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	CreatedAt       time.Time       `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt       time.Time       `json:"updatedAt" dynamodbav:"updatedAt"`
+	Status          Status          `json:"status" dynamodbav:"status"`
 }
 
 func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
@@ -46,8 +45,10 @@ func (i *AccessGroup) ToAPI() types.AccessGroup {
 		Time: types.TimeConstraints{
 			MaxDurationSeconds: int(i.TimeConstraints.Duration),
 		},
-		Request: i.Request,
-		Grants:  []types.Grantv2{},
+		RequestId:    i.Request,
+		AccessRuleId: i.AccessRule.ID,
+		CreatedAt:    &i.CreatedAt,
+		UpdatedAt:    &i.UpdatedAt,
 	}
 
 	if i.OverrideTiming != nil {
