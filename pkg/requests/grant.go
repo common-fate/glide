@@ -51,8 +51,19 @@ func (i *Grantv2) DDBKeys() (ddb.Keys, error) {
 }
 
 func (i *Grantv2) ToAPI() types.Grantv2 {
-	return types.Grantv2{
-		Id:     i.ID,
-		Status: types.Grantv2Status(i.Status),
+	grant := types.Grantv2{
+		Id:            i.ID,
+		Status:        types.Grantv2Status(i.Status),
+		AccessGroupId: i.AccessGroup,
+		Subject:       i.Subject,
+		Start:         i.Start,
+		End:           i.End,
+		CreatedAt:     &i.CreatedAt,
+		UpdatedAt:     &i.UpdatedAt,
 	}
+
+	if i.AccessInstructions != nil {
+		grant.AccessInstructions = i.AccessInstructions
+	}
+	return grant
 }

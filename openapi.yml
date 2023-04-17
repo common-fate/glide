@@ -2424,12 +2424,30 @@ components:
           type: object
         accessInstructions:
           type: string
+        start:
+          type: string
+          format: date-time
+          description: The start time of the grant in ISO8601 format.
+          example: '2022-06-13T03:39:30.921Z'
+        end:
+          type: string
+          format: date-time
+          description: The end time of the grant in ISO8601 format.
+          example: '2022-06-13T11:39:30.921Z'
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        updatedAt:
+          type: string
+          x-go-type: time.Time
       required:
         - id
         - accessGroupId
         - status
         - subject
         - target
+        - start
+        - end
     RequestContext:
       title: RequestContext
       x-stoplight:
