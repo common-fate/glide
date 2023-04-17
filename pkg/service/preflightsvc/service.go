@@ -2,10 +2,12 @@ package preflightsvc
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -45,32 +47,37 @@ func (s *Service) GroupTargets(ctx context.Context, preflightRequest types.Creat
 	for _, target := range preflightRequest.Targets {
 
 		//todo: validate that resource is apart of access rule with a look up.
+		//lookup each target
 
+		targetItem := storage.GetTarget{ID: target.Id}
+		_, err := s.DB.Query(ctx, &targetItem)
+		if err != nil {
+			return nil, err
+		}
+
+		//returns the best suited access rule for the current user
+		accessRule, err := s.getAccessRuleForTarget(ctx, targetItem.Result.AccessRules)
+		if err != nil {
+			return nil, err
+		}
 		//Grouping up targets based on which access rule they are apart of
-		_, ok := accessGroups[target.AccessRule]
+		_, ok := accessGroups[accessRule.ID]
 		if !ok {
 			newTarget := requests.Target{}
 
-			for key, val := range target.With.AdditionalProperties {
-				newTarget.Fields[key] = requests.Field{Value: requests.FieldValue{Type: "", Value: val}}
-			}
-
-			//lookup access rule
-			ac := storage.GetAccessRuleCurrent{ID: target.AccessRule}
-			_, err := s.DB.Query(ctx, &ac)
-			if err != nil {
-				return nil, err
+			for _, field := range target.Fields {
+				newTarget.Fields[field.Id] = requests.Field{Value: requests.FieldValue{Type: "", Value: field.Value}}
 			}
 
 			ag := requests.AccessGroup{
 				ID:              types.NewAccessGroupID(),
-				AccessRule:      *ac.Result,
-				TimeConstraints: requests.Timing{Duration: time.Duration(target.TimeConstraints.MaxDurationSeconds), StartTime: &now},
+				AccessRule:      *accessRule,
+				TimeConstraints: requests.Timing{Duration: time.Duration(accessRule.TimeConstraints.MaxDurationSeconds), StartTime: &now},
 				Request:         request.ID,
 				UpdatedAt:       now,
 				Status:          requests.PENDING,
 			}
-			accessGroups[target.AccessRule] = ag
+			accessGroups[accessRule.ID] = ag
 
 			newGrant := requests.Grantv2{
 				ID:          types.NewGrantID(),
@@ -91,11 +98,11 @@ func (s *Service) GroupTargets(ctx context.Context, preflightRequest types.Creat
 
 			newTarget := requests.Target{}
 
-			for key, val := range target.With.AdditionalProperties {
-				newTarget.Fields[key] = requests.Field{Value: requests.FieldValue{Type: "", Value: val}}
+			for _, field := range target.Fields {
+				newTarget.Fields[field.Id] = requests.Field{Value: requests.FieldValue{Type: "", Value: field.Value}}
 			}
 
-			ag := accessGroups[target.AccessRule]
+			ag := accessGroups[accessRule.ID]
 
 			newGrant := requests.Grantv2{
 				ID:          types.NewGrantID(),
@@ -133,4 +140,43 @@ func (s *Service) GroupTargets(ctx context.Context, preflightRequest types.Creat
 	}
 	//create a preflight object in the db
 	return &preflight, nil
+}
+
+func (s *Service) getAccessRuleForTarget(ctx context.Context, accessRules []string) (*rule.AccessRule, error) {
+	if len(accessRules) <= 0 {
+		return nil, errors.New("no access groups found")
+	}
+
+	var returnRule rule.AccessRule
+
+	for _, rule := range accessRules {
+		ar := storage.GetAccessRuleCurrent{ID: rule}
+		_, err := s.DB.Query(ctx, &ar)
+		if err != nil {
+			return nil, err
+		}
+
+		//from a list of many rules we should return the rule with the lowest barrier for entry for the user...
+		//pick the one with no approval needed
+		//with the longest duration
+
+		//if first iteration just make the current rule = first
+		//todo: make test cases for these
+		if returnRule.ID == "" {
+			returnRule = *ar.Result
+			continue
+		}
+
+		if returnRule.Approval.IsRequired() && !ar.Result.Approval.IsRequired() {
+			returnRule = *ar.Result
+		}
+
+		if !returnRule.Approval.IsRequired() && !ar.Result.Approval.IsRequired() && ar.Result.TimeConstraints.MaxDurationSeconds > returnRule.TimeConstraints.MaxDurationSeconds {
+			returnRule = *ar.Result
+		}
+
+	}
+
+	return nil, nil
+
 }
