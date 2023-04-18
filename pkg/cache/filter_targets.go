@@ -64,13 +64,13 @@ func (tf *FilterTargetsByGroups) AppendOutput(target Target) {
 	tf.mu.Unlock()
 }
 
-func NewFilterTargetsByGroups(rules []string) *FilterTargetsByGroups {
+func NewFilterTargetsByGroups(groups []string) *FilterTargetsByGroups {
 	tf := FilterTargetsByGroups{
 		groups: make(map[string]struct{}),
 		out:    make(map[string]Target),
 	}
-	for i := range rules {
-		tf.groups[rules[i]] = struct{}{}
+	for i := range groups {
+		tf.groups[groups[i]] = struct{}{}
 	}
 	return &tf
 }
