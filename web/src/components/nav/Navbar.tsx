@@ -30,7 +30,7 @@ import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
-import { useUserListRequests } from "src/utils/backend-client/default/default";
+import { useUserListRequests } from "../../utils/backend-client/default/default";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");

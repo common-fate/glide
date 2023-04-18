@@ -14,7 +14,7 @@ import { RuleNameCell } from "../AccessRuleNameCell";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
 import { CFAvatar } from "../CFAvatar";
-import { useAdminListRequests } from "src/utils/backend-client/admin/admin";
+import { useAdminListRequests } from "../../utils/backend-client/admin/admin";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
