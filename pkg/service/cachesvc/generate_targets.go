@@ -2,12 +2,11 @@ package cachesvc
 
 import (
 	"context"
-	"sort"
-	"sync"
 
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/ddb"
 )
 
 func (s *Service) RefreshCachedTargets(ctx context.Context) error {
@@ -27,7 +26,62 @@ func (s *Service) RefreshCachedTargets(ctx context.Context) error {
 		return err
 	}
 	distictTargets := generateDistinctTargets(resourceRuleMapping)
-	_ = distictTargets
+
+	// I want to preserve the IDs of targets so they can be used when requesting access
+	// but the targets need to be deleted if they no longer exist
+
+	// the rough way is to fetch all targets, then check for updates
+	type target struct {
+		target       cache.Target
+		shouldUpsert bool
+	}
+	targets := map[string]target{}
+	existingTargetsQuery := &storage.ListCachedTargets{}
+	err = s.DB.All(ctx, existingTargetsQuery)
+	if err != nil {
+		return err
+	}
+
+	for _, opt := range existingTargetsQuery.Result {
+		targets[opt.Key()] = target{
+			target: opt,
+		}
+	}
+
+	for _, o := range distictTargets {
+		// persist the existing ID if it is available
+		if existing, ok := targets[o.Key()]; ok {
+			o.ID = existing.target.ID
+		}
+
+		targets[o.Key()] = target{
+			target:       o,
+			shouldUpsert: true,
+		}
+	}
+
+	upsertItems := []ddb.Keyer{}
+	deleteItems := []ddb.Keyer{}
+	for _, v := range targets {
+		cp := v
+		if v.shouldUpsert {
+			upsertItems = append(upsertItems, &cp.target)
+		} else {
+			deleteItems = append(deleteItems, &cp.target)
+		}
+	}
+
+	// Will create or update items
+	err = s.DB.PutBatch(ctx, upsertItems...)
+	if err != nil {
+		return err
+	}
+
+	// Only deletes items that no longer exist
+	err = s.DB.DeleteBatch(ctx, deleteItems...)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -87,78 +141,27 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 	return arTargets, nil
 }
 
-type Target struct {
-	key    string
-	fields map[string]string
-	rules  []string
-}
-
 // generateDistinctTargets returns a distict map of targets
-func generateDistinctTargets(in resourceAccessRuleMapping) map[string]Target {
-	out := make(map[string]Target)
+func generateDistinctTargets(in resourceAccessRuleMapping) []cache.Target {
+	out := make(map[string]cache.Target)
 	for arID, ar := range in {
 		for tID, targetgroup := range ar {
 			for _, target := range targetgroup {
-				keys := make(sort.StringSlice, 0, len(target))
-				for k := range target {
-					keys = append(keys, k)
+				t := cache.Target{
+					// Don't set an id at this stage
+					// ID:            types.NewTargetID(),
+					TargetGroupID: tID,
+					Fields:        target,
+					AccessRules:   []string{arID},
 				}
-				keys.Sort()
-				outKey := tID
-				for _, key := range keys {
-					outKey += "#" + key + "#" + target[key]
-				}
-				o := out[outKey]
-				o.rules = append(o.rules, arID)
-				o.fields = target
-				o.key = outKey
-				out[outKey] = o
+				o := out[t.Key()]
+				t.AccessRules = append(t.AccessRules, o.AccessRules...)
+				out[t.Key()] = t
 			}
 		}
 	}
-	return out
-}
-
-// TargetFilter can be used to filter paginated data
-type TargetFilter struct {
-	rules map[string]struct{}
-	// mutex used to make concurrent writes safe to the output map
-	mu sync.Mutex
-	// using a map just to help with no duplicate values if you submit the same data for filtering twice
-	out map[string]Target
-}
-
-// AppendOutput is goroutine safe way to append to the output map
-func (tf *TargetFilter) AppendOutput(target Target) {
-	tf.mu.Lock()
-	tf.out[target.key] = target
-	tf.mu.Unlock()
-}
-
-func NewTargetFilter(rules []string) *TargetFilter {
-	tf := TargetFilter{
-		rules: make(map[string]struct{}),
-		out:   make(map[string]Target),
-	}
-	for i := range rules {
-		tf.rules[rules[i]] = struct{}{}
-	}
-	return &tf
-}
-
-func (tf *TargetFilter) Filter(targets []Target) {
-	for _, target := range targets {
-		for _, targetRule := range target.rules {
-			if _, ok := tf.rules[targetRule]; ok {
-				tf.AppendOutput(target)
-				break
-			}
-		}
-	}
-}
-func (tf *TargetFilter) Dump() []Target {
-	values := make([]Target, 0, len(tf.out))
-	for _, v := range tf.out {
+	values := make([]cache.Target, 0, len(out))
+	for _, v := range out {
 		values = append(values, v)
 	}
 	return values

@@ -1,13 +1,13 @@
 package cachesvc
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSync(t *testing.T) {
@@ -18,7 +18,7 @@ func TestSync(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    map[string]map[string]Targets
+		want    resourceAccessRuleMapping
 		wantErr bool
 	}{
 		{
@@ -43,7 +43,7 @@ func TestSync(t *testing.T) {
 					}},
 				},
 			},
-			want: map[string]map[string]Targets{
+			want: resourceAccessRuleMapping{
 				"accessRule_1": {
 					"targetgroup_1": Targets{
 						map[string]string{
@@ -62,25 +62,24 @@ func TestSync(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := createResourceAccessRuleMapping(tt.args.resources, tt.args.accessRules)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Sync() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Sync() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestOut(t *testing.T) {
+func TestGenerateDistinctTargets(t *testing.T) {
 	type args struct {
 		in map[string]map[string]Targets
 	}
 	tests := []struct {
 		name string
 		args args
-		want map[string]Target
+		want []cache.Target
 	}{
 		{
 			name: "ok",
@@ -108,68 +107,30 @@ func TestOut(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]Target{
-				"targetgroup_1#accountId#account_1#permissionSetArn#permissionSet_1": {
-					fields: map[string]string{
+			want: []cache.Target{
+				{
+					TargetGroupID: "targetgroup_1",
+					Fields: map[string]string{
 						"accountId":        "account_1",
 						"permissionSetArn": "permissionSet_1",
 					},
-					rules: []string{"accessRule_1", "accessRule_2"},
+					AccessRules: []string{"accessRule_2", "accessRule_1"},
 				},
-				"targetgroup_1#accountId#account_1#permissionSetArn#permissionSet_2": {
-					fields: map[string]string{
+				{
+					TargetGroupID: "targetgroup_1",
+					Fields: map[string]string{
 						"accountId":        "account_1",
 						"permissionSetArn": "permissionSet_2",
 					},
-					rules: []string{"accessRule_1"},
+					AccessRules: []string{"accessRule_1"},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := generateDistinctTargets(tt.args.in); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Out() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestFilterForRules(t *testing.T) {
-	type args struct {
-		targets []Target
-		rules   []string
-	}
-
-	t1 := Target{
-		fields: map[string]string{"hello": "world"},
-		rules:  []string{"accessRule_1"},
-	}
-	t2 := Target{
-		fields: map[string]string{"hello": "world"},
-		rules:  []string{"accessRule_2"},
-	}
-	tests := []struct {
-		name string
-		args args
-		want []Target
-	}{
-		{
-			name: "ok",
-			args: args{
-				targets: []Target{t1, t2},
-				rules:   []string{"accessRule_1"},
-			},
-			want: []Target{t1},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tf := NewTargetFilter(tt.args.rules)
-			tf.Filter(tt.args.targets)
-			if got := tf.Dump(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FilterForRules() = %v, want %v", got, tt.want)
-			}
+			got := generateDistinctTargets(tt.args.in)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

@@ -63,3 +63,6 @@ func NewOptionID() string {
 func NewAccessGroupID() string {
 	return newResourceID("agi")
 }
+func NewTargetID() string {
+	return newResourceID("tar")
+}
