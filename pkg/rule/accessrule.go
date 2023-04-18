@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 // AccessRule is a rule governing access to something in Common Fate.
@@ -24,11 +25,13 @@ type AccessRule struct {
 	Description string `json:"description" dynamodbav:"description"`
 
 	// Array of group names that the access rule applies to
-	Groups          []string              `json:"groups" dynamodbav:"groups"`
-	ID              string                `json:"id" dynamodbav:"id"`
-	Metadata        AccessRuleMetadata    `json:"metadata" dynamodbav:"metadata"`
-	Name            string                `json:"name" dynamodbav:"name"`
-	Target          Target                `json:"target" dynamodbav:"target"`
+	Groups   []string           `json:"groups" dynamodbav:"groups"`
+	ID       string             `json:"id" dynamodbav:"id"`
+	Metadata AccessRuleMetadata `json:"metadata" dynamodbav:"metadata"`
+	Name     string             `json:"name" dynamodbav:"name"`
+	Target   Target             `json:"target" dynamodbav:"target"`
+	// @TODO make a single field for targets
+	Targets         map[string]Target
 	TimeConstraints types.TimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 }
 
@@ -144,8 +147,9 @@ type Target struct {
 	// TargetGroupFrom is only used for PDK providers and is a denormalised copy of the
 	// 'From' field in a Target Group.
 	TargetGroupFrom target.From `json:"targetGroupFrom"  dynamodbav:"targetGroupFrom"`
-
-	With map[string]string `json:"with"  dynamodbav:"with"`
+	// Schema is denomalised and saved here for efficiency
+	Schema providerregistrysdk.Target `json:"schema" dynamodbav:"schema"`
+	With   map[string]string          `json:"with"  dynamodbav:"with"`
 }
 
 // converts to basic api type

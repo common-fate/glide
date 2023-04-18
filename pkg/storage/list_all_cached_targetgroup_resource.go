@@ -13,7 +13,7 @@ import (
 type ListCachedTargetGroupResource struct {
 	TargetGroupID string
 	ResourceType  string
-	Result        []cache.TargateGroupResource
+	Result        []cache.TargetGroupResource
 }
 
 func (q *ListCachedTargetGroupResource) BuildQuery() (*dynamodb.QueryInput, error) {

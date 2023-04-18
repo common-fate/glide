@@ -14,7 +14,7 @@ type GetCachedTargetGroupResource struct {
 	TargetGroupID string
 	ResourceType  string
 	ResourceID    string
-	Result        *cache.TargateGroupResource
+	Result        *cache.TargetGroupResource
 }
 
 func (q *GetCachedTargetGroupResource) BuildQuery() (*dynamodb.QueryInput, error) {

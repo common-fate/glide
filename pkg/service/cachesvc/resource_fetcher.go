@@ -18,7 +18,7 @@ import (
 type ResourceFetcher struct {
 	resourcesMx sync.Mutex
 	// This map stores and deduplicates returned resources
-	resources     map[string]cache.TargateGroupResource
+	resources     map[string]cache.TargetGroupResource
 	targetGroupID string
 	eg            *errgroup.Group
 	runtime       *handlerclient.Client
@@ -28,12 +28,12 @@ func NewResourceFetcher(targetGroupID string, runtime *handlerclient.Client) *Re
 	return &ResourceFetcher{
 		targetGroupID: targetGroupID,
 		runtime:       runtime,
-		resources:     make(map[string]cache.TargateGroupResource),
+		resources:     make(map[string]cache.TargetGroupResource),
 	}
 }
 
 // LoadResources invokes the deployment
-func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([]cache.TargateGroupResource, error) {
+func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([]cache.TargetGroupResource, error) {
 	eg, gctx := errgroup.WithContext(ctx)
 	rf.eg = eg
 	for _, task := range tasks {
@@ -60,7 +60,7 @@ func (rf *ResourceFetcher) LoadResources(ctx context.Context, tasks []string) ([
 		return nil, err
 	}
 
-	final := make([]cache.TargateGroupResource, 0, len(rf.resources))
+	final := make([]cache.TargetGroupResource, 0, len(rf.resources))
 	for k := range rf.resources {
 		final = append(final, rf.resources[k])
 	}
@@ -75,7 +75,7 @@ func (rf *ResourceFetcher) getResources(ctx context.Context, response msg.LoadRe
 
 		rf.resourcesMx.Lock()
 		for _, i := range response.Resources {
-			tgr := cache.TargateGroupResource{
+			tgr := cache.TargetGroupResource{
 				ResourceType: i.Type,
 				Resource: cache.Resource{
 					ID:   i.ID,
