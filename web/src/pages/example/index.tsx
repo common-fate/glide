@@ -130,7 +130,7 @@ const Home = () => {
                           return (
                             <option
                               value={e.value}
-                            >{`${e.name}: ${e.value} `}</option>
+                            >{`${e.label}: ${e.value} `}</option>
                           );
                         })}
                       </Select>

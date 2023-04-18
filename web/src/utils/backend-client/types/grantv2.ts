@@ -9,9 +9,17 @@ import type { Grantv2Status } from './grantv2Status';
 import type { Grantv2Target } from './grantv2Target';
 
 export interface Grantv2 {
+  id: string;
+  accessGroupId: string;
   /** The current state of the grant. */
   status: Grantv2Status;
-  id: string;
   subject: string;
   target: Grantv2Target;
+  accessInstructions?: string;
+  /** The start time of the grant in ISO8601 format. */
+  start: string;
+  /** The end time of the grant in ISO8601 format. */
+  end: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

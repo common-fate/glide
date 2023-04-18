@@ -10,9 +10,7 @@ import {
   RequestRequestor,
   RequestReview,
   RequestRevoke,
-  RequestTime,
 } from "../../../components/Request";
-import { useAdminGetRequest } from "../../../utils/backend-client/end-user/end-user";
 
 const Home = () => {
   const {
@@ -50,7 +48,7 @@ const Home = () => {
           <Stack spacing={12} direction={{ base: "column", md: "row" }}>
             <RequestDisplay request={data} isValidating={isValidating}>
               <RequestDetails>
-                <RequestTime canReview={data?.canReview} />
+                {/* <RequestTime canReview={data?.canReview} /> */}
                 <RequestRequestor />
               </RequestDetails>
               <RequestReview
@@ -68,3 +66,9 @@ const Home = () => {
 };
 
 export default Home;
+function useAdminGetRequest(
+  requestId: string,
+  arg1: { swr: { refreshInterval: number } }
+): { data: any; mutate: any; isValidating: any } {
+  throw new Error("Function not implemented.");
+}

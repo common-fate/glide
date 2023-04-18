@@ -85,6 +85,17 @@ paths:
           $ref: '#/components/responses/AuthUserResponse'
         '401':
           description: Unauthorized
+  /api/v1/admin/deployment/version:
+    get:
+      summary: Get deployment version details
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/DeploymentVersionResponse"
+      operationId: admin-get-deployment-version
+      description: Returns the version information
+    parameters: []
   /api/v1/admin/access-rules:
     get:
       summary: List Access Rules
@@ -204,6 +215,32 @@ paths:
       description: |-
         Marks an access rule as archived.
         Any pending requests for this access rule will be cancelled.
+  /api/v1/admin/requests:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - Admin
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequests2Response"
+      operationId: admin-list-requests
+      description: Return a list of all requests
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+              - CANCELLED
+              - PENDING
+          in: query
+          description: omit this param to view all results
+          name: status
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
   '/api/v1/admin/users/{userId}':
     parameters:
       - schema:
@@ -838,6 +875,27 @@ paths:
           $ref: '#/components/responses/ErrorResponse'
       operationId: user-list-requests
       description: Gets all requests availiable
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+              - CANCELLED
+              - PENDING
+          in: query
+          name: status
+          description: omit this param to view all results
+        - schema:
+            type: boolean
+          in: query
+          name: reviewer
+          description: "show requests that the user is a reviewer for, rather than requests that the user has made themselves"
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
     parameters: []
     post:
       summary: ''
@@ -852,6 +910,39 @@ paths:
       description: Initiates the granting process for a group of requests
       requestBody:
         $ref: '#/components/requestBodies/CreateRequestRequestv2'
+  /api/v1/requests/upcoming:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - End User
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequests2Response"
+      operationId: user-list-requests-upcoming
+      description: Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          description: encrypted token containing pagination info
+          name: nextToken
+  /api/v1/requests/past:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - End User
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequests2Response"
+      operationId: user-list-requests-past
+      description: |
+        Display show cancelled, expired, and revoked requests.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
   /api/v1/requests/preflight:
     parameters: []
     post:
@@ -2450,12 +2541,12 @@ components:
           type: string
           format: date-time
           description: The start time of the grant in ISO8601 format.
-          example: "2022-06-13T03:39:30.921Z"
+          example: '2022-06-13T03:39:30.921Z'
         end:
           type: string
           format: date-time
           description: The end time of the grant in ISO8601 format.
-          example: "2022-06-13T11:39:30.921Z"
+          example: '2022-06-13T11:39:30.921Z'
         createdAt:
           type: string
           x-go-type: time.Time

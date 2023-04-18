@@ -7,7 +7,7 @@
  */
 import type { Grantv2 } from './grantv2';
 
-/**
- * Example response
- */
-export type ListGrantsv2ResponseResponse = Grantv2[];
+export type ListGrantsv2ResponseResponse = {
+  grants: Grantv2[];
+  next?: string;
+};

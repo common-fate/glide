@@ -16,7 +16,7 @@ import (
 
 // List Requests
 // (GET /api/v1/requests)
-func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request) {
+func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params types.UserListRequestsParams) {
 	ctx := r.Context()
 	u := auth.UserFromContext(ctx)
 	q := storage.ListRequestV2{UserId: u.ID}
@@ -240,5 +240,17 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 }
 
 func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
+
+}
+
+// Your GET endpoint
+// (GET /api/v1/requests/past)
+func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, params types.UserListRequestsPastParams) {
+
+}
+
+// Your GET endpoint
+// (GET /api/v1/requests/upcoming)
+func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params types.UserListRequestsUpcomingParams) {
 
 }

@@ -4,14 +4,17 @@ import { useMemo } from "react";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
-import { Request, RequestStatus } from "../../utils/backend-client/types";
+import {
+  Request,
+  RequestStatus,
+  Requestv2,
+} from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
 import { RuleNameCell } from "../AccessRuleNameCell";
-import { RequestStatusDisplay } from "../Request";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
 import { CFAvatar } from "../CFAvatar";
+import { useUserListRequests } from "src/utils/backend-client/default/default";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -37,36 +40,36 @@ export const UserReviewsTable = () => {
     swrProps: { swr: { refreshInterval: 10000 } },
   });
 
-  const cols: Column<Request>[] = useMemo(
+  const cols: Column<Requestv2>[] = useMemo(
     () => [
       {
-        accessor: "reason",
+        accessor: "context",
         Header: "Request",
-        Cell: (props) => (
-          <Link to={"/requests/" + props.row.original.id}>
-            <RuleNameCell
-              accessRuleId={props.row.original.accessRuleId}
-              reason={props.value ?? ""}
-              as="a"
-              _hover={{
-                textDecor: "underline",
-              }}
-              adminRoute={false}
-            />
-          </Link>
-        ),
+        // Cell: (props) => (
+        //   <Link to={"/requests/" + props.row.original.id}>
+        //     <RuleNameCell
+        //       accessRuleId={props.row.original.accessRuleId}
+        //       reason={props.value ?? ""}
+        //       as="a"
+        //       _hover={{
+        //         textDecor: "underline",
+        //       }}
+        //       adminRoute={false}
+        //     />
+        //   </Link>
+        // ),
       },
+      // {
+      //   accessor: "timing",
+      //   Header: "Duration",
+      //   Cell: ({ cell }) => (
+      //     <Flex textStyle="Body/Small">
+      //       {durationString(cell.value.durationSeconds)}
+      //     </Flex>
+      //   ),
+      // },
       {
-        accessor: "timing",
-        Header: "Duration",
-        Cell: ({ cell }) => (
-          <Flex textStyle="Body/Small">
-            {durationString(cell.value.durationSeconds)}
-          </Flex>
-        ),
-      },
-      {
-        accessor: "requestor",
+        accessor: "user",
         Header: "Requested by",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
@@ -79,13 +82,13 @@ export const UserReviewsTable = () => {
               variant="withBorder"
               mr={0}
               size="xs"
-              userId={cell.value}
+              userId={cell.value.id}
             />
           </Flex>
         ),
       },
       {
-        accessor: "requestedAt",
+        accessor: "createdAt",
         Header: "Date Requested",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
@@ -93,13 +96,13 @@ export const UserReviewsTable = () => {
           </Flex>
         ),
       },
-      {
-        accessor: "status",
-        Header: "Status",
-        Cell: (props) => {
-          return <RequestStatusDisplay request={props.row.original} />;
-        },
-      },
+      // {
+      //   accessor: "status",
+      //   Header: "Status",
+      //   Cell: (props) => {
+      //     return <RequestStatusDisplay request={props.row.original} />;
+      //   },
+      // },
     ],
     []
   );
@@ -119,7 +122,7 @@ export const UserReviewsTable = () => {
           status={status?.toUpperCase() as RequestStatus}
         />
       </Flex>
-      {TableRenderer<Request>({
+      {TableRenderer<Requestv2>({
         columns: cols,
         data: paginator?.data?.requests,
         apiPaginator: paginator,
@@ -128,7 +131,7 @@ export const UserReviewsTable = () => {
           "_hover": { bg: "gray.50" },
           "cursor": "pointer",
           // in our test cases we use reason for the unique key
-          "data-testid": row.original.reason,
+          "data-testid": row.original.context,
           "alignItems": "center",
           "onClick": () => {
             navigate({ to: "/requests/" + row.original.id });

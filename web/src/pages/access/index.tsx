@@ -12,14 +12,13 @@ import {
 import { CFCodeMultiline } from "../../components/CodeInstruction";
 import { UserLayout } from "../../components/Layout";
 import { OnboardingCard } from "../../components/OnboardingCard";
-import { SelectRuleTable } from "../../components/tables/SelectRuleTable";
-import { useUserLookupAccessRule } from "../../utils/backend-client/end-user/end-user";
 import {
+  AccessRule,
   CreateRequestWith,
   LookupAccessRule,
-  UserLookupAccessRuleParams,
 } from "../../utils/backend-client/types";
 import { RequestFormQueryParameters } from "./request/[id]";
+// import { RequestFormQueryParameters } from "./request/[id]";
 // const a: RequestFormQueryParameters = {
 //   Search: {
 //     reason: getValues("reason"),
@@ -61,62 +60,63 @@ export const makeLookupAccessRuleRequestLink = (
   };
 };
 const Access = () => {
-  type MyLocationGenerics = MakeGenerics<{
-    Search: UserLookupAccessRuleParams;
-  }>;
+  //   type MyLocationGenerics = MakeGenerics<{
+  //     Search: UserLookupAccessRuleParams;
+  //   }>;
 
-  const search = useSearch<MyLocationGenerics>();
+  // const search = useSearch<MyLocationGenerics>();
 
   const navigate = useNavigate();
 
-  const { data, isValidating, error } = useUserLookupAccessRule(search);
+  // const { data, isValidating, error } = useUserLookupAccessRule(search);
 
-  const toast = useToast();
-  useEffect(() => {
-    if (data?.length == 1) {
-      navigate(makeLookupAccessRuleRequestLink(data[0]));
-    }
-  }, [search, data]);
+  const data: Array<AccessRule> = [];
+  // const toast = useToast();
+  // useEffect(() => {
+  //   if (data?.length == 1) {
+  //     navigate(makeLookupAccessRuleRequestLink(data[0]));
+  //   }
+  // }, [search, data]);
 
   // navigate away if there was an error
-  useEffect(() => {
-    // prevent a race condition where the access rule is looked up again after navigating away from the page
-    if (error && location.pathname === "access") {
-      // if there were search params, then show an error, else just redirect to the requests page
-      if (Object.entries(search).length > 0) {
-        if (axios.isAxiosError(error)) {
-          const e = error as AxiosError<{ error: string }>;
-          toast({
-            title: "Something went wrong loading access rules for your query",
-            description: e?.response?.data.error,
-            status: "error",
-            variant: "subtle",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Unknown error while loading access rules for your query",
-            status: "error",
-            variant: "subtle",
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      }
-      navigate({ to: "/requests" });
-    }
-  }, [error, search]);
+  // useEffect(() => {
+  //   // prevent a race condition where the access rule is looked up again after navigating away from the page
+  //   if (error && location.pathname === "access") {
+  //     // if there were search params, then show an error, else just redirect to the requests page
+  //     if (Object.entries(search).length > 0) {
+  //       if (axios.isAxiosError(error)) {
+  //         const e = error as AxiosError<{ error: string }>;
+  //         toast({
+  //           title: "Something went wrong loading access rules for your query",
+  //           description: e?.response?.data.error,
+  //           status: "error",
+  //           variant: "subtle",
+  //           duration: 5000,
+  //           isClosable: true,
+  //         });
+  //       } else {
+  //         toast({
+  //           title: "Unknown error while loading access rules for your query",
+  //           status: "error",
+  //           variant: "subtle",
+  //           duration: 5000,
+  //           isClosable: true,
+  //         });
+  //       }
+  //     }
+  //     navigate({ to: "/requests" });
+  //   }
+  // }, [error, search]);
 
-  if (!data && isValidating) {
-    return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
-  }
-  if (error) {
-    return null;
-  }
-  if (!data || data.length == 1) {
-    return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
-  }
+  // if (!data && isValidating) {
+  //   return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
+  // }
+  // if (error) {
+  //   return null;
+  // }
+  // if (!data || data.length == 1) {
+  //   return <Spinner my={4} pos="absolute" left="50%" top="50vh" />;
+  // }
   return (
     <UserLayout>
       <Center h="80vh">
@@ -137,16 +137,16 @@ const Access = () => {
                 </OnboardingCard>
                 <br />
               </Box>
-              <SelectRuleTable rules={data} />
+              {/* <SelectRuleTable rules={data} /> */}
             </Flex>
           )}
           {data.length == 0 && (
             <>
               <Text mb={2}>We couldn't find any access rules for you</Text>
-              <CFCodeMultiline
+              {/* <CFCodeMultiline
                 text={`Access rule not found, details below:
 ${JSON.stringify(search, null, 2)}`}
-              />
+              /> */}
               <Flex _hover={{ textDecor: "underline" }} mt={12}>
                 <Link to="/">← Return To Home </Link>
               </Flex>

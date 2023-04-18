@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type AdminListProviderArgOptionsParams = { refresh?: boolean };
+export type UserListEntitlementTargetsParams = { nextToken?: string };

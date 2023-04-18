@@ -34,12 +34,8 @@ import { intervalToDuration } from "date-fns";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import {
-  userCancelRequest,
   userReviewRequest,
   userRevokeRequest,
-  useUserGetAccessInstructions,
-  useUserGetAccessToken,
-  useUserGetRequest,
   useUserGetUser,
   useUserListRequestsUpcoming,
 } from "../utils/backend-client/end-user/end-user";
@@ -47,6 +43,7 @@ import {
   GrantStatus,
   RequestDetail,
   RequestStatus,
+  Requestv2,
   ReviewDecision,
 } from "../utils/backend-client/types";
 import { Request } from "../utils/backend-client/types/request";
@@ -137,41 +134,41 @@ const getStatus = (
   return request?.status;
 };
 
-export const RequestStatusDisplay: React.FC<{
-  request: Request | RequestDetail | undefined;
-}> = ({ request }) => {
-  const activeTimeString =
-    request?.grant && request?.grant.status === "ACTIVE"
-      ? "Active for the next " +
-        durationStringHoursMinutes(
-          intervalToDuration({
-            start: new Date(),
-            end: new Date(Date.parse(request.grant.end)),
-          })
-        )
-      : undefined;
+// export const RequestStatusDisplay: React.FC<{
+//   request: Requestv2 | RequestDetail | undefined;
+// }> = ({ request }) => {
+//   const activeTimeString =
+//     request?.grant && request?.grant.status === "ACTIVE"
+//       ? "Active for the next " +
+//         durationStringHoursMinutes(
+//           intervalToDuration({
+//             start: new Date(),
+//             end: new Date(Date.parse(request.grant.end)),
+//           })
+//         )
+//       : undefined;
 
-  const status = getStatus(request, activeTimeString);
+//   const status = getStatus(request, activeTimeString);
 
-  return (
-    <StatusCell
-      value={status}
-      success={[
-        activeTimeString ?? "",
-        GrantStatus.ACTIVE,
-        "Automatically approved",
-      ]}
-      info={[RequestStatus.APPROVED]}
-      danger={[
-        RequestStatus.DECLINED,
-        RequestStatus.CANCELLED,
-        GrantStatus.REVOKED,
-      ]}
-      warning={RequestStatus.PENDING}
-      textStyle="Body/Small"
-    />
-  );
-};
+//   return (
+//     <StatusCell
+//       value={status}
+//       success={[
+//         activeTimeString ?? "",
+//         GrantStatus.ACTIVE,
+//         "Automatically approved",
+//       ]}
+//       info={[RequestStatus.APPROVED]}
+//       danger={[
+//         RequestStatus.DECLINED,
+//         RequestStatus.CANCELLED,
+//         GrantStatus.REVOKED,
+//       ]}
+//       warning={RequestStatus.PENDING}
+//       textStyle="Body/Small"
+//     />
+//   );
+// };
 
 export const RequestArgumentsDisplay: React.FC<{
   request: RequestDetail | undefined;
@@ -224,7 +221,7 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
       p={8}
       spacing={6}
     >
-      <RequestStatusDisplay request={request} />
+      {/* <RequestStatusDisplay request={request} /> */}
       <Stack spacing={2}>
         <Skeleton
           minW="30ch"
@@ -233,9 +230,9 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
           mr="auto"
         >
           <HStack align="center" mr="auto">
-            <ProviderIcon
+            {/* <ProviderIcon
               shortType={request?.accessRule.target.provider.type}
-            />
+            /> */}
             <Text textStyle="Body/LargeBold">{request?.accessRule?.name}</Text>
             <Tooltip label={version.label}>
               <Badge
@@ -274,39 +271,42 @@ export const RequestDetails: React.FC<RequestDetailProps> = ({ children }) => {
 };
 
 export const RequestAccessInstructions: React.FC = () => {
-  const { request } = useContext(Context);
-  const { data } = useUserGetAccessInstructions(
-    request?.grant != null ? request.id : ""
-  );
+  // const { request } = useContext(Context);
+  // const { data } = useUserGetAccessInstructions(
+  //   request?.grant != null ? request.id : ""
+  // );
 
-  const [refreshInterval, setRefreshInterval] = useState(0);
-  const { data: reqData } = useUserGetRequest(
-    request?.grant != null ? request.id : "",
+  // const [refreshInterval, setRefreshInterval] = useState(0);
+  // const { data: reqData } = useUserGetRequest(
+  //   request?.grant != null ? request.id : "",
 
-    {
-      swr: {
-        refreshInterval: refreshInterval,
-      },
-    }
-  );
+  //   {
+  //     swr: {
+  //       refreshInterval: refreshInterval,
+  //     },
+  //   }
+  // );
 
-  useEffect(() => {
-    if (reqData?.grant?.status == "PENDING") {
-      if (
-        reqData?.timing.startTime &&
-        Date.parse(reqData.timing.startTime) > new Date().valueOf()
-      ) {
-        // This should make it refresh at least once just after its scheduled start time
-        setRefreshInterval(
-          Date.parse(reqData.timing.startTime) - new Date().valueOf() + 100
-        );
-      } else {
-        setRefreshInterval(2000);
-      }
-    } else {
-      setRefreshInterval(0);
-    }
-  }, [reqData]);
+  const data: any = {};
+  const reqData: any = {};
+
+  // useEffect(() => {
+  //   if (reqData?.grant?.status == "PENDING") {
+  //     if (
+  //       reqData?.timing.startTime &&
+  //       Date.parse(reqData.timing.startTime) > new Date().valueOf()
+  //     ) {
+  //       // This should make it refresh at least once just after its scheduled start time
+  //       setRefreshInterval(
+  //         Date.parse(reqData.timing.startTime) - new Date().valueOf() + 100
+  //       );
+  //     } else {
+  //       setRefreshInterval(2000);
+  //     }
+  //   } else {
+  //     setRefreshInterval(0);
+  //   }
+  // }, [reqData]);
 
   if (!data || !data.instructions) {
     return null;
@@ -359,96 +359,6 @@ export const RequestAccessInstructions: React.FC = () => {
   return null;
 };
 
-export const RequestAccessToken: React.FC = () => {
-  const { request } = useContext(Context);
-  const { data, error } = useUserGetAccessToken(request?.id ?? "", {
-    swr: {
-      refreshInterval: 0,
-      revalidateOnFocus: false,
-      refreshWhenHidden: false,
-    },
-  });
-
-  const toast = useToast();
-
-  if (error) return null;
-  if (!request) return <Spinner />;
-  if (!data) return <Spinner />;
-  if (!data.hasToken) return null;
-
-  const handleClick = async () => {
-    await navigator.clipboard.writeText(data.token || "");
-    toast({
-      title: "Access token copied to clipboard",
-      status: "success",
-      variant: "subtle",
-      duration: 2200,
-      isClosable: true,
-    });
-  };
-
-  if (request.grant?.status === "ACTIVE") {
-    return (
-      <Stack>
-        <Box textStyle="Body/Medium" mb={2}>
-          Access Token
-        </Box>
-        <InputGroup size="md" bg="white" maxW="400px">
-          <Input pr="4.5rem" type={"password"} value={data.token} readOnly />
-          <InputRightElement width="4.5rem" pr={1}>
-            <Button h="1.75rem" size="sm" onClick={handleClick}>
-              Copy
-            </Button>
-          </InputRightElement>
-        </InputGroup>
-      </Stack>
-    );
-  } else {
-    return <></>;
-  }
-};
-
-export const RequestTime: React.FC<{ canReview?: boolean }> = ({
-  canReview,
-}) => {
-  const { request } = useContext(Context);
-
-  return request ? (
-    canReview ? (
-      <_RequestOverridableTime />
-    ) : (
-      <_RequestTime />
-    )
-  ) : (
-    // This let's us leverage the same Skeleton component
-    <Stack spacing={2} minH="90px">
-      <SkeletonText noOfLines={1} w="10ch" lineHeight="12px" />
-      <SkeletonText noOfLines={1} w="10ch" lineHeight="12px" />
-      <SkeletonText noOfLines={1} w="20ch" lineHeight="12px" />
-    </Stack>
-  );
-};
-
-export const _RequestTime: React.FC = () => {
-  const { request } = useContext(Context);
-  const timing = request?.timing;
-
-  return (
-    <Flex textStyle="Body/Small" flexDir="column" h="59px">
-      <Box textStyle="Body/Medium">Duration</Box>
-      <Text
-        color="neutrals.600"
-        textStyle="Body/Small"
-        noOfLines={1}
-        p={1}
-        pl={0}
-      >
-        {renderTiming(timing)}{" "}
-      </Text>
-    </Flex>
-  );
-};
-
 /**
  * Similar to `<RequestTime />`, but allows the timing to be overridden during review.
  */
@@ -463,7 +373,7 @@ export const _RequestOverridableTime: React.FC = () => {
   };
 
   if (request?.status !== "PENDING") {
-    return <_RequestTime />;
+    return <></>;
   }
 
   return (
@@ -829,32 +739,32 @@ export const RequestCancelButton: React.FC = () => {
 
   const handleCancel = async () => {
     if (request === undefined) return;
-    try {
-      await userCancelRequest(request.id, {});
-      void mutate();
-      toast({
-        title: "Request cancelled",
-        status: "success",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-    } catch (err) {
-      let description: string | undefined;
-      if (axios.isAxiosError(err)) {
-        // @ts-ignore
-        description = err?.response?.data.error;
-      }
+    // try {
+    //   await userCancelRequest(request.id, {});
+    //   void mutate();
+    //   toast({
+    //     title: "Request cancelled",
+    //     status: "success",
+    //     variant: "subtle",
+    //     duration: 2200,
+    //     isClosable: true,
+    //   });
+    // } catch (err) {
+    //   let description: string | undefined;
+    //   if (axios.isAxiosError(err)) {
+    //     // @ts-ignore
+    //     description = err?.response?.data.error;
+    //   }
 
-      toast({
-        title: "Error cancelling request",
-        description,
-        status: "error",
-        variant: "subtle",
-        duration: 2200,
-        isClosable: true,
-      });
-    }
+    //   toast({
+    //     title: "Error cancelling request",
+    //     description,
+    //     status: "error",
+    //     variant: "subtle",
+    //     duration: 2200,
+    //     isClosable: true,
+    //   });
+    // }
   };
   // only display cancel if request is pending or is grant is still undefined
   if (

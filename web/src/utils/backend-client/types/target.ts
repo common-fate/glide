@@ -5,12 +5,10 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { TimeConstraints } from './timeConstraints';
-import type { TargetWith } from './targetWith';
+import type { Field } from './field';
 
 export interface Target {
-  accessRule: string;
-  reason: string;
-  timeConstraints: TimeConstraints;
-  with: TargetWith;
+  id: string;
+  fields: Field[];
+  accessRules: string[];
 }

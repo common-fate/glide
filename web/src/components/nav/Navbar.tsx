@@ -23,14 +23,14 @@ import {
 import * as React from "react";
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-location";
-import { useUserListRequests } from "../../utils/backend-client/end-user/end-user";
 import { useCognito } from "../../utils/context/cognitoContext";
 import { useUser } from "../../utils/context/userContext";
-import CommandPalette from "../CommandPalette";
+// import CommandPalette from "../CommandPalette";
 import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
+import { useUserListRequests } from "src/utils/backend-client/default/default";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
@@ -73,12 +73,7 @@ export const Navbar: React.FC = () => {
     () => requests?.requests && requests?.requests.length > 0,
     [requests]
   );
-  const showRewCount = useMemo(
-    () =>
-      reviews?.requests &&
-      reviews.requests.filter((r) => r.status === "PENDING").length > 0,
-    [reviews]
-  );
+  const showRewCount = useMemo(() => false, [reviews]);
 
   return (
     <Box as="section">
@@ -153,7 +148,7 @@ export const Navbar: React.FC = () => {
                     pr={showReqCount ? 10 : undefined}
                   >
                     Reviews
-                    {showRewCount && (
+                    {/* {showRewCount && (
                       <Counter
                         pos="absolute"
                         right={2}
@@ -163,7 +158,7 @@ export const Navbar: React.FC = () => {
                           ).length ?? 0
                         }
                       />
-                    )}
+                    )} */}
                   </TabsStyledButton>
                 </ButtonGroup>
               )}
@@ -242,7 +237,7 @@ export const Navbar: React.FC = () => {
         </Container>
       </Box>
       <DrawerNav isOpen={isOpen} onClose={onClose} />
-      <CommandPalette isOpen={modal.isOpen} onClose={modal.onClose} />
+      {/* <CommandPalette isOpen={modal.isOpen} onClose={modal.onClose} /> */}
     </Box>
   );
 };
