@@ -3,13 +3,18 @@ import format from "date-fns/format";
 import { useMemo } from "react";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
-import { Request, RequestStatus } from "../../utils/backend-client/types";
+import {
+  Request,
+  RequestStatus,
+  Requestv2,
+} from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
 import { RuleNameCell } from "../AccessRuleNameCell";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
 import { CFAvatar } from "../CFAvatar";
+import { useAdminListRequests } from "src/utils/backend-client/admin/admin";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -31,30 +36,36 @@ export const AdminRequestsTable = () => {
     swrProps: { swr: { refreshInterval: 10000 } },
   });
 
-  const cols: Column<Request>[] = useMemo(
+  const cols: Column<Requestv2>[] = useMemo(
     () => [
       {
-        accessor: "reason",
+        accessor: "context",
         Header: "Request",
-        Cell: (props) => (
-          <RuleNameCell
-            accessRuleId={props.row.original.accessRuleId}
-            reason={props.value ?? ""}
-            adminRoute={true}
-          />
-        ),
+        // Cell: (props) => (
+        //   <Link to={"/requests/" + props.row.original.id}>
+        //     <RuleNameCell
+        //       accessRuleId={props.row.original.accessRuleId}
+        //       reason={props.value ?? ""}
+        //       as="a"
+        //       _hover={{
+        //         textDecor: "underline",
+        //       }}
+        //       adminRoute={false}
+        //     />
+        //   </Link>
+        // ),
       },
+      // {
+      //   accessor: "timing",
+      //   Header: "Duration",
+      //   Cell: ({ cell }) => (
+      //     <Flex textStyle="Body/Small">
+      //       {durationString(cell.value.durationSeconds)}
+      //     </Flex>
+      //   ),
+      // },
       {
-        accessor: "timing",
-        Header: "Duration",
-        Cell: ({ cell }) => (
-          <Flex textStyle="Body/Small">
-            {durationString(cell.value.durationSeconds)}
-          </Flex>
-        ),
-      },
-      {
-        accessor: "requestor",
+        accessor: "user",
         Header: "Requested by",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
@@ -67,28 +78,27 @@ export const AdminRequestsTable = () => {
               variant="withBorder"
               mr={0}
               size="xs"
-              userId={cell.value}
+              userId={cell.value.id}
             />
           </Flex>
         ),
       },
       {
-        accessor: "requestedAt",
+        accessor: "createdAt",
         Header: "Date Requested",
         Cell: ({ cell }) => (
-          // @NOTE: date resolution is currently not working, we can type these in OpenAPI, but ultimately it will come from BE
           <Flex textStyle="Body/Small">
             {format(new Date(Date.parse(cell.value)), "p dd/M/yy")}
           </Flex>
         ),
       },
-      {
-        accessor: "status",
-        Header: "Status",
-        Cell: (props) => {
-          return <RequestStatusDisplay request={props.row.original} />;
-        },
-      },
+      // {
+      //   accessor: "status",
+      //   Header: "Status",
+      //   Cell: (props) => {
+      //     return <RequestStatusDisplay request={props.row.original} />;
+      //   },
+      // },
     ],
     []
   );
@@ -108,7 +118,7 @@ export const AdminRequestsTable = () => {
           status={status?.toUpperCase() as RequestStatus}
         />
       </Flex>
-      {TableRenderer<Request>({
+      {TableRenderer<Requestv2>({
         columns: cols,
         data: paginator?.data?.requests,
         emptyText: "No requests",

@@ -18,6 +18,7 @@ export * from './adminListGroupsParams';
 export * from './adminListGroupsSource';
 export * from './adminListRequestsParams';
 export * from './adminListRequestsStatus';
+export * from './adminListTargetGroupArgOptionsParams';
 export * from './adminListUsersParams';
 export * from './adminRemoveTargetGroupLinkParams';
 export * from './adminUpdateUserBody';

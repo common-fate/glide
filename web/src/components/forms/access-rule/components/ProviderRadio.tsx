@@ -13,9 +13,9 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import React from "react";
-import { useAdminListProviders } from "../../../../utils/backend-client/admin/admin";
 import { Provider } from "../../../../utils/backend-client/types";
 import { ProviderIcon } from "../../../icons/providerIcon";
+import { useAdminListTargetGroups } from "src/utils/backend-client/admin/admin";
 
 interface ProviderRadioProps extends RadioProps {
   provider: Provider;
@@ -73,7 +73,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
 };
 
 export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {
-  const { data } = useAdminListProviders();
+  const { data } = useAdminListTargetGroups();
   const { getRootProps, getRadioProps } = useRadioGroup(props);
   const group = getRootProps();
   if (!data) {
@@ -82,7 +82,7 @@ export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {
 
   return (
     <Wrap {...group}>
-      {data?.map((p) => {
+      {data?.targetGroups.map((p) => {
         const radio = getRadioProps({ value: p.id });
         return (
           <WrapItem key={p.id}>

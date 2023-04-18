@@ -765,6 +765,65 @@ paths:
         "500":
           $ref: "#/components/responses/ErrorResponse"
       description: Lists all routes for a given Target Group
+  "/api/v1/admin/target-groups/{tgId}/args":
+    parameters:
+      - schema:
+          type: string
+        name: tgId
+        in: path
+        required: true
+    get:
+      summary: Get provider arg schema
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArgSchema"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-get-target-group-args
+      description: Gets the argSchema describing the args for this provider
+  "/api/v1/admin/target-groups/{tgId}/args/{argId}/options":
+    parameters:
+      - schema:
+          type: string
+        name: tgId
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: argId
+        in: path
+        required: true
+    get:
+      summary: List target group arg options
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArgOptions"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: admin-list-target-group-arg-options
+      description: "Returns the options for a particular Access Provider argument. The options may be cached. To refresh the cache, pass the `refresh` query parameter."
+      parameters:
+        - schema:
+            type: boolean
+          in: query
+          name: refresh
+          description: invalidate the cache and refresh the provider's options.
   /api/v1/admin/healthcheck-handlers:
     post:
       summary: Healthcheck Handlers

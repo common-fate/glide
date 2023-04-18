@@ -54,7 +54,7 @@ export const accessRuleTargetApiToTargetFormData = (
 ): AccessRuleFormDataTarget => {
   console.log({ apiData, targetGroup });
   const t: AccessRuleFormDataTarget = {
-    providerId: apiData.target.provider.id,
+    providerId: "",
     multiSelects: {},
     argumentGroups: {},
     inputs: {},
@@ -107,7 +107,7 @@ const UpdateAccessRuleForm = ({ data, readOnly }: Props) => {
 
   const { mutate } = useAdminGetAccessRule(ruleId);
   const { data: targetGroup } = useAdminGetTargetGroup(
-    data.target.targetGroup ?? "",
+    data.target.targetGroup.id ?? "",
     {
       swr: {
         enabled: data.target.targetGroup !== undefined,

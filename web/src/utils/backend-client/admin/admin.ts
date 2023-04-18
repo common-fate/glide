@@ -38,7 +38,10 @@ import type {
   CreateTargetGroupRequestBody,
   TargetRoute,
   CreateTargetGroupLinkBody,
-  AdminRemoveTargetGroupLinkParams
+  AdminRemoveTargetGroupLinkParams,
+  ArgSchema,
+  ArgOptions,
+  AdminListTargetGroupArgOptionsParams
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -750,6 +753,91 @@ export const adminRemoveTargetGroupLink = (
       options);
     }
   
+
+/**
+ * Gets the argSchema describing the args for this provider
+ * @summary Get provider arg schema
+ */
+export const adminGetTargetGroupArgs = (
+    tgId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ArgSchema>(
+      {url: `/api/v1/admin/target-groups/${tgId}/args`, method: 'get'
+    },
+      options);
+    }
+  
+
+export const getAdminGetTargetGroupArgsKey = (tgId: string,) => [`/api/v1/admin/target-groups/${tgId}/args`];
+
+    
+export type AdminGetTargetGroupArgsQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetTargetGroupArgs>>>
+export type AdminGetTargetGroupArgsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminGetTargetGroupArgs = <TError = ErrorType<ErrorResponseResponse>>(
+ tgId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminGetTargetGroupArgs>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(tgId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminGetTargetGroupArgsKey(tgId) : null);
+  const swrFn = () => adminGetTargetGroupArgs(tgId, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Returns the options for a particular Access Provider argument. The options may be cached. To refresh the cache, pass the `refresh` query parameter.
+ * @summary List target group arg options
+ */
+export const adminListTargetGroupArgOptions = (
+    tgId: string,
+    argId: string,
+    params?: AdminListTargetGroupArgOptionsParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ArgOptions>(
+      {url: `/api/v1/admin/target-groups/${tgId}/args/${argId}/options`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getAdminListTargetGroupArgOptionsKey = (tgId: string,
+    argId: string,
+    params?: AdminListTargetGroupArgOptionsParams,) => [`/api/v1/admin/target-groups/${tgId}/args/${argId}/options`, ...(params ? [params]: [])];
+
+    
+export type AdminListTargetGroupArgOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListTargetGroupArgOptions>>>
+export type AdminListTargetGroupArgOptionsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useAdminListTargetGroupArgOptions = <TError = ErrorType<ErrorResponseResponse>>(
+ tgId: string,
+    argId: string,
+    params?: AdminListTargetGroupArgOptionsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListTargetGroupArgOptions>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(tgId && argId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListTargetGroupArgOptionsKey(tgId,argId,params) : null);
+  const swrFn = () => adminListTargetGroupArgOptions(tgId,argId,params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 /**
  * Runs the healthcheck for handlers
