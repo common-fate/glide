@@ -254,3 +254,9 @@ func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, param
 func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params types.UserListRequestsUpcomingParams) {
 
 }
+
+// Your GET endpoint
+// (GET /api/v1/requests/upcoming)
+func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
+
+}

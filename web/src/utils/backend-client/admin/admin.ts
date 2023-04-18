@@ -17,6 +17,8 @@ import type {
   AccessRuleDetail,
   ErrorResponseResponse,
   CreateAccessRuleRequestBody,
+  ListRequests2ResponseResponse,
+  AdminListRequestsParams,
   User,
   AdminUpdateUserBody,
   ListUserResponseResponse,
@@ -216,6 +218,46 @@ export const adminArchiveAccessRule = (
       options);
     }
   
+
+/**
+ * Return a list of all requests
+ * @summary Your GET endpoint
+ */
+export const adminListRequests = (
+    params?: AdminListRequestsParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListRequests2ResponseResponse>(
+      {url: `/api/v1/admin/requests`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getAdminListRequestsKey = (params?: AdminListRequestsParams,) => [`/api/v1/admin/requests`, ...(params ? [params]: [])];
+
+    
+export type AdminListRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof adminListRequests>>>
+export type AdminListRequestsQueryError = ErrorType<unknown>
+
+export const useAdminListRequests = <TError = ErrorType<unknown>>(
+ params?: AdminListRequestsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof adminListRequests>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getAdminListRequestsKey(params) : null);
+  const swrFn = () => adminListRequests(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
 
 /**
  * Update a user including group membership
