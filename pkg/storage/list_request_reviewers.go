@@ -8,17 +8,17 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
-type ListRequestReviewers struct {
-	RequestID string
-	Result    []access.Reviewer `ddb:"result"`
+type ListAccessGroupReviewers struct {
+	AccessGroupId string
+	Result        []access.Reviewer `ddb:"result"`
 }
 
-func (g *ListRequestReviewers) BuildQuery() (*dynamodb.QueryInput, error) {
+func (g *ListAccessGroupReviewers) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.RequestReviewer.PK1},
-			":sk": &types.AttributeValueMemberS{Value: g.RequestID},
+			":sk": &types.AttributeValueMemberS{Value: g.AccessGroupId},
 		},
 	}
 	return &qi, nil

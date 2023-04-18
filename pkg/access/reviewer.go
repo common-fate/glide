@@ -12,7 +12,7 @@ import (
 type Reviewer struct {
 	ReviewerID string `json:"reviewerId" dynamodbav:"reviewerId"`
 	// Request is the associated request.
-	AccessGroup   requests.AccessGroup `json:"request" dynamodbav:"request"`
+	AccessGroup   requests.AccessGroup `json:"accessGroup" dynamodbav:"accessGroup"`
 	Notifications Notifications        `json:"notifications" dynamodbav:"notifications"`
 }
 

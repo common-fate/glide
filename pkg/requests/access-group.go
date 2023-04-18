@@ -28,6 +28,8 @@ type AccessGroup struct {
 	CreatedAt       time.Time       `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt       time.Time       `json:"updatedAt" dynamodbav:"updatedAt"`
 	Status          Status          `json:"status" dynamodbav:"status"`
+	// ApprovalMethod explains whether an approval was AUTOMATIC, or REVIEWED
+	ApprovalMethod *types.ApprovalMethod `json:"approvalMethod,omitempty" dynamodbav:"approvalMethod,omitempty"`
 }
 
 func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {

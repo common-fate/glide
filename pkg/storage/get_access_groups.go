@@ -8,14 +8,14 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
-type GetAccessGroups struct {
+type GetAccessGroup struct {
 	RequestID string
 	GroupID   string
 
 	Result *requests.AccessGroup
 }
 
-func (g *GetAccessGroups) BuildQuery() (*dynamodb.QueryInput, error) {
+func (g *GetAccessGroup) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(PK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
