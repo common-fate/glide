@@ -151,7 +151,7 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
-	github.com/common-fate/ddb v0.15.0
+	github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa
 	github.com/common-fate/provider-registry-sdk-go v0.17.1
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

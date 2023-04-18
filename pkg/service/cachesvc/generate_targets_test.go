@@ -1,4 +1,4 @@
-package cachesync
+package cachesvc
 
 import (
 	"reflect"
@@ -61,7 +61,7 @@ func TestSync(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Sync(tt.args.resources, tt.args.accessRules)
+			got, err := createResourceAccessRuleMapping(tt.args.resources, tt.args.accessRules)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Sync() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -128,7 +128,7 @@ func TestOut(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Out(tt.args.in); !reflect.DeepEqual(got, tt.want) {
+			if got := generateDistinctTargets(tt.args.in); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Out() = %v, want %v", got, tt.want)
 			}
 		})

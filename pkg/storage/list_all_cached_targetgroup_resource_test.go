@@ -7,7 +7,7 @@ import (
 	"github.com/common-fate/ddb/ddbtest"
 )
 
-func TestListCachedTargetGroupResource(t *testing.T) {
+func TestListCachedTargetGroupResourceForTargetGroupAndResourceType(t *testing.T) {
 	s := newTestingStorage(t)
 	re1 := cache.TargetGroupResource{TargetGroupID: "test", Resource: cache.Resource{ID: "value1", Name: "test"}, ResourceType: "testType"}
 	re2 := cache.TargetGroupResource{TargetGroupID: "test", Resource: cache.Resource{ID: "value2", Name: "test"}, ResourceType: "testType"}
@@ -17,13 +17,13 @@ func TestListCachedTargetGroupResource(t *testing.T) {
 	tc := []ddbtest.QueryTestCase{
 		{
 			Name:  "ok type 1",
-			Query: &ListCachedTargetGroupResource{TargetGroupID: "test", ResourceType: "testType"},
-			Want:  &ListCachedTargetGroupResource{TargetGroupID: "test", ResourceType: "testType", Result: []cache.TargetGroupResource{re1, re2}},
+			Query: &ListCachedTargetGroupResourceForTargetGroupAndResourceType{TargetGroupID: "test", ResourceType: "testType"},
+			Want:  &ListCachedTargetGroupResourceForTargetGroupAndResourceType{TargetGroupID: "test", ResourceType: "testType", Result: []cache.TargetGroupResource{re1, re2}},
 		},
 		{
 			Name:  "ok type 2",
-			Query: &ListCachedTargetGroupResource{TargetGroupID: "test", ResourceType: "testType2"},
-			Want:  &ListCachedTargetGroupResource{TargetGroupID: "test", ResourceType: "testType2", Result: []cache.TargetGroupResource{re3}},
+			Query: &ListCachedTargetGroupResourceForTargetGroupAndResourceType{TargetGroupID: "test", ResourceType: "testType2"},
+			Want:  &ListCachedTargetGroupResourceForTargetGroupAndResourceType{TargetGroupID: "test", ResourceType: "testType2", Result: []cache.TargetGroupResource{re3}},
 		},
 	}
 

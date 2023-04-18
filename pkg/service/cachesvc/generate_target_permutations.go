@@ -1,4 +1,4 @@
-package cachesync
+package cachesvc
 
 import (
 	"fmt"

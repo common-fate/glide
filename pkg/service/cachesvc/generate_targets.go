@@ -1,20 +1,46 @@
-package cachesync
+package cachesvc
 
 import (
+	"context"
 	"sort"
 	"sync"
 
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
 )
 
-func Sync(resources []cache.TargetGroupResource, accessRules []rule.AccessRule) (map[string]map[string]Targets, error) {
+func (s *Service) RefreshCachedTargets(ctx context.Context) error {
+	resourcesQuery := &storage.ListCachedTargetGroupResources{}
+	err := s.DB.All(ctx, resourcesQuery)
+	if err != nil {
+		return err
+	}
+	accessrulesQuery := &storage.ListCurrentAccessRules{}
+	err = s.DB.All(ctx, accessrulesQuery)
+	if err != nil {
+		return err
+	}
+
+	resourceRuleMapping, err := createResourceAccessRuleMapping(resourcesQuery.Result, accessrulesQuery.Result)
+	if err != nil {
+		return err
+	}
+	distictTargets := generateDistinctTargets(resourceRuleMapping)
+	_ = distictTargets
+	return nil
+}
+
+// resourceAccessRuleMapping [accessRuleID][TargetGroupID]Targets
+type resourceAccessRuleMapping map[string]map[string]Targets
+
+func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, accessRules []rule.AccessRule) (resourceAccessRuleMapping, error) {
 	// relate targetgroups to access rules
 	tgar := map[string][]rule.AccessRule{}
 
 	//rule/targetgroup/targetfieldid/values
 	accessRuleMap := map[string]map[string]map[string][]string{}
-	arTargets := map[string]map[string]Targets{}
+	arTargets := resourceAccessRuleMapping{}
 	for _, ar := range accessRules {
 		accessRuleMap[ar.ID] = make(map[string]map[string][]string)
 		arTargets[ar.ID] = make(map[string]Targets)
@@ -67,9 +93,8 @@ type Target struct {
 	rules  []string
 }
 
-// this takes the permutations of targets and maps them to access rules after deduplicating them
-// they will be deduplicated with a base of target group, so if 2 target groups return the same items, then they will be treated as seperate targets
-func Out(in map[string]map[string]Targets) map[string]Target {
+// generateDistinctTargets returns a distict map of targets
+func generateDistinctTargets(in resourceAccessRuleMapping) map[string]Target {
 	out := make(map[string]Target)
 	for arID, ar := range in {
 		for tID, targetgroup := range ar {
