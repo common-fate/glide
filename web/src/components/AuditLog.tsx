@@ -18,27 +18,21 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
-import {
-  useUserGetUser,
-  useUserListRequestEvents,
-} from "../utils/backend-client/end-user/end-user";
+import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
 import { RequestDetail } from "../utils/backend-client/types";
 import { renderTiming } from "../utils/renderTiming";
 import { CFTimelineRow } from "./CFTimelineRow";
 export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
   request,
 }) => {
-  const { data } = useUserListRequestEvents(request?.id || "", {
-    swr: {
-      refreshInterval: 5000,
-    },
-  });
+  const data: any = {};
 
   const events = useMemo(() => {
     const items: JSX.Element[] = [];
     // use map here to ensure order is preserved
     // foreach is not synchronous
     const l = data?.events.length || 0;
+    // @ts-ignore
     data?.events.forEach((e, i) => {
       if (e.grantCreated) {
         items.push(
@@ -215,7 +209,7 @@ export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
                             {k}
                           </Td>
                           <Td borderColor="gray.200" borderWidth={"1px"}>
-                            {v}
+                            {/* {v} */}
                           </Td>
                         </Tr>
                       ))}

@@ -5,7 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { Requestv2 } from './requestv2';
 
 export type ListRequests2ResponseResponse = {
-  id?: string;
+  requests: Requestv2[];
+  next?: string;
 };

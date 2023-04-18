@@ -29,16 +29,16 @@ import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-import AcessRulesMobileModal from "../../components/modals/AcessRulesMobileModal";
-import { RequestStatusDisplay } from "../../components/Request";
 import {
-  useUserListAccessRules,
-  useUserGetAccessRule,
   useUserListFavorites,
-  useUserListRequestsPast,
   useUserListRequestsUpcoming,
+  useUserListRequestsPast,
 } from "../../utils/backend-client/end-user/end-user";
-import { Request } from "../../utils/backend-client/types";
+import {
+  AccessRule,
+  Request,
+  Requestv2,
+} from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
 import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
@@ -242,14 +242,16 @@ const Home = () => {
             </Stack>
           </Container>
         </Box>
-        <AcessRulesMobileModal isOpen={isOpen} onClose={onClose} />
+        {/* <AcessRulesMobileModal isOpen={isOpen} onClose={onClose} /> */}
       </UserLayout>
     </>
   );
 };
 
 const Rules = () => {
-  const { data: rules } = useUserListAccessRules();
+  const rules: { accessRules: Array<AccessRule> } = {
+    accessRules: [],
+  };
   const user = useUser();
 
   // loading/standard state needs to be rendered in a Grid container
@@ -292,7 +294,7 @@ const Rules = () => {
                     overflow="hidden"
                   >
                     <ProviderIcon
-                      shortType={r.target.provider.type}
+                      shortType={r.target.provider.id}
                       mb={3}
                       h="8"
                       w="8"
@@ -407,14 +409,13 @@ const getRequestOption = (req: Request): RequestOption => {
 
 const UserAccessCard: React.FC<
   {
-    req: Request;
+    req: Requestv2;
     type: "upcoming" | "past";
     index: number;
   } & LinkBoxProps
 > = ({ req, type, index, ...rest }) => {
-  const { data: rule } = useUserGetAccessRule(req?.accessRuleId);
-
-  const option = getRequestOption(req);
+  //@ts-ignore
+  const rule: AccessRule = {};
 
   return (
     <LinkBox {...rest}>
@@ -426,17 +427,17 @@ const UserAccessCard: React.FC<
             flexDir="column"
             key={req.id}
             pos="relative"
-            data-testid={"req_" + req.reason}
+            data-testid={"req_" + req.id}
           >
             <Stack flexDir="column" p={8} pos="relative" spacing={2}>
-              <RequestStatusDisplay request={req} />
+              {/* <RequestStatusDisplay request={req} /> */}
 
               <Flex justify="space-between">
                 <Box>
                   {rule ? (
                     <Flex align="center" mr="auto">
                       <ProviderIcon
-                        shortType={rule?.target.provider.type}
+                        shortType={rule?.target.provider.id}
                         h={10}
                         w={10}
                       />
@@ -454,9 +455,6 @@ const UserAccessCard: React.FC<
                       <SkeletonText noOfLines={1} width="6ch" />
                     </Flex>
                   )}
-                  <Text textStyle="Body/Medium" color="neutrals.600" mt={1}>
-                    {renderTiming(req.timing)}
-                  </Text>
                 </Box>
               </Flex>
             </Stack>

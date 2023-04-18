@@ -6,4 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type UserCancelRequest200 = { [key: string]: any };
+export type ListTargetsResponseResponse = {
+  targets: unknown[];
+  next?: string;
+};

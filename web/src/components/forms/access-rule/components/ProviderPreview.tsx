@@ -10,10 +10,6 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
-import {
-  useAdminGetProviderArgs,
-  useAdminListProviderArgOptions,
-} from "../../../../utils/backend-client/admin/admin";
 
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
@@ -25,23 +21,28 @@ import {
   GroupOption,
   Provider,
   Option,
+  TargetGroup,
 } from "../../../../utils/backend-client/types";
+import {
+  useAdminGetTargetGroupArgs,
+  useAdminListTargetGroupArgOptions,
+} from "src/utils/backend-client/admin/admin";
 
 interface ProviderPreviewProps {
-  provider: Provider;
+  provider: TargetGroup;
 }
 
 export const ProviderPreview: React.FC<ProviderPreviewProps> = ({
   provider,
 }) => {
-  const { data: providerArgs } = useAdminGetProviderArgs(provider.id ?? "");
+  const { data: providerArgs } = useAdminGetTargetGroupArgs(provider.id ?? "");
 
   if (!providerArgs) return null;
 
   return (
     <VStack w="100%" align="flex-start">
       <HStack>
-        <ProviderIcon shortType={provider.type} />
+        {/* <ProviderIcon shortType={provider.type} /> */}
         <Text>{provider.id}</Text>
       </HStack>
       {providerArgs &&
@@ -114,7 +115,7 @@ export const ProviderPreviewMultiSelect: React.FC<ProviderArgFieldProps> = ({
   const { formState, watch } = useFormContext<AccessRuleFormData>();
 
   const argId = argument?.resourceName ? argument.resourceName : argument.id;
-  const { data: argOptions } = useAdminListProviderArgOptions(
+  const { data: argOptions } = useAdminListTargetGroupArgOptions(
     providerId,
     argId
   );

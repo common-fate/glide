@@ -5,12 +5,16 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Grantv2 } from './grantv2';
 import type { TimeConstraints } from './timeConstraints';
+import type { RequestTiming } from './requestTiming';
 
 export interface AccessGroup {
   id: string;
-  grants: Grantv2[];
-  time: TimeConstraints;
+  accessRuleId: string;
+  requestId: string;
   status: string;
+  time: TimeConstraints;
+  overrideTiming: RequestTiming;
+  createdAt?: string;
+  updatedAt?: string;
 }

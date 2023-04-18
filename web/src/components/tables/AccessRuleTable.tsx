@@ -109,7 +109,7 @@ export const AccessRuleTable = () => {
         Cell: ({ cell }) => {
           return (
             <HStack>
-              <ProviderIcon shortType={cell.value.provider.type} />
+              {/* <ProviderIcon shortType={cell.value.provider.type} /> */}
 
               <Text
                 color="neutrals.700"

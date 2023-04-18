@@ -13,7 +13,6 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
-import { useAdminListProviderArgOptions } from "../../../../utils/backend-client/admin/admin";
 
 import { DynamicOption } from "../../../DynamicOption";
 import { BoltIcon } from "../../../icons/Icons";
@@ -26,6 +25,7 @@ import {
   GroupOption,
   Option,
 } from "../../../../utils/backend-client/types";
+import { useAdminListTargetGroupArgOptions } from "src/utils/backend-client/admin/admin";
 
 interface ProviderArgumentFieldProps {
   argument: Argument;
@@ -97,7 +97,7 @@ const ProviderFormElementMultiSelect: React.FC<ProviderArgumentFieldProps> = ({
     useFormContext<AccessRuleFormData>();
 
   const argId = argument?.resourceName ? argument.resourceName : argument.id;
-  const { data: argOptions } = useAdminListProviderArgOptions(
+  const { data: argOptions } = useAdminListTargetGroupArgOptions(
     providerId,
     argId
   );

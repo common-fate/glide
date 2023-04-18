@@ -7,7 +7,7 @@
  */
 import type { AccessGroup } from './accessGroup';
 
-/**
- * Example response
- */
-export type ListAccessGroupsResponseResponse = AccessGroup[];
+export type ListAccessGroupsResponseResponse = {
+  groups: AccessGroup[];
+  next?: string;
+};

@@ -5,9 +5,5 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Grantv2 } from './grantv2';
 
-export type ListGrantsv2ResponseResponse = {
-  grants: Grantv2[];
-  next?: string;
-};
+export type AdminListTargetGroupArgOptionsParams = { refresh?: boolean };

@@ -9,21 +9,22 @@ import (
 )
 
 type Target struct {
-	Fields map[string]Field
+	Id          string
+	Fields      map[string]Field
+	AccessRules []string
+}
+
+type Field struct {
+	Id          string
+	Description *string
+	Label       string
+	//todo: Value should support string array iam policy
+	Value FieldValue
 }
 
 type FieldValue struct {
 	Type  string
 	Value string
-}
-
-type Field struct {
-	Label       string
-	Description *string
-	Id          string
-
-	//todo: Value should support string array iam policy
-	Value FieldValue
 }
 
 type Grantv2 struct {

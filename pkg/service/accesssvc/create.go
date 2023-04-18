@@ -11,6 +11,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
 )
 
 type CreateRequestResult struct {
@@ -36,12 +37,37 @@ func (s *Service) CreateRequests(ctx context.Context, in requests.Requestv2) (*C
 	if err != nil {
 		return nil, err
 	}
+	items := []ddb.Keyer{}
 	for _, access_group := range accessGroups.Result {
 		// check to see if it valid for instant approval
 
 		//create grants for all entitlements in the group
 		//returns an array of grants
-		_, err := s.Workflow.Grant(ctx, access_group, in.RequestedBy.Email)
+
+		//lookup current access rule
+
+		ar := storage.GetAccessRuleCurrent{ID: access_group.AccessRule.ID}
+
+		_, err := s.DB.Query(ctx, &ar)
+		if err != nil {
+			return nil, err
+		}
+
+		if !ar.Result.Approval.IsRequired() {
+			updatedGrants, err := s.Workflow.Grant(ctx, access_group, in.RequestedBy.Email)
+			if err != nil {
+				return nil, err
+			}
+
+			//Update the grant items after we have successfully run the granting process
+			for _, grant := range updatedGrants {
+				items = append(items, &grant)
+			}
+		} else {
+			//create approval item
+		}
+
+		err = s.DB.PutBatch(ctx, items...)
 		if err != nil {
 			return nil, err
 		}

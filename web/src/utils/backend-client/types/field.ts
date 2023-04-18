@@ -6,4 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export type TargetWith = {[key: string]: string};
+export interface Field {
+  id: string;
+  description?: string;
+  label: string;
+  value: string;
+}

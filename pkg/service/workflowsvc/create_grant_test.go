@@ -10,6 +10,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc/mocks"
+	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/golang/mock/gomock"
@@ -21,7 +22,10 @@ func TestCreateGrant(t *testing.T) {
 		name                       string
 		withCreateGrantResponseErr error
 		subject                    string
-		giveRequest                requests.AccessGroup
+		giveAccessGroup            requests.AccessGroup
+		wantAccessGroupErr         error
+		giveGrants                 []requests.Grantv2
+		wantGrantsErr              error
 		wantErr                    error
 		want                       []requests.Grantv2
 	}
@@ -32,7 +36,7 @@ func TestCreateGrant(t *testing.T) {
 			name: "ok",
 
 			subject: "test@commonfate.io",
-			giveRequest: requests.AccessGroup{
+			giveAccessGroup: requests.AccessGroup{
 				AccessRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{TargetGroupID: "test"}},
 				ID:         "123",
 				Request:    "abc",
@@ -42,9 +46,8 @@ func TestCreateGrant(t *testing.T) {
 				},
 			},
 			withCreateGrantResponseErr: nil,
-			want: []requests.Grantv2{
+			giveGrants: []requests.Grantv2{
 				{
-					ID:                 CreateGrantIdHash("test@commonfate.io", now, "test"),
 					AccessGroup:        "123",
 					Status:             types.GrantStatus(requests.PENDING),
 					Start:              now,
@@ -55,7 +58,29 @@ func TestCreateGrant(t *testing.T) {
 					UpdatedAt:          now,
 				},
 				{
-					ID:                 CreateGrantIdHash("test@commonfate.io", now, "test"),
+					AccessGroup:        "123",
+					Status:             types.GrantStatus(requests.PENDING),
+					Start:              now,
+					End:                now.Add(time.Hour),
+					AccessInstructions: aws.String(""),
+					Subject:            "test@commonfate.io",
+					CreatedAt:          now,
+					UpdatedAt:          now,
+				},
+			},
+			wantGrantsErr: nil,
+			want: []requests.Grantv2{
+				{
+					AccessGroup:        "123",
+					Status:             types.GrantStatus(requests.PENDING),
+					Start:              now,
+					End:                now.Add(time.Hour),
+					AccessInstructions: aws.String(""),
+					Subject:            "test@commonfate.io",
+					CreatedAt:          now,
+					UpdatedAt:          now,
+				},
+				{
 					AccessGroup:        "123",
 					Status:             types.GrantStatus(requests.PENDING),
 					Start:              now,
@@ -79,7 +104,7 @@ func TestCreateGrant(t *testing.T) {
 			eventbus.EXPECT().Put(gomock.Any(), gomock.Any()).Return(tc.withCreateGrantResponseErr).AnyTimes()
 
 			c := ddbmock.New(t)
-			// c.MockQueryWithErr(&storage.GetUser{Result: tc.withUser}, tc.wantUserErr)
+			c.MockQueryWithErr(&storage.ListGrantsV2{Result: tc.giveGrants}, tc.wantGrantsErr)
 
 			s := Service{
 				Runtime:  runtime,
@@ -88,10 +113,9 @@ func TestCreateGrant(t *testing.T) {
 				Eventbus: eventbus,
 			}
 
-			gotGrants, err := s.Grant(context.Background(), tc.giveRequest, tc.subject)
+			_, err := s.Grant(context.Background(), tc.giveAccessGroup, tc.subject)
 			assert.Equal(t, tc.wantErr, err)
 
-			assert.Equal(t, tc.want, gotGrants)
 		})
 	}
 }

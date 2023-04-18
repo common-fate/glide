@@ -2,10 +2,6 @@ package workflowsvc
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/gevent"
@@ -42,9 +38,6 @@ type Service struct {
 func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, subject string) ([]requests.Grantv2, error) {
 	// Contains logic for preparing a grant and emitting events
 
-	items := []ddb.Keyer{}
-	grantList := []requests.Grantv2{}
-
 	//lookup all the grant entitlements for this access group
 
 	grants := storage.ListGrantsV2{GroupID: access_group.ID}
@@ -53,39 +46,35 @@ func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, 
 	if err != nil {
 		return nil, err
 	}
-	if !access_group.AccessRule.Approval.IsRequired() {
-		for _, entitlement := range grants.Result {
-			createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement.Target)
-			if err != nil {
-				return nil, err
-			}
-			err = s.Runtime.Grant(ctx, createGrant)
-			if err != nil {
-				return nil, err
-			}
 
-			err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
-				ID:       createGrant.Id,
-				Provider: createGrant.Provider,
-				End:      createGrant.End.Time,
-				Start:    createGrant.Start.Time,
-				Status:   types.GrantStatusPENDING,
-				Subject:  createGrant.Subject,
-				With:     types.Grant_With(createGrant.With),
-			}})
-			if err != nil {
-				return nil, err
-			}
-
+	for _, entitlement := range grants.Result {
+		createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement.Target)
+		if err != nil {
+			return nil, err
 		}
+		err = s.Runtime.Grant(ctx, createGrant)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
+			ID:       createGrant.Id,
+			Provider: createGrant.Provider,
+			End:      createGrant.End.Time,
+			Start:    createGrant.Start.Time,
+			Status:   types.GrantStatusPENDING,
+			Subject:  createGrant.Subject,
+			With:     types.Grant_With(createGrant.With),
+		}})
+		if err != nil {
+			return nil, err
+		}
+
+		entitlement.Status = types.GrantStatusACTIVE
+
 	}
 
-	err = s.DB.PutBatch(ctx, items...)
-	if err != nil {
-		return nil, err
-	}
-
-	return grantList, nil
+	return grants.Result, nil
 }
 
 // Revoke attepmts to syncronously revoke access to a request
@@ -173,7 +162,8 @@ func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming r
 	start, end := requestTiming.GetInterval(requests.WithNow(s.Clk.Now()))
 
 	req := types.CreateGrant{
-		Id:       CreateGrantIdHash(subject, iso8601.New(start).Time, accessRule.Target.TargetGroupID),
+		// Id:       CreateGrantIdHash(subject, iso8601.New(start).Time, accessRule.Target.TargetGroupID),
+		Id:       types.NewGrantID(),
 		Provider: accessRule.Target.TargetGroupID,
 		With: types.CreateGrant_With{
 			AdditionalProperties: make(map[string]string),
@@ -196,13 +186,13 @@ func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming r
 
 // Due to multiple grants being created from one access group I am opting to create dynamic ID's
 // This helps with testing workflow grant creation
-func CreateGrantIdHash(subject string, startTime time.Time, target string) string {
-	h := sha256.New()
-	hashString := subject + strconv.Itoa(int(startTime.Unix())) + target
+// func CreateGrantIdHash(subject string, startTime time.Time, target string) string {
+// 	h := sha256.New()
+// 	hashString := subject + strconv.Itoa(int(startTime.Unix())) + target
 
-	h.Write([]byte(hashString))
+// 	h.Write([]byte(hashString))
 
-	bs := h.Sum(nil)
-	return fmt.Sprintf("%x", bs)
+// 	bs := h.Sum(nil)
+// 	return fmt.Sprintf("%x", bs)
 
-}
+// }

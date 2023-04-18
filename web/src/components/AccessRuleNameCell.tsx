@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-location";
 
 import { ProviderIcon } from "./icons/providerIcon";
-import { useUserGetAccessRule } from "../utils/backend-client/end-user/end-user";
 import { useAdminGetAccessRule } from "../utils/backend-client/admin/admin";
 
 type Props = {
@@ -18,9 +17,7 @@ export const RuleNameCell: React.FC<Props> = ({
   adminRoute,
   ...rest
 }) => {
-  const { data } = adminRoute
-    ? useUserGetAccessRule(accessRuleId)
-    : useAdminGetAccessRule(accessRuleId);
+  const { data } = useAdminGetAccessRule(accessRuleId);
 
   // For now we're disabling linking/click-through
   const isAdmin = false; // window.location.pathname.includes("admin");
@@ -37,7 +34,6 @@ export const RuleNameCell: React.FC<Props> = ({
         {...rest}
       >
         <HStack>
-          <ProviderIcon shortType={data?.target.provider.type} />
           <Text
             _groupHover={{
               textDecor: isAdmin ? "underline" : undefined,

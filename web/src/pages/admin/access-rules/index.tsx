@@ -2,7 +2,6 @@ import { Container } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 
 import { AdminLayout } from "../../../components/Layout";
-import ProviderSetupNotice from "../../../components/ProviderSetupNotice";
 import { AccessRuleTable } from "../../../components/tables/AccessRuleTable";
 
 const Index = () => {
@@ -17,7 +16,7 @@ const Index = () => {
         minW={{ base: "100%", xl: "container.xl" }}
         overflowX="auto"
       >
-        <ProviderSetupNotice />
+        {/* <ProviderSetupNotice /> */}
         <AccessRuleTable />
       </Container>
     </AdminLayout>

@@ -10,25 +10,24 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import {
-  adminListProviderArgOptions,
-  useAdminGetProvider,
-  useAdminGetProviderArgs,
-  useAdminListProviderArgOptions,
-} from "../../../../utils/backend-client/admin/admin";
 
 import { RefreshIcon } from "../../../icons/Icons";
-import ProviderSetupNotice from "../../../ProviderSetupNotice";
 import ProviderArgumentField from "../components/ProviderArgumentField";
 import { ProviderPreview } from "../components/ProviderPreview";
 import { ProviderRadioSelector } from "../components/ProviderRadio";
 import { AccessRuleFormData, AccessRuleFormDataTarget } from "../CreateForm";
 import { FormStep } from "./FormStep";
-import { Provider } from "../../../../utils/backend-client/types";
+import { Provider, TargetGroup } from "../../../../utils/backend-client/types";
+import {
+  adminListTargetGroupArgOptions,
+  useAdminGetTargetGroup,
+  useAdminGetTargetGroupArgs,
+  useAdminListTargetGroupArgOptions,
+} from "src/utils/backend-client/admin/admin";
 
 interface PreviewProps {
   target: AccessRuleFormDataTarget;
-  provider?: Provider;
+  provider?: TargetGroup;
 }
 
 const Preview = (props: PreviewProps) => {
@@ -41,10 +40,10 @@ export const ProviderStep: React.FC = () => {
   const methods = useFormContext<AccessRuleFormData>();
   const target = methods.watch("target");
 
-  const { data: provider, isValidating: ivp } = useAdminGetProvider(
+  const { data: provider, isValidating: ivp } = useAdminGetTargetGroup(
     target?.providerId
   );
-  const { data: providerArgs, isValidating: ivpa } = useAdminGetProviderArgs(
+  const { data: providerArgs, isValidating: ivpa } = useAdminGetTargetGroupArgs(
     target?.providerId ?? ""
   );
 
@@ -63,7 +62,7 @@ export const ProviderStep: React.FC = () => {
           <FormLabel htmlFor="target.providerId">
             <Text textStyle={"Body/Medium"}>Provider</Text>
           </FormLabel>
-          <ProviderSetupNotice />
+          {/* <ProviderSetupNotice /> */}
           <Controller
             control={methods.control}
             rules={{ required: true }}
@@ -105,14 +104,14 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   ...props
 }) => {
   const [loading, setLoading] = useState(false);
-  const { data, mutate, isValidating } = useAdminListProviderArgOptions(
+  const { data, mutate, isValidating } = useAdminListTargetGroupArgOptions(
     providerId,
     argId
   );
   const onClick = async () => {
     setLoading(true);
     await mutate(
-      adminListProviderArgOptions(providerId, argId, {
+      adminListTargetGroupArgOptions(providerId, argId, {
         refresh: true,
       })
     );

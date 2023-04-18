@@ -5,14 +5,13 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Provider } from './provider';
+import type { TargetGroup } from './targetGroup';
 import type { AccessRuleTargetDetailWith } from './accessRuleTargetDetailWith';
 
 /**
  * A detailed target for an access rule
  */
 export interface AccessRuleTargetDetail {
-  provider: Provider;
+  targetGroup: TargetGroup;
   with: AccessRuleTargetDetailWith;
-  targetGroup?: string;
 }
