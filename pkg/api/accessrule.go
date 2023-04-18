@@ -45,6 +45,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 
 	var err error
 	var rules []rule.AccessRule
+	var qr *ddb.QueryResult
 
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
 	if params.NextToken != nil {
@@ -53,7 +54,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 
 	if params.Status != nil {
 		q := storage.ListAccessRulesForStatus{Status: rule.Status(*params.Status)}
-		_, err = a.DB.Query(ctx, &q, queryOpts...)
+		qr, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	} else {
 		q := storage.ListCurrentAccessRules{}
@@ -68,6 +69,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 
 	res := types.ListAccessRulesDetailResponse{
 		AccessRules: make([]types.AccessRuleDetail, len(rules)),
+		Next:        &qr.NextPage,
 	}
 	for i, r := range rules {
 		res.AccessRules[i] = r.ToAPIDetail()
