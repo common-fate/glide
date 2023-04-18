@@ -9,12 +9,11 @@ import {
   RequestStatus,
   Requestv2,
 } from "../../utils/backend-client/types";
-import { durationString } from "../../utils/durationString";
-import { RuleNameCell } from "../AccessRuleNameCell";
+
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
 import { CFAvatar } from "../CFAvatar";
-import { useUserListRequests } from "src/utils/backend-client/default/default";
+import { useUserListRequests } from "../../utils/backend-client/default/default";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
