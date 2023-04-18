@@ -115,7 +115,7 @@ func (a *API) AdminGetProviderArgs(w http.ResponseWriter, r *http.Request, provi
 }
 
 func (a *API) fetchProviderResourcesByResourceType(ctx context.Context, providerId string, resourceType string) ([]types.Option, error) {
-	cachedResources := storage.ListCachedTargetGroupResource{
+	cachedResources := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{
 		TargetGroupID: providerId,
 		ResourceType:  resourceType,
 	}

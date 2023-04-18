@@ -117,7 +117,7 @@ func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTa
 		}
 
 		if arg.Resource != nil {
-			qGetResourcesForTG := storage.ListCachedTargetGroupResource{TargetGroupID: in.ProviderId, ResourceType: *arg.Resource}
+			qGetResourcesForTG := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{TargetGroupID: in.ProviderId, ResourceType: *arg.Resource}
 			_, err := s.DB.Query(ctx, &qGetResourcesForTG)
 			if err != nil {
 				return rule.Target{}, err
