@@ -25,7 +25,7 @@ func (s *Service) RefreshCachedTargets(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	distictTargets := generateDistinctTargets(resourceRuleMapping)
+	distictTargets := generateDistinctTargets(resourceRuleMapping, accessrulesQuery.Result)
 
 	// I want to preserve the IDs of targets so they can be used when requesting access
 	// but the targets need to be deleted if they no longer exist
@@ -140,9 +140,24 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 
 	return arTargets, nil
 }
+func deduplicate(input []string) []string {
+	output := []string{}
+	seen := map[string]bool{}
+	for _, val := range input {
+		if _, ok := seen[val]; !ok {
+			seen[val] = true
+			output = append(output, val)
+		}
+	}
+	return output
+}
 
 // generateDistinctTargets returns a distict map of targets
-func generateDistinctTargets(in resourceAccessRuleMapping) []cache.Target {
+func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.AccessRule) []cache.Target {
+	arMap := make(map[string]rule.AccessRule)
+	for _, ar := range accessRules {
+		arMap[ar.ID] = ar
+	}
 	out := make(map[string]cache.Target)
 	for arID, ar := range in {
 		for tID, targetgroup := range ar {
@@ -152,10 +167,17 @@ func generateDistinctTargets(in resourceAccessRuleMapping) []cache.Target {
 					// ID:            types.NewTargetID(),
 					TargetGroupID: tID,
 					Fields:        target,
-					AccessRules:   []string{arID},
+					AccessRules:   cache.MakeMapStringStruct(arID),
+					// assign the groups
+					Groups: cache.MakeMapStringStruct(arMap[arID].Groups...),
 				}
 				o := out[t.Key()]
-				t.AccessRules = append(t.AccessRules, o.AccessRules...)
+				for k := range o.AccessRules {
+					t.AccessRules[k] = struct{}{}
+				}
+				for k := range o.Groups {
+					t.Groups[k] = struct{}{}
+				}
 				out[t.Key()] = t
 			}
 		}

@@ -12,11 +12,19 @@ type Target struct {
 	// when updating the cahced targets, the target.Key() method is used to generate a comparable key
 	ID            string
 	TargetGroupID string
-	AccessRules   []string
+	AccessRules   map[string]struct{}
 	// These are idp group ids that can access this target based on the access rules
-	Groups []string
+	Groups map[string]struct{}
 	// @todo replace with detailed field
 	Fields map[string]string
+}
+
+func MakeMapStringStruct(elems ...string) map[string]struct{} {
+	out := make(map[string]struct{})
+	for _, e := range elems {
+		out[e] = struct{}{}
+	}
+	return out
 }
 
 // Makes a canonical string representation of the target, by using a sorted list of field keys

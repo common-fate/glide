@@ -74,7 +74,8 @@ func TestSync(t *testing.T) {
 
 func TestGenerateDistinctTargets(t *testing.T) {
 	type args struct {
-		in map[string]map[string]Targets
+		in         map[string]map[string]Targets
+		acessRules []rule.AccessRule
 	}
 	tests := []struct {
 		name string
@@ -106,6 +107,10 @@ func TestGenerateDistinctTargets(t *testing.T) {
 						},
 					},
 				},
+				acessRules: []rule.AccessRule{
+					{ID: "accessRule_1", Groups: []string{"group_1", "group_2"}},
+					{ID: "accessRule_2", Groups: []string{"group_3", "group_4"}},
+				},
 			},
 			want: []cache.Target{
 				{
@@ -114,7 +119,8 @@ func TestGenerateDistinctTargets(t *testing.T) {
 						"accountId":        "account_1",
 						"permissionSetArn": "permissionSet_1",
 					},
-					AccessRules: []string{"accessRule_2", "accessRule_1"},
+					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}, "group_3": {}, "group_4": {}},
+					AccessRules: map[string]struct{}{"accessRule_2": {}, "accessRule_1": {}},
 				},
 				{
 					TargetGroupID: "targetgroup_1",
@@ -122,14 +128,15 @@ func TestGenerateDistinctTargets(t *testing.T) {
 						"accountId":        "account_1",
 						"permissionSetArn": "permissionSet_2",
 					},
-					AccessRules: []string{"accessRule_1"},
+					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}},
+					AccessRules: map[string]struct{}{"accessRule_1": {}},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := generateDistinctTargets(tt.args.in)
+			got := generateDistinctTargets(tt.args.in, tt.args.acessRules)
 			assert.Equal(t, tt.want, got)
 		})
 	}
