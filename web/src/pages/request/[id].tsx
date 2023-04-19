@@ -31,20 +31,24 @@ import {
   Grid,
   GridItem,
 } from "@chakra-ui/react";
-import { formatDistance } from "date-fns";
+import { formatDistance, intervalToDuration } from "date-fns";
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
 import { AuditLog } from "../../components/AuditLog";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
+import { StatusCell } from "../../components/StatusCell";
 import {
   useUserGetRequest,
   useUserListRequestAccessGroupGrants,
   useUserListRequestAccessGroups,
 } from "../../utils/backend-client/default/default";
 import { AccessGroup, Grantv2 } from "../../utils/backend-client/types";
-import { durationString } from "../../utils/durationString";
+import {
+  durationString,
+  durationStringHoursMinutes,
+} from "../../utils/durationString";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -130,7 +134,7 @@ const Home = () => {
             md: "container.lg",
           }}
         >
-          <Grid mt={8} gridTemplateColumns={"1fr 150px"} gap="4">
+          <Grid mt={8} gridTemplateColumns={"1fr 240px"} gap="4">
             <GridItem>
               <>
                 <Stack spacing={4}>
@@ -223,6 +227,50 @@ type NewType = {
 
 type AccessGroupProps = NewType;
 
+const HeaderStatusCell = ({ group }: { group: AccessGroup }) => {
+  if (group.status === "PENDING") {
+    return (
+      <Box
+        as="span"
+        flex="1"
+        textAlign="left"
+        sx={{
+          p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
+        }}
+      >
+        <Text color="neutrals.700">Review Required</Text>
+        <Text color="neutrals.500">
+          Duration&nbsp;
+          {durationString(group.time.maxDurationSeconds)}
+        </Text>
+      </Box>
+    );
+  }
+
+  if (group.status === "ACTIVE") {
+    return (
+      <Flex flex="1">
+        <StatusCell
+          success="ACTIVE"
+          value={group.status}
+          replaceValue={
+            "Active for the next " +
+            durationStringHoursMinutes(
+              intervalToDuration({
+                start: new Date(),
+                end: new Date(),
+                // end: new Date(Date.parse(group.grant.end)),
+              })
+            )
+          }
+        />
+      </Flex>
+    );
+  }
+
+  return null;
+};
+
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
   const grants = useUserListRequestAccessGroupGrants(group.id, {
     swr: { refreshInterval: 10000 },
@@ -246,6 +294,8 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
     grantModalState.onClose();
   };
 
+  const isReviewer = true;
+
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
       <Accordion
@@ -268,38 +318,27 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
             }}
           >
             <AccordionIcon boxSize="6" mr={2} />
-            <Box
-              as="span"
-              flex="1"
-              textAlign="left"
-              sx={{
-                p: { lineHeight: "120%", textStyle: "Body/Extra Small" },
-              }}
-            >
-              <Text color="neutrals.700">Review Required</Text>
-              <Text color="neutrals.500">
-                Duration&nbsp;
-                {durationString(group.time.maxDurationSeconds)}
-              </Text>
-            </Box>
-            <ButtonGroup variant="brandSecondary" spacing={2}>
-              <Button
-                size="sm"
-                onClick={() => {
-                  console.log("approve");
-                }}
-              >
-                Approve
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  console.log("reject");
-                }}
-              >
-                Reject
-              </Button>
-            </ButtonGroup>
+            <HeaderStatusCell group={group} />
+            {isReviewer && (
+              <ButtonGroup variant="brandSecondary" spacing={2}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    console.log("approve");
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    console.log("reject");
+                  }}
+                >
+                  Reject
+                </Button>
+              </ButtonGroup>
+            )}
           </AccordionButton>
 
           <AccordionPanel
