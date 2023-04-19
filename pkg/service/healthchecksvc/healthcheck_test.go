@@ -156,7 +156,7 @@ func TestDescribe(t *testing.T) {
 			handler:          test1Handler,
 			describeResponse: &unhealthyDescribe,
 			want: test1Handler.SetHealth(false).AddDiagnostic(handler.Diagnostic{
-				Level:   types.LogLevelERROR,
+				Level:   types.ERROR,
 				Message: "hello",
 			}).SetProviderDescription(&unhealthyDescribe),
 		},
@@ -165,7 +165,7 @@ func TestDescribe(t *testing.T) {
 			handler:          test1Handler,
 			describeResponse: &incompatibleSchemaDescribe,
 			want: test1Handler.SetHealth(true).AddDiagnostic(handler.Diagnostic{
-				Level:   types.LogLevelWARNING,
+				Level:   types.WARNING,
 				Message: schemaError.Error(),
 			}).SetProviderDescription(&incompatibleSchemaDescribe),
 		},
@@ -272,7 +272,7 @@ func TestGetRuntime(t *testing.T) {
 // 				AWSAccount: "123456789012",
 // 				Diagnostics: []handler.Diagnostic{
 // 					{
-// 						Level:   types.LogLevelINFO,
+// 						Level:   types.INFO,
 // 						Message: "offline: lambda cannot be reached/invoked",
 // 					},
 // 				},

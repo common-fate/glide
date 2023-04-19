@@ -16,7 +16,7 @@ const (
 // GrantCreated is emitted when a new grant is
 // created by the Access Handler.
 type GrantCreated struct {
-	Grant types.Grant `json:"grant"`
+	Grant types.RequestAccessGroupGrant `json:"grant"`
 }
 
 func (GrantCreated) EventType() string {
@@ -28,7 +28,7 @@ func (GrantCreated) EventType() string {
 // 'Activated' means that the assignment to the
 // resource was completed successfully.
 type GrantActivated struct {
-	Grant types.Grant `json:"grant"`
+	Grant types.RequestAccessGroupGrant `json:"grant"`
 }
 
 func (GrantActivated) EventType() string {
@@ -41,7 +41,7 @@ func (GrantActivated) EventType() string {
 // resource was removed successfully, at the
 // time that the grant was supposed to end.
 type GrantExpired struct {
-	Grant types.Grant `json:"grant"`
+	Grant types.RequestAccessGroupGrant `json:"grant"`
 }
 
 func (GrantExpired) EventType() string {
@@ -61,7 +61,7 @@ func (GrantExpired) EventType() string {
 // the user from the Okta group which they were granted
 // access to), this event will not be emitted.
 type GrantRevoked struct {
-	Grant types.Grant `json:"grant"`
+	Grant types.RequestAccessGroupGrant `json:"grant"`
 	// the commonfate internal id of the actor who revoked the grant
 	Actor string `json:"actor"`
 	// the email address of the actor who revoked the grant
@@ -76,7 +76,7 @@ func (GrantRevoked) EventType() string {
 // encounters an unrecoverable error when activating
 // or deactivating a grant.
 type GrantFailed struct {
-	Grant types.Grant `json:"grant"`
+	Grant types.RequestAccessGroupGrant `json:"grant"`
 	// Reason contains details about why the grant failed.
 	Reason string `json:"reason"`
 }

@@ -23,13 +23,13 @@ func TestListUsersStatus(t *testing.T) {
 	gACTIVE := identity.User{
 		ID: types.NewUserID(),
 
-		Status: types.IdpStatusACTIVE,
+		Status: types.ACTIVE,
 	}
 
 	gARCHIVED := identity.User{
 		ID: ksuid.New().String(),
 
-		Status: types.IdpStatusARCHIVED,
+		Status: types.ARCHIVED,
 	}
 
 	testcases := []testcase{
@@ -37,14 +37,14 @@ func TestListUsersStatus(t *testing.T) {
 			name:         "get active",
 			insertBefore: []identity.User{gACTIVE, gARCHIVED},
 			want:         []identity.User{gACTIVE},
-			status:       types.IdpStatusACTIVE,
+			status:       types.ACTIVE,
 			notWant:      []identity.User{},
 		},
 		{
 			name:         "get archived",
 			insertBefore: []identity.User{gACTIVE, gARCHIVED},
 			want:         []identity.User{gARCHIVED},
-			status:       types.IdpStatusARCHIVED,
+			status:       types.ARCHIVED,
 			notWant:      []identity.User{},
 		},
 	}

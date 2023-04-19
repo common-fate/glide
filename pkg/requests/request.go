@@ -14,13 +14,13 @@ type RequestContext struct {
 	Reason *string `json:"reason" dynamodbav:"reason"`
 }
 
-func (c *RequestContext) ToAPI() types.RequestContext {
-	return types.RequestContext{
-		Purpose: struct {
-			Reason string "json:\"reason\""
-		}{*c.Reason},
-	}
-}
+// func (c *RequestContext) ToAPI() types.RequestContext {
+// 	return types.RequestContext{
+// 		Purpose: struct {
+// 			Reason string "json:\"reason\""
+// 		}{*c.Reason},
+// 	}
+// }
 
 // // RequestData is information provided by the user when they make the request,
 // // through filling in form fields in the web application.

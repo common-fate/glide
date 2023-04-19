@@ -8,7 +8,7 @@ package accesssvc
 // type CreateRequests struct {
 // 	AccessRuleId string
 // 	Reason       *string
-// 	Timing       types.RequestTiming
+// 	Timing       types.RequestAccessGroupTiming
 // 	// With         *types.CreateRequestWithSubRequest
 // }
 
@@ -80,7 +80,7 @@ package accesssvc
 // type CreateRequest struct {
 // 	AccessRuleId string
 // 	Reason       *string
-// 	Timing       types.RequestTiming
+// 	Timing       types.RequestAccessGroupTiming
 // 	With         map[string]string
 // }
 // type createRequestOpts struct {

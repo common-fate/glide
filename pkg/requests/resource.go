@@ -41,7 +41,7 @@ func (i *ResourceOption) DDBKeys() (ddb.Keys, error) {
 
 func (e *ResourceOption) ToAPI() types.Resource {
 	return types.Resource{
-		Label: e.Label,
-		Value: e.Value,
+		// Label: e.Label,
+		// Value: e.Value,
 	}
 }
