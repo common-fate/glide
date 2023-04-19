@@ -1,4 +1,9 @@
-import { ChevronDownIcon, HamburgerIcon, SearchIcon } from "@chakra-ui/icons";
+import {
+  ChevronDownIcon,
+  ExternalLinkIcon,
+  HamburgerIcon,
+  SearchIcon,
+} from "@chakra-ui/icons";
 import {
   Avatar,
   Box,
@@ -19,7 +24,10 @@ import {
   useColorModeValue,
   useDisclosure,
   useEventListener,
+  VStack,
+  textDecoration,
 } from "@chakra-ui/react";
+
 import * as React from "react";
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-location";
@@ -79,6 +87,7 @@ export const Navbar: React.FC = () => {
       reviews.requests.filter((r) => r.status === "PENDING").length > 0,
     [reviews]
   );
+  const navigate = useNavigate();
 
   return (
     <Box as="section">
@@ -215,9 +224,22 @@ export const Navbar: React.FC = () => {
                       onClick={(e) => {
                         e.preventDefault();
                       }}
+                      borderBottom="2px"
+                      borderColor="neutrals.300"
                     >
                       {user.user?.email}
                     </MenuItem>
+                    <MenuItem icon={<ExternalLinkIcon boxSize="15px" />}>
+                      <ChakraLink
+                        isExternal
+                        href="https://docs.commonfate.io/common-fate/introduction/"
+                        textDecoration="none"
+                        _hover={{ textDecoration: "none" }}
+                      >
+                        Documentation
+                      </ChakraLink>
+                    </MenuItem>
+
                     <MenuItem
                       data-testid="logout-button"
                       icon={<DoorIcon color={"gray.700"} />}
