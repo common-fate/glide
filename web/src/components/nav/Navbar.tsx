@@ -160,6 +160,13 @@ export const Navbar: React.FC = () => {
                       />
                     )} */}
                   </TabsStyledButton>
+                  <TabsStyledButton
+                    href="/request/123"
+                    w="125px"
+                    pr={showReqCount ? 10 : undefined}
+                  >
+                    Request
+                  </TabsStyledButton>
                 </ButtonGroup>
               )}
             </HStack>

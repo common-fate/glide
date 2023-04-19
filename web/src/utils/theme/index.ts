@@ -211,7 +211,7 @@ const two: ThemeOverride = {
           rounded: "full",
           bg: "white",
           borderWidth: "1px",
-          borderColor: "neutrals.200",
+          borderColor: "neutrals.400",
           _hover: {
             bg: "neutrals.100",
             // nested _disabled is needed here to override style
