@@ -14,6 +14,18 @@ func (s *Service) ProcessTargets(ctx context.Context, in []types.CreateAccessRul
 	// @TODO
 
 	// Check for duplicate target groups, there can only be one instance of a target group per access rule.
+	deduplicateTargets := map[string]types.CreateAccessRuleTarget{}
+
+	for _, targetGroup := range in {
+		//check if target group exists
+		_, ok := deduplicateTargets[targetGroup.TargetGroupId]
+		if !ok {
+			deduplicateTargets[targetGroup.TargetGroupId] = targetGroup
+		} else {
+			//do we want to error out here or just deduplicate it automatically?
+			return nil, errors.New("duplicate target in access rule")
+		}
+	}
 
 	// TODO when filter expressions are implemented
 	// Check validity of filter expressions (the structure of a filter expression shoudl be validated in the API layer automatically)
