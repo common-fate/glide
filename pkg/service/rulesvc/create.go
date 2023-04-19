@@ -2,164 +2,34 @@ package rulesvc
 
 import (
 	"context"
-	"fmt"
-	"net/http"
+	"errors"
 
 	"github.com/common-fate/analytics-go"
-	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/apikit/logger"
 	"github.com/common-fate/common-fate/pkg/rule"
-	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/common-fate/ddb"
-	"github.com/pkg/errors"
 )
 
-// validateTargetAgainstSchema checks that all the arguments match the schema of the provider
-// It validates that all required arguments were provided with at least 1 value
-// returns apio.APIError so it will bubble up as a 400 error from api usage
-func validateTargetAgainstSchema(in types.CreateAccessRuleTarget, providerArgSchema *types.ArgSchema) error {
-	if len(providerArgSchema.AdditionalProperties) != len(in.With.AdditionalProperties) {
-		return apio.NewRequestError(errors.New("target is missing required arguments from the provider schema"), http.StatusBadRequest)
-	}
-	for argumentID, argument := range in.With.AdditionalProperties {
-		hasAtLeastOneValue := len(argument.Values) != 0
-		argumentSchema, ok := providerArgSchema.AdditionalProperties[argumentID]
-		if !ok {
-			return apio.NewRequestError(errors.New("argument does not match schema for provider"), http.StatusBadRequest)
-		}
-		// filter any group options which do not have any values
-		for groupId, group := range argument.Groupings.AdditionalProperties {
-			if _, ok := argumentSchema.Groups.AdditionalProperties[groupId]; !ok {
-				return apio.NewRequestError(errors.New("argument group does not match schema for provider"), http.StatusBadRequest)
-			}
-			if len(group) != 0 {
-				hasAtLeastOneValue = true
-			}
-		}
-		if !hasAtLeastOneValue {
-			return apio.NewRequestError(errors.New("arguments must have at least 1 value or group value"), http.StatusBadRequest)
-		}
-	}
-	return nil
-}
+func (s *Service) ProcessTargets(ctx context.Context, in []types.CreateAccessRuleTarget) ([]rule.Target, error) {
+	// @TODO
 
-// validateTargetArgumentAgainstCachedOptions checks that all the argument values and argument group values currently exist in the cache.
-// this prevents being able to create an access rule with arguments which are invalid for the provider.
-// returns apio.APIError so it will bubble up as a 400 error from api usage
-func (s *Service) validateTargetArgumentAgainstCachedOptions(ctx context.Context, in types.CreateAccessRuleTarget, providerArgSchema *types.ArgSchema) error {
-	for argumentID, argument := range in.With.AdditionalProperties {
-		if providerArgSchema.AdditionalProperties[argumentID].RuleFormElement != types.ArgumentRuleFormElementINPUT {
-			_, argOptions, groupOptions, err := s.Cache.RefreshCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
-			// _, argOptions, groupOptions, err := s.Cache.LoadCachedProviderArgOptions(ctx, in.ProviderId, argumentID)
-			if err != nil {
-				return err
-			}
-			groupOptionsValueMap := make(map[string]map[string]string)
-			argOptionsValueMap := make(map[string]string)
-			for _, arg := range argOptions {
-				argOptionsValueMap[arg.Value] = arg.Value
-			}
-			for _, group := range groupOptions {
-				options := groupOptionsValueMap[group.Group]
-				if options == nil {
-					options = make(map[string]string)
-				}
-				options[group.Value] = group.Value
-				groupOptionsValueMap[group.Group] = options
-			}
+	// Check for duplicate target groups, there can only be one instance of a target group per access rule.
 
-			for groupId, groupValues := range argument.Groupings.AdditionalProperties {
-				if len(groupValues) > 0 {
-					if _, ok := groupOptionsValueMap[groupId]; !ok {
-						return apio.NewRequestError(errors.New("argument group values do not match available options for provider"), http.StatusBadRequest)
-					}
-					for _, value := range groupValues {
-						if _, ok := groupOptionsValueMap[groupId][value]; !ok {
-							return apio.NewRequestError(errors.New("argument group values do not match available options for provider"), http.StatusBadRequest)
-						}
-					}
-				}
-			}
-			for _, value := range argument.Values {
-				if _, ok := argOptionsValueMap[value]; !ok {
-					return apio.NewRequestError(errors.New("argument values do not match available options for provider"), http.StatusBadRequest)
-				}
-			}
-		}
-	}
-	return nil
-}
-func (s *Service) ProcessTarget(ctx context.Context, in types.CreateAccessRuleTarget) (rule.Target, error) {
+	// TODO when filter expressions are implemented
+	// Check validity of filter expressions (the structure of a filter expression shoudl be validated in the API layer automatically)
+	// - check that attributes in the filter expression exist on the schema of the target/resource type
 
-	targetgroup := rule.Target{
-		TargetGroupID: in.ProviderId,
-		With:          make(map[string]string),
-	}
-
-	q := storage.GetTargetGroup{ID: in.ProviderId}
-	_, err := s.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
-		return rule.Target{}, err
-	}
-
-	targetgroup.TargetGroupFrom = q.Result.From
-
-	for argumentID, argument := range in.With.AdditionalProperties {
-		// check if the provided argId is a valid argument id in TargetGroup's schema.
-		arg, ok := q.Result.Schema.Properties[argumentID]
-		if !ok {
-			return rule.Target{}, apio.NewRequestError(fmt.Errorf("argument '%s' does not match schema for targetgroup '%s'", argumentID, in.ProviderId), http.StatusBadRequest)
-		}
-
-		if len(argument.Values) < 1 {
-			return rule.Target{}, apio.NewRequestError(errors.New("argument must have associated value with it"), http.StatusBadRequest)
-		}
-
-		if arg.Resource != nil {
-			qGetResourcesForTG := storage.ListCachedTargetGroupResourceForTargetGroupAndResourceType{TargetGroupID: in.ProviderId, ResourceType: *arg.Resource}
-			_, err := s.DB.Query(ctx, &qGetResourcesForTG)
-			if err != nil {
-				return rule.Target{}, err
-			}
-
-			// check if the provided value is a valid resource id in cached resources.
-			for _, providedValue := range argument.Values {
-				isValidArgValue := false
-				for _, cachedResource := range qGetResourcesForTG.Result {
-					if cachedResource.Resource.ID == providedValue {
-						isValidArgValue = true
-					}
-				}
-
-				if !isValidArgValue {
-					return rule.Target{}, apio.NewRequestError(fmt.Errorf("invalid argument value '%s' provided for argument '%s'", providedValue, argumentID), http.StatusBadRequest)
-				}
-			}
-		}
-
-		if len(argument.Values) == 1 {
-			targetgroup.With[argumentID] = argument.Values[0]
-		}
-	}
-
-	return targetgroup, nil
-
+	return nil, nil
 }
 
 func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error) {
+
 	id := types.NewAccessRuleID()
 
 	log := logger.Get(ctx).With("user.id", userID, "access_rule.id", id)
 	now := s.Clock.Now()
 
-	q := storage.GetTargetGroup{ID: in.Target.ProviderId}
-	_, err := s.DB.Query(ctx, &q)
-	if err != nil && err != ddb.ErrNoItems {
-		return nil, err
-	}
-
-	target, err := s.ProcessTarget(ctx, in.Target)
+	targets, err := s.ProcessTargets(ctx, in.Targets)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +52,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 			UpdatedAt: now,
 			UpdatedBy: userID,
 		},
-		Target:          target,
+		Targets:         targets,
 		TimeConstraints: in.TimeConstraints,
 	}
 
@@ -196,9 +66,9 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleCreated{
-		CreatedBy:          userID,
-		RuleID:             rul.ID,
-		Provider:           rul.Target.TargetGroupFrom.ToAnalytics(),
+		CreatedBy: userID,
+		RuleID:    rul.ID,
+		// Provider:           rul.Target.TargetGroupFrom.ToAnalytics(),
 		MaxDurationSeconds: in.TimeConstraints.MaxDurationSeconds,
 
 		RequiresApproval: rul.Approval.IsRequired(),

@@ -8,7 +8,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	identity "github.com/common-fate/common-fate/pkg/identity"
 	rule "github.com/common-fate/common-fate/pkg/rule"
 	rulesvc "github.com/common-fate/common-fate/pkg/service/rulesvc"
 	types "github.com/common-fate/common-fate/pkg/types"
@@ -66,21 +65,6 @@ func (m *MockAccessRuleService) CreateAccessRule(arg0 context.Context, arg1 stri
 func (mr *MockAccessRuleServiceMockRecorder) CreateAccessRule(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessRule", reflect.TypeOf((*MockAccessRuleService)(nil).CreateAccessRule), arg0, arg1, arg2)
-}
-
-// GetRule mocks base method.
-func (m *MockAccessRuleService) GetRule(arg0 context.Context, arg1 string, arg2 *identity.User, arg3 bool) (*rule.GetAccessRuleResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRule", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*rule.GetAccessRuleResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRule indicates an expected call of GetRule.
-func (mr *MockAccessRuleServiceMockRecorder) GetRule(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRule", reflect.TypeOf((*MockAccessRuleService)(nil).GetRule), arg0, arg1, arg2, arg3)
 }
 
 // UpdateRule mocks base method.

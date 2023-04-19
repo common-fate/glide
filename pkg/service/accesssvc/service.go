@@ -52,7 +52,7 @@ type CacheService interface {
 
 // AccessRuleService can create and get rules
 type AccessRuleService interface {
-	RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
+	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
 
 type AHClient interface {

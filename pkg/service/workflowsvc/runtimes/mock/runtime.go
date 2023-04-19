@@ -1,33 +1,25 @@
 package mock
 
-import (
-	"context"
-	"time"
+// // The mock runtime always returns success
+// type Runtime struct {
+// }
 
-	"github.com/common-fate/apikit/logger"
-	"github.com/common-fate/common-fate/pkg/types"
-)
+// func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant, isForTargetGroup bool) error {
+// 	go func() {
+// 		ctx := context.Background()
+// 		waitFor := time.Until(grant.Start.Time)
+// 		time.Sleep(waitFor)
 
-// The mock runtime always returns success
-type Runtime struct {
-}
+// 		logger.Get(ctx).Infow("activating grant", "grant", grant)
 
-func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant, isForTargetGroup bool) error {
-	go func() {
-		ctx := context.Background()
-		waitFor := time.Until(grant.Start.Time)
-		time.Sleep(waitFor)
+// 		dur := grant.End.Sub(grant.Start.Time)
+// 		time.Sleep(dur)
 
-		logger.Get(ctx).Infow("activating grant", "grant", grant)
+// 		logger.Get(ctx).Infow("deactivating grant", "grant", grant)
+// 	}()
+// 	return nil
+// }
 
-		dur := grant.End.Sub(grant.Start.Time)
-		time.Sleep(dur)
-
-		logger.Get(ctx).Infow("deactivating grant", "grant", grant)
-	}()
-	return nil
-}
-
-func (r *Runtime) Revoke(ctx context.Context, grantID string, isForTargetGroup bool) error {
-	return nil
-}
+// func (r *Runtime) Revoke(ctx context.Context, grantID string, isForTargetGroup bool) error {
+// 	return nil
+// }

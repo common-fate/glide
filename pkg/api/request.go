@@ -172,13 +172,13 @@ func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
 
 	//request service to initiate the granting process...
 
-	_, err = a.Access.CreateRequests(ctx, *requestGroup.Result)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-	//do we need to return anything via this api?
-	apio.JSON(ctx, w, nil, http.StatusOK)
+	// _, err = a.Access.CreateRequests(ctx, *requestGroup.Result)
+	// if err != nil {
+	// 	apio.Error(ctx, w, err)
+	// 	return
+	// }
+	// //do we need to return anything via this api?
+	// apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
 func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {

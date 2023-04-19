@@ -16,9 +16,10 @@ type UpdateOpts struct {
 }
 
 func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessRule, error) {
+
 	clk := s.Clock
 
-	target, err := s.ProcessTarget(ctx, in.UpdateRequest.Target)
+	targets, err := s.ProcessTargets(ctx, in.UpdateRequest.Targets)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 	newVersion.Metadata.UpdatedBy = in.UpdaterID
 	newVersion.Metadata.UpdatedAt = clk.Now()
 	newVersion.TimeConstraints = in.UpdateRequest.TimeConstraints
-	newVersion.Target = target
+	newVersion.Targets = targets
 
 	// updated the previous version to be a version and inserts the new one as current
 	err = s.DB.PutBatch(ctx, &newVersion, &in.Rule)
@@ -45,9 +46,9 @@ func (s *Service) UpdateRule(ctx context.Context, in *UpdateOpts) (*rule.AccessR
 
 	// analytics event
 	analytics.FromContext(ctx).Track(&analytics.RuleUpdated{
-		UpdatedBy:          in.UpdaterID,
-		RuleID:             in.Rule.ID,
-		Provider:           in.Rule.Target.TargetGroupFrom.ToAnalytics(),
+		UpdatedBy: in.UpdaterID,
+		RuleID:    in.Rule.ID,
+		// Provider:           in.Rule.Target.TargetGroupFrom.ToAnalytics(),
 		MaxDurationSeconds: in.Rule.TimeConstraints.MaxDurationSeconds,
 		RequiresApproval:   in.Rule.Approval.IsRequired(),
 	})

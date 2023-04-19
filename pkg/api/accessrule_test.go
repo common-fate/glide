@@ -141,7 +141,7 @@ package api
 // 					Groups: []string{},
 // 					Users:  []string{"a6936de0-633e-400b-8d36-5d3f47e1356e", "629d4ea4-686c-4581-b778-ec083375523b"},
 // 				},
-// 				TimeConstraints: types.TimeConstraints{
+// 				TimeConstraints: types.AccessRuleTimeConstraints{
 // 					MaxDurationSeconds: 3600,
 // 				},
 // 			},

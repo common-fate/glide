@@ -10,25 +10,24 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-type GetAccessRuleCurrent struct {
+type GetAccessRule struct {
 	ID     string
 	Result *rule.AccessRule
 }
 
-func (g *GetAccessRuleCurrent) BuildQuery() (*dynamodb.QueryInput, error) {
+func (g *GetAccessRule) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		Limit:                  aws.Int32(1),
-		KeyConditionExpression: aws.String("GSI2PK = :pk AND GSI2SK = :sk"),
-		IndexName:              &keys.IndexNames.GSI2,
+		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI2PK},
-			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI2SK(g.ID)},
+			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.PK1},
+			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.SK1(g.ID)},
 		},
 	}
 	return qi, nil
 }
 
-func (g *GetAccessRuleCurrent) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetAccessRule) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
 	if len(out.Items) != 1 {
 		return ddb.ErrNoItems
 	}

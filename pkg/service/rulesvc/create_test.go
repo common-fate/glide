@@ -69,7 +69,7 @@ package rulesvc
 // 	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
 
 // 	mockRuleLongerThan6months := in
-// 	mockRuleLongerThan6months.TimeConstraints = types.TimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
+// 	mockRuleLongerThan6months.TimeConstraints = types.AccessRuleTimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
 
 // 	/**
 // 	There are two test cases here:

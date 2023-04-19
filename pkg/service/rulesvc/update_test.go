@@ -51,7 +51,7 @@ package rulesvc
 // 		Name:        "changing the name",
 // 		Description: "changing the description name",
 // 		Groups:      []string{"group1", "group2"},
-// 		TimeConstraints: types.TimeConstraints{
+// 		TimeConstraints: types.AccessRuleTimeConstraints{
 // 			MaxDurationSeconds: 600,
 // 		},
 // 		Target: types.CreateAccessRuleTarget{
@@ -77,7 +77,7 @@ package rulesvc
 // 			UpdatedAt: now,
 // 			UpdatedBy: userID,
 // 		},
-// 		TimeConstraints: types.TimeConstraints{
+// 		TimeConstraints: types.AccessRuleTimeConstraints{
 // 			MaxDurationSeconds: 600,
 // 		},
 // 		Version: versionID,

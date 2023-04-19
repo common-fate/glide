@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,15 +31,14 @@ func TestSync(t *testing.T) {
 					{TargetGroupID: "targetgroup_1", ResourceType: "PermissionSet", Resource: cache.Resource{ID: "permissionSet_2", Name: "PermissionSet_2"}},
 				},
 				accessRules: []rule.AccessRule{
-					{ID: "accessRule_1", Targets: map[string]rule.Target{
-						"targetgroup_1": {
-							TargetGroupID: "targetgroup_1",
-							Schema: providerregistrysdk.Target{
+					{ID: "accessRule_1", Targets: []rule.Target{
+						{
+							TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
 								Properties: map[string]providerregistrysdk.TargetField{
 									"accountId":        {Resource: aws.String("Account")},
 									"permissionSetArn": {Resource: aws.String("PermissionSet")},
 								},
-							},
+							}},
 						},
 					}},
 				},

@@ -42,7 +42,7 @@ func (i *AccessGroup) ToAPI() types.AccessGroup {
 	out := types.AccessGroup{
 		Id:     i.ID,
 		Status: string(i.Status),
-		Time: types.TimeConstraints{
+		Time: types.AccessRuleTimeConstraints{
 			MaxDurationSeconds: int(i.TimeConstraints.Duration),
 		},
 		RequestId:    i.Request,

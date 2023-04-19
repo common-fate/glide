@@ -62,7 +62,7 @@ package accesssvc
 // 			}},
 // 			rule: &rule.AccessRule{
 // 				Groups: []string{"a"},
-// 				TimeConstraints: types.TimeConstraints{
+// 				TimeConstraints: types.AccessRuleTimeConstraints{
 // 					MaxDurationSeconds: 10,
 // 				},
 // 			},

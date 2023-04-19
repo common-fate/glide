@@ -6,6 +6,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
 )
 
@@ -92,15 +93,22 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 	// relate targetgroups to access rules
 	tgar := map[string][]rule.AccessRule{}
 
+	type arTargetGroup struct {
+		targetGroup target.Group
+		fields      map[string][]string
+	}
 	//rule/targetgroup/targetfieldid/values
-	accessRuleMap := map[string]map[string]map[string][]string{}
+	accessRuleMap := map[string]map[string]arTargetGroup{}
 	arTargets := resourceAccessRuleMapping{}
 	for _, ar := range accessRules {
-		accessRuleMap[ar.ID] = make(map[string]map[string][]string)
+		accessRuleMap[ar.ID] = make(map[string]arTargetGroup)
 		arTargets[ar.ID] = make(map[string]Targets)
-		for id, target := range ar.Targets {
-			accessRuleMap[ar.ID][id] = make(map[string][]string)
-			tgar[target.TargetGroupID] = append(tgar[target.TargetGroupID], ar)
+		for _, target := range ar.Targets {
+			accessRuleMap[ar.ID][target.TargetGroup.ID] = arTargetGroup{
+				targetGroup: target.TargetGroup,
+				fields:      make(map[string][]string),
+			}
+			tgar[target.TargetGroup.ID] = append(tgar[target.TargetGroup.ID], ar)
 		}
 	}
 	// run matching on resources to filter rules on access rules
@@ -114,10 +122,10 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 		for _, ar := range accessrules {
 			// a target may have multiple fields of teh same type, so be sure to apply matching for each of the fields on the target that match the type
 			// filter policy execution would go here, only append the resource if it matches
-			target := ar.Targets[resource.TargetGroupID]
+			target := accessRuleMap[ar.ID][resource.TargetGroupID].targetGroup
 			for id, field := range target.Schema.Properties {
 				if field.Resource != nil && *field.Resource == resource.ResourceType {
-					accessRuleMap[ar.ID][resource.TargetGroupID][id] = append(accessRuleMap[ar.ID][resource.TargetGroupID][id], resource.Resource.ID)
+					accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource.ID)
 				}
 			}
 		}
@@ -130,7 +138,7 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 
 	for arID, ar := range accessRuleMap {
 		for tID, target := range ar {
-			t, err := GenerateTargets(target)
+			t, err := GenerateTargets(target.fields)
 			if err != nil {
 				return nil, err
 			}
@@ -139,17 +147,6 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 	}
 
 	return arTargets, nil
-}
-func deduplicate(input []string) []string {
-	output := []string{}
-	seen := map[string]bool{}
-	for _, val := range input {
-		if _, ok := seen[val]; !ok {
-			seen[val] = true
-			output = append(output, val)
-		}
-	}
-	return output
 }
 
 // generateDistinctTargets returns a distict map of targets

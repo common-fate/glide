@@ -150,7 +150,7 @@ func (s *Service) getAccessRuleForTarget(ctx context.Context, accessRules []stri
 	var currentRule rule.AccessRule
 
 	for _, rule := range accessRules {
-		ar := storage.GetAccessRuleCurrent{ID: rule}
+		ar := storage.GetAccessRule{ID: rule}
 		_, err := s.DB.Query(ctx, &ar)
 		if err != nil {
 			return nil, err

@@ -25,8 +25,8 @@ func TestAccessRule(opt ...func(*AccessRule)) AccessRule {
 			UpdatedAt: now,
 			UpdatedBy: userID,
 		},
-		Name:   "test rule",
-		Target: Target{},
+		Name: "test rule",
+		// Target: Target{},
 	}
 
 	for _, o := range opt {
