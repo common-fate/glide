@@ -9,6 +9,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -63,8 +64,40 @@ func (s *Service) CreateRequests(ctx context.Context, in requests.Requestv2) (*C
 			for _, grant := range updatedGrants {
 				items = append(items, &grant)
 			}
+		}
+
+		// If the approval is not required, auto-approve the request
+		auto := types.AUTOMATIC
+		revd := types.REVIEWED
+
+		if !ar.Result.Approval.IsRequired() {
+			access_group.Status = requests.APPROVED
+			access_group.ApprovalMethod = &auto
 		} else {
-			//create approval item
+			access_group.ApprovalMethod = &revd
+		}
+
+		approvers, err := rulesvc.GetApprovers(ctx, s.DB, access_group.AccessRule)
+		if err != nil {
+			return nil, err
+		}
+
+		// create Reviewers for each approver in the Access Rule. Reviewers will see the request in the End User portal.
+		var reviewers []access.Reviewer
+		for _, u := range approvers {
+			// users cannot approve their own requests.
+			// We don't create a Reviewer for them, even if they are an approver on the Access Rule.
+			if u == in.RequestedBy.ID {
+				continue
+			}
+
+			r := access.Reviewer{
+				ReviewerID:  u,
+				AccessGroup: access_group,
+			}
+
+			reviewers = append(reviewers, r)
+			items = append(items, &r)
 		}
 
 		err = s.DB.PutBatch(ctx, items...)

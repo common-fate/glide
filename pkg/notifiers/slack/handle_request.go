@@ -61,7 +61,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 				return errors.Wrap(err, "building review URL")
 			}
 
-			reviewers := storage.ListRequestReviewers{RequestID: request.ID}
+			reviewers := storage.ListAccessGroupReviewers{AccessGroupId: request.ID}
 			_, err = n.DB.Query(ctx, &reviewers)
 			if err != nil && err != ddb.ErrNoItems {
 				return errors.Wrap(err, "getting reviewers")
@@ -222,7 +222,7 @@ func (n *SlackNotifier) sendRequestDetailsMessage(ctx context.Context, log *zap.
 
 func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, requestEvent gevent.RequestEventPayload, rule rule.AccessRule, requestingUser *identity.User) {
 	// Loop over the request reviewers
-	reviewers := storage.ListRequestReviewers{RequestID: request.ID}
+	reviewers := storage.ListAccessGroupReviewers{AccessGroupId: request.ID}
 	_, err := n.DB.Query(ctx, &reviewers)
 	if err != nil && err != ddb.ErrNoItems {
 		log.Errorw("failed to fetch reviewers for request", zap.Error(err))

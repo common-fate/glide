@@ -9,15 +9,15 @@ info:
 servers:
   - url: "http://localhost:8080"
 paths:
-  "/api/v1/requests/{requestId}/review":
+  "/api/v1/access-group/{id}/review":
     parameters:
       - schema:
           type: string
-        name: requestId
+        name: id
         in: path
         required: true
     post:
-      summary: Review a request
+      summary: Review an access group
       operationId: user-review-request
       responses:
         "200":
@@ -2688,14 +2688,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Field"
-        accessRules:
-          type: array
-          items:
-            type: string
       required:
         - id
         - fields
-        - accessRules
     Field:
       title: Field
       x-stoplight:
@@ -3103,7 +3098,8 @@ components:
             properties:
               targets:
                 type: array
-                items: {}
+                items:
+                  $ref: "#/components/schemas/Target"
               next:
                 type: string
             required:

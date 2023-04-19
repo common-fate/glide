@@ -117,7 +117,7 @@ func TestReviewRequest(t *testing.T) {
 			db := ddbmock.New(t)
 
 			mockAccess.EXPECT().AddReviewAndGrantAccess(gomock.Any(), tc.wantAddReviewOpts).Return(tc.addReviewResult, tc.addReviewErr).AnyTimes()
-			db.MockQueryWithErr(&storage.ListRequestReviewers{}, tc.reviewersErr)
+			db.MockQueryWithErr(&storage.ListAccessGroupReviewers{}, tc.reviewersErr)
 			db.MockQueryWithErr(&storage.GetAccessRuleCurrent{Result: &rule.AccessRule{}}, nil)
 
 			a := API{Access: mockAccess, DB: db, AdminGroup: "testAdmin"}

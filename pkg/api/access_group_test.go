@@ -118,7 +118,7 @@ func TestGetAccessGroup(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.GetAccessGroups{Result: tc.accessGroup}, tc.idpErr)
+			db.MockQueryWithErr(&storage.GetAccessGroup{Result: tc.accessGroup}, tc.idpErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)

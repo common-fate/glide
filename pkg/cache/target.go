@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -25,6 +26,22 @@ func MakeMapStringStruct(elems ...string) map[string]struct{} {
 		out[e] = struct{}{}
 	}
 	return out
+}
+func (t *Target) ToAPI() types.Target {
+	tar := types.Target{
+
+		Id: t.ID,
+	}
+
+	for k, v := range t.Fields {
+		tar.Fields = append(tar.Fields, types.Field{
+			Id:    k,
+			Label: v,
+			Value: v,
+		})
+
+	}
+	return tar
 }
 
 // Makes a canonical string representation of the target, by using a sorted list of field keys

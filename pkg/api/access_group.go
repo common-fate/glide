@@ -34,7 +34,7 @@ func (a *API) UserListRequestAccessGroups(w http.ResponseWriter, r *http.Request
 // (GET /api/v1/requests/{requestId}/groups{groupId})
 func (a *API) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, requestId string, groupId string) {
 	ctx := r.Context()
-	q := storage.GetAccessGroups{RequestID: requestId, GroupID: groupId}
+	q := storage.GetAccessGroup{RequestID: requestId, GroupID: groupId}
 
 	_, err := a.DB.Query(ctx, &q)
 
