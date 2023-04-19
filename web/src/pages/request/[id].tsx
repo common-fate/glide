@@ -15,15 +15,27 @@ import {
   Divider,
   Flex,
   IconButton,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
   SkeletonCircle,
+  Skeleton,
   SkeletonText,
   Spinner,
   Stack,
   Text,
+  useDisclosure,
+  Grid,
+  GridItem,
 } from "@chakra-ui/react";
 import { formatDistance } from "date-fns";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
+import { AuditLog } from "../../components/AuditLog";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import {
@@ -31,7 +43,7 @@ import {
   useUserListRequestAccessGroupGrants,
   useUserListRequestAccessGroups,
 } from "../../utils/backend-client/default/default";
-import { AccessGroup } from "../../utils/backend-client/types";
+import { AccessGroup, Grantv2 } from "../../utils/backend-client/types";
 import { durationString } from "../../utils/durationString";
 
 type MyLocationGenerics = MakeGenerics<{
@@ -58,7 +70,7 @@ const Home = () => {
   const groups = useUserListRequestAccessGroups(requestId, {
     swr: { refreshInterval: 10000 },
     request: {
-      baseURL: "http://127.0.0.1:3100",
+      baseURL: "http://127.0.0.1:3101",
       headers: {
         Prefer: "code=200, example=ex_1",
       },
@@ -112,80 +124,93 @@ const Home = () => {
           </Text>
         </Center>
 
+        {/* Main content */}
         <Container
           maxW={{
             md: "container.lg",
           }}
         >
-          <Stack spacing={4} mt={8}>
-            <Flex px={2}>
-              {request.data ? (
-                <Flex>
-                  <Avatar
-                    size="sm"
-                    src={request.data.user.picture}
-                    name={
-                      request.data.user.firstName +
-                      " " +
-                      request.data.user.lastName
-                    }
-                    mr={2}
-                  />
-                  <Box>
-                    <Flex>
-                      <Text textStyle="Body/Small">
-                        {request.data.user.firstName +
-                          " " +
-                          request.data.user.lastName}
-                      </Text>
-                      <Text textStyle="Body/Small" ml={1} color="neutrals.500">
-                        requested at&nbsp;
-                        {request.data.createdAt}
-                      </Text>
-                    </Flex>
-                    <Text textStyle="Body/Small" color="neutrals.500">
-                      {request.data.user.email}
-                    </Text>
-                  </Box>
-                </Flex>
-              ) : (
-                <Flex>
-                  <SkeletonCircle size="24px" mr={4} />
-                  <Box>
-                    <Flex>
-                      <SkeletonText noOfLines={1} h="12px" w="12ch" mr="4px" />
-                      <SkeletonText noOfLines={1} h="12px" w="12ch" />
-                    </Flex>
-                    <SkeletonText noOfLines={1} h="12px" w="12ch" />
-                  </Box>
-                </Flex>
-              )}
-            </Flex>
-            <Divider borderColor="neutrals.300" w="100%" />
+          <Grid mt={8} gridTemplateColumns={"1fr 150px"} gap="4">
+            <GridItem>
+              <>
+                <Stack spacing={4}>
+                  <Flex px={2}>
+                    {request.data ? (
+                      <Flex>
+                        <Avatar
+                          size="sm"
+                          src={request.data.user.picture}
+                          name={
+                            request.data.user.firstName +
+                            " " +
+                            request.data.user.lastName
+                          }
+                          mr={2}
+                        />
+                        <Box>
+                          <Flex>
+                            <Text textStyle="Body/Small">
+                              {request.data.user.firstName +
+                                " " +
+                                request.data.user.lastName}
+                            </Text>
+                            <Text
+                              textStyle="Body/Small"
+                              ml={1}
+                              color="neutrals.500"
+                            >
+                              requested at&nbsp;
+                              {request.data.createdAt}
+                            </Text>
+                          </Flex>
+                          <Text textStyle="Body/Small" color="neutrals.500">
+                            {request.data.user.email}
+                          </Text>
+                        </Box>
+                      </Flex>
+                    ) : (
+                      <Flex h="42px">
+                        <SkeletonCircle size="24px" mr={4} />
+                        <Box>
+                          <Flex>
+                            <SkeletonText
+                              noOfLines={1}
+                              h="12px"
+                              w="12ch"
+                              mr="4px"
+                            />
+                            <SkeletonText noOfLines={1} h="12px" w="12ch" />
+                          </Flex>
+                          <SkeletonText noOfLines={1} h="12px" w="12ch" />
+                        </Box>
+                      </Flex>
+                    )}
+                  </Flex>
+                  <Divider borderColor="neutrals.300" w="100%" />
 
-            <Stack spacing={4}>
-              {groups.data ? (
-                groups.data.groups.map((group) => (
-                  <AccessGroupItem key={group.id} group={group} />
-                ))
-              ) : (
-                <Flex>
-                  <SkeletonCircle size="24px" mr={4} />
-                  <Box>
-                    <Flex>
-                      <SkeletonText noOfLines={1} h="12px" w="12ch" mr="4px" />
-                      <SkeletonText noOfLines={1} h="12px" w="12ch" />
-                    </Flex>
-                    <SkeletonText noOfLines={1} h="12px" w="12ch" />
-                  </Box>
-                </Flex>
-              )}
-            </Stack>
-          </Stack>
+                  <Stack spacing={4}>
+                    {groups.data
+                      ? groups.data.groups.map((group) => (
+                          <AccessGroupItem key={group.id} group={group} />
+                        ))
+                      : [
+                          <Skeleton key={1} rounded="md" h="282px" w="100%" />,
+                          <Skeleton key={2} rounded="md" h="82px" w="100%" />,
+                          <Skeleton key={3} rounded="md" h="82px" w="100%" />,
+                        ]}
+                  </Stack>
+                </Stack>
 
-          <Code whiteSpace="pre-wrap" mt={32}>
-            {JSON.stringify({ request, groups, grants }, null, 2)}
-          </Code>
+                <Code whiteSpace="pre-wrap" mt={32}>
+                  {JSON.stringify({ request, groups, grants }, null, 2)}
+                </Code>
+              </>
+            </GridItem>
+            <GridItem>
+              {/* <h1>audit log</h1> */}
+              <AuditLog />
+            </GridItem>
+          </Grid>
         </Container>
       </UserLayout>
     </div>
@@ -209,9 +234,26 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
     },
   });
 
+  const [selectedGrant, setSelectedGrant] = useState<Grantv2>();
+  const grantModalState = useDisclosure();
+
+  const handleGrantClick = (grant: Grantv2) => {
+    setSelectedGrant(grant);
+    grantModalState.onOpen();
+  };
+  const handleClose = () => {
+    setSelectedGrant(undefined);
+    grantModalState.onClose();
+  };
+
   return (
     <Box bg="neutrals.100" borderColor="neutrals.300" rounded="lg">
-      <Accordion allowToggle>
+      <Accordion
+        key={group.id}
+        allowToggle
+        // we may want to play with how default index works
+        defaultIndex={[0]}
+      >
         <AccordionItem border="none">
           <AccordionButton
             p={2}
@@ -241,8 +283,22 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
               </Text>
             </Box>
             <ButtonGroup variant="brandSecondary" spacing={2}>
-              <Button size="sm">Approve</Button>
-              <Button size="sm">Reject</Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  console.log("approve");
+                }}
+              >
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  console.log("reject");
+                }}
+              >
+                Reject
+              </Button>
             </ButtonGroup>
           </AccordionButton>
 
@@ -265,30 +321,62 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                     p={2}
                     pos="relative"
                   >
-                    <ProviderIcon shortType="aws" mr={2} />
-                    <Text textStyle="Body/Small" color="neutrals.500">
-                      {grants.data.grants.length} grants
-                    </Text>
-                    <Code fontFamily="Roboto Mono"></Code>
-                    <Spinner
-                      thickness="2px"
-                      speed="0.65s"
-                      emptyColor="neutrals.300"
-                      color="neutrals.800"
-                      size="sm"
+                    <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
+                    <Code bg="white" whiteSpace="pre-wrap">
+                      Admin
+                      <br />
+                      012345678912
+                      <br />
+                      arn:aws:account::$:account
+                      <br />
+                      another_misc_field_ 4
+                    </Code>
+                    {false && (
+                      <Spinner
+                        thickness="2px"
+                        speed="0.65s"
+                        emptyColor="neutrals.300"
+                        color="neutrals.800"
+                        size="sm"
+                        top={4}
+                        right={4}
+                        pos="absolute"
+                      />
+                    )}
+                    <Button
+                      variant="brandSecondary"
+                      size="xs"
                       top={4}
                       right={4}
                       pos="absolute"
-                    />
+                      onClick={() => handleGrantClick(grant)}
+                    >
+                      View
+                    </Button>
                   </Flex>
                 ))
               ) : (
-                <Text>loading</Text>
+                <Text>loading: todo</Text>
               )}
             </Stack>
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
+      <Modal isOpen={grantModalState.isOpen} onClose={handleClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader> </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text textStyle="Body/Small">Access Instructions</Text>
+
+            <Code bg="white" whiteSpace="pre-wrap">
+              {JSON.stringify(selectedGrant, null, 2)}
+            </Code>
+            <Text></Text>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
