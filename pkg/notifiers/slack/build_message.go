@@ -24,9 +24,9 @@ func titleCase(s string) string {
 }
 
 type RequestMessageOpts struct {
-	Request          requests.Requestv2
-	AccessGroups     []requests.AccessGroup
-	RequestArguments []types.With
+	Request      requests.Requestv2
+	AccessGroups []requests.AccessGroup
+	// RequestArguments []types.With
 
 	ReviewURLs notifiers.ReviewURLs
 	// optional field that will replace the default requestor email with a slack @mention
@@ -78,12 +78,12 @@ func BuildRequestReviewMessage(o RequestMessageOpts) (summary string, msg slack.
 			},
 		}
 
-		for _, v := range o.RequestArguments {
-			requestDetails = append(requestDetails, &slack.TextBlockObject{
-				Type: "mrkdwn",
-				Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
-			})
-		}
+		// for _, v := range o.RequestArguments {
+		// 	requestDetails = append(requestDetails, &slack.TextBlockObject{
+		// 		Type: "mrkdwn",
+		// 		Text: fmt.Sprintf("*%s:*\n%s", v.Title, v.Label),
+		// 	})
+		// }
 
 		// Only show the Request reason if it is not empty
 		if o.Request.Context.Reason != nil && len(*o.Request.Context.Reason) > 0 {

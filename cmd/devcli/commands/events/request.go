@@ -1,13 +1,10 @@
 package events
 
 import (
-	"time"
-
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -38,7 +35,7 @@ var requestCommand = cli.Command{
 			return err
 		}
 
-		q := storage.GetAccessRuleCurrent{ID: c.String("rule")}
+		q := storage.GetAccessRule{ID: c.String("rule")}
 
 		_, err = db.Query(ctx, &q)
 		if err != nil {
@@ -54,9 +51,9 @@ var requestCommand = cli.Command{
 
 		e := gevent.RequestCreated{
 			Request: requests.Requestv2{
-				ID:        types.NewRequestID(),
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
+				// ID:        types.NewRequestID(),
+				// CreatedAt: time.Now(),
+				// UpdatedAt: time.Now(),
 
 				RequestedBy: *u.Result,
 			},

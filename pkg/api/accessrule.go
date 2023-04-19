@@ -54,7 +54,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	} else {
-		q := storage.ListCurrentAccessRules{}
+		q := storage.ListAccessRules{}
 		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	}

@@ -3,6 +3,7 @@ package requests
 import (
 	"time"
 
+	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/types"
 )
 
@@ -30,4 +31,10 @@ type RequestData struct {
 // // WithNow allows you to override the now time used by getInterval
 func WithNow(t time.Time) func(o *GetIntervalOpts) {
 	return func(o *GetIntervalOpts) { o.Now = t }
+}
+
+type Requestv2 struct {
+	types.Request
+	Context     RequestContext
+	RequestedBy identity.User
 }

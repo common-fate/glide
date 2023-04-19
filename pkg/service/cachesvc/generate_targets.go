@@ -16,7 +16,9 @@ func (s *Service) RefreshCachedTargets(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	accessrulesQuery := &storage.ListCurrentAccessRules{}
+
+	// @TODO use list for status
+	accessrulesQuery := &storage.ListAccessRules{}
 	err = s.DB.All(ctx, accessrulesQuery)
 	if err != nil {
 		return err

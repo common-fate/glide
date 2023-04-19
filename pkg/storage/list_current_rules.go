@@ -8,16 +8,15 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
-type ListCurrentAccessRules struct {
+type ListAccessRules struct {
 	Result []rule.AccessRule `ddb:"result"`
 }
 
-func (l *ListCurrentAccessRules) BuildQuery() (*dynamodb.QueryInput, error) {
+func (l *ListAccessRules) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
-		IndexName:              &keys.IndexNames.GSI2,
-		KeyConditionExpression: aws.String("GSI2PK = :pk"),
+		KeyConditionExpression: aws.String("PK = :pk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI2PK},
+			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.PK1},
 		},
 	}
 	return &qi, nil
