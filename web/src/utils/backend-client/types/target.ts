@@ -10,5 +10,4 @@ import type { Field } from './field';
 export interface Target {
   id: string;
   fields: Field[];
-  accessRules: string[];
 }

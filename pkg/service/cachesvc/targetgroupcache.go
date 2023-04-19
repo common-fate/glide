@@ -18,7 +18,7 @@ import (
 // return true if options were refetched, false if they were already cached
 func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg target.Group) error {
 
-	cachedResources := storage.ListCachedTargetGroupResource{}
+	cachedResources := storage.ListCachedTargetGroupResourceForTargetGroup{TargetGroupID: tg.ID}
 
 	_, err := s.DB.Query(ctx, &cachedResources)
 	if err != nil && err != ddb.ErrNoItems {

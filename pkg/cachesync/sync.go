@@ -43,5 +43,7 @@ func (s *CacheSyncer) TargetDeployments(ctx context.Context) error {
 		}
 		log.Infow("completed syncing target group resources cache", "targetgroup", tg)
 	}
-	return nil
+
+	// Finally, update targets for requesting access
+	return s.Cache.RefreshCachedTargets(ctx)
 }

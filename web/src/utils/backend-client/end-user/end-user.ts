@@ -38,14 +38,14 @@ import type { ErrorType } from '../../custom-instance'
 
 /**
  * Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.
- * @summary Review a request
+ * @summary Review an access group
  */
 export const userReviewRequest = (
-    requestId: string,
+    id: string,
     reviewRequestBody: ReviewRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<ReviewResponseResponse>(
-      {url: `/api/v1/requests/${requestId}/review`, method: 'post',
+      {url: `/api/v1/access-group/${id}/review`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: reviewRequestBody
     },

@@ -5,8 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { Target } from './target';
 
 export type ListTargetsResponseResponse = {
-  targets: unknown[];
+  targets: Target[];
   next?: string;
 };

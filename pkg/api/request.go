@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -240,6 +241,33 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 }
 
 func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
+	ctx := r.Context()
+	q := storage.ListCachedTargets{}
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
+	}
+
+	qo, err := a.DB.Query(ctx, &q, opts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListTargetsResponse{}
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
+
+	user := auth.UserFromContext(ctx)
+	filter := cache.NewFilterTargetsByGroups(user.Groups)
+	filter.Filter(q.Result)
+	targets := filter.Dump()
+	for _, target := range targets {
+		res.Targets = append(res.Targets, target.ToAPI())
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 
 }
 

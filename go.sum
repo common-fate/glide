@@ -250,6 +250,12 @@ github.com/common-fate/cloudform v0.6.0 h1:VDme3jSJAltnF8OlSdqxjHn8YnvIoknARvISN
 github.com/common-fate/cloudform v0.6.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
 github.com/common-fate/ddb v0.15.0 h1:JZTI5rb7Roogf+dPnF2rUo9RTfH5WYvOafD3mdRxBHs=
 github.com/common-fate/ddb v0.15.0/go.mod h1:W68x78n2NUERIGjYyl6nPTyvLSlqYSdVO3Fk1gMGaKE=
+github.com/common-fate/ddb v0.15.1-0.20230418034309-305ff5fb199e h1:ZGAe2VGip1bYO8yBYDd/EsHWxeJnxwfOAQEvGOyczxI=
+github.com/common-fate/ddb v0.15.1-0.20230418034309-305ff5fb199e/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230418042550-952738c7dcd6 h1:RFMgDddeVbhCAwxjzhiCzo2uCQzDz1EsBR2l6LOlu4Y=
+github.com/common-fate/ddb v0.15.1-0.20230418042550-952738c7dcd6/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa h1:ZSYScoTaCDstroUI/VqnA/0Mu1ij8XeL1fGmg4VeSpU=
+github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=
