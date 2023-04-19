@@ -100,33 +100,14 @@ export const Navbar: React.FC = () => {
         <Container maxW="container.xl">
           <Flex justify="space-between" py={{ base: "3", lg: "4" }}>
             <HStack spacing="4" pos="relative" w="100%">
-              <VStack>
-                <ChakraLink
-                  href={"https://docs.commonfate.io/common-fate/introduction/"}
-                  isExternal
-                  transition="all .2s ease"
-                  rounded="sm"
-                >
-                  <CommonFateLogo h="32px" w="auto" />
-                </ChakraLink>
-                {/* <ChakraLink
-                  href={"https://docs.commonfate.io/common-fate/introduction/"}
-                  isExternal
-                  transition="all .2s ease"
-                  rounded="sm"
-                >
-                  <Button
-                    size="xs"
-                    variant="link"
-                    px={3}
-                    aria-label="docs"
-                    id="docs-button"
-                    color="neutrals.600"
-                  >
-                    Documentation
-                  </Button>
-                </ChakraLink> */}
-              </VStack>
+              <ChakraLink
+                as={Link}
+                to={"/requests"}
+                transition="all .2s ease"
+                rounded="sm"
+              >
+                <CommonFateLogo h="32px" w="auto" />
+              </ChakraLink>
               <Button
                 size="md"
                 variant="unstyled"
