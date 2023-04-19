@@ -112,7 +112,7 @@ func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId 
 		apio.Error(ctx, w, err)
 		return
 	}
-	// apio.JSON(ctx, w, q.Result.ToAPIDetail(), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Update Access Rule
