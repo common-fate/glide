@@ -163,10 +163,18 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 					// Don't set an id at this stage
 					// ID:            types.NewTargetID(),
 					TargetGroupID: tID,
-					Fields:        target,
+					Fields:        []cache.Field{},
 					AccessRules:   cache.MakeMapStringStruct(arID),
 					// assign the groups
 					Groups: cache.MakeMapStringStruct(arMap[arID].Groups...),
+				}
+
+				// @TODO populate all the data for field type
+				for k, v := range target {
+					t.Fields = append(t.Fields, cache.Field{
+						ID:    k,
+						Value: v,
+					})
 				}
 				o := out[t.Key()]
 				for k := range o.AccessRules {
