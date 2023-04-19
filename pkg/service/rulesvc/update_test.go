@@ -1,150 +1,220 @@
 package rulesvc
 
-// func TestUpdateAccessRule(t *testing.T) {
+import (
+	"context"
+	"testing"
 
-// 	type testcase struct {
-// 		name            string
-// 		givenUserID     string
-// 		givenRule       rule.AccessRule
-// 		givenUpdateBody types.CreateAccessRuleRequest
-// 		wantErr         error
-// 		want            *rule.AccessRule
-// 	}
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/ddb/ddbmock"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+)
 
-// 	in := types.CreateAccessRuleRequest{}
+func TestUpdateAccessRule(t *testing.T) {
 
-// 	ruleID := "override"
-// 	versionID := types.NewVersionID()
-// 	userID := "user1"
-// 	clk := clock.NewMock()
-// 	now := clk.Now()
-// 	cacheArgOptionsResponse := []cache.ProviderOption{}
-// 	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
+	type testcase struct {
+		name               string
+		givenUserID        string
+		givenRule          rule.AccessRule
+		givenUpdateBody    types.CreateAccessRuleRequest
+		wantErr            error
+		want               *rule.AccessRule
+		wantTargetGroup    target.Group
+		wantTargetGroupErr error
+	}
 
-// 	/**
-// 	Input values needed:
-// 	- UpdateOpts.Rule
-// 	- UpdateOpts.UpdateRequest
-// 	*/
-// 	mockRule := rule.AccessRule{
-// 		ID:       ruleID,
-// 		Approval: rule.Approval(in.Approval),
-// 		Status:   rule.ACTIVE,
-// 		Metadata: rule.AccessRuleMetadata{
-// 			CreatedAt: now,
-// 			CreatedBy: userID,
-// 			UpdatedAt: now,
-// 			UpdatedBy: userID,
-// 		},
-// 		Target: rule.Target{
-// 			ProviderID:          "hello",
-// 			BuiltInProviderType: "awssso",
-// 			With:                map[string]string{},
-// 			WithSelectable:      map[string][]string{},
-// 		},
-// 	}
+	in := types.CreateAccessRuleRequest{
+		Approval:        types.AccessRuleApproverConfig{},
+		Description:     "test",
+		Name:            "test",
+		Groups:          []string{"group_a"},
+		TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
 
-// 	mockRuleUpdateBody := types.CreateAccessRuleRequest{
-// 		Approval: types.ApproverConfig{
-// 			Users: []string{"user1", "user2"},
-// 		},
-// 		Name:        "changing the name",
-// 		Description: "changing the description name",
-// 		Groups:      []string{"group1", "group2"},
-// 		TimeConstraints: types.AccessRuleTimeConstraints{
-// 			MaxDurationSeconds: 600,
-// 		},
-// 		Target: types.CreateAccessRuleTarget{
-// 			ProviderId: "newTarget",
-// 			With: types.CreateAccessRuleTarget_With{
-// 				AdditionalProperties: make(map[string]types.CreateAccessRuleTargetDetailArguments),
-// 			},
-// 		},
-// 	}
+		Targets: []types.CreateAccessRuleTarget{
+			{
+				TargetGroupId:         "test",
+				FieldFilterExpessions: make(map[string]interface{}),
+			},
+		},
+	}
 
-// 	want := rule.AccessRule{
-// 		ID: ruleID,
-// 		Approval: rule.Approval{
-// 			Users: mockRuleUpdateBody.Approval.Users,
-// 		},
-// 		Status:      rule.ACTIVE,
-// 		Description: mockRuleUpdateBody.Description,
-// 		Name:        mockRuleUpdateBody.Name,
-// 		Groups:      mockRuleUpdateBody.Groups,
-// 		Metadata: rule.AccessRuleMetadata{
-// 			CreatedAt: now,
-// 			CreatedBy: userID,
-// 			UpdatedAt: now,
-// 			UpdatedBy: userID,
-// 		},
-// 		TimeConstraints: types.AccessRuleTimeConstraints{
-// 			MaxDurationSeconds: 600,
-// 		},
-// 		Version: versionID,
-// 		Target: rule.Target{
-// 			ProviderID:               "newTarget",
-// 			BuiltInProviderType:      "awssso",
-// 			With:                     make(map[string]string),
-// 			WithSelectable:           make(map[string][]string),
-// 			WithArgumentGroupOptions: make(map[string]map[string][]string),
-// 		},
-// 	}
+	ruleID := "override"
+	userID := "user1"
+	clk := clock.NewMock()
+	now := clk.Now()
 
-// 	/**
-// 	Things to test:
-// 	- Control test case (pass) ✅
-// 	- Non admin user cannot update rule ✅
-// 	*/
-// 	testcases := []testcase{
-// 		{
-// 			name:            "ok",
-// 			givenUserID:     userID,
-// 			givenRule:       mockRule,
-// 			givenUpdateBody: mockRuleUpdateBody,
-// 			want:            &want,
-// 		},
-// 	}
+	mockRule := rule.AccessRule{
+		ID:          ruleID,
+		Approval:    rule.Approval(in.Approval),
+		Status:      rule.ACTIVE,
+		Description: in.Description,
+		Name:        in.Name,
+		Groups:      in.Groups,
+		Metadata: rule.AccessRuleMetadata{
+			CreatedAt: now,
+			CreatedBy: userID,
+			UpdatedAt: now,
+			UpdatedBy: userID,
+		},
+		Targets: []rule.Target{
+			{
+				TargetGroup: target.Group{
+					ID: "123",
+					From: target.From{
+						Name:      "test",
+						Publisher: "commonfate",
+						Kind:      "Account",
+						Version:   "v1.1.1",
+					},
+					Schema:    providerregistrysdk.Target{},
+					Icon:      "",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+			},
+		},
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
+		TimeConstraints: in.TimeConstraints,
+	}
 
-// 			dbc := ddbmock.Client{
-// 				PutBatchErr: tc.wantErr,
-// 			}
-// 			clk := clock.NewMock()
-// 			ctrl := gomock.NewController(t)
+	mockRuleUpdateBody := types.CreateAccessRuleRequest{
+		Approval:        types.AccessRuleApproverConfig{},
+		Description:     "updated description",
+		Name:            "updated name",
+		Groups:          []string{"group_b"},
+		TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3601},
 
-// 			defer ctrl.Finish()
+		Targets: []types.CreateAccessRuleTarget{
+			{
+				TargetGroupId:         "test",
+				FieldFilterExpessions: make(map[string]interface{}),
+			},
+		},
+	}
 
-// 			cm := mocks.NewMockCacheService(ctrl)
-// 			cm.EXPECT().LoadCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.givenUpdateBody.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+	want := rule.AccessRule{
+		ID: ruleID,
+		Approval: rule.Approval{
+			Users: mockRuleUpdateBody.Approval.Users,
+		},
+		Status:      rule.ACTIVE,
+		Description: mockRuleUpdateBody.Description,
+		Name:        mockRuleUpdateBody.Name,
+		Groups:      mockRuleUpdateBody.Groups,
+		Metadata: rule.AccessRuleMetadata{
+			CreatedAt: now,
+			CreatedBy: userID,
+			UpdatedAt: now,
+			UpdatedBy: userID,
+		},
+		TimeConstraints: types.AccessRuleTimeConstraints{
+			MaxDurationSeconds: 3601,
+		},
+		Targets: []rule.Target{
+			{
+				TargetGroup: target.Group{
+					ID: "123",
+					From: target.From{
+						Name:      "test",
+						Publisher: "commonfate",
+						Kind:      "Account",
+						Version:   "v1.1.1",
+					},
+					Schema:    providerregistrysdk.Target{},
+					Icon:      "",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+			},
+		},
+	}
 
-// 			s := Service{
-// 				Clock: clk,
-// 				DB:    &dbc,
-// 				Cache: cm,
-// 			}
+	/**
+	Things to test:
+	- Control test case (pass) ✅
+	- Non admin user cannot update rule ✅
+	*/
+	testcases := []testcase{
+		{
+			name:            "ok",
+			givenUserID:     userID,
+			givenRule:       mockRule,
+			givenUpdateBody: mockRuleUpdateBody,
+			want:            &want,
+			wantTargetGroup: target.Group{
+				ID: "123",
+				From: target.From{
+					Name:      "test",
+					Publisher: "commonfate",
+					Kind:      "Account",
+					Version:   "v1.1.1",
+				},
+				Schema:    providerregistrysdk.Target{},
+				Icon:      "",
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		},
+		{
+			name:               "target group not found fails gracefully",
+			givenUserID:        userID,
+			givenRule:          mockRule,
+			givenUpdateBody:    mockRuleUpdateBody,
+			wantTargetGroupErr: ddb.ErrNoItems,
+		},
+	}
 
-// 			got, err := s.UpdateRule(context.Background(), &UpdateOpts{
-// 				UpdaterID:      tc.givenUserID,
-// 				Rule:           tc.givenRule,
-// 				UpdateRequest:  tc.givenUpdateBody,
-// 				ApprovalGroups: []rule.Approval{},
-// 			})
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
 
-// 			// This is the only thing from service layer that we can't mock yet, hence the override
-// 			if err == nil {
-// 				// Rule id and version id must not be empty strings, we check this prior to overwriting them
-// 				assert.NotEmpty(t, got.Version)
-// 				assert.NotEmpty(t, got.ID)
-// 				got.ID = ruleID
-// 				got.Version = versionID
-// 			}
+			dbc := ddbmock.New(t)
 
-// 			assert.Equal(t, tc.wantErr, err)
-// 			assert.Equal(t, tc.want, got)
+			clk := clock.NewMock()
+			ctrl := gomock.NewController(t)
 
-// 		})
-// 	}
+			defer ctrl.Finish()
 
-// }
+			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.wantTargetGroup}, tc.wantTargetGroupErr)
+
+			s := Service{
+				Clock: clk,
+				DB:    dbc,
+			}
+
+			got, err := s.UpdateRule(context.Background(), &UpdateOpts{
+				UpdaterID:      tc.givenUserID,
+				Rule:           tc.givenRule,
+				UpdateRequest:  tc.givenUpdateBody,
+				ApprovalGroups: []rule.Approval{},
+			})
+
+			// This is the only thing from service layer that we can't mock yet, hence the override
+			if err == nil {
+				// Rule id and version id must not be empty strings, we check this prior to overwriting them
+				assert.NotEmpty(t, got.ID)
+				got.ID = ruleID
+			}
+
+			if tc.wantTargetGroupErr != nil {
+				assert.Equal(t, tc.wantTargetGroupErr.Error(), err.Error())
+				return
+			}
+
+			if err != nil {
+				assert.Equal(t, tc.wantErr.Error(), err.Error())
+			}
+
+			assert.Equal(t, tc.want, got)
+
+		})
+	}
+
+}
