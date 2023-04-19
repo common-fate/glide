@@ -112,6 +112,7 @@ export class AppFrontend extends Construct {
     /* CDN */
 
     const accessLogBucket = new s3.Bucket(this, "AccessLogBucket", {
+      accessControl: undefined,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       objectOwnership: cdk.aws_s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
