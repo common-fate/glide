@@ -18,5 +18,8 @@
       "../authlambda/src/app-cdn.auth-handler.config.json",
       "../../cmd/devcli"
     ]
+  },
+  "context": {
+    "@aws-cdk/aws-s3:serverAccessLogsUseBucketPolicy": true
   }
 }
