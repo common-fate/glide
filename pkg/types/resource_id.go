@@ -66,3 +66,6 @@ func NewAccessGroupID() string {
 func NewTargetID() string {
 	return newResourceID("tar")
 }
+func NewPreflightID() string {
+	return newResourceID("pre")
+}

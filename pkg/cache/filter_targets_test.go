@@ -12,11 +12,17 @@ func TestFilterTargetsByAccessRules(t *testing.T) {
 	}
 
 	t1 := Target{
-		Fields:      map[string]string{"hello": "world"},
+		Fields: []Field{{
+			ID:    "hello",
+			Value: "world",
+		}},
 		AccessRules: map[string]struct{}{"accessRule_1": {}},
 	}
 	t2 := Target{
-		Fields:      map[string]string{"hello": "world"},
+		Fields: []Field{{
+			ID:    "hello",
+			Value: "world",
+		}},
 		AccessRules: map[string]struct{}{"accessRule_2": {}},
 	}
 	tests := []struct {
@@ -50,11 +56,17 @@ func TestFilterTargetsByGroups(t *testing.T) {
 	}
 
 	t1 := Target{
-		Fields: map[string]string{"hello": "world"},
+		Fields: []Field{{
+			ID:    "hello",
+			Value: "world",
+		}},
 		Groups: map[string]struct{}{"group_1": {}},
 	}
 	t2 := Target{
-		Fields: map[string]string{"hello": "world"},
+		Fields: []Field{{
+			ID:    "hello",
+			Value: "world",
+		}},
 		Groups: map[string]struct{}{"group_2": {}},
 	}
 	tests := []struct {

@@ -1,9 +1,5 @@
 package gevent
 
-import (
-	"github.com/common-fate/common-fate/pkg/requests"
-)
-
 const (
 	RequestCreatedType   = "request.created"
 	RequestApprovedType  = "request.approved"
@@ -14,8 +10,8 @@ const (
 // RequestCreated is emitted when a user requests access
 // to something in the Common Fate service.
 type RequestCreated struct {
-	Request        requests.Requestv2 `json:"request"`
-	RequestorEmail string             `json:"requestorEmail"`
+	// Request        requests.Requestv2 `json:"request"`
+	RequestorEmail string `json:"requestorEmail"`
 }
 
 func (RequestCreated) EventType() string {
@@ -25,9 +21,9 @@ func (RequestCreated) EventType() string {
 // RequestApproved is emitted when a
 // user's request is approved.
 type RequestApproved struct {
-	Request       requests.Requestv2 `json:"request"`
-	ReviewerID    string             `json:"reviewerId"`
-	ReviewerEmail string             `json:"reviewerEmail"`
+	// Request       requests.Requestv2 `json:"request"`
+	ReviewerID    string `json:"reviewerId"`
+	ReviewerEmail string `json:"reviewerEmail"`
 }
 
 func (RequestApproved) EventType() string {
@@ -35,7 +31,7 @@ func (RequestApproved) EventType() string {
 }
 
 type RequestCancelled struct {
-	Request requests.Requestv2 `json:"request"`
+	// Request requests.Requestv2 `json:"request"`
 }
 
 func (RequestCancelled) EventType() string {
@@ -43,9 +39,9 @@ func (RequestCancelled) EventType() string {
 }
 
 type RequestDeclined struct {
-	Request       requests.Requestv2 `json:"request"`
-	ReviewerID    string             `json:"reviewerId"`
-	ReviewerEmail string             `json:"reviewerEmail"`
+	// Request       requests.Requestv2 `json:"request"`
+	ReviewerID    string `json:"reviewerId"`
+	ReviewerEmail string `json:"reviewerEmail"`
 }
 
 func (RequestDeclined) EventType() string {
@@ -56,6 +52,6 @@ func (RequestDeclined) EventType() string {
 // all Request events. It is used to conveniently unmarshal
 // the Request payloads in our event handler code.
 type RequestEventPayload struct {
-	Request    requests.Requestv2 `json:"request"`
-	ReviewerID string             `json:"reviewerId"`
+	// Request    requests.Requestv2 `json:"request"`
+	ReviewerID string `json:"reviewerId"`
 }
