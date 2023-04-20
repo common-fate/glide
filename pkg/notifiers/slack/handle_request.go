@@ -15,7 +15,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -28,7 +27,7 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 		return err
 	}
 	request := requestEvent.Request
-	requestedRuleQuery := storage.GetAccessRuleCurrent{ID: ""}
+	requestedRuleQuery := storage.GetAccessRule{ID: ""}
 	_, err = n.DB.Query(ctx, &requestedRuleQuery)
 	if err != nil {
 		return errors.Wrap(err, "getting access rule")
@@ -69,10 +68,10 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 			log.Infow("messaging reviewers", "reviewers", reviewers)
 
-			requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
-			if err != nil {
-				log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-			}
+			// requestArguments, err := n.RenderRequestArguments(ctx, log, request, requestedRule)
+			// if err != nil {
+			// 	log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+			// }
 
 			//access groups for a request
 
@@ -86,12 +85,12 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 
 			// for webhooks
 			reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
-				Request:          request,
-				RequestArguments: requestArguments,
-				RequestorEmail:   requestingUserQuery.Result.Email,
-				ReviewURLs:       reviewURL,
-				IsWebhook:        true,
-				AccessGroups:     accessGroups.Result,
+				Request: request,
+				// RequestArguments: requestArguments,
+				RequestorEmail: requestingUserQuery.Result.Email,
+				ReviewURLs:     reviewURL,
+				IsWebhook:      true,
+				AccessGroups:   accessGroups.Result,
 			})
 
 			// log for testing purposes
@@ -117,8 +116,8 @@ func (n *SlackNotifier) HandleRequestEvent(ctx context.Context, log *zap.Sugared
 					slackUserID = requestor.ID
 				}
 				reviewerSummary, reviewerMsg := BuildRequestReviewMessage(RequestMessageOpts{
-					Request:          request,
-					RequestArguments: requestArguments,
+					Request: request,
+					// RequestArguments: requestArguments,
 					RequestorSlackID: slackUserID,
 					RequestorEmail:   requestingUserQuery.Result.Email,
 					ReviewURLs:       reviewURL,
@@ -239,10 +238,10 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		log.Errorw("building review URL", zap.Error(err))
 		return
 	}
-	requestArguments, err := n.RenderRequestArguments(ctx, log, request, rule)
-	if err != nil {
-		log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
-	}
+	// requestArguments, err := n.RenderRequestArguments(ctx, log, request, rule)
+	// if err != nil {
+	// 	log.Errorw("failed to generate request arguments, skipping including them in the slack message", "error", err)
+	// }
 	log.Infow("messaging reviewers", "reviewers", reviewers.Result)
 	//access groups for a request
 
@@ -266,8 +265,8 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 		}
 
 		_, msg := BuildRequestReviewMessage(RequestMessageOpts{
-			Request:          request,
-			RequestArguments: requestArguments,
+			Request: request,
+			// RequestArguments: requestArguments,
 			RequestorSlackID: slackUserID,
 			RequestorEmail:   requestingUser.Email,
 			ReviewURLs:       reviewURL,
@@ -290,14 +289,14 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 	}
 	// this does not include the slackUserID because we don't have access to look it up
 	summary, msg := BuildRequestReviewMessage(RequestMessageOpts{
-		Request:          request,
-		RequestArguments: requestArguments,
-		RequestorEmail:   requestingUser.Email,
-		ReviewURLs:       reviewURL,
-		WasReviewed:      true,
-		RequestReviewer:  reqReviewer.Result,
-		IsWebhook:        true,
-		AccessGroups:     accessGroups.Result,
+		Request: request,
+		// RequestArguments: requestArguments,
+		RequestorEmail:  requestingUser.Email,
+		ReviewURLs:      reviewURL,
+		WasReviewed:     true,
+		RequestReviewer: reqReviewer.Result,
+		IsWebhook:       true,
+		AccessGroups:    accessGroups.Result,
 	})
 	for _, webhook := range n.webhooks {
 		err = webhook.SendWebhookMessage(ctx, msg.Blocks, summary)
@@ -307,67 +306,67 @@ func (n *SlackNotifier) SendUpdatesForRequest(ctx context.Context, log *zap.Suga
 	}
 }
 
-// This method maps request arguments in a deprecated way.
-// it should be replaced eventually with a cache lookup for the options available for the access rule
-func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, rule rule.AccessRule) ([]types.With, error) {
-	// Consider adding a fallback if the cache lookup fails
+// // This method maps request arguments in a deprecated way.
+// // it should be replaced eventually with a cache lookup for the options available for the access rule
+// func (n *SlackNotifier) RenderRequestArguments(ctx context.Context, log *zap.SugaredLogger, request requests.Requestv2, rule rule.AccessRule) ([]types.With, error) {
+// 	// Consider adding a fallback if the cache lookup fails
 
-	var labelArr []types.With
-	// Lookup the provider, ignore errors
-	// if provider is not found, fallback to using the argument key as the title
-	//TODO: FIX THIS FOR TARGET GROUP PROVIDERS
-	// _, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
-	// for k, v := range request.SelectedWith {
-	// 	with := types.With{
-	// 		Label: v.Label,
-	// 		Value: v.Value,
-	// 		Title: k,
-	// 	}
-	// 	// attempt to get the title for the argument from the provider arg schema
-	// 	if provider != nil {
-	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-	// 			t, ok := s.ArgSchema()[k]
-	// 			if ok {
-	// 				with.Title = t.Title
-	// 			}
-	// 		}
-	// 	}
-	// 	labelArr = append(labelArr, with)
-	// }
+// 	// var labelArr []types.With
+// 	// Lookup the provider, ignore errors
+// 	// if provider is not found, fallback to using the argument key as the title
+// 	//TODO: FIX THIS FOR TARGET GROUP PROVIDERS
+// 	// _, provider, _ := providerregistry.Registry().GetLatestByShortType(rule.Target.BuiltInProviderType)
+// 	// for k, v := range request.SelectedWith {
+// 	// 	with := types.With{
+// 	// 		Label: v.Label,
+// 	// 		Value: v.Value,
+// 	// 		Title: k,
+// 	// 	}
+// 	// 	// attempt to get the title for the argument from the provider arg schema
+// 	// 	if provider != nil {
+// 	// 		if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+// 	// 			t, ok := s.ArgSchema()[k]
+// 	// 			if ok {
+// 	// 				with.Title = t.Title
+// 	// 			}
+// 	// 		}
+// 	// 	}
+// 	// 	labelArr = append(labelArr, with)
+// 	// }
 
-	// for k, v := range rule.Target.With {
-	// 	// only include the with values if it does not have any groups selected,
-	// 	// if it does have groups selected, it means that it was a selectable field
-	// 	// so this check avoids duplicate/inaccurate values in the slack message
-	// 	if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
-	// 		with := types.With{
-	// 			Value: v,
-	// 			Title: k,
-	// 			Label: v,
-	// 		}
-	// 		// attempt to get the title for the argument from the provider arg schema
-	// 		if provider != nil {
-	// 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
-	// 				t, ok := s.ArgSchema()[k]
-	// 				if ok {
-	// 					with.Title = t.Title
-	// 				}
-	// 			}
-	// 		}
-	// 		for _, ao := range pq.Result {
-	// 			// if a value is found, set it to true with a label
-	// 			if ao.Arg == k && ao.Value == v {
-	// 				with.Label = ao.Label
-	// 				break
-	// 			}
-	// 		}
-	// 		labelArr = append(labelArr, with)
-	// 	}
-	// }
+// 	// for k, v := range rule.Target.With {
+// 	// 	// only include the with values if it does not have any groups selected,
+// 	// 	// if it does have groups selected, it means that it was a selectable field
+// 	// 	// so this check avoids duplicate/inaccurate values in the slack message
+// 	// 	if _, ok := rule.Target.WithArgumentGroupOptions[k]; !ok {
+// 	// 		with := types.With{
+// 	// 			Value: v,
+// 	// 			Title: k,
+// 	// 			Label: v,
+// 	// 		}
+// 	// 		// attempt to get the title for the argument from the provider arg schema
+// 	// 		if provider != nil {
+// 	// 			if s, ok := provider.Provider.(providers.ArgSchemarer); ok {
+// 	// 				t, ok := s.ArgSchema()[k]
+// 	// 				if ok {
+// 	// 					with.Title = t.Title
+// 	// 				}
+// 	// 			}
+// 	// 		}
+// 	// 		for _, ao := range pq.Result {
+// 	// 			// if a value is found, set it to true with a label
+// 	// 			if ao.Arg == k && ao.Value == v {
+// 	// 				with.Label = ao.Label
+// 	// 				break
+// 	// 			}
+// 	// 		}
+// 	// 		labelArr = append(labelArr, with)
+// 	// 	}
+// 	// }
 
-	// // now sort labelArr by Title
-	// sort.Slice(labelArr, func(i, j int) bool {
-	// 	return labelArr[i].Title < labelArr[j].Title
-	// })
-	return labelArr, nil
-}
+// 	// // now sort labelArr by Title
+// 	// sort.Slice(labelArr, func(i, j int) bool {
+// 	// 	return labelArr[i].Title < labelArr[j].Title
+// 	// })
+// 	return labelArr, nil
+// }

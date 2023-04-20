@@ -16,7 +16,7 @@ func (s *Service) UpdateUserGroups(ctx context.Context, user identity.User, grou
 	hasMore := true
 	var nextToken *string
 	for hasMore {
-		gq := storage.ListGroupsForSourceAndStatus{Source: identity.INTERNAL, Status: types.IdpStatusACTIVE}
+		gq := storage.ListGroupsForSourceAndStatus{Source: identity.INTERNAL, Status: types.ACTIVE}
 		r, err := s.DB.Query(ctx, &gq)
 		if err != nil {
 			return nil, err

@@ -38,10 +38,10 @@ func TestGovListAccessRules(t *testing.T) {
 					Description: "string",
 					Name:        "string",
 					Groups:      []string{"string"},
-					Target: rule.Target{
-						TargetGroupID: "string",
-						With:          map[string]string{},
-					},
+					// Target: rule.Target{
+					// 	TargetGroupID: "string",
+					// 	With:          map[string]string{},
+					// },
 					Approval: rule.Approval{
 						Groups: []string{"a"},
 						Users:  []string{"b"},
@@ -53,10 +53,10 @@ func TestGovListAccessRules(t *testing.T) {
 					Description: "string",
 					Name:        "string",
 					Groups:      []string{"string"},
-					Target: rule.Target{
-						TargetGroupID: "string",
-						With:          map[string]string{},
-					},
+					// Target: rule.Target{
+					// 	TargetGroupID: "string",
+					// 	With:          map[string]string{},
+					// },
 				},
 			},
 
@@ -83,7 +83,7 @@ func TestGovListAccessRules(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListCurrentAccessRules{Result: tc.rules}, tc.mockListErr)
+			db.MockQueryWithErr(&storage.ListAccessRules{Result: tc.rules}, tc.mockListErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)
@@ -129,10 +129,10 @@ func TestGovCreateAccessRule(t *testing.T) {
 				Description: "string",
 				Name:        "string",
 				Groups:      []string{"string"},
-				Target: rule.Target{
-					TargetGroupID: "string",
-					With:          map[string]string{},
-				},
+				// Target: rule.Target{
+				// 	TargetGroupID: "string",
+				// 	With:          map[string]string{},
+				// },
 				Metadata: rule.AccessRuleMetadata{
 					CreatedBy: "bot_governance_api",
 				},

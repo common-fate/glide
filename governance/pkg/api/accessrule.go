@@ -32,7 +32,7 @@ func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params 
 		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	} else {
-		q := storage.ListCurrentAccessRules{}
+		q := storage.ListAccessRules{}
 		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	}
@@ -42,11 +42,11 @@ func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params 
 		return
 	}
 
-	res := types.ListAccessRulesDetailResponse{
-		AccessRules: make([]types.AccessRuleDetail, len(rules)),
+	res := types.ListAccessRulesResponse{
+		AccessRules: make([]types.AccessRule, len(rules)),
 	}
 	for i, r := range rules {
-		res.AccessRules[i] = r.ToAPIDetail()
+		res.AccessRules[i] = r.ToAPI()
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
@@ -73,14 +73,14 @@ func (a *API) GovCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
+	apio.JSON(ctx, w, c.ToAPI(), http.StatusCreated)
 }
 
 // Get Access Rule
 // (GET /api/v1/gov/access-rules/{ruleId})
 func (a *API) GovGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	q := storage.GetAccessRuleCurrent{
+	q := storage.GetAccessRule{
 		ID: ruleId,
 	}
 	_, err := a.DB.Query(ctx, &q)
@@ -92,7 +92,7 @@ func (a *API) GovGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId st
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, q.Result.ToAPIDetail(), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Update Access Rule
@@ -107,7 +107,7 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 	}
 
 	var rule *rule.AccessRule
-	ruleq := storage.GetAccessRuleCurrent{ID: ruleId}
+	ruleq := storage.GetAccessRule{ID: ruleId}
 	_, err = a.DB.Query(ctx, &ruleq)
 	if err != nil {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
@@ -125,14 +125,14 @@ func (a *API) GovUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId
 		return
 	}
 
-	apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusOK)
+	apio.JSON(ctx, w, updatedRule.ToAPI(), http.StatusOK)
 }
 
 // Archive Access Rule
 // (POST /api/v1/gov/access-rules/{ruleId}/archive)
 func (a *API) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	q := storage.GetAccessRuleCurrent{ID: ruleId}
+	q := storage.GetAccessRule{ID: ruleId}
 	_, err := a.DB.Query(ctx, &q)
 
 	if err == ddb.ErrNoItems {
@@ -149,5 +149,5 @@ func (a *API) GovArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleI
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusOK)
+	apio.JSON(ctx, w, c.ToAPI(), http.StatusOK)
 }

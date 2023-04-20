@@ -5,7 +5,6 @@ import (
 
 	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
@@ -23,29 +22,29 @@ type Favorite struct {
 	UpdatedAt       time.Time             `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
-func (b Favorite) ToAPI() types.Favorite {
-	return types.Favorite{
-		Id:     b.ID,
-		Name:   b.Name,
-		RuleId: b.Rule,
-	}
-}
+// func (b Favorite) ToAPI() types.Favorite {
+// 	return types.Favorite{
+// 		Id:     b.ID,
+// 		Name:   b.Name,
+// 		RuleId: b.Rule,
+// 	}
+// }
 
-func (b Favorite) ToAPIDetail() types.FavoriteDetail {
-	bm := types.FavoriteDetail{
-		Id:     b.ID,
-		Name:   b.Name,
-		Reason: b.Data.Reason,
-		Timing: b.RequestedTiming.ToAPI(),
-	}
+// func (b Favorite) ToAPIDetail() types.FavoriteDetail {
+// 	bm := types.FavoriteDetail{
+// 		Id:     b.ID,
+// 		Name:   b.Name,
+// 		Reason: b.Data.Reason,
+// 		Timing: b.RequestedTiming.ToAPI(),
+// 	}
 
-	for _, w := range b.With {
-		bm.With = append(bm.With, types.CreateRequestWith{
-			AdditionalProperties: w,
-		})
-	}
-	return bm
-}
+// 	for _, w := range b.With {
+// 		bm.With = append(bm.With, types.CreateRequestWith{
+// 			AdditionalProperties: w,
+// 		})
+// 	}
+// 	return bm
+// }
 
 func (b *Favorite) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{

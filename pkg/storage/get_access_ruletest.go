@@ -9,7 +9,7 @@ import (
 	"github.com/common-fate/ddb/ddbtest"
 )
 
-func TestGetAccessRuleCurrent(t *testing.T) {
+func TestGetAccessRule(t *testing.T) {
 	db := newTestingStorage(t)
 
 	rul := rule.TestAccessRule()
@@ -18,12 +18,12 @@ func TestGetAccessRuleCurrent(t *testing.T) {
 	tc := []ddbtest.QueryTestCase{
 		{
 			Name:  "ok",
-			Query: &GetAccessRuleCurrent{ID: rul.ID},
-			Want:  &GetAccessRuleCurrent{ID: rul.ID, Result: &rul},
+			Query: &GetAccessRule{ID: rul.ID},
+			Want:  &GetAccessRule{ID: rul.ID, Result: &rul},
 		},
 		{
 			Name:    "rule not found",
-			Query:   &GetAccessRuleCurrent{ID: types.NewAccessRuleID()},
+			Query:   &GetAccessRule{ID: types.NewAccessRuleID()},
 			WantErr: ddb.ErrNoItems,
 		},
 	}

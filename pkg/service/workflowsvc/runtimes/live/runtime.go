@@ -1,165 +1,144 @@
 package live
 
-import (
-	"context"
-	"encoding/json"
-	"errors"
-	"strings"
+// type Runtime struct {
+// 	StateMachineARN string
+// 	Eventbus        *gevent.Sender
+// 	DB              ddb.Storage
+// 	RequestRouter   *requestroutersvc.Service
+// }
 
-	aws_config "github.com/aws/aws-sdk-go-v2/config"
+// func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant) error {
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/sfn"
-	"github.com/common-fate/common-fate/pkg/cfaws"
-	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/handler"
-	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/targetgroupgranter"
-	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/common-fate/ddb"
-	"github.com/common-fate/provider-registry-sdk-go/pkg/msg"
-)
+// 	return r.grantTargetGroup(ctx, grant)
 
-type Runtime struct {
-	StateMachineARN string
-	Eventbus        *gevent.Sender
-	DB              ddb.Storage
-	RequestRouter   *requestroutersvc.Service
-}
+// }
+// func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
 
-func (r *Runtime) Grant(ctx context.Context, grant types.CreateGrant) error {
+// 	return r.revokeTargetGroup(ctx, grantID)
 
-	return r.grantTargetGroup(ctx, grant)
+// }
+// func (r *Runtime) grantTargetGroup(ctx context.Context, grant types.CreateGrant) error {
+// 	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	sfnClient := sfn.NewFromConfig(cfg)
+// 	in := targetgroupgranter.WorkflowInput{Grant: grant}
 
-}
-func (r *Runtime) Revoke(ctx context.Context, grantID string) error {
+// 	inJson, err := json.Marshal(in)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return r.revokeTargetGroup(ctx, grantID)
+// 	//running the step function
+// 	sei := &sfn.StartExecutionInput{
+// 		StateMachineArn: aws.String(r.StateMachineARN),
+// 		Input:           aws.String(string(inJson)),
+// 		Name:            &grant.Id,
+// 	}
 
-}
-func (r *Runtime) grantTargetGroup(ctx context.Context, grant types.CreateGrant) error {
-	cfg, err := cfaws.ConfigFromContextOrDefault(ctx)
-	if err != nil {
-		return err
-	}
-	sfnClient := sfn.NewFromConfig(cfg)
-	in := targetgroupgranter.WorkflowInput{Grant: grant}
+// 	//running the step function
+// 	_, err = sfnClient.StartExecution(ctx, sei)
+// 	return err
 
-	inJson, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
+// }
 
-	//running the step function
-	sei := &sfn.StartExecutionInput{
-		StateMachineArn: aws.String(r.StateMachineARN),
-		Input:           aws.String(string(inJson)),
-		Name:            &grant.Id,
-	}
+// func BuildExecutionARN(stateMachineARN string, grantID string) string {
 
-	//running the step function
-	_, err = sfnClient.StartExecution(ctx, sei)
-	return err
+// 	splitARN := strings.Split(stateMachineARN, ":")
 
-}
+// 	//position 5 is the location of the arn type
+// 	splitARN[5] = "execution"
+// 	splitARN = append(splitARN, grantID)
 
-func BuildExecutionARN(stateMachineARN string, grantID string) string {
+// 	return strings.Join(splitARN, ":")
 
-	splitARN := strings.Split(stateMachineARN, ":")
+// }
 
-	//position 5 is the location of the arn type
-	splitARN[5] = "execution"
-	splitARN = append(splitARN, grantID)
+// func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
+// 	//we can grab all this from the execution input for the step function we will use this as the source of truth
+// 	c, err := aws_config.LoadDefaultConfig(ctx)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	sfnClient := sfn.NewFromConfig(c)
 
-	return strings.Join(splitARN, ":")
+// 	//build the execution ARN
+// 	exeARN := BuildExecutionARN(r.StateMachineARN, grantID)
 
-}
+// 	out, err := sfnClient.DescribeExecution(ctx, &sfn.DescribeExecutionInput{ExecutionArn: aws.String(exeARN)})
+// 	if err != nil {
+// 		return err
+// 	}
 
-func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
-	//we can grab all this from the execution input for the step function we will use this as the source of truth
-	c, err := aws_config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return err
-	}
-	sfnClient := sfn.NewFromConfig(c)
+// 	//build the previous grant from the execution input
+// 	var input targetgroupgranter.WorkflowInput
 
-	//build the execution ARN
-	exeARN := BuildExecutionARN(r.StateMachineARN, grantID)
+// 	err = json.Unmarshal([]byte(*out.Input), &input)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	out, err := sfnClient.DescribeExecution(ctx, &sfn.DescribeExecutionInput{ExecutionArn: aws.String(exeARN)})
-	if err != nil {
-		return err
-	}
+// 	//if the state function is in the active state then we will stop the execution
+// 	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	tgq := storage.GetTargetGroup{
+// 		ID: input.Grant.Provider,
+// 	}
 
-	//build the previous grant from the execution input
-	var input targetgroupgranter.WorkflowInput
+// 	_, err = r.DB.Query(ctx, &tgq)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	routeResult, err := r.RequestRouter.Route(ctx, *tgq.Result)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	lastState := statefn.Events[len(statefn.Events)-1]
 
-	err = json.Unmarshal([]byte(*out.Input), &input)
-	if err != nil {
-		return err
-	}
+// 	//if the state of the grant is in the active state
+// 	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
 
-	//if the state function is in the active state then we will stop the execution
-	statefn, err := sfnClient.GetExecutionHistory(ctx, &sfn.GetExecutionHistoryInput{ExecutionArn: &exeARN})
-	if err != nil {
-		return err
-	}
-	tgq := storage.GetTargetGroup{
-		ID: input.Grant.Provider,
-	}
+// 		// Pull the state from the output of the activate step so it can be used when revoking access
+// 		exitActivateStepEvent := statefn.Events[len(statefn.Events)-2]
+// 		if exitActivateStepEvent.Type != "TaskStateExited" || exitActivateStepEvent.StateExitedEventDetails == nil {
+// 			return errors.New("unexpected workflow state")
+// 		}
 
-	_, err = r.DB.Query(ctx, &tgq)
-	if err != nil {
-		return err
-	}
-	routeResult, err := r.RequestRouter.Route(ctx, *tgq.Result)
-	if err != nil {
-		return err
-	}
-	runtime, err := handler.GetRuntime(ctx, routeResult.Handler)
-	if err != nil {
-		return err
-	}
-	lastState := statefn.Events[len(statefn.Events)-1]
+// 		var gs targetgroupgranter.GrantState
+// 		err = json.Unmarshal([]byte(aws.ToString(exitActivateStepEvent.StateExitedEventDetails.Output)), &gs)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		//call the provider revoke
+// 		req := msg.Revoke{
+// 			Subject: string(input.Grant.Subject),
+// 			Target: msg.Target{
+// 				Kind:      routeResult.Route.Kind,
+// 				Arguments: input.Grant.With.AdditionalProperties,
+// 			},
+// 			Request: msg.AccessRequest{
+// 				ID: grantID,
+// 			},
+// 			State: gs.State,
+// 		}
 
-	//if the state of the grant is in the active state
-	if lastState.Type == "WaitStateEntered" && *lastState.StateEnteredEventDetails.Name == "Wait for Window End" {
+// 		err = runtime.Revoke(ctx, req)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
 
-		// Pull the state from the output of the activate step so it can be used when revoking access
-		exitActivateStepEvent := statefn.Events[len(statefn.Events)-2]
-		if exitActivateStepEvent.Type != "TaskStateExited" || exitActivateStepEvent.StateExitedEventDetails == nil {
-			return errors.New("unexpected workflow state")
-		}
+// 	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
+// 	if err != nil {
+// 		return err
+// 	}
 
-		var gs targetgroupgranter.GrantState
-		err = json.Unmarshal([]byte(aws.ToString(exitActivateStepEvent.StateExitedEventDetails.Output)), &gs)
-		if err != nil {
-			return err
-		}
-		//call the provider revoke
-		req := msg.Revoke{
-			Subject: string(input.Grant.Subject),
-			Target: msg.Target{
-				Kind:      routeResult.Route.Kind,
-				Arguments: input.Grant.With.AdditionalProperties,
-			},
-			Request: msg.AccessRequest{
-				ID: grantID,
-			},
-			State: gs.State,
-		}
-
-		err = runtime.Revoke(ctx, req)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err = sfnClient.StopExecution(ctx, &sfn.StopExecutionInput{ExecutionArn: &exeARN})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// 	return nil
+// }

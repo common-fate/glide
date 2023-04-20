@@ -18,7 +18,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/common-fate/iso8601"
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -31,28 +30,10 @@ const (
 	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
 )
 
-// Defines values for AccessRuleTargetDetailArgumentsFormElement.
-const (
-	AccessRuleTargetDetailArgumentsFormElementINPUT       AccessRuleTargetDetailArgumentsFormElement = "INPUT"
-	AccessRuleTargetDetailArgumentsFormElementMULTISELECT AccessRuleTargetDetailArgumentsFormElement = "MULTISELECT"
-)
-
 // Defines values for ApprovalMethod.
 const (
 	AUTOMATIC ApprovalMethod = "AUTOMATIC"
 	REVIEWED  ApprovalMethod = "REVIEWED"
-)
-
-// Defines values for ArgumentRequestFormElement.
-const (
-	ArgumentRequestFormElementSELECT ArgumentRequestFormElement = "SELECT"
-)
-
-// Defines values for ArgumentRuleFormElement.
-const (
-	ArgumentRuleFormElementINPUT       ArgumentRuleFormElement = "INPUT"
-	ArgumentRuleFormElementMULTISELECT ArgumentRuleFormElement = "MULTISELECT"
-	ArgumentRuleFormElementSELECT      ArgumentRuleFormElement = "SELECT"
 )
 
 // Defines values for GrantStatus.
@@ -64,74 +45,17 @@ const (
 	GrantStatusREVOKED GrantStatus = "REVOKED"
 )
 
-// Defines values for Grantv2Status.
-const (
-	Grantv2StatusACTIVE  Grantv2Status = "ACTIVE"
-	Grantv2StatusERROR   Grantv2Status = "ERROR"
-	Grantv2StatusEXPIRED Grantv2Status = "EXPIRED"
-	Grantv2StatusPENDING Grantv2Status = "PENDING"
-	Grantv2StatusREVOKED Grantv2Status = "REVOKED"
-)
-
 // Defines values for IdpStatus.
 const (
-	IdpStatusACTIVE   IdpStatus = "ACTIVE"
-	IdpStatusARCHIVED IdpStatus = "ARCHIVED"
+	ACTIVE   IdpStatus = "ACTIVE"
+	ARCHIVED IdpStatus = "ARCHIVED"
 )
 
 // Defines values for LogLevel.
 const (
-	LogLevelERROR   LogLevel = "ERROR"
-	LogLevelINFO    LogLevel = "INFO"
-	LogLevelWARNING LogLevel = "WARNING"
-)
-
-// Defines values for ProviderConfigValidationStatus.
-const (
-	ProviderConfigValidationStatusERROR      ProviderConfigValidationStatus = "ERROR"
-	ProviderConfigValidationStatusINPROGRESS ProviderConfigValidationStatus = "IN_PROGRESS"
-	ProviderConfigValidationStatusPENDING    ProviderConfigValidationStatus = "PENDING"
-	ProviderConfigValidationStatusSUCCESS    ProviderConfigValidationStatus = "SUCCESS"
-)
-
-// Defines values for ProviderSetupStatus.
-const (
-	COMPLETE                       ProviderSetupStatus = "COMPLETE"
-	INITIALCONFIGURATIONINPROGRESS ProviderSetupStatus = "INITIAL_CONFIGURATION_IN_PROGRESS"
-	VALIDATING                     ProviderSetupStatus = "VALIDATING"
-	VALIDATIONFAILED               ProviderSetupStatus = "VALIDATION_FAILED"
-	VALIDATIONSUCEEDED             ProviderSetupStatus = "VALIDATION_SUCEEDED"
-)
-
-// Defines values for ProviderSetupValidationStatus.
-const (
-	ProviderSetupValidationStatusERROR      ProviderSetupValidationStatus = "ERROR"
-	ProviderSetupValidationStatusINPROGRESS ProviderSetupValidationStatus = "IN_PROGRESS"
-	ProviderSetupValidationStatusPENDING    ProviderSetupValidationStatus = "PENDING"
-	ProviderSetupValidationStatusSUCCESS    ProviderSetupValidationStatus = "SUCCESS"
-)
-
-// Defines values for RequestArgumentFormElement.
-const (
-	RequestArgumentFormElementSELECT RequestArgumentFormElement = "SELECT"
-)
-
-// Defines values for RequestEventFromGrantStatus.
-const (
-	RequestEventFromGrantStatusACTIVE  RequestEventFromGrantStatus = "ACTIVE"
-	RequestEventFromGrantStatusERROR   RequestEventFromGrantStatus = "ERROR"
-	RequestEventFromGrantStatusEXPIRED RequestEventFromGrantStatus = "EXPIRED"
-	RequestEventFromGrantStatusPENDING RequestEventFromGrantStatus = "PENDING"
-	RequestEventFromGrantStatusREVOKED RequestEventFromGrantStatus = "REVOKED"
-)
-
-// Defines values for RequestEventToGrantStatus.
-const (
-	RequestEventToGrantStatusACTIVE  RequestEventToGrantStatus = "ACTIVE"
-	RequestEventToGrantStatusERROR   RequestEventToGrantStatus = "ERROR"
-	RequestEventToGrantStatusEXPIRED RequestEventToGrantStatus = "EXPIRED"
-	RequestEventToGrantStatusPENDING RequestEventToGrantStatus = "PENDING"
-	RequestEventToGrantStatusREVOKED RequestEventToGrantStatus = "REVOKED"
+	ERROR   LogLevel = "ERROR"
+	INFO    LogLevel = "INFO"
+	WARNING LogLevel = "WARNING"
 )
 
 // Defines values for RequestStatus.
@@ -144,35 +68,9 @@ const (
 
 // Defines values for ReviewDecision.
 const (
-	APPROVED ReviewDecision = "APPROVED"
-	DECLINED ReviewDecision = "DECLINED"
+	ReviewDecisionAPPROVED ReviewDecision = "APPROVED"
+	ReviewDecisionDECLINED ReviewDecision = "DECLINED"
 )
-
-// Defines values for TargetArgumentRequestFormElement.
-const (
-	TargetArgumentRequestFormElementSELECT TargetArgumentRequestFormElement = "SELECT"
-)
-
-// Defines values for TargetArgumentRuleFormElement.
-const (
-	TargetArgumentRuleFormElementINPUT       TargetArgumentRuleFormElement = "INPUT"
-	TargetArgumentRuleFormElementMULTISELECT TargetArgumentRuleFormElement = "MULTISELECT"
-	TargetArgumentRuleFormElementSELECT      TargetArgumentRuleFormElement = "SELECT"
-)
-
-// AccessGroup defines model for AccessGroup.
-type AccessGroup struct {
-	AccessRuleId   string        `json:"accessRuleId"`
-	CreatedAt      *time.Time    `json:"createdAt,omitempty"`
-	Id             string        `json:"id"`
-	OverrideTiming RequestTiming `json:"overrideTiming"`
-	RequestId      string        `json:"requestId"`
-	Status         string        `json:"status"`
-
-	// Time configuration for an Access Rule.
-	Time      TimeConstraints `json:"time"`
-	UpdatedAt *time.Time      `json:"updatedAt,omitempty"`
-}
 
 // Instructions on how to access the requested resource.
 //
@@ -182,51 +80,32 @@ type AccessInstructions struct {
 	Instructions *string `json:"instructions,omitempty"`
 }
 
-// Access Rule contains information for an end user to make a request for access.
+// AccessRule contains detailed information about a rule and is used in administrative apis.
 type AccessRule struct {
-	CreatedAt   time.Time `json:"createdAt"`
-	Description string    `json:"description"`
-	ID          string    `json:"id"`
-	IsCurrent   bool      `json:"isCurrent"`
-	Name        string    `json:"name"`
-
-	// A target for an access rule
-	Target AccessRuleTarget `json:"target"`
-
-	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
-	UpdatedAt       time.Time       `json:"updatedAt"`
-
-	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
-	// When a rule is updated, it's ID remains consistent.
-	Version string `json:"version"`
-}
-
-// AccessRuleDetail contains detailed information about a rule and is used in administrative apis.
-type AccessRuleDetail struct {
 	// Approver config for access rules
-	Approval    ApproverConfig `json:"approval"`
-	Description string         `json:"description"`
+	Approval    AccessRuleApproverConfig `json:"approval"`
+	Description string                   `json:"description"`
 
 	// The group IDs that the access rule applies to.
-	Groups    []string           `json:"groups"`
-	ID        string             `json:"id"`
-	IsCurrent bool               `json:"isCurrent"`
-	Metadata  AccessRuleMetadata `json:"metadata"`
-	Name      string             `json:"name"`
+	Groups   []string           `json:"groups"`
+	ID       string             `json:"id"`
+	Metadata AccessRuleMetadata `json:"metadata"`
+	Name     string             `json:"name"`
 
 	// The status of an Access Rule.
-	Status AccessRuleStatus `json:"status"`
-
-	// A detailed target for an access rule
-	Target AccessRuleTargetDetail `json:"target"`
+	Status  AccessRuleStatus   `json:"status"`
+	Targets []AccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
+	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
+}
 
-	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
-	// When a rule is updated, it's ID remains consistent.
-	Version string `json:"version"`
+// Approver config for access rules
+type AccessRuleApproverConfig struct {
+	Groups []string `json:"groups"`
+
+	// The user IDs of the approvers for the request.
+	Users []string `json:"users"`
 }
 
 // AccessRuleMetadata defines model for AccessRuleMetadata.
@@ -241,140 +120,26 @@ type AccessRuleMetadata struct {
 // The status of an Access Rule.
 type AccessRuleStatus string
 
-// A target for an access rule
+// a request body for an Access Rule Target
 type AccessRuleTarget struct {
-	Provider TargetGroup `json:"provider"`
+	FieldFilterExpessions map[string]interface{} `json:"fieldFilterExpessions"`
+	TargetGroup           TargetGroup            `json:"targetGroup"`
 }
 
-// A detailed target for an access rule
-type AccessRuleTargetDetail struct {
-	TargetGroup TargetGroup                 `json:"targetGroup"`
-	With        AccessRuleTargetDetail_With `json:"with"`
-}
-
-// AccessRuleTargetDetail_With defines model for AccessRuleTargetDetail.With.
-type AccessRuleTargetDetail_With struct {
-	AdditionalProperties map[string]AccessRuleTargetDetailArguments `json:"-"`
-}
-
-// AccessRuleTargetDetailArguments defines model for AccessRuleTargetDetailArguments.
-type AccessRuleTargetDetailArguments struct {
-	FormElement AccessRuleTargetDetailArgumentsFormElement `json:"formElement"`
-	Groupings   AccessRuleTargetDetailArguments_Groupings  `json:"groupings"`
-	Values      []string                                   `json:"values"`
-}
-
-// AccessRuleTargetDetailArgumentsFormElement defines model for AccessRuleTargetDetailArguments.FormElement.
-type AccessRuleTargetDetailArgumentsFormElement string
-
-// AccessRuleTargetDetailArguments_Groupings defines model for AccessRuleTargetDetailArguments.Groupings.
-type AccessRuleTargetDetailArguments_Groupings struct {
-	AdditionalProperties map[string][]string `json:"-"`
+// Time configuration for an Access Rule.
+type AccessRuleTimeConstraints struct {
+	// The maximum duration in seconds the access is allowed for.
+	MaxDurationSeconds int `json:"maxDurationSeconds"`
 }
 
 // Describes whether a request has been approved automatically or from a review
 type ApprovalMethod string
 
-// Approver config for access rules
-type ApproverConfig struct {
-	Groups []string `json:"groups"`
-
-	// The user IDs of the approvers for the request.
-	Users []string `json:"users"`
-}
-
-// ArgOptions defines model for ArgOptions.
-type ArgOptions struct {
-	Groups *Groups `json:"groups,omitempty"`
-
-	// The suggested options.
-	Options []Option `json:"options"`
-}
-
-// ArgSchema defines model for ArgSchema.
-type ArgSchema struct {
-	AdditionalProperties map[string]Argument `json:"-"`
-}
-
-// Argument defines model for Argument.
-type Argument struct {
-	Description *string          `json:"description,omitempty"`
-	Groups      *Argument_Groups `json:"groups,omitempty"`
-	Id          string           `json:"id"`
-
-	// Optional form element for the request form, if not provided, defaults to multiselect
-	RequestFormElement *ArgumentRequestFormElement `json:"requestFormElement,omitempty"`
-	ResourceName       *string                     `json:"resourceName,omitempty"`
-	RuleFormElement    ArgumentRuleFormElement     `json:"ruleFormElement"`
-	Title              string                      `json:"title"`
-}
-
-// Argument_Groups defines model for Argument.Groups.
-type Argument_Groups struct {
-	AdditionalProperties map[string]Group `json:"-"`
-}
-
-// Optional form element for the request form, if not provided, defaults to multiselect
-type ArgumentRequestFormElement string
-
-// ArgumentRuleFormElement defines model for Argument.RuleFormElement.
-type ArgumentRuleFormElement string
-
 // a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
-	ProviderId string                      `json:"providerId"`
-	With       CreateAccessRuleTarget_With `json:"with"`
+	FieldFilterExpessions map[string]interface{} `json:"fieldFilterExpessions"`
+	TargetGroupId         string                 `json:"targetGroupId"`
 }
-
-// CreateAccessRuleTarget_With defines model for CreateAccessRuleTarget.With.
-type CreateAccessRuleTarget_With struct {
-	AdditionalProperties map[string]CreateAccessRuleTargetDetailArguments `json:"-"`
-}
-
-// CreateAccessRuleTargetDetailArguments defines model for CreateAccessRuleTargetDetailArguments.
-type CreateAccessRuleTargetDetailArguments struct {
-	Groupings CreateAccessRuleTargetDetailArguments_Groupings `json:"groupings"`
-	Values    []string                                        `json:"values"`
-}
-
-// CreateAccessRuleTargetDetailArguments_Groupings defines model for CreateAccessRuleTargetDetailArguments.Groupings.
-type CreateAccessRuleTargetDetailArguments_Groupings struct {
-	AdditionalProperties map[string][]string `json:"-"`
-}
-
-// A grant to be created.
-type CreateGrant struct {
-	// The end time of the grant in ISO8601 format.
-	End iso8601.Time `json:"end"`
-
-	// An id to assign to this new grant
-	Id string `json:"id"`
-
-	// The ID of the provider to grant access to.
-	Provider string `json:"provider"`
-
-	// The start time of the grant in ISO8601 format.
-	Start iso8601.Time `json:"start"`
-
-	// The email address of the user to grant access to.
-	Subject openapi_types.Email `json:"subject"`
-
-	// Provider-specific grant data. Must match the provider's schema.
-	With CreateGrant_With `json:"with"`
-}
-
-// Provider-specific grant data. Must match the provider's schema.
-type CreateGrant_With struct {
-	AdditionalProperties map[string]string `json:"-"`
-}
-
-// CreateRequestWith defines model for CreateRequestWith.
-type CreateRequestWith struct {
-	AdditionalProperties map[string][]string `json:"-"`
-}
-
-// CreateRequestWithSubRequest defines model for CreateRequestWithSubRequest.
-type CreateRequestWithSubRequest = []CreateRequestWith
 
 // Diagnostic defines model for Diagnostic.
 type Diagnostic struct {
@@ -383,89 +148,8 @@ type Diagnostic struct {
 	Message string   `json:"message"`
 }
 
-// Entitlement defines model for Entitlement.
-type Entitlement struct {
-	// Specifies a particular Access Provider to create a Target Group schema from.
-	Kind   TargetGroupFrom `json:"Kind"`
-	Schema TargetSchema    `json:"Schema"`
-}
-
-// Favorite defines model for Favorite.
-type Favorite struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	RuleId string `json:"ruleId"`
-}
-
-// Detailed object for a Favorite.
-type FavoriteDetail struct {
-	Id     string                      `json:"id"`
-	Name   string                      `json:"name"`
-	Reason *string                     `json:"reason,omitempty"`
-	Timing RequestTiming               `json:"timing"`
-	With   CreateRequestWithSubRequest `json:"with"`
-}
-
-// Field defines model for Field.
-type Field struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Label       string  `json:"label"`
-	Value       string  `json:"value"`
-}
-
-// A temporary assignment of a user to a principal.
-type Grant struct {
-	// The end time of the grant in ISO8601 format.
-	End time.Time `json:"end"`
-	ID  string    `json:"id"`
-
-	// The ID of the provider to grant access to.
-	Provider string `json:"provider"`
-
-	// The start time of the grant in ISO8601 format.
-	Start time.Time `json:"start"`
-
-	// The current state of the grant.
-	Status GrantStatus `json:"status"`
-
-	// The email address of the user to grant access to.
-	Subject openapi_types.Email `json:"subject"`
-
-	// Provider-specific grant data. Must match the provider's schema.
-	With Grant_With `json:"with"`
-}
-
-// The current state of the grant.
+// The status of an Access Request.
 type GrantStatus string
-
-// Provider-specific grant data. Must match the provider's schema.
-type Grant_With struct {
-	AdditionalProperties map[string]string `json:"-"`
-}
-
-// Grantv2 defines model for Grantv2.
-type Grantv2 struct {
-	AccessGroupId      string     `json:"accessGroupId"`
-	AccessInstructions *string    `json:"accessInstructions,omitempty"`
-	CreatedAt          *time.Time `json:"createdAt,omitempty"`
-
-	// The end time of the grant in ISO8601 format.
-	End time.Time `json:"end"`
-	Id  string    `json:"id"`
-
-	// The start time of the grant in ISO8601 format.
-	Start time.Time `json:"start"`
-
-	// The current state of the grant.
-	Status    Grantv2Status          `json:"status"`
-	Subject   string                 `json:"subject"`
-	Target    map[string]interface{} `json:"target"`
-	UpdatedAt *time.Time             `json:"updatedAt,omitempty"`
-}
-
-// The current state of the grant.
-type Grantv2Status string
 
 // Group defines model for Group.
 type Group struct {
@@ -477,288 +161,75 @@ type Group struct {
 	Source      string   `json:"source"`
 }
 
-// GroupOption defines model for GroupOption.
-type GroupOption struct {
-	Children    []string `json:"children"`
-	Description *string  `json:"description,omitempty"`
-	Label       string   `json:"label"`
-
-	// A label prefix allows additional context to be prefixed to the label when displayed in a form
-	LabelPrefix *string `json:"labelPrefix,omitempty"`
-	Value       string  `json:"value"`
-}
-
-// Groups defines model for Groups.
-type Groups struct {
-	AdditionalProperties map[string][]GroupOption `json:"-"`
-}
-
 // IdpStatus defines model for IdpStatus.
 type IdpStatus string
 
-// KeyValue defines model for KeyValue.
-type KeyValue struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-// A log entry.
-type Log struct {
-	// The log level.
-	Level LogLevel `json:"level"`
-
-	// The log message.
-	Msg string `json:"msg"`
-}
-
-// The log level.
+// LogLevel defines model for LogLevel.
 type LogLevel string
 
-// A matched access rule with option values if they are required for the access rule request
-type LookupAccessRule struct {
-	// Access Rule contains information for an end user to make a request for access.
-	AccessRule AccessRule `json:"accessRule"`
-
-	// If the matched access rule has selectable fields, this array will contain the matched values to be used to prefill the form when requesting
-	SelectableWithOptionValues *[]KeyValue `json:"selectableWithOptionValues,omitempty"`
+// Preflight defines model for Preflight.
+type Preflight struct {
+	AccessGroups []PreflightAccessGroup `json:"accessGroups"`
+	CreatedAt    time.Time              `json:"createdAt"`
+	Id           string                 `json:"id"`
 }
 
-// Option defines model for Option.
-type Option struct {
-	Description *string `json:"description,omitempty"`
-	Label       string  `json:"label"`
-	Value       string  `json:"value"`
+// PreflightAccessGroup defines model for PreflightAccessGroup.
+type PreflightAccessGroup struct {
+	Id      string   `json:"id"`
+	Status  string   `json:"status"`
+	Targets []Target `json:"targets"`
+
+	// Time configuration for an Access Rule.
+	Time AccessRuleTimeConstraints `json:"time"`
 }
-
-// Provider
-type Provider struct {
-	Id   string `json:"id"`
-	Type string `json:"type"`
-}
-
-// ProviderConfigField defines model for ProviderConfigField.
-type ProviderConfigField struct {
-	Description string `json:"description"`
-	Id          string `json:"id"`
-
-	// Whether the config value is optional.
-	IsOptional bool `json:"isOptional"`
-
-	// Whether or not the config field is a secret (like an API key or a password)
-	IsSecret bool   `json:"isSecret"`
-	Name     string `json:"name"`
-
-	// the path to where the secret will be stored, in a secrets manager like AWS SSM Parameter Store.
-	SecretPath *string `json:"secretPath,omitempty"`
-}
-
-// A validation against the configuration values of the Access Provider.
-type ProviderConfigValidation struct {
-	// The particular config fields validated, if any.
-	FieldsValidated []string `json:"fieldsValidated"`
-
-	// The ID of the validation, such as `list-sso-users`.
-	Id   string `json:"id"`
-	Logs []Log  `json:"logs"`
-	Name string `json:"name"`
-
-	// The status of the validation.
-	Status ProviderConfigValidationStatus `json:"status"`
-}
-
-// The status of the validation.
-type ProviderConfigValidationStatus string
-
-// ProviderConfigValue defines model for ProviderConfigValue.
-type ProviderConfigValue struct {
-	// The ID of the config field.
-	Id string `json:"id"`
-
-	// The value entered by the user.
-	Value string `json:"value"`
-}
-
-// ProviderHealth defines model for ProviderHealth.
-type ProviderHealth struct {
-	// A descriptive error message, if the provider isn't healthy.
-	Error *string `json:"error"`
-
-	// Whether the provider is healthy.
-	Healthy bool `json:"healthy"`
-
-	// The provider ID.
-	ID string `json:"id"`
-}
-
-// A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
-type ProviderSetup struct {
-	ConfigValidation []ProviderConfigValidation `json:"configValidation"`
-
-	// The current configuration values.
-	ConfigValues map[string]string `json:"configValues"`
-
-	// A unique ID for the provider setup. This is a random KSUID to avoid potential conflicts with user-specified provider IDs in the `deployment.yml` file.
-	Id string `json:"id"`
-
-	// The status of the setup process.
-	Status ProviderSetupStatus `json:"status"`
-
-	// An overview of the steps indicating whether they are complete.
-	Steps []ProviderSetupStepOverview `json:"steps"`
-
-	// The type of the Access Provider being set up.
-	Type string `json:"type"`
-
-	// The version of the provider.
-	Version string `json:"version"`
-}
-
-// The status of the setup process.
-type ProviderSetupStatus string
-
-// ProviderSetupInstructions defines model for ProviderSetupInstructions.
-type ProviderSetupInstructions struct {
-	StepDetails []ProviderSetupStepDetails `json:"stepDetails"`
-}
-
-// ProviderSetupStepDetails defines model for ProviderSetupStepDetails.
-type ProviderSetupStepDetails struct {
-	ConfigFields []ProviderConfigField `json:"configFields"`
-	Instructions string                `json:"instructions"`
-	Title        string                `json:"title"`
-}
-
-// Indicates whether a setup step is complete or not.
-type ProviderSetupStepOverview struct {
-	// Whether the step has been completed.
-	Complete bool `json:"complete"`
-}
-
-// A validation against the configuration values of the Access Provider.
-type ProviderSetupValidation struct {
-	// The particular config fields validated, if any.
-	FieldsValidated []interface{} `json:"fieldsValidated"`
-
-	// The ID of the validation, such as `list-sso-users`.
-	Id   string        `json:"id"`
-	Logs *[]Diagnostic `json:"logs,omitempty"`
-
-	// The status of the validation.
-	Status ProviderSetupValidationStatus `json:"status"`
-}
-
-// The status of the validation.
-type ProviderSetupValidationStatus string
 
 // A request to access something made by an end user in Common Fate.
 type Request struct {
-	AccessRuleId      string `json:"accessRuleId"`
-	AccessRuleVersion string `json:"accessRuleVersion"`
-
-	// Describes whether a request has been approved automatically or from a review
-	ApprovalMethod *ApprovalMethod `json:"approvalMethod,omitempty"`
-
-	// A temporary assignment of a user to a principal.
-	Grant       *Grant    `json:"grant,omitempty"`
-	ID          string    `json:"id"`
-	Reason      *string   `json:"reason,omitempty"`
-	RequestedAt time.Time `json:"requestedAt"`
-	Requestor   string    `json:"requestor"`
-
-	// The status of an Access Request.
-	Status    RequestStatus `json:"status"`
-	Timing    RequestTiming `json:"timing"`
-	UpdatedAt time.Time     `json:"updatedAt"`
+	AccessGroups []RequestAccessGroup `json:"accessGroups"`
+	ID           string               `json:"id"`
+	Purpose      *RequestPurpose      `json:"purpose,omitempty"`
+	RequestedAt  time.Time            `json:"requestedAt"`
+	RequestedBy  string               `json:"requestedBy"`
 }
 
-// Access Rule contains information for an end user to make a request for access.
-type RequestAccessRule struct {
-	CanRequest  bool   `json:"canRequest"`
-	Description string `json:"description"`
-	ID          string `json:"id"`
-	IsCurrent   bool   `json:"isCurrent"`
-	Name        string `json:"name"`
+// RequestAccessGroup defines model for RequestAccessGroup.
+type RequestAccessGroup struct {
+	CreatedAt      time.Time                `json:"createdAt"`
+	Id             string                   `json:"id"`
+	OverrideTiming RequestAccessGroupTiming `json:"overrideTiming"`
+	RequestId      string                   `json:"requestId"`
 
-	// A detailed target for an access rule request
-	Target RequestAccessRuleTarget `json:"target"`
+	// The status of an Access Request.
+	Status  RequestStatus             `json:"status"`
+	Targets []RequestAccessGroupGrant `json:"targets"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
-
-	// A unique version identifier for the Access Rule. Updating a rule creates a new version.
-	// When a rule is updated, it's ID remains consistent.
-	Version string `json:"version"`
+	Time      AccessRuleTimeConstraints `json:"time"`
+	UpdatedAt time.Time                 `json:"updatedAt"`
 }
 
-// A detailed target for an access rule request
-type RequestAccessRuleTarget struct {
-	Arguments RequestAccessRuleTarget_Arguments `json:"arguments"`
-
-	// Provider
-	Provider Provider `json:"provider"`
-}
-
-// RequestAccessRuleTarget_Arguments defines model for RequestAccessRuleTarget.Arguments.
-type RequestAccessRuleTarget_Arguments struct {
-	AdditionalProperties map[string]RequestArgument `json:"-"`
-}
-
-// RequestArgument defines model for RequestArgument.
-type RequestArgument struct {
-	Description *string                     `json:"description,omitempty"`
-	FormElement *RequestArgumentFormElement `json:"formElement,omitempty"`
-	Options     []WithOption                `json:"options"`
-
-	// This will be true if a selection is require when creating a request
-	RequiresSelection bool   `json:"requiresSelection"`
-	Title             string `json:"title"`
-}
-
-// RequestArgumentFormElement defines model for RequestArgument.FormElement.
-type RequestArgumentFormElement string
-
-// RequestContext defines model for RequestContext.
-type RequestContext struct {
-	Context struct {
-		Ip        string `json:"ip"`
-		UserAgent string `json:"userAgent"`
-	} `json:"context"`
-	Metadata struct {
-		CreatedAt string `json:"createdAt"`
-	} `json:"metadata"`
-	Purpose struct {
-		Reason string `json:"reason"`
-	} `json:"purpose"`
-}
-
-// A request to access something made by an end user in Common Fate.
-type RequestDetail struct {
-	// Access Rule contains information for an end user to make a request for access.
-	AccessRule AccessRule `json:"accessRule"`
-
-	// Describes whether a request has been approved automatically or from a review
-	ApprovalMethod *ApprovalMethod         `json:"approvalMethod,omitempty"`
-	Arguments      RequestDetail_Arguments `json:"arguments"`
-
-	// true if the requesting user is a reviewer of this request.
-	CanReview bool `json:"canReview"`
-
-	// A temporary assignment of a user to a principal.
-	Grant       *Grant    `json:"grant,omitempty"`
-	ID          string    `json:"id"`
-	Reason      *string   `json:"reason,omitempty"`
-	RequestedAt time.Time `json:"requestedAt"`
-	Requestor   string    `json:"requestor"`
+// A temporary assignment of a user to a principal.
+type RequestAccessGroupGrant struct {
+	AccessGroupId string        `json:"accessGroupId"`
+	Fields        []TargetField `json:"fields"`
+	Id            string        `json:"id"`
+	RequestId     string        `json:"requestId"`
 
 	// The status of an Access Request.
-	Status    RequestStatus `json:"status"`
-	Timing    RequestTiming `json:"timing"`
-	UpdatedAt time.Time     `json:"updatedAt"`
+	Status GrantStatus `json:"status"`
+
+	// Specifies a particular Access Provider to create a Target Group schema from.
+	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
+	TargetGroupId   string          `json:"targetGroupId"`
 }
 
-// RequestDetail_Arguments defines model for RequestDetail.Arguments.
-type RequestDetail_Arguments struct {
-	AdditionalProperties map[string]With `json:"-"`
+// RequestAccessGroupTiming defines model for RequestAccessGroupTiming.
+type RequestAccessGroupTiming struct {
+	DurationSeconds int `json:"durationSeconds"`
+
+	// iso8601 timestamp in UTC timezone
+	StartTime *time.Time `json:"startTime,omitempty"`
 }
 
 // RequestEvent defines model for RequestEvent.
@@ -766,62 +237,40 @@ type RequestEvent struct {
 	Actor     *string   `json:"actor,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 
-	// The current state of the grant.
-	FromGrantStatus *RequestEventFromGrantStatus `json:"fromGrantStatus,omitempty"`
+	// The status of an Access Request.
+	FromGrantStatus *GrantStatus `json:"fromGrantStatus,omitempty"`
 
 	// The status of an Access Request.
-	FromStatus         *RequestStatus `json:"fromStatus,omitempty"`
-	FromTiming         *RequestTiming `json:"fromTiming,omitempty"`
-	GrantCreated       *bool          `json:"grantCreated,omitempty"`
-	GrantFailureReason *string        `json:"grantFailureReason,omitempty"`
-	Id                 string         `json:"id"`
+	FromStatus         *RequestStatus            `json:"fromStatus,omitempty"`
+	FromTiming         *RequestAccessGroupTiming `json:"fromTiming,omitempty"`
+	GrantCreated       *bool                     `json:"grantCreated,omitempty"`
+	GrantFailureReason *string                   `json:"grantFailureReason,omitempty"`
+	Id                 string                    `json:"id"`
 
 	// An event which was recorded relating to the grant.
 	RecordedEvent  *map[string]string `json:"recordedEvent,omitempty"`
 	RequestCreated *bool              `json:"requestCreated,omitempty"`
 	RequestId      string             `json:"requestId"`
 
-	// The current state of the grant.
-	ToGrantStatus *RequestEventToGrantStatus `json:"toGrantStatus,omitempty"`
+	// The status of an Access Request.
+	ToGrantStatus *GrantStatus `json:"toGrantStatus,omitempty"`
 
 	// The status of an Access Request.
-	ToStatus *RequestStatus `json:"toStatus,omitempty"`
-	ToTiming *RequestTiming `json:"toTiming,omitempty"`
+	ToStatus *RequestStatus            `json:"toStatus,omitempty"`
+	ToTiming *RequestAccessGroupTiming `json:"toTiming,omitempty"`
 }
 
-// The current state of the grant.
-type RequestEventFromGrantStatus string
-
-// The current state of the grant.
-type RequestEventToGrantStatus string
+// RequestPurpose defines model for RequestPurpose.
+type RequestPurpose struct {
+	Reason *string `json:"reason,omitempty"`
+}
 
 // The status of an Access Request.
 type RequestStatus string
 
-// RequestTiming defines model for RequestTiming.
-type RequestTiming struct {
-	DurationSeconds int `json:"durationSeconds"`
-
-	// iso8601 timestamp in UTC timezone
-	StartTime *time.Time `json:"startTime,omitempty"`
-}
-
-// Requestv2 defines model for Requestv2.
-type Requestv2 struct {
-	Context   RequestContext `json:"context"`
-	CreatedAt time.Time      `json:"createdAt"`
-	Id        string         `json:"id"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	User      User           `json:"user"`
-}
-
 // Resource defines model for Resource.
 type Resource struct {
-	Description string                 `json:"description"`
-	Label       string                 `json:"label"`
-	Related     map[string]interface{} `json:"related"`
-	Type        string                 `json:"type"`
-	Value       string                 `json:"value"`
+	Id *string `json:"id,omitempty"`
 }
 
 // A decision made on an Access Request.
@@ -841,38 +290,22 @@ type TGHandler struct {
 
 // Target defines model for Target.
 type Target struct {
-	Fields []Field `json:"fields"`
-	Id     string  `json:"id"`
+	Fields []TargetField `json:"fields"`
+	Id     string        `json:"id"`
+
+	// Specifies a particular Access Provider to create a Target Group schema from.
+	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
+	TargetGroupId   string          `json:"targetGroupId"`
 }
 
-// Define the metadata, data type and UI elements for the argument
-type TargetArgument struct {
-	Description *string               `json:"description,omitempty"`
-	Groups      TargetArgument_Groups `json:"groups"`
-	Id          string                `json:"id"`
-
-	// Optional form element for the request form, if not provided, defaults to multiselect
-	RequestFormElement TargetArgumentRequestFormElement `json:"requestFormElement"`
-	RuleFormElement    TargetArgumentRuleFormElement    `json:"ruleFormElement"`
-	Title              string                           `json:"title"`
-}
-
-// TargetArgument_Groups defines model for TargetArgument.Groups.
-type TargetArgument_Groups struct {
-	AdditionalProperties map[string]TargetArgumentGroup `json:"-"`
-}
-
-// Optional form element for the request form, if not provided, defaults to multiselect
-type TargetArgumentRequestFormElement string
-
-// TargetArgumentRuleFormElement defines model for TargetArgument.RuleFormElement.
-type TargetArgumentRuleFormElement string
-
-// An argument group
-type TargetArgumentGroup struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Title       string  `json:"title"`
+// TargetField defines model for TargetField.
+type TargetField struct {
+	FieldDescription *string `json:"fieldDescription,omitempty"`
+	FieldTitle       string  `json:"fieldTitle"`
+	Id               string  `json:"id"`
+	Value            string  `json:"value"`
+	ValueDescription *string `json:"valueDescription,omitempty"`
+	ValueLabel       string  `json:"valueLabel"`
 }
 
 // TargetGroup defines model for TargetGroup.
@@ -880,11 +313,11 @@ type TargetGroup struct {
 	CreatedAt *time.Time `json:"createdAt,omitempty"`
 
 	// Specifies a particular Access Provider to create a Target Group schema from.
-	From      TargetGroupFrom `json:"from"`
-	Icon      string          `json:"icon"`
-	Id        string          `json:"id"`
-	Schema    TargetSchema    `json:"schema"`
-	UpdatedAt *time.Time      `json:"updatedAt,omitempty"`
+	From      TargetGroupFrom   `json:"from"`
+	Icon      string            `json:"icon"`
+	Id        string            `json:"id"`
+	Schema    TargetGroupSchema `json:"schema"`
+	UpdatedAt *time.Time        `json:"updatedAt,omitempty"`
 }
 
 // Specifies a particular Access Provider to create a Target Group schema from.
@@ -895,6 +328,18 @@ type TargetGroupFrom struct {
 	Version   string `json:"version"`
 }
 
+// TargetGroupSchema defines model for TargetGroupSchema.
+type TargetGroupSchema struct {
+	AdditionalProperties map[string]TargetGroupSchemaArgument `json:"-"`
+}
+
+// Define the metadata, data type and UI elements for the argument
+type TargetGroupSchemaArgument struct {
+	Description *string `json:"description,omitempty"`
+	Id          string  `json:"id"`
+	Title       string  `json:"title"`
+}
+
 // TargetRoute defines model for TargetRoute.
 type TargetRoute struct {
 	Diagnostics   []Diagnostic `json:"diagnostics"`
@@ -903,17 +348,6 @@ type TargetRoute struct {
 	Priority      int          `json:"priority"`
 	TargetGroupId string       `json:"targetGroupId"`
 	Valid         bool         `json:"valid"`
-}
-
-// TargetSchema defines model for TargetSchema.
-type TargetSchema struct {
-	AdditionalProperties map[string]TargetArgument `json:"-"`
-}
-
-// Time configuration for an Access Rule.
-type TimeConstraints struct {
-	// The maximum duration in seconds the access is allowed for.
-	MaxDurationSeconds int `json:"maxDurationSeconds"`
 }
 
 // User defines model for User.
@@ -928,43 +362,11 @@ type User struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// With defines model for With.
-type With struct {
-	FieldDescription  *string `json:"fieldDescription,omitempty"`
-	Label             string  `json:"label"`
-	OptionDescription *string `json:"optionDescription,omitempty"`
-	Title             string  `json:"title"`
-	Value             string  `json:"value"`
-}
-
-// WithOption defines model for WithOption.
-type WithOption struct {
-	Description *string `json:"description,omitempty"`
-	Label       string  `json:"label"`
-	Valid       bool    `json:"valid"`
-	Value       string  `json:"value"`
-}
-
-// AccessTokenResponse defines model for AccessTokenResponse.
-type AccessTokenResponse struct {
-	HasToken bool    `json:"hasToken"`
-	Token    *string `json:"token,omitempty"`
-}
-
-// ArgOptionsResponse defines model for ArgOptionsResponse.
-type ArgOptionsResponse = ArgOptions
-
 // AuthUserResponse defines model for AuthUserResponse.
 type AuthUserResponse struct {
 	// Whether the user is an administrator of Common Fate.
 	IsAdmin bool `json:"isAdmin"`
 	User    User `json:"user"`
-}
-
-// CompleteProviderSetupResponse defines model for CompleteProviderSetupResponse.
-type CompleteProviderSetupResponse struct {
-	// Whether a manual update is required to the Common Fate deployment configuration (`deployment.yml`) to activate the provider.
-	DeploymentConfigUpdateRequired bool `json:"deploymentConfigUpdateRequired"`
 }
 
 // DeploymentVersionResponse defines model for DeploymentVersionResponse.
@@ -986,20 +388,8 @@ type IdentityConfigurationResponse struct {
 
 // ListAccessGroupsResponse defines model for ListAccessGroupsResponse.
 type ListAccessGroupsResponse struct {
-	Groups []AccessGroup `json:"groups"`
-	Next   *string       `json:"next,omitempty"`
-}
-
-// ListAccessRuleApproversResponse defines model for ListAccessRuleApproversResponse.
-type ListAccessRuleApproversResponse struct {
-	Next  *string  `json:"next"`
-	Users []string `json:"users"`
-}
-
-// ListAccessRulesDetailResponse defines model for ListAccessRulesDetailResponse.
-type ListAccessRulesDetailResponse struct {
-	AccessRules []AccessRuleDetail `json:"accessRules"`
-	Next        *string            `json:"next"`
+	Groups []RequestAccessGroup `json:"groups"`
+	Next   *string              `json:"next,omitempty"`
 }
 
 // ListAccessRulesResponse defines model for ListAccessRulesResponse.
@@ -1008,19 +398,10 @@ type ListAccessRulesResponse struct {
 	Next        *string      `json:"next"`
 }
 
-// ListEntitlementsResponse defines model for ListEntitlementsResponse.
-type ListEntitlementsResponse = []Entitlement
-
-// ListFavoritesResponse defines model for ListFavoritesResponse.
-type ListFavoritesResponse struct {
-	Favorites []Favorite `json:"favorites"`
-	Next      *string    `json:"next"`
-}
-
-// ListGrantsv2Response defines model for ListGrantsv2Response.
-type ListGrantsv2Response struct {
-	Grants []Grantv2 `json:"grants"`
-	Next   *string   `json:"next,omitempty"`
+// ListGrantsResponse defines model for ListGrantsResponse.
+type ListGrantsResponse struct {
+	Grants []RequestAccessGroupGrant `json:"grants"`
+	Next   *string                   `json:"next,omitempty"`
 }
 
 // ListGroupsResponse defines model for ListGroupsResponse.
@@ -1035,21 +416,10 @@ type ListHandlersResponse struct {
 	Res  []TGHandler `json:"res"`
 }
 
-// ListProviderSetupsResponse defines model for ListProviderSetupsResponse.
-type ListProviderSetupsResponse struct {
-	ProviderSetups []ProviderSetup `json:"providerSetups"`
-}
-
 // ListRequestEventsResponse defines model for ListRequestEventsResponse.
 type ListRequestEventsResponse struct {
 	Events []RequestEvent `json:"events"`
 	Next   *string        `json:"next"`
-}
-
-// ListRequests2Response defines model for ListRequests2Response.
-type ListRequests2Response struct {
-	Next     *string     `json:"next,omitempty"`
-	Requests []Requestv2 `json:"requests"`
 }
 
 // ListRequestsResponse defines model for ListRequestsResponse.
@@ -1088,15 +458,6 @@ type ListUserResponse struct {
 	Users []User  `json:"users"`
 }
 
-// PreflightResponse defines model for PreflightResponse.
-type PreflightResponse struct {
-	PreflightId string      `json:"preflightId"`
-	Targets     []ArgSchema `json:"targets"`
-}
-
-// A provider in the process of being set up through the guided setup workflow in Common Fate. These providers are **not** yet active.
-type ProviderSetupResponse = ProviderSetup
-
 // ReviewResponse defines model for ReviewResponse.
 type ReviewResponse struct {
 	// A request to access something made by an end user in Common Fate.
@@ -1106,27 +467,16 @@ type ReviewResponse struct {
 // CreateAccessRuleRequest defines model for CreateAccessRuleRequest.
 type CreateAccessRuleRequest struct {
 	// Approver config for access rules
-	Approval    ApproverConfig `json:"approval"`
-	Description string         `json:"description"`
+	Approval    AccessRuleApproverConfig `json:"approval"`
+	Description string                   `json:"description"`
 
 	// The group IDs that the access rule applies to.
-	Groups []string `json:"groups"`
-	Name   string   `json:"name"`
-
-	// a request body for creating a Access Rule Target
-	Target CreateAccessRuleTarget `json:"target"`
+	Groups  []string                 `json:"groups"`
+	Name    string                   `json:"name"`
+	Targets []CreateAccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
-	TimeConstraints TimeConstraints `json:"timeConstraints"`
-}
-
-// CreateFavoriteRequest defines model for CreateFavoriteRequest.
-type CreateFavoriteRequest struct {
-	AccessRuleId string                       `json:"accessRuleId"`
-	Name         string                       `json:"name"`
-	Reason       *string                      `json:"reason,omitempty"`
-	Timing       RequestTiming                `json:"timing"`
-	With         *CreateRequestWithSubRequest `json:"with,omitempty"`
+	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
 }
 
 // CreateGroupRequest defines model for CreateGroupRequest.
@@ -1138,25 +488,11 @@ type CreateGroupRequest struct {
 
 // CreatePreflightRequest defines model for CreatePreflightRequest.
 type CreatePreflightRequest struct {
-	Targets []Target `json:"targets"`
+	Targets []string `json:"targets"`
 }
 
-// CreateProviderSetupRequest defines model for CreateProviderSetupRequest.
-type CreateProviderSetupRequest struct {
-	// The type of the provider to set up.
-	ProviderType string `json:"providerType"`
-}
-
-// CreateRequestRequest defines model for CreateRequestRequest.
-type CreateRequestRequest struct {
-	AccessRuleId string                       `json:"accessRuleId"`
-	Reason       *string                      `json:"reason,omitempty"`
-	Timing       RequestTiming                `json:"timing"`
-	With         *CreateRequestWithSubRequest `json:"with,omitempty"`
-}
-
-// CreateRequestRequestv2 defines model for CreateRequestRequestv2.
-type CreateRequestRequestv2 struct {
+// CreateRequestPreflight defines model for CreateRequestPreflight.
+type CreateRequestPreflight struct {
 	PreflightId string `json:"preflightId"`
 }
 
@@ -1182,15 +518,6 @@ type CreateUserRequest struct {
 	LastName  string              `json:"lastName"`
 }
 
-// ProviderSetupStepCompleteRequest defines model for ProviderSetupStepCompleteRequest.
-type ProviderSetupStepCompleteRequest struct {
-	// Whether the step is complete or not.
-	Complete bool `json:"complete"`
-
-	// The config values entered by the user which correspond to the setup step.
-	ConfigValues map[string]string `json:"configValues"`
-}
-
 // RegisterHandlerRequest defines model for RegisterHandlerRequest.
 type RegisterHandlerRequest struct {
 	AwsAccount string `json:"awsAccount"`
@@ -1206,8 +533,8 @@ type ReviewRequest struct {
 	Comment *string `json:"comment,omitempty"`
 
 	// A decision made on an Access Request.
-	Decision       ReviewDecision `json:"decision"`
-	OverrideTiming *RequestTiming `json:"overrideTiming,omitempty"`
+	Decision       ReviewDecision            `json:"decision"`
+	OverrideTiming *RequestAccessGroupTiming `json:"overrideTiming,omitempty"`
 }
 
 // AdminListAccessRulesParams defines parameters for AdminListAccessRules.
@@ -1215,7 +542,7 @@ type AdminListAccessRulesParams struct {
 	// Filter Access Rules by a particular status.
 	Status *AdminListAccessRulesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
 
-	// encrypted token containing pagination info
+	// Next page token
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
 
@@ -1248,12 +575,6 @@ type AdminListRequestsParamsStatus string
 type AdminRemoveTargetGroupLinkParams struct {
 	DeploymentId string `form:"deploymentId" json:"deploymentId"`
 	Kind         string `form:"kind" json:"kind"`
-}
-
-// AdminListTargetGroupArgOptionsParams defines parameters for AdminListTargetGroupArgOptions.
-type AdminListTargetGroupArgOptionsParams struct {
-	// invalidate the cache and refresh the provider's options.
-	Refresh *bool `form:"refresh,omitempty" json:"refresh,omitempty"`
 }
 
 // AdminListUsersParams defines parameters for AdminListUsers.
@@ -1318,9 +639,6 @@ type UserListRequestsUpcomingParams struct {
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
 
-// UserReviewRequestJSONRequestBody defines body for UserReviewRequest for application/json ContentType.
-type UserReviewRequestJSONRequestBody ReviewRequest
-
 // AdminCreateAccessRuleJSONRequestBody defines body for AdminCreateAccessRule for application/json ContentType.
 type AdminCreateAccessRuleJSONRequestBody CreateAccessRuleRequest
 
@@ -1348,37 +666,34 @@ type AdminCreateUserJSONRequestBody CreateUserRequest
 // AdminUpdateUserJSONRequestBody defines body for AdminUpdateUser for application/json ContentType.
 type AdminUpdateUserJSONRequestBody AdminUpdateUserJSONBody
 
-// UserCreateFavoriteJSONRequestBody defines body for UserCreateFavorite for application/json ContentType.
-type UserCreateFavoriteJSONRequestBody CreateFavoriteRequest
-
-// UserUpdateFavoriteJSONRequestBody defines body for UserUpdateFavorite for application/json ContentType.
-type UserUpdateFavoriteJSONRequestBody CreateFavoriteRequest
-
-// UserPostRequestsJSONRequestBody defines body for UserPostRequests for application/json ContentType.
-type UserPostRequestsJSONRequestBody CreateRequestRequestv2
-
 // UserRequestPreflightJSONRequestBody defines body for UserRequestPreflight for application/json ContentType.
 type UserRequestPreflightJSONRequestBody CreatePreflightRequest
 
-// Getter for additional properties for AccessRuleTargetDetail_With. Returns the specified
+// UserPostRequestsJSONRequestBody defines body for UserPostRequests for application/json ContentType.
+type UserPostRequestsJSONRequestBody CreateRequestPreflight
+
+// UserReviewRequestJSONRequestBody defines body for UserReviewRequest for application/json ContentType.
+type UserReviewRequestJSONRequestBody ReviewRequest
+
+// Getter for additional properties for TargetGroupSchema. Returns the specified
 // element and whether it was found
-func (a AccessRuleTargetDetail_With) Get(fieldName string) (value AccessRuleTargetDetailArguments, found bool) {
+func (a TargetGroupSchema) Get(fieldName string) (value TargetGroupSchemaArgument, found bool) {
 	if a.AdditionalProperties != nil {
 		value, found = a.AdditionalProperties[fieldName]
 	}
 	return
 }
 
-// Setter for additional properties for AccessRuleTargetDetail_With
-func (a *AccessRuleTargetDetail_With) Set(fieldName string, value AccessRuleTargetDetailArguments) {
+// Setter for additional properties for TargetGroupSchema
+func (a *TargetGroupSchema) Set(fieldName string, value TargetGroupSchemaArgument) {
 	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]AccessRuleTargetDetailArguments)
+		a.AdditionalProperties = make(map[string]TargetGroupSchemaArgument)
 	}
 	a.AdditionalProperties[fieldName] = value
 }
 
-// Override default JSON handling for AccessRuleTargetDetail_With to handle AdditionalProperties
-func (a *AccessRuleTargetDetail_With) UnmarshalJSON(b []byte) error {
+// Override default JSON handling for TargetGroupSchema to handle AdditionalProperties
+func (a *TargetGroupSchema) UnmarshalJSON(b []byte) error {
 	object := make(map[string]json.RawMessage)
 	err := json.Unmarshal(b, &object)
 	if err != nil {
@@ -1386,9 +701,9 @@ func (a *AccessRuleTargetDetail_With) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]AccessRuleTargetDetailArguments)
+		a.AdditionalProperties = make(map[string]TargetGroupSchemaArgument)
 		for fieldName, fieldBuf := range object {
-			var fieldVal AccessRuleTargetDetailArguments
+			var fieldVal TargetGroupSchemaArgument
 			err := json.Unmarshal(fieldBuf, &fieldVal)
 			if err != nil {
 				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
@@ -1399,697 +714,8 @@ func (a *AccessRuleTargetDetail_With) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Override default JSON handling for AccessRuleTargetDetail_With to handle AdditionalProperties
-func (a AccessRuleTargetDetail_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for AccessRuleTargetDetailArguments_Groupings. Returns the specified
-// element and whether it was found
-func (a AccessRuleTargetDetailArguments_Groupings) Get(fieldName string) (value []string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for AccessRuleTargetDetailArguments_Groupings
-func (a *AccessRuleTargetDetailArguments_Groupings) Set(fieldName string, value []string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for AccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
-func (a *AccessRuleTargetDetailArguments_Groupings) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal []string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for AccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
-func (a AccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for ArgSchema. Returns the specified
-// element and whether it was found
-func (a ArgSchema) Get(fieldName string) (value Argument, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for ArgSchema
-func (a *ArgSchema) Set(fieldName string, value Argument) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]Argument)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for ArgSchema to handle AdditionalProperties
-func (a *ArgSchema) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]Argument)
-		for fieldName, fieldBuf := range object {
-			var fieldVal Argument
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for ArgSchema to handle AdditionalProperties
-func (a ArgSchema) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for Argument_Groups. Returns the specified
-// element and whether it was found
-func (a Argument_Groups) Get(fieldName string) (value Group, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for Argument_Groups
-func (a *Argument_Groups) Set(fieldName string, value Group) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]Group)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for Argument_Groups to handle AdditionalProperties
-func (a *Argument_Groups) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]Group)
-		for fieldName, fieldBuf := range object {
-			var fieldVal Group
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for Argument_Groups to handle AdditionalProperties
-func (a Argument_Groups) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for CreateAccessRuleTarget_With. Returns the specified
-// element and whether it was found
-func (a CreateAccessRuleTarget_With) Get(fieldName string) (value CreateAccessRuleTargetDetailArguments, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for CreateAccessRuleTarget_With
-func (a *CreateAccessRuleTarget_With) Set(fieldName string, value CreateAccessRuleTargetDetailArguments) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]CreateAccessRuleTargetDetailArguments)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for CreateAccessRuleTarget_With to handle AdditionalProperties
-func (a *CreateAccessRuleTarget_With) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]CreateAccessRuleTargetDetailArguments)
-		for fieldName, fieldBuf := range object {
-			var fieldVal CreateAccessRuleTargetDetailArguments
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for CreateAccessRuleTarget_With to handle AdditionalProperties
-func (a CreateAccessRuleTarget_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for CreateAccessRuleTargetDetailArguments_Groupings. Returns the specified
-// element and whether it was found
-func (a CreateAccessRuleTargetDetailArguments_Groupings) Get(fieldName string) (value []string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for CreateAccessRuleTargetDetailArguments_Groupings
-func (a *CreateAccessRuleTargetDetailArguments_Groupings) Set(fieldName string, value []string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for CreateAccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
-func (a *CreateAccessRuleTargetDetailArguments_Groupings) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal []string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for CreateAccessRuleTargetDetailArguments_Groupings to handle AdditionalProperties
-func (a CreateAccessRuleTargetDetailArguments_Groupings) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for CreateGrant_With. Returns the specified
-// element and whether it was found
-func (a CreateGrant_With) Get(fieldName string) (value string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for CreateGrant_With
-func (a *CreateGrant_With) Set(fieldName string, value string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for CreateGrant_With to handle AdditionalProperties
-func (a *CreateGrant_With) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for CreateGrant_With to handle AdditionalProperties
-func (a CreateGrant_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for CreateRequestWith. Returns the specified
-// element and whether it was found
-func (a CreateRequestWith) Get(fieldName string) (value []string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for CreateRequestWith
-func (a *CreateRequestWith) Set(fieldName string, value []string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for CreateRequestWith to handle AdditionalProperties
-func (a *CreateRequestWith) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal []string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for CreateRequestWith to handle AdditionalProperties
-func (a CreateRequestWith) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for Grant_With. Returns the specified
-// element and whether it was found
-func (a Grant_With) Get(fieldName string) (value string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for Grant_With
-func (a *Grant_With) Set(fieldName string, value string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for Grant_With to handle AdditionalProperties
-func (a *Grant_With) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for Grant_With to handle AdditionalProperties
-func (a Grant_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for Groups. Returns the specified
-// element and whether it was found
-func (a Groups) Get(fieldName string) (value []GroupOption, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for Groups
-func (a *Groups) Set(fieldName string, value []GroupOption) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string][]GroupOption)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for Groups to handle AdditionalProperties
-func (a *Groups) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string][]GroupOption)
-		for fieldName, fieldBuf := range object {
-			var fieldVal []GroupOption
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for Groups to handle AdditionalProperties
-func (a Groups) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for RequestAccessRuleTarget_Arguments. Returns the specified
-// element and whether it was found
-func (a RequestAccessRuleTarget_Arguments) Get(fieldName string) (value RequestArgument, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for RequestAccessRuleTarget_Arguments
-func (a *RequestAccessRuleTarget_Arguments) Set(fieldName string, value RequestArgument) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]RequestArgument)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for RequestAccessRuleTarget_Arguments to handle AdditionalProperties
-func (a *RequestAccessRuleTarget_Arguments) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]RequestArgument)
-		for fieldName, fieldBuf := range object {
-			var fieldVal RequestArgument
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for RequestAccessRuleTarget_Arguments to handle AdditionalProperties
-func (a RequestAccessRuleTarget_Arguments) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for RequestDetail_Arguments. Returns the specified
-// element and whether it was found
-func (a RequestDetail_Arguments) Get(fieldName string) (value With, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for RequestDetail_Arguments
-func (a *RequestDetail_Arguments) Set(fieldName string, value With) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]With)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for RequestDetail_Arguments to handle AdditionalProperties
-func (a *RequestDetail_Arguments) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]With)
-		for fieldName, fieldBuf := range object {
-			var fieldVal With
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for RequestDetail_Arguments to handle AdditionalProperties
-func (a RequestDetail_Arguments) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for TargetArgument_Groups. Returns the specified
-// element and whether it was found
-func (a TargetArgument_Groups) Get(fieldName string) (value TargetArgumentGroup, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for TargetArgument_Groups
-func (a *TargetArgument_Groups) Set(fieldName string, value TargetArgumentGroup) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]TargetArgumentGroup)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for TargetArgument_Groups to handle AdditionalProperties
-func (a *TargetArgument_Groups) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]TargetArgumentGroup)
-		for fieldName, fieldBuf := range object {
-			var fieldVal TargetArgumentGroup
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for TargetArgument_Groups to handle AdditionalProperties
-func (a TargetArgument_Groups) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
-
-// Getter for additional properties for TargetSchema. Returns the specified
-// element and whether it was found
-func (a TargetSchema) Get(fieldName string) (value TargetArgument, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for TargetSchema
-func (a *TargetSchema) Set(fieldName string, value TargetArgument) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]TargetArgument)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for TargetSchema to handle AdditionalProperties
-func (a *TargetSchema) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]TargetArgument)
-		for fieldName, fieldBuf := range object {
-			var fieldVal TargetArgument
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for TargetSchema to handle AdditionalProperties
-func (a TargetSchema) MarshalJSON() ([]byte, error) {
+// Override default JSON handling for TargetGroupSchema to handle AdditionalProperties
+func (a TargetGroupSchema) MarshalJSON() ([]byte, error) {
 	var err error
 	object := make(map[string]json.RawMessage)
 
@@ -2175,11 +801,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// UserReviewRequest request with any body
-	UserReviewRequestWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UserReviewRequest(ctx context.Context, id string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AdminListAccessRules request
 	AdminListAccessRules(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2272,12 +893,6 @@ type ClientInterface interface {
 	// AdminRemoveTargetGroupLink request
 	AdminRemoveTargetGroupLink(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// AdminGetTargetGroupArgs request
-	AdminGetTargetGroupArgs(ctx context.Context, tgId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminListTargetGroupArgOptions request
-	AdminListTargetGroupArgOptions(ctx context.Context, tgId string, argId string, params *AdminListTargetGroupArgOptionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// AdminListUsers request
 	AdminListUsers(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2300,30 +915,16 @@ type ClientInterface interface {
 	// UserListEntitlementTargets request
 	UserListEntitlementTargets(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UserListFavorites request
-	UserListFavorites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserCreateFavorite request with any body
-	UserCreateFavoriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UserCreateFavorite(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserDeleteFavorite request
-	UserDeleteFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserGetFavorite request
-	UserGetFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserUpdateFavorite request with any body
-	UserUpdateFavoriteWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UserUpdateFavorite(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// UserGetRequestAccessGroupGrant request
 	UserGetRequestAccessGroupGrant(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserListRequestAccessGroupGrants request
 	UserListRequestAccessGroupGrants(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserRequestPreflight request with any body
+	UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserListRequests request
 	UserListRequests(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2335,11 +936,6 @@ type ClientInterface interface {
 
 	// UserListRequestsPast request
 	UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserRequestPreflight request with any body
-	UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserListRequestsUpcoming request
 	UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2353,6 +949,11 @@ type ClientInterface interface {
 	// UserGetRequestAccessGroup request
 	UserGetRequestAccessGroup(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UserReviewRequest request with any body
+	UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserReviewRequest(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UserRevokeRequest request
 	UserRevokeRequest(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2361,30 +962,6 @@ type ClientInterface interface {
 
 	// UserGetUser request
 	UserGetUser(ctx context.Context, userId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) UserReviewRequestWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserReviewRequestRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserReviewRequest(ctx context.Context, id string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserReviewRequestRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) AdminListAccessRules(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2783,30 +1360,6 @@ func (c *Client) AdminRemoveTargetGroupLink(ctx context.Context, id string, para
 	return c.Client.Do(req)
 }
 
-func (c *Client) AdminGetTargetGroupArgs(ctx context.Context, tgId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminGetTargetGroupArgsRequest(c.Server, tgId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminListTargetGroupArgOptions(ctx context.Context, tgId string, argId string, params *AdminListTargetGroupArgOptionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminListTargetGroupArgOptionsRequest(c.Server, tgId, argId, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) AdminListUsers(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminListUsersRequest(c.Server, params)
 	if err != nil {
@@ -2903,90 +1456,6 @@ func (c *Client) UserListEntitlementTargets(ctx context.Context, params *UserLis
 	return c.Client.Do(req)
 }
 
-func (c *Client) UserListFavorites(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListFavoritesRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserCreateFavoriteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserCreateFavoriteRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserCreateFavorite(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserCreateFavoriteRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserDeleteFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserDeleteFavoriteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserGetFavorite(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserGetFavoriteRequest(c.Server, id)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserUpdateFavoriteWithBody(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserUpdateFavoriteRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserUpdateFavorite(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserUpdateFavoriteRequest(c.Server, id, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) UserGetRequestAccessGroupGrant(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserGetRequestAccessGroupGrantRequest(c.Server, gid, grantid)
 	if err != nil {
@@ -3001,6 +1470,30 @@ func (c *Client) UserGetRequestAccessGroupGrant(ctx context.Context, gid string,
 
 func (c *Client) UserListRequestAccessGroupGrants(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserListRequestAccessGroupGrantsRequest(c.Server, groupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserRequestPreflightRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserRequestPreflightRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3059,30 +1552,6 @@ func (c *Client) UserListRequestsPast(ctx context.Context, params *UserListReque
 	return c.Client.Do(req)
 }
 
-func (c *Client) UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserRequestPreflightRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserRequestPreflightRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserListRequestsUpcomingRequest(c.Server, params)
 	if err != nil {
@@ -3131,6 +1600,30 @@ func (c *Client) UserGetRequestAccessGroup(ctx context.Context, requestId string
 	return c.Client.Do(req)
 }
 
+func (c *Client) UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserReviewRequestRequestWithBody(c.Server, requestId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserReviewRequest(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserReviewRequestRequest(c.Server, requestId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UserRevokeRequest(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserRevokeRequestRequest(c.Server, requestid)
 	if err != nil {
@@ -3165,53 +1658,6 @@ func (c *Client) UserGetUser(ctx context.Context, userId string, reqEditors ...R
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewUserReviewRequestRequest calls the generic UserReviewRequest builder with application/json body
-func NewUserReviewRequestRequest(server string, id string, body UserReviewRequestJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUserReviewRequestRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewUserReviewRequestRequestWithBody generates requests for UserReviewRequest with any type of body
-func NewUserReviewRequestRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/access-group/%s/review", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
 }
 
 // NewAdminListAccessRulesRequest generates requests for AdminListAccessRules
@@ -4234,101 +2680,6 @@ func NewAdminRemoveTargetGroupLinkRequest(server string, id string, params *Admi
 	return req, nil
 }
 
-// NewAdminGetTargetGroupArgsRequest generates requests for AdminGetTargetGroupArgs
-func NewAdminGetTargetGroupArgsRequest(server string, tgId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "tgId", runtime.ParamLocationPath, tgId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/target-groups/%s/args", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewAdminListTargetGroupArgOptionsRequest generates requests for AdminListTargetGroupArgOptions
-func NewAdminListTargetGroupArgOptionsRequest(server string, tgId string, argId string, params *AdminListTargetGroupArgOptionsParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "tgId", runtime.ParamLocationPath, tgId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "argId", runtime.ParamLocationPath, argId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/target-groups/%s/args/%s/options", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if params.Refresh != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "refresh", runtime.ParamLocationQuery, *params.Refresh); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewAdminListUsersRequest generates requests for AdminListUsers
 func NewAdminListUsersRequest(server string, params *AdminListUsersParams) (*http.Request, error) {
 	var err error
@@ -4628,188 +2979,6 @@ func NewUserListEntitlementTargetsRequest(server string, params *UserListEntitle
 	return req, nil
 }
 
-// NewUserListFavoritesRequest generates requests for UserListFavorites
-func NewUserListFavoritesRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/favorites")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserCreateFavoriteRequest calls the generic UserCreateFavorite builder with application/json body
-func NewUserCreateFavoriteRequest(server string, body UserCreateFavoriteJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUserCreateFavoriteRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewUserCreateFavoriteRequestWithBody generates requests for UserCreateFavorite with any type of body
-func NewUserCreateFavoriteRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/favorites")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewUserDeleteFavoriteRequest generates requests for UserDeleteFavorite
-func NewUserDeleteFavoriteRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/favorites/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserGetFavoriteRequest generates requests for UserGetFavorite
-func NewUserGetFavoriteRequest(server string, id string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/favorites/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserUpdateFavoriteRequest calls the generic UserUpdateFavorite builder with application/json body
-func NewUserUpdateFavoriteRequest(server string, id string, body UserUpdateFavoriteJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUserUpdateFavoriteRequestWithBody(server, id, "application/json", bodyReader)
-}
-
-// NewUserUpdateFavoriteRequestWithBody generates requests for UserUpdateFavorite with any type of body
-func NewUserUpdateFavoriteRequestWithBody(server string, id string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "id", runtime.ParamLocationPath, id)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/favorites/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewUserGetRequestAccessGroupGrantRequest generates requests for UserGetRequestAccessGroupGrant
 func NewUserGetRequestAccessGroupGrantRequest(server string, gid string, grantid string) (*http.Request, error) {
 	var err error
@@ -4881,6 +3050,46 @@ func NewUserListRequestAccessGroupGrantsRequest(server string, groupId string) (
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewUserRequestPreflightRequest calls the generic UserRequestPreflight builder with application/json body
+func NewUserRequestPreflightRequest(server string, body UserRequestPreflightJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserRequestPreflightRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserRequestPreflightRequestWithBody generates requests for UserRequestPreflight with any type of body
+func NewUserRequestPreflightRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/preflight")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -5051,46 +3260,6 @@ func NewUserListRequestsPastRequest(server string, params *UserListRequestsPastP
 	return req, nil
 }
 
-// NewUserRequestPreflightRequest calls the generic UserRequestPreflight builder with application/json body
-func NewUserRequestPreflightRequest(server string, body UserRequestPreflightJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUserRequestPreflightRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewUserRequestPreflightRequestWithBody generates requests for UserRequestPreflight with any type of body
-func NewUserRequestPreflightRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/preflight")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 // NewUserListRequestsUpcomingRequest generates requests for UserListRequestsUpcoming
 func NewUserListRequestsUpcomingRequest(server string, params *UserListRequestsUpcomingParams) (*http.Request, error) {
 	var err error
@@ -5247,6 +3416,53 @@ func NewUserGetRequestAccessGroupRequest(server string, requestId string, groupI
 	return req, nil
 }
 
+// NewUserReviewRequestRequest calls the generic UserReviewRequest builder with application/json body
+func NewUserReviewRequestRequest(server string, requestId string, body UserReviewRequestJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserReviewRequestRequestWithBody(server, requestId, "application/json", bodyReader)
+}
+
+// NewUserReviewRequestRequestWithBody generates requests for UserReviewRequest with any type of body
+func NewUserReviewRequestRequestWithBody(server string, requestId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/requests/%s/review", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUserRevokeRequestRequest generates requests for UserRevokeRequest
 func NewUserRevokeRequestRequest(server string, requestid string) (*http.Request, error) {
 	var err error
@@ -5385,11 +3601,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// UserReviewRequest request with any body
-	UserReviewRequestWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
-
-	UserReviewRequestWithResponse(ctx context.Context, id string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
-
 	// AdminListAccessRules request
 	AdminListAccessRulesWithResponse(ctx context.Context, params *AdminListAccessRulesParams, reqEditors ...RequestEditorFn) (*AdminListAccessRulesResponse, error)
 
@@ -5482,12 +3693,6 @@ type ClientWithResponsesInterface interface {
 	// AdminRemoveTargetGroupLink request
 	AdminRemoveTargetGroupLinkWithResponse(ctx context.Context, id string, params *AdminRemoveTargetGroupLinkParams, reqEditors ...RequestEditorFn) (*AdminRemoveTargetGroupLinkResponse, error)
 
-	// AdminGetTargetGroupArgs request
-	AdminGetTargetGroupArgsWithResponse(ctx context.Context, tgId string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupArgsResponse, error)
-
-	// AdminListTargetGroupArgOptions request
-	AdminListTargetGroupArgOptionsWithResponse(ctx context.Context, tgId string, argId string, params *AdminListTargetGroupArgOptionsParams, reqEditors ...RequestEditorFn) (*AdminListTargetGroupArgOptionsResponse, error)
-
 	// AdminListUsers request
 	AdminListUsersWithResponse(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*AdminListUsersResponse, error)
 
@@ -5510,30 +3715,16 @@ type ClientWithResponsesInterface interface {
 	// UserListEntitlementTargets request
 	UserListEntitlementTargetsWithResponse(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*UserListEntitlementTargetsResponse, error)
 
-	// UserListFavorites request
-	UserListFavoritesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListFavoritesResponse, error)
-
-	// UserCreateFavorite request with any body
-	UserCreateFavoriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error)
-
-	UserCreateFavoriteWithResponse(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error)
-
-	// UserDeleteFavorite request
-	UserDeleteFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserDeleteFavoriteResponse, error)
-
-	// UserGetFavorite request
-	UserGetFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserGetFavoriteResponse, error)
-
-	// UserUpdateFavorite request with any body
-	UserUpdateFavoriteWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error)
-
-	UserUpdateFavoriteWithResponse(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error)
-
 	// UserGetRequestAccessGroupGrant request
 	UserGetRequestAccessGroupGrantWithResponse(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupGrantResponse, error)
 
 	// UserListRequestAccessGroupGrants request
 	UserListRequestAccessGroupGrantsWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupGrantsResponse, error)
+
+	// UserRequestPreflight request with any body
+	UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
+
+	UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
 
 	// UserListRequests request
 	UserListRequestsWithResponse(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*UserListRequestsResponse, error)
@@ -5545,11 +3736,6 @@ type ClientWithResponsesInterface interface {
 
 	// UserListRequestsPast request
 	UserListRequestsPastWithResponse(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*UserListRequestsPastResponse, error)
-
-	// UserRequestPreflight request with any body
-	UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
-
-	UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
 
 	// UserListRequestsUpcoming request
 	UserListRequestsUpcomingWithResponse(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*UserListRequestsUpcomingResponse, error)
@@ -5563,6 +3749,11 @@ type ClientWithResponsesInterface interface {
 	// UserGetRequestAccessGroup request
 	UserGetRequestAccessGroupWithResponse(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupResponse, error)
 
+	// UserReviewRequest request with any body
+	UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
+
+	UserReviewRequestWithResponse(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
+
 	// UserRevokeRequest request
 	UserRevokeRequestWithResponse(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*UserRevokeRequestResponse, error)
 
@@ -5573,37 +3764,18 @@ type ClientWithResponsesInterface interface {
 	UserGetUserWithResponse(ctx context.Context, userId string, reqEditors ...RequestEditorFn) (*UserGetUserResponse, error)
 }
 
-type UserReviewRequestResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		// A request to access something made by an end user in Common Fate.
-		Request *Request `json:"request,omitempty"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserReviewRequestResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserReviewRequestResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type AdminListAccessRulesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		AccessRules []AccessRuleDetail `json:"accessRules"`
-		Next        *string            `json:"next"`
+		AccessRules []AccessRule `json:"accessRules"`
+		Next        *string      `json:"next"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
 	}
 }
 
@@ -5626,11 +3798,14 @@ func (r AdminListAccessRulesResponse) StatusCode() int {
 type AdminCreateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *AccessRuleDetail
+	JSON201      *AccessRule
 	JSON400      *struct {
 		Error string `json:"error"`
 	}
 	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
 		Error string `json:"error"`
 	}
 }
@@ -5654,11 +3829,14 @@ func (r AdminCreateAccessRuleResponse) StatusCode() int {
 type AdminGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AccessRuleDetail
+	JSON200      *AccessRule
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
 	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
 		Error string `json:"error"`
 	}
 }
@@ -5682,7 +3860,7 @@ func (r AdminGetAccessRuleResponse) StatusCode() int {
 type AdminUpdateAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AccessRuleDetail
+	JSON200      *AccessRule
 }
 
 // Status returns HTTPResponse.Status
@@ -5704,7 +3882,7 @@ func (r AdminUpdateAccessRuleResponse) StatusCode() int {
 type AdminArchiveAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AccessRuleDetail
+	JSON200      *AccessRule
 	JSON401      *struct {
 		Error string `json:"error"`
 	}
@@ -6103,8 +4281,8 @@ type AdminListRequestsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 }
 
@@ -6348,62 +4526,6 @@ func (r AdminRemoveTargetGroupLinkResponse) StatusCode() int {
 	return 0
 }
 
-type AdminGetTargetGroupArgsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ArgSchema
-	JSON401      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminGetTargetGroupArgsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminGetTargetGroupArgsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminListTargetGroupArgOptionsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *ArgOptions
-	JSON401      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminListTargetGroupArgOptionsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminListTargetGroupArgOptionsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type AdminListUsersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -6587,137 +4709,10 @@ func (r UserListEntitlementTargetsResponse) StatusCode() int {
 	return 0
 }
 
-type UserListFavoritesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Favorites []Favorite `json:"favorites"`
-		Next      *string    `json:"next"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListFavoritesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListFavoritesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserCreateFavoriteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *FavoriteDetail
-	JSON400      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserCreateFavoriteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserCreateFavoriteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserDeleteFavoriteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r UserDeleteFavoriteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserDeleteFavoriteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserGetFavoriteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *FavoriteDetail
-	JSON404      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserGetFavoriteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserGetFavoriteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserUpdateFavoriteResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *FavoriteDetail
-}
-
-// Status returns HTTPResponse.Status
-func (r UserUpdateFavoriteResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserUpdateFavoriteResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type UserGetRequestAccessGroupGrantResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Grantv2
+	JSON200      *RequestAccessGroupGrant
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -6746,8 +4741,8 @@ type UserListRequestAccessGroupGrantsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Grants []Grantv2 `json:"grants"`
-		Next   *string   `json:"next,omitempty"`
+		Grants []RequestAccessGroupGrant `json:"grants"`
+		Next   *string                   `json:"next,omitempty"`
 	}
 	JSON404 *struct {
 		Error string `json:"error"`
@@ -6773,12 +4768,46 @@ func (r UserListRequestAccessGroupGrantsResponse) StatusCode() int {
 	return 0
 }
 
+type UserRequestPreflightResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Preflight
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserRequestPreflightResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserRequestPreflightResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UserListRequestsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 	JSON404 *struct {
 		Error string `json:"error"`
@@ -6835,8 +4864,8 @@ type UserListRequestsPastResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 }
 
@@ -6856,43 +4885,12 @@ func (r UserListRequestsPastResponse) StatusCode() int {
 	return 0
 }
 
-type UserRequestPreflightResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		PreflightId string      `json:"preflightId"`
-		Targets     []ArgSchema `json:"targets"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserRequestPreflightResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserRequestPreflightResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type UserListRequestsUpcomingResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 }
 
@@ -6915,7 +4913,7 @@ func (r UserListRequestsUpcomingResponse) StatusCode() int {
 type UserGetRequestResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Requestv2
+	JSON200      *Preflight
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -6944,8 +4942,8 @@ type UserListRequestAccessGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Groups []AccessGroup `json:"groups"`
-		Next   *string       `json:"next,omitempty"`
+		Groups []RequestAccessGroup `json:"groups"`
+		Next   *string              `json:"next,omitempty"`
 	}
 	JSON404 *struct {
 		Error string `json:"error"`
@@ -6974,7 +4972,7 @@ func (r UserListRequestAccessGroupsResponse) StatusCode() int {
 type UserGetRequestAccessGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AccessGroup
+	JSON200      *RequestAccessGroup
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -6993,6 +4991,31 @@ func (r UserGetRequestAccessGroupResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UserGetRequestAccessGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserReviewRequestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		// A request to access something made by an end user in Common Fate.
+		Request *Request `json:"request,omitempty"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserReviewRequestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserReviewRequestResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7075,23 +5098,6 @@ func (r UserGetUserResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
-}
-
-// UserReviewRequestWithBodyWithResponse request with arbitrary body returning *UserReviewRequestResponse
-func (c *ClientWithResponses) UserReviewRequestWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
-	rsp, err := c.UserReviewRequestWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserReviewRequestResponse(rsp)
-}
-
-func (c *ClientWithResponses) UserReviewRequestWithResponse(ctx context.Context, id string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
-	rsp, err := c.UserReviewRequest(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserReviewRequestResponse(rsp)
 }
 
 // AdminListAccessRulesWithResponse request returning *AdminListAccessRulesResponse
@@ -7384,24 +5390,6 @@ func (c *ClientWithResponses) AdminRemoveTargetGroupLinkWithResponse(ctx context
 	return ParseAdminRemoveTargetGroupLinkResponse(rsp)
 }
 
-// AdminGetTargetGroupArgsWithResponse request returning *AdminGetTargetGroupArgsResponse
-func (c *ClientWithResponses) AdminGetTargetGroupArgsWithResponse(ctx context.Context, tgId string, reqEditors ...RequestEditorFn) (*AdminGetTargetGroupArgsResponse, error) {
-	rsp, err := c.AdminGetTargetGroupArgs(ctx, tgId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminGetTargetGroupArgsResponse(rsp)
-}
-
-// AdminListTargetGroupArgOptionsWithResponse request returning *AdminListTargetGroupArgOptionsResponse
-func (c *ClientWithResponses) AdminListTargetGroupArgOptionsWithResponse(ctx context.Context, tgId string, argId string, params *AdminListTargetGroupArgOptionsParams, reqEditors ...RequestEditorFn) (*AdminListTargetGroupArgOptionsResponse, error) {
-	rsp, err := c.AdminListTargetGroupArgOptions(ctx, tgId, argId, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminListTargetGroupArgOptionsResponse(rsp)
-}
-
 // AdminListUsersWithResponse request returning *AdminListUsersResponse
 func (c *ClientWithResponses) AdminListUsersWithResponse(ctx context.Context, params *AdminListUsersParams, reqEditors ...RequestEditorFn) (*AdminListUsersResponse, error) {
 	rsp, err := c.AdminListUsers(ctx, params, reqEditors...)
@@ -7472,67 +5460,6 @@ func (c *ClientWithResponses) UserListEntitlementTargetsWithResponse(ctx context
 	return ParseUserListEntitlementTargetsResponse(rsp)
 }
 
-// UserListFavoritesWithResponse request returning *UserListFavoritesResponse
-func (c *ClientWithResponses) UserListFavoritesWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListFavoritesResponse, error) {
-	rsp, err := c.UserListFavorites(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListFavoritesResponse(rsp)
-}
-
-// UserCreateFavoriteWithBodyWithResponse request with arbitrary body returning *UserCreateFavoriteResponse
-func (c *ClientWithResponses) UserCreateFavoriteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error) {
-	rsp, err := c.UserCreateFavoriteWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserCreateFavoriteResponse(rsp)
-}
-
-func (c *ClientWithResponses) UserCreateFavoriteWithResponse(ctx context.Context, body UserCreateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserCreateFavoriteResponse, error) {
-	rsp, err := c.UserCreateFavorite(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserCreateFavoriteResponse(rsp)
-}
-
-// UserDeleteFavoriteWithResponse request returning *UserDeleteFavoriteResponse
-func (c *ClientWithResponses) UserDeleteFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserDeleteFavoriteResponse, error) {
-	rsp, err := c.UserDeleteFavorite(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserDeleteFavoriteResponse(rsp)
-}
-
-// UserGetFavoriteWithResponse request returning *UserGetFavoriteResponse
-func (c *ClientWithResponses) UserGetFavoriteWithResponse(ctx context.Context, id string, reqEditors ...RequestEditorFn) (*UserGetFavoriteResponse, error) {
-	rsp, err := c.UserGetFavorite(ctx, id, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserGetFavoriteResponse(rsp)
-}
-
-// UserUpdateFavoriteWithBodyWithResponse request with arbitrary body returning *UserUpdateFavoriteResponse
-func (c *ClientWithResponses) UserUpdateFavoriteWithBodyWithResponse(ctx context.Context, id string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error) {
-	rsp, err := c.UserUpdateFavoriteWithBody(ctx, id, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserUpdateFavoriteResponse(rsp)
-}
-
-func (c *ClientWithResponses) UserUpdateFavoriteWithResponse(ctx context.Context, id string, body UserUpdateFavoriteJSONRequestBody, reqEditors ...RequestEditorFn) (*UserUpdateFavoriteResponse, error) {
-	rsp, err := c.UserUpdateFavorite(ctx, id, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserUpdateFavoriteResponse(rsp)
-}
-
 // UserGetRequestAccessGroupGrantWithResponse request returning *UserGetRequestAccessGroupGrantResponse
 func (c *ClientWithResponses) UserGetRequestAccessGroupGrantWithResponse(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupGrantResponse, error) {
 	rsp, err := c.UserGetRequestAccessGroupGrant(ctx, gid, grantid, reqEditors...)
@@ -7549,6 +5476,23 @@ func (c *ClientWithResponses) UserListRequestAccessGroupGrantsWithResponse(ctx c
 		return nil, err
 	}
 	return ParseUserListRequestAccessGroupGrantsResponse(rsp)
+}
+
+// UserRequestPreflightWithBodyWithResponse request with arbitrary body returning *UserRequestPreflightResponse
+func (c *ClientWithResponses) UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
+	rsp, err := c.UserRequestPreflightWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserRequestPreflightResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
+	rsp, err := c.UserRequestPreflight(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserRequestPreflightResponse(rsp)
 }
 
 // UserListRequestsWithResponse request returning *UserListRequestsResponse
@@ -7584,23 +5528,6 @@ func (c *ClientWithResponses) UserListRequestsPastWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseUserListRequestsPastResponse(rsp)
-}
-
-// UserRequestPreflightWithBodyWithResponse request with arbitrary body returning *UserRequestPreflightResponse
-func (c *ClientWithResponses) UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
-	rsp, err := c.UserRequestPreflightWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserRequestPreflightResponse(rsp)
-}
-
-func (c *ClientWithResponses) UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
-	rsp, err := c.UserRequestPreflight(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserRequestPreflightResponse(rsp)
 }
 
 // UserListRequestsUpcomingWithResponse request returning *UserListRequestsUpcomingResponse
@@ -7639,6 +5566,23 @@ func (c *ClientWithResponses) UserGetRequestAccessGroupWithResponse(ctx context.
 	return ParseUserGetRequestAccessGroupResponse(rsp)
 }
 
+// UserReviewRequestWithBodyWithResponse request with arbitrary body returning *UserReviewRequestResponse
+func (c *ClientWithResponses) UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
+	rsp, err := c.UserReviewRequestWithBody(ctx, requestId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserReviewRequestResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserReviewRequestWithResponse(ctx context.Context, requestId string, body UserReviewRequestJSONRequestBody, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
+	rsp, err := c.UserReviewRequest(ctx, requestId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserReviewRequestResponse(rsp)
+}
+
 // UserRevokeRequestWithResponse request returning *UserRevokeRequestResponse
 func (c *ClientWithResponses) UserRevokeRequestWithResponse(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*UserRevokeRequestResponse, error) {
 	rsp, err := c.UserRevokeRequest(ctx, requestid, reqEditors...)
@@ -7666,35 +5610,6 @@ func (c *ClientWithResponses) UserGetUserWithResponse(ctx context.Context, userI
 	return ParseUserGetUserResponse(rsp)
 }
 
-// ParseUserReviewRequestResponse parses an HTTP response from a UserReviewRequestWithResponse call
-func ParseUserReviewRequestResponse(rsp *http.Response) (*UserReviewRequestResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserReviewRequestResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			// A request to access something made by an end user in Common Fate.
-			Request *Request `json:"request,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseAdminListAccessRulesResponse parses an HTTP response from a AdminListAccessRulesWithResponse call
 func ParseAdminListAccessRulesResponse(rsp *http.Response) (*AdminListAccessRulesResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -7711,13 +5626,31 @@ func ParseAdminListAccessRulesResponse(rsp *http.Response) (*AdminListAccessRule
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			AccessRules []AccessRuleDetail `json:"accessRules"`
-			Next        *string            `json:"next"`
+			AccessRules []AccessRule `json:"accessRules"`
+			Next        *string      `json:"next"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
@@ -7739,7 +5672,7 @@ func ParseAdminCreateAccessRuleResponse(rsp *http.Response) (*AdminCreateAccessR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest AccessRuleDetail
+		var dest AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7763,6 +5696,15 @@ func ParseAdminCreateAccessRuleResponse(rsp *http.Response) (*AdminCreateAccessR
 		}
 		response.JSON401 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
@@ -7783,7 +5725,7 @@ func ParseAdminGetAccessRuleResponse(rsp *http.Response) (*AdminGetAccessRuleRes
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessRuleDetail
+		var dest AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7807,6 +5749,15 @@ func ParseAdminGetAccessRuleResponse(rsp *http.Response) (*AdminGetAccessRuleRes
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
 	}
 
 	return response, nil
@@ -7827,7 +5778,7 @@ func ParseAdminUpdateAccessRuleResponse(rsp *http.Response) (*AdminUpdateAccessR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessRuleDetail
+		var dest AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7853,7 +5804,7 @@ func ParseAdminArchiveAccessRuleResponse(rsp *http.Response) (*AdminArchiveAcces
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessRuleDetail
+		var dest AccessRule
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8452,8 +6403,8 @@ func ParseAdminListRequestsResponse(rsp *http.Response) (*AdminListRequestsRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -8837,94 +6788,6 @@ func ParseAdminRemoveTargetGroupLinkResponse(rsp *http.Response) (*AdminRemoveTa
 	return response, nil
 }
 
-// ParseAdminGetTargetGroupArgsResponse parses an HTTP response from a AdminGetTargetGroupArgsWithResponse call
-func ParseAdminGetTargetGroupArgsResponse(rsp *http.Response) (*AdminGetTargetGroupArgsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminGetTargetGroupArgsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ArgSchema
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminListTargetGroupArgOptionsResponse parses an HTTP response from a AdminListTargetGroupArgOptionsWithResponse call
-func ParseAdminListTargetGroupArgOptionsResponse(rsp *http.Response) (*AdminListTargetGroupArgOptionsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminListTargetGroupArgOptionsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ArgOptions
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseAdminListUsersResponse parses an HTTP response from a AdminListUsersWithResponse call
 func ParseAdminListUsersResponse(rsp *http.Response) (*AdminListUsersResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -9210,174 +7073,6 @@ func ParseUserListEntitlementTargetsResponse(rsp *http.Response) (*UserListEntit
 	return response, nil
 }
 
-// ParseUserListFavoritesResponse parses an HTTP response from a UserListFavoritesWithResponse call
-func ParseUserListFavoritesResponse(rsp *http.Response) (*UserListFavoritesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListFavoritesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Favorites []Favorite `json:"favorites"`
-			Next      *string    `json:"next"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserCreateFavoriteResponse parses an HTTP response from a UserCreateFavoriteWithResponse call
-func ParseUserCreateFavoriteResponse(rsp *http.Response) (*UserCreateFavoriteResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserCreateFavoriteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest FavoriteDetail
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserDeleteFavoriteResponse parses an HTTP response from a UserDeleteFavoriteWithResponse call
-func ParseUserDeleteFavoriteResponse(rsp *http.Response) (*UserDeleteFavoriteResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserDeleteFavoriteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseUserGetFavoriteResponse parses an HTTP response from a UserGetFavoriteWithResponse call
-func ParseUserGetFavoriteResponse(rsp *http.Response) (*UserGetFavoriteResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserGetFavoriteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest FavoriteDetail
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserUpdateFavoriteResponse parses an HTTP response from a UserUpdateFavoriteWithResponse call
-func ParseUserUpdateFavoriteResponse(rsp *http.Response) (*UserUpdateFavoriteResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserUpdateFavoriteResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest FavoriteDetail
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseUserGetRequestAccessGroupGrantResponse parses an HTTP response from a UserGetRequestAccessGroupGrantWithResponse call
 func ParseUserGetRequestAccessGroupGrantResponse(rsp *http.Response) (*UserGetRequestAccessGroupGrantResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -9393,7 +7088,7 @@ func ParseUserGetRequestAccessGroupGrantResponse(rsp *http.Response) (*UserGetRe
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Grantv2
+		var dest RequestAccessGroupGrant
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -9438,13 +7133,75 @@ func ParseUserListRequestAccessGroupGrantsResponse(rsp *http.Response) (*UserLis
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Grants []Grantv2 `json:"grants"`
-			Next   *string   `json:"next,omitempty"`
+			Grants []RequestAccessGroupGrant `json:"grants"`
+			Next   *string                   `json:"next,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserRequestPreflightResponse parses an HTTP response from a UserRequestPreflightWithResponse call
+func ParseUserRequestPreflightResponse(rsp *http.Response) (*UserRequestPreflightResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserRequestPreflightResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Preflight
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
@@ -9485,8 +7242,8 @@ func ParseUserListRequestsResponse(rsp *http.Response) (*UserListRequestsRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -9569,60 +7326,13 @@ func ParseUserListRequestsPastResponse(rsp *http.Response) (*UserListRequestsPas
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserRequestPreflightResponse parses an HTTP response from a UserRequestPreflightWithResponse call
-func ParseUserRequestPreflightResponse(rsp *http.Response) (*UserRequestPreflightResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserRequestPreflightResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			PreflightId string      `json:"preflightId"`
-			Targets     []ArgSchema `json:"targets"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
 
 	}
 
@@ -9645,8 +7355,8 @@ func ParseUserListRequestsUpcomingResponse(rsp *http.Response) (*UserListRequest
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -9673,7 +7383,7 @@ func ParseUserGetRequestResponse(rsp *http.Response) (*UserGetRequestResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Requestv2
+		var dest Preflight
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -9718,8 +7428,8 @@ func ParseUserListRequestAccessGroupsResponse(rsp *http.Response) (*UserListRequ
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Groups []AccessGroup `json:"groups"`
-			Next   *string       `json:"next,omitempty"`
+			Groups []RequestAccessGroup `json:"groups"`
+			Next   *string              `json:"next,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -9764,7 +7474,7 @@ func ParseUserGetRequestAccessGroupResponse(rsp *http.Response) (*UserGetRequest
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessGroup
+		var dest RequestAccessGroup
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -9787,6 +7497,35 @@ func ParseUserGetRequestAccessGroupResponse(rsp *http.Response) (*UserGetRequest
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserReviewRequestResponse parses an HTTP response from a UserReviewRequestWithResponse call
+func ParseUserReviewRequestResponse(rsp *http.Response) (*UserReviewRequestResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserReviewRequestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			// A request to access something made by an end user in Common Fate.
+			Request *Request `json:"request,omitempty"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
 
 	}
 
@@ -9897,9 +7636,6 @@ func ParseUserGetUserResponse(rsp *http.Response) (*UserGetUserResponse, error) 
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// Review an access group
-	// (POST /api/v1/access-group/{id}/review)
-	UserReviewRequest(w http.ResponseWriter, r *http.Request, id string)
 	// List Access Rules
 	// (GET /api/v1/admin/access-rules)
 	AdminListAccessRules(w http.ResponseWriter, r *http.Request, params AdminListAccessRulesParams)
@@ -9978,12 +7714,6 @@ type ServerInterface interface {
 	// Unlink a target group deployment from its target group
 	// (POST /api/v1/admin/target-groups/{id}/unlink)
 	AdminRemoveTargetGroupLink(w http.ResponseWriter, r *http.Request, id string, params AdminRemoveTargetGroupLinkParams)
-	// Get provider arg schema
-	// (GET /api/v1/admin/target-groups/{tgId}/args)
-	AdminGetTargetGroupArgs(w http.ResponseWriter, r *http.Request, tgId string)
-	// List target group arg options
-	// (GET /api/v1/admin/target-groups/{tgId}/args/{argId}/options)
-	AdminListTargetGroupArgOptions(w http.ResponseWriter, r *http.Request, tgId string, argId string, params AdminListTargetGroupArgOptionsParams)
 	// Returns a list of users
 	// (GET /api/v1/admin/users)
 	AdminListUsers(w http.ResponseWriter, r *http.Request, params AdminListUsersParams)
@@ -10002,27 +7732,15 @@ type ServerInterface interface {
 	// List Entitlement Resources
 	// (GET /api/v1/entitlements/targets)
 	UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params UserListEntitlementTargetsParams)
-	// ListFavorites
-	// (GET /api/v1/favorites)
-	UserListFavorites(w http.ResponseWriter, r *http.Request)
-	// Create Favorite
-	// (POST /api/v1/favorites)
-	UserCreateFavorite(w http.ResponseWriter, r *http.Request)
-
-	// (DELETE /api/v1/favorites/{id})
-	UserDeleteFavorite(w http.ResponseWriter, r *http.Request, id string)
-	// Get Favorite
-	// (GET /api/v1/favorites/{id})
-	UserGetFavorite(w http.ResponseWriter, r *http.Request, id string)
-
-	// (PUT /api/v1/favorites/{id})
-	UserUpdateFavorite(w http.ResponseWriter, r *http.Request, id string)
 	// Get Request Access Group Grant
 	// (GET /api/v1/groups/{gid}/grants{grantid})
 	UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request, gid string, grantid string)
 	// List Request Access Group Grants
 	// (GET /api/v1/groups/{groupId}/grants)
 	UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, groupId string)
+	// Submit Preflight
+	// (POST /api/v1/preflight)
+	UserRequestPreflight(w http.ResponseWriter, r *http.Request)
 	// List Requests
 	// (GET /api/v1/requests)
 	UserListRequests(w http.ResponseWriter, r *http.Request, params UserListRequestsParams)
@@ -10032,9 +7750,6 @@ type ServerInterface interface {
 	// Your GET endpoint
 	// (GET /api/v1/requests/past)
 	UserListRequestsPast(w http.ResponseWriter, r *http.Request, params UserListRequestsPastParams)
-
-	// (POST /api/v1/requests/preflight)
-	UserRequestPreflight(w http.ResponseWriter, r *http.Request)
 	// Your GET endpoint
 	// (GET /api/v1/requests/upcoming)
 	UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params UserListRequestsUpcomingParams)
@@ -10047,6 +7762,9 @@ type ServerInterface interface {
 	// Get Request Access Group
 	// (GET /api/v1/requests/{requestId}/groups/{groupId})
 	UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, requestId string, groupId string)
+	// Review a request
+	// (POST /api/v1/requests/{requestId}/review)
+	UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string)
 	// Revoke an active request
 	// (POST /api/v1/requests/{requestid}/revoke)
 	UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestid string)
@@ -10066,32 +7784,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
-
-// UserReviewRequest operation middleware
-func (siw *ServerInterfaceWrapper) UserReviewRequest(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserReviewRequest(w, r, id)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
 
 // AdminListAccessRules operation middleware
 func (siw *ServerInterfaceWrapper) AdminListAccessRules(w http.ResponseWriter, r *http.Request) {
@@ -10738,81 +8430,6 @@ func (siw *ServerInterfaceWrapper) AdminRemoveTargetGroupLink(w http.ResponseWri
 	handler(w, r.WithContext(ctx))
 }
 
-// AdminGetTargetGroupArgs operation middleware
-func (siw *ServerInterfaceWrapper) AdminGetTargetGroupArgs(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "tgId" -------------
-	var tgId string
-
-	err = runtime.BindStyledParameter("simple", false, "tgId", chi.URLParam(r, "tgId"), &tgId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "tgId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminGetTargetGroupArgs(w, r, tgId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminListTargetGroupArgOptions operation middleware
-func (siw *ServerInterfaceWrapper) AdminListTargetGroupArgOptions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "tgId" -------------
-	var tgId string
-
-	err = runtime.BindStyledParameter("simple", false, "tgId", chi.URLParam(r, "tgId"), &tgId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "tgId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "argId" -------------
-	var argId string
-
-	err = runtime.BindStyledParameter("simple", false, "argId", chi.URLParam(r, "argId"), &argId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "argId", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params AdminListTargetGroupArgOptionsParams
-
-	// ------------- Optional query parameter "refresh" -------------
-	if paramValue := r.URL.Query().Get("refresh"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "refresh", r.URL.Query(), &params.Refresh)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "refresh", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminListTargetGroupArgOptions(w, r, tgId, argId, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
 // AdminListUsers operation middleware
 func (siw *ServerInterfaceWrapper) AdminListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -11021,114 +8638,6 @@ func (siw *ServerInterfaceWrapper) UserListEntitlementTargets(w http.ResponseWri
 	handler(w, r.WithContext(ctx))
 }
 
-// UserListFavorites operation middleware
-func (siw *ServerInterfaceWrapper) UserListFavorites(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListFavorites(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserCreateFavorite operation middleware
-func (siw *ServerInterfaceWrapper) UserCreateFavorite(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserCreateFavorite(w, r)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserDeleteFavorite operation middleware
-func (siw *ServerInterfaceWrapper) UserDeleteFavorite(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserDeleteFavorite(w, r, id)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserGetFavorite operation middleware
-func (siw *ServerInterfaceWrapper) UserGetFavorite(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserGetFavorite(w, r, id)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserUpdateFavorite operation middleware
-func (siw *ServerInterfaceWrapper) UserUpdateFavorite(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "id" -------------
-	var id string
-
-	err = runtime.BindStyledParameter("simple", false, "id", chi.URLParam(r, "id"), &id)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserUpdateFavorite(w, r, id)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
 // UserGetRequestAccessGroupGrant operation middleware
 func (siw *ServerInterfaceWrapper) UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -11181,6 +8690,21 @@ func (siw *ServerInterfaceWrapper) UserListRequestAccessGroupGrants(w http.Respo
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserListRequestAccessGroupGrants(w, r, groupId)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserRequestPreflight operation middleware
+func (siw *ServerInterfaceWrapper) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserRequestPreflight(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -11280,21 +8804,6 @@ func (siw *ServerInterfaceWrapper) UserListRequestsPast(w http.ResponseWriter, r
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserListRequestsPast(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserRequestPreflight operation middleware
-func (siw *ServerInterfaceWrapper) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserRequestPreflight(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -11413,6 +8922,32 @@ func (siw *ServerInterfaceWrapper) UserGetRequestAccessGroup(w http.ResponseWrit
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserGetRequestAccessGroup(w, r, requestId, groupId)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserReviewRequest operation middleware
+func (siw *ServerInterfaceWrapper) UserReviewRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "requestId" -------------
+	var requestId string
+
+	err = runtime.BindStyledParameter("simple", false, "requestId", chi.URLParam(r, "requestId"), &requestId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "requestId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserReviewRequest(w, r, requestId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -11603,9 +9138,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/access-group/{id}/review", wrapper.UserReviewRequest)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/access-rules", wrapper.AdminListAccessRules)
 	})
 	r.Group(func(r chi.Router) {
@@ -11684,12 +9216,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/target-groups/{id}/unlink", wrapper.AdminRemoveTargetGroupLink)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/target-groups/{tgId}/args", wrapper.AdminGetTargetGroupArgs)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/admin/target-groups/{tgId}/args/{argId}/options", wrapper.AdminListTargetGroupArgOptions)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/users", wrapper.AdminListUsers)
 	})
 	r.Group(func(r chi.Router) {
@@ -11708,25 +9234,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/entitlements/targets", wrapper.UserListEntitlementTargets)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/favorites", wrapper.UserListFavorites)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/favorites", wrapper.UserCreateFavorite)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/api/v1/favorites/{id}", wrapper.UserDeleteFavorite)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/favorites/{id}", wrapper.UserGetFavorite)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/api/v1/favorites/{id}", wrapper.UserUpdateFavorite)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/groups/{gid}/grants{grantid}", wrapper.UserGetRequestAccessGroupGrant)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/groups/{groupId}/grants", wrapper.UserListRequestAccessGroupGrants)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/preflight", wrapper.UserRequestPreflight)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests", wrapper.UserListRequests)
@@ -11736,9 +9250,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests/past", wrapper.UserListRequestsPast)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/requests/preflight", wrapper.UserRequestPreflight)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests/upcoming", wrapper.UserListRequestsUpcoming)
@@ -11751,6 +9262,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests/{requestId}/groups/{groupId}", wrapper.UserGetRequestAccessGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/requests/{requestId}/review", wrapper.UserReviewRequest)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/requests/{requestid}/revoke", wrapper.UserRevokeRequest)
@@ -11768,181 +9282,119 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"x9LvWacMAQA=",
+	"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",
+	"AAD//8ol2KgyqgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

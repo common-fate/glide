@@ -1,145 +1,179 @@
 package rulesvc
 
-// import (
-// 	"context"
-// 	"net/http"
-// 	"testing"
+import (
+	"context"
+	"errors"
+	"testing"
 
-// 	"github.com/benbjohnson/clock"
-// 	"github.com/common-fate/apikit/apio"
-// 	ssov2 "github.com/common-fate/common-fate/accesshandler/pkg/providers/aws/sso-v2"
-// 	"github.com/common-fate/common-fate/accesshandler/pkg/providers/testvault"
-// 	types "github.com/common-fate/common-fate/accesshandler/pkg/types"
-// 	"github.com/common-fate/common-fate/accesshandler/pkg/types/ahmocks"
-// 	"github.com/common-fate/common-fate/pkg/cache"
-// 	"github.com/common-fate/common-fate/pkg/rule"
-// 	"github.com/common-fate/common-fate/pkg/service/rulesvc/mocks"
-// 	"github.com/common-fate/common-fate/pkg/storage"
-// 	"github.com/common-fate/common-fate/pkg/types"
-// 	"github.com/common-fate/ddb"
-// 	"github.com/common-fate/ddb/ddbmock"
-// 	"github.com/golang/mock/gomock"
-// 	"github.com/pkg/errors"
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/target"
+	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/ddb/ddbmock"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+)
 
-// func TestCreateAccessRule(t *testing.T) {
-// 	type testcase struct {
-// 		name                 string
-// 		givenUserID          string
-// 		give                 types.CreateAccessRuleRequest
-// 		wantErr              error
-// 		withProviderResponse types.Provider
-// 		want                 *rule.AccessRule
-// 	}
+func TestCreateAccessRule(t *testing.T) {
+	type testcase struct {
+		name               string
+		givenUserID        string
+		give               types.CreateAccessRuleRequest
+		wantErr            error
+		want               *rule.AccessRule
+		wantTargetGroup    target.Group
+		wantTargetGroupErr error
+	}
 
-// 	in := types.CreateAccessRuleRequest{}
+	in := types.CreateAccessRuleRequest{
+		Approval:        types.AccessRuleApproverConfig{},
+		Description:     "test",
+		Name:            "test",
+		Groups:          []string{"group_a"},
+		TimeConstraints: types.AccessRuleTimeConstraints{MaxDurationSeconds: 3600},
 
-// 	ruleID := "override"
-// 	versionID := "overrideVersion"
-// 	userID := "user1"
-// 	clk := clock.NewMock()
-// 	now := clk.Now()
+		Targets: []types.CreateAccessRuleTarget{
+			{
+				TargetGroupId:         "test",
+				FieldFilterExpessions: make(map[string]interface{}),
+			},
+		},
+	}
 
-// 	mockRule := rule.AccessRule{
-// 		ID:          ruleID,
-// 		Version:     versionID,
-// 		Approval:    rule.Approval(in.Approval),
-// 		Status:      rule.ACTIVE,
-// 		Description: in.Description,
-// 		Name:        in.Name,
-// 		Groups:      in.Groups,
-// 		Metadata: rule.AccessRuleMetadata{
-// 			CreatedAt: now,
-// 			CreatedBy: userID,
-// 			UpdatedAt: now,
-// 			UpdatedBy: userID,
-// 		},
-// 		Target: rule.Target{
-// 			ProviderID:               in.Target.ProviderId,
-// 			BuiltInProviderType:      "okta",
-// 			With:                     make(map[string]string),
-// 			WithSelectable:           make(map[string][]string),
-// 			WithArgumentGroupOptions: make(map[string]map[string][]string),
-// 		},
-// 		TimeConstraints: in.TimeConstraints,
-// 		Current:         true,
-// 	}
-// 	cacheArgOptionsResponse := []cache.ProviderOption{}
-// 	cacheArgGroupOptionsResponse := []cache.ProviderArgGroupOption{}
+	ruleID := "override"
+	userID := "user1"
+	clk := clock.NewMock()
+	now := clk.Now()
 
-// 	mockRuleLongerThan6months := in
-// 	mockRuleLongerThan6months.TimeConstraints = types.TimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
+	mockRule := rule.AccessRule{
+		ID:          ruleID,
+		Approval:    rule.Approval(in.Approval),
+		Status:      rule.ACTIVE,
+		Description: in.Description,
+		Name:        in.Name,
+		Groups:      in.Groups,
+		Metadata: rule.AccessRuleMetadata{
+			CreatedAt: now,
+			CreatedBy: userID,
+			UpdatedAt: now,
+			UpdatedBy: userID,
+		},
+		Targets: []rule.Target{
+			{
+				TargetGroup: target.Group{
+					ID: "123",
+					From: target.From{
+						Name:      "test",
+						Publisher: "commonfate",
+						Kind:      "Account",
+						Version:   "v1.1.1",
+					},
+					Schema:    providerregistrysdk.Target{},
+					Icon:      "",
+					CreatedAt: now,
+					UpdatedAt: now,
+				},
+				FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
+			},
+		},
 
-// 	/**
-// 	There are two test cases here:
-// 	- Create a valid rule
-// 	*/
-// 	testcases := []testcase{
-// 		{
-// 			name:        "ok",
-// 			givenUserID: userID,
-// 			give:        in,
-// 			want:        &mockRule,
-// 			withProviderResponse: types.Provider{
-// 				Id:   in.Target.ProviderId,
-// 				Type: "okta",
-// 			},
-// 		},
-// 		{
-// 			name:        "max duration seconds > 6 months",
-// 			givenUserID: userID,
-// 			give:        mockRuleLongerThan6months,
-// 			withProviderResponse: types.Provider{
-// 				Id:   in.Target.ProviderId,
-// 				Type: "okta",
-// 			},
-// 			wantErr: apio.NewRequestError(errors.New("access rule cannot be longer than 6 months"), http.StatusBadRequest),
-// 		},
-// 	}
+		TimeConstraints: in.TimeConstraints,
+	}
 
-// 	for _, tc := range testcases {
-// 		t.Run(tc.name, func(t *testing.T) {
+	mockRuleLongerThan6months := in
+	mockRuleLongerThan6months.TimeConstraints = types.AccessRuleTimeConstraints{MaxDurationSeconds: 26*7*24*3600 + 1}
 
-// 			dbc := ddbmock.New(t)
-// 			clk := clock.NewMock()
-// 			ctrl := gomock.NewController(t)
+	/**
+	There are two test cases here:
+	- Create a valid rule
+	*/
+	testcases := []testcase{
+		{
+			name:        "ok",
+			givenUserID: userID,
+			give:        in,
+			want:        &mockRule,
+			wantTargetGroup: target.Group{
+				ID: "123",
+				From: target.From{
+					Name:      "test",
+					Publisher: "commonfate",
+					Kind:      "Account",
+					Version:   "v1.1.1",
+				},
+				Schema:    providerregistrysdk.Target{},
+				Icon:      "",
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		},
+		{
+			name:        "max duration longer than 6 months",
+			givenUserID: userID,
+			give:        mockRuleLongerThan6months,
+			wantErr:     errors.New("access rule cannot be longer than 6 months"),
+			wantTargetGroup: target.Group{
+				ID: "123",
+				From: target.From{
+					Name:      "test",
+					Publisher: "commonfate",
+					Kind:      "Account",
+					Version:   "v1.1.1",
+				},
+				Schema:    providerregistrysdk.Target{},
+				Icon:      "",
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		},
+		{
+			name:               "target group not found errors gracefully",
+			givenUserID:        userID,
+			give:               in,
+			wantTargetGroupErr: ddb.ErrNoItems,
+		},
+	}
 
-// 			defer ctrl.Finish()
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
 
-// 			dbc.MockQueryWithErr(&storage.GetTargetGroup{ID: in.Target.ProviderId}, ddb.ErrNoItems)
+			dbc := ddbmock.New(t)
+			clk := clock.NewMock()
+			ctrl := gomock.NewController(t)
 
-// 			m := ahmocks.NewMockClientWithResponsesInterface(ctrl)
-// 			m.EXPECT().GetProviderWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&types.GetProviderResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &tc.withProviderResponse}, nil)
-// 			m.EXPECT().GetProviderArgsWithResponse(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId)).Return(&types.GetProviderArgsResponse{HTTPResponse: &http.Response{StatusCode: 200}, JSON200: &types.ArgSchema{}}, nil)
+			defer ctrl.Finish()
 
-// 			cm := mocks.NewMockCacheService(ctrl)
-// 			cm.EXPECT().RefreshCachedProviderArgOptions(gomock.Any(), gomock.Eq(tc.give.Target.ProviderId), gomock.Any()).AnyTimes().Return(false, cacheArgOptionsResponse, cacheArgGroupOptionsResponse, nil)
+			dbc.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.wantTargetGroup}, tc.wantTargetGroupErr)
 
-// 			s := Service{
-// 				Clock:    clk,
-// 				DB:       dbc,
-// 				AHClient: m,
-// 				Cache:    cm,
-// 			}
+			s := Service{
+				Clock: clk,
+				DB:    dbc,
+			}
 
-// 			got, err := s.CreateAccessRule(context.Background(), tc.givenUserID, tc.give)
+			got, err := s.CreateAccessRule(context.Background(), tc.givenUserID, tc.give)
 
-// 			// This is the only thing from service layer that we can't mock yet, hence the override
-// 			if err == nil {
-// 				got.ID = ruleID
-// 				got.Version = versionID
-// 			}
+			// This is the only thing from service layer that we can't mock yet, hence the override
+			if err == nil {
+				got.ID = ruleID
+			}
 
-// 			if err != nil {
-// 				assert.Equal(t, tc.wantErr.Error(), err.Error())
-// 			}
-// 			assert.Equal(t, tc.want, got)
+			if tc.wantTargetGroupErr != nil {
+				assert.Equal(t, tc.wantTargetGroupErr.Error(), err.Error())
+				return
+			}
 
-// 		})
-// 	}
+			if err != nil {
+				assert.Equal(t, tc.wantErr.Error(), err.Error())
+			}
+			assert.Equal(t, tc.want, got)
 
-// }
+		})
+	}
+
+}
 
 // func TestProcessTarget(t *testing.T) {
 // 	type testcase struct {

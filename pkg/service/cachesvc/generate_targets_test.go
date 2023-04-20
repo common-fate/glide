@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,15 +31,14 @@ func TestSync(t *testing.T) {
 					{TargetGroupID: "targetgroup_1", ResourceType: "PermissionSet", Resource: cache.Resource{ID: "permissionSet_2", Name: "PermissionSet_2"}},
 				},
 				accessRules: []rule.AccessRule{
-					{ID: "accessRule_1", Targets: map[string]rule.Target{
-						"targetgroup_1": {
-							TargetGroupID: "targetgroup_1",
-							Schema: providerregistrysdk.Target{
+					{ID: "accessRule_1", Targets: []rule.Target{
+						{
+							TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
 								Properties: map[string]providerregistrysdk.TargetField{
 									"accountId":        {Resource: aws.String("Account")},
 									"permissionSetArn": {Resource: aws.String("PermissionSet")},
 								},
-							},
+							}},
 						},
 					}},
 				},
@@ -115,18 +115,31 @@ func TestGenerateDistinctTargets(t *testing.T) {
 			want: []cache.Target{
 				{
 					TargetGroupID: "targetgroup_1",
-					Fields: map[string]string{
-						"accountId":        "account_1",
-						"permissionSetArn": "permissionSet_1",
+					Fields: []cache.Field{
+						{
+							ID:    "accountId",
+							Value: "account_1",
+						},
+						{
+							ID:    "permissionSetArn",
+							Value: "permissionSet_1",
+						},
 					},
+
 					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}, "group_3": {}, "group_4": {}},
 					AccessRules: map[string]struct{}{"accessRule_2": {}, "accessRule_1": {}},
 				},
 				{
 					TargetGroupID: "targetgroup_1",
-					Fields: map[string]string{
-						"accountId":        "account_1",
-						"permissionSetArn": "permissionSet_2",
+					Fields: []cache.Field{
+						{
+							ID:    "accountId",
+							Value: "account_1",
+						},
+						{
+							ID:    "permissionSetArn",
+							Value: "permissionSet_2",
+						},
 					},
 					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}},
 					AccessRules: map[string]struct{}{"accessRule_1": {}},

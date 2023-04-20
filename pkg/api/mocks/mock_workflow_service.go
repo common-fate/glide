@@ -5,10 +5,6 @@
 package mocks
 
 import (
-	context "context"
-	reflect "reflect"
-
-	requests "github.com/common-fate/common-fate/pkg/requests"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -33,19 +29,4 @@ func NewMockWorkflow(ctrl *gomock.Controller) *MockWorkflow {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 	return m.recorder
-}
-
-// Revoke mocks base method.
-func (m *MockWorkflow) Revoke(arg0 context.Context, arg1 requests.Requestv2, arg2, arg3 string) (*requests.Requestv2, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Revoke", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*requests.Requestv2)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Revoke indicates an expected call of Revoke.
-func (mr *MockWorkflowMockRecorder) Revoke(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockWorkflow)(nil).Revoke), arg0, arg1, arg2, arg3)
 }

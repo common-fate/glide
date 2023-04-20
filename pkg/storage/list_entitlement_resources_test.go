@@ -48,7 +48,7 @@ func TestListEntitlementResources(t *testing.T) {
 			resourceName: "accountId",
 
 			want: []requests.ResourceOption{
-				requests.ResourceOption{
+				{
 
 					Label: "accountId",
 					Value: "123456789012",

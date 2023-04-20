@@ -40,17 +40,17 @@ func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
 	return keys, nil
 }
 
-func (i *AccessGroup) ToAPI() types.AccessGroup {
-	out := types.AccessGroup{
+func (i *AccessGroup) ToAPI() types.RequestAccessGroup {
+	out := types.RequestAccessGroup{
 		Id:     i.ID,
-		Status: string(i.Status),
-		Time: types.TimeConstraints{
+		Status: types.RequestStatus(i.Status),
+		Time: types.AccessRuleTimeConstraints{
 			MaxDurationSeconds: int(i.TimeConstraints.Duration),
 		},
-		RequestId:    i.Request,
-		AccessRuleId: i.AccessRule.ID,
-		CreatedAt:    &i.CreatedAt,
-		UpdatedAt:    &i.UpdatedAt,
+		RequestId:      i.Request,
+		OverrideTiming: i.OverrideTiming.ToAPI(),
+		CreatedAt:      i.CreatedAt,
+		UpdatedAt:      i.UpdatedAt,
 	}
 
 	if i.OverrideTiming != nil {
@@ -91,7 +91,7 @@ func (t Timing) ToAnalytics() analytics.Timing {
 }
 
 // TimingFromRequestTiming converts from the api type to the internal type
-func TimingFromRequestTiming(r types.RequestTiming) Timing {
+func TimingFromRequestTiming(r types.RequestAccessGroupTiming) Timing {
 	return Timing{
 		Duration:  time.Second * time.Duration(r.DurationSeconds),
 		StartTime: r.StartTime,
@@ -104,8 +104,8 @@ func (t *Timing) IsScheduled() bool {
 }
 
 // ToAPI returns the api representation of the timing information
-func (t *Timing) ToAPI() types.RequestTiming {
-	return types.RequestTiming{
+func (t *Timing) ToAPI() types.RequestAccessGroupTiming {
+	return types.RequestAccessGroupTiming{
 		DurationSeconds: int(t.Duration.Seconds()),
 		StartTime:       t.StartTime,
 	}

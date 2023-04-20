@@ -5,30 +5,28 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/common-fate/pkg/rule"
+	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
 
-type GetAccessRuleCurrent struct {
+type GetPreflight struct {
 	ID     string
-	Result *rule.AccessRule
+	Result *requests.Preflight
 }
 
-func (g *GetAccessRuleCurrent) BuildQuery() (*dynamodb.QueryInput, error) {
+func (g *GetPreflight) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		Limit:                  aws.Int32(1),
-		KeyConditionExpression: aws.String("GSI2PK = :pk AND GSI2SK = :sk"),
-		IndexName:              &keys.IndexNames.GSI2,
+		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI2PK},
-			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI2SK(g.ID)},
+			":pk": &types.AttributeValueMemberS{Value: keys.Preflight.PK1},
+			":sk": &types.AttributeValueMemberS{Value: keys.Preflight.SK1(g.ID)},
 		},
 	}
 	return qi, nil
 }
-
-func (g *GetAccessRuleCurrent) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetPreflight) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
 	if len(out.Items) != 1 {
 		return ddb.ErrNoItems
 	}

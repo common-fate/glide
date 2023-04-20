@@ -5,11 +5,6 @@
 package mocks
 
 import (
-	context "context"
-	reflect "reflect"
-
-	rule "github.com/common-fate/common-fate/pkg/rule"
-	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -34,19 +29,4 @@ func NewMockAccessRuleService(ctrl *gomock.Controller) *MockAccessRuleService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAccessRuleService) EXPECT() *MockAccessRuleServiceMockRecorder {
 	return m.recorder
-}
-
-// RequestArguments mocks base method.
-func (m *MockAccessRuleService) RequestArguments(arg0 context.Context, arg1 rule.Target) (map[string]types.RequestArgument, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RequestArguments", arg0, arg1)
-	ret0, _ := ret[0].(map[string]types.RequestArgument)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RequestArguments indicates an expected call of RequestArguments.
-func (mr *MockAccessRuleServiceMockRecorder) RequestArguments(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestArguments", reflect.TypeOf((*MockAccessRuleService)(nil).RequestArguments), arg0, arg1)
 }

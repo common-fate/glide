@@ -9,7 +9,6 @@ import (
 	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/benbjohnson/clock"
-	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/deploy"
@@ -25,12 +24,8 @@ import (
 	"github.com/common-fate/common-fate/pkg/service/handlersvc"
 	"github.com/common-fate/common-fate/pkg/service/healthchecksvc"
 	"github.com/common-fate/common-fate/pkg/service/internalidentitysvc"
-	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
-	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/service/targetsvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc"
-	"github.com/common-fate/common-fate/pkg/service/workflowsvc/runtimes/live"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -74,7 +69,7 @@ type API struct {
 	HandlerService     HandlerService
 	Workflow           Workflow
 	HealthcheckService HealthcheckService
-	PreflightService   preflightsvc.PreflightService
+	PreflightService   PreflightService
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_cognito_service.go -package=mocks . CognitoService
@@ -87,11 +82,11 @@ type CognitoService interface {
 
 // RequestServices can create Access Requests.
 type AccessService interface {
-	CreateRequests(ctx context.Context, in requests.Requestv2) (*accesssvc.CreateRequestResult, error)
+	// CreateRequests(ctx context.Context, in requests.Requestv2) (*accesssvc.CreateRequestResult, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
-	CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
-	UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)
+	// CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
+	// UpdateFavorite(ctx context.Context, in accesssvc.UpdateFavoriteOpts) (*access.Favorite, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_accessrule_service.go -package=mocks . AccessRuleService
@@ -101,7 +96,6 @@ type AccessRuleService interface {
 	ArchiveAccessRule(ctx context.Context, userID string, in rule.AccessRule) (*rule.AccessRule, error)
 	CreateAccessRule(ctx context.Context, userID string, in types.CreateAccessRuleRequest) (*rule.AccessRule, error)
 	// LookupRule(ctx context.Context, opts rulesvc.LookupRuleOpts) ([]rulesvc.LookedUpRule, error)
-	GetRule(ctx context.Context, ID string, user *identity.User, isAdmin bool) (*rule.GetAccessRuleResponse, error)
 	UpdateRule(ctx context.Context, in *rulesvc.UpdateOpts) (*rule.AccessRule, error)
 	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
@@ -135,7 +129,12 @@ type HandlerService interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, request requests.Requestv2, revokerID string, revokerEmail string) (*requests.Requestv2, error)
+	// Revoke(ctx context.Context, request requests.Requestv2, revokerID string, revokerEmail string) (*requests.Requestv2, error)
+}
+
+//go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_preflight_service.go -package=mocks . PreflightService
+type PreflightService interface {
+	ProcessPreflight(ctx context.Context, user identity.User, preflightRequest types.CreatePreflightRequest) (*requests.Preflight, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_healthcheck_service.go -package=mocks . HealthcheckService
@@ -196,36 +195,36 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
-		Access: &accesssvc.Service{
-			Clock:       clk,
-			DB:          db,
-			EventPutter: opts.EventSender,
-			// Cache: &cachesvc.Service{
-			// 	ProviderConfigReader: opts.DeploymentConfig,
-			// 	DB:                   db,
-			// },
-			Rules: &rulesvc.Service{
-				Clock: clk,
-				DB:    db,
-				// Cache: &cachesvc.Service{
-				// 	ProviderConfigReader: opts.DeploymentConfig,
-				// 	DB:                   db,
-				// },
-			},
-			Workflow: &workflowsvc.Service{
-				Runtime: &live.Runtime{
-					StateMachineARN: opts.StateMachineARN,
-					Eventbus:        opts.EventSender,
-					DB:              db,
-					RequestRouter: &requestroutersvc.Service{
-						DB: db,
-					},
-				},
-				DB:       db,
-				Clk:      clk,
-				Eventbus: opts.EventSender,
-			},
-		},
+		// Access: &accesssvc.Service{
+		// 	Clock:       clk,
+		// 	DB:          db,
+		// 	EventPutter: opts.EventSender,
+		// 	// Cache: &cachesvc.Service{
+		// 	// 	ProviderConfigReader: opts.DeploymentConfig,
+		// 	// 	DB:                   db,
+		// 	// },
+		// 	Rules: &rulesvc.Service{
+		// 		Clock: clk,
+		// 		DB:    db,
+		// 		// Cache: &cachesvc.Service{
+		// 		// 	ProviderConfigReader: opts.DeploymentConfig,
+		// 		// 	DB:                   db,
+		// 		// },
+		// 	},
+		// 	Workflow: &workflowsvc.Service{
+		// 		Runtime: &live.Runtime{
+		// 			StateMachineARN: opts.StateMachineARN,
+		// 			Eventbus:        opts.EventSender,
+		// 			DB:              db,
+		// 			RequestRouter: &requestroutersvc.Service{
+		// 				DB: db,
+		// 			},
+		// 		},
+		// 		DB:       db,
+		// 		Clk:      clk,
+		// 		Eventbus: opts.EventSender,
+		// 	},
+		// },
 
 		// Cache: &cachesvc.Service{
 		// 	ProviderConfigReader: opts.DeploymentConfig,
@@ -248,19 +247,19 @@ func New(ctx context.Context, opts Opts) (*API, error) {
 			DB:    db,
 			Clock: clk,
 		},
-		Workflow: &workflowsvc.Service{
-			Runtime: &live.Runtime{
-				StateMachineARN: opts.StateMachineARN,
-				Eventbus:        opts.EventSender,
-				DB:              db,
-				RequestRouter: &requestroutersvc.Service{
-					DB: db,
-				},
-			},
-			DB:       db,
-			Clk:      clk,
-			Eventbus: opts.EventSender,
-		},
+		// Workflow: &workflowsvc.Service{
+		// 	Runtime: &live.Runtime{
+		// 		StateMachineARN: opts.StateMachineARN,
+		// 		Eventbus:        opts.EventSender,
+		// 		DB:              db,
+		// 		RequestRouter: &requestroutersvc.Service{
+		// 			DB: db,
+		// 		},
+		// 	},
+		// 	DB:       db,
+		// 	Clk:      clk,
+		// 	Eventbus: opts.EventSender,
+		// },
 		HealthcheckService: &healthchecksvc.Service{
 			DB:            db,
 			RuntimeGetter: healthchecksvc.DefaultGetter{},

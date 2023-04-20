@@ -59,8 +59,8 @@ func NewRecordedEvent(requestID string, actor *string, createdAt time.Time, even
 }
 
 func (r *RequestEvent) ToAPI() types.RequestEvent {
-	var toTiming *types.RequestTiming
-	var fromTiming *types.RequestTiming
+	var toTiming *types.RequestAccessGroupTiming
+	var fromTiming *types.RequestAccessGroupTiming
 	if r.ToTiming != nil {
 		tt := r.ToTiming.ToAPI()
 		toTiming = &tt
@@ -74,10 +74,10 @@ func (r *RequestEvent) ToAPI() types.RequestEvent {
 		RequestId:          r.RequestID,
 		CreatedAt:          r.CreatedAt,
 		Actor:              r.Actor,
-		FromGrantStatus:    (*types.RequestEventFromGrantStatus)(r.FromGrantStatus),
+		FromGrantStatus:    r.FromGrantStatus,
 		FromStatus:         (*types.RequestStatus)(r.FromStatus),
 		FromTiming:         fromTiming,
-		ToGrantStatus:      (*types.RequestEventToGrantStatus)(r.ToGrantStatus),
+		ToGrantStatus:      r.ToGrantStatus,
 		ToStatus:           (*types.RequestStatus)(r.ToStatus),
 		ToTiming:           toTiming,
 		GrantCreated:       r.GrantCreated,

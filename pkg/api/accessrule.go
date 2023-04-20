@@ -15,7 +15,7 @@ import (
 
 func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
-	q := storage.GetAccessRuleCurrent{ID: ruleId}
+	q := storage.GetAccessRule{ID: ruleId}
 	_, err := a.DB.Query(ctx, &q)
 
 	if err == ddb.ErrNoItems {
@@ -33,7 +33,7 @@ func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, rul
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
+	apio.JSON(ctx, w, c.ToAPI(), http.StatusCreated)
 }
 
 // Returns a list of all Access Rules
@@ -54,7 +54,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	} else {
-		q := storage.ListCurrentAccessRules{}
+		q := storage.ListAccessRules{}
 		_, err = a.DB.Query(ctx, &q, queryOpts...)
 		rules = q.Result
 	}
@@ -64,11 +64,11 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 		return
 	}
 
-	res := types.ListAccessRulesDetailResponse{
-		AccessRules: make([]types.AccessRuleDetail, len(rules)),
+	res := types.ListAccessRulesResponse{
+		AccessRules: make([]types.AccessRule, len(rules)),
 	}
 	for i, r := range rules {
-		res.AccessRules[i] = r.ToAPIDetail()
+		res.AccessRules[i] = r.ToAPI()
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
@@ -94,7 +94,7 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apio.JSON(ctx, w, c.ToAPIDetail(), http.StatusCreated)
+	apio.JSON(ctx, w, c.ToAPI(), http.StatusCreated)
 }
 
 // Returns a rule for a given ruleId
@@ -102,10 +102,8 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
 
-	// get the requesting users id
-	u := auth.UserFromContext(ctx)
-	// A user is always an admin if they can access this admin API
-	result, err := a.Rules.GetRule(ctx, ruleId, u, true)
+	q := storage.GetAccessRule{}
+	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: err, Status: http.StatusNotFound})
 		return
@@ -114,7 +112,7 @@ func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId 
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, result.Rule.ToAPIDetail(), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // Update Access Rule
@@ -130,7 +128,7 @@ func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, rule
 	uid := auth.UserIDFromContext(ctx)
 
 	var rule *rule.AccessRule
-	ruleq := storage.GetAccessRuleCurrent{ID: ruleId}
+	ruleq := storage.GetAccessRule{ID: ruleId}
 	_, err = a.DB.Query(ctx, &ruleq)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
@@ -152,5 +150,5 @@ func (a *API) AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, rule
 		return
 	}
 
-	apio.JSON(ctx, w, updatedRule.ToAPIDetail(), http.StatusAccepted)
+	apio.JSON(ctx, w, updatedRule.ToAPI(), http.StatusAccepted)
 }

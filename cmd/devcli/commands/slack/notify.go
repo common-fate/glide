@@ -69,7 +69,7 @@ var requestMessageCommand = cli.Command{
 		r := c.String("reviewer-id")
 
 		requestEvent := gevent.RequestEventPayload{
-			Request:    *q.Result,
+			// Request:    *q.Result,
 			ReviewerID: r,
 		}
 		m, err := json.Marshal(requestEvent)
