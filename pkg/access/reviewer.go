@@ -9,9 +9,8 @@ import (
 // When Requests are created, Reviewers are created for all approvers
 // who need to review the request.
 type Reviewer struct {
-	ReviewerID string `json:"reviewerId" dynamodbav:"reviewerId"`
-	// Request is the associated request.
-	AccessGroup   Group         `json:"request" dynamodbav:"request"`
+	ReviewerID    string        `json:"reviewerId" dynamodbav:"reviewerId"`
+	RequestID     string        `json:"requestId" dynamodbav:"requestId"`
 	Notifications Notifications `json:"notifications" dynamodbav:"notifications"`
 }
 
@@ -23,12 +22,12 @@ type Notifications struct {
 // DDBKeys provides the keys for storing the object in DynamoDB
 func (r *Reviewer) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK:     keys.RequestReviewer.PK1,
-		SK:     keys.RequestReviewer.SK1(r.AccessGroup.ID, r.ReviewerID),
-		GSI1PK: keys.RequestReviewer.GSI1PK(r.ReviewerID),
-		GSI1SK: keys.RequestReviewer.GSI1SK(r.AccessGroup.ID),
-		GSI2PK: keys.RequestReviewer.GSI2PK(r.ReviewerID),
-		GSI2SK: keys.RequestReviewer.GSI2SK(string(r.AccessGroup.Status), r.AccessGroup.ID),
+		PK: keys.RequestReviewer.PK1,
+		// SK:     keys.RequestReviewer.SK1(r.AccessGroup.ID, r.ReviewerID),
+		// GSI1PK: keys.RequestReviewer.GSI1PK(r.ReviewerID),
+		// GSI1SK: keys.RequestReviewer.GSI1SK(r.AccessGroup.ID),
+		// GSI2PK: keys.RequestReviewer.GSI2PK(r.ReviewerID),
+		// GSI2SK: keys.RequestReviewer.GSI2SK(string(r.AccessGroup.Status), r.AccessGroup.ID),
 	}
 
 	return keys, nil

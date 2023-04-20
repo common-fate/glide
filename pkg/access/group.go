@@ -22,6 +22,10 @@ type Group struct {
 	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
 	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
+	// request reviewers are users who have one or more groups to review on the request as a whole
+	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
+	// groupReviewers are the users who are able to review this access group
+	GroupReviewers []string `json:"groupReviewers" dynamodbav:"groupReviewers, set"`
 }
 
 type GroupWithTargets struct {

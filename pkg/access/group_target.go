@@ -25,6 +25,8 @@ type GroupTarget struct {
 	Grant     *Grant    `json:"grant" dynamodbav:"grant"`
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+	// request reviewers are users who have one or more groups to review on the request as a whole
+	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
 
 type Grant struct {

@@ -13,8 +13,10 @@ type Request struct {
 	// used when unmarshalling data to assert all data was retrieved
 	GroupTargetCount int       `json:"groupTargetCount" dynamodbav:"groupTargetCount"`
 	Purpose          Purpose   `json:"purpose" dynamodbav:"purpose"`
-	RequestedBy      string    `json:"requested_by" dynamodbav:"requested_by"`
-	RequestedAt      time.Time `json:"requested_at" dynamodbav:"requested_at"`
+	RequestedBy      string    `json:"requestedBy" dynamodbav:"requestedBy"`
+	RequestedAt      time.Time `json:"requestedAt" dynamodbav:"requestedAt"`
+	// request reviewers are users who have one or more groups to review on the request as a whole
+	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
 
 type RequestWithGroups struct {
