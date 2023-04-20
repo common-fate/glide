@@ -74,7 +74,7 @@ const Home = () => {
   const groups = useUserListRequestAccessGroups(requestId, {
     swr: { refreshInterval: 10000 },
     request: {
-      baseURL: "http://127.0.0.1:3101",
+      baseURL: "http://127.0.0.1:3100",
       headers: {
         Prefer: "code=200, example=ex_1",
       },
@@ -84,7 +84,7 @@ const Home = () => {
   const grants = useUserListRequestAccessGroupGrants("TEST", {
     swr: { refreshInterval: 10000 },
     request: {
-      baseURL: "http://127.0.0.1:3101",
+      baseURL: "http://127.0.0.1:3100",
       headers: {
         Prefer: "code=200, example=ex_1",
       },
@@ -275,7 +275,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
   const grants = useUserListRequestAccessGroupGrants(group.id, {
     swr: { refreshInterval: 10000 },
     request: {
-      baseURL: "http://127.0.0.1:3101",
+      baseURL: "http://127.0.0.1:3100",
       headers: {
         Prefer: "code=200, example=ex_1",
       },

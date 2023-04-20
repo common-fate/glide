@@ -2,6 +2,7 @@ import {
   Box,
   Center,
   chakra,
+  Code,
   Container,
   Flex,
   Input,
@@ -12,6 +13,10 @@ import {
 import { Command } from "cmdk";
 import React from "react";
 import { UserLayout } from "../components/Layout";
+import {
+  useUserListEntitlements,
+  useUserListEntitlementTargets,
+} from "../utils/backend-client/default/default";
 
 const search = () => {
   const modal = useDisclosure();
@@ -57,6 +62,44 @@ const search = () => {
     ],
     okta: [{}],
   };
+
+  const entitlements = useUserListEntitlements({
+    swr: { refreshInterval: 10000 },
+    request: {
+      baseURL: "http://127.0.0.1:3100",
+      headers: {
+        Prefer: "code=200, example=ex_1",
+      },
+    },
+  });
+
+  //   I need a query param.......
+  //   const resources = useUserListRequestAccessGroupGrants(group.id, {
+  //     swr: { refreshInterval: 10000 },
+  //     request: {
+  //       baseURL: "http://127.0.0.1:3100",
+  //       headers: {
+  //         Prefer: "code=200, example=ex_1",
+  //       },
+  //     },
+  //   });
+
+  const targets = useUserListEntitlementTargets(
+    {},
+    {
+      swr: { refreshInterval: 10000 },
+      request: {
+        baseURL: "http://127.0.0.1:3100",
+        headers: {
+          Prefer: "code=200, example=ex_1",
+        },
+      },
+    }
+  );
+
+  // @TODO:
+  // Actually use the fixture data, maybe write it with actual values.
+  // Add in page responses etc.
 
   return (
     <UserLayout>
@@ -106,16 +149,20 @@ const search = () => {
           </Command>
           <Flex>{JSON.stringify(modal)}</Flex>
         </Stack>
+
+        <Code bg="gray.50" whiteSpace="pre-wrap">
+          {JSON.stringify({ entitlements, targets }, null, 2)}
+        </Code>
       </Container>
     </UserLayout>
   );
 };
 
-const ChakraInput = chakra(Command.Input);
-const ChakraList = chakra(Command.List);
-const ChakraEmpty = chakra(Command.Empty);
-const ChakraGroup = chakra(Command.Group);
-const ChakraItem = chakra(Command.Item);
-const ChakraSeparator = chakra(Command.Separator);
+// const ChakraInput = chakra(Command.Input);
+// const ChakraList = chakra(Command.List);
+// const ChakraEmpty = chakra(Command.Empty);
+// const ChakraGroup = chakra(Command.Group);
+// const ChakraItem = chakra(Command.Item);
+// const ChakraSeparator = chakra(Command.Separator);
 
 export default search;
