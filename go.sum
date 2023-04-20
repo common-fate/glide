@@ -256,6 +256,12 @@ github.com/common-fate/ddb v0.15.1-0.20230418042550-952738c7dcd6 h1:RFMgDddeVbhC
 github.com/common-fate/ddb v0.15.1-0.20230418042550-952738c7dcd6/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
 github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa h1:ZSYScoTaCDstroUI/VqnA/0Mu1ij8XeL1fGmg4VeSpU=
 github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230420024947-99392051a5e2 h1:2kal1t1WERZJqNgAoPhPvnosNfwTWDbsYJ+9SnSHktE=
+github.com/common-fate/ddb v0.15.1-0.20230420024947-99392051a5e2/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230420060052-214d6698f7a7 h1:R1Unm/OvwcCs01ceq+6izlwJp/uSxip8LuxBHz1vd9E=
+github.com/common-fate/ddb v0.15.1-0.20230420060052-214d6698f7a7/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566 h1:rYMc5nKHrQAvYK4yCr2FFiQXiUfIv8C4BEDQ/vlznK8=
+github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=

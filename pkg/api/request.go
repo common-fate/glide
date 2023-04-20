@@ -6,7 +6,7 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/cache"
-	"github.com/common-fate/common-fate/pkg/requests"
+
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -79,34 +79,34 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 // List Entitlement Resources
 // (GET /api/v1/entitlements/resources)
 func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementResourcesParams) {
-	ctx := r.Context()
+	// ctx := r.Context()
 
-	u := auth.UserFromContext(ctx)
+	// u := auth.UserFromContext(ctx)
 
-	q := storage.ListEntitlementResources{
-		Provider: requests.TargetFrom{
-			Publisher: params.Publisher,
-			Name:      params.Name,
-			Kind:      params.Kind,
-			Version:   params.Version,
-		},
-		Argument:        params.ResourceType, // update name here
-		UserAccessRules: u.AccessRules,
-	}
+	// q := storage.ListEntitlementResources{
+	// 	Provider: access.TargetFrom{
+	// 		Publisher: params.Publisher,
+	// 		Name:      params.Name,
+	// 		Kind:      params.Kind,
+	// 		Version:   params.Version,
+	// 	},
+	// 	Argument:        params.ResourceType, // update name here
+	// 	UserAccessRules: u.AccessRules,
+	// }
 
-	_, err := a.DB.Query(ctx, &q)
+	// _, err := a.DB.Query(ctx, &q)
 
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
+	// if err != nil {
+	// 	apio.Error(ctx, w, err)
+	// 	return
+	// }
 
-	res := types.ListResourcesResponse{}
+	// res := types.ListResourcesResponse{}
 
-	for _, e := range q.Result {
-		res.Resources = append(res.Resources, e.ToAPI())
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
+	// for _, e := range q.Result {
+	// 	res.Resources = append(res.Resources, e.ToAPI())
+	// }
+	// apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // (POST /api/v1/preflight)

@@ -5,14 +5,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
 
 type GetPreflight struct {
 	ID     string
-	Result *requests.Preflight
+	Result *access.Preflight
 }
 
 func (g *GetPreflight) BuildQuery() (*dynamodb.QueryInput, error) {

@@ -206,7 +206,7 @@ package api
 // 			wantCode: http.StatusOK,
 // 			mockGetRequest: &requests.Requestv2{
 // 				ID:          "req_123",
-// 				Status:      requests.PENDING,
+// 				Status:      types.RequestStatusPENDING,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			},
@@ -222,7 +222,7 @@ package api
 // 			mockGetRequest: &requests.Requestv2{
 // 				RequestedBy: "randomUser",
 // 				ID:          "req_123",
-// 				Status:      requests.PENDING,
+// 				Status:      types.RequestStatusPENDING,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			},
@@ -230,7 +230,7 @@ package api
 // 			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 // 			mockGetReviewer: &requests.Reviewer{Request: requests.Requestv2{
 // 				ID:          "req_123",
-// 				Status:      requests.PENDING,
+// 				Status:      types.RequestStatusPENDING,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			}},
@@ -250,7 +250,7 @@ package api
 // 			mockGetRequest: &requests.Requestv2{
 // 				ID:          "req_123",
 // 				RequestedBy: "notThisUser",
-// 				Status:      requests.PENDING,
+// 				Status:      types.RequestStatusPENDING,
 // 			},
 // 			withRequestArgumentsResponse: make(map[string]types.RequestArgument),
 // 			mockGetAccessRuleVersion:     &rule.AccessRule{ID: "test"},
@@ -326,7 +326,7 @@ package api
 // 			wantCode: http.StatusOK,
 // 			mockDBQuery: &storage.ListRequestsForUser{Result: []requests.Requestv2{{
 // 				ID:          "req_123",
-// 				Status:      requests.PENDING,
+// 				Status:      types.RequestStatusPENDING,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			}}},
@@ -339,7 +339,7 @@ package api
 // 			giveStatus: &approved,
 // 			mockDBQuery: &storage.ListRequestsForUserAndStatus{Result: []requests.Requestv2{{
 // 				ID:          "req_123",
-// 				Status:      requests.APPROVED,
+// 				Status:      access.APPROVED,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			}}},
@@ -352,7 +352,7 @@ package api
 // 			giveReviewer: &reviewer,
 // 			mockDBQuery: &storage.ListRequestsForReviewer{Result: []requests.Requestv2{{
 // 				ID:          "req_123",
-// 				Status:      requests.PENDING,
+// 				Status:      types.RequestStatusPENDING,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			}}},
@@ -366,7 +366,7 @@ package api
 // 			giveReviewer: &reviewer,
 // 			mockDBQuery: &storage.ListRequestsForReviewerAndStatus{Result: []requests.Requestv2{{
 // 				ID:          "req_123",
-// 				Status:      requests.APPROVED,
+// 				Status:      access.APPROVED,
 // 				Rule:        "abcd",
 // 				RuleVersion: "efgh",
 // 			}}},

@@ -23,7 +23,7 @@ package workflowsvc
 // 		name                       string
 // 		withRevokeGrantResponseErr error
 // 		Grants                     []requests.Grantv2
-// 		AccessGroups               []requests.AccessGroup
+// 		AccessGroups               []access.AccessGroup
 // 		getRule                    rule.AccessRule
 // 		withGetRuleErr             error
 // 		giveRequest                requests.Requestv2
@@ -62,7 +62,7 @@ package workflowsvc
 // 					End:         clk.Now().Add(time.Hour * 2),
 // 				},
 // 			},
-// 			AccessGroups: []requests.AccessGroup{
+// 			AccessGroups: []access.AccessGroup{
 // 				{ID: "123"},
 // 			},
 // 			want: &requests.Requestv2{
@@ -91,7 +91,7 @@ package workflowsvc
 // 			},
 // 			withRevokeGrantResponseErr: ErrNoGrant,
 // 			Grants:                     nil,
-// 			AccessGroups: []requests.AccessGroup{
+// 			AccessGroups: []access.AccessGroup{
 // 				{ID: "123"},
 // 			},
 // 			want:         nil,
@@ -120,7 +120,7 @@ package workflowsvc
 // 			},
 // 			withRevokeGrantResponseErr: ddb.ErrNoItems,
 // 			Grants:                     nil,
-// 			AccessGroups: []requests.AccessGroup{
+// 			AccessGroups: []access.AccessGroup{
 // 				{ID: "123"},
 // 			},
 // 			want:         nil,
@@ -156,7 +156,7 @@ package workflowsvc
 // 					End:         clk.Now().Add(time.Hour * 2),
 // 				},
 // 			},
-// 			AccessGroups: []requests.AccessGroup{
+// 			AccessGroups: []access.AccessGroup{
 // 				{ID: "123"},
 // 			},
 // 			want:      nil,

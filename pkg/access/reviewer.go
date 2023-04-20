@@ -1,7 +1,6 @@
 package access
 
 import (
-	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
@@ -12,8 +11,8 @@ import (
 type Reviewer struct {
 	ReviewerID string `json:"reviewerId" dynamodbav:"reviewerId"`
 	// Request is the associated request.
-	AccessGroup   requests.AccessGroup `json:"request" dynamodbav:"request"`
-	Notifications Notifications        `json:"notifications" dynamodbav:"notifications"`
+	AccessGroup   Group         `json:"request" dynamodbav:"request"`
+	Notifications Notifications `json:"notifications" dynamodbav:"notifications"`
 }
 
 type Notifications struct {

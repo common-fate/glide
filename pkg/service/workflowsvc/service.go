@@ -21,7 +21,7 @@ package workflowsvc
 // 	Eventbus EventPutter
 // }
 
-// func (s *Service) Grant(ctx context.Context, access_group requests.AccessGroup, subject string) ([]requests.Grantv2, error) {
+// func (s *Service) Grant(ctx context.Context, access_group access.AccessGroup, subject string) ([]requests.Grantv2, error) {
 // 	// Contains logic for preparing a grant and emitting events
 
 // 	//lookup all the grant entitlements for this access group

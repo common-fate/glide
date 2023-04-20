@@ -62,6 +62,6 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 // }
 
 // // A request can be cancelled if
-// func isCancellable(AccessGroup requests.AccessGroup) bool {
-// 	return AccessGroup.Status == requests.PENDING || AccessGroup.Status != requests.CANCELLED
+// func isCancellable(AccessGroup access.AccessGroup) bool {
+// 	return AccessGroup.Status == types.RequestStatusPENDING || AccessGroup.Status != requests.CANCELLED
 // }

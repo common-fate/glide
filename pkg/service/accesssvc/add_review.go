@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/common-fate/pkg/access"
-	"github.com/common-fate/common-fate/pkg/requests"
+
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -19,15 +19,15 @@ type AddReviewOpts struct {
 	// Comment is optional on a review
 	Comment *string
 	// OverrideTimings are optional overrides for the request timings
-	OverrideTiming *requests.Timing
+	OverrideTiming *access.Timing
 	RequestingUser string
-	AccessGroup    requests.AccessGroup
+	AccessGroup    access.Group
 	AccessRule     rule.AccessRule
 }
 
 type AddReviewResult struct {
 	// The updated request, after the review is complete.
-	AccessGroup requests.AccessGroup
+	AccessGroup access.Group
 }
 
 // AddReviewAndGrantAccess reviews a Request. It updates the status of the Request depending on the review decision.
@@ -51,7 +51,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	// update the request status, based on the review decision
 	switch r.Decision {
 	case access.DecisionApproved:
-		access_group.Status = requests.APPROVED
+		access_group.Status = types.RequestStatusAPPROVED
 		access_group.OverrideTiming = opts.OverrideTiming
 
 		_, err := s.Workflow.Grant(ctx, access_group, opts.RequestingUser)
@@ -62,7 +62,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		// access_group.ApprovalMethod = &reviewed
 
 	case access.DecisionDECLINED:
-		access_group.Status = requests.DECLINED
+		access_group.Status = types.RequestStatusDECLINED
 	}
 	access_group.UpdatedAt = s.Clock.Now()
 

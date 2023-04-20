@@ -22,7 +22,7 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 	// // this can be done concurrently, so we use an errgroup.
 	// g, fetchctx := errgroup.WithContext(ctx)
 
-	// var req *requests.AccessGroup
+	// var req *access.AccessGroup
 	// var rule *rule.AccessRule
 	// g.Go(func() error {
 	// 	var err error
