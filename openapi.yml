@@ -230,7 +230,7 @@ paths:
         - Admin
       responses:
         "200":
-          $ref: "#/components/responses/ListRequests2Response"
+          $ref: "#/components/responses/ListRequestsResponse"
       operationId: admin-list-requests
       description: Return a list of all requests
       parameters:
@@ -796,7 +796,7 @@ paths:
       tags: []
       responses:
         "200":
-          $ref: "#/components/responses/ListRequests2Response"
+          $ref: "#/components/responses/ListRequestsResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -837,7 +837,7 @@ paths:
           $ref: "#/components/responses/ErrorResponse"
       description: Initiates the granting process for a group of requests
       requestBody:
-        $ref: "#/components/requestBodies/CreateRequestRequestv2"
+        $ref: "#/components/requestBodies/CreateRequestPreflight"
   /api/v1/requests/upcoming:
     get:
       summary: Your GET endpoint
@@ -845,7 +845,7 @@ paths:
         - End User
       responses:
         "200":
-          $ref: "#/components/responses/ListRequests2Response"
+          $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-upcoming
       description: Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
       parameters:
@@ -861,7 +861,7 @@ paths:
         - End User
       responses:
         "200":
-          $ref: "#/components/responses/ListRequests2Response"
+          $ref: "#/components/responses/ListRequestsResponse"
       operationId: user-list-requests-past
       description: |
         Display show cancelled, expired, and revoked requests.
@@ -871,14 +871,22 @@ paths:
           in: query
           name: nextToken
           description: encrypted token containing pagination info
-  /api/v1/requests/preflight:
+  /api/v1/preflight:
     parameters: []
     post:
-      summary: ""
+      summary: Submit Preflight
       operationId: user-request-preflight
       responses:
         "200":
-          $ref: "#/components/responses/PreflightResponse"
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preflight"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/ErrorResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -896,7 +904,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Requestv2"
+                $ref: "#/components/schemas/Preflight"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -938,7 +946,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessGroup"
+                $ref: "#/components/schemas/RequestAccessGroup"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -962,7 +970,7 @@ paths:
       tags: []
       responses:
         "200":
-          $ref: "#/components/responses/ListGrantsv2Response"
+          $ref: "#/components/responses/ListGrantsResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -985,7 +993,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Grantv2"
+                $ref: "#/components/schemas/RequestAccessGroupGrant"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1085,209 +1093,6 @@ components:
       enum:
         - ARCHIVED
         - ACTIVE
-    Request:
-      title: Request
-      type: object
-      description: A request to access something made by an end user in Common Fate.
-      properties:
-        id:
-          type: string
-          x-go-name: ID
-        requestor:
-          type: string
-        status:
-          $ref: "#/components/schemas/RequestStatus"
-        reason:
-          type: string
-        timing:
-          $ref: "#/components/schemas/RequestTiming"
-        requestedAt:
-          type: string
-          x-go-type: time.Time
-          format: time
-        accessRuleId:
-          type: string
-        accessRuleVersion:
-          type: string
-        updatedAt:
-          type: string
-          x-go-type: time.Time
-          format: time
-        grant:
-          $ref: "#/components/schemas/Grant"
-        approvalMethod:
-          $ref: "#/components/schemas/ApprovalMethod"
-      required:
-        - id
-        - requestor
-        - status
-        - timing
-        - requestedAt
-        - accessRuleId
-        - accessRuleVersion
-        - updatedAt
-    RequestStatus:
-      type: string
-      description: |
-        The status of an Access Request.
-      enum:
-        - APPROVED
-        - PENDING
-        - CANCELLED
-        - DECLINED
-      title: RequestStatus
-    RequestEvent:
-      title: RequestEvent
-      x-stoplight:
-        id: x15z5qclesdq9
-      type: object
-      properties:
-        id:
-          type: string
-        requestId:
-          type: string
-        createdAt:
-          type: string
-          x-go-type: time.Time
-          format: time
-        actor:
-          type: string
-        fromStatus:
-          $ref: "#/components/schemas/RequestStatus"
-        toStatus:
-          $ref: "#/components/schemas/RequestStatus"
-        fromTiming:
-          $ref: "#/components/schemas/RequestTiming"
-        toTiming:
-          $ref: "#/components/schemas/RequestTiming"
-        fromGrantStatus:
-          type: string
-          description: The current state of the grant.
-          enum:
-            - PENDING
-            - ACTIVE
-            - ERROR
-            - REVOKED
-            - EXPIRED
-        toGrantStatus:
-          type: string
-          description: The current state of the grant.
-          enum:
-            - PENDING
-            - ACTIVE
-            - ERROR
-            - REVOKED
-            - EXPIRED
-        grantCreated:
-          type: boolean
-        requestCreated:
-          type: boolean
-        grantFailureReason:
-          type: string
-        recordedEvent:
-          type: object
-          x-go-type: "map[string]string"
-          description: An event which was recorded relating to the grant.
-      required:
-        - id
-        - requestId
-        - createdAt
-    RequestTiming:
-      title: RequestTiming
-      x-stoplight:
-        id: 4ooyqlf8xba5b
-      type: object
-      properties:
-        durationSeconds:
-          type: integer
-        startTime:
-          type: string
-          description: iso8601 timestamp in UTC timezone
-          x-go-type: time.Time
-          format: time
-      required:
-        - durationSeconds
-    ReviewDecision:
-      type: string
-      title: ReviewDecision
-      enum:
-        - APPROVED
-        - DECLINED
-      description: A decision made on an Access Request.
-    Grant:
-      description: A temporary assignment of a user to a principal.
-      type: object
-      title: Grant
-      x-examples:
-        Okta:
-          id: aba0dcba-0a8c-4393-ad92-69510326b29a
-          status: PENDING
-          subject: user@example.com
-          provider: okta
-          with:
-            group: Admins
-          start: "2022-06-13T03:39:30.921Z"
-          end: "2022-06-13T11:39:30.921Z"
-      properties:
-        id:
-          type: string
-          example: aba0dcba-0a8c-4393-ad92-69510326b29a
-          x-go-name: ID
-        status:
-          type: string
-          description: The current state of the grant.
-          enum:
-            - PENDING
-            - ACTIVE
-            - REVOKED
-            - EXPIRED
-            - ERROR
-        subject:
-          type: string
-          minLength: 1
-          description: The email address of the user to grant access to.
-          format: email
-        provider:
-          type: string
-          minLength: 1
-          description: The ID of the provider to grant access to.
-          example: okta
-        with:
-          type: object
-          additionalProperties:
-            type: string
-          description: Provider-specific grant data. Must match the provider's schema.
-        start:
-          type: string
-          format: date-time
-          description: The start time of the grant in ISO8601 format.
-          example: "2022-06-13T03:39:30.921Z"
-        end:
-          type: string
-          format: date-time
-          description: The end time of the grant in ISO8601 format.
-          example: "2022-06-13T11:39:30.921Z"
-      required:
-        - id
-        - status
-        - subject
-        - provider
-        - with
-        - start
-        - end
-    AccessInstructions:
-      title: AccessInstructions
-      x-stoplight:
-        id: 56g6qww0dpbvx
-      type: object
-      description: |-
-        Instructions on how to access the requested resource.
-
-        The `instructions` field will be null if no instructions are available.
-      properties:
-        instructions:
-          description: Instructions on how to access the role or resource.
-          type: string
     AccessRule:
       title: AccessRule
       type: object
@@ -1584,166 +1389,46 @@ components:
         - INFO
         - WARNING
         - ERROR
-    Requestv2:
-      title: Requestv2
+    Preflight:
+      title: Preflight
       x-stoplight:
         id: o88cq9el7rshq
       type: object
       properties:
         id:
           type: string
-        context:
-          $ref: "#/components/schemas/RequestContext"
-        user:
-          $ref: "#/components/schemas/User"
+        accessGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreflightAccessGroup"
         createdAt:
-          type: string
-          x-go-type: time.Time
-        updatedAt:
           type: string
           x-go-type: time.Time
       required:
         - id
-        - context
-        - user
+        - accessGroups
         - createdAt
-        - updatedAt
-    AccessGroup:
-      title: AccessGroup
-      x-stoplight:
-        id: cgregrcms2st3
+    PreflightAccessGroup:
+      title: PreflightAccessGroup
       type: object
+      x-stoplight:
+        id: 9f3a10a488434
       properties:
         id:
-          type: string
-        accessRuleId:
-          type: string
-        requestId:
           type: string
         status:
           type: string
         time:
           $ref: "#/components/schemas/AccessRuleTimeConstraints"
-        overrideTiming:
-          $ref: "#/components/schemas/RequestTiming"
-        createdAt:
-          type: string
-          x-go-type: time.Time
-        updatedAt:
-          type: string
-          x-go-type: time.Time
+        targets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Target"
       required:
         - id
-        - accessRuleId
-        - requestId
         - status
         - time
-        - overrideTiming
-    Grantv2:
-      title: Grantv2
-      x-stoplight:
-        id: megwei2d0gy72
-      type: object
-      properties:
-        id:
-          type: string
-        accessGroupId:
-          type: string
-        status:
-          type: string
-          description: The current state of the grant.
-          enum:
-            - PENDING
-            - ACTIVE
-            - REVOKED
-            - EXPIRED
-            - ERROR
-        subject:
-          type: string
-        target:
-          type: object
-        accessInstructions:
-          type: string
-        start:
-          type: string
-          format: date-time
-          description: The start time of the grant in ISO8601 format.
-          example: "2022-06-13T03:39:30.921Z"
-        end:
-          type: string
-          format: date-time
-          description: The end time of the grant in ISO8601 format.
-          example: "2022-06-13T11:39:30.921Z"
-        createdAt:
-          type: string
-          x-go-type: time.Time
-        updatedAt:
-          type: string
-          x-go-type: time.Time
-      required:
-        - id
-        - accessGroupId
-        - status
-        - subject
-        - target
-        - start
-        - end
-    RequestContext:
-      title: RequestContext
-      x-stoplight:
-        id: x7ui0alxjdxjo
-      type: object
-      properties:
-        purpose:
-          type: object
-          required:
-            - reason
-          properties:
-            reason:
-              type: string
-        context:
-          type: object
-          required:
-            - ip
-            - userAgent
-          properties:
-            ip:
-              type: string
-            userAgent:
-              type: string
-        metadata:
-          type: object
-          required:
-            - createdAt
-          properties:
-            createdAt:
-              type: string
-      required:
-        - purpose
-        - context
-        - metadata
-    Resource:
-      title: Resource
-      x-stoplight:
-        id: eu8t53wnldm6r
-      type: object
-      properties:
-        type:
-          type: string
-        value:
-          type: string
-        description:
-          type: string
-        label:
-          type: string
-        related:
-          type: object
-      required:
-        - type
-        - value
-        - description
-        - label
-        - related
+        - targets
     Target:
       title: Target
       x-stoplight:
@@ -1752,31 +1437,257 @@ components:
       properties:
         id:
           type: string
+        targetGroupId:
+          type: string
+        targetGroupFrom:
+          $ref: "#/components/schemas/TargetGroupFrom"
         fields:
           type: array
           items:
-            $ref: "#/components/schemas/Field"
+            $ref: "#/components/schemas/TargetField"
       required:
         - id
+        - targetGroupId
+        - targetGroupFrom
         - fields
-    Field:
+    TargetField:
       title: Field
       x-stoplight:
-        id: e02cl9bx7izwa
+        id: 1b07f4c301de5
       type: object
       properties:
         id:
           type: string
-        description:
+        fieldTitle:
           type: string
-        label:
+        fieldDescription:
+          type: string
+        valueLabel:
+          type: string
+        valueDescription:
           type: string
         value:
           type: string
       required:
         - id
-        - label
+        - fieldTitle
+        - valueLabel
         - value
+    Request:
+      title: Request
+      type: object
+      description: A request to access something made by an end user in Common Fate.
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+        purpose:
+          $ref: "#/components/schemas/RequestPurpose"
+        accessGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequestAccessGroup"
+        requestedBy:
+          type: string
+        requestedAt:
+          type: string
+          x-go-type: time.Time
+          format: time
+      required:
+        - id
+        - accessGroups
+        - requestedBy
+        - requestedAt
+    RequestPurpose:
+      title: RequestContext
+      type: object
+      x-stoplight:
+        id: 169e2b3eec7f8
+      properties:
+        reason:
+          type: string
+    RequestStatus:
+      type: string
+      description: |
+        The status of an Access Request.
+      enum:
+        - APPROVED
+        - PENDING
+        - CANCELLED
+        - DECLINED
+      title: RequestStatus
+    GrantStatus:
+      type: string
+      description: |
+        The status of an Access Request.
+      title: RequestStatus
+      x-stoplight:
+        id: e1005d029a08c
+      enum:
+        - PENDING
+        - ACTIVE
+        - ERROR
+        - REVOKED
+        - EXPIRED
+    RequestEvent:
+      title: RequestEvent
+      x-stoplight:
+        id: x15z5qclesdq9
+      type: object
+      properties:
+        id:
+          type: string
+        requestId:
+          type: string
+        createdAt:
+          type: string
+          x-go-type: time.Time
+          format: time
+        actor:
+          type: string
+        fromStatus:
+          $ref: "#/components/schemas/RequestStatus"
+        toStatus:
+          $ref: "#/components/schemas/RequestStatus"
+        fromTiming:
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
+        toTiming:
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
+        fromGrantStatus:
+          $ref: "#/components/schemas/GrantStatus"
+        toGrantStatus:
+          $ref: "#/components/schemas/GrantStatus"
+        grantCreated:
+          type: boolean
+        requestCreated:
+          type: boolean
+        grantFailureReason:
+          type: string
+        recordedEvent:
+          type: object
+          x-go-type: "map[string]string"
+          description: An event which was recorded relating to the grant.
+      required:
+        - id
+        - requestId
+        - createdAt
+    RequestAccessGroup:
+      title: AccessGroup
+      x-stoplight:
+        id: 34f262dc0fd95
+      type: object
+      properties:
+        id:
+          type: string
+        requestId:
+          type: string
+        status:
+          $ref: "#/components/schemas/RequestStatus"
+        time:
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
+        overrideTiming:
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
+        updatedAt:
+          type: string
+          x-go-type: time.Time
+        createdAt:
+          type: string
+          x-go-type: time.Time
+        targets:
+          type: array
+          items:
+            $ref: "#/components/schemas/RequestAccessGroupGrant"
+      required:
+        - id
+        - requestId
+        - status
+        - time
+        - overrideTiming
+        - updatedAt
+        - createdAt
+        - targets
+    RequestAccessGroupTiming:
+      title: RequestAccessGroupTiming
+      x-stoplight:
+        id: 5156ae0f9bb5b
+      type: object
+      properties:
+        durationSeconds:
+          type: integer
+        startTime:
+          type: string
+          description: iso8601 timestamp in UTC timezone
+          x-go-type: time.Time
+          format: time
+      required:
+        - durationSeconds
+    RequestAccessGroupGrant:
+      description: A temporary assignment of a user to a principal.
+      type: object
+      title: Grant
+      x-examples:
+        Okta:
+          id: aba0dcba-0a8c-4393-ad92-69510326b29a
+          status: PENDING
+          subject: user@example.com
+          provider: okta
+          with:
+            group: Admins
+          start: "2022-06-13T03:39:30.921Z"
+          end: "2022-06-13T11:39:30.921Z"
+      properties:
+        id:
+          type: string
+        requestId:
+          type: string
+        accessGroupId:
+          type: string
+        targetGroupId:
+          type: string
+        targetGroupFrom:
+          $ref: "#/components/schemas/TargetGroupFrom"
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/TargetField"
+        status:
+          $ref: "#/components/schemas/GrantStatus"
+      required:
+        - id
+        - requestId
+        - accessGroupId
+        - targetGroupId
+        - targetGroupFrom
+        - fields
+        - status
+    ReviewDecision:
+      type: string
+      title: ReviewDecision
+      enum:
+        - APPROVED
+        - DECLINED
+      description: A decision made on an Access Request.
+    AccessInstructions:
+      title: AccessInstructions
+      x-stoplight:
+        id: 56g6qww0dpbvx
+      type: object
+      description: |-
+        Instructions on how to access the requested resource.
+
+        The `instructions` field will be null if no instructions are available.
+      properties:
+        instructions:
+          description: Instructions on how to access the role or resource.
+          type: string
+    Resource:
+      title: Resource
+      x-stoplight:
+        id: pjppgwzp6wope
+      type: object
+      properties:
+        id:
+          type: string
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -1936,7 +1847,7 @@ components:
               groups:
                 type: array
                 items:
-                  $ref: "#/components/schemas/AccessGroup"
+                  $ref: "#/components/schemas/RequestAccessGroup"
               next:
                 type: string
             required:
@@ -1987,22 +1898,7 @@ components:
                 type: string
             required:
               - routes
-    ListRequests2Response:
-      description: requests v2 response object
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              requests:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Requestv2"
-              next:
-                type: string
-            required:
-              - requests
-    ListGrantsv2Response:
+    ListGrantsResponse:
       description: Example response
       content:
         application/json:
@@ -2012,7 +1908,7 @@ components:
               grants:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Grantv2"
+                  $ref: "#/components/schemas/RequestAccessGroupGrant"
               next:
                 type: string
             required:
@@ -2032,17 +1928,6 @@ components:
                 type: string
             required:
               - resources
-    PreflightResponse:
-      description: Example response
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              preflightId:
-                type: string
-            required:
-              - preflightId
     ListTargetsResponse:
       description: list of target entitlements for a user
       content:
@@ -2141,7 +2026,7 @@ components:
                 minLength: 0
                 maxLength: 2048
               overrideTiming:
-                $ref: "#/components/schemas/RequestTiming"
+                $ref: "#/components/schemas/RequestAccessGroupTiming"
             required:
               - decision
       description: |-
@@ -2239,14 +2124,14 @@ components:
               targets:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Target"
+                  type: string
             required:
               - targets
         application/xml:
           schema:
             type: object
             properties: {}
-    CreateRequestRequestv2:
+    CreateRequestPreflight:
       content:
         application/json:
           schema:

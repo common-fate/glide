@@ -20,21 +20,21 @@ func TestAll(t *testing.T) {
 		Name:   "id1",
 		IdpID:  "id1",
 		Users:  []string{"a"},
-		Status: types.IdpStatusACTIVE,
+		Status: types.ACTIVE,
 	}
 	g2 := identity.Group{
 		ID:     "id2",
 		Name:   "id2",
 		IdpID:  "id2",
 		Users:  []string{"a"},
-		Status: types.IdpStatusACTIVE,
+		Status: types.ACTIVE,
 	}
 	g3 := identity.Group{
 		ID:     "id3",
 		Name:   "id3",
 		IdpID:  "id3",
 		Users:  []string{"a"},
-		Status: types.IdpStatusACTIVE,
+		Status: types.ACTIVE,
 	}
 	ddbtest.PutFixtures(t, db, []identity.Group{g1, g2, g3})
 	q := &ListGroups{}

@@ -3,7 +3,7 @@ package requests
 import (
 	"time"
 
-	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -14,36 +14,53 @@ import (
 
 type Preflight struct {
 	// ID is a read-only field after the request has been created.
-	ID             string                 `json:"id" dynamodbav:"id"`
-	Groups         map[string]AccessGroup `json:"groups" dynamodbav:"groups"`
-	RequestedBy    identity.User          `json:"requestedBy" dynamodbav:"requestedBy"`
-	RequestContext RequestContext         `json:"requestContext" dynamodbav:"requestContext"`
+	ID string `json:"id" dynamodbav:"id"`
 	// RequestedBy is the ID of the user who has made the request.
+	RequestedBy  string                 `json:"requestedBy" dynamodbav:"requestedBy"`
+	AccessGroups []PreflightAccessGroup `json:"accessGroups" dynamodbav:"accessGroups"`
 
 	// CreatedAt is a read-only field after the request has been created.
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt" dynamodbav:"updatedAt"`
+}
 
-	AccessGroups []AccessGroup `json:"accessGroups" dynamodbav:"accessGroups"`
-	Grants       []Grantv2     `json:"grants" dynamodbav:"grants"`
+type PreflightAccessGroup struct {
+	Id      string         `json:"id"`
+	Status  string         `json:"status"`
+	Targets []cache.Target `json:"targets"`
+	Time    types.AccessRuleTimeConstraints
+}
+
+func (i *PreflightAccessGroup) ToAPI() types.PreflightAccessGroup {
+	out := types.PreflightAccessGroup{
+		Id:      i.Id,
+		Status:  i.Status,
+		Targets: []types.Target{},
+		Time:    i.Time,
+	}
+	for _, target := range i.Targets {
+		out.Targets = append(out.Targets, target.ToAPI())
+	}
+	return out
+
+}
+
+func (i *Preflight) ToAPI() types.Preflight {
+	out := types.Preflight{
+		Id:           i.ID,
+		AccessGroups: []types.PreflightAccessGroup{},
+		CreatedAt:    i.CreatedAt,
+	}
+	for _, accessgroup := range i.AccessGroups {
+		out.AccessGroups = append(out.AccessGroups, accessgroup.ToAPI())
+	}
+
+	return out
 }
 
 func (i *Preflight) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.RequestV2.PK1,
-		SK: keys.RequestV2.SK1(i.RequestedBy.ID, i.ID),
+		PK: keys.Preflight.PK1,
+		SK: keys.Preflight.SK1(i.ID),
 	}
 	return keys, nil
-}
-
-func (i *Preflight) ToAPI() types.Requestv2 {
-	out := types.Requestv2{
-		Id:        i.ID,
-		Context:   i.RequestContext.ToAPI(),
-		User:      i.RequestedBy.ToAPI(),
-		CreatedAt: i.CreatedAt,
-		UpdatedAt: i.UpdatedAt,
-	}
-
-	return out
 }

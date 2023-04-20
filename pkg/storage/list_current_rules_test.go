@@ -16,7 +16,7 @@ func TestListCurrentAccessRules(t *testing.T) {
 	archived := current
 
 	ddbtest.PutFixtures(t, db, []*rule.AccessRule{&current, &archived})
-	q := &ListCurrentAccessRules{}
+	q := &ListAccessRules{}
 	_, err := db.Query(context.TODO(), q)
 	assert.NoError(t, err)
 	assert.NotContains(t, q.Result, archived)

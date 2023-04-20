@@ -21,7 +21,7 @@ func (a *API) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	res := types.ListGrantsv2Response{}
+	res := types.ListGrantsResponse{}
 
 	for _, g := range q.Result {
 		res.Grants = append(res.Grants, g.ToAPI())

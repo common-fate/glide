@@ -15,7 +15,7 @@ func (s *Service) CreateGroup(ctx context.Context, in types.CreateGroupRequest) 
 		ID:        id,
 		IdpID:     id,
 		Name:      in.Name,
-		Status:    types.IdpStatusACTIVE,
+		Status:    types.ACTIVE,
 		Source:    identity.INTERNAL,
 		Users:     in.Members,
 		CreatedAt: s.Clock.Now(),
@@ -158,7 +158,7 @@ func (s *Service) DeleteGroup(ctx context.Context, group identity.Group) error {
 
 	group.UpdatedAt = s.Clock.Now()
 	group.Users = []string{}
-	group.Status = types.IdpStatusARCHIVED
+	group.Status = types.ARCHIVED
 
 	itemsToUpdate = append(itemsToUpdate, &group)
 	return s.DB.PutBatch(ctx, itemsToUpdate...)

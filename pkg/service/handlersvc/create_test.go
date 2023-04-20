@@ -58,7 +58,7 @@ func TestCreateHandler(t *testing.T) {
 				AWSAccount: "123456789012",
 				Diagnostics: []handler.Diagnostic{
 					{
-						Level:   types.LogLevelINFO,
+						Level:   types.INFO,
 						Message: "offline: lambda cannot be reached/invoked",
 					},
 				},

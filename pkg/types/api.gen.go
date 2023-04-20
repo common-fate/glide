@@ -45,44 +45,17 @@ const (
 	GrantStatusREVOKED GrantStatus = "REVOKED"
 )
 
-// Defines values for Grantv2Status.
-const (
-	Grantv2StatusACTIVE  Grantv2Status = "ACTIVE"
-	Grantv2StatusERROR   Grantv2Status = "ERROR"
-	Grantv2StatusEXPIRED Grantv2Status = "EXPIRED"
-	Grantv2StatusPENDING Grantv2Status = "PENDING"
-	Grantv2StatusREVOKED Grantv2Status = "REVOKED"
-)
-
 // Defines values for IdpStatus.
 const (
-	IdpStatusACTIVE   IdpStatus = "ACTIVE"
-	IdpStatusARCHIVED IdpStatus = "ARCHIVED"
+	ACTIVE   IdpStatus = "ACTIVE"
+	ARCHIVED IdpStatus = "ARCHIVED"
 )
 
 // Defines values for LogLevel.
 const (
-	LogLevelERROR   LogLevel = "ERROR"
-	LogLevelINFO    LogLevel = "INFO"
-	LogLevelWARNING LogLevel = "WARNING"
-)
-
-// Defines values for RequestEventFromGrantStatus.
-const (
-	RequestEventFromGrantStatusACTIVE  RequestEventFromGrantStatus = "ACTIVE"
-	RequestEventFromGrantStatusERROR   RequestEventFromGrantStatus = "ERROR"
-	RequestEventFromGrantStatusEXPIRED RequestEventFromGrantStatus = "EXPIRED"
-	RequestEventFromGrantStatusPENDING RequestEventFromGrantStatus = "PENDING"
-	RequestEventFromGrantStatusREVOKED RequestEventFromGrantStatus = "REVOKED"
-)
-
-// Defines values for RequestEventToGrantStatus.
-const (
-	RequestEventToGrantStatusACTIVE  RequestEventToGrantStatus = "ACTIVE"
-	RequestEventToGrantStatusERROR   RequestEventToGrantStatus = "ERROR"
-	RequestEventToGrantStatusEXPIRED RequestEventToGrantStatus = "EXPIRED"
-	RequestEventToGrantStatusPENDING RequestEventToGrantStatus = "PENDING"
-	RequestEventToGrantStatusREVOKED RequestEventToGrantStatus = "REVOKED"
+	ERROR   LogLevel = "ERROR"
+	INFO    LogLevel = "INFO"
+	WARNING LogLevel = "WARNING"
 )
 
 // Defines values for RequestStatus.
@@ -95,23 +68,9 @@ const (
 
 // Defines values for ReviewDecision.
 const (
-	APPROVED ReviewDecision = "APPROVED"
-	DECLINED ReviewDecision = "DECLINED"
+	ReviewDecisionAPPROVED ReviewDecision = "APPROVED"
+	ReviewDecisionDECLINED ReviewDecision = "DECLINED"
 )
-
-// AccessGroup defines model for AccessGroup.
-type AccessGroup struct {
-	AccessRuleId   string        `json:"accessRuleId"`
-	CreatedAt      *time.Time    `json:"createdAt,omitempty"`
-	Id             string        `json:"id"`
-	OverrideTiming RequestTiming `json:"overrideTiming"`
-	RequestId      string        `json:"requestId"`
-	Status         string        `json:"status"`
-
-	// Time configuration for an Access Rule.
-	Time      AccessRuleTimeConstraints `json:"time"`
-	UpdatedAt *time.Time                `json:"updatedAt,omitempty"`
-}
 
 // Instructions on how to access the requested resource.
 //
@@ -189,66 +148,8 @@ type Diagnostic struct {
 	Message string   `json:"message"`
 }
 
-// Field defines model for Field.
-type Field struct {
-	Description *string `json:"description,omitempty"`
-	Id          string  `json:"id"`
-	Label       string  `json:"label"`
-	Value       string  `json:"value"`
-}
-
-// A temporary assignment of a user to a principal.
-type Grant struct {
-	// The end time of the grant in ISO8601 format.
-	End time.Time `json:"end"`
-	ID  string    `json:"id"`
-
-	// The ID of the provider to grant access to.
-	Provider string `json:"provider"`
-
-	// The start time of the grant in ISO8601 format.
-	Start time.Time `json:"start"`
-
-	// The current state of the grant.
-	Status GrantStatus `json:"status"`
-
-	// The email address of the user to grant access to.
-	Subject openapi_types.Email `json:"subject"`
-
-	// Provider-specific grant data. Must match the provider's schema.
-	With Grant_With `json:"with"`
-}
-
-// The current state of the grant.
+// The status of an Access Request.
 type GrantStatus string
-
-// Provider-specific grant data. Must match the provider's schema.
-type Grant_With struct {
-	AdditionalProperties map[string]string `json:"-"`
-}
-
-// Grantv2 defines model for Grantv2.
-type Grantv2 struct {
-	AccessGroupId      string     `json:"accessGroupId"`
-	AccessInstructions *string    `json:"accessInstructions,omitempty"`
-	CreatedAt          *time.Time `json:"createdAt,omitempty"`
-
-	// The end time of the grant in ISO8601 format.
-	End time.Time `json:"end"`
-	Id  string    `json:"id"`
-
-	// The start time of the grant in ISO8601 format.
-	Start time.Time `json:"start"`
-
-	// The current state of the grant.
-	Status    Grantv2Status          `json:"status"`
-	Subject   string                 `json:"subject"`
-	Target    map[string]interface{} `json:"target"`
-	UpdatedAt *time.Time             `json:"updatedAt,omitempty"`
-}
-
-// The current state of the grant.
-type Grantv2Status string
 
 // Group defines model for Group.
 type Group struct {
@@ -266,39 +167,69 @@ type IdpStatus string
 // LogLevel defines model for LogLevel.
 type LogLevel string
 
-// A request to access something made by an end user in Common Fate.
-type Request struct {
-	AccessRuleId      string `json:"accessRuleId"`
-	AccessRuleVersion string `json:"accessRuleVersion"`
-
-	// Describes whether a request has been approved automatically or from a review
-	ApprovalMethod *ApprovalMethod `json:"approvalMethod,omitempty"`
-
-	// A temporary assignment of a user to a principal.
-	Grant       *Grant    `json:"grant,omitempty"`
-	ID          string    `json:"id"`
-	Reason      *string   `json:"reason,omitempty"`
-	RequestedAt time.Time `json:"requestedAt"`
-	Requestor   string    `json:"requestor"`
-
-	// The status of an Access Request.
-	Status    RequestStatus `json:"status"`
-	Timing    RequestTiming `json:"timing"`
-	UpdatedAt time.Time     `json:"updatedAt"`
+// Preflight defines model for Preflight.
+type Preflight struct {
+	AccessGroups []PreflightAccessGroup `json:"accessGroups"`
+	CreatedAt    time.Time              `json:"createdAt"`
+	Id           string                 `json:"id"`
 }
 
-// RequestContext defines model for RequestContext.
-type RequestContext struct {
-	Context struct {
-		Ip        string `json:"ip"`
-		UserAgent string `json:"userAgent"`
-	} `json:"context"`
-	Metadata struct {
-		CreatedAt string `json:"createdAt"`
-	} `json:"metadata"`
-	Purpose struct {
-		Reason string `json:"reason"`
-	} `json:"purpose"`
+// PreflightAccessGroup defines model for PreflightAccessGroup.
+type PreflightAccessGroup struct {
+	Id      string   `json:"id"`
+	Status  string   `json:"status"`
+	Targets []Target `json:"targets"`
+
+	// Time configuration for an Access Rule.
+	Time AccessRuleTimeConstraints `json:"time"`
+}
+
+// A request to access something made by an end user in Common Fate.
+type Request struct {
+	AccessGroups []RequestAccessGroup `json:"accessGroups"`
+	ID           string               `json:"id"`
+	Purpose      *RequestPurpose      `json:"purpose,omitempty"`
+	RequestedAt  time.Time            `json:"requestedAt"`
+	RequestedBy  string               `json:"requestedBy"`
+}
+
+// RequestAccessGroup defines model for RequestAccessGroup.
+type RequestAccessGroup struct {
+	CreatedAt      time.Time                `json:"createdAt"`
+	Id             string                   `json:"id"`
+	OverrideTiming RequestAccessGroupTiming `json:"overrideTiming"`
+	RequestId      string                   `json:"requestId"`
+
+	// The status of an Access Request.
+	Status  RequestStatus             `json:"status"`
+	Targets []RequestAccessGroupGrant `json:"targets"`
+
+	// Time configuration for an Access Rule.
+	Time      AccessRuleTimeConstraints `json:"time"`
+	UpdatedAt time.Time                 `json:"updatedAt"`
+}
+
+// A temporary assignment of a user to a principal.
+type RequestAccessGroupGrant struct {
+	AccessGroupId string        `json:"accessGroupId"`
+	Fields        []TargetField `json:"fields"`
+	Id            string        `json:"id"`
+	RequestId     string        `json:"requestId"`
+
+	// The status of an Access Request.
+	Status GrantStatus `json:"status"`
+
+	// Specifies a particular Access Provider to create a Target Group schema from.
+	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
+	TargetGroupId   string          `json:"targetGroupId"`
+}
+
+// RequestAccessGroupTiming defines model for RequestAccessGroupTiming.
+type RequestAccessGroupTiming struct {
+	DurationSeconds int `json:"durationSeconds"`
+
+	// iso8601 timestamp in UTC timezone
+	StartTime *time.Time `json:"startTime,omitempty"`
 }
 
 // RequestEvent defines model for RequestEvent.
@@ -306,62 +237,40 @@ type RequestEvent struct {
 	Actor     *string   `json:"actor,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 
-	// The current state of the grant.
-	FromGrantStatus *RequestEventFromGrantStatus `json:"fromGrantStatus,omitempty"`
+	// The status of an Access Request.
+	FromGrantStatus *GrantStatus `json:"fromGrantStatus,omitempty"`
 
 	// The status of an Access Request.
-	FromStatus         *RequestStatus `json:"fromStatus,omitempty"`
-	FromTiming         *RequestTiming `json:"fromTiming,omitempty"`
-	GrantCreated       *bool          `json:"grantCreated,omitempty"`
-	GrantFailureReason *string        `json:"grantFailureReason,omitempty"`
-	Id                 string         `json:"id"`
+	FromStatus         *RequestStatus            `json:"fromStatus,omitempty"`
+	FromTiming         *RequestAccessGroupTiming `json:"fromTiming,omitempty"`
+	GrantCreated       *bool                     `json:"grantCreated,omitempty"`
+	GrantFailureReason *string                   `json:"grantFailureReason,omitempty"`
+	Id                 string                    `json:"id"`
 
 	// An event which was recorded relating to the grant.
 	RecordedEvent  *map[string]string `json:"recordedEvent,omitempty"`
 	RequestCreated *bool              `json:"requestCreated,omitempty"`
 	RequestId      string             `json:"requestId"`
 
-	// The current state of the grant.
-	ToGrantStatus *RequestEventToGrantStatus `json:"toGrantStatus,omitempty"`
+	// The status of an Access Request.
+	ToGrantStatus *GrantStatus `json:"toGrantStatus,omitempty"`
 
 	// The status of an Access Request.
-	ToStatus *RequestStatus `json:"toStatus,omitempty"`
-	ToTiming *RequestTiming `json:"toTiming,omitempty"`
+	ToStatus *RequestStatus            `json:"toStatus,omitempty"`
+	ToTiming *RequestAccessGroupTiming `json:"toTiming,omitempty"`
 }
 
-// The current state of the grant.
-type RequestEventFromGrantStatus string
-
-// The current state of the grant.
-type RequestEventToGrantStatus string
+// RequestPurpose defines model for RequestPurpose.
+type RequestPurpose struct {
+	Reason *string `json:"reason,omitempty"`
+}
 
 // The status of an Access Request.
 type RequestStatus string
 
-// RequestTiming defines model for RequestTiming.
-type RequestTiming struct {
-	DurationSeconds int `json:"durationSeconds"`
-
-	// iso8601 timestamp in UTC timezone
-	StartTime *time.Time `json:"startTime,omitempty"`
-}
-
-// Requestv2 defines model for Requestv2.
-type Requestv2 struct {
-	Context   RequestContext `json:"context"`
-	CreatedAt time.Time      `json:"createdAt"`
-	Id        string         `json:"id"`
-	UpdatedAt time.Time      `json:"updatedAt"`
-	User      User           `json:"user"`
-}
-
 // Resource defines model for Resource.
 type Resource struct {
-	Description string                 `json:"description"`
-	Label       string                 `json:"label"`
-	Related     map[string]interface{} `json:"related"`
-	Type        string                 `json:"type"`
-	Value       string                 `json:"value"`
+	Id *string `json:"id,omitempty"`
 }
 
 // A decision made on an Access Request.
@@ -381,8 +290,22 @@ type TGHandler struct {
 
 // Target defines model for Target.
 type Target struct {
-	Fields []Field `json:"fields"`
-	Id     string  `json:"id"`
+	Fields []TargetField `json:"fields"`
+	Id     string        `json:"id"`
+
+	// Specifies a particular Access Provider to create a Target Group schema from.
+	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
+	TargetGroupId   string          `json:"targetGroupId"`
+}
+
+// TargetField defines model for TargetField.
+type TargetField struct {
+	FieldDescription *string `json:"fieldDescription,omitempty"`
+	FieldTitle       string  `json:"fieldTitle"`
+	Id               string  `json:"id"`
+	Value            string  `json:"value"`
+	ValueDescription *string `json:"valueDescription,omitempty"`
+	ValueLabel       string  `json:"valueLabel"`
 }
 
 // TargetGroup defines model for TargetGroup.
@@ -465,8 +388,8 @@ type IdentityConfigurationResponse struct {
 
 // ListAccessGroupsResponse defines model for ListAccessGroupsResponse.
 type ListAccessGroupsResponse struct {
-	Groups []AccessGroup `json:"groups"`
-	Next   *string       `json:"next,omitempty"`
+	Groups []RequestAccessGroup `json:"groups"`
+	Next   *string              `json:"next,omitempty"`
 }
 
 // ListAccessRulesResponse defines model for ListAccessRulesResponse.
@@ -475,10 +398,10 @@ type ListAccessRulesResponse struct {
 	Next        *string      `json:"next"`
 }
 
-// ListGrantsv2Response defines model for ListGrantsv2Response.
-type ListGrantsv2Response struct {
-	Grants []Grantv2 `json:"grants"`
-	Next   *string   `json:"next,omitempty"`
+// ListGrantsResponse defines model for ListGrantsResponse.
+type ListGrantsResponse struct {
+	Grants []RequestAccessGroupGrant `json:"grants"`
+	Next   *string                   `json:"next,omitempty"`
 }
 
 // ListGroupsResponse defines model for ListGroupsResponse.
@@ -497,12 +420,6 @@ type ListHandlersResponse struct {
 type ListRequestEventsResponse struct {
 	Events []RequestEvent `json:"events"`
 	Next   *string        `json:"next"`
-}
-
-// ListRequests2Response defines model for ListRequests2Response.
-type ListRequests2Response struct {
-	Next     *string     `json:"next,omitempty"`
-	Requests []Requestv2 `json:"requests"`
 }
 
 // ListRequestsResponse defines model for ListRequestsResponse.
@@ -541,11 +458,6 @@ type ListUserResponse struct {
 	Users []User  `json:"users"`
 }
 
-// PreflightResponse defines model for PreflightResponse.
-type PreflightResponse struct {
-	PreflightId string `json:"preflightId"`
-}
-
 // ReviewResponse defines model for ReviewResponse.
 type ReviewResponse struct {
 	// A request to access something made by an end user in Common Fate.
@@ -576,11 +488,11 @@ type CreateGroupRequest struct {
 
 // CreatePreflightRequest defines model for CreatePreflightRequest.
 type CreatePreflightRequest struct {
-	Targets []Target `json:"targets"`
+	Targets []string `json:"targets"`
 }
 
-// CreateRequestRequestv2 defines model for CreateRequestRequestv2.
-type CreateRequestRequestv2 struct {
+// CreateRequestPreflight defines model for CreateRequestPreflight.
+type CreateRequestPreflight struct {
 	PreflightId string `json:"preflightId"`
 }
 
@@ -621,8 +533,8 @@ type ReviewRequest struct {
 	Comment *string `json:"comment,omitempty"`
 
 	// A decision made on an Access Request.
-	Decision       ReviewDecision `json:"decision"`
-	OverrideTiming *RequestTiming `json:"overrideTiming,omitempty"`
+	Decision       ReviewDecision            `json:"decision"`
+	OverrideTiming *RequestAccessGroupTiming `json:"overrideTiming,omitempty"`
 }
 
 // AdminListAccessRulesParams defines parameters for AdminListAccessRules.
@@ -754,67 +666,14 @@ type AdminCreateUserJSONRequestBody CreateUserRequest
 // AdminUpdateUserJSONRequestBody defines body for AdminUpdateUser for application/json ContentType.
 type AdminUpdateUserJSONRequestBody AdminUpdateUserJSONBody
 
-// UserPostRequestsJSONRequestBody defines body for UserPostRequests for application/json ContentType.
-type UserPostRequestsJSONRequestBody CreateRequestRequestv2
-
 // UserRequestPreflightJSONRequestBody defines body for UserRequestPreflight for application/json ContentType.
 type UserRequestPreflightJSONRequestBody CreatePreflightRequest
 
+// UserPostRequestsJSONRequestBody defines body for UserPostRequests for application/json ContentType.
+type UserPostRequestsJSONRequestBody CreateRequestPreflight
+
 // UserReviewRequestJSONRequestBody defines body for UserReviewRequest for application/json ContentType.
 type UserReviewRequestJSONRequestBody ReviewRequest
-
-// Getter for additional properties for Grant_With. Returns the specified
-// element and whether it was found
-func (a Grant_With) Get(fieldName string) (value string, found bool) {
-	if a.AdditionalProperties != nil {
-		value, found = a.AdditionalProperties[fieldName]
-	}
-	return
-}
-
-// Setter for additional properties for Grant_With
-func (a *Grant_With) Set(fieldName string, value string) {
-	if a.AdditionalProperties == nil {
-		a.AdditionalProperties = make(map[string]string)
-	}
-	a.AdditionalProperties[fieldName] = value
-}
-
-// Override default JSON handling for Grant_With to handle AdditionalProperties
-func (a *Grant_With) UnmarshalJSON(b []byte) error {
-	object := make(map[string]json.RawMessage)
-	err := json.Unmarshal(b, &object)
-	if err != nil {
-		return err
-	}
-
-	if len(object) != 0 {
-		a.AdditionalProperties = make(map[string]string)
-		for fieldName, fieldBuf := range object {
-			var fieldVal string
-			err := json.Unmarshal(fieldBuf, &fieldVal)
-			if err != nil {
-				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
-			}
-			a.AdditionalProperties[fieldName] = fieldVal
-		}
-	}
-	return nil
-}
-
-// Override default JSON handling for Grant_With to handle AdditionalProperties
-func (a Grant_With) MarshalJSON() ([]byte, error) {
-	var err error
-	object := make(map[string]json.RawMessage)
-
-	for fieldName, field := range a.AdditionalProperties {
-		object[fieldName], err = json.Marshal(field)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
-		}
-	}
-	return json.Marshal(object)
-}
 
 // Getter for additional properties for TargetGroupSchema. Returns the specified
 // element and whether it was found
@@ -1062,6 +921,11 @@ type ClientInterface interface {
 	// UserListRequestAccessGroupGrants request
 	UserListRequestAccessGroupGrants(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UserRequestPreflight request with any body
+	UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UserListRequests request
 	UserListRequests(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1072,11 +936,6 @@ type ClientInterface interface {
 
 	// UserListRequestsPast request
 	UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserRequestPreflight request with any body
-	UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserListRequestsUpcoming request
 	UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1621,6 +1480,30 @@ func (c *Client) UserListRequestAccessGroupGrants(ctx context.Context, groupId s
 	return c.Client.Do(req)
 }
 
+func (c *Client) UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserRequestPreflightRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserRequestPreflightRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) UserListRequests(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserListRequestsRequest(c.Server, params)
 	if err != nil {
@@ -1659,30 +1542,6 @@ func (c *Client) UserPostRequests(ctx context.Context, body UserPostRequestsJSON
 
 func (c *Client) UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserListRequestsPastRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserRequestPreflightRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserRequestPreflight(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserRequestPreflightRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3195,6 +3054,46 @@ func NewUserListRequestAccessGroupGrantsRequest(server string, groupId string) (
 	return req, nil
 }
 
+// NewUserRequestPreflightRequest calls the generic UserRequestPreflight builder with application/json body
+func NewUserRequestPreflightRequest(server string, body UserRequestPreflightJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUserRequestPreflightRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUserRequestPreflightRequestWithBody generates requests for UserRequestPreflight with any type of body
+func NewUserRequestPreflightRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/preflight")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewUserListRequestsRequest generates requests for UserListRequests
 func NewUserListRequestsRequest(server string, params *UserListRequestsParams) (*http.Request, error) {
 	var err error
@@ -3357,46 +3256,6 @@ func NewUserListRequestsPastRequest(server string, params *UserListRequestsPastP
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewUserRequestPreflightRequest calls the generic UserRequestPreflight builder with application/json body
-func NewUserRequestPreflightRequest(server string, body UserRequestPreflightJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUserRequestPreflightRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewUserRequestPreflightRequestWithBody generates requests for UserRequestPreflight with any type of body
-func NewUserRequestPreflightRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/preflight")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -3862,6 +3721,11 @@ type ClientWithResponsesInterface interface {
 	// UserListRequestAccessGroupGrants request
 	UserListRequestAccessGroupGrantsWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupGrantsResponse, error)
 
+	// UserRequestPreflight request with any body
+	UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
+
+	UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
+
 	// UserListRequests request
 	UserListRequestsWithResponse(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*UserListRequestsResponse, error)
 
@@ -3872,11 +3736,6 @@ type ClientWithResponsesInterface interface {
 
 	// UserListRequestsPast request
 	UserListRequestsPastWithResponse(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*UserListRequestsPastResponse, error)
-
-	// UserRequestPreflight request with any body
-	UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
-
-	UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
 
 	// UserListRequestsUpcoming request
 	UserListRequestsUpcomingWithResponse(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*UserListRequestsUpcomingResponse, error)
@@ -4422,8 +4281,8 @@ type AdminListRequestsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 }
 
@@ -4853,7 +4712,7 @@ func (r UserListEntitlementTargetsResponse) StatusCode() int {
 type UserGetRequestAccessGroupGrantResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Grantv2
+	JSON200      *RequestAccessGroupGrant
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -4882,8 +4741,8 @@ type UserListRequestAccessGroupGrantsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Grants []Grantv2 `json:"grants"`
-		Next   *string   `json:"next,omitempty"`
+		Grants []RequestAccessGroupGrant `json:"grants"`
+		Next   *string                   `json:"next,omitempty"`
 	}
 	JSON404 *struct {
 		Error string `json:"error"`
@@ -4909,12 +4768,46 @@ func (r UserListRequestAccessGroupGrantsResponse) StatusCode() int {
 	return 0
 }
 
+type UserRequestPreflightResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Preflight
+	JSON400      *struct {
+		Error string `json:"error"`
+	}
+	JSON401 *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserRequestPreflightResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserRequestPreflightResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type UserListRequestsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 	JSON404 *struct {
 		Error string `json:"error"`
@@ -4971,8 +4864,8 @@ type UserListRequestsPastResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 }
 
@@ -4992,42 +4885,12 @@ func (r UserListRequestsPastResponse) StatusCode() int {
 	return 0
 }
 
-type UserRequestPreflightResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		PreflightId string `json:"preflightId"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserRequestPreflightResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserRequestPreflightResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type UserListRequestsUpcomingResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next     *string     `json:"next,omitempty"`
-		Requests []Requestv2 `json:"requests"`
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
 	}
 }
 
@@ -5050,7 +4913,7 @@ func (r UserListRequestsUpcomingResponse) StatusCode() int {
 type UserGetRequestResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *Requestv2
+	JSON200      *Preflight
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -5079,8 +4942,8 @@ type UserListRequestAccessGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Groups []AccessGroup `json:"groups"`
-		Next   *string       `json:"next,omitempty"`
+		Groups []RequestAccessGroup `json:"groups"`
+		Next   *string              `json:"next,omitempty"`
 	}
 	JSON404 *struct {
 		Error string `json:"error"`
@@ -5109,7 +4972,7 @@ func (r UserListRequestAccessGroupsResponse) StatusCode() int {
 type UserGetRequestAccessGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *AccessGroup
+	JSON200      *RequestAccessGroup
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -5615,6 +5478,23 @@ func (c *ClientWithResponses) UserListRequestAccessGroupGrantsWithResponse(ctx c
 	return ParseUserListRequestAccessGroupGrantsResponse(rsp)
 }
 
+// UserRequestPreflightWithBodyWithResponse request with arbitrary body returning *UserRequestPreflightResponse
+func (c *ClientWithResponses) UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
+	rsp, err := c.UserRequestPreflightWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserRequestPreflightResponse(rsp)
+}
+
+func (c *ClientWithResponses) UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
+	rsp, err := c.UserRequestPreflight(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserRequestPreflightResponse(rsp)
+}
+
 // UserListRequestsWithResponse request returning *UserListRequestsResponse
 func (c *ClientWithResponses) UserListRequestsWithResponse(ctx context.Context, params *UserListRequestsParams, reqEditors ...RequestEditorFn) (*UserListRequestsResponse, error) {
 	rsp, err := c.UserListRequests(ctx, params, reqEditors...)
@@ -5648,23 +5528,6 @@ func (c *ClientWithResponses) UserListRequestsPastWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseUserListRequestsPastResponse(rsp)
-}
-
-// UserRequestPreflightWithBodyWithResponse request with arbitrary body returning *UserRequestPreflightResponse
-func (c *ClientWithResponses) UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
-	rsp, err := c.UserRequestPreflightWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserRequestPreflightResponse(rsp)
-}
-
-func (c *ClientWithResponses) UserRequestPreflightWithResponse(ctx context.Context, body UserRequestPreflightJSONRequestBody, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error) {
-	rsp, err := c.UserRequestPreflight(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserRequestPreflightResponse(rsp)
 }
 
 // UserListRequestsUpcomingWithResponse request returning *UserListRequestsUpcomingResponse
@@ -6540,8 +6403,8 @@ func ParseAdminListRequestsResponse(rsp *http.Response) (*AdminListRequestsRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -7225,7 +7088,7 @@ func ParseUserGetRequestAccessGroupGrantResponse(rsp *http.Response) (*UserGetRe
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Grantv2
+		var dest RequestAccessGroupGrant
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7270,13 +7133,75 @@ func ParseUserListRequestAccessGroupGrantsResponse(rsp *http.Response) (*UserLis
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Grants []Grantv2 `json:"grants"`
-			Next   *string   `json:"next,omitempty"`
+			Grants []RequestAccessGroupGrant `json:"grants"`
+			Next   *string                   `json:"next,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUserRequestPreflightResponse parses an HTTP response from a UserRequestPreflightWithResponse call
+func ParseUserRequestPreflightResponse(rsp *http.Response) (*UserRequestPreflightResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserRequestPreflightResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Preflight
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
@@ -7317,8 +7242,8 @@ func ParseUserListRequestsResponse(rsp *http.Response) (*UserListRequestsRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -7401,59 +7326,13 @@ func ParseUserListRequestsPastResponse(rsp *http.Response) (*UserListRequestsPas
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserRequestPreflightResponse parses an HTTP response from a UserRequestPreflightWithResponse call
-func ParseUserRequestPreflightResponse(rsp *http.Response) (*UserRequestPreflightResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserRequestPreflightResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			PreflightId string `json:"preflightId"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
 
 	}
 
@@ -7476,8 +7355,8 @@ func ParseUserListRequestsUpcomingResponse(rsp *http.Response) (*UserListRequest
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next     *string     `json:"next,omitempty"`
-			Requests []Requestv2 `json:"requests"`
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -7504,7 +7383,7 @@ func ParseUserGetRequestResponse(rsp *http.Response) (*UserGetRequestResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Requestv2
+		var dest Preflight
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7549,8 +7428,8 @@ func ParseUserListRequestAccessGroupsResponse(rsp *http.Response) (*UserListRequ
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Groups []AccessGroup `json:"groups"`
-			Next   *string       `json:"next,omitempty"`
+			Groups []RequestAccessGroup `json:"groups"`
+			Next   *string              `json:"next,omitempty"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -7595,7 +7474,7 @@ func ParseUserGetRequestAccessGroupResponse(rsp *http.Response) (*UserGetRequest
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessGroup
+		var dest RequestAccessGroup
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7859,6 +7738,9 @@ type ServerInterface interface {
 	// List Request Access Group Grants
 	// (GET /api/v1/groups/{groupId}/grants)
 	UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, groupId string)
+	// Submit Preflight
+	// (POST /api/v1/preflight)
+	UserRequestPreflight(w http.ResponseWriter, r *http.Request)
 	// List Requests
 	// (GET /api/v1/requests)
 	UserListRequests(w http.ResponseWriter, r *http.Request, params UserListRequestsParams)
@@ -7868,9 +7750,6 @@ type ServerInterface interface {
 	// Your GET endpoint
 	// (GET /api/v1/requests/past)
 	UserListRequestsPast(w http.ResponseWriter, r *http.Request, params UserListRequestsPastParams)
-
-	// (POST /api/v1/requests/preflight)
-	UserRequestPreflight(w http.ResponseWriter, r *http.Request)
 	// Your GET endpoint
 	// (GET /api/v1/requests/upcoming)
 	UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params UserListRequestsUpcomingParams)
@@ -8820,6 +8699,21 @@ func (siw *ServerInterfaceWrapper) UserListRequestAccessGroupGrants(w http.Respo
 	handler(w, r.WithContext(ctx))
 }
 
+// UserRequestPreflight operation middleware
+func (siw *ServerInterfaceWrapper) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserRequestPreflight(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
 // UserListRequests operation middleware
 func (siw *ServerInterfaceWrapper) UserListRequests(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -8910,21 +8804,6 @@ func (siw *ServerInterfaceWrapper) UserListRequestsPast(w http.ResponseWriter, r
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserListRequestsPast(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserRequestPreflight operation middleware
-func (siw *ServerInterfaceWrapper) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserRequestPreflight(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -9361,6 +9240,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/groups/{groupId}/grants", wrapper.UserListRequestAccessGroupGrants)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/api/v1/preflight", wrapper.UserRequestPreflight)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests", wrapper.UserListRequests)
 	})
 	r.Group(func(r chi.Router) {
@@ -9368,9 +9250,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests/past", wrapper.UserListRequestsPast)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/requests/preflight", wrapper.UserRequestPreflight)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests/upcoming", wrapper.UserListRequestsUpcoming)
@@ -9403,124 +9282,119 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"+PDwPwEAAP//mp7M5tewAAA=",
+	"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",
+	"AAD//8ol2KgyqgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

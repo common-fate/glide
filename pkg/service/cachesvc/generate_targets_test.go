@@ -115,18 +115,31 @@ func TestGenerateDistinctTargets(t *testing.T) {
 			want: []cache.Target{
 				{
 					TargetGroupID: "targetgroup_1",
-					Fields: map[string]string{
-						"accountId":        "account_1",
-						"permissionSetArn": "permissionSet_1",
+					Fields: []cache.Field{
+						{
+							ID:    "accountId",
+							Value: "account_1",
+						},
+						{
+							ID:    "permissionSetArn",
+							Value: "permissionSet_1",
+						},
 					},
+
 					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}, "group_3": {}, "group_4": {}},
 					AccessRules: map[string]struct{}{"accessRule_2": {}, "accessRule_1": {}},
 				},
 				{
 					TargetGroupID: "targetgroup_1",
-					Fields: map[string]string{
-						"accountId":        "account_1",
-						"permissionSetArn": "permissionSet_2",
+					Fields: []cache.Field{
+						{
+							ID:    "accountId",
+							Value: "account_1",
+						},
+						{
+							ID:    "permissionSetArn",
+							Value: "permissionSet_2",
+						},
 					},
 					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}},
 					AccessRules: map[string]struct{}{"accessRule_1": {}},

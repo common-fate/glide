@@ -1,8 +1,6 @@
 package gevent
 
-import (
-	"github.com/common-fate/common-fate/pkg/requests"
-)
+import "github.com/common-fate/common-fate/pkg/requests"
 
 const (
 	RequestCreatedType   = "request.created"

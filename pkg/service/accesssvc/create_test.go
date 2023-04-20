@@ -56,7 +56,7 @@ package accesssvc
 // 		{
 // 			name: "fails because requested duration is greater than max duration",
 // 			in: CreateRequestsOpts{User: identity.User{Groups: []string{"a"}}, Create: CreateRequests{
-// 				Timing: types.RequestTiming{
+// 				Timing: types.RequestAccessGroupTiming{
 // 					DurationSeconds: 20,
 // 				},
 // 			}},
