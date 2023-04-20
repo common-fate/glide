@@ -10,10 +10,10 @@ import (
 )
 
 type GroupTarget struct {
-	ID        string `json:"id" dynamodbav:"id"`
-	GroupID   string `json:"groupId" dynamodbav:"groupId"`
-	RequestID string `json:"requestId" dynamodbav:"requestId"`
-	UserID    string `json:"subject" dynamodbav:"subject"`
+	ID          string `json:"id" dynamodbav:"id"`
+	GroupID     string `json:"groupId" dynamodbav:"groupId"`
+	RequestID   string `json:"requestId" dynamodbav:"requestId"`
+	RequestedBy string `json:"requestedBy" dynamodbav:"requestedBy"`
 	// The id of the cache.Target which was used to select this on the request.
 	// the cache item is subject to be deleted so this cacheID may not always exist in the future after the grant is created
 	TargetCacheID   string      `json:"cacheId" dynamodbav:"cacheId"`
@@ -30,7 +30,9 @@ type GroupTarget struct {
 }
 
 type Grant struct {
-	Status types.GrantStatus `json:"status" dynamodbav:"status"`
+	// The user email
+	Subject string            `json:"subject" dynamodbav:"subject"`
+	Status  types.GrantStatus `json:"status" dynamodbav:"status"`
 	//the time which the grant starts
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
@@ -81,21 +83,24 @@ func (g *GroupTarget) ToAPI() types.RequestAccessGroupTarget {
 }
 func (i *GroupTarget) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.AccessRequestGroupTarget.PK1,
-		SK: keys.AccessRequestGroupTarget.SK1(i.RequestID, i.GroupID, i.ID),
+		PK:     keys.AccessRequestGroupTarget.PK1,
+		SK:     keys.AccessRequestGroupTarget.SK1(i.RequestID, i.GroupID, i.ID),
+		GSI1PK: keys.AccessRequestGroupTarget.GSI1PK(i.RequestedBy),
+		GSI1SK: keys.AccessRequestGroupTarget.GSI1SK(i.RequestID, i.GroupID, i.ID),
 	}
 	return keys, nil
 }
 
 type Instructions struct {
 	GroupTargetID string `json:"id" dynamodbav:"id"`
+	RequestedBy   string `json:"requestedBy" dynamodbav:"requestedBy"`
 	Instructions  string `json:"instructions" dynamodbav:"instructions"`
 }
 
 func (i *Instructions) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.AccessRequestGroupTargetInstructions.PK1(i.GroupTargetID),
-		SK: keys.AccessRequestGroupTargetInstructions.SK1(i.GroupTargetID),
+		PK: keys.AccessRequestGroupTargetInstructions.PK1,
+		SK: keys.AccessRequestGroupTargetInstructions.SK1(i.GroupTargetID, i.RequestedBy),
 	}
 	return keys, nil
 }

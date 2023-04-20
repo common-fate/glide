@@ -20,6 +20,7 @@ type Group struct {
 	Status          types.RequestStatus `json:"status" dynamodbav:"status"`
 	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
 	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	RequestedBy     string              `json:"requestedBy" dynamodbav:"requestedBy"`
 	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
@@ -128,8 +129,10 @@ type GetIntervalOpts struct {
 
 func (i *Group) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.AccessRequestGroup.PK1,
-		SK: keys.AccessRequestGroup.SK1(i.RequestID, i.ID),
+		PK:     keys.AccessRequestGroup.PK1,
+		SK:     keys.AccessRequestGroup.SK1(i.RequestID, i.ID),
+		GSI1PK: keys.AccessRequestGroup.GSI1PK(i.RequestedBy),
+		GSI1SK: keys.AccessRequestGroup.GSI1SK(i.RequestID, i.ID),
 	}
 	return keys, nil
 }

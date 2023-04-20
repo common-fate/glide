@@ -53,8 +53,10 @@ func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 }
 func (i *Request) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
-		PK: keys.AccessRequest.PK1,
-		SK: keys.AccessRequest.SK1(i.ID),
+		PK:     keys.AccessRequest.PK1,
+		SK:     keys.AccessRequest.SK1(i.ID),
+		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy),
+		GSI1SK: keys.AccessRequest.GSI1SK(i.ID),
 	}
 	return keys, nil
 }
