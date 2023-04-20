@@ -16,41 +16,47 @@ import (
 // List Requests
 // (GET /api/v1/requests)
 func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params types.UserListRequestsParams) {
-	// ctx := r.Context()
-	// u := auth.UserFromContext(ctx)
-	// q := storage.ListRe{UserId: u.ID}
+	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
+	q := storage.ListRequestWithGroupsWithTargetsForUser{UserID: u.ID}
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
+	}
 
-	// _, err := a.DB.Query(ctx, &q)
+	qo, err := a.DB.Query(ctx, &q, opts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
+	}
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
 
-	// res := types.ListRequests2Response{}
+	for _, request := range q.Result {
+		res.Requests = append(res.Requests, request.ToAPI())
+	}
 
-	// for _, g := range q.Result {
-	// 	res.Requests = append(res.Requests, g.ToAPI())
-	// }
-
-	// apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // Get Request
 // (GET /api/v1/requests/{requestId})
 func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string) {
-	// ctx := r.Context()
-	// u := auth.UserFromContext(ctx)
-	// q := storage.GetRequestV2{UserId: u.ID, ID: requestId}
+	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
+	q := storage.GetRequestWithGroupsWithTargetsForUser{UserID: u.ID, RequestID: requestId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// _, err := a.DB.Query(ctx, &q)
-
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
-
-	// apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // List Entitlements
