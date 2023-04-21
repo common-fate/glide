@@ -60,7 +60,9 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 		PK:     keys.AccessRequest.PK1,
 		SK:     keys.AccessRequest.SK1(i.ID),
 		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy),
-		GSI1SK: keys.AccessRequest.GSI1SK(i.ID, RequestStatusToPastOrUpcoming(i.RequestStatus)),
+		GSI1SK: keys.AccessRequest.GSI1SK(i.ID),
+		GSI2PK: keys.AccessRequest.GSI2PK(i.RequestedBy, RequestStatusToPastOrUpcoming(i.RequestStatus)),
+		GSI2SK: keys.AccessRequest.GSI2SK(i.ID),
 	}
 	return keys, nil
 }

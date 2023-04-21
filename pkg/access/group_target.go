@@ -88,7 +88,9 @@ func (i *GroupTarget) DDBKeys() (ddb.Keys, error) {
 		PK:     keys.AccessRequestGroupTarget.PK1,
 		SK:     keys.AccessRequestGroupTarget.SK1(i.RequestID, i.GroupID, i.ID),
 		GSI1PK: keys.AccessRequestGroupTarget.GSI1PK(i.RequestedBy),
-		GSI1SK: keys.AccessRequestGroupTarget.GSI1SK(i.RequestID, RequestStatusToPastOrUpcoming(i.RequestStatus), i.GroupID, i.ID),
+		GSI1SK: keys.AccessRequestGroupTarget.GSI1SK(i.RequestID, i.GroupID, i.ID),
+		GSI2PK: keys.AccessRequestGroupTarget.GSI2PK(i.RequestedBy, RequestStatusToPastOrUpcoming(i.RequestStatus)),
+		GSI2SK: keys.AccessRequestGroupTarget.GSI2SK(i.RequestID, i.GroupID, i.ID),
 	}
 	return keys, nil
 }
