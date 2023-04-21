@@ -77,6 +77,10 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	u := auth.UserFromContext(ctx)
 	q := storage.GetRequestWithGroupsWithTargetsForUser{UserID: u.ID, RequestID: requestId}
 	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -88,10 +92,10 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 // List Entitlements
 // (GET /api/v1/entitlements)
 func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
 	q := storage.ListTargetGroups{}
-	_, err := a.DB.Query(ctx, &q)
+
+	err := a.DB.All(ctx, &q)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
@@ -105,7 +109,6 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 		res.TargetGroups = append(res.TargetGroups, e.ToAPI())
 	}
 	apio.JSON(ctx, w, res, http.StatusOK)
-
 }
 
 // (POST /api/v1/preflight)
@@ -257,10 +260,11 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 	}
 
 	user := auth.UserFromContext(ctx)
+
+	// Filtering needs to be done in the application layer because of limits with dynamoDB filters
+	// in the end, the same amount of read units will be consumed
 	filter := cache.NewFilterTargetsByGroups(user.Groups)
-	filter.Filter(q.Result)
-	targets := filter.Dump()
-	for _, target := range targets {
+	for _, target := range filter.Filter(q.Result).Dump() {
 		res.Targets = append(res.Targets, target.ToAPI())
 	}
 

@@ -75,7 +75,7 @@ func NewFilterTargetsByGroups(groups []string) *FilterTargetsByGroups {
 	return &tf
 }
 
-func (tf *FilterTargetsByGroups) Filter(targets []Target) {
+func (tf *FilterTargetsByGroups) Filter(targets []Target) *FilterTargetsByGroups {
 	for _, target := range targets {
 		for group := range target.Groups {
 			if _, ok := tf.groups[group]; ok {
@@ -84,6 +84,7 @@ func (tf *FilterTargetsByGroups) Filter(targets []Target) {
 			}
 		}
 	}
+	return tf
 }
 
 func (tf *FilterTargetsByGroups) Dump() []Target {

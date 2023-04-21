@@ -10,7 +10,7 @@ import type { Target } from './target';
 
 export interface PreflightAccessGroup {
   id: string;
-  status: string;
+  requiresApproval: boolean;
   time: AccessRuleTimeConstraints;
   targets: Target[];
 }

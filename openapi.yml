@@ -1840,8 +1840,6 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/TargetGroup"
-              next:
-                type: string
             required:
               - targetGroups
     ListHandlersResponse:

@@ -11,13 +11,10 @@ import type {
   Key
 } from 'swr'
 import type {
-  ReviewResponseResponse,
-  ReviewRequestBody,
   User,
   AuthUserResponseResponse,
-  ListRequestsResponseResponse,
-  UserListRequestsUpcomingParams,
-  UserListRequestsPastParams
+  ReviewResponseResponse,
+  ReviewRequestBody
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -31,37 +28,6 @@ import type { ErrorType } from '../../custom-instance'
 ) => any
   ? P
   : never;
-
-/**
- * Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.
- * @summary Review a request
- */
-export const userReviewRequest = (
-    requestId: string,
-    reviewRequestBody: ReviewRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ReviewResponseResponse>(
-      {url: `/api/v1/requests/${requestId}/review`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: reviewRequestBody
-    },
-      options);
-    }
-  
-
-/**
- * Admins and approvers can revoke access previously approved. Effective immediately 
- * @summary Revoke an active request
- */
-export const userRevokeRequest = (
-    requestid: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/requests/${requestid}/revoke`, method: 'post'
-    },
-      options);
-    }
-  
 
 /**
  * Returns a Common Fate user.
@@ -142,83 +108,33 @@ export const useUserGetMe = <TError = ErrorType<void>>(
 }
 
 /**
- * Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
- * @summary Your GET endpoint
+ * Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.
+ * @summary Review a request
  */
-export const userListRequestsUpcoming = (
-    params?: UserListRequestsUpcomingParams,
+export const userReviewRequest = (
+    requestId: string,
+    reviewRequestBody: ReviewRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListRequestsResponseResponse>(
-      {url: `/api/v1/requests/upcoming`, method: 'get',
-        params
+      return customInstance<ReviewResponseResponse>(
+      {url: `/api/v1/requests/${requestId}/review`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: reviewRequestBody
     },
       options);
     }
   
-
-export const getUserListRequestsUpcomingKey = (params?: UserListRequestsUpcomingParams,) => [`/api/v1/requests/upcoming`, ...(params ? [params]: [])];
-
-    
-export type UserListRequestsUpcomingQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsUpcoming>>>
-export type UserListRequestsUpcomingQueryError = ErrorType<unknown>
-
-export const useUserListRequestsUpcoming = <TError = ErrorType<unknown>>(
- params?: UserListRequestsUpcomingParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsUpcoming>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestsUpcomingKey(params) : null);
-  const swrFn = () => userListRequestsUpcoming(params, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 
 /**
- * Display show cancelled, expired, and revoked requests.
-
- * @summary Your GET endpoint
+ * Admins and approvers can revoke access previously approved. Effective immediately 
+ * @summary Revoke an active request
  */
-export const userListRequestsPast = (
-    params?: UserListRequestsPastParams,
+export const userRevokeRequest = (
+    requestid: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListRequestsResponseResponse>(
-      {url: `/api/v1/requests/past`, method: 'get',
-        params
+      return customInstance<void>(
+      {url: `/api/v1/requests/${requestid}/revoke`, method: 'post'
     },
       options);
     }
   
-
-export const getUserListRequestsPastKey = (params?: UserListRequestsPastParams,) => [`/api/v1/requests/past`, ...(params ? [params]: [])];
-
-    
-export type UserListRequestsPastQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestsPast>>>
-export type UserListRequestsPastQueryError = ErrorType<unknown>
-
-export const useUserListRequestsPast = <TError = ErrorType<unknown>>(
- params?: UserListRequestsPastParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestsPast>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestsPastKey(params) : null);
-  const swrFn = () => userListRequestsPast(params, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 

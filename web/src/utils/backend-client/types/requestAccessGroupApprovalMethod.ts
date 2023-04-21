@@ -9,11 +9,11 @@
 /**
  * Describes whether a request has been approved automatically or from a review 
  */
-export type ApprovalMethod = typeof ApprovalMethod[keyof typeof ApprovalMethod];
+export type RequestAccessGroupApprovalMethod = typeof RequestAccessGroupApprovalMethod[keyof typeof RequestAccessGroupApprovalMethod];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ApprovalMethod = {
+export const RequestAccessGroupApprovalMethod = {
   AUTOMATIC: 'AUTOMATIC',
   REVIEWED: 'REVIEWED',
 } as const;

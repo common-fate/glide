@@ -7,14 +7,16 @@
  */
 import type { RequestPurpose } from './requestPurpose';
 import type { RequestAccessGroup } from './requestAccessGroup';
+import type { RequestStatus } from './requestStatus';
 
 /**
  * A request to access something made by an end user in Common Fate.
  */
 export interface Request {
   id: string;
-  purpose?: RequestPurpose;
+  purpose: RequestPurpose;
   accessGroups: RequestAccessGroup[];
   requestedBy: string;
   requestedAt: string;
+  status: RequestStatus;
 }
