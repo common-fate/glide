@@ -10,10 +10,12 @@ import (
 )
 
 type GroupTarget struct {
-	ID          string `json:"id" dynamodbav:"id"`
-	GroupID     string `json:"groupId" dynamodbav:"groupId"`
-	RequestID   string `json:"requestId" dynamodbav:"requestId"`
-	RequestedBy string `json:"requestedBy" dynamodbav:"requestedBy"`
+	ID        string `json:"id" dynamodbav:"id"`
+	GroupID   string `json:"groupId" dynamodbav:"groupId"`
+	RequestID string `json:"requestId" dynamodbav:"requestId"`
+	// Also denormalised across all the request items
+	RequestStatus types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
+	RequestedBy   string              `json:"requestedBy" dynamodbav:"requestedBy"`
 	// The id of the cache.Target which was used to select this on the request.
 	// the cache item is subject to be deleted so this cacheID may not always exist in the future after the grant is created
 	TargetCacheID   string      `json:"cacheId" dynamodbav:"cacheId"`
@@ -86,7 +88,7 @@ func (i *GroupTarget) DDBKeys() (ddb.Keys, error) {
 		PK:     keys.AccessRequestGroupTarget.PK1,
 		SK:     keys.AccessRequestGroupTarget.SK1(i.RequestID, i.GroupID, i.ID),
 		GSI1PK: keys.AccessRequestGroupTarget.GSI1PK(i.RequestedBy),
-		GSI1SK: keys.AccessRequestGroupTarget.GSI1SK(i.RequestID, i.GroupID, i.ID),
+		GSI1SK: keys.AccessRequestGroupTarget.GSI1SK(i.RequestID, RequestStatusToPastOrUpcoming(i.RequestStatus), i.GroupID, i.ID),
 	}
 	return keys, nil
 }

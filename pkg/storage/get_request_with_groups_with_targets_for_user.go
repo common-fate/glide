@@ -20,7 +20,7 @@ func (g *GetRequestWithGroupsWithTargetsForUser) BuildQuery() (*dynamodb.QueryIn
 		KeyConditionExpression: aws.String("GSI1PK = :pk1 and begins_with(GSI1SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1PK(g.UserID)},
-			":sk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1SK(g.RequestID)},
+			":sk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1SKRequest(g.RequestID)},
 		},
 	}
 

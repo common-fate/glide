@@ -243,18 +243,6 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 }
 
 // Your GET endpoint
-// (GET /api/v1/requests/past)
-func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, params types.UserListRequestsPastParams) {
-
-}
-
-// Your GET endpoint
-// (GET /api/v1/requests/upcoming)
-func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params types.UserListRequestsUpcomingParams) {
-
-}
-
-// Your GET endpoint
 // (GET /api/v1/requests/upcoming)
 func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
 	ctx := r.Context()
@@ -282,5 +270,11 @@ func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params t
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
+
+}
+
+// List Reviews
+// (GET /api/v1/reviews)
+func (a *API) UserListReviews(w http.ResponseWriter, r *http.Request, params types.UserListReviewsParams) {
 
 }

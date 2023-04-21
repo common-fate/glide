@@ -10,6 +10,8 @@ import (
 
 type Request struct {
 	ID string `json:"id" dynamodbav:"id"`
+	// Also denormalised across all the request items
+	RequestStatus types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
 	// used when unmarshalling data to assert all data was retrieved
 	GroupTargetCount int       `json:"groupTargetCount" dynamodbav:"groupTargetCount"`
 	Purpose          Purpose   `json:"purpose" dynamodbav:"purpose"`
@@ -41,6 +43,7 @@ func (p Purpose) ToAPI() types.RequestPurpose {
 func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 	out := types.Request{
 		ID:           r.ID,
+		Status:       r.RequestStatus,
 		Purpose:      r.Purpose.ToAPI(),
 		RequestedAt:  r.RequestedAt,
 		RequestedBy:  r.RequestedBy,
@@ -51,12 +54,22 @@ func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 	}
 	return out
 }
+
 func (i *Request) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK:     keys.AccessRequest.PK1,
 		SK:     keys.AccessRequest.SK1(i.ID),
 		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy),
-		GSI1SK: keys.AccessRequest.GSI1SK(i.ID),
+		GSI1SK: keys.AccessRequest.GSI1SK(i.ID, RequestStatusToPastOrUpcoming(i.RequestStatus)),
 	}
 	return keys, nil
+}
+
+// RequestStatusToPastOrUpcoming processes teh request status and determines if the request is a past request or an upcoming request
+// The 2 statuses are used in dynamodb queries to serve the upcoming and past tabs/apis on the user homepage.
+func RequestStatusToPastOrUpcoming(status types.RequestStatus) keys.AccessRequestPastUpcoming {
+	if status == types.COMPLETE || status == types.COMPLETE || status == types.COMPLETE {
+		return keys.AccessRequestPastUpcomingPAST
+	}
+	return keys.AccessRequestPastUpcomingUPCOMING
 }

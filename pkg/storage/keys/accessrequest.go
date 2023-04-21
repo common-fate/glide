@@ -7,11 +7,20 @@ const AccessRequestGroupKey = "ACCESS_REQUESTV2_GROUP#"
 const AccessRequestGroupTargetKey = "ACCESS_REQUESTV2_GROUP_TARGET#"
 const AccessRequestGroupTargetInstructionsKey = "ACCESS_REQUESTV2_GROUP_TARGET_INSTRUCTIONS#"
 
+// the past present flag is used for the user dashboard
+type AccessRequestPastUpcoming string
+
+const (
+	AccessRequestPastUpcomingPAST     AccessRequestPastUpcoming = "PAST"
+	AccessRequestPastUpcomingUPCOMING AccessRequestPastUpcoming = "UPCOMING"
+)
+
 type accessRequestKeys struct {
-	PK1    string
-	SK1    func(requestID string) string
-	GSI1PK func(userID string) string
-	GSI1SK func(requestID string) string
+	PK1           string
+	SK1           func(requestID string) string
+	GSI1PK        func(userID string) string
+	GSI1SK        func(requestID string, pastUpcoming AccessRequestPastUpcoming) string
+	GSI1SKRequest func(requestID string) string
 	// GSI2PK     func(status string) string
 	// GSI2SK     func(userId string, requestId string) string
 	// GSI2SKUser func(userId string) string
@@ -27,7 +36,12 @@ var AccessRequest = accessRequestKeys{
 		return fmt.Sprintf("%s%s#", AccessRequestKey, requestID)
 	},
 	GSI1PK: func(userID string) string { return fmt.Sprintf("%s%s#", AccessRequestKey, userID) },
-	GSI1SK: func(requestID string) string { return fmt.Sprintf("%s%s#", AccessRequestKey, requestID) },
+	GSI1SK: func(requestID string, pastUpcoming AccessRequestPastUpcoming) string {
+		return fmt.Sprintf("%s%s#%s#", AccessRequestKey, requestID, pastUpcoming)
+	},
+	GSI1SKRequest: func(requestID string) string {
+		return fmt.Sprintf("%s%s#", AccessRequestKey, requestID)
+	},
 	// GSI2PK:     func(status string) string { return AccessRequestKey + status },
 	// GSI2SK:     func(userId string, requestId string) string { return userId + "#" + requestId },
 	// GSI2SKUser: func(userId string) string { return userId + "#" },
@@ -43,7 +57,7 @@ type accessRequestGroupKeys struct {
 	PK1    string
 	SK1    func(requestID string, groupId string) string
 	GSI1PK func(userID string) string
-	GSI1SK func(requestID string, groupId string) string
+	GSI1SK func(requestID string, pastUpcoming AccessRequestPastUpcoming, groupId string) string
 }
 
 var AccessRequestGroup = accessRequestGroupKeys{
@@ -52,8 +66,8 @@ var AccessRequestGroup = accessRequestGroupKeys{
 		return fmt.Sprintf("%s%s#%s%s#", AccessRequestKey, requestID, AccessRequestGroupKey, groupId)
 	},
 	GSI1PK: func(userID string) string { return fmt.Sprintf("%s%s#", AccessRequestKey, userID) },
-	GSI1SK: func(requestID string, groupId string) string {
-		return fmt.Sprintf("%s%s#%s%s#", AccessRequestKey, requestID, AccessRequestGroupKey, groupId)
+	GSI1SK: func(requestID string, pastUpcoming AccessRequestPastUpcoming, groupId string) string {
+		return fmt.Sprintf("%s%s#%s#%s%s#", AccessRequestKey, requestID, pastUpcoming, AccessRequestGroupKey, groupId)
 	},
 }
 
@@ -61,7 +75,7 @@ type accessRequestGroupTargetKeys struct {
 	PK1    string
 	SK1    func(requestID string, groupId string, targetId string) string
 	GSI1PK func(userID string) string
-	GSI1SK func(requestID string, groupId string, targetId string) string
+	GSI1SK func(requestID string, pastUpcoming AccessRequestPastUpcoming, groupId string, targetId string) string
 }
 
 var AccessRequestGroupTarget = accessRequestGroupTargetKeys{
@@ -70,8 +84,8 @@ var AccessRequestGroupTarget = accessRequestGroupTargetKeys{
 		return fmt.Sprintf("%s%s#%s%s#%s%s#", AccessRequestKey, requestID, AccessRequestGroupKey, groupId, AccessRequestGroupTargetKey, targetId)
 	},
 	GSI1PK: func(userID string) string { return fmt.Sprintf("%s%s#", AccessRequestKey, userID) },
-	GSI1SK: func(requestID string, groupId string, targetId string) string {
-		return fmt.Sprintf("%s%s#%s%s#%s%s#", AccessRequestKey, requestID, AccessRequestGroupKey, groupId, AccessRequestGroupTargetKey, targetId)
+	GSI1SK: func(requestID string, pastUpcoming AccessRequestPastUpcoming, groupId string, targetId string) string {
+		return fmt.Sprintf("%s%s#%s#%s%s#%s%s#", AccessRequestKey, requestID, pastUpcoming, AccessRequestGroupKey, groupId, AccessRequestGroupTargetKey, targetId)
 	},
 }
 

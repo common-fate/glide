@@ -9,46 +9,6 @@ info:
 servers:
   - url: 'http://localhost:8080'
 paths:
-  '/api/v1/requests/{requestId}/review':
-    parameters:
-      - schema:
-          type: string
-        name: requestId
-        in: path
-        required: true
-    post:
-      summary: Review a request
-      operationId: user-review-request
-      responses:
-        '200':
-          $ref: '#/components/responses/ReviewResponse'
-      tags:
-        - End User
-      description: 'Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.'
-      requestBody:
-        $ref: '#/components/requestBodies/ReviewRequest'
-  '/api/v1/requests/{requestid}/revoke':
-    parameters:
-      - schema:
-          type: string
-        name: requestid
-        in: path
-        required: true
-    post:
-      summary: Revoke an active request
-      operationId: user-revoke-request
-      responses:
-        '200':
-          description: OK
-        '400':
-          $ref: '#/components/responses/ErrorResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
-      tags:
-        - End User
-      description: 'Admins and approvers can revoke access previously approved. Effective immediately '
   '/api/v1/users/{userId}':
     parameters:
       - schema:
@@ -743,91 +703,6 @@ paths:
           name: nextToken
           description: query
     parameters: []
-  /api/v1/requests:
-    get:
-      summary: List Requests
-      tags: []
-      responses:
-        '200':
-          $ref: '#/components/responses/ListRequestsResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
-      operationId: user-list-requests
-      description: Gets all requests availiable
-      parameters:
-        - schema:
-            type: string
-            enum:
-              - APPROVED
-              - DECLINED
-              - CANCELLED
-              - PENDING
-          in: query
-          name: status
-          description: omit this param to view all results
-        - schema:
-            type: boolean
-          in: query
-          name: reviewer
-          description: 'show requests that the user is a reviewer for, rather than requests that the user has made themselves'
-        - schema:
-            type: string
-          in: query
-          name: nextToken
-          description: encrypted token containing pagination info
-    parameters: []
-    post:
-      summary: ''
-      operationId: user-post-requests
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Request'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
-      description: Initiates the granting process for a group of requests
-      requestBody:
-        $ref: '#/components/requestBodies/CreateAccessRequestRequest'
-  /api/v1/requests/upcoming:
-    get:
-      summary: Your GET endpoint
-      tags:
-        - End User
-      responses:
-        '200':
-          $ref: '#/components/responses/ListRequestsResponse'
-      operationId: user-list-requests-upcoming
-      description: Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
-      parameters:
-        - schema:
-            type: string
-          in: query
-          description: encrypted token containing pagination info
-          name: nextToken
-  /api/v1/requests/past:
-    get:
-      summary: Your GET endpoint
-      tags:
-        - End User
-      responses:
-        '200':
-          $ref: '#/components/responses/ListRequestsResponse'
-      operationId: user-list-requests-past
-      description: |
-        Display show cancelled, expired, and revoked requests.
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: nextToken
-          description: encrypted token containing pagination info
   /api/v1/preflight:
     parameters: []
     post:
@@ -851,6 +726,121 @@ paths:
       description: Verify and validate a collection of request items
       requestBody:
         $ref: '#/components/requestBodies/CreatePreflightRequest'
+  /api/v1/reviews:
+    get:
+      summary: List Reviews
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ListRequestsResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      operationId: user-list-reviews
+      description: Lists requests where the user is a reviewer
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - APPROVED
+              - DECLINED
+              - CANCELLED
+              - PENDING
+          in: query
+          name: status
+          description: omit this param to view all results
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: pagination token
+    parameters: []
+  /api/v1/requests:
+    get:
+      summary: List Requests
+      tags: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ListRequestsResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      operationId: user-list-requests
+      description: Lists a users own requests
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: pagination token
+        - schema:
+            type: string
+            enum:
+              - UPCOMING
+              - PAST
+          in: query
+          name: filter
+          description: filter for past or upcoming requests
+    parameters: []
+    post:
+      summary: ''
+      operationId: user-post-requests
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Request'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      description: Initiates the granting process for a group of requests
+      requestBody:
+        $ref: '#/components/requestBodies/CreateAccessRequestRequest'
+  '/api/v1/requests/{requestId}/review':
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    post:
+      summary: Review a request
+      operationId: user-review-request
+      responses:
+        '200':
+          $ref: '#/components/responses/ReviewResponse'
+      tags:
+        - End User
+      description: 'Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.'
+      requestBody:
+        $ref: '#/components/requestBodies/ReviewRequest'
+  '/api/v1/requests/{requestid}/revoke':
+    parameters:
+      - schema:
+          type: string
+        name: requestid
+        in: path
+        required: true
+    post:
+      summary: Revoke an active request
+      operationId: user-revoke-request
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ErrorResponse'
+      tags:
+        - End User
+      description: 'Admins and approvers can revoke access previously approved. Effective immediately '
   '/api/v1/requests/{requestId}':
     get:
       summary: Get Request
@@ -921,55 +911,6 @@ paths:
         name: groupId
         in: path
         required: true
-  '/api/v1/groups/{groupId}/grants':
-    get:
-      summary: List Request Access Group Grants
-      tags: []
-      responses:
-        '200':
-          $ref: '#/components/responses/ListGrantsResponse'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
-      operationId: user-list-request-access-group-grants
-      description: List all grants for a request access group
-    parameters:
-      - schema:
-          type: string
-        name: groupId
-        in: path
-        required: true
-  '/api/v1/groups/{gid}/grants{grantid}':
-    get:
-      summary: Get Request Access Group Grant
-      tags: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RequestAccessGroupTarget'
-        '404':
-          $ref: '#/components/responses/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/ErrorResponse'
-      operationId: user-get-request-access-group-grant
-      description: Gets a request access group grant
-    parameters:
-      - schema:
-          type: string
-        name: gid
-        in: path
-        required: true
-        description: access group id
-      - schema:
-          type: string
-        name: grantid
-        in: path
-        required: true
-        description: grant id
 components:
   schemas:
     User:
@@ -1713,9 +1654,6 @@ components:
     CreateAccessRequestGroupOptions:
       type: object
       title: CreateAccessRequestGroupOptions
-      enum:
-        - APPROVED
-        - DECLINED
       description: ''
       x-stoplight:
         id: 6f6c2fa4da748
