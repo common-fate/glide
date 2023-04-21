@@ -18,16 +18,15 @@ import type {
   UserListEntitlementResourcesParams,
   ListTargetsResponseResponse,
   UserListEntitlementTargetsParams,
-  ListRequests2ResponseResponse,
+  ListRequestsResponseResponse,
   UserListRequestsParams,
-  CreateRequestRequestv2Body,
-  PreflightResponseResponse,
+  CreateRequestPreflightBody,
+  Preflight,
   CreatePreflightRequestBody,
-  Requestv2,
   ListAccessGroupsResponseResponse,
-  AccessGroup,
-  ListGrantsv2ResponseResponse,
-  Grantv2
+  RequestAccessGroup,
+  ListGrantsResponseResponse,
+  RequestAccessGroupGrant
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -207,7 +206,7 @@ export const useUserListEntitlementTargets = <TError = ErrorType<ErrorResponseRe
 export const userListRequests = (
     params?: UserListRequestsParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListRequests2ResponseResponse>(
+      return customInstance<ListRequestsResponseResponse>(
       {url: `/api/v1/requests`, method: 'get',
         params
     },
@@ -244,12 +243,12 @@ export const useUserListRequests = <TError = ErrorType<ErrorResponseResponse>>(
  * Initiates the granting process for a group of requests
  */
 export const userPostRequests = (
-    createRequestRequestv2Body: CreateRequestRequestv2Body,
+    createRequestPreflightBody: CreateRequestPreflightBody,
  options?: SecondParameter<typeof customInstance>) => {
       return customInstance<void>(
       {url: `/api/v1/requests`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: createRequestRequestv2Body
+      data: createRequestPreflightBody
     },
       options);
     }
@@ -257,12 +256,13 @@ export const userPostRequests = (
 
 /**
  * Verify and validate a collection of request items
+ * @summary Submit Preflight
  */
 export const userRequestPreflight = (
     createPreflightRequestBody: CreatePreflightRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<PreflightResponseResponse>(
-      {url: `/api/v1/requests/preflight`, method: 'post',
+      return customInstance<Preflight>(
+      {url: `/api/v1/preflight`, method: 'post',
       headers: {'Content-Type': 'application/json', },
       data: createPreflightRequestBody
     },
@@ -277,7 +277,7 @@ export const userRequestPreflight = (
 export const userGetRequest = (
     requestId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Requestv2>(
+      return customInstance<Preflight>(
       {url: `/api/v1/requests/${requestId}`, method: 'get'
     },
       options);
@@ -356,7 +356,7 @@ export const userGetRequestAccessGroup = (
     requestId: string,
     groupId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<AccessGroup>(
+      return customInstance<RequestAccessGroup>(
       {url: `/api/v1/requests/${requestId}/groups/${groupId}`, method: 'get'
     },
       options);
@@ -397,7 +397,7 @@ export const useUserGetRequestAccessGroup = <TError = ErrorType<ErrorResponseRes
 export const userListRequestAccessGroupGrants = (
     groupId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListGrantsv2ResponseResponse>(
+      return customInstance<ListGrantsResponseResponse>(
       {url: `/api/v1/groups/${groupId}/grants`, method: 'get'
     },
       options);
@@ -437,7 +437,7 @@ export const userGetRequestAccessGroupGrant = (
     gid: string,
     grantid: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Grantv2>(
+      return customInstance<RequestAccessGroupGrant>(
       {url: `/api/v1/groups/${gid}/grants${grantid}`, method: 'get'
     },
       options);

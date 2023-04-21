@@ -5,16 +5,16 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { ApproverConfig } from './approverConfig';
+import type { AccessRuleApproverConfig } from './accessRuleApproverConfig';
+import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
 import type { CreateAccessRuleTarget } from './createAccessRuleTarget';
-import type { TimeConstraints } from './timeConstraints';
 
 export type CreateAccessRuleRequestBody = {
   /** The group IDs that the access rule applies to. */
   groups: string[];
-  approval: ApproverConfig;
+  approval: AccessRuleApproverConfig;
   name: string;
   description: string;
-  target: CreateAccessRuleTarget;
-  timeConstraints: TimeConstraints;
+  timeConstraints: AccessRuleTimeConstraints;
+  targets: CreateAccessRuleTarget[];
 };

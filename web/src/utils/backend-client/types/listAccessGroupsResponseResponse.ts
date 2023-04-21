@@ -5,9 +5,9 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { AccessGroup } from './accessGroup';
+import type { RequestAccessGroup } from './requestAccessGroup';
 
 export type ListAccessGroupsResponseResponse = {
-  groups: AccessGroup[];
+  groups: RequestAccessGroup[];
   next?: string;
 };

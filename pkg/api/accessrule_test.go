@@ -316,7 +316,7 @@ func TestAdminListAccessRules(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListCurrentAccessRules{Result: tc.rules}, tc.mockListErr)
+			db.MockQueryWithErr(&storage.ListAccessRules{Result: tc.rules}, tc.mockListErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)

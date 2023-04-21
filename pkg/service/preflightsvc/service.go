@@ -7,6 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -98,9 +99,115 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 	return &preflight, nil
 }
 
+// type Target struct {
+//     // this is a ksuid which can be used for API requests
+//     // when updating the cahced targets, the target.Key() method is used to generate a comparable key
+//     ID              string              `json:"id" dynamodbav:"id"`
+//     TargetGroupID   string              `json:"target_group_id" dynamodbav:"target_group_id"`
+//     TargetGroupFrom target.From         `json:"target_group_from" dynamodbav:"target_group_from"`
+//     AccessRules     map[string]struct{} `json:"access_rules" dynamodbav:"access_rules"`
+//     // These are idp group ids that can access this target based on the access rules
+//     Groups map[string]struct{} `json:"groups" dynamodbav:"groups"`
+
+//     Fields []Field `json:"fields" dynamodbav:"fields"`
+// }
+
 func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]requests.PreflightAccessGroup, error) {
-	// @TODO
-	return nil, nil
+	//goal of the group targets method is to get an unsorted list of targets and return the targets grouped into access groups
+	//the method of grouping is subject for change/options going forward
+
+	deduplicatedAccessGroups := map[string]requests.PreflightAccessGroup{}
+
+	//The current method of grouping is getting the access rule of least resistance for each target.
+
+	for _, target := range targets {
+
+		bestAccessRule := rule.AccessRule{}
+		for id, _ := range target.AccessRules {
+			ar := storage.GetAccessRule{ID: id}
+			_, err := s.DB.Query(ctx, &ar)
+			if err != nil {
+				return nil, err
+			}
+			bestAccessRule = CompareAccessRules(bestAccessRule, *ar.Result)
+
+		}
+		_, exists := deduplicatedAccessGroups[bestAccessRule.ID]
+		if exists {
+			ag := deduplicatedAccessGroups[bestAccessRule.ID]
+			ag.Targets = append(deduplicatedAccessGroups[bestAccessRule.ID].Targets, target)
+		} else {
+			//create new access group
+
+			newAccessGroup := requests.PreflightAccessGroup{
+				Id:      types.NewAccessGroupID(),
+				Status:  string(requests.PENDING),
+				Targets: []cache.Target{},
+				Time:    bestAccessRule.TimeConstraints,
+			}
+			newAccessGroup.Targets = append(newAccessGroup.Targets, target)
+
+			deduplicatedAccessGroups[bestAccessRule.ID] = newAccessGroup
+
+		}
+	}
+
+	res := []requests.PreflightAccessGroup{}
+	for _, accessGroup := range deduplicatedAccessGroups {
+		res = append(res, accessGroup)
+	}
+
+	return res, nil
+}
+
+// func CompareAccessRules(rule1 rule.AccessRule, rule2 rule.AccessRule) (rule.AccessRule, error) {
+// 	// if new rule doesnt require approval, override it
+// 	if rule1.Approval.IsRequired() && !rule2.Approval.IsRequired() {
+// 		rule1 = rule2
+// 	}
+
+// 	//if both rules dont require access, but new rule has longer duration. Override it
+// 	if !rule1.Approval.IsRequired() && !rule2.Approval.IsRequired() && rule2.TimeConstraints.MaxDurationSeconds > rule1.TimeConstraints.MaxDurationSeconds {
+// 		rule1 = rule2
+// 	}
+
+// 	//if both rules require approval, but new rule has longer duration. Override it.
+// 	if rule1.Approval.IsRequired() && rule2.Approval.IsRequired() && rule2.TimeConstraints.MaxDurationSeconds > rule1.TimeConstraints.MaxDurationSeconds {
+// 		rule1 = rule2
+
+// 	}
+// }
+
+func CompareAccessRules(ar1, ar2 rule.AccessRule) rule.AccessRule {
+
+	if ar1.ID == "" {
+		return ar2
+	}
+
+	if ar2.ID == "" {
+		return ar1
+	}
+
+	if ar1.Approval.IsRequired() && ar2.Approval.IsRequired() {
+		if ar1.TimeConstraints.MaxDurationSeconds > ar2.TimeConstraints.MaxDurationSeconds {
+			return ar1 // Return ar1 since it has a longer duration
+		} else {
+			return ar2 // Return ar2 since it has a longer duration
+		}
+	}
+
+	if !ar1.Approval.IsRequired() && ar2.Approval.IsRequired() {
+		return ar1 // Return ar1 since it doesn't require approval
+	} else if ar1.Approval.IsRequired() && !ar2.Approval.IsRequired() {
+		return ar2 // Return ar2 since it doesn't require approval
+	}
+
+	// At this point, both AccessRules don't require approval
+	if ar1.TimeConstraints.MaxDurationSeconds > ar2.TimeConstraints.MaxDurationSeconds {
+		return ar1 // Return ar1 since it has a longer duration
+	} else {
+		return ar2 // Return ar2 since it has a longer duration
+	}
 }
 
 // func (s *Service) getAccessRuleForTarget(ctx context.Context, accessRules []string) ([], error) {

@@ -7,10 +7,17 @@
  */
 import type { TargetGroupFrom } from './targetGroupFrom';
 import type { TargetField } from './targetField';
+import type { GrantStatus } from './grantStatus';
 
-export interface Target {
+/**
+ * A temporary assignment of a user to a principal.
+ */
+export interface RequestAccessGroupGrant {
   id: string;
+  requestId: string;
+  accessGroupId: string;
   targetGroupId: string;
   targetGroupFrom: TargetGroupFrom;
   fields: TargetField[];
+  status: GrantStatus;
 }

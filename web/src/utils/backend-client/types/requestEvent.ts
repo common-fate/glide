@@ -6,9 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 import type { RequestStatus } from './requestStatus';
-import type { RequestTiming } from './requestTiming';
-import type { RequestEventFromGrantStatus } from './requestEventFromGrantStatus';
-import type { RequestEventToGrantStatus } from './requestEventToGrantStatus';
+import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
+import type { GrantStatus } from './grantStatus';
 import type { RequestEventRecordedEvent } from './requestEventRecordedEvent';
 
 export interface RequestEvent {
@@ -18,12 +17,10 @@ export interface RequestEvent {
   actor?: string;
   fromStatus?: RequestStatus;
   toStatus?: RequestStatus;
-  fromTiming?: RequestTiming;
-  toTiming?: RequestTiming;
-  /** The current state of the grant. */
-  fromGrantStatus?: RequestEventFromGrantStatus;
-  /** The current state of the grant. */
-  toGrantStatus?: RequestEventToGrantStatus;
+  fromTiming?: RequestAccessGroupTiming;
+  toTiming?: RequestAccessGroupTiming;
+  fromGrantStatus?: GrantStatus;
+  toGrantStatus?: GrantStatus;
   grantCreated?: boolean;
   requestCreated?: boolean;
   grantFailureReason?: string;

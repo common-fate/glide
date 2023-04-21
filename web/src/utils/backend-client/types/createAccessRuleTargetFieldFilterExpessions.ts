@@ -6,6 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Resource {
-  id?: string;
-}
+export type CreateAccessRuleTargetFieldFilterExpessions = { [key: string]: any };
