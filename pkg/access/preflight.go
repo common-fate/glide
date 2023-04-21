@@ -24,18 +24,18 @@ type Preflight struct {
 }
 
 type PreflightAccessGroup struct {
-	Id      string         `json:"id"`
-	Status  string         `json:"status"`
-	Targets []cache.Target `json:"targets"`
-	Time    types.AccessRuleTimeConstraints
+	ID               string         `json:"id"`
+	RequiresApproval bool           `json:"requiresApproval"`
+	Targets          []cache.Target `json:"targets"`
+	Time             types.AccessRuleTimeConstraints
 }
 
 func (i *PreflightAccessGroup) ToAPI() types.PreflightAccessGroup {
 	out := types.PreflightAccessGroup{
-		Id:      i.Id,
-		Status:  i.Status,
-		Targets: []types.Target{},
-		Time:    i.Time,
+		Id:               i.ID,
+		RequiresApproval: i.RequiresApproval,
+		Targets:          []types.Target{},
+		Time:             i.Time,
 	}
 	for _, target := range i.Targets {
 		out.Targets = append(out.Targets, target.ToAPI())

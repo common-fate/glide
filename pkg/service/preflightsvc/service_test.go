@@ -97,7 +97,6 @@ func TestGroupTargets(t *testing.T) {
 			targets: []cache.Target{target1, target2},
 			AccessGroups: []access.PreflightAccessGroup{
 				{
-					Status: "", //string(access.PENDING),
 					Targets: []cache.Target{
 						target1,
 					},
@@ -106,7 +105,6 @@ func TestGroupTargets(t *testing.T) {
 					},
 				},
 				{
-					Status: "", //string(access.PENDING),
 					Targets: []cache.Target{
 						target2,
 					},
@@ -163,7 +161,7 @@ func TestGroupTargets(t *testing.T) {
 
 			//override ids
 			for i, _ := range tt.AccessGroups {
-				tt.AccessGroups[i].Id = got[i].Id
+				tt.AccessGroups[i].ID = got[i].ID
 			}
 
 			assert.Equal(t, tt.AccessGroups, got)

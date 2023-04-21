@@ -141,10 +141,10 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 			//create new access group
 
 			newAccessGroup := access.PreflightAccessGroup{
-				Id:      types.NewAccessGroupID(),
-				Status:  "", //string(access.PENDING),
-				Targets: []cache.Target{},
-				Time:    bestAccessRule.TimeConstraints,
+				ID:               types.NewAccessGroupID(),
+				RequiresApproval: bestAccessRule.Approval.IsRequired(),
+				Targets:          []cache.Target{},
+				Time:             bestAccessRule.TimeConstraints,
 			}
 			newAccessGroup.Targets = append(newAccessGroup.Targets, target)
 
