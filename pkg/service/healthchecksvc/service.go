@@ -95,7 +95,7 @@ func (s *Service) handlerRoutes(ctx context.Context) (map[string]handlerRouteMap
 }
 func NewDiagFailedToInitialiseRuntime(err error) handler.Diagnostic {
 	return handler.Diagnostic{
-		Level:   types.ERROR,
+		Level:   types.LogLevelERROR,
 		Message: errors.Wrap(err, "failed to initialise runtime for handler").Error(),
 	}
 }
@@ -118,7 +118,7 @@ func (s *Service) getRuntime(ctx context.Context, h handler.Handler) (handler.Ha
 
 func NewDiagFailedToDescribe(err error) handler.Diagnostic {
 	return handler.Diagnostic{
-		Level:   types.ERROR,
+		Level:   types.LogLevelERROR,
 		Message: errors.Wrap(err, "failed to describe handler").Error(),
 	}
 }
@@ -146,7 +146,7 @@ func describe(ctx context.Context, h handler.Handler, runtime Runtime) handler.H
 	schemaErr := providerschema.IsSupported(describeRes.Schema.Schema)
 	if schemaErr != nil {
 		h.Diagnostics = append(h.Diagnostics, handler.Diagnostic{
-			Level:   types.WARNING,
+			Level:   types.LogLevelWARNING,
 			Message: schemaErr.Error(),
 		})
 	}
@@ -157,13 +157,13 @@ func describe(ctx context.Context, h handler.Handler, runtime Runtime) handler.H
 }
 
 var NewDiagHandlerUnreachable target.Diagnostic = target.Diagnostic{
-	Level:   types.ERROR,
+	Level:   types.LogLevelERROR,
 	Message: "handler is unreachable and route validity cannot be checked",
 }
 
 func NewDiagKindSchemaNotExist(route target.Route) target.Diagnostic {
 	return target.Diagnostic{
-		Level:   types.ERROR,
+		Level:   types.LogLevelERROR,
 		Message: fmt.Sprintf("kind schema '%s' does not exist for the handler '%s'", route.Kind, route.Handler),
 	}
 }

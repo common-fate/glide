@@ -31,8 +31,8 @@ type GroupTarget struct {
 
 type Grant struct {
 	// The user email
-	Subject string            `json:"subject" dynamodbav:"subject"`
-	Status  types.GrantStatus `json:"status" dynamodbav:"status"`
+	Subject string                               `json:"subject" dynamodbav:"subject"`
+	Status  types.RequestAccessGroupTargetStatus `json:"status" dynamodbav:"status"`
 	//the time which the grant starts
 	Start time.Time `json:"start" dynamodbav:"start"`
 	//the time the grant is scheduled to end
@@ -67,7 +67,7 @@ func (g *GroupTarget) ToAPI() types.RequestAccessGroupTarget {
 		AccessGroupId:   g.GroupID,
 		Id:              g.ID,
 		RequestId:       g.RequestID,
-		Status:          types.GrantStatusPENDING,
+		Status:          types.RequestAccessGroupTargetStatusPENDINGPROVISIONING,
 		Fields:          []types.TargetField{},
 		TargetGroupFrom: g.TargetGroupFrom.ToAPI(),
 		TargetGroupId:   g.TargetGroupID,

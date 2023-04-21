@@ -26,7 +26,7 @@ func TestListGroups(t *testing.T) {
 		Name:   "a",
 		IdpID:  "a",
 		Users:  []string{"a"},
-		Status: types.ACTIVE,
+		Status: types.IdpStatusACTIVE,
 	}
 
 	testcases := []testcase{

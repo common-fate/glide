@@ -51,7 +51,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	// update the request status, based on the review decision
 	switch r.Decision {
 	case access.DecisionApproved:
-		access_group.Status = types.RequestStatusAPPROVED
+		access_group.Status = types.RequestAccessGroupStatusAPPROVED
 		access_group.OverrideTiming = opts.OverrideTiming
 
 		_, err := s.Workflow.Grant(ctx, access_group, opts.RequestingUser)
@@ -62,7 +62,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		// access_group.ApprovalMethod = &reviewed
 
 	case access.DecisionDECLINED:
-		access_group.Status = types.RequestStatusDECLINED
+		access_group.Status = types.RequestAccessGroupStatusDECLINED
 	}
 	access_group.UpdatedAt = s.Clock.Now()
 

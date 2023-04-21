@@ -26,7 +26,7 @@ func TestListGroupsForStatus(t *testing.T) {
 		Name:   "a",
 		IdpID:  "a",
 		Users:  []string{"a"},
-		Status: types.ACTIVE,
+		Status: types.IdpStatusACTIVE,
 	}
 
 	gARCHIVED := identity.Group{
@@ -34,7 +34,7 @@ func TestListGroupsForStatus(t *testing.T) {
 		Name:   "a",
 		IdpID:  "a",
 		Users:  []string{"a"},
-		Status: types.ARCHIVED,
+		Status: types.IdpStatusARCHIVED,
 	}
 
 	testcases := []testcase{
@@ -43,14 +43,14 @@ func TestListGroupsForStatus(t *testing.T) {
 			name:         "get active",
 			insertBefore: []identity.Group{gACTIVE, gARCHIVED},
 			want:         []identity.Group{gACTIVE},
-			status:       types.ACTIVE,
+			status:       types.IdpStatusACTIVE,
 			notWant:      []identity.Group{},
 		},
 		{
 			name:         "get archived",
 			insertBefore: []identity.Group{gACTIVE, gARCHIVED},
 			want:         []identity.Group{gARCHIVED},
-			status:       types.ARCHIVED,
+			status:       types.IdpStatusARCHIVED,
 			notWant:      []identity.Group{},
 		},
 	}

@@ -14,15 +14,15 @@ type AccessRule struct {
 }
 
 type Group struct {
-	ID              string              `json:"id" dynamodbav:"id"`
-	RequestID       string              `json:"requestId" dynamodbav:"request"`
-	AccessRule      AccessRule          `json:"accessRule" dynamodbav:"accessRule"`
-	Status          types.RequestStatus `json:"status" dynamodbav:"status"`
-	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
-	RequestedBy     string              `json:"requestedBy" dynamodbav:"requestedBy"`
-	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
+	ID              string                         `json:"id" dynamodbav:"id"`
+	RequestID       string                         `json:"requestId" dynamodbav:"request"`
+	AccessRule      AccessRule                     `json:"accessRule" dynamodbav:"accessRule"`
+	Status          types.RequestAccessGroupStatus `json:"status" dynamodbav:"status"`
+	TimeConstraints Timing                         `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	OverrideTiming  *Timing                        `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	RequestedBy     string                         `json:"requestedBy" dynamodbav:"requestedBy"`
+	CreatedAt       time.Time                      `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt       time.Time                      `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 	// groupReviewers are the users who are able to review this access group

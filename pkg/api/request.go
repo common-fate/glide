@@ -82,39 +82,6 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// List Entitlement Resources
-// (GET /api/v1/entitlements/resources)
-func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementResourcesParams) {
-	// ctx := r.Context()
-
-	// u := auth.UserFromContext(ctx)
-
-	// q := storage.ListEntitlementResources{
-	// 	Provider: access.TargetFrom{
-	// 		Publisher: params.Publisher,
-	// 		Name:      params.Name,
-	// 		Kind:      params.Kind,
-	// 		Version:   params.Version,
-	// 	},
-	// 	Argument:        params.ResourceType, // update name here
-	// 	UserAccessRules: u.AccessRules,
-	// }
-
-	// _, err := a.DB.Query(ctx, &q)
-
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
-
-	// res := types.ListResourcesResponse{}
-
-	// for _, e := range q.Result {
-	// 	res.Resources = append(res.Resources, e.ToAPI())
-	// }
-	// apio.JSON(ctx, w, res, http.StatusOK)
-}
-
 // (POST /api/v1/preflight)
 func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

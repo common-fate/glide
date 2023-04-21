@@ -24,7 +24,7 @@ func (a *API) AdminListUsers(w http.ResponseWriter, r *http.Request, params type
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	q := storage.ListUsersForStatus{Status: types.ACTIVE}
+	q := storage.ListUsersForStatus{Status: types.IdpStatusACTIVE}
 
 	qr, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil {

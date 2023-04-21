@@ -156,7 +156,7 @@ func TestDescribe(t *testing.T) {
 			handler:          test1Handler,
 			describeResponse: &unhealthyDescribe,
 			want: test1Handler.SetHealth(false).AddDiagnostic(handler.Diagnostic{
-				Level:   types.ERROR,
+				Level:   types.LogLevelERROR,
 				Message: "hello",
 			}).SetProviderDescription(&unhealthyDescribe),
 		},
@@ -165,7 +165,7 @@ func TestDescribe(t *testing.T) {
 			handler:          test1Handler,
 			describeResponse: &incompatibleSchemaDescribe,
 			want: test1Handler.SetHealth(true).AddDiagnostic(handler.Diagnostic{
-				Level:   types.WARNING,
+				Level:   types.LogLevelWARNING,
 				Message: schemaError.Error(),
 			}).SetProviderDescription(&incompatibleSchemaDescribe),
 		},

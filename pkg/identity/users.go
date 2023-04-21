@@ -26,7 +26,7 @@ func (u IDPUser) ToInternalUser() User {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Email:     u.Email,
-		Status:    types.ACTIVE,
+		Status:    types.IdpStatusACTIVE,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}

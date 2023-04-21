@@ -30,40 +30,49 @@ const (
 	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
 )
 
-// Defines values for ApprovalMethod.
-const (
-	AUTOMATIC ApprovalMethod = "AUTOMATIC"
-	REVIEWED  ApprovalMethod = "REVIEWED"
-)
-
-// Defines values for GrantStatus.
-const (
-	GrantStatusACTIVE  GrantStatus = "ACTIVE"
-	GrantStatusERROR   GrantStatus = "ERROR"
-	GrantStatusEXPIRED GrantStatus = "EXPIRED"
-	GrantStatusPENDING GrantStatus = "PENDING"
-	GrantStatusREVOKED GrantStatus = "REVOKED"
-)
-
 // Defines values for IdpStatus.
 const (
-	ACTIVE   IdpStatus = "ACTIVE"
-	ARCHIVED IdpStatus = "ARCHIVED"
+	IdpStatusACTIVE   IdpStatus = "ACTIVE"
+	IdpStatusARCHIVED IdpStatus = "ARCHIVED"
 )
 
 // Defines values for LogLevel.
 const (
-	ERROR   LogLevel = "ERROR"
-	INFO    LogLevel = "INFO"
-	WARNING LogLevel = "WARNING"
+	LogLevelERROR   LogLevel = "ERROR"
+	LogLevelINFO    LogLevel = "INFO"
+	LogLevelWARNING LogLevel = "WARNING"
+)
+
+// Defines values for RequestAccessGroupApprovalMethod.
+const (
+	AUTOMATIC RequestAccessGroupApprovalMethod = "AUTOMATIC"
+	REVIEWED  RequestAccessGroupApprovalMethod = "REVIEWED"
+)
+
+// Defines values for RequestAccessGroupStatus.
+const (
+	RequestAccessGroupStatusAPPROVED        RequestAccessGroupStatus = "APPROVED"
+	RequestAccessGroupStatusDECLINED        RequestAccessGroupStatus = "DECLINED"
+	RequestAccessGroupStatusPENDINGAPPROVAL RequestAccessGroupStatus = "PENDING_APPROVAL"
+)
+
+// Defines values for RequestAccessGroupTargetStatus.
+const (
+	RequestAccessGroupTargetStatusACTIVE              RequestAccessGroupTargetStatus = "ACTIVE"
+	RequestAccessGroupTargetStatusAWAITINGSTART       RequestAccessGroupTargetStatus = "AWAITING_START"
+	RequestAccessGroupTargetStatusERROR               RequestAccessGroupTargetStatus = "ERROR"
+	RequestAccessGroupTargetStatusEXPIRED             RequestAccessGroupTargetStatus = "EXPIRED"
+	RequestAccessGroupTargetStatusPENDINGPROVISIONING RequestAccessGroupTargetStatus = "PENDING_PROVISIONING"
+	RequestAccessGroupTargetStatusREVOKED             RequestAccessGroupTargetStatus = "REVOKED"
 )
 
 // Defines values for RequestStatus.
 const (
-	RequestStatusAPPROVED  RequestStatus = "APPROVED"
-	RequestStatusCANCELLED RequestStatus = "CANCELLED"
-	RequestStatusDECLINED  RequestStatus = "DECLINED"
-	RequestStatusPENDING   RequestStatus = "PENDING"
+	ACTIVE    RequestStatus = "ACTIVE"
+	CANCELLED RequestStatus = "CANCELLED"
+	COMPLETE  RequestStatus = "COMPLETE"
+	PENDING   RequestStatus = "PENDING"
+	REVOKED   RequestStatus = "REVOKED"
 )
 
 // Defines values for ReviewDecision.
@@ -71,14 +80,6 @@ const (
 	ReviewDecisionAPPROVED ReviewDecision = "APPROVED"
 	ReviewDecisionDECLINED ReviewDecision = "DECLINED"
 )
-
-// Instructions on how to access the requested resource.
-//
-// The `instructions` field will be null if no instructions are available.
-type AccessInstructions struct {
-	// Instructions on how to access the role or resource.
-	Instructions *string `json:"instructions,omitempty"`
-}
 
 // AccessRule contains detailed information about a rule and is used in administrative apis.
 type AccessRule struct {
@@ -132,8 +133,11 @@ type AccessRuleTimeConstraints struct {
 	MaxDurationSeconds int `json:"maxDurationSeconds"`
 }
 
-// Describes whether a request has been approved automatically or from a review
-type ApprovalMethod string
+// CreateAccessRequestGroupOptions defines model for CreateAccessRequestGroupOptions.
+type CreateAccessRequestGroupOptions struct {
+	Id     string                   `json:"id"`
+	Timing RequestAccessGroupTiming `json:"timing"`
+}
 
 // a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
@@ -147,9 +151,6 @@ type Diagnostic struct {
 	Level   LogLevel `json:"level"`
 	Message string   `json:"message"`
 }
-
-// The status of an Access Request.
-type GrantStatus string
 
 // Group defines model for Group.
 type Group struct {
@@ -191,21 +192,32 @@ type Request struct {
 	Purpose      RequestPurpose       `json:"purpose"`
 	RequestedAt  time.Time            `json:"requestedAt"`
 	RequestedBy  string               `json:"requestedBy"`
+
+	// The status of an Access Request.
+	Status RequestStatus `json:"status"`
 }
 
 // RequestAccessGroup defines model for RequestAccessGroup.
 type RequestAccessGroup struct {
-	CreatedAt      time.Time                `json:"createdAt"`
-	Id             string                   `json:"id"`
-	OverrideTiming RequestAccessGroupTiming `json:"overrideTiming"`
-	RequestId      string                   `json:"requestId"`
+	// Describes whether a request has been approved automatically or from a review
+	ApprovalMethod *RequestAccessGroupApprovalMethod `json:"approvalMethod,omitempty"`
+	CreatedAt      time.Time                         `json:"createdAt"`
+	Id             string                            `json:"id"`
+	OverrideTiming RequestAccessGroupTiming          `json:"overrideTiming"`
+	RequestId      string                            `json:"requestId"`
 
 	// The status of an Access Request.
-	Status    RequestStatus              `json:"status"`
+	Status    RequestAccessGroupStatus   `json:"status"`
 	Targets   []RequestAccessGroupTarget `json:"targets"`
 	Time      RequestAccessGroupTiming   `json:"time"`
 	UpdatedAt time.Time                  `json:"updatedAt"`
 }
+
+// Describes whether a request has been approved automatically or from a review
+type RequestAccessGroupApprovalMethod string
+
+// The status of an Access Request.
+type RequestAccessGroupStatus string
 
 // A temporary assignment of a user to a principal.
 type RequestAccessGroupTarget struct {
@@ -214,13 +226,24 @@ type RequestAccessGroupTarget struct {
 	Id            string        `json:"id"`
 	RequestId     string        `json:"requestId"`
 
-	// The status of an Access Request.
-	Status GrantStatus `json:"status"`
+	// The status of a grant.
+	Status RequestAccessGroupTargetStatus `json:"status"`
 
 	// Specifies a particular Access Provider to create a Target Group schema from.
 	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
 	TargetGroupId   string          `json:"targetGroupId"`
 }
+
+// Instructions on how to access the requested resource.
+//
+// The `instructions` field will be null if no instructions are available.
+type RequestAccessGroupTargetAccessInstructions struct {
+	// Instructions on how to access the role or resource.
+	Instructions *string `json:"instructions,omitempty"`
+}
+
+// The status of a grant.
+type RequestAccessGroupTargetStatus string
 
 // RequestAccessGroupTiming defines model for RequestAccessGroupTiming.
 type RequestAccessGroupTiming struct {
@@ -235,8 +258,8 @@ type RequestEvent struct {
 	Actor     *string   `json:"actor,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 
-	// The status of an Access Request.
-	FromGrantStatus *GrantStatus `json:"fromGrantStatus,omitempty"`
+	// The status of a grant.
+	FromGrantStatus *RequestAccessGroupTargetStatus `json:"fromGrantStatus,omitempty"`
 
 	// The status of an Access Request.
 	FromStatus         *RequestStatus            `json:"fromStatus,omitempty"`
@@ -250,8 +273,8 @@ type RequestEvent struct {
 	RequestCreated *bool              `json:"requestCreated,omitempty"`
 	RequestId      string             `json:"requestId"`
 
-	// The status of an Access Request.
-	ToGrantStatus *GrantStatus `json:"toGrantStatus,omitempty"`
+	// The status of a grant.
+	ToGrantStatus *RequestAccessGroupTargetStatus `json:"toGrantStatus,omitempty"`
 
 	// The status of an Access Request.
 	ToStatus *RequestStatus            `json:"toStatus,omitempty"`
@@ -265,11 +288,6 @@ type RequestPurpose struct {
 
 // The status of an Access Request.
 type RequestStatus string
-
-// Resource defines model for Resource.
-type Resource struct {
-	Id *string `json:"id,omitempty"`
-}
 
 // A decision made on an Access Request.
 type ReviewDecision string
@@ -426,12 +444,6 @@ type ListRequestsResponse struct {
 	Requests []Request `json:"requests"`
 }
 
-// ListResourcesResponse defines model for ListResourcesResponse.
-type ListResourcesResponse struct {
-	Next      *string    `json:"next,omitempty"`
-	Resources []Resource `json:"resources"`
-}
-
 // ListTargetGroupResponse defines model for ListTargetGroupResponse.
 type ListTargetGroupResponse struct {
 	Next         *string       `json:"next,omitempty"`
@@ -462,6 +474,13 @@ type ReviewResponse struct {
 	Request *Request `json:"request,omitempty"`
 }
 
+// CreateAccessRequestRequest defines model for CreateAccessRequestRequest.
+type CreateAccessRequestRequest struct {
+	GroupOptions []CreateAccessRequestGroupOptions `json:"groupOptions"`
+	PreflightId  string                            `json:"preflightId"`
+	Reason       *string                           `json:"reason,omitempty"`
+}
+
 // CreateAccessRuleRequest defines model for CreateAccessRuleRequest.
 type CreateAccessRuleRequest struct {
 	// Approver config for access rules
@@ -487,11 +506,6 @@ type CreateGroupRequest struct {
 // CreatePreflightRequest defines model for CreatePreflightRequest.
 type CreatePreflightRequest struct {
 	Targets []string `json:"targets"`
-}
-
-// CreateRequestPreflight defines model for CreateRequestPreflight.
-type CreateRequestPreflight struct {
-	PreflightId string `json:"preflightId"`
 }
 
 // CreateTargetGroupLink defines model for CreateTargetGroupLink.
@@ -586,24 +600,6 @@ type AdminUpdateUserJSONBody struct {
 	Groups []string `json:"groups"`
 }
 
-// UserListEntitlementResourcesParams defines parameters for UserListEntitlementResources.
-type UserListEntitlementResourcesParams struct {
-	// The kind of the entitlement
-	Kind string `form:"kind" json:"kind"`
-
-	// The publisher of the provider
-	Publisher string `form:"publisher" json:"publisher"`
-
-	// The name of provider
-	Name string `form:"name" json:"name"`
-
-	// The version of the provider
-	Version string `form:"version" json:"version"`
-
-	// The type of resource to list
-	ResourceType string `form:"resourceType" json:"resourceType"`
-}
-
 // UserListEntitlementTargetsParams defines parameters for UserListEntitlementTargets.
 type UserListEntitlementTargetsParams struct {
 	// query
@@ -668,7 +664,7 @@ type AdminUpdateUserJSONRequestBody AdminUpdateUserJSONBody
 type UserRequestPreflightJSONRequestBody CreatePreflightRequest
 
 // UserPostRequestsJSONRequestBody defines body for UserPostRequests for application/json ContentType.
-type UserPostRequestsJSONRequestBody CreateRequestPreflight
+type UserPostRequestsJSONRequestBody CreateAccessRequestRequest
 
 // UserReviewRequestJSONRequestBody defines body for UserReviewRequest for application/json ContentType.
 type UserReviewRequestJSONRequestBody ReviewRequest
@@ -906,9 +902,6 @@ type ClientInterface interface {
 
 	// UserListEntitlements request
 	UserListEntitlements(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserListEntitlementResources request
-	UserListEntitlementResources(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserListEntitlementTargets request
 	UserListEntitlementTargets(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1420,18 +1413,6 @@ func (c *Client) AdminUpdateUser(ctx context.Context, userId string, body AdminU
 
 func (c *Client) UserListEntitlements(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserListEntitlementsRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserListEntitlementResources(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListEntitlementResourcesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -2839,97 +2820,6 @@ func NewUserListEntitlementsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewUserListEntitlementResourcesRequest generates requests for UserListEntitlementResources
-func NewUserListEntitlementResourcesRequest(server string, params *UserListEntitlementResourcesParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/entitlements/resources")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, params.Kind); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "publisher", runtime.ParamLocationQuery, params.Publisher); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, params.Name); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "version", runtime.ParamLocationQuery, params.Version); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resourceType", runtime.ParamLocationQuery, params.ResourceType); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewUserListEntitlementTargetsRequest generates requests for UserListEntitlementTargets
 func NewUserListEntitlementTargetsRequest(server string, params *UserListEntitlementTargetsParams) (*http.Request, error) {
 	var err error
@@ -3706,9 +3596,6 @@ type ClientWithResponsesInterface interface {
 
 	// UserListEntitlements request
 	UserListEntitlementsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListEntitlementsResponse, error)
-
-	// UserListEntitlementResources request
-	UserListEntitlementResourcesWithResponse(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*UserListEntitlementResourcesResponse, error)
 
 	// UserListEntitlementTargets request
 	UserListEntitlementTargetsWithResponse(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*UserListEntitlementTargetsResponse, error)
@@ -4639,40 +4526,6 @@ func (r UserListEntitlementsResponse) StatusCode() int {
 	return 0
 }
 
-type UserListEntitlementResourcesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Next      *string    `json:"next,omitempty"`
-		Resources []Resource `json:"resources"`
-	}
-	JSON400 *struct {
-		Error string `json:"error"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListEntitlementResourcesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListEntitlementResourcesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type UserListEntitlementTargetsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4834,6 +4687,7 @@ func (r UserListRequestsResponse) StatusCode() int {
 type UserPostRequestsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *Request
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -5438,15 +5292,6 @@ func (c *ClientWithResponses) UserListEntitlementsWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseUserListEntitlementsResponse(rsp)
-}
-
-// UserListEntitlementResourcesWithResponse request returning *UserListEntitlementResourcesResponse
-func (c *ClientWithResponses) UserListEntitlementResourcesWithResponse(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*UserListEntitlementResourcesResponse, error) {
-	rsp, err := c.UserListEntitlementResources(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListEntitlementResourcesResponse(rsp)
 }
 
 // UserListEntitlementTargetsWithResponse request returning *UserListEntitlementTargetsResponse
@@ -6959,62 +6804,6 @@ func ParseUserListEntitlementsResponse(rsp *http.Response) (*UserListEntitlement
 	return response, nil
 }
 
-// ParseUserListEntitlementResourcesResponse parses an HTTP response from a UserListEntitlementResourcesWithResponse call
-func ParseUserListEntitlementResourcesResponse(rsp *http.Response) (*UserListEntitlementResourcesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListEntitlementResourcesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Next      *string    `json:"next,omitempty"`
-			Resources []Resource `json:"resources"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseUserListEntitlementTargetsResponse parses an HTTP response from a UserListEntitlementTargetsWithResponse call
 func ParseUserListEntitlementTargetsResponse(rsp *http.Response) (*UserListEntitlementTargetsResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -7285,6 +7074,13 @@ func ParseUserPostRequestsResponse(rsp *http.Response) (*UserPostRequestsRespons
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Request
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
 			Error string `json:"error"`
@@ -7724,9 +7520,6 @@ type ServerInterface interface {
 	// List Entitlements
 	// (GET /api/v1/entitlements)
 	UserListEntitlements(w http.ResponseWriter, r *http.Request)
-	// List Entitlement Resources
-	// (GET /api/v1/entitlements/resources)
-	UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params UserListEntitlementResourcesParams)
 	// List Entitlement Resources
 	// (GET /api/v1/entitlements/targets)
 	UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params UserListEntitlementTargetsParams)
@@ -8515,96 +8308,6 @@ func (siw *ServerInterfaceWrapper) UserListEntitlements(w http.ResponseWriter, r
 	handler(w, r.WithContext(ctx))
 }
 
-// UserListEntitlementResources operation middleware
-func (siw *ServerInterfaceWrapper) UserListEntitlementResources(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UserListEntitlementResourcesParams
-
-	// ------------- Required query parameter "kind" -------------
-	if paramValue := r.URL.Query().Get("kind"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "kind", r.URL.Query(), &params.Kind)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "publisher" -------------
-	if paramValue := r.URL.Query().Get("publisher"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "publisher"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "publisher", r.URL.Query(), &params.Publisher)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "publisher", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "name" -------------
-	if paramValue := r.URL.Query().Get("name"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "name"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "name", r.URL.Query(), &params.Name)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "version" -------------
-	if paramValue := r.URL.Query().Get("version"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "version"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "version", r.URL.Query(), &params.Version)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "version", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "resourceType" -------------
-	if paramValue := r.URL.Query().Get("resourceType"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "resourceType"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "resourceType", r.URL.Query(), &params.ResourceType)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resourceType", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListEntitlementResources(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
 // UserListEntitlementTargets operation middleware
 func (siw *ServerInterfaceWrapper) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -9226,9 +8929,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/entitlements", wrapper.UserListEntitlements)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/entitlements/resources", wrapper.UserListEntitlementResources)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/entitlements/targets", wrapper.UserListEntitlementTargets)
 	})
 	r.Group(func(r chi.Router) {
@@ -9280,122 +8980,122 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"//+kU8x/Uq4AAA==",
+	"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",
+	"yN8x8fDp4b8DAAD//+OrK23YrAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

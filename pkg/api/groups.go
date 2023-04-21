@@ -27,7 +27,7 @@ func (a *API) AdminListGroups(w http.ResponseWriter, r *http.Request, params typ
 
 	if params.Source == nil {
 		q := storage.ListGroupsForStatus{
-			Status: types.ACTIVE,
+			Status: types.IdpStatusACTIVE,
 		}
 		qr, err := a.DB.Query(ctx, &q, queryOpts...)
 		if err != nil {
@@ -43,7 +43,7 @@ func (a *API) AdminListGroups(w http.ResponseWriter, r *http.Request, params typ
 		}
 		q := storage.ListGroupsForSourceAndStatus{
 			Source: source,
-			Status: types.ACTIVE,
+			Status: types.IdpStatusACTIVE,
 		}
 		qr, err := a.DB.Query(ctx, &q, queryOpts...)
 		if err != nil {

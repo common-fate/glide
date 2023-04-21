@@ -14,17 +14,17 @@ type RequestEvent struct {
 	RequestID string    `json:"requestId" dynamodbav:"requestId"`
 	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
 	// Actor is the ID of the user who has made the request or nil if it was automated
-	Actor              *string              `json:"actor,omitempty" dynamodbav:"actor,omitempty"`
-	FromStatus         *types.RequestStatus `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
-	ToStatus           *types.RequestStatus `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
-	FromTiming         *Timing              `json:"fromTiming,omitempty" dynamodbav:"fromTiming,omitempty"`
-	ToTiming           *Timing              `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
-	FromGrantStatus    *types.GrantStatus   `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
-	ToGrantStatus      *types.GrantStatus   `json:"toGrantStatus,omitempty" dynamodbav:"toGrantStatus,omitempty"`
-	GrantCreated       *bool                `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
-	GrantFailureReason *string              `json:"grantFailureReason,omitempty" dynamodbav:"grantFailureReason,omitempty"`
-	RequestCreated     *bool                `json:"requestCreated,omitempty" dynamodbav:"requestCreated,omitempty"`
-	RecordedEvent      *map[string]string   `json:"recordedEvent,omitempty" dynamodbav:"recordedEvent,omitempty"`
+	Actor              *string                               `json:"actor,omitempty" dynamodbav:"actor,omitempty"`
+	FromStatus         *types.RequestStatus                  `json:"fromStatus,omitempty" dynamodbav:"fromStatus,omitempty"`
+	ToStatus           *types.RequestStatus                  `json:"toStatus,omitempty" dynamodbav:"toStatus,omitempty"`
+	FromTiming         *Timing                               `json:"fromTiming,omitempty" dynamodbav:"fromTiming,omitempty"`
+	ToTiming           *Timing                               `json:"toTiming,omitempty" dynamodbav:"toTiming,omitempty"`
+	FromGrantStatus    *types.RequestAccessGroupTargetStatus `json:"fromGrantStatus,omitempty" dynamodbav:"fromGrantStatus,omitempty"`
+	ToGrantStatus      *types.RequestAccessGroupTargetStatus `json:"toGrantStatus,omitempty" dynamodbav:"toGrantStatus,omitempty"`
+	GrantCreated       *bool                                 `json:"grantCreated,omitempty" dynamodbav:"grantCreated,omitempty"`
+	GrantFailureReason *string                               `json:"grantFailureReason,omitempty" dynamodbav:"grantFailureReason,omitempty"`
+	RequestCreated     *bool                                 `json:"requestCreated,omitempty" dynamodbav:"requestCreated,omitempty"`
+	RecordedEvent      *map[string]string                    `json:"recordedEvent,omitempty" dynamodbav:"recordedEvent,omitempty"`
 }
 
 func NewRequestCreatedEvent(requestID string, createdAt time.Time, actor *string) RequestEvent {
@@ -32,11 +32,11 @@ func NewRequestCreatedEvent(requestID string, createdAt time.Time, actor *string
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, RequestCreated: &t}
 }
 
-func NewGrantFailedEvent(requestID string, createdAt time.Time, from, to types.GrantStatus, reason string) RequestEvent {
+func NewGrantFailedEvent(requestID string, createdAt time.Time, from, to types.RequestAccessGroupTargetStatus, reason string) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, RequestID: requestID, FromGrantStatus: &from, ToGrantStatus: &to, GrantFailureReason: &reason}
 }
 
-func NewGrantStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.GrantStatus) RequestEvent {
+func NewGrantStatusChangeEvent(requestID string, createdAt time.Time, actor *string, from, to types.RequestAccessGroupTargetStatus) RequestEvent {
 	return RequestEvent{ID: types.NewHistoryID(), CreatedAt: createdAt, Actor: actor, RequestID: requestID, FromGrantStatus: &from, ToGrantStatus: &to}
 }
 
