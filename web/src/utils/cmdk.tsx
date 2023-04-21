@@ -316,7 +316,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
         inputId,
         labelId,
       }),
-      []
+      [props.checked]
     );
 
     function score(value: string) {
@@ -473,23 +473,36 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
     }
 
     // checkbox handle (add or remove selected from checked array)
-    function updateSelectedToCheckbox() {
-      if (props.checked && props.setChecked) {
-        const selected = getSelectedItem();
-        const value = selected?.getAttribute(VALUE_ATTR);
-        const checked = props.checked;
+    // function updateSelectedToCheckbox() {
+    //   if (props.checked && props.setChecked) {
+    //     const selected = getSelectedItem();
+    //     const value = selected?.getAttribute(VALUE_ATTR);
+    //     const checked = props.checked;
 
-        if (checked.includes(value)) {
-          //   props.setChecked(["1, 2, 3"]);
-          //   props.setChecked(checked.filter((item) => item !== value));
-          props.setChecked((prev) => prev.filter((item) => item !== value));
-        } else {
-          //   props.setChecked(["1, 2, 3", "4"]);
-          //   props.setChecked([...checked, value]);
-          props.setChecked((prev) => [...prev, value]);
-        }
-      }
-    }
+    //     // add checked
+    //     // if (store.checked.includes(value)) {
+    //     //   console.log("called updateSelectedToCheckbox: found and removing");
+    //     //   let curr = store.checked;
+    //     //   curr = curr.filter((item) => item !== value);
+    //     //   store.setChecked(curr);
+    //     // } else {
+    //     //   console.log("called updateSelectedToCheckbox: not found, appending");
+    //     //   store.setChecked((curr) => [...curr, value]);
+    //     // }
+
+    //     // props.setChecked([]);
+
+    //     // if (checked.includes(value)) {
+    //     //   //   props.setChecked(["1, 2, 3"]);
+    //     //   //   props.setChecked(checked.filter((item) => item !== value));
+    //     //   props.setChecked((prev) => prev.filter((item) => item !== value));
+    //     // } else {
+    //     //   //   props.setChecked(["1, 2, 3", "4"]);
+    //     //   //   props.setChecked([...checked, value]);
+    //     //   props.setChecked((prev) => [...prev, value]);
+    //     // }
+    //   }
+    // }
 
     function updateSelectedByChange(change: 1 | -1) {
       const selected = getSelectedItem();
@@ -617,11 +630,36 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
                 const item = getSelectedItem();
 
                 // TODO: add to checked array
-                updateSelectedToCheckbox();
+                // updateSelectedToCheckbox();
 
                 if (item) {
                   const event = new Event(SELECT_EVENT);
                   item.dispatchEvent(event);
+
+                  // console.log(store.checked);
+                  // console.log(store);
+
+                  // add checkbox state handling, add/remove
+                  if (props.checked && props.setChecked) {
+                    const selected = getSelectedItem();
+                    const value = selected?.getAttribute(VALUE_ATTR);
+                    const checked = props.checked;
+
+                    // add checked
+                    if (checked.includes(value)) {
+                      console.log(
+                        "called updateSelectedToCheckbox: found and removing"
+                      );
+                      let curr = checked;
+                      curr = curr.filter((item) => item !== value);
+                      props.setChecked(curr);
+                    } else {
+                      console.log(
+                        "called updateSelectedToCheckbox: not found, appending"
+                      );
+                      props.setChecked((curr) => [...curr, value]);
+                    }
+                  }
                 }
               }
               // space
@@ -641,7 +679,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
         >
           {label}
         </label>
-        {/* {JSON.stringify(props.checked)} */}
+        {JSON.stringify(props.checked)}
         <StoreContext.Provider value={store}>
           <CommandContext.Provider value={context}>
             {children}
@@ -692,15 +730,37 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>(
     React.useEffect(() => {
       const element = ref.current;
       if (!element || props.disabled) return;
-      element.addEventListener(SELECT_EVENT, onSelect);
-      return () => element.removeEventListener(SELECT_EVENT, onSelect);
+      element.addEventListener(SELECT_EVENT, onSelectEvent);
+      return () => element.removeEventListener(SELECT_EVENT, onSelectEvent);
     }, [render, props.onSelect, props.disabled]);
 
-    function onSelect() {
+    /**
+     * Note: the issue here seems to be that the stateful values,
+     * are not being updated when the function is called via the event listener.
+     */
+    function onSelectEvent() {
       select();
       propsRef.current.onSelect?.(value.current);
     }
 
+    function onSelectFromClick() {
+      select();
+      propsRef.current.onSelect?.(value.current);
+
+      // add checkbox state handling, add/remove
+      if (store.checked && store.setChecked) {
+        // add checked
+        if (store.checked.includes(value.current)) {
+          let curr = store.checked;
+          curr = curr.filter((item) => item !== value.current);
+          store.setChecked(curr);
+        } else {
+          store.setChecked((curr) => [...curr, value.current]);
+        }
+      }
+    }
+
+    // applied on hover/keyboard navigation
     function select() {
       store.setState("value", value.current, true);
     }
@@ -723,7 +783,7 @@ const Item = React.forwardRef<HTMLDivElement, ItemProps>(
         data-checkbox={checked || undefined}
         aria-checked={checked || undefined}
         onPointerMove={disabled ? undefined : select}
-        onClick={disabled ? undefined : onSelect}
+        onClick={disabled ? undefined : onSelectFromClick}
       >
         {props.children}
       </div>

@@ -214,18 +214,6 @@ const search = () => {
                           pos="relative"
                           key={key}
                           value={key}
-                          onClick={() => {
-                            console.log("click");
-                            if (checked.includes(key)) {
-                              setChecked(
-                                checked.filter(
-                                  (checkedKey) => checkedKey !== key
-                                )
-                              );
-                            } else {
-                              setChecked([...checked, key]);
-                            }
-                          }}
                           as={CommandNew.Item}
                         >
                           <ProviderIcon
