@@ -6,7 +6,7 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/cache"
-	"github.com/common-fate/common-fate/pkg/requests"
+
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -16,41 +16,47 @@ import (
 // List Requests
 // (GET /api/v1/requests)
 func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params types.UserListRequestsParams) {
-	// ctx := r.Context()
-	// u := auth.UserFromContext(ctx)
-	// q := storage.ListRe{UserId: u.ID}
+	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
+	q := storage.ListRequestWithGroupsWithTargetsForUser{UserID: u.ID}
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
+	}
 
-	// _, err := a.DB.Query(ctx, &q)
+	qo, err := a.DB.Query(ctx, &q, opts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
+	}
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
 
-	// res := types.ListRequests2Response{}
+	for _, request := range q.Result {
+		res.Requests = append(res.Requests, request.ToAPI())
+	}
 
-	// for _, g := range q.Result {
-	// 	res.Requests = append(res.Requests, g.ToAPI())
-	// }
-
-	// apio.JSON(ctx, w, res, http.StatusOK)
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // Get Request
 // (GET /api/v1/requests/{requestId})
 func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string) {
-	// ctx := r.Context()
-	// u := auth.UserFromContext(ctx)
-	// q := storage.GetRequestV2{UserId: u.ID, ID: requestId}
+	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
+	q := storage.GetRequestWithGroupsWithTargetsForUser{UserID: u.ID, RequestID: requestId}
+	_, err := a.DB.Query(ctx, &q)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// _, err := a.DB.Query(ctx, &q)
-
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
-
-	// apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
+	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
 }
 
 // List Entitlements
@@ -79,34 +85,34 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 // List Entitlement Resources
 // (GET /api/v1/entitlements/resources)
 func (a *API) UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementResourcesParams) {
-	ctx := r.Context()
+	// ctx := r.Context()
 
-	u := auth.UserFromContext(ctx)
+	// u := auth.UserFromContext(ctx)
 
-	q := storage.ListEntitlementResources{
-		Provider: requests.TargetFrom{
-			Publisher: params.Publisher,
-			Name:      params.Name,
-			Kind:      params.Kind,
-			Version:   params.Version,
-		},
-		Argument:        params.ResourceType, // update name here
-		UserAccessRules: u.AccessRules,
-	}
+	// q := storage.ListEntitlementResources{
+	// 	Provider: access.TargetFrom{
+	// 		Publisher: params.Publisher,
+	// 		Name:      params.Name,
+	// 		Kind:      params.Kind,
+	// 		Version:   params.Version,
+	// 	},
+	// 	Argument:        params.ResourceType, // update name here
+	// 	UserAccessRules: u.AccessRules,
+	// }
 
-	_, err := a.DB.Query(ctx, &q)
+	// _, err := a.DB.Query(ctx, &q)
 
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
+	// if err != nil {
+	// 	apio.Error(ctx, w, err)
+	// 	return
+	// }
 
-	res := types.ListResourcesResponse{}
+	// res := types.ListResourcesResponse{}
 
-	for _, e := range q.Result {
-		res.Resources = append(res.Resources, e.ToAPI())
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
+	// for _, e := range q.Result {
+	// 	res.Resources = append(res.Resources, e.ToAPI())
+	// }
+	// apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // (POST /api/v1/preflight)
@@ -284,5 +290,30 @@ func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, p
 // Your GET endpoint
 // (GET /api/v1/requests/upcoming)
 func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
+	ctx := r.Context()
+	q := storage.ListRequestWithGroupsWithTargets{}
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
+	}
+
+	qo, err := a.DB.Query(ctx, &q, opts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
+	}
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
+
+	for _, request := range q.Result {
+		res.Requests = append(res.Requests, request.ToAPI())
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 
 }

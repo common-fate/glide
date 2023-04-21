@@ -3,15 +3,14 @@ package access
 import (
 	"testing"
 
-	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/ddb"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReviewerDDBKeys(t *testing.T) {
 	r := Reviewer{
-		ReviewerID:  "1",
-		AccessGroup: requests.AccessGroup{},
+		ReviewerID: "1",
+		// AccessGroup: Group{},
 	}
 
 	want := ddb.Keys{

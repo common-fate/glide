@@ -23,7 +23,7 @@ package api
 // 			give: `{"decision": "APPROVED"}`,
 // 			addReviewResult: &accesssvc.AddReviewResult{
 // 				// fill the struct a little bit to verify it is included in the HTTP response
-// 				AccessGroup: requests.AccessGroup{
+// 				AccessGroup: access.AccessGroup{
 // 					ID: "test",
 // 				},
 // 			},
@@ -36,7 +36,7 @@ package api
 // 			give: `{"decision": "APPROVED","overrideTiming":{"durationSeconds":3600,"startTime":"2020-01-01T16:20:10Z"}}`,
 // 			addReviewResult: &accesssvc.AddReviewResult{
 // 				// fill the struct a little bit to verify it is included in the HTTP responses
-// 				AccessGroup: requests.AccessGroup{
+// 				AccessGroup: access.AccessGroup{
 // 					ID: "test",
 // 					OverrideTiming: &requests.Timing{
 // 						Duration:  time.Second * 3600,

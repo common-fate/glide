@@ -5,9 +5,9 @@ import (
 
 	"github.com/common-fate/ddb"
 
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/config"
 	"github.com/common-fate/common-fate/pkg/service/requestroutersvc"
-	"github.com/common-fate/common-fate/pkg/types"
 )
 
 type Granter struct {
@@ -26,12 +26,12 @@ const (
 )
 
 type GrantState struct {
-	Grant types.RequestAccessGroupGrant `json:"grant"`
-	State map[string]any                `json:"state"`
+	Grant access.GroupTarget `json:"grant"`
+	State map[string]any     `json:"state"`
 }
 type InputEvent struct {
-	Action EventType                     `json:"action"`
-	Grant  types.RequestAccessGroupGrant `json:"grant"`
+	Action EventType          `json:"action"`
+	Grant  access.GroupTarget `json:"grant"`
 	// Will be available for revoke events
 	State map[string]any `json:"state,omitempty"`
 }

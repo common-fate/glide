@@ -11,10 +11,10 @@ import (
 
 type Field struct {
 	ID               string  `json:"id" dynamodbav:"id"`
-	FieldTitle       string  `json:"field_title" dynamodbav:"field_title"`
-	FieldDescription *string `json:"field_description" dynamodbav:"field_description"`
-	ValueLabel       string  `json:"value_label" dynamodbav:"value_label"`
-	ValueDescription *string `json:"value_description" dynamodbav:"value_description"`
+	FieldTitle       string  `json:"fieldTitle" dynamodbav:"fieldTitle"`
+	FieldDescription *string `json:"fieldDescription" dynamodbav:"fieldDescription"`
+	ValueLabel       string  `json:"valueLabel" dynamodbav:"valueLabel"`
+	ValueDescription *string `json:"valueDescription" dynamodbav:"valueDescription"`
 	Value            string  `json:"value" dynamodbav:"value"`
 }
 
@@ -22,9 +22,9 @@ type Target struct {
 	// this is a ksuid which can be used for API requests
 	// when updating the cahced targets, the target.Key() method is used to generate a comparable key
 	ID              string              `json:"id" dynamodbav:"id"`
-	TargetGroupID   string              `json:"target_group_id" dynamodbav:"target_group_id"`
-	TargetGroupFrom target.From         `json:"target_group_from" dynamodbav:"target_group_from"`
-	AccessRules     map[string]struct{} `json:"access_rules" dynamodbav:"access_rules"`
+	TargetGroupID   string              `json:"targetGroupId" dynamodbav:"targetGroupId"`
+	TargetGroupFrom target.From         `json:"targetGroupFrom" dynamodbav:"targetGroupFrom"`
+	AccessRules     map[string]struct{} `json:"accessRules" dynamodbav:"accessRules"`
 	// These are idp group ids that can access this target based on the access rules
 	Groups map[string]struct{} `json:"groups" dynamodbav:"groups"`
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/requests"
@@ -64,7 +65,7 @@ func (s *Service) ValidateAccessToAllTargets(ctx context.Context, user identity.
 
 // Takes in a list of targets and groups them by access rule
 // then returns a preflight object
-func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, preflightRequest types.CreatePreflightRequest) (*requests.Preflight, error) {
+func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, preflightRequest types.CreatePreflightRequest) (*access.Preflight, error) {
 
 	// validate that there are no duplicates
 	err := ValidateNoDuplicates(preflightRequest)
@@ -84,7 +85,7 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 	}
 	// save the preflight and return
 	now := s.Clock.Now()
-	preflight := requests.Preflight{
+	preflight := access.Preflight{
 		ID:           types.NewPreflightID(),
 		RequestedBy:  user.ID,
 		CreatedAt:    now,

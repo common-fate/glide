@@ -993,7 +993,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RequestAccessGroupGrant"
+                $ref: "#/components/schemas/RequestAccessGroupTarget"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1450,6 +1450,22 @@ components:
         - targetGroupId
         - targetGroupFrom
         - fields
+      x-examples:
+        Example 1:
+          id: string
+          targetGroupId: string
+          targetGroupFrom:
+            publisher: string
+            name: string
+            version: string
+            kind: string
+          fields:
+            - id: string
+              fieldTitle: string
+              fieldDescription: string
+              valueLabel: string
+              valueDescription: string
+              value: string
     TargetField:
       title: Field
       x-stoplight:
@@ -1477,6 +1493,42 @@ components:
       title: Request
       type: object
       description: A request to access something made by an end user in Common Fate.
+      x-examples:
+        Example 1:
+          id: string
+          purpose:
+            reason: string
+          accessGroups:
+            - id: string
+              requestId: string
+              status: APPROVED
+              time:
+                maxDurationSeconds: 60
+              overrideTiming:
+                durationSeconds: 0
+                startTime: "14:15:22Z"
+              updatedAt: string
+              createdAt: string
+              targets:
+                - id: string
+                  requestId: string
+                  accessGroupId: string
+                  targetGroupId: string
+                  targetGroupFrom:
+                    publisher: string
+                    name: string
+                    version: string
+                    kind: string
+                  fields:
+                    - id: string
+                      fieldTitle: string
+                      fieldDescription: string
+                      valueLabel: string
+                      valueDescription: string
+                      value: string
+                  status: PENDING
+          requestedBy: string
+          requestedAt: "14:15:22Z"
       properties:
         id:
           type: string
@@ -1495,6 +1547,7 @@ components:
           format: time
       required:
         - id
+        - purpose
         - accessGroups
         - requestedBy
         - requestedAt
@@ -1584,7 +1637,7 @@ components:
         status:
           $ref: "#/components/schemas/RequestStatus"
         time:
-          $ref: "#/components/schemas/AccessRuleTimeConstraints"
+          $ref: "#/components/schemas/RequestAccessGroupTiming"
         overrideTiming:
           $ref: "#/components/schemas/RequestAccessGroupTiming"
         updatedAt:
@@ -1596,7 +1649,7 @@ components:
         targets:
           type: array
           items:
-            $ref: "#/components/schemas/RequestAccessGroupGrant"
+            $ref: "#/components/schemas/RequestAccessGroupTarget"
       required:
         - id
         - requestId
@@ -1621,10 +1674,10 @@ components:
           format: time
       required:
         - durationSeconds
-    RequestAccessGroupGrant:
+    RequestAccessGroupTarget:
       description: A temporary assignment of a user to a principal.
       type: object
-      title: Grant
+      title: Access Group Target
       x-examples:
         Okta:
           id: aba0dcba-0a8c-4393-ad92-69510326b29a
@@ -1660,6 +1713,8 @@ components:
         - targetGroupFrom
         - fields
         - status
+      x-stoplight:
+        id: 3d80288c0358c
     ReviewDecision:
       type: string
       title: ReviewDecision
@@ -1908,7 +1963,7 @@ components:
               grants:
                 type: array
                 items:
-                  $ref: "#/components/schemas/RequestAccessGroupGrant"
+                  $ref: "#/components/schemas/RequestAccessGroupTarget"
               next:
                 type: string
             required:

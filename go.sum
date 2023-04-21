@@ -246,8 +246,25 @@ github.com/common-fate/clio v1.1.0 h1:M5fyMuYHjB+qODYbl0IGT28SBiokxsIlxluUVnD8cO
 github.com/common-fate/clio v1.1.0/go.mod h1:BYm9XmDIsmpQQdw+xbhQO5hbpUhH03Lk6gQmQ6Wpu1k=
 github.com/common-fate/cloudform v0.6.0 h1:VDme3jSJAltnF8OlSdqxjHn8YnvIoknARvISN+OHkdQ=
 github.com/common-fate/cloudform v0.6.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
+<<<<<<< HEAD
 github.com/common-fate/ddb v0.15.1-0.20230421003147-02d3226205a8 h1:EraXefz/nRnhEvXbC8W4UZYPkFmjKTs0tusIQIg1PRE=
 github.com/common-fate/ddb v0.15.1-0.20230421003147-02d3226205a8/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+=======
+github.com/common-fate/ddb v0.15.0 h1:JZTI5rb7Roogf+dPnF2rUo9RTfH5WYvOafD3mdRxBHs=
+github.com/common-fate/ddb v0.15.0/go.mod h1:W68x78n2NUERIGjYyl6nPTyvLSlqYSdVO3Fk1gMGaKE=
+github.com/common-fate/ddb v0.15.1-0.20230418034309-305ff5fb199e h1:ZGAe2VGip1bYO8yBYDd/EsHWxeJnxwfOAQEvGOyczxI=
+github.com/common-fate/ddb v0.15.1-0.20230418034309-305ff5fb199e/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230418042550-952738c7dcd6 h1:RFMgDddeVbhCAwxjzhiCzo2uCQzDz1EsBR2l6LOlu4Y=
+github.com/common-fate/ddb v0.15.1-0.20230418042550-952738c7dcd6/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa h1:ZSYScoTaCDstroUI/VqnA/0Mu1ij8XeL1fGmg4VeSpU=
+github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230420024947-99392051a5e2 h1:2kal1t1WERZJqNgAoPhPvnosNfwTWDbsYJ+9SnSHktE=
+github.com/common-fate/ddb v0.15.1-0.20230420024947-99392051a5e2/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230420060052-214d6698f7a7 h1:R1Unm/OvwcCs01ceq+6izlwJp/uSxip8LuxBHz1vd9E=
+github.com/common-fate/ddb v0.15.1-0.20230420060052-214d6698f7a7/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566 h1:rYMc5nKHrQAvYK4yCr2FFiQXiUfIv8C4BEDQ/vlznK8=
+github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+>>>>>>> 9f1147dfe52c696ee930878e5d5a732976727cc6
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=

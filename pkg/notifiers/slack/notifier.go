@@ -2,7 +2,6 @@ package slacknotifier
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/deploy"
@@ -54,22 +53,22 @@ func (n *SlackNotifier) Init(ctx context.Context, config *deploy.Notifications) 
 }
 
 func (n *SlackNotifier) HandleEvent(ctx context.Context, event events.CloudWatchEvent) (err error) {
-	log := zap.S()
+	// log := zap.S()
 
-	log.Infow("received event", "event", event)
+	// log.Infow("received event", "event", event)
 
-	if strings.HasPrefix(event.DetailType, "grant") {
-		err = n.HandleGrantEvent(ctx, log, event)
-		if err != nil {
-			return err
-		}
-	} else if strings.HasPrefix(event.DetailType, "request") {
-		err = n.HandleRequestEvent(ctx, log, event)
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Info("ignoring unhandled event type")
-	}
+	// if strings.HasPrefix(event.DetailType, "grant") {
+	// 	err = n.HandleGrantEvent(ctx, log, event)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// } else if strings.HasPrefix(event.DetailType, "request") {
+	// 	err = n.HandleRequestEvent(ctx, log, event)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	log.Info("ignoring unhandled event type")
+	// }
 	return nil
 }

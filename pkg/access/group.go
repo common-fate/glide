@@ -1,65 +1,61 @@
-package requests
+package access
 
 import (
 	"time"
 
 	"github.com/common-fate/analytics-go"
-	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
 )
 
-type Status string
-
-const (
-	APPROVED  Status = "APPROVED"
-	DECLINED  Status = "DECLINED"
-	CANCELLED Status = "CANCELLED"
-	PENDING   Status = "PENDING"
-)
-
-type AccessGroup struct {
-	AccessRule      rule.AccessRule `json:"accessRule" dynamodbav:"accessRule"`
-	ID              string          `json:"id" dynamodbav:"id"`
-	Request         string          `json:"request" dynamodbav:"request"`
-	TimeConstraints Timing          `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	OverrideTiming  *Timing         `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
-	CreatedAt       time.Time       `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt       time.Time       `json:"updatedAt" dynamodbav:"updatedAt"`
-	Status          Status          `json:"status" dynamodbav:"status"`
+type AccessRule struct {
+	ID string `json:"id" dynamodbav:"id"`
 }
 
-func (i *AccessGroup) DDBKeys() (ddb.Keys, error) {
-	keys := ddb.Keys{
-		PK: keys.AccessGroup.PK1,
-		SK: keys.AccessGroup.SK1(i.Request, i.ID),
-	}
-	return keys, nil
+type Group struct {
+	ID              string              `json:"id" dynamodbav:"id"`
+	RequestID       string              `json:"requestId" dynamodbav:"request"`
+	AccessRule      AccessRule          `json:"accessRule" dynamodbav:"accessRule"`
+	Status          types.RequestStatus `json:"status" dynamodbav:"status"`
+	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	RequestedBy     string              `json:"requestedBy" dynamodbav:"requestedBy"`
+	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
+	// request reviewers are users who have one or more groups to review on the request as a whole
+	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
+	// groupReviewers are the users who are able to review this access group
+	GroupReviewers []string `json:"groupReviewers" dynamodbav:"groupReviewers, set"`
 }
 
-func (i *AccessGroup) ToAPI() types.RequestAccessGroup {
+type GroupWithTargets struct {
+	Group
+	Targets []GroupTarget
+}
+
+func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 	out := types.RequestAccessGroup{
-		Id:     i.ID,
-		Status: types.RequestStatus(i.Status),
-		Time: types.AccessRuleTimeConstraints{
-			MaxDurationSeconds: int(i.TimeConstraints.Duration),
-		},
-		RequestId:      i.Request,
-		OverrideTiming: i.OverrideTiming.ToAPI(),
-		CreatedAt:      i.CreatedAt,
-		UpdatedAt:      i.UpdatedAt,
+		Id:        g.ID,
+		RequestId: g.RequestID,
+		Status:    g.Status,
+		Time:      g.TimeConstraints.ToAPI(),
+		Targets:   []types.RequestAccessGroupTarget{},
+		CreatedAt: g.CreatedAt,
+		UpdatedAt: g.UpdatedAt,
 	}
-
-	if i.OverrideTiming != nil {
-		out.OverrideTiming = i.OverrideTiming.ToAPI()
+	if g.OverrideTiming != nil {
+		out.OverrideTiming = g.OverrideTiming.ToAPI()
+	}
+	for _, target := range g.Targets {
+		out.Targets = append(out.Targets, target.ToAPI())
 	}
 
 	return out
 
 }
 
-func (r *AccessGroup) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time, end time.Time) {
+func (r *Group) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time, end time.Time) {
 	if r.OverrideTiming != nil {
 		return r.OverrideTiming.GetInterval(opts...)
 	}
@@ -129,4 +125,14 @@ func (t *Timing) GetInterval(opts ...func(o *GetIntervalOpts)) (start time.Time,
 
 type GetIntervalOpts struct {
 	Now time.Time
+}
+
+func (i *Group) DDBKeys() (ddb.Keys, error) {
+	keys := ddb.Keys{
+		PK:     keys.AccessRequestGroup.PK1,
+		SK:     keys.AccessRequestGroup.SK1(i.RequestID, i.ID),
+		GSI1PK: keys.AccessRequestGroup.GSI1PK(i.RequestedBy),
+		GSI1SK: keys.AccessRequestGroup.GSI1SK(i.RequestID, i.ID),
+	}
+	return keys, nil
 }
