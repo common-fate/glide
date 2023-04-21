@@ -197,10 +197,11 @@ paths:
         - schema:
             type: string
             enum:
-              - APPROVED
-              - DECLINED
               - CANCELLED
               - PENDING
+              - COMPLETE
+              - ACTIVE
+              - REVOKED
           in: query
           description: omit this param to view all results
           name: status
@@ -733,8 +734,6 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-reviews
@@ -743,10 +742,11 @@ paths:
         - schema:
             type: string
             enum:
-              - APPROVED
-              - DECLINED
               - CANCELLED
               - PENDING
+              - COMPLETE
+              - ACTIVE
+              - REVOKED
           in: query
           name: status
           description: omit this param to view all results
@@ -763,8 +763,6 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/ListRequestsResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-requests

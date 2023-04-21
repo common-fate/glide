@@ -122,6 +122,7 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 		// for each access rule the resource is matched with, add it to the list it if matches the filter policy
 		// @TODO filter policies are not applied yet
 		for _, ar := range accessrules {
+
 			// a target may have multiple fields of teh same type, so be sure to apply matching for each of the fields on the target that match the type
 			// filter policy execution would go here, only append the resource if it matches
 			target := accessRuleMap[ar.ID][resource.TargetGroupID].targetGroup

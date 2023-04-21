@@ -276,16 +276,31 @@ func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request,
 // (GET /api/v1/requests/upcoming)
 func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
 	ctx := r.Context()
-	q := storage.ListRequestWithGroupsWithTargets{}
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
 	}
-
-	qo, err := a.DB.Query(ctx, &q, opts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	var results []access.RequestWithGroupsWithTargets
+	var qo *ddb.QueryResult
+	var err error
+	if params.Status != nil {
+		q := storage.ListRequestWithGroupsWithTargetsForStatus{
+			Status: types.RequestStatus(*params.Status),
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
+	} else {
+		q := storage.ListRequestWithGroupsWithTargets{}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
 	}
 
 	res := types.ListRequestsResponse{
@@ -295,7 +310,7 @@ func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params t
 		res.Next = &qo.NextPage
 	}
 
-	for _, request := range q.Result {
+	for _, request := range results {
 		res.Requests = append(res.Requests, request.ToAPI())
 	}
 

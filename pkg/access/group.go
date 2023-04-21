@@ -135,6 +135,8 @@ func (i *Group) DDBKeys() (ddb.Keys, error) {
 		SK:     keys.AccessRequestGroup.SK1(i.RequestID, i.ID),
 		GSI1PK: keys.AccessRequestGroup.GSI1PK(i.RequestedBy),
 		GSI1SK: keys.AccessRequestGroup.GSI1SK(RequestStatusToPastOrUpcoming(i.RequestStatus), i.RequestID, i.ID),
+		GSI2PK: keys.AccessRequestGroup.GSI2PK(i.RequestStatus),
+		GSI2SK: keys.AccessRequestGroup.GSI2SK(i.RequestID, i.ID),
 	}
 	return keys, nil
 }

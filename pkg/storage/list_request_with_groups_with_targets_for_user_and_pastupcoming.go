@@ -19,6 +19,7 @@ var _ ddb.QueryOutputUnmarshalerWithPagination = &ListRequestWithGroupsWithTarge
 
 func (g *ListRequestWithGroupsWithTargetsForUserAndPastUpcoming) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
+		ScanIndexForward:       aws.Bool(false),
 		IndexName:              &keys.IndexNames.GSI1,
 		KeyConditionExpression: aws.String("GSI1PK = :pk1 and begins_with(GSI1SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -31,7 +32,7 @@ func (g *ListRequestWithGroupsWithTargetsForUserAndPastUpcoming) BuildQuery() (*
 }
 
 func (g *ListRequestWithGroupsWithTargetsForUserAndPastUpcoming) UnmarshalQueryOutputWithPagination(out *dynamodb.QueryOutput) (map[string]types.AttributeValue, error) {
-	result, pagination, err := UnmarshalRequests(out.Items)
+	result, pagination, err := UnmarshalRequestsBottomToTop(out.Items)
 	if err != nil {
 		return nil, err
 	}

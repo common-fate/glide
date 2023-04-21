@@ -61,6 +61,8 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 		SK:     keys.AccessRequest.SK1(i.ID),
 		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy),
 		GSI1SK: keys.AccessRequest.GSI1SK(RequestStatusToPastOrUpcoming(i.RequestStatus), i.ID),
+		GSI2PK: keys.AccessRequest.GSI2PK(i.RequestStatus),
+		GSI2SK: keys.AccessRequest.GSI2SK(i.ID),
 	}
 	return keys, nil
 }

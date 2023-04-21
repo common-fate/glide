@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/access"
@@ -22,7 +23,11 @@ func TestListRequestWithGroupsWithTargetsForReviewer(t *testing.T) {
 	req2 := access.Request{ID: rid, GroupTargetCount: 1}
 	group2 := access.Group{ID: gid, RequestID: rid}
 	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid}
-
+	// cleanup before the test
+	err := deleteAllRequests(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
 	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
 
 	tc := []ddbtest.QueryTestCase{

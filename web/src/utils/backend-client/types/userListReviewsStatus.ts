@@ -11,8 +11,9 @@ export type UserListReviewsStatus = typeof UserListReviewsStatus[keyof typeof Us
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UserListReviewsStatus = {
-  APPROVED: 'APPROVED',
-  DECLINED: 'DECLINED',
   CANCELLED: 'CANCELLED',
   PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED',
 } as const;
