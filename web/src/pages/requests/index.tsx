@@ -27,7 +27,7 @@ import {
 import React from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
-import { ProviderIcon } from "../../components/icons/providerIcon";
+import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import {
   useUserListFavorites,
@@ -294,7 +294,7 @@ const Rules = () => {
                     overflow="hidden"
                   >
                     <ProviderIcon
-                      shortType={r.target.provider.id}
+                      shortType={r.target.provider.id as ShortTypes}
                       mb={3}
                       h="8"
                       w="8"
@@ -437,7 +437,7 @@ const UserAccessCard: React.FC<
                   {rule ? (
                     <Flex align="center" mr="auto">
                       <ProviderIcon
-                        shortType={rule?.target.provider.id}
+                        shortType={rule?.target.provider.id as ShortTypes}
                         h={10}
                         w={10}
                       />

@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { Command } from "cmdk";
 import React from "react";
+import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
   useUserListEntitlements,
@@ -63,15 +64,15 @@ const search = () => {
     okta: [{}],
   };
 
-  const entitlements = useUserListEntitlements({
-    swr: { refreshInterval: 10000 },
-    request: {
-      baseURL: "http://127.0.0.1:3100",
-      headers: {
-        Prefer: "code=200, example=ex_1",
-      },
-    },
-  });
+  // const entitlements = useUserListEntitlements({
+  //   swr: { refreshInterval: 10000 },
+  //   request: {
+  //     baseURL: "http://127.0.0.1:3100",
+  //     headers: {
+  //       Prefer: "code=200, example=ex_1",
+  //     },
+  //   },
+  // });
 
   //   I need a query param.......
   //   const resources = useUserListRequestAccessGroupGrants(group.id, {
@@ -91,7 +92,7 @@ const search = () => {
       request: {
         baseURL: "http://127.0.0.1:3100",
         headers: {
-          Prefer: "code=200, example=ex_1",
+          Prefer: "code=200, example=example_targets",
         },
       },
     }
@@ -104,12 +105,7 @@ const search = () => {
   return (
     <UserLayout>
       <Container mt={24}>
-        <Stack spacing={4}>
-          {/* <Input
-            size="lg"
-            type="text"
-            placeholder="What do you want to access?"
-          /> */}
+        <Box spacing={4} minH="200px">
           <Command
             // open={modal.isOpen}
             // onOpenChange={modal.onToggle}
@@ -122,36 +118,70 @@ const search = () => {
               as={Command.Input}
             />
             {/* <ChakraInput /> */}
-            <Stack as={Command.List} spacing={4}>
-              <Center
-                as={Command.Empty}
-                minH="200px"
+            <Command.List>
+              <Stack
+                // as={Command.List}
+                mt={2}
+                spacing={4}
                 border="1px solid"
                 rounded="md"
                 borderColor="neutrals.300"
+                p={1}
+                pt={2}
               >
-                No results found.
-              </Center>
+                <Center as={Command.Empty} minH="200px">
+                  No results found.
+                </Center>
 
-              <Command.Group heading="Letters">
-                <Command.Item>
-                  a<Box>z</Box>
-                </Command.Item>
-                <Command.Item>Cloud Watch Logs (0123456789012)</Command.Item>
-                <Command.Separator />
-                <Command.Item>Cloud Watch Logs (0123456789012)</Command.Item>
-                <Command.Item>Okta (0123456789012)</Command.Item>
-                <Command.Item>AWS (0123456789012)</Command.Item>
-              </Command.Group>
-
-              <Command.Item>Apple</Command.Item>
-            </Stack>
+                <Command.Group heading="Permissions">
+                  <Command.Separator />
+                  {targets.data &&
+                    targets.data.targets.map((target) => {
+                      return (
+                        <Flex
+                          alignContent="flex-start"
+                          p={2}
+                          rounded="md"
+                          sx={{
+                            " &[data-selected='true']": {
+                              bg: "neutrals.100",
+                            },
+                          }}
+                          pos="relative"
+                          as={Command.Item}
+                          value={target.fields
+                            .map((field) => field.value)
+                            .join(", ")}
+                        >
+                          <ProviderIcon
+                            mr={2}
+                            shortType={
+                              target.targetGroupFrom.name as ShortTypes
+                            }
+                          />
+                          <Box>
+                            <Box>{target.fields[0].value}</Box>
+                            {/* then map over the proceeding fields */}
+                            <Box color="neutrals.500" minH="1em">
+                              {target.fields
+                                .map((field, index) => index && field.value)
+                                .filter((field) => field)
+                                .join(", ")}
+                            </Box>
+                          </Box>
+                        </Flex>
+                      );
+                    })}
+                </Command.Group>
+              </Stack>
+            </Command.List>
           </Command>
-          <Flex>{JSON.stringify(modal)}</Flex>
-        </Stack>
+        </Box>
+
+        <Flex my={12}>{JSON.stringify(modal)}</Flex>
 
         <Code bg="gray.50" whiteSpace="pre-wrap">
-          {JSON.stringify({ entitlements, targets }, null, 2)}
+          {JSON.stringify({ targets }, null, 2)}
         </Code>
       </Container>
     </UserLayout>

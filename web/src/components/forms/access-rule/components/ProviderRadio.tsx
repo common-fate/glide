@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { Provider } from "../../../../utils/backend-client/types";
-import { ProviderIcon } from "../../../icons/providerIcon";
+import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
 import { useAdminListTargetGroups } from "src/utils/backend-client/admin/admin";
 
 interface ProviderRadioProps extends RadioProps {
@@ -61,7 +61,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
           />
         )}
         <HStack>
-          <ProviderIcon shortType={props.provider.type} />
+          <ProviderIcon shortType={props.provider.type as ShortTypes} />
 
           <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
             {props.provider.id}
