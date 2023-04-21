@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/identity"
-	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
@@ -86,7 +86,7 @@ func TestGroupTargets(t *testing.T) {
 	tests := []struct {
 		name               string
 		targets            []cache.Target
-		AccessGroups       []requests.PreflightAccessGroup
+		AccessGroups       []access.PreflightAccessGroup
 		wantErr            bool
 		mockGetAccessRule1 rule.AccessRule
 		mockGetAccessRule2 rule.AccessRule
@@ -95,9 +95,9 @@ func TestGroupTargets(t *testing.T) {
 		{
 			name:    "multiple targets with diff access rules creates multiple groups",
 			targets: []cache.Target{target1, target2},
-			AccessGroups: []requests.PreflightAccessGroup{
+			AccessGroups: []access.PreflightAccessGroup{
 				{
-					Status: string(requests.PENDING),
+					Status: "", //string(access.PENDING),
 					Targets: []cache.Target{
 						target1,
 					},
@@ -106,7 +106,7 @@ func TestGroupTargets(t *testing.T) {
 					},
 				},
 				{
-					Status: string(requests.PENDING),
+					Status: "", //string(access.PENDING),
 					Targets: []cache.Target{
 						target2,
 					},

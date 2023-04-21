@@ -7,7 +7,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/identity"
-	"github.com/common-fate/common-fate/pkg/requests"
+
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -113,11 +113,11 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 //     Fields []Field `json:"fields" dynamodbav:"fields"`
 // }
 
-func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]requests.PreflightAccessGroup, error) {
+func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]access.PreflightAccessGroup, error) {
 	//goal of the group targets method is to get an unsorted list of targets and return the targets grouped into access groups
 	//the method of grouping is subject for change/options going forward
 
-	deduplicatedAccessGroups := map[string]requests.PreflightAccessGroup{}
+	deduplicatedAccessGroups := map[string]access.PreflightAccessGroup{}
 
 	//The current method of grouping is getting the access rule of least resistance for each target.
 
@@ -140,9 +140,9 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]r
 		} else {
 			//create new access group
 
-			newAccessGroup := requests.PreflightAccessGroup{
+			newAccessGroup := access.PreflightAccessGroup{
 				Id:      types.NewAccessGroupID(),
-				Status:  string(requests.PENDING),
+				Status:  "", //string(access.PENDING),
 				Targets: []cache.Target{},
 				Time:    bestAccessRule.TimeConstraints,
 			}
@@ -153,7 +153,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]r
 		}
 	}
 
-	res := []requests.PreflightAccessGroup{}
+	res := []access.PreflightAccessGroup{}
 	for _, accessGroup := range deduplicatedAccessGroups {
 		res = append(res, accessGroup)
 	}
