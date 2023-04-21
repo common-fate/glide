@@ -276,5 +276,32 @@ func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params t
 // List Reviews
 // (GET /api/v1/reviews)
 func (a *API) UserListReviews(w http.ResponseWriter, r *http.Request, params types.UserListReviewsParams) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+	q := storage.ListRequestWithGroupsWithTargetsForReviewer{
+		ReviewerID: user.ID,
+	}
+	var opts []func(*ddb.QueryOpts)
+	if params.NextToken != nil {
+		opts = append(opts, ddb.Page(*params.NextToken))
+	}
 
+	qo, err := a.DB.Query(ctx, &q, opts...)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
+	}
+	if qo.NextPage != "" {
+		res.Next = &qo.NextPage
+	}
+
+	for _, request := range q.Result {
+		res.Requests = append(res.Requests, request.ToAPI())
+	}
+
+	apio.JSON(ctx, w, res, http.StatusOK)
 }
