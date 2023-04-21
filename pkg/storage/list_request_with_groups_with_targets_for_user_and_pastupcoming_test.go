@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/access"
@@ -25,7 +26,25 @@ func TestListRequestWithGroupsWithTargetsForUserAndPastUpcoming(t *testing.T) {
 	group2 := access.Group{ID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.PENDING}
 	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.PENDING}
 
-	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
+	rid = "req_lmnop"
+	gid = "grp_lmnop"
+	tid = "gta_lmnop"
+	req3 := access.Request{ID: rid, GroupTargetCount: 1, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
+	group3 := access.Group{ID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
+	target3 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
+
+	rid = "grp_acomesfirst"
+	gid = "grp_acomesfirst"
+	tid = "gta_acomesfirst"
+	req4 := access.Request{ID: rid, GroupTargetCount: 1, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
+	group4 := access.Group{ID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
+	target4 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
+	// cleanup before the test
+	err := deleteAllRequests(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2, &req3, &group3, &target3, &req4, &group4, &target4})
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -63,6 +82,20 @@ func TestListRequestWithGroupsWithTargetsForUserAndPastUpcoming(t *testing.T) {
 						Groups: []access.GroupWithTargets{{
 							Group:   group2,
 							Targets: []access.GroupTarget{target2},
+						}},
+					},
+					{
+						Request: req3,
+						Groups: []access.GroupWithTargets{{
+							Group:   group3,
+							Targets: []access.GroupTarget{target3},
+						}},
+					},
+					{
+						Request: req4,
+						Groups: []access.GroupWithTargets{{
+							Group:   group4,
+							Targets: []access.GroupTarget{target4},
 						}},
 					},
 				},

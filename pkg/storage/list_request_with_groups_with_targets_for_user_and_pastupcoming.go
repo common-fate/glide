@@ -19,10 +19,11 @@ var _ ddb.QueryOutputUnmarshalerWithPagination = &ListRequestWithGroupsWithTarge
 
 func (g *ListRequestWithGroupsWithTargetsForUserAndPastUpcoming) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
-		IndexName:              &keys.IndexNames.GSI2,
-		KeyConditionExpression: aws.String("GSI2PK = :pk1"),
+		IndexName:              &keys.IndexNames.GSI1,
+		KeyConditionExpression: aws.String("GSI1PK = :pk1 and begins_with(GSI1SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI2PK(g.UserID, g.PastUpcoming)},
+			":pk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1PK(g.UserID)},
+			":sk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1SKPastUpcoming(g.PastUpcoming)},
 		},
 	}
 

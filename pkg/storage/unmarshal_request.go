@@ -141,3 +141,92 @@ func UnmarshalRequests(items []map[string]types.AttributeValue) ([]access.Reques
 	}
 	return result, pagination, nil
 }
+
+// UnmarshalRequestsBottomToTop is used to unmarshal requests starting at the targets and ending on the request
+// useful so that you can read items on of dynamo in either scan forward or scan reversed
+func UnmarshalRequestsBottomToTop(items []map[string]types.AttributeValue) ([]access.RequestWithGroupsWithTargets, map[string]types.AttributeValue, error) {
+	if len(items) == 0 {
+		return nil, nil, nil
+	}
+
+	var result []access.RequestWithGroupsWithTargets
+	var request *access.RequestWithGroupsWithTargets
+	groups := make(map[string]access.GroupWithTargets)
+
+	completeUnmarshallingRequest := func() (map[string]types.AttributeValue, error) {
+		// check if request is nil, if it is, then we need to paginate with the key of the last rull request
+		if request == nil {
+			if len(result) == 0 {
+				return nil, errors.New("failed to unmarshal requests, this could happen if the data for the request exceeds the 1mb limit for a ddb query")
+			}
+			keys, err := result[len(result)-1].DDBKeys()
+			if err != nil {
+				return nil, err
+			}
+			return map[string]types.AttributeValue{
+				"PK": &types.AttributeValueMemberS{Value: keys.PK},
+				"SK": &types.AttributeValueMemberS{Value: keys.SK},
+			}, nil
+		}
+
+		var foundTargetCount int
+		for _, grp := range groups {
+			foundTargetCount += len(grp.Targets)
+			request.Groups = append(request.Groups, grp)
+		}
+
+		if foundTargetCount != request.GroupTargetCount {
+			// Something is seriously wrong :( there is a malformed request
+			// this error condition would probably be quite bad
+			// could also be an issue in dev environments if test data fails to be well formed
+			return nil, errors.New("failed to unmarshal requests, this could happen if the data for the request exceeds the 1mb limit for a ddb query")
+		}
+
+		result = append(result, *request)
+		request = nil
+		groups = make(map[string]access.GroupWithTargets)
+		return nil, nil
+	}
+	for _, item := range items {
+		if strings.Contains((item["SK"].(*types.AttributeValueMemberS).Value), keys.AccessRequestGroupTargetKey) {
+			// it is a target
+			var t access.GroupTarget
+			err := attributevalue.UnmarshalMap(item, &t)
+			if err != nil {
+				return nil, nil, err
+			}
+			g := groups[t.GroupID]
+			g.Targets = append(g.Targets, t)
+			groups[t.GroupID] = g
+		} else if strings.Contains((item["SK"].(*types.AttributeValueMemberS).Value), keys.AccessRequestGroupKey) {
+			// it is a group
+			var g access.Group
+			err := attributevalue.UnmarshalMap(item, &g)
+			if err != nil {
+				return nil, nil, err
+			}
+			group := groups[g.ID]
+			group.Group = g
+			groups[g.ID] = group
+
+		} else {
+			// it is a request
+			var r access.RequestWithGroupsWithTargets
+			err := attributevalue.UnmarshalMap(item, &r)
+			if err != nil {
+				return nil, nil, err
+			}
+			request = &r
+			o, err := completeUnmarshallingRequest()
+			if err != nil {
+				return nil, o, err
+			}
+		}
+
+	}
+	pagination, err := completeUnmarshallingRequest()
+	if err != nil {
+		return nil, nil, err
+	}
+	return result, pagination, nil
+}

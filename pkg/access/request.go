@@ -60,9 +60,7 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 		PK:     keys.AccessRequest.PK1,
 		SK:     keys.AccessRequest.SK1(i.ID),
 		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy),
-		GSI1SK: keys.AccessRequest.GSI1SK(i.ID),
-		GSI2PK: keys.AccessRequest.GSI2PK(i.RequestedBy, RequestStatusToPastOrUpcoming(i.RequestStatus)),
-		GSI2SK: keys.AccessRequest.GSI2SK(i.ID),
+		GSI1SK: keys.AccessRequest.GSI1SK(RequestStatusToPastOrUpcoming(i.RequestStatus), i.ID),
 	}
 	return keys, nil
 }
@@ -70,7 +68,7 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 // RequestStatusToPastOrUpcoming processes teh request status and determines if the request is a past request or an upcoming request
 // The 2 statuses are used in dynamodb queries to serve the upcoming and past tabs/apis on the user homepage.
 func RequestStatusToPastOrUpcoming(status types.RequestStatus) keys.AccessRequestPastUpcoming {
-	if status == types.COMPLETE || status == types.COMPLETE || status == types.COMPLETE {
+	if status == types.COMPLETE || status == types.REVOKED || status == types.CANCELLED {
 		return keys.AccessRequestPastUpcomingPAST
 	}
 	return keys.AccessRequestPastUpcomingUPCOMING

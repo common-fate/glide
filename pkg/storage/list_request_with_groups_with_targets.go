@@ -10,7 +10,7 @@ import (
 )
 
 type ListRequestWithGroupsWithTargets struct {
-	Result []access.RequestWithGroupsWithTargets
+	Result []access.RequestWithGroupsWithTargets `ddb:"result"`
 }
 
 var _ ddb.QueryOutputUnmarshalerWithPagination = &ListRequestWithGroupsWithTargets{}

@@ -24,3 +24,24 @@ func newTestingStorage(t *testing.T) *ddb.Client {
 	}
 	return s
 }
+
+// DeleteAllRequests is a helper method which can delete all requests, to be used in test cases
+func deleteAllRequests(ctx context.Context, db *ddb.Client) error {
+	var requests ListRequestWithGroupsWithTargets
+	err := db.All(ctx, &requests)
+	if err != nil {
+		return err
+	}
+	var items []ddb.Keyer
+	for r := range requests.Result {
+		items = append(items, &requests.Result[r].Request)
+		for g := range requests.Result[r].Groups {
+			items = append(items, &requests.Result[r].Groups[g].Group)
+			for t := range requests.Result[r].Groups[g].Targets {
+				items = append(items, &requests.Result[r].Groups[g].Targets[t])
+			}
+		}
+	}
+
+	return db.DeleteBatch(ctx, items...)
+}
