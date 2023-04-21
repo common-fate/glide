@@ -1,25 +1,35 @@
+import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Button,
   Center,
-  chakra,
   Code,
   Container,
   Flex,
   Input,
   Stack,
+  Text,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  useBoolean,
   useDisclosure,
   useEventListener,
 } from "@chakra-ui/react";
-import { Command } from "cmdk";
 import React from "react";
+import { Link, useNavigate } from "react-location";
+import Counter from "../components/Counter";
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
-  useUserListEntitlements,
+  userRequestPreflight,
   useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
+import { Preflight, Target } from "../utils/backend-client/types";
+import { Command as CommandNew } from "../utils/cmdk";
+import { HeaderStatusCell } from "./request/[id]";
 
-const search = () => {
+const Search = () => {
   const modal = useDisclosure();
 
   // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
@@ -40,50 +50,15 @@ const search = () => {
     }
   }, []);
 
+  // Watch keys for cmd Enter submit
   useEventListener("keydown", (event) => {
     const hotkey = isMac() ? "metaKey" : "ctrlKey";
-    if (event?.key?.toLowerCase() === "k" && event[hotkey]) {
+
+    if (event?.key?.toLowerCase() === "enter" && event[hotkey]) {
       event.preventDefault();
-      modal.isOpen ? modal.onClose() : modal.onOpen();
+      checked.length > 0 && handleSubmit();
     }
   });
-
-  const ProviderObjExample = {
-    aws: [
-      // five example aws accounts differnet values (account number, account name, account alias)
-      {
-        accountNumber: "0123456789012",
-        accountName: "Cloud Watch Logs",
-        accountAlias: "cloudwatchlogs",
-      },
-      {
-        // new one that isn't cloud watch
-        accountNumber: "0123456789012",
-      },
-    ],
-    okta: [{}],
-  };
-
-  // const entitlements = useUserListEntitlements({
-  //   swr: { refreshInterval: 10000 },
-  //   request: {
-  //     baseURL: "http://127.0.0.1:3100",
-  //     headers: {
-  //       Prefer: "code=200, example=ex_1",
-  //     },
-  //   },
-  // });
-
-  //   I need a query param.......
-  //   const resources = useUserListRequestAccessGroupGrants(group.id, {
-  //     swr: { refreshInterval: 10000 },
-  //     request: {
-  //       baseURL: "http://127.0.0.1:3100",
-  //       headers: {
-  //         Prefer: "code=200, example=ex_1",
-  //       },
-  //     },
-  //   });
 
   const targets = useUserListEntitlementTargets(
     {},
@@ -98,101 +73,319 @@ const search = () => {
     }
   );
 
+  const [targetKeyMap, setTargetKeyMap] = React.useState<{
+    [key: string]: Target;
+  }>({});
+
+  const [inputValue, setInputValue] = React.useState<string>("");
+
+  const [checked, setChecked] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    if (!targets.data) return;
+    const map: { [key: string]: Target } = {};
+    targets.data.targets.forEach((target) => {
+      const key =
+        target.targetGroupFrom.name +
+        " " +
+        target.fields.map((f) => f.value).join(" ");
+      map[key] = target;
+    });
+    setTargetKeyMap(map);
+  }, [targets.data]);
+
   // @TODO:
   // Actually use the fixture data, maybe write it with actual values.
   // Add in page responses etc.
 
+  const navigate = useNavigate();
+
+  const [submitLoading, submitLoadingToggle] = useBoolean();
+
+  // tabIndex
+  const [tabIndex, setTabIndex] = React.useState(0);
+
+  // preflightRes
+  const [preflightRes, setPreflightRes] = React.useState<Preflight>();
+
+  const handleSubmit = () => {
+    submitLoadingToggle.on();
+
+    let entitlementTargerts = [];
+
+    // map over keys and get the ids of the targets
+    checked.forEach((key) => {
+      const target = targetKeyMap[key];
+      target && entitlementTargerts.push(target?.id);
+    });
+
+    userRequestPreflight(
+      {
+        targets: entitlementTargerts,
+      },
+      {
+        baseURL: "http://127.0.0.1:3100",
+        headers: {
+          Prefer: "code=200, example=ex_1",
+        },
+      }
+    )
+      .then((res) => {
+        setPreflightRes(res);
+        setTabIndex(1);
+      })
+      .catch((err) => {
+        setTabIndex(1);
+        console.log(err);
+      })
+      .finally(() => {
+        submitLoadingToggle.off();
+      });
+
+    // navigate({ to: "/search2" });
+  };
+
   return (
     <UserLayout>
       <Container mt={24}>
-        <Box spacing={4} minH="200px">
-          <Command
-            // open={modal.isOpen}
-            // onOpenChange={modal.onToggle}
-            label="Global Command Menu"
-          >
-            <Input
-              size="lg"
-              type="text"
-              placeholder="What do you want to access?"
-              as={Command.Input}
-            />
-            {/* <ChakraInput /> */}
-            <Command.List>
-              <Stack
-                // as={Command.List}
-                mt={2}
-                spacing={4}
-                border="1px solid"
-                rounded="md"
-                borderColor="neutrals.300"
-                p={1}
-                pt={2}
-              >
-                <Center as={Command.Empty} minH="200px">
-                  No results found.
-                </Center>
-
-                <Command.Group heading="Permissions">
-                  <Command.Separator />
-                  {targets.data &&
-                    targets.data.targets.map((target) => {
+        {/* set index */}
+        <Tabs index={tabIndex}>
+          <TabPanels>
+            <TabPanel>
+              <Box spacing={4} minH="200px">
+                <CommandNew
+                  // open={modal.isOpen}
+                  // onOpenChange={modal.onToggle}
+                  label="Global Command Menu"
+                  checked={checked}
+                  setChecked={setChecked}
+                >
+                  <Input
+                    size="lg"
+                    type="text"
+                    placeholder="What do you want to access?"
+                    value={inputValue}
+                    onValueChange={setInputValue}
+                    as={CommandNew.Input}
+                  />
+                  <Stack mt={2} spacing={2} direction="row">
+                    <Center
+                      boxSize="90px"
+                      rounded="md"
+                      borderColor="neutrals.300"
+                      bg="white"
+                      borderWidth="1px"
+                      flexDir="column"
+                      onClick={() => {
+                        setInputValue("");
+                      }}
+                    >
+                      <Counter count={checked.length} />
+                      All resources
+                      <Flex>{targets.data?.targets.length}&nbsp;total</Flex>
+                    </Center>
+                    {[
+                      "aws",
+                      "cloudwatch",
+                      "okta",
+                      "azure",
+                      "github",
+                      "gcp",
+                    ].map((key) => {
                       return (
-                        <Flex
-                          alignContent="flex-start"
-                          p={2}
+                        <Center
+                          boxSize="90px"
                           rounded="md"
-                          sx={{
-                            " &[data-selected='true']": {
-                              bg: "neutrals.100",
-                            },
+                          borderColor="neutrals.300"
+                          bg="white"
+                          borderWidth="1px"
+                          flexDir="column"
+                          onClick={() => {
+                            setInputValue(key);
                           }}
-                          pos="relative"
-                          as={Command.Item}
-                          value={target.fields
-                            .map((field) => field.value)
-                            .join(", ")}
                         >
-                          <ProviderIcon
-                            mr={2}
-                            shortType={
-                              target.targetGroupFrom.name as ShortTypes
-                            }
-                          />
-                          <Box>
-                            <Box>{target.fields[0].value}</Box>
-                            {/* then map over the proceeding fields */}
-                            <Box color="neutrals.500" minH="1em">
-                              {target.fields
-                                .map((field, index) => index && field.value)
-                                .filter((field) => field)
-                                .join(", ")}
-                            </Box>
-                          </Box>
-                        </Flex>
+                          <ProviderIcon shortType={key} />
+                          {key}
+                        </Center>
                       );
                     })}
-                </Command.Group>
+                  </Stack>
+                  <CommandNew.List>
+                    <Stack
+                      // as={Command.List}
+                      mt={2}
+                      spacing={4}
+                      border="1px solid"
+                      rounded="md"
+                      borderColor="neutrals.300"
+                      p={1}
+                      pt={2}
+                    >
+                      <Center as={CommandNew.Empty} minH="200px">
+                        No results found.
+                      </Center>
+
+                      <CommandNew.Group
+                      // heading="Permissions"
+                      >
+                        <CommandNew.Separator />
+                        {targets.data &&
+                          Object.entries(targetKeyMap).map(([key, target]) => {
+                            return (
+                              <Flex
+                                alignContent="flex-start"
+                                p={2}
+                                rounded="md"
+                                _selected={{
+                                  bg: "neutrals.100",
+                                }}
+                                _checked={{
+                                  "#checked": {
+                                    display: "block",
+                                  },
+                                }}
+                                pos="relative"
+                                key={key}
+                                value={key}
+                                as={CommandNew.Item}
+                              >
+                                <ProviderIcon
+                                  mr={2}
+                                  shortType={
+                                    target.targetGroupFrom.name as ShortTypes
+                                  }
+                                  // onClick={() => {
+                                  //   console.log("click");
+                                  //   if (checked.includes(key)) {
+                                  //     setChecked(
+                                  //       checked.filter(
+                                  //         (checkedKey) => checkedKey !== key
+                                  //       )
+                                  //     );
+                                  //   } else {
+                                  //     setChecked([...checked, key]);
+                                  //   }
+                                  // }}
+                                />
+                                <Box>
+                                  <Box>{target.fields[0].value}</Box>
+                                  {/* then map over the proceeding fields */}
+                                  <Box color="neutrals.500" minH="1em">
+                                    {target.fields
+                                      .map(
+                                        (field, index) => index && field.value
+                                      )
+                                      .filter((field) => field)
+                                      .join(", ")}
+                                  </Box>
+                                </Box>
+                                <CheckCircleIcon
+                                  id="checked"
+                                  position="absolute"
+                                  display="none"
+                                  top={2}
+                                  right={2}
+                                  h="12px"
+                                  w="12px"
+                                  color={"brandBlue.300"}
+                                />
+                              </Flex>
+                            );
+                          })}
+                      </CommandNew.Group>
+                    </Stack>
+                  </CommandNew.List>
+                </CommandNew>
+                <Flex w="100%" mt={4}>
+                  <Button
+                    disabled={checked.length == 0}
+                    ml="auto"
+                    onClick={handleSubmit}
+                    isLoading={submitLoading}
+                    loadingText="Processing request..."
+                  >
+                    Next ({actionKey[0]}+Enter)
+                  </Button>
+                </Flex>
+              </Box>
+            </TabPanel>
+            {/* PAGE 2 */}
+            <TabPanel>
+              {/* main */}
+              <Text textStyle="Body/Medium">Access</Text>
+              <Stack spacing={1} w="100%">
+                {preflightRes?.accessGroups.map((group) => {
+                  return (
+                    <Box
+                      p={2}
+                      w="100%"
+                      borderColor="neutrals.300"
+                      borderWidth="1px"
+                      rounded="md"
+                    >
+                      <HeaderStatusCell group={group} />
+                      <Stack spacing={2}>
+                        {group.targets.map((target) => {
+                          return (
+                            <Box
+                              p={2}
+                              borderColor="neutrals.300"
+                              borderWidth="1px"
+                              rounded="md"
+                            >
+                              <ProviderIcon
+                                shortType={
+                                  target.targetGroupFrom.name as ShortTypes
+                                }
+                                mr={2}
+                              />
+                              <Code bg="white">
+                                {target.fields.map((f) => f.value).join("\n")}
+                              </Code>
+                              {/* {JSON.stringify(target)} */}
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  );
+                })}
               </Stack>
-            </Command.List>
-          </Command>
-        </Box>
 
-        <Flex my={12}>{JSON.stringify(modal)}</Flex>
+              {/* buttons */}
+              <Flex w="100%" mt={4}>
+                <Button
+                  // ml="auto"
+                  // disabled={checked.length == 0}
+                  // onClick={handleSubmit}
+                  variant="brandSecondary"
+                  leftIcon={<ArrowBackIcon />}
+                  // to="/search"
+                  // as={Link}
+                  onClick={() => setTabIndex(0)}
+                >
+                  Go back
+                </Button>
+                <Button
+                  ml="auto"
+                  // disabled={checked.length == 0}
+                  // onClick={handleSubmit}
+                  // isLoading={submitLoading}
+                  loadingText="Processing request..."
+                >
+                  Next (⌘+Enter)
+                </Button>
+              </Flex>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
 
-        <Code bg="gray.50" whiteSpace="pre-wrap">
-          {JSON.stringify({ targets }, null, 2)}
-        </Code>
+        {/* <Code bg="gray.50" whiteSpace="pre-wrap">
+          {JSON.stringify({ preflightRes, targets }, null, 2)}
+        </Code> */}
       </Container>
     </UserLayout>
   );
 };
 
-// const ChakraInput = chakra(Command.Input);
-// const ChakraList = chakra(Command.List);
-// const ChakraEmpty = chakra(Command.Empty);
-// const ChakraGroup = chakra(Command.Group);
-// const ChakraItem = chakra(Command.Item);
-// const ChakraSeparator = chakra(Command.Separator);
-
-export default search;
+export default Search;

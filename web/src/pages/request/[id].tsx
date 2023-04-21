@@ -227,7 +227,7 @@ type NewType = {
 
 type AccessGroupProps = NewType;
 
-const HeaderStatusCell = ({ group }: { group: AccessGroup }) => {
+export const HeaderStatusCell = ({ group }: { group: AccessGroup }) => {
   if (group.status === "PENDING") {
     return (
       <Box

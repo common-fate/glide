@@ -679,7 +679,7 @@ const Command = React.forwardRef<HTMLDivElement, CommandProps>(
         >
           {label}
         </label>
-        {JSON.stringify(props.checked)}
+        {/* {JSON.stringify(props.checked)} */}
         <StoreContext.Provider value={store}>
           <CommandContext.Provider value={context}>
             {children}
