@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -17,17 +19,41 @@ import (
 // (GET /api/v1/requests)
 func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params types.UserListRequestsParams) {
 	ctx := r.Context()
-	u := auth.UserFromContext(ctx)
-	q := storage.ListRequestWithGroupsWithTargetsForUser{UserID: u.ID}
+	user := auth.UserFromContext(ctx)
+
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
 	}
 
-	qo, err := a.DB.Query(ctx, &q, opts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	var result []access.RequestWithGroupsWithTargets
+	var qo *ddb.QueryResult
+	var err error
+	if params.Filter != nil {
+		q := storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
+			UserID:       user.ID,
+			PastUpcoming: keys.AccessRequestPastUpcomingUPCOMING,
+		}
+		if *params.Filter == "PAST" {
+			q.PastUpcoming = keys.AccessRequestPastUpcomingPAST
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		result = q.Result
+
+	} else {
+		q := storage.ListRequestWithGroupsWithTargetsForUser{
+			UserID: user.ID,
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		result = q.Result
 	}
 
 	res := types.ListRequestsResponse{
@@ -37,7 +63,7 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 		res.Next = &qo.NextPage
 	}
 
-	for _, request := range q.Result {
+	for _, request := range result {
 		res.Requests = append(res.Requests, request.ToAPI())
 	}
 
