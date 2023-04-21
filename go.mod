@@ -12,7 +12,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
-	github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0
 	github.com/awslabs/aws-lambda-go-api-proxy v0.13.3
 	github.com/bitfield/script v0.20.2
@@ -149,7 +148,7 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
-	github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566
+	github.com/common-fate/ddb v0.15.1-0.20230421003147-02d3226205a8
 	github.com/common-fate/provider-registry-sdk-go v0.17.1
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

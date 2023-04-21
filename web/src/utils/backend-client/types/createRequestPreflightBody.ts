@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Resource {
-  id?: string;
-}
+export type CreateRequestPreflightBody = {
+  preflightId: string;
+};

@@ -7,7 +7,8 @@
  */
 
 /**
- * The current state of the grant.
+ * The status of an Access Request.
+
  */
 export type GrantStatus = typeof GrantStatus[keyof typeof GrantStatus];
 
@@ -16,7 +17,7 @@ export type GrantStatus = typeof GrantStatus[keyof typeof GrantStatus];
 export const GrantStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',
+  ERROR: 'ERROR',
   REVOKED: 'REVOKED',
   EXPIRED: 'EXPIRED',
-  ERROR: 'ERROR',
 } as const;

@@ -13,13 +13,9 @@ import type {
 import type {
   ReviewResponseResponse,
   ReviewRequestBody,
-  ErrorResponseResponse,
   User,
   AuthUserResponseResponse,
-  ListFavoritesResponseResponse,
-  FavoriteDetail,
-  CreateFavoriteRequestBody,
-  ListRequests2ResponseResponse,
+  ListRequestsResponseResponse,
   UserListRequestsUpcomingParams,
   UserListRequestsPastParams
 } from '.././types'
@@ -146,136 +142,13 @@ export const useUserGetMe = <TError = ErrorType<void>>(
 }
 
 /**
- * Returns a list of the user's favourited access requests. 
- * @summary ListFavorites
- */
-export const userListFavorites = (
-    
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListFavoritesResponseResponse>(
-      {url: `/api/v1/favorites`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getUserListFavoritesKey = () => [`/api/v1/favorites`];
-
-    
-export type UserListFavoritesQueryResult = NonNullable<Awaited<ReturnType<typeof userListFavorites>>>
-export type UserListFavoritesQueryError = ErrorType<ErrorResponseResponse>
-
-export const useUserListFavorites = <TError = ErrorType<ErrorResponseResponse>>(
-  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListFavorites>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListFavoritesKey() : null);
-  const swrFn = () => userListFavorites(requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Favorites an access request for a given user. This is used for frequent access requests saving time and repeated actions. 
- * @summary Create Favorite
- */
-export const userCreateFavorite = (
-    createFavoriteRequestBody: CreateFavoriteRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<FavoriteDetail>(
-      {url: `/api/v1/favorites`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: createFavoriteRequestBody
-    },
-      options);
-    }
-  
-
-/**
- * Returns a detailed favorite response. This is used to display a favorite's details on the frontend. 
- * @summary Get Favorite
- */
-export const userGetFavorite = (
-    id: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<FavoriteDetail>(
-      {url: `/api/v1/favorites/${id}`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getUserGetFavoriteKey = (id: string,) => [`/api/v1/favorites/${id}`];
-
-    
-export type UserGetFavoriteQueryResult = NonNullable<Awaited<ReturnType<typeof userGetFavorite>>>
-export type UserGetFavoriteQueryError = ErrorType<ErrorResponseResponse>
-
-export const useUserGetFavorite = <TError = ErrorType<ErrorResponseResponse>>(
- id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetFavorite>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(id)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetFavoriteKey(id) : null);
-  const swrFn = () => userGetFavorite(id, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Delete a saved favorite
- */
-export const userDeleteFavorite = (
-    id: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
-      {url: `/api/v1/favorites/${id}`, method: 'delete'
-    },
-      options);
-    }
-  
-
-/**
- * Update a favorite with new FavoriteDetails
- */
-export const userUpdateFavorite = (
-    id: string,
-    createFavoriteRequestBody: CreateFavoriteRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<FavoriteDetail>(
-      {url: `/api/v1/favorites/${id}`, method: 'put',
-      headers: {'Content-Type': 'application/json', },
-      data: createFavoriteRequestBody
-    },
-      options);
-    }
-  
-
-/**
  * Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
  * @summary Your GET endpoint
  */
 export const userListRequestsUpcoming = (
     params?: UserListRequestsUpcomingParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListRequests2ResponseResponse>(
+      return customInstance<ListRequestsResponseResponse>(
       {url: `/api/v1/requests/upcoming`, method: 'get',
         params
     },
@@ -316,7 +189,7 @@ export const useUserListRequestsUpcoming = <TError = ErrorType<unknown>>(
 export const userListRequestsPast = (
     params?: UserListRequestsPastParams,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListRequests2ResponseResponse>(
+      return customInstance<ListRequestsResponseResponse>(
       {url: `/api/v1/requests/past`, method: 'get',
         params
     },

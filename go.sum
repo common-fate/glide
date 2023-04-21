@@ -183,8 +183,6 @@ github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5/go.mod h1:bHyncRqcDob/Fc0ZS
 github.com/aws/aws-sdk-go-v2/service/s3 v1.5.0/go.mod h1:uwA7gs93Qcss43astPUb1eq4RyceNmYWAQjZFDOAMLo=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3 h1:dvaSSQV1KQ65D3kEcaqhlocMk37KEjRhPK+yGMnnWbM=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3/go.mod h1:LM/bWWhnE6h4uqQEDpfjhNDemyIcnOZ0LKjP8JFjc4c=
-github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10 h1:WMlzkK1lGnTjRPjmP/hHSkNkdsj097d3O7xYfcXGk4M=
-github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10/go.mod h1:OPrtUEpVQ3NGRPlycn+4N6vJ/jHajI9qIY9tTwIol3c=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0 h1:R7lLqiY82XTxaaLQzHbBH8Wy3ScW5pyUTDd7Lag7JzY=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0/go.mod h1:9e3tFB+oyarkxO2bwbUa/bwke1K8wkmNk2QEc/5MaVA=
 github.com/aws/aws-sdk-go-v2/service/sso v1.1.5/go.mod h1:bpGz0tidC4y39sZkQSkpO/J0tzWCMXHbw6FZ0j1GkWM=
@@ -248,6 +246,10 @@ github.com/common-fate/clio v1.1.0 h1:M5fyMuYHjB+qODYbl0IGT28SBiokxsIlxluUVnD8cO
 github.com/common-fate/clio v1.1.0/go.mod h1:BYm9XmDIsmpQQdw+xbhQO5hbpUhH03Lk6gQmQ6Wpu1k=
 github.com/common-fate/cloudform v0.6.0 h1:VDme3jSJAltnF8OlSdqxjHn8YnvIoknARvISN+OHkdQ=
 github.com/common-fate/cloudform v0.6.0/go.mod h1:lWkYU3gfk0ohl66sdML9qCYxe5nSdbcqS6U9j/ewmjw=
+<<<<<<< HEAD
+github.com/common-fate/ddb v0.15.1-0.20230421003147-02d3226205a8 h1:EraXefz/nRnhEvXbC8W4UZYPkFmjKTs0tusIQIg1PRE=
+github.com/common-fate/ddb v0.15.1-0.20230421003147-02d3226205a8/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+=======
 github.com/common-fate/ddb v0.15.0 h1:JZTI5rb7Roogf+dPnF2rUo9RTfH5WYvOafD3mdRxBHs=
 github.com/common-fate/ddb v0.15.0/go.mod h1:W68x78n2NUERIGjYyl6nPTyvLSlqYSdVO3Fk1gMGaKE=
 github.com/common-fate/ddb v0.15.1-0.20230418034309-305ff5fb199e h1:ZGAe2VGip1bYO8yBYDd/EsHWxeJnxwfOAQEvGOyczxI=
@@ -262,6 +264,7 @@ github.com/common-fate/ddb v0.15.1-0.20230420060052-214d6698f7a7 h1:R1Unm/OvwcCs
 github.com/common-fate/ddb v0.15.1-0.20230420060052-214d6698f7a7/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
 github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566 h1:rYMc5nKHrQAvYK4yCr2FFiQXiUfIv8C4BEDQ/vlznK8=
 github.com/common-fate/ddb v0.15.1-0.20230420060536-9be63fbd0566/go.mod h1:B7wH0DnOMi6GNSSbgVwGjqjV7Tc0LjXksnXROI6G6Ek=
+>>>>>>> 9f1147dfe52c696ee930878e5d5a732976727cc6
 github.com/common-fate/iso8601 v1.0.2 h1:gl6iNbE8TnJzg+lYJxPNYOkF+oHYde2K2s2i+5o4yHE=
 github.com/common-fate/iso8601 v1.0.2/go.mod h1:DU4mvUEkkWZUUSJq2aCuNqM1luSb0Pwyb2dLzXS+img=
 github.com/common-fate/provider-registry-sdk-go v0.17.1 h1:pzF/xeODk1/lJcAmy75vvj3zP39vj1H2eKs+2nRdxy4=

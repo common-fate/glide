@@ -29,7 +29,10 @@ func TestCreateAccessRule(t *testing.T) {
 	}
 
 	in := types.CreateAccessRuleRequest{
-		Approval:        types.AccessRuleApproverConfig{},
+		Approval: types.AccessRuleApproverConfig{
+			Groups: []string{"test"},
+			Users:  []string{"test"},
+		},
 		Description:     "test",
 		Name:            "test",
 		Groups:          []string{"group_a"},

@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface Resource {
-  id?: string;
+export interface RequestPurpose {
+  reason?: string;
 }
