@@ -46,18 +46,13 @@ func (s *Service) RefreshCachedTargets(ctx context.Context) error {
 	}
 
 	for _, opt := range existingTargetsQuery.Result {
-		targets[opt.Key()] = target{
+		targets[opt.ID()] = target{
 			target: opt,
 		}
 	}
 
 	for _, o := range distictTargets {
-		// persist the existing ID if it is available
-		if existing, ok := targets[o.Key()]; ok {
-			o.ID = existing.target.ID
-		}
-
-		targets[o.Key()] = target{
+		targets[o.ID()] = target{
 			target:       o,
 			shouldUpsert: true,
 		}
@@ -163,11 +158,10 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 		for tID, targetgroup := range ar {
 			for _, target := range targetgroup {
 				t := cache.Target{
-					// Don't set an id at this stage
-					// ID:            types.NewTargetID(),
-					TargetGroupID: tID,
-					Fields:        []cache.Field{},
-					AccessRules:   cache.MakeMapStringStruct(arID),
+					Fields: []cache.Field{},
+					AccessRules: map[string]cache.AccessRule{arID: {
+						MatchedTargetGroups: []string{tID},
+					}},
 					// assign the groups
 					Groups: cache.MakeMapStringStruct(arMap[arID].Groups...),
 				}
@@ -179,14 +173,16 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 						Value: v,
 					})
 				}
-				o := out[t.Key()]
-				for k := range o.AccessRules {
-					t.AccessRules[k] = struct{}{}
+				o := out[t.ID()]
+				for k, v := range o.AccessRules {
+					a := t.AccessRules[k]
+					a.MatchedTargetGroups = append(a.MatchedTargetGroups, v.MatchedTargetGroups...)
+					t.AccessRules[k] = a
 				}
 				for k := range o.Groups {
 					t.Groups[k] = struct{}{}
 				}
-				out[t.Key()] = t
+				out[t.ID()] = t
 			}
 		}
 	}

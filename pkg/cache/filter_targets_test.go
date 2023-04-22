@@ -16,14 +16,14 @@ func TestFilterTargetsByAccessRules(t *testing.T) {
 			ID:    "hello",
 			Value: "world",
 		}},
-		AccessRules: map[string]struct{}{"accessRule_1": {}},
+		AccessRules: map[string]AccessRule{"accessRule_1": {}},
 	}
 	t2 := Target{
 		Fields: []Field{{
 			ID:    "hello",
 			Value: "world",
 		}},
-		AccessRules: map[string]struct{}{"accessRule_2": {}},
+		AccessRules: map[string]AccessRule{"accessRule_2": {}},
 	}
 	tests := []struct {
 		name string

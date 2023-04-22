@@ -11,7 +11,6 @@ import (
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbmock"
 	"github.com/stretchr/testify/assert"
@@ -20,15 +19,13 @@ import (
 func TestGroupTargets(t *testing.T) {
 	clk := clock.NewMock()
 	target1 := cache.Target{
-		ID:            "target1",
-		TargetGroupID: "targetGroup1",
-		TargetGroupFrom: target.From{
+
+		Kind: cache.Kind{
 			Publisher: "publisher1",
 			Name:      "target1",
-			Version:   "v1",
 			Kind:      "kind1",
 		},
-		AccessRules: map[string]struct{}{
+		AccessRules: map[string]cache.AccessRule{
 			"rule1": {},
 		},
 		Groups: map[string]struct{}{
@@ -52,15 +49,12 @@ func TestGroupTargets(t *testing.T) {
 	}
 
 	target2 := cache.Target{
-		ID:            "target2",
-		TargetGroupID: "targetGroup2",
-		TargetGroupFrom: target.From{
+		Kind: cache.Kind{
 			Publisher: "publisher2",
 			Name:      "target1",
-			Version:   "v1",
 			Kind:      "kind1",
 		},
-		AccessRules: map[string]struct{}{
+		AccessRules: map[string]cache.AccessRule{
 			"rule2": {},
 		},
 		Groups: map[string]struct{}{
@@ -365,11 +359,9 @@ func TestService_ValidateAccessToAllTargets(t *testing.T) {
 				},
 			},
 			mockGetTarget: cache.Target{
-				ID:     "tg_1",
 				Groups: map[string]struct{}{"group_1": {}},
 			},
 			want: []cache.Target{{
-				ID:     "tg_1",
 				Groups: map[string]struct{}{"group_1": {}},
 			}},
 		},
@@ -382,7 +374,6 @@ func TestService_ValidateAccessToAllTargets(t *testing.T) {
 				},
 			},
 			mockGetTarget: cache.Target{
-				ID:     "tg_1",
 				Groups: map[string]struct{}{"group_2": {}},
 			},
 			wantErr: true,
