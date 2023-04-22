@@ -13,7 +13,7 @@ import type {
 import type {
   ListTargetGroupRoutesResponse,
   ErrorResponseResponse,
-  ListTargetGroupResponseResponse,
+  ListEntitlementsResponseResponse,
   ListTargetsResponseResponse,
   UserListEntitlementTargetsParams,
   Preflight,
@@ -85,7 +85,7 @@ These are derived from the Target Groups.
 export const userListEntitlements = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListTargetGroupResponseResponse>(
+      return customInstance<ListEntitlementsResponseResponse>(
       {url: `/api/v1/entitlements`, method: 'get'
     },
       options);

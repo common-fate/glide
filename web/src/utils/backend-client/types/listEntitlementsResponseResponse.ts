@@ -6,10 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { TargetKind } from './targetKind';
-import type { TargetField } from './targetField';
 
-export interface Target {
-  id: string;
-  kind: TargetKind;
-  fields: TargetField[];
-}
+export type ListEntitlementsResponseResponse = {
+  entitlements?: TargetKind[];
+};

@@ -675,7 +675,7 @@ paths:
       tags: []
       responses:
         '200':
-          $ref: '#/components/responses/ListTargetGroupResponse'
+          $ref: '#/components/responses/ListEntitlementsResponse'
         '500':
           $ref: '#/components/responses/ErrorResponse'
       operationId: user-list-entitlements
@@ -1933,6 +1933,19 @@ components:
                 type: string
             required:
               - targets
+    ListEntitlementsResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              entitlements:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TargetKind'
+            required:
+              - entitlements
   examples: {}
   securitySchemes: {}
   requestBodies:

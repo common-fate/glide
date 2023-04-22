@@ -6,7 +6,6 @@ import (
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
@@ -87,28 +86,6 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	}
 
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
-}
-
-// List Entitlements
-// (GET /api/v1/entitlements)
-func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	q := storage.ListTargetGroups{}
-
-	err := a.DB.All(ctx, &q)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	res := types.ListTargetGroupResponse{
-		TargetGroups: []types.TargetGroup{},
-	}
-
-	for _, e := range q.Result {
-		res.TargetGroups = append(res.TargetGroups, e.ToAPI())
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
 }
 
 // (POST /api/v1/preflight)
@@ -238,38 +215,6 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 	// // })
 
 	// apio.JSON(ctx, w, nil, http.StatusOK)
-}
-
-func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
-	ctx := r.Context()
-	q := storage.ListCachedTargets{}
-	var opts []func(*ddb.QueryOpts)
-	if params.NextToken != nil {
-		opts = append(opts, ddb.Page(*params.NextToken))
-	}
-
-	qo, err := a.DB.Query(ctx, &q, opts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	res := types.ListTargetsResponse{}
-	if qo.NextPage != "" {
-		res.Next = &qo.NextPage
-	}
-
-	user := auth.UserFromContext(ctx)
-
-	// Filtering needs to be done in the application layer because of limits with dynamoDB filters
-	// in the end, the same amount of read units will be consumed
-	filter := cache.NewFilterTargetsByGroups(user.Groups)
-	for _, target := range filter.Filter(q.Result).Dump() {
-		res.Targets = append(res.Targets, target.ToAPI())
-	}
-
-	apio.JSON(ctx, w, res, http.StatusOK)
-
 }
 
 // Your GET endpoint
