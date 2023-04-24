@@ -100,19 +100,6 @@ func (s *Service) ProcessPreflight(ctx context.Context, user identity.User, pref
 	return &preflight, nil
 }
 
-// type Target struct {
-//     // this is a ksuid which can be used for API requests
-//     // when updating the cahced targets, the target.Key() method is used to generate a comparable key
-//     ID              string              `json:"id" dynamodbav:"id"`
-//     TargetGroupID   string              `json:"target_group_id" dynamodbav:"target_group_id"`
-//     TargetGroupFrom target.From         `json:"target_group_from" dynamodbav:"target_group_from"`
-//     AccessRules     map[string]struct{} `json:"access_rules" dynamodbav:"access_rules"`
-//     // These are idp group ids that can access this target based on the access rules
-//     Groups map[string]struct{} `json:"groups" dynamodbav:"groups"`
-
-//     Fields []Field `json:"fields" dynamodbav:"fields"`
-// }
-
 func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]access.PreflightAccessGroup, error) {
 	//goal of the group targets method is to get an unsorted list of targets and return the targets grouped into access groups
 	//the method of grouping is subject for change/options going forward
@@ -142,6 +129,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 
 			newAccessGroup := access.PreflightAccessGroup{
 				ID:               types.NewAccessGroupID(),
+				AccessRule:       bestAccessRule.ID,
 				RequiresApproval: bestAccessRule.Approval.IsRequired(),
 				Targets:          []cache.Target{},
 				Time:             bestAccessRule.TimeConstraints,

@@ -80,7 +80,7 @@ type CognitoService interface {
 
 // RequestServices can create Access Requests.
 type AccessService interface {
-	// CreateRequests(ctx context.Context, in requests.Requestv2) (*accesssvc.CreateRequestResult, error)
+	CreateRequest(ctx context.Context, in types.CreateAccessRequestRequest) (*access.Request, error)
 	AddReviewAndGrantAccess(ctx context.Context, opts accesssvc.AddReviewOpts) (*accesssvc.AddReviewResult, error)
 	CancelRequest(ctx context.Context, opts accesssvc.CancelRequestOpts) error
 	// CreateFavorite(ctx context.Context, in accesssvc.CreateFavoriteOpts) (*access.Favorite, error)
@@ -123,6 +123,7 @@ type HandlerService interface {
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_workflow_service.go -package=mocks . Workflow
 type Workflow interface {
 	// Revoke(ctx context.Context, request requests.Requestv2, revokerID string, revokerEmail string) (*requests.Requestv2, error)
+	Grant(ctx context.Context, targets []access.GroupTarget, subject string) ([]access.Grant, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_preflight_service.go -package=mocks . PreflightService

@@ -20,6 +20,9 @@ func NewUserID() string {
 func NewGroupID() string {
 	return newResourceID("grp")
 }
+func NewGroupTargetID() string {
+	return newResourceID("gta")
+}
 
 func NewRequestFavoriteID() string {
 	return newResourceID("rqf")
@@ -27,9 +30,7 @@ func NewRequestFavoriteID() string {
 func NewAccessRuleID() string {
 	return newResourceID("rul")
 }
-func NewVersionID() string {
-	return newResourceID("ver")
-}
+
 func NewRequestID() string {
 	return newResourceID("req")
 }
@@ -38,23 +39,11 @@ func NewRequestReviewID() string {
 	return newResourceID("rev")
 }
 
-func NewHistoryID() string {
-	return newResourceID("his")
-}
-
-func NewProviderSetupID() string {
-	return newResourceID("pse")
-}
-
 func NewDeploymentID() string {
 	return newResourceID("dep")
 }
 func NewGrantID() string {
 	return newResourceID("gra")
-}
-
-func NewEntitlementID() string {
-	return newResourceID("ent")
 }
 
 func NewOptionID() string {
