@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -24,6 +25,12 @@ func TestListRequestWithGroupsWithTargets(t *testing.T) {
 	req2 := access.Request{ID: rid, GroupTargetCount: 1}
 	group2 := access.Group{ID: gid, RequestID: rid}
 	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid}
+
+	// cleanup before the test
+	err := deleteAllRequests(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
 
@@ -57,16 +64,16 @@ func TestListRequestWithGroupsWithTargets(t *testing.T) {
 			Want: &ListRequestWithGroupsWithTargets{
 				Result: []access.RequestWithGroupsWithTargets{
 					{
-						Request: req,
+						Request: req2,
 						Groups: []access.GroupWithTargets{{
-							Group:   group,
-							Targets: []access.GroupTarget{target},
+							Group:   group2,
+							Targets: []access.GroupTarget{target2},
 						}},
 					},
 				},
 			},
 			// This asserts that the unmarshalling correctly set the pagination token to the key of the last target of teh last complete request which was unmarshalled
-			WantNextPage: aws.String(`{"PK":{"Value":"ACCESS_REQUESTV2#"},"SK":{"Value":"ACCESS_REQUESTV2#req_abcd#ACCESS_REQUESTV2_GROUP#grp_abcd#ACCESS_REQUESTV2_GROUP_TARGET#gta_abcd#"}}`),
+			WantNextPage: aws.String(`{"PK":{"Value":"ACCESS_REQUESTV2#"},"SK":{"Value":"ACCESS_REQUESTV2#req_efgh#"}}`),
 		},
 		{
 			QueryOpts: []func(*ddb.QueryOpts){ddb.Limit(2)},

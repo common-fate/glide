@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/cache"
+	"github.com/common-fate/common-fate/pkg/storage/keys"
 
 	"github.com/common-fate/common-fate/pkg/service/preflightsvc"
 	"github.com/common-fate/common-fate/pkg/storage"
@@ -18,17 +19,41 @@ import (
 // (GET /api/v1/requests)
 func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params types.UserListRequestsParams) {
 	ctx := r.Context()
-	u := auth.UserFromContext(ctx)
-	q := storage.ListRequestWithGroupsWithTargetsForUser{UserID: u.ID}
+	user := auth.UserFromContext(ctx)
+
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
 	}
 
-	qo, err := a.DB.Query(ctx, &q, opts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	var result []access.RequestWithGroupsWithTargets
+	var qo *ddb.QueryResult
+	var err error
+	if params.Filter != nil {
+		q := storage.ListRequestWithGroupsWithTargetsForUserAndPastUpcoming{
+			UserID:       user.ID,
+			PastUpcoming: keys.AccessRequestPastUpcomingUPCOMING,
+		}
+		if *params.Filter == "PAST" {
+			q.PastUpcoming = keys.AccessRequestPastUpcomingPAST
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		result = q.Result
+
+	} else {
+		q := storage.ListRequestWithGroupsWithTargetsForUser{
+			UserID: user.ID,
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		result = q.Result
 	}
 
 	res := types.ListRequestsResponse{
@@ -38,7 +63,7 @@ func (a *API) UserListRequests(w http.ResponseWriter, r *http.Request, params ty
 		res.Next = &qo.NextPage
 	}
 
-	for _, request := range q.Result {
+	for _, request := range result {
 		res.Requests = append(res.Requests, request.ToAPI())
 	}
 
@@ -52,35 +77,16 @@ func (a *API) UserGetRequest(w http.ResponseWriter, r *http.Request, requestId s
 	u := auth.UserFromContext(ctx)
 	q := storage.GetRequestWithGroupsWithTargetsForUser{UserID: u.ID, RequestID: requestId}
 	_, err := a.DB.Query(ctx, &q)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, apio.NewRequestError(err, http.StatusNotFound))
+		return
+	}
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
 
 	apio.JSON(ctx, w, q.Result.ToAPI(), http.StatusOK)
-}
-
-// List Entitlements
-// (GET /api/v1/entitlements)
-func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
-
-	ctx := r.Context()
-	q := storage.ListTargetGroups{}
-	_, err := a.DB.Query(ctx, &q)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
-	}
-
-	res := types.ListTargetGroupResponse{
-		TargetGroups: []types.TargetGroup{},
-	}
-
-	for _, e := range q.Result {
-		res.TargetGroups = append(res.TargetGroups, e.ToAPI())
-	}
-	apio.JSON(ctx, w, res, http.StatusOK)
-
 }
 
 // (POST /api/v1/preflight)
@@ -214,54 +220,60 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 	// apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
-func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
+// Your GET endpoint
+// (GET /api/v1/requests/upcoming)
+func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
 	ctx := r.Context()
-	q := storage.ListCachedTargets{}
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
 	}
-
-	qo, err := a.DB.Query(ctx, &q, opts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	var results []access.RequestWithGroupsWithTargets
+	var qo *ddb.QueryResult
+	var err error
+	if params.Status != nil {
+		q := storage.ListRequestWithGroupsWithTargetsForStatus{
+			Status: types.RequestStatus(*params.Status),
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
+	} else {
+		q := storage.ListRequestWithGroupsWithTargets{}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
 	}
 
-	res := types.ListTargetsResponse{}
+	res := types.ListRequestsResponse{
+		Requests: []types.Request{},
+	}
 	if qo.NextPage != "" {
 		res.Next = &qo.NextPage
 	}
 
-	user := auth.UserFromContext(ctx)
-	filter := cache.NewFilterTargetsByGroups(user.Groups)
-	filter.Filter(q.Result)
-	targets := filter.Dump()
-	for _, target := range targets {
-		res.Targets = append(res.Targets, target.ToAPI())
+	for _, request := range results {
+		res.Requests = append(res.Requests, request.ToAPI())
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
 
 }
 
-// Your GET endpoint
-// (GET /api/v1/requests/past)
-func (a *API) UserListRequestsPast(w http.ResponseWriter, r *http.Request, params types.UserListRequestsPastParams) {
-
-}
-
-// Your GET endpoint
-// (GET /api/v1/requests/upcoming)
-func (a *API) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params types.UserListRequestsUpcomingParams) {
-
-}
-
-// Your GET endpoint
-// (GET /api/v1/requests/upcoming)
-func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params types.AdminListRequestsParams) {
+// List Reviews
+// (GET /api/v1/reviews)
+func (a *API) UserListReviews(w http.ResponseWriter, r *http.Request, params types.UserListReviewsParams) {
 	ctx := r.Context()
-	q := storage.ListRequestWithGroupsWithTargets{}
+	user := auth.UserFromContext(ctx)
+	q := storage.ListRequestWithGroupsWithTargetsForReviewer{
+		ReviewerID: user.ID,
+	}
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
@@ -285,5 +297,4 @@ func (a *API) AdminListRequests(w http.ResponseWriter, r *http.Request, params t
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)
-
 }

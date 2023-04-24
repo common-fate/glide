@@ -6,13 +6,14 @@
  * OpenAPI spec version: 1.0
  */
 
-export type UserListRequestsStatus = typeof UserListRequestsStatus[keyof typeof UserListRequestsStatus];
+export type UserListReviewsStatus = typeof UserListReviewsStatus[keyof typeof UserListReviewsStatus];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const UserListRequestsStatus = {
-  APPROVED: 'APPROVED',
-  DECLINED: 'DECLINED',
+export const UserListReviewsStatus = {
   CANCELLED: 'CANCELLED',
   PENDING: 'PENDING',
+  COMPLETE: 'COMPLETE',
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED',
 } as const;

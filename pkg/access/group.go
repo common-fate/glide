@@ -14,15 +14,17 @@ type AccessRule struct {
 }
 
 type Group struct {
-	ID              string                         `json:"id" dynamodbav:"id"`
-	RequestID       string                         `json:"requestId" dynamodbav:"request"`
-	AccessRule      AccessRule                     `json:"accessRule" dynamodbav:"accessRule"`
-	Status          types.RequestAccessGroupStatus `json:"status" dynamodbav:"status"`
-	TimeConstraints Timing                         `json:"timeConstraints" dynamodbav:"timeConstraints"`
-	OverrideTiming  *Timing                        `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
-	RequestedBy     string                         `json:"requestedBy" dynamodbav:"requestedBy"`
-	CreatedAt       time.Time                      `json:"createdAt" dynamodbav:"createdAt"`
-	UpdatedAt       time.Time                      `json:"updatedAt" dynamodbav:"updatedAt"`
+	ID         string                         `json:"id" dynamodbav:"id"`
+	RequestID  string                         `json:"requestId" dynamodbav:"request"`
+	AccessRule AccessRule                     `json:"accessRule" dynamodbav:"accessRule"`
+	Status     types.RequestAccessGroupStatus `json:"status" dynamodbav:"status"`
+	// Also denormalised across all the request items
+	RequestStatus   types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
+	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
+	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
+	RequestedBy     string              `json:"requestedBy" dynamodbav:"requestedBy"`
+	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
+	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 	// groupReviewers are the users who are able to review this access group
@@ -137,7 +139,9 @@ func (i *Group) DDBKeys() (ddb.Keys, error) {
 		PK:     keys.AccessRequestGroup.PK1,
 		SK:     keys.AccessRequestGroup.SK1(i.RequestID, i.ID),
 		GSI1PK: keys.AccessRequestGroup.GSI1PK(i.RequestedBy),
-		GSI1SK: keys.AccessRequestGroup.GSI1SK(i.RequestID, i.ID),
+		GSI1SK: keys.AccessRequestGroup.GSI1SK(RequestStatusToPastOrUpcoming(i.RequestStatus), i.RequestID, i.ID),
+		GSI2PK: keys.AccessRequestGroup.GSI2PK(i.RequestStatus),
+		GSI2SK: keys.AccessRequestGroup.GSI2SK(i.RequestID, i.ID),
 	}
 	return keys, nil
 }

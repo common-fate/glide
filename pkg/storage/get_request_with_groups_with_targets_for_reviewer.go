@@ -16,6 +16,7 @@ type GetRequestWithGroupsWithTargetsForReviewer struct {
 
 func (g *GetRequestWithGroupsWithTargetsForReviewer) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
+		// Note that no limit(1) is used here because we need to fetch more that one items to read the whole request
 		KeyConditionExpression: aws.String("PK = :pk1 and begins_with(SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1":        &types.AttributeValueMemberS{Value: keys.AccessRequest.PK1},

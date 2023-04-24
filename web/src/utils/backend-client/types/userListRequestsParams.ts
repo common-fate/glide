@@ -5,6 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { UserListRequestsStatus } from './userListRequestsStatus';
+import type { UserListRequestsFilter } from './userListRequestsFilter';
 
-export type UserListRequestsParams = { status?: UserListRequestsStatus; reviewer?: boolean; nextToken?: string };
+export type UserListRequestsParams = { nextToken?: string; filter?: UserListRequestsFilter };

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export type CreateRequestPreflightBody = {
-  preflightId: string;
-};
+export interface TargetKind {
+  publisher: string;
+  name: string;
+  kind: string;
+  icon: string;
+}

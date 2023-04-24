@@ -13,20 +13,18 @@ import type {
 import type {
   ListTargetGroupRoutesResponse,
   ErrorResponseResponse,
-  ListTargetGroupResponseResponse,
-  ListResourcesResponseResponse,
-  UserListEntitlementResourcesParams,
+  ListEntitlementsResponseResponse,
   ListTargetsResponseResponse,
   UserListEntitlementTargetsParams,
-  ListRequestsResponseResponse,
-  UserListRequestsParams,
-  CreateRequestPreflightBody,
   Preflight,
   CreatePreflightRequestBody,
+  ListRequestsResponseResponse,
+  UserListReviewsParams,
+  UserListRequestsParams,
+  Request,
+  CreateAccessRequestRequestBody,
   ListAccessGroupsResponseResponse,
-  RequestAccessGroup,
-  ListGrantsResponseResponse,
-  RequestAccessGroupGrant
+  RequestAccessGroup
 } from '.././types'
 import { customInstance } from '../../custom-instance'
 import type { ErrorType } from '../../custom-instance'
@@ -87,7 +85,7 @@ These are derived from the Target Groups.
 export const userListEntitlements = (
     
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListTargetGroupResponseResponse>(
+      return customInstance<ListEntitlementsResponseResponse>(
       {url: `/api/v1/entitlements`, method: 'get'
     },
       options);
@@ -110,46 +108,6 @@ export const useUserListEntitlements = <TError = ErrorType<ErrorResponseResponse
   const isEnabled = swrOptions?.enabled !== false
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListEntitlementsKey() : null);
   const swrFn = () => userListEntitlements(requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * List all resources for a given entitlement and resource type
- * @summary List Entitlement Resources
- */
-export const userListEntitlementResources = (
-    params: UserListEntitlementResourcesParams,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListResourcesResponseResponse>(
-      {url: `/api/v1/entitlements/resources`, method: 'get',
-        params
-    },
-      options);
-    }
-  
-
-export const getUserListEntitlementResourcesKey = (params: UserListEntitlementResourcesParams,) => [`/api/v1/entitlements/resources`, ...(params ? [params]: [])];
-
-    
-export type UserListEntitlementResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof userListEntitlementResources>>>
-export type UserListEntitlementResourcesQueryError = ErrorType<ErrorResponseResponse>
-
-export const useUserListEntitlementResources = <TError = ErrorType<ErrorResponseResponse>>(
- params: UserListEntitlementResourcesParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListEntitlementResources>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListEntitlementResourcesKey(params) : null);
-  const swrFn = () => userListEntitlementResources(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
@@ -200,7 +158,63 @@ export const useUserListEntitlementTargets = <TError = ErrorType<ErrorResponseRe
 }
 
 /**
- * Gets all requests availiable
+ * Verify and validate a collection of request items
+ * @summary Submit Preflight
+ */
+export const userRequestPreflight = (
+    createPreflightRequestBody: CreatePreflightRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<Preflight>(
+      {url: `/api/v1/preflight`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: createPreflightRequestBody
+    },
+      options);
+    }
+  
+
+/**
+ * Lists requests where the user is a reviewer
+ * @summary List Reviews
+ */
+export const userListReviews = (
+    params?: UserListReviewsParams,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ListRequestsResponseResponse>(
+      {url: `/api/v1/reviews`, method: 'get',
+        params
+    },
+      options);
+    }
+  
+
+export const getUserListReviewsKey = (params?: UserListReviewsParams,) => [`/api/v1/reviews`, ...(params ? [params]: [])];
+
+    
+export type UserListReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof userListReviews>>>
+export type UserListReviewsQueryError = ErrorType<ErrorResponseResponse>
+
+export const useUserListReviews = <TError = ErrorType<ErrorResponseResponse>>(
+ params?: UserListReviewsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListReviews>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
+
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListReviewsKey(params) : null);
+  const swrFn = () => userListReviews(params, requestOptions);
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+
+/**
+ * Lists a users own requests
  * @summary List Requests
  */
 export const userListRequests = (
@@ -243,28 +257,12 @@ export const useUserListRequests = <TError = ErrorType<ErrorResponseResponse>>(
  * Initiates the granting process for a group of requests
  */
 export const userPostRequests = (
-    createRequestPreflightBody: CreateRequestPreflightBody,
+    createAccessRequestRequestBody: CreateAccessRequestRequestBody,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<void>(
+      return customInstance<Request>(
       {url: `/api/v1/requests`, method: 'post',
       headers: {'Content-Type': 'application/json', },
-      data: createRequestPreflightBody
-    },
-      options);
-    }
-  
-
-/**
- * Verify and validate a collection of request items
- * @summary Submit Preflight
- */
-export const userRequestPreflight = (
-    createPreflightRequestBody: CreatePreflightRequestBody,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Preflight>(
-      {url: `/api/v1/preflight`, method: 'post',
-      headers: {'Content-Type': 'application/json', },
-      data: createPreflightRequestBody
+      data: createAccessRequestRequestBody
     },
       options);
     }
@@ -381,87 +379,6 @@ export const useUserGetRequestAccessGroup = <TError = ErrorType<ErrorResponseRes
   const isEnabled = swrOptions?.enabled !== false && !!(requestId && groupId)
     const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestAccessGroupKey(requestId,groupId) : null);
   const swrFn = () => userGetRequestAccessGroup(requestId,groupId, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * List all grants for a request access group
- * @summary List Request Access Group Grants
- */
-export const userListRequestAccessGroupGrants = (
-    groupId: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<ListGrantsResponseResponse>(
-      {url: `/api/v1/groups/${groupId}/grants`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getUserListRequestAccessGroupGrantsKey = (groupId: string,) => [`/api/v1/groups/${groupId}/grants`];
-
-    
-export type UserListRequestAccessGroupGrantsQueryResult = NonNullable<Awaited<ReturnType<typeof userListRequestAccessGroupGrants>>>
-export type UserListRequestAccessGroupGrantsQueryError = ErrorType<ErrorResponseResponse>
-
-export const useUserListRequestAccessGroupGrants = <TError = ErrorType<ErrorResponseResponse>>(
- groupId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userListRequestAccessGroupGrants>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(groupId)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserListRequestAccessGroupGrantsKey(groupId) : null);
-  const swrFn = () => userListRequestAccessGroupGrants(groupId, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-
-/**
- * Gets a request access group grant
- * @summary Get Request Access Group Grant
- */
-export const userGetRequestAccessGroupGrant = (
-    gid: string,
-    grantid: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<RequestAccessGroupGrant>(
-      {url: `/api/v1/groups/${gid}/grants${grantid}`, method: 'get'
-    },
-      options);
-    }
-  
-
-export const getUserGetRequestAccessGroupGrantKey = (gid: string,
-    grantid: string,) => [`/api/v1/groups/${gid}/grants${grantid}`];
-
-    
-export type UserGetRequestAccessGroupGrantQueryResult = NonNullable<Awaited<ReturnType<typeof userGetRequestAccessGroupGrant>>>
-export type UserGetRequestAccessGroupGrantQueryError = ErrorType<ErrorResponseResponse>
-
-export const useUserGetRequestAccessGroupGrant = <TError = ErrorType<ErrorResponseResponse>>(
- gid: string,
-    grantid: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetRequestAccessGroupGrant>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
-
-  ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(gid && grantid)
-    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetRequestAccessGroupGrantKey(gid,grantid) : null);
-  const swrFn = () => userGetRequestAccessGroupGrant(gid,grantid, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

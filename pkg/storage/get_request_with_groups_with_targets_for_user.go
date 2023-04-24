@@ -16,12 +16,14 @@ type GetRequestWithGroupsWithTargetsForUser struct {
 
 func (g *GetRequestWithGroupsWithTargetsForUser) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
-		IndexName:              &keys.IndexNames.GSI1,
-		KeyConditionExpression: aws.String("GSI1PK = :pk1 and begins_with(GSI1SK, :sk1)"),
+		// Note that no limit(1) is used here because we need to fetch more that one items to read the whole request
+		KeyConditionExpression: aws.String("PK = :pk1 and begins_with(SK, :sk1)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1PK(g.UserID)},
-			":sk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.GSI1SK(g.RequestID)},
+			":pk1":         &types.AttributeValueMemberS{Value: keys.AccessRequest.PK1},
+			":sk1":         &types.AttributeValueMemberS{Value: keys.AccessRequest.SK1(g.RequestID)},
+			":requestedBy": &types.AttributeValueMemberS{Value: g.UserID},
 		},
+		FilterExpression: aws.String("requestedBy = :requestedBy"),
 	}
 
 	return qi, nil

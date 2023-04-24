@@ -5,7 +5,8 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import type { TargetKind } from './targetKind';
 
-export interface Resource {
-  id?: string;
-}
+export type ListEntitlementsResponseResponse = {
+  entitlements?: TargetKind[];
+};

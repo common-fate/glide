@@ -10,14 +10,12 @@
  * The status of an Access Request.
 
  */
-export type GrantStatus = typeof GrantStatus[keyof typeof GrantStatus];
+export type RequestAccessGroupStatus = typeof RequestAccessGroupStatus[keyof typeof RequestAccessGroupStatus];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const GrantStatus = {
-  PENDING: 'PENDING',
-  ACTIVE: 'ACTIVE',
-  ERROR: 'ERROR',
-  REVOKED: 'REVOKED',
-  EXPIRED: 'EXPIRED',
+export const RequestAccessGroupStatus = {
+  DECLINED: 'DECLINED',
+  APPROVED: 'APPROVED',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
 } as const;

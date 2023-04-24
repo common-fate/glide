@@ -11,7 +11,7 @@
 
 The `instructions` field will be null if no instructions are available.
  */
-export interface AccessInstructions {
+export interface RequestAccessGroupTargetAccessInstructions {
   /** Instructions on how to access the role or resource. */
   instructions?: string;
 }

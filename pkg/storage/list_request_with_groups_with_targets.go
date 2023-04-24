@@ -10,13 +10,14 @@ import (
 )
 
 type ListRequestWithGroupsWithTargets struct {
-	Result []access.RequestWithGroupsWithTargets
+	Result []access.RequestWithGroupsWithTargets `ddb:"result"`
 }
 
 var _ ddb.QueryOutputUnmarshalerWithPagination = &ListRequestWithGroupsWithTargets{}
 
 func (g *ListRequestWithGroupsWithTargets) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
+		ScanIndexForward:       aws.Bool(false),
 		KeyConditionExpression: aws.String("PK = :pk1"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk1": &types.AttributeValueMemberS{Value: keys.AccessRequest.PK1},
@@ -27,7 +28,7 @@ func (g *ListRequestWithGroupsWithTargets) BuildQuery() (*dynamodb.QueryInput, e
 }
 
 func (g *ListRequestWithGroupsWithTargets) UnmarshalQueryOutputWithPagination(out *dynamodb.QueryOutput) (map[string]types.AttributeValue, error) {
-	result, pagination, err := UnmarshalRequests(out.Items)
+	result, pagination, err := UnmarshalRequestsBottomToTop(out.Items)
 	if err != nil {
 		return nil, err
 	}
