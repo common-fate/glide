@@ -9,12 +9,15 @@ import (
 )
 
 func TestListRequestEvents(t *testing.T) {
-	s := newTestingStorage(t)
-
+	ts := newTestingStorage(t)
+	err := ts.deleteAll()
+	if err != nil {
+		t.Fatal(err)
+	}
 	reqID := types.NewRequestID()
 	re1 := access.RequestEvent{ID: types.NewHistoryID(), RequestID: reqID}
 	re2 := access.RequestEvent{ID: types.NewHistoryID(), RequestID: reqID}
-	ddbtest.PutFixtures(t, s, []*access.RequestEvent{&re1, &re2})
+	ddbtest.PutFixtures(t, ts.db, []*access.RequestEvent{&re1, &re2})
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -24,5 +27,5 @@ func TestListRequestEvents(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, s, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

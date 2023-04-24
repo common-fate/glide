@@ -34,7 +34,6 @@ func TestGovListAccessRules(t *testing.T) {
 			rules: []rule.AccessRule{
 				{
 					ID:          "rule1",
-					Status:      rule.ACTIVE,
 					Description: "string",
 					Name:        "string",
 					Groups:      []string{"string"},
@@ -49,7 +48,6 @@ func TestGovListAccessRules(t *testing.T) {
 				},
 				{
 					ID:          "rule2",
-					Status:      rule.ACTIVE,
 					Description: "string",
 					Name:        "string",
 					Groups:      []string{"string"},
@@ -125,7 +123,6 @@ func TestGovCreateAccessRule(t *testing.T) {
 			give: `{"target":{"providerId":"string","with":{}},"timeConstraints":{"maxDurationSeconds": 60},"groups":["string"],"name":"string","description":"string","approval":{"groups":[],"users":[]}}`,
 			mockCreate: &rule.AccessRule{
 				ID:          "rule1",
-				Status:      rule.ACTIVE,
 				Description: "string",
 				Name:        "string",
 				Groups:      []string{"string"},

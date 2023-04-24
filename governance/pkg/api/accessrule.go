@@ -19,34 +19,22 @@ import (
 func (a *API) GovListAccessRules(w http.ResponseWriter, r *http.Request, params gov_types.GovListAccessRulesParams) {
 	ctx := r.Context()
 
-	var err error
-	var rules []rule.AccessRule
-
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
 	if params.NextToken != nil {
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	if params.Status != nil {
-		q := storage.ListAccessRulesForStatus{Status: rule.Status(*params.Status)}
-		_, err = a.DB.Query(ctx, &q, queryOpts...)
-		rules = q.Result
-	} else {
-		q := storage.ListAccessRules{}
-		_, err = a.DB.Query(ctx, &q, queryOpts...)
-		rules = q.Result
-	}
-	// don't return an error response when there are not rules
-	if err != nil && err != ddb.ErrNoItems {
+	q := storage.ListAccessRules{}
+	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-
 	res := types.ListAccessRulesResponse{
-		AccessRules: make([]types.AccessRule, len(rules)),
+		AccessRules: []types.AccessRule{},
 	}
-	for i, r := range rules {
-		res.AccessRules[i] = r.ToAPI()
+	for _, r := range q.Result {
+		res.AccessRules = append(res.AccessRules, r.ToAPI())
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

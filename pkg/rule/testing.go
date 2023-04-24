@@ -15,7 +15,6 @@ func TestAccessRule(opt ...func(*AccessRule)) AccessRule {
 		Approval: Approval{
 			Users: []string{userID},
 		},
-		Status:      ACTIVE,
 		Description: "a test rule",
 		Groups:      []string{"testers"},
 		ID:          types.NewAccessRuleID(),
@@ -47,12 +46,5 @@ func WithGroups(groups ...string) func(*AccessRule) {
 func WithName(name string) func(*AccessRule) {
 	return func(ar *AccessRule) {
 		ar.Name = name
-	}
-}
-
-// WithStatus sets the status of the AccessRule.
-func WithStatus(status Status) func(*AccessRule) {
-	return func(ar *AccessRule) {
-		ar.Status = status
 	}
 }

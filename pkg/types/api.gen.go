@@ -24,12 +24,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Defines values for AccessRuleStatus.
-const (
-	AccessRuleStatusACTIVE   AccessRuleStatus = "ACTIVE"
-	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
-)
-
 // Defines values for IdpStatus.
 const (
 	IdpStatusACTIVE   IdpStatus = "ACTIVE"
@@ -38,9 +32,9 @@ const (
 
 // Defines values for LogLevel.
 const (
-	LogLevelERROR   LogLevel = "ERROR"
-	LogLevelINFO    LogLevel = "INFO"
-	LogLevelWARNING LogLevel = "WARNING"
+	ERROR   LogLevel = "ERROR"
+	INFO    LogLevel = "INFO"
+	WARNING LogLevel = "WARNING"
 )
 
 // Defines values for RequestAccessGroupApprovalMethod.
@@ -92,10 +86,8 @@ type AccessRule struct {
 	ID       string             `json:"id"`
 	Metadata AccessRuleMetadata `json:"metadata"`
 	Name     string             `json:"name"`
-
-	// The status of an Access Rule.
-	Status  AccessRuleStatus   `json:"status"`
-	Targets []AccessRuleTarget `json:"targets"`
+	Priority float32            `json:"priority"`
+	Targets  []AccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
@@ -117,9 +109,6 @@ type AccessRuleMetadata struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 	UpdatedBy     string    `json:"updatedBy"`
 }
-
-// The status of an Access Rule.
-type AccessRuleStatus string
 
 // a request body for an Access Rule Target
 type AccessRuleTarget struct {
@@ -497,9 +486,10 @@ type CreateAccessRuleRequest struct {
 	Description string                   `json:"description"`
 
 	// The group IDs that the access rule applies to.
-	Groups  []string                 `json:"groups"`
-	Name    string                   `json:"name"`
-	Targets []CreateAccessRuleTarget `json:"targets"`
+	Groups   []string                 `json:"groups"`
+	Name     string                   `json:"name"`
+	Priority float32                  `json:"priority"`
+	Targets  []CreateAccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
@@ -560,15 +550,9 @@ type ReviewRequest struct {
 
 // AdminListAccessRulesParams defines parameters for AdminListAccessRules.
 type AdminListAccessRulesParams struct {
-	// Filter Access Rules by a particular status.
-	Status *AdminListAccessRulesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
-
 	// Next page token
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
-
-// AdminListAccessRulesParamsStatus defines parameters for AdminListAccessRules.
-type AdminListAccessRulesParamsStatus string
 
 // AdminListGroupsParams defines parameters for AdminListGroups.
 type AdminListGroupsParams struct {
@@ -812,6 +796,9 @@ type ClientInterface interface {
 
 	AdminCreateAccessRule(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminDeleteAccessRule request
+	AdminDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetAccessRule request
 	AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -819,9 +806,6 @@ type ClientInterface interface {
 	AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminArchiveAccessRule request
-	AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminGetDeploymentVersion request
 	AdminGetDeploymentVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -985,6 +969,18 @@ func (c *Client) AdminCreateAccessRule(ctx context.Context, body AdminCreateAcce
 	return c.Client.Do(req)
 }
 
+func (c *Client) AdminDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteAccessRuleRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
@@ -1011,18 +1007,6 @@ func (c *Client) AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId strin
 
 func (c *Client) AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminUpdateAccessRuleRequest(c.Server, ruleId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminArchiveAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
 		return nil, err
 	}
@@ -1594,22 +1578,6 @@ func NewAdminListAccessRulesRequest(server string, params *AdminListAccessRulesP
 
 	queryValues := queryURL.Query()
 
-	if params.Status != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
 	if params.NextToken != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
@@ -1672,6 +1640,40 @@ func NewAdminCreateAccessRuleRequestWithBody(server string, contentType string, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminDeleteAccessRuleRequest generates requests for AdminDeleteAccessRule
+func NewAdminDeleteAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -1753,40 +1755,6 @@ func NewAdminUpdateAccessRuleRequestWithBody(server string, ruleId string, conte
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewAdminArchiveAccessRuleRequest generates requests for AdminArchiveAccessRule
-func NewAdminArchiveAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s/archive", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -3250,6 +3218,9 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateAccessRuleWithResponse(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error)
 
+	// AdminDeleteAccessRule request
+	AdminDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminDeleteAccessRuleResponse, error)
+
 	// AdminGetAccessRule request
 	AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error)
 
@@ -3257,9 +3228,6 @@ type ClientWithResponsesInterface interface {
 	AdminUpdateAccessRuleWithBodyWithResponse(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
 
 	AdminUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
-
-	// AdminArchiveAccessRule request
-	AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error)
 
 	// AdminGetDeploymentVersion request
 	AdminGetDeploymentVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetDeploymentVersionResponse, error)
@@ -3449,6 +3417,36 @@ func (r AdminCreateAccessRuleResponse) StatusCode() int {
 	return 0
 }
 
+type AdminDeleteAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AdminGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -3496,37 +3494,6 @@ func (r AdminUpdateAccessRuleResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AdminUpdateAccessRuleResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminArchiveAccessRuleResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AccessRule
-	JSON401      *struct {
-		Error string `json:"error"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminArchiveAccessRuleResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminArchiveAccessRuleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4571,6 +4538,15 @@ func (c *ClientWithResponses) AdminCreateAccessRuleWithResponse(ctx context.Cont
 	return ParseAdminCreateAccessRuleResponse(rsp)
 }
 
+// AdminDeleteAccessRuleWithResponse request returning *AdminDeleteAccessRuleResponse
+func (c *ClientWithResponses) AdminDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminDeleteAccessRuleResponse, error) {
+	rsp, err := c.AdminDeleteAccessRule(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteAccessRuleResponse(rsp)
+}
+
 // AdminGetAccessRuleWithResponse request returning *AdminGetAccessRuleResponse
 func (c *ClientWithResponses) AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error) {
 	rsp, err := c.AdminGetAccessRule(ctx, ruleId, reqEditors...)
@@ -4595,15 +4571,6 @@ func (c *ClientWithResponses) AdminUpdateAccessRuleWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseAdminUpdateAccessRuleResponse(rsp)
-}
-
-// AdminArchiveAccessRuleWithResponse request returning *AdminArchiveAccessRuleResponse
-func (c *ClientWithResponses) AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error) {
-	rsp, err := c.AdminArchiveAccessRule(ctx, ruleId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminArchiveAccessRuleResponse(rsp)
 }
 
 // AdminGetDeploymentVersionWithResponse request returning *AdminGetDeploymentVersionResponse
@@ -5101,6 +5068,52 @@ func ParseAdminCreateAccessRuleResponse(rsp *http.Response) (*AdminCreateAccessR
 	return response, nil
 }
 
+// ParseAdminDeleteAccessRuleResponse parses an HTTP response from a AdminDeleteAccessRuleWithResponse call
+func ParseAdminDeleteAccessRuleResponse(rsp *http.Response) (*AdminDeleteAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAdminGetAccessRuleResponse parses an HTTP response from a AdminGetAccessRuleWithResponse call
 func ParseAdminGetAccessRuleResponse(rsp *http.Response) (*AdminGetAccessRuleResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -5174,59 +5187,6 @@ func ParseAdminUpdateAccessRuleResponse(rsp *http.Response) (*AdminUpdateAccessR
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminArchiveAccessRuleResponse parses an HTTP response from a AdminArchiveAccessRuleWithResponse call
-func ParseAdminArchiveAccessRuleResponse(rsp *http.Response) (*AdminArchiveAccessRuleResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminArchiveAccessRuleResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessRule
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
 
 	}
 
@@ -6771,15 +6731,15 @@ type ServerInterface interface {
 	// Create Access Rule
 	// (POST /api/v1/admin/access-rules)
 	AdminCreateAccessRule(w http.ResponseWriter, r *http.Request)
+	// Delete Access Rule
+	// (DELETE /api/v1/admin/access-rules/{ruleId})
+	AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Get Access Rule
 	// (GET /api/v1/admin/access-rules/{ruleId})
 	AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Update Access Rule
 	// (PUT /api/v1/admin/access-rules/{ruleId})
 	AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
-	// Archive Access Rule
-	// (POST /api/v1/admin/access-rules/{ruleId}/archive)
-	AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Get deployment version details
 	// (GET /api/v1/admin/deployment/version)
 	AdminGetDeploymentVersion(w http.ResponseWriter, r *http.Request)
@@ -6905,17 +6865,6 @@ func (siw *ServerInterfaceWrapper) AdminListAccessRules(w http.ResponseWriter, r
 	// Parameter object where we will unmarshal all parameters from the context
 	var params AdminListAccessRulesParams
 
-	// ------------- Optional query parameter "status" -------------
-	if paramValue := r.URL.Query().Get("status"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "status", r.URL.Query(), &params.Status)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
-		return
-	}
-
 	// ------------- Optional query parameter "nextToken" -------------
 	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
 
@@ -6944,6 +6893,32 @@ func (siw *ServerInterfaceWrapper) AdminCreateAccessRule(w http.ResponseWriter, 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminCreateAccessRule(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminDeleteAccessRule operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameter("simple", false, "ruleId", chi.URLParam(r, "ruleId"), &ruleId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -6996,32 +6971,6 @@ func (siw *ServerInterfaceWrapper) AdminUpdateAccessRule(w http.ResponseWriter, 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateAccessRule(w, r, ruleId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminArchiveAccessRule operation middleware
-func (siw *ServerInterfaceWrapper) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "ruleId" -------------
-	var ruleId string
-
-	err = runtime.BindStyledParameter("simple", false, "ruleId", chi.URLParam(r, "ruleId"), &ruleId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminArchiveAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8023,13 +7972,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/access-rules", wrapper.AdminCreateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminDeleteAccessRule)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminGetAccessRule)
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminUpdateAccessRule)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}/archive", wrapper.AdminArchiveAccessRule)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/deployment/version", wrapper.AdminGetDeploymentVersion)
@@ -8143,120 +8092,119 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"AwAA//8xgXlwQKMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

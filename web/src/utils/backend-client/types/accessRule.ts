@@ -25,4 +25,5 @@ export interface AccessRule {
   groups: string[];
   approval: AccessRuleApproverConfig;
   metadata: AccessRuleMetadata;
+  priority: number;
 }

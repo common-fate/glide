@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 
 	g := identity.Group{
 		ID:     ksuid.New().String(),
@@ -19,7 +19,7 @@ func TestGetGroup(t *testing.T) {
 		IdpID:  "a",
 		Status: types.IdpStatusACTIVE,
 	}
-	ddbtest.PutFixtures(t, db, &g)
+	ddbtest.PutFixtures(t, ts.db, &g)
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -34,5 +34,5 @@ func TestGetGroup(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }
