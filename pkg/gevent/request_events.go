@@ -9,7 +9,7 @@ const (
 	RequestDeclinedType  = "request.declined"
 )
 
-// RequestCreated is emitted when a user requests access
+// RequestCreated is emitted for each access group in a request
 // to something in the Common Fate service.
 type RequestCreated struct {
 	Request        access.Request `json:"request"`

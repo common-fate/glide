@@ -88,5 +88,5 @@ func (GrantFailed) EventType() string {
 // all Grant events. It is used to conveniently unmarshal
 // the Grant payloads in our event handler code.
 type GrantEventPayload struct {
-	Request string `json:"request"`
+	Request access.Request `json:"request"`
 }

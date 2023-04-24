@@ -27,7 +27,7 @@ func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchE
 	log := zap.S().With("event", event)
 	log.Info("received event from eventbridge")
 	if strings.HasPrefix(event.DetailType, "grant") {
-		err = n.HandleGrantsForRequest(ctx, log, event)
+		err = n.HandleGrantsForRequestGroup(ctx, log, event)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchE
 	return nil
 }
 
-func (n *EventHandler) HandleGrantsForRequest(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
+func (n *EventHandler) HandleGrantsForRequestGroup(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
 	var grantEvent gevent.GrantEventPayload
 	err := json.Unmarshal(event.Detail, &grantEvent)
 	if err != nil {
