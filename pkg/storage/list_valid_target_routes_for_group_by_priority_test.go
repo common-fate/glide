@@ -1,18 +1,16 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb/ddbtest"
-	"github.com/stretchr/testify/assert"
 )
 
 // This test asserts that ordering is from highest to lowest and that only valid routes are returned
 func TestListValidTargetRoutesForGroupByPriority(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 	groupID := types.NewGroupID()
 	r1 := target.Route{
 		Group:    groupID,
@@ -35,11 +33,17 @@ func TestListValidTargetRoutesForGroupByPriority(t *testing.T) {
 		Priority: 200,
 		Valid:    false,
 	}
-	ddbtest.PutFixtures(t, db, []target.Route{r1, r2, r3})
-	q := &ListValidTargetRoutesForGroupByPriority{
-		Group: groupID,
+	ddbtest.PutFixtures(t, ts.db, []target.Route{r1, r2, r3})
+
+	tc := []ddbtest.QueryTestCase{
+		{
+			Name: "ok, invalid route is excluded",
+			Query: &ListValidTargetRoutesForGroupByPriority{
+				Group: groupID,
+			},
+			Want: &ListValidTargetRoutesForGroupByPriority{Group: groupID, Result: []target.Route{r2, r1}},
+		},
 	}
-	_, err := db.Query(context.TODO(), q)
-	assert.NoError(t, err)
-	assert.Equal(t, []target.Route{r2, r1}, q.Result)
+
+	ddbtest.RunQueryTests(t, ts.db, tc, ddbtest.WithAssertResultsOrder(true))
 }

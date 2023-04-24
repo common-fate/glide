@@ -33,7 +33,7 @@ func (s *Service) RegisterHandler(ctx context.Context, req types.RegisterHandler
 		Healthy:    false,
 		Diagnostics: []handler.Diagnostic{
 			{
-				Level:   types.LogLevelINFO,
+				Level:   types.INFO,
 				Message: "offline: lambda cannot be reached/invoked",
 			},
 		},

@@ -18,19 +18,19 @@ type GetAccessRule struct {
 func (g *GetAccessRule) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		Limit:                  aws.Int32(1),
-		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.PK1},
-			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.SK1(g.ID)},
+			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.SK1ID(g.ID)},
 		},
 	}
 	return qi, nil
 }
 
-func (g *GetAccessRule) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetAccessRule) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	if len(out.Items) != 1 {
-		return ddb.ErrNoItems
+		return nil, ddb.ErrNoItems
 	}
 
-	return attributevalue.UnmarshalMap(out.Items[0], &g.Result)
+	return &ddb.UnmarshalResult{}, attributevalue.UnmarshalMap(out.Items[0], &g.Result)
 }

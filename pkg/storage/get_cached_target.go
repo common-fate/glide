@@ -26,9 +26,9 @@ func (l *GetCachedTarget) BuildQuery() (*dynamodb.QueryInput, error) {
 	}
 	return &qi, nil
 }
-func (q *GetCachedTarget) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (q *GetCachedTarget) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	if len(out.Items) != 1 {
-		return ddb.ErrNoItems
+		return nil, ddb.ErrNoItems
 	}
-	return attributevalue.UnmarshalMap(out.Items[0], &q.Result)
+	return &ddb.UnmarshalResult{}, attributevalue.UnmarshalMap(out.Items[0], &q.Result)
 }

@@ -150,56 +150,6 @@ jobs:
         run: pnpm test-ct
         working-directory: web
 
-  test-accesshandler: #consider using a matrix test or a test runner command
-    permissions:
-      id-token: write
-      contents: read
-    name: Test Access Handler
-    runs-on: ubuntu-latest
-    env:
-      COMMONFATE_INTEGRATION_TEST: true
-      COMMONFATE_PROVIDER_CONFIG: "${{ secrets.INTEGRATION_TESTING_PROVIDER_CONFIG }}"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: "1.19.0"
-          cache: true
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-region: ap-southeast-2
-          role-to-assume: "${{ secrets.AWS_SANDBOX_INTEGRATION_TESTING_ROLE_ARN }}"
-      - name: generate fixtures okta
-        run: go run accesshandler/cmd/gdk/main.go fixtures create --name okta --path accesshandler/fixtures
-      - name: test okta
-        run: go test ./accesshandler/pkg/providers/okta
-      - name: destroy fixtures
-        if: always() #always destroy the fixture even if the test fails
-        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name okta --path accesshandler/fixtures
-
-      - name: generate fixtures azure
-        run: go run accesshandler/cmd/gdk/main.go fixtures create --name azure --path accesshandler/fixtures
-      - name: test azure
-        run: go test ./accesshandler/pkg/providers/azure/ad
-      - name: destroy fixtures
-        if: always() #always destroy the fixture even if the test fails
-        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name azure --path accesshandler/fixtures
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-region: ap-southeast-2
-          role-to-assume: "${{ secrets.AWS_SANDBOX_INTEGRATION_TESTING_ROLE_ARN }}"
-      - name: generate fixtures aws-sso
-        run: go run accesshandler/cmd/gdk/main.go fixtures create --name aws-sso-v2 --path accesshandler/fixtures
-      - name: test aws-sso-v2
-        run: go test ./accesshandler/pkg/providers/aws/sso-v2
-      - name: destroy fixtures
-        if: always() #always destroy the fixture even if the test fails
-        run: go run accesshandler/cmd/gdk/main.go fixtures destroy --name aws-sso-v2 --path accesshandler/fixtures
   test-identity-provider:
     permissions:
       id-token: write

@@ -109,7 +109,6 @@ func TestGroupTargets(t *testing.T) {
 			},
 			mockGetAccessRule1: rule.AccessRule{
 				ID:          "rule1",
-				Status:      rule.ACTIVE,
 				Description: "string",
 				Name:        "string",
 				Groups:      []string{"string"},
@@ -122,7 +121,6 @@ func TestGroupTargets(t *testing.T) {
 			},
 			mockGetAccessRule2: rule.AccessRule{
 				ID:          "rule2",
-				Status:      rule.ACTIVE,
 				Description: "string",
 				Name:        "string",
 				Groups:      []string{"string"},

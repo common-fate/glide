@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/access"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestListRequestWithGroupsWithTargetsForUserAndPastUpcoming(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 	rid := "req_abcd"
 	gid := "grp_abcd"
 	tid := "gta_abcd"
@@ -40,11 +39,11 @@ func TestListRequestWithGroupsWithTargetsForUserAndPastUpcoming(t *testing.T) {
 	group4 := access.Group{ID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
 	target4 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.ACTIVE}
 	// cleanup before the test
-	err := deleteAllRequests(context.Background(), db)
+	err := ts.deleteAll()
 	if err != nil {
 		t.Fatal(err)
 	}
-	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2, &req3, &group3, &target3, &req4, &group4, &target4})
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2, &req3, &group3, &target3, &req4, &group4, &target4})
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -113,5 +112,5 @@ func TestListRequestWithGroupsWithTargetsForUserAndPastUpcoming(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

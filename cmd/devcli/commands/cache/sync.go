@@ -111,8 +111,7 @@ var targetsCommand = cli.Command{
 		}}
 
 		ar := rule.AccessRule{
-			ID:     "demo-rule",
-			Status: rule.ACTIVE,
+			ID: "demo-rule",
 			Targets: []rule.Target{
 				{
 					TargetGroup: *q.Result,

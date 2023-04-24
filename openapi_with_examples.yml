@@ -9,6 +9,46 @@ info:
 servers:
   - url: "http://localhost:8080"
 paths:
+  "/api/v1/requests/{requestId}/review":
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+    post:
+      summary: Review a request
+      operationId: user-review-request
+      responses:
+        "200":
+          $ref: "#/components/responses/ReviewResponse"
+      tags:
+        - End User
+      description: "Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule."
+      requestBody:
+        $ref: "#/components/requestBodies/ReviewRequest"
+  "/api/v1/requests/{requestid}/revoke":
+    parameters:
+      - schema:
+          type: string
+        name: requestid
+        in: path
+        required: true
+    post:
+      summary: Revoke an active request
+      operationId: user-revoke-request
+      responses:
+        "200":
+          description: OK
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      tags:
+        - End User
+      description: "Admins and approvers can revoke access previously approved. Effective immediately "
   "/api/v1/users/{userId}":
     parameters:
       - schema:
@@ -71,6 +111,14 @@ paths:
       operationId: admin-list-access-rules
       description: List all access rules
       parameters:
+        - schema:
+            type: string
+            enum:
+              - ACTIVE
+              - ARCHIVED
+          in: query
+          name: status
+          description: Filter Access Rules by a particular status.
         - schema:
             type: string
           in: query
@@ -147,18 +195,34 @@ paths:
       description: Updates an Access Rule. Updating a rule creates a new version.
       tags:
         - Admin
-    delete:
-      summary: Delete Access Rule
-      operationId: admin-delete-access-rule
+  "/api/v1/admin/access-rules/{ruleId}/archive":
+    parameters:
+      - schema:
+          type: string
+        name: ruleId
+        in: path
+        required: true
+    post:
+      summary: Archive Access Rule
+      operationId: admin-archive-access-rule
+      tags:
+        - Admin
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessRule"
         "401":
           $ref: "#/components/responses/ErrorResponse"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
+      description: |-
+        Marks an access rule as archived.
+        Any pending requests for this access rule will be cancelled.
   /api/v1/admin/requests:
     get:
       summary: Your GET endpoint
@@ -173,11 +237,10 @@ paths:
         - schema:
             type: string
             enum:
+              - APPROVED
+              - DECLINED
               - CANCELLED
               - PENDING
-              - COMPLETE
-              - ACTIVE
-              - REVOKED
           in: query
           description: omit this param to view all results
           name: status
@@ -651,13 +714,60 @@ paths:
       tags: []
       responses:
         "200":
-          $ref: "#/components/responses/ListEntitlementsResponse"
+          $ref: "#/components/responses/ListTargetGroupResponse"
         "500":
           $ref: "#/components/responses/ErrorResponse"
       operationId: user-list-entitlements
       description: |-
         List all entitlement kinds configured in Common Fate.
         These are derived from the Target Groups.
+  /api/v1/entitlements/resources:
+    get:
+      summary: List Entitlement Resources
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListResourcesResponse"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-entitlement-resources
+      description: List all resources for a given entitlement and resource type
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: kind
+          description: The kind of the entitlement
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: publisher
+          description: The publisher of the provider
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: name
+          description: The name of provider
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: version
+          description: The version of the provider
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: resourceType
+          description: The type of resource to list
+          required: true
+    parameters: []
   /api/v1/entitlements/targets:
     get:
       summary: List Entitlement Resources
@@ -679,14 +789,88 @@ paths:
           in: query
           name: nextToken
           description: query
+    parameters: []
+  /api/v1/requests:
+    get:
+      summary: List Requests
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequestsResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-requests
+      description: Gets all requests availiable
+      parameters:
         - schema:
             type: string
-            pattern: '^[a-zA-Z0-9-]{1,}\/[a-zA-Z0-9-]{1,}\/[a-zA-Z0-9-]{1,}$'
-            example: publisher/name/kind
+            enum:
+              - APPROVED
+              - DECLINED
+              - CANCELLED
+              - PENDING
           in: query
-          name: kind
-          description: filter targets by kind
+          name: status
+          description: omit this param to view all results
+        - schema:
+            type: boolean
+          in: query
+          name: reviewer
+          description: "show requests that the user is a reviewer for, rather than requests that the user has made themselves"
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
     parameters: []
+    post:
+      summary: ""
+      operationId: user-post-requests
+      responses:
+        "200":
+          description: OK
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      description: Initiates the granting process for a group of requests
+      requestBody:
+        $ref: "#/components/requestBodies/CreateRequestPreflight"
+  /api/v1/requests/upcoming:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - End User
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequestsResponse"
+      operationId: user-list-requests-upcoming
+      description: Display pending requests and approved requests that are currently active or scheduled to begin some time in future.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          description: encrypted token containing pagination info
+          name: nextToken
+  /api/v1/requests/past:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - End User
+      responses:
+        "200":
+          $ref: "#/components/responses/ListRequestsResponse"
+      operationId: user-list-requests-past
+      description: |
+        Display show cancelled, expired, and revoked requests.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: nextToken
+          description: encrypted token containing pagination info
   /api/v1/preflight:
     parameters: []
     post:
@@ -780,158 +964,6 @@ paths:
       description: Verify and validate a collection of request items
       requestBody:
         $ref: "#/components/requestBodies/CreatePreflightRequest"
-  /api/v1/reviews:
-    get:
-      summary: List Reviews
-      tags: []
-      responses:
-        "200":
-          $ref: "#/components/responses/ListRequestsResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      operationId: user-list-reviews
-      description: Lists requests where the user is a reviewer
-      parameters:
-        - schema:
-            type: string
-            enum:
-              - CANCELLED
-              - PENDING
-              - COMPLETE
-              - ACTIVE
-              - REVOKED
-          in: query
-          name: status
-          description: omit this param to view all results
-        - schema:
-            type: string
-          in: query
-          name: nextToken
-          description: pagination token
-    parameters: []
-  /api/v1/requests:
-    get:
-      summary: List Requests
-      tags: []
-      responses:
-        "200":
-          $ref: "#/components/responses/ListRequestsResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      operationId: user-list-requests
-      description: Lists a users own requests
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: nextToken
-          description: pagination token
-        - schema:
-            type: string
-            enum:
-              - UPCOMING
-              - PAST
-          in: query
-          name: filter
-          description: filter for past or upcoming requests
-    parameters: []
-    post:
-      summary: ""
-      operationId: user-post-requests
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Request"
-              examples:
-                ex_1:
-                  value:
-                    id: example
-                    purpose:
-                      reason: string
-                    accessGroups:
-                      - id: string
-                        requestId: string
-                        status: DECLINED
-                        time:
-                          durationSeconds: 0
-                          startTime: "14:15:22Z"
-                        overrideTiming:
-                          durationSeconds: 0
-                          startTime: "14:15:22Z"
-                        updatedAt: string
-                        createdAt: string
-                        targets:
-                          - id: string
-                            requestId: string
-                            accessGroupId: string
-                            targetGroupId: string
-                            targetGroupFrom:
-                              publisher: string
-                              name: string
-                              version: string
-                              kind: string
-                            fields:
-                              - id: string
-                                fieldTitle: string
-                                fieldDescription: string
-                                valueLabel: string
-                                valueDescription: string
-                                value: string
-                            status: PENDING_PROVISIONING
-                        approvalMethod: AUTOMATIC
-                    requestedBy: string
-                    requestedAt: "14:15:22Z"
-                    status: CANCELLED
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      description: Initiates the granting process for a group of requests
-      requestBody:
-        $ref: "#/components/requestBodies/CreateAccessRequestRequest"
-  "/api/v1/requests/{requestId}/review":
-    parameters:
-      - schema:
-          type: string
-        name: requestId
-        in: path
-        required: true
-    post:
-      summary: Review a request
-      operationId: user-review-request
-      responses:
-        "200":
-          $ref: "#/components/responses/ReviewResponse"
-      tags:
-        - End User
-      description: "Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule."
-      requestBody:
-        $ref: "#/components/requestBodies/ReviewRequest"
-  "/api/v1/requests/{requestid}/revoke":
-    parameters:
-      - schema:
-          type: string
-        name: requestid
-        in: path
-        required: true
-    post:
-      summary: Revoke an active request
-      operationId: user-revoke-request
-      responses:
-        "200":
-          description: OK
-        "400":
-          $ref: "#/components/responses/ErrorResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      tags:
-        - End User
-      description: "Admins and approvers can revoke access previously approved. Effective immediately "
   "/api/v1/requests/{requestId}":
     get:
       summary: Get Request
@@ -943,6 +975,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Preflight"
+              examples:
+                example_1:
+                  value:
+                    id: "123489"
+                    context:
+                      purpose:
+                        reason: Need to deploy the content to the production
+                      context:
+                        ip: 255.255.255.255
+                        userAgent: macos-ventura-12.03
+                      metadata:
+                        createdAt: "12-12-12T:12:12:12"
+                    user:
+                      id: "123"
+                      email: chris@commonfate.io
+                      firstName: Chris
+                      lastName: Norman
+                      picture: "https://avatars.githubusercontent.com/u/17420369?v=4"
+                      status: ACTIVE
+                      updatedAt: "14:15:22Z"
+                      groups:
+                        - string
+                    createdAt: "3:12 pm 8/5/22"
+                    updatedAt: string
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -955,6 +1011,102 @@ paths:
         name: requestId
         in: path
         required: true
+  "/api/v1/requests/{requestId}/groups":
+    get:
+      summary: List Request Access Groups
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListAccessGroupsResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-request-access-groups
+      description: Gets all access groups availiable
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+  "/api/v1/requests/{requestId}/groups/{groupId}":
+    get:
+      summary: Get Request Access Group
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestAccessGroup"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-get-request-access-group
+      description: Gets access group
+    parameters:
+      - schema:
+          type: string
+        name: requestId
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: groupId
+        in: path
+        required: true
+  "/api/v1/groups/{groupId}/grants":
+    get:
+      summary: List Request Access Group Grants
+      tags: []
+      responses:
+        "200":
+          $ref: "#/components/responses/ListGrantsResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-list-request-access-group-grants
+      description: List all grants for a request access group
+    parameters:
+      - schema:
+          type: string
+        name: groupId
+        in: path
+        required: true
+  "/api/v1/groups/{gid}/grants{grantid}":
+    get:
+      summary: Get Request Access Group Grant
+      tags: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RequestAccessGroupGrant"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+      operationId: user-get-request-access-group-grant
+      description: Gets a request access group grant
+    parameters:
+      - schema:
+          type: string
+        name: gid
+        in: path
+        required: true
+        description: access group id
+      - schema:
+          type: string
+        name: grantid
+        in: path
+        required: true
+        description: grant id
 components:
   schemas:
     User:
@@ -1044,6 +1196,8 @@ components:
           type: string
           x-go-name: ID
           example: rul_28w2Eebt2Q8nFQJ2dKa1FTE9X0J
+        status:
+          $ref: "#/components/schemas/AccessRuleStatus"
         name:
           type: string
           example: Okta admin
@@ -1065,11 +1219,9 @@ components:
           $ref: "#/components/schemas/AccessRuleApproverConfig"
         metadata:
           $ref: "#/components/schemas/AccessRuleMetadata"
-        priority:
-          type: number
-          minimum: 0
       required:
         - id
+        - status
         - name
         - description
         - targets
@@ -1077,7 +1229,13 @@ components:
         - groups
         - approval
         - metadata
-        - priority
+    AccessRuleStatus:
+      type: string
+      description: The status of an Access Rule.
+      enum:
+        - ACTIVE
+        - ARCHIVED
+      title: AccessRuleStatus
     AccessRuleMetadata:
       title: AccessRuleMetadata
       type: object
@@ -1160,6 +1318,15 @@ components:
       required:
         - targetGroup
         - fieldFilterExpessions
+    ApprovalMethod:
+      type: string
+      description: "Describes whether a request has been approved automatically or from a review "
+      title: ApprovalMethod
+      x-stoplight:
+        id: 689mlt8aqxnx4
+      enum:
+        - AUTOMATIC
+        - REVIEWED
     TGHandler:
       title: TGHandler
       x-stoplight:
@@ -1343,8 +1510,8 @@ components:
       properties:
         id:
           type: string
-        requiresApproval:
-          type: boolean
+        status:
+          type: string
         time:
           $ref: "#/components/schemas/AccessRuleTimeConstraints"
         targets:
@@ -1353,7 +1520,7 @@ components:
             $ref: "#/components/schemas/Target"
       required:
         - id
-        - requiresApproval
+        - status
         - time
         - targets
     Target:
@@ -1361,70 +1528,22 @@ components:
       x-stoplight:
         id: 9wq5hjssi6r46
       type: object
-      x-examples:
-        Example 1:
-          id: string
-          targetGroupId: string
-          targetGroupFrom:
-            publisher: string
-            name: string
-            version: string
-            kind: string
-          fields:
-            - id: string
-              fieldTitle: string
-              fieldDescription: string
-              valueLabel: string
-              valueDescription: string
-              value: string
       properties:
         id:
           type: string
-        kind:
-          $ref: "#/components/schemas/TargetKind"
+        targetGroupId:
+          type: string
+        targetGroupFrom:
+          $ref: "#/components/schemas/TargetGroupFrom"
         fields:
           type: array
           items:
             $ref: "#/components/schemas/TargetField"
       required:
         - id
-        - kind
+        - targetGroupId
+        - targetGroupFrom
         - fields
-    TargetKind:
-      title: Target From
-      type: object
-      x-examples:
-        Example 1:
-          id: string
-          targetGroupId: string
-          targetGroupFrom:
-            publisher: string
-            name: string
-            version: string
-            kind: string
-          fields:
-            - id: string
-              fieldTitle: string
-              fieldDescription: string
-              valueLabel: string
-              valueDescription: string
-              value: string
-      x-stoplight:
-        id: 9fe3f8f463101
-      properties:
-        publisher:
-          type: string
-        name:
-          type: string
-        kind:
-          type: string
-        icon:
-          type: string
-      required:
-        - publisher
-        - name
-        - kind
-        - icon
     TargetField:
       title: Field
       x-stoplight:
@@ -1452,42 +1571,6 @@ components:
       title: Request
       type: object
       description: A request to access something made by an end user in Common Fate.
-      x-examples:
-        Example 1:
-          id: string
-          purpose:
-            reason: string
-          accessGroups:
-            - id: string
-              requestId: string
-              status: APPROVED
-              time:
-                maxDurationSeconds: 60
-              overrideTiming:
-                durationSeconds: 0
-                startTime: "14:15:22Z"
-              updatedAt: string
-              createdAt: string
-              targets:
-                - id: string
-                  requestId: string
-                  accessGroupId: string
-                  targetGroupId: string
-                  targetGroupFrom:
-                    publisher: string
-                    name: string
-                    version: string
-                    kind: string
-                  fields:
-                    - id: string
-                      fieldTitle: string
-                      fieldDescription: string
-                      valueLabel: string
-                      valueDescription: string
-                      value: string
-                  status: PENDING
-          requestedBy: string
-          requestedAt: "14:15:22Z"
       properties:
         id:
           type: string
@@ -1504,15 +1587,11 @@ components:
           type: string
           x-go-type: time.Time
           format: time
-        status:
-          $ref: "#/components/schemas/RequestStatus"
       required:
         - id
-        - purpose
         - accessGroups
         - requestedBy
         - requestedAt
-        - status
     RequestPurpose:
       title: RequestContext
       type: object
@@ -1526,12 +1605,24 @@ components:
       description: |
         The status of an Access Request.
       enum:
-        - CANCELLED
-        - REVOKED
+        - APPROVED
         - PENDING
-        - COMPLETE
-        - ACTIVE
+        - CANCELLED
+        - DECLINED
       title: RequestStatus
+    GrantStatus:
+      type: string
+      description: |
+        The status of an Access Request.
+      title: RequestStatus
+      x-stoplight:
+        id: e1005d029a08c
+      enum:
+        - PENDING
+        - ACTIVE
+        - ERROR
+        - REVOKED
+        - EXPIRED
     RequestEvent:
       title: RequestEvent
       x-stoplight:
@@ -1557,9 +1648,9 @@ components:
         toTiming:
           $ref: "#/components/schemas/RequestAccessGroupTiming"
         fromGrantStatus:
-          $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
+          $ref: "#/components/schemas/GrantStatus"
         toGrantStatus:
-          $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
+          $ref: "#/components/schemas/GrantStatus"
         grantCreated:
           type: boolean
         requestCreated:
@@ -1585,9 +1676,9 @@ components:
         requestId:
           type: string
         status:
-          $ref: "#/components/schemas/RequestAccessGroupStatus"
+          $ref: "#/components/schemas/RequestStatus"
         time:
-          $ref: "#/components/schemas/RequestAccessGroupTiming"
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
         overrideTiming:
           $ref: "#/components/schemas/RequestAccessGroupTiming"
         updatedAt:
@@ -1599,9 +1690,7 @@ components:
         targets:
           type: array
           items:
-            $ref: "#/components/schemas/RequestAccessGroupTarget"
-        approvalMethod:
-          $ref: "#/components/schemas/RequestAccessGroupApprovalMethod"
+            $ref: "#/components/schemas/RequestAccessGroupGrant"
       required:
         - id
         - requestId
@@ -1611,26 +1700,6 @@ components:
         - updatedAt
         - createdAt
         - targets
-    RequestAccessGroupApprovalMethod:
-      type: string
-      description: "Describes whether a request has been approved automatically or from a review "
-      title: ApprovalMethod
-      x-stoplight:
-        id: b183b2aaba142
-      enum:
-        - AUTOMATIC
-        - REVIEWED
-    RequestAccessGroupStatus:
-      type: string
-      description: |
-        The status of an Access Request.
-      enum:
-        - DECLINED
-        - APPROVED
-        - PENDING_APPROVAL
-      title: RequestStatus
-      x-stoplight:
-        id: e1005d029a08c
     RequestAccessGroupTiming:
       title: RequestAccessGroupTiming
       x-stoplight:
@@ -1646,10 +1715,10 @@ components:
           format: time
       required:
         - durationSeconds
-    RequestAccessGroupTarget:
+    RequestAccessGroupGrant:
       description: A temporary assignment of a user to a principal.
       type: object
-      title: Access Group Target
+      title: Grant
       x-examples:
         Okta:
           id: aba0dcba-0a8c-4393-ad92-69510326b29a
@@ -1660,8 +1729,6 @@ components:
             group: Admins
           start: "2022-06-13T03:39:30.921Z"
           end: "2022-06-13T11:39:30.921Z"
-      x-stoplight:
-        id: 3d80288c0358c
       properties:
         id:
           type: string
@@ -1678,7 +1745,7 @@ components:
           items:
             $ref: "#/components/schemas/TargetField"
         status:
-          $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
+          $ref: "#/components/schemas/GrantStatus"
       required:
         - id
         - requestId
@@ -1687,24 +1754,17 @@ components:
         - targetGroupFrom
         - fields
         - status
-    RequestAccessGroupTargetStatus:
+    ReviewDecision:
       type: string
-      description: |
-        The status of a grant.
-      title: RequestAccessGroupTargetStatus
-      x-stoplight:
-        id: 92eb004906577
+      title: ReviewDecision
       enum:
-        - PENDING_PROVISIONING
-        - AWAITING_START
-        - ACTIVE
-        - ERROR
-        - REVOKED
-        - EXPIRED
-    RequestAccessGroupTargetAccessInstructions:
+        - APPROVED
+        - DECLINED
+      description: A decision made on an Access Request.
+    AccessInstructions:
       title: AccessInstructions
       x-stoplight:
-        id: 96aacba377a2b
+        id: 56g6qww0dpbvx
       type: object
       description: |-
         Instructions on how to access the requested resource.
@@ -1714,27 +1774,14 @@ components:
         instructions:
           description: Instructions on how to access the role or resource.
           type: string
-    ReviewDecision:
-      type: string
-      title: ReviewDecision
-      enum:
-        - APPROVED
-        - DECLINED
-      description: A decision made on an Access Request.
-    CreateAccessRequestGroupOptions:
-      type: object
-      title: CreateAccessRequestGroupOptions
-      description: ""
+    Resource:
+      title: Resource
       x-stoplight:
-        id: 6f6c2fa4da748
+        id: pjppgwzp6wope
+      type: object
       properties:
         id:
           type: string
-        timing:
-          $ref: "#/components/schemas/RequestAccessGroupTiming"
-      required:
-        - id
-        - timing
   responses:
     ErrorResponse:
       description: An error returned from the service.
@@ -1817,6 +1864,18 @@ components:
             required:
               - groups
               - next
+          examples:
+            ex_1:
+              value:
+                groups:
+                  - name: string
+                    description: string
+                    id: string
+                    memberCount: 0
+                    members:
+                      - string
+                    source: string
+                next: string
     ReviewResponse:
       description: Response for reviewing a request.
       content:
@@ -1899,6 +1958,39 @@ components:
                 type: string
             required:
               - groups
+          examples:
+            ex_1:
+              value:
+                groups:
+                  - id: string
+                    requestId: string
+                    status: APPROVED
+                    time:
+                      maxDurationSeconds: 60
+                    overrideTiming:
+                      durationSeconds: 0
+                      startTime: "14:15:22Z"
+                    updatedAt: string
+                    createdAt: string
+                    targets:
+                      - id: string
+                        requestId: string
+                        accessGroupId: string
+                        targetGroupId: string
+                        targetGroupFrom:
+                          publisher: string
+                          name: string
+                          version: string
+                          kind: string
+                        fields:
+                          - id: string
+                            fieldTitle: string
+                            fieldDescription: string
+                            valueLabel: string
+                            valueDescription: string
+                            value: string
+                        status: PENDING
+                next: string
     ListTargetGroupResponse:
       description: Example response
       content:
@@ -1910,8 +2002,93 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/TargetGroup"
+              next:
+                type: string
             required:
               - targetGroups
+          examples:
+            ex_1:
+              value:
+                targetGroups:
+                  - id: aws-sso
+                    schema:
+                      account:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                      permissionSet:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                          property2:
+                            id: string
+                            title: string
+                            description: string
+                    from:
+                      publisher: common-fate
+                      name: aws-sso
+                      version: v1.0.0
+                      kind: string
+                    icon: aws-sso
+                    createdAt: string
+                    updatedAt: "14:15:22Z"
+                  - id: okta
+                    schema:
+                      account:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                    from:
+                      publisher: common-fate
+                      name: okta
+                      version: v1.0.0
+                      kind: string
+                    icon: okta
+                    createdAt: string
+                    updatedAt: "14:15:22Z"
+                  - id: cloudwatch
+                    schema:
+                      account:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                    from:
+                      publisher: common-fate
+                      name: cloudwatch
+                      version: v1.0.0
+                      kind: string
+                    icon: cloudwatch
+                    createdAt: string
+                    updatedAt: "14:15:22Z"
+                next: string
     ListHandlersResponse:
       description: Response obj for ListTargetGroupDeploymentAPIResponse
       content:
@@ -1953,11 +2130,60 @@ components:
               grants:
                 type: array
                 items:
-                  $ref: "#/components/schemas/RequestAccessGroupTarget"
+                  $ref: "#/components/schemas/RequestAccessGroupGrant"
               next:
                 type: string
             required:
               - grants
+          examples:
+            ex_1:
+              value:
+                grants:
+                  - id: string
+                    requestId: string
+                    accessGroupId: string
+                    targetGroupId: string
+                    targetGroupFrom:
+                      publisher: string
+                      name: aws
+                      version: string
+                      kind: aws
+                    fields:
+                      - id: string
+                        fieldTitle: string
+                        fieldDescription: string
+                        valueLabel: string
+                        valueDescription: string
+                        value: Admin
+                      - id: string
+                        fieldTitle: string
+                        fieldDescription: string
+                        valueLabel: string
+                        valueDescription: string
+                        value: "123456789012"
+                      - id: string
+                        fieldTitle: string
+                        fieldDescription: string
+                        valueLabel: string
+                        valueDescription: string
+                        value: "arn:aws:account::$:account"
+                    status: PENDING
+                next: string
+    ListResourcesResponse:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              resources:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+              next:
+                type: string
+            required:
+              - resources
     ListTargetsResponse:
       description: list of target entitlements for a user
       content:
@@ -1973,37 +2199,6 @@ components:
                 type: string
             required:
               - targets
-          examples:
-            Example 1:
-              value:
-                targets:
-                  - id: string
-                    kind:
-                      publisher: string
-                      name: string
-                      kind: string
-                      icon: string
-                    fields:
-                      - id: string
-                        fieldTitle: string
-                        fieldDescription: string
-                        valueLabel: string
-                        valueDescription: string
-                        value: string
-                next: string
-    ListEntitlementsResponse:
-      description: ""
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              entitlements:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TargetKind"
-            required:
-              - entitlements
           examples:
             example_targets:
               value:
@@ -2231,10 +2426,6 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/CreateAccessRuleTarget"
-              priority:
-                type: number
-                minimum: 0
-                maximum: 999
             required:
               - groups
               - approval
@@ -2242,7 +2433,6 @@ components:
               - description
               - timeConstraints
               - targets
-              - priority
     CreateUserRequest:
       content:
         application/json:
@@ -2390,7 +2580,7 @@ components:
           schema:
             type: object
             properties: {}
-    CreateAccessRequestRequest:
+    CreateRequestPreflight:
       content:
         application/json:
           schema:
@@ -2398,16 +2588,8 @@ components:
             properties:
               preflightId:
                 type: string
-              groupOptions:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CreateAccessRequestGroupOptions"
-              reason:
-                type: string
             required:
               - preflightId
-              - groupOptions
-          examples: {}
 tags:
   - name: End User
   - name: Admin

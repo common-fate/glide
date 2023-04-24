@@ -13,7 +13,7 @@ import (
 	"github.com/common-fate/ddb"
 )
 
-func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
+func (a *API) AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
 	q := storage.GetAccessRule{ID: ruleId}
 	_, err := a.DB.Query(ctx, &q)
@@ -26,14 +26,12 @@ func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, rul
 		apio.Error(ctx, w, err)
 		return
 	}
-	u := auth.UserFromContext(ctx)
-
-	c, err := a.Rules.ArchiveAccessRule(ctx, u.ID, *q.Result)
+	err = a.DB.Delete(ctx, q.Result)
 	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-	apio.JSON(ctx, w, c.ToAPI(), http.StatusCreated)
+	apio.JSON(ctx, w, nil, http.StatusNoContent)
 }
 
 // Returns a list of all Access Rules
@@ -41,34 +39,22 @@ func (a *API) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, rul
 func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, params types.AdminListAccessRulesParams) {
 	ctx := r.Context()
 
-	var err error
-	var rules []rule.AccessRule
-
 	queryOpts := []func(*ddb.QueryOpts){ddb.Limit(50)}
 	if params.NextToken != nil {
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	if params.Status != nil {
-		q := storage.ListAccessRulesForStatus{Status: rule.Status(*params.Status)}
-		_, err = a.DB.Query(ctx, &q, queryOpts...)
-		rules = q.Result
-	} else {
-		q := storage.ListAccessRules{}
-		_, err = a.DB.Query(ctx, &q, queryOpts...)
-		rules = q.Result
-	}
-	// don't return an error response when there are not rules
-	if err != nil && err != ddb.ErrNoItems {
+	q := storage.ListAccessRules{}
+	_, err := a.DB.Query(ctx, &q, queryOpts...)
+	if err != nil {
 		apio.Error(ctx, w, err)
 		return
 	}
-
 	res := types.ListAccessRulesResponse{
-		AccessRules: make([]types.AccessRule, len(rules)),
+		AccessRules: []types.AccessRule{},
 	}
-	for i, r := range rules {
-		res.AccessRules[i] = r.ToAPI()
+	for _, r := range q.Result {
+		res.AccessRules = append(res.AccessRules, r.ToAPI())
 	}
 
 	apio.JSON(ctx, w, res, http.StatusOK)

@@ -24,12 +24,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Defines values for AccessRuleStatus.
-const (
-	AccessRuleStatusACTIVE   AccessRuleStatus = "ACTIVE"
-	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
-)
-
 // Defines values for IdpStatus.
 const (
 	IdpStatusACTIVE   IdpStatus = "ACTIVE"
@@ -38,9 +32,9 @@ const (
 
 // Defines values for LogLevel.
 const (
-	LogLevelERROR   LogLevel = "ERROR"
-	LogLevelINFO    LogLevel = "INFO"
-	LogLevelWARNING LogLevel = "WARNING"
+	ERROR   LogLevel = "ERROR"
+	INFO    LogLevel = "INFO"
+	WARNING LogLevel = "WARNING"
 )
 
 // Defines values for RequestAccessGroupApprovalMethod.
@@ -92,10 +86,8 @@ type AccessRule struct {
 	ID       string             `json:"id"`
 	Metadata AccessRuleMetadata `json:"metadata"`
 	Name     string             `json:"name"`
-
-	// The status of an Access Rule.
-	Status  AccessRuleStatus   `json:"status"`
-	Targets []AccessRuleTarget `json:"targets"`
+	Priority float32            `json:"priority"`
+	Targets  []AccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
@@ -117,9 +109,6 @@ type AccessRuleMetadata struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 	UpdatedBy     string    `json:"updatedBy"`
 }
-
-// The status of an Access Rule.
-type AccessRuleStatus string
 
 // a request body for an Access Rule Target
 type AccessRuleTarget struct {
@@ -497,9 +486,10 @@ type CreateAccessRuleRequest struct {
 	Description string                   `json:"description"`
 
 	// The group IDs that the access rule applies to.
-	Groups  []string                 `json:"groups"`
-	Name    string                   `json:"name"`
-	Targets []CreateAccessRuleTarget `json:"targets"`
+	Groups   []string                 `json:"groups"`
+	Name     string                   `json:"name"`
+	Priority float32                  `json:"priority"`
+	Targets  []CreateAccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
@@ -560,15 +550,9 @@ type ReviewRequest struct {
 
 // AdminListAccessRulesParams defines parameters for AdminListAccessRules.
 type AdminListAccessRulesParams struct {
-	// Filter Access Rules by a particular status.
-	Status *AdminListAccessRulesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
-
 	// Next page token
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
-
-// AdminListAccessRulesParamsStatus defines parameters for AdminListAccessRules.
-type AdminListAccessRulesParamsStatus string
 
 // AdminListGroupsParams defines parameters for AdminListGroups.
 type AdminListGroupsParams struct {
@@ -613,6 +597,9 @@ type AdminUpdateUserJSONBody struct {
 type UserListEntitlementTargetsParams struct {
 	// query
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+
+	// filter targets by kind
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
 }
 
 // UserListRequestsParams defines parameters for UserListRequests.
@@ -809,6 +796,9 @@ type ClientInterface interface {
 
 	AdminCreateAccessRule(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminDeleteAccessRule request
+	AdminDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetAccessRule request
 	AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -816,9 +806,6 @@ type ClientInterface interface {
 	AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminArchiveAccessRule request
-	AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminGetDeploymentVersion request
 	AdminGetDeploymentVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -928,12 +915,6 @@ type ClientInterface interface {
 	// UserGetRequest request
 	UserGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UserListRequestAccessGroups request
-	UserListRequestAccessGroups(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserGetRequestAccessGroup request
-	UserGetRequestAccessGroup(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// UserReviewRequest request with any body
 	UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -988,6 +969,18 @@ func (c *Client) AdminCreateAccessRule(ctx context.Context, body AdminCreateAcce
 	return c.Client.Do(req)
 }
 
+func (c *Client) AdminDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteAccessRuleRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
@@ -1014,18 +1007,6 @@ func (c *Client) AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId strin
 
 func (c *Client) AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminUpdateAccessRuleRequest(c.Server, ruleId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminArchiveAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
 		return nil, err
 	}
@@ -1504,30 +1485,6 @@ func (c *Client) UserGetRequest(ctx context.Context, requestId string, reqEditor
 	return c.Client.Do(req)
 }
 
-func (c *Client) UserListRequestAccessGroups(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListRequestAccessGroupsRequest(c.Server, requestId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserGetRequestAccessGroup(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserGetRequestAccessGroupRequest(c.Server, requestId, groupId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserReviewRequestRequestWithBody(c.Server, requestId, contentType, body)
 	if err != nil {
@@ -1621,22 +1578,6 @@ func NewAdminListAccessRulesRequest(server string, params *AdminListAccessRulesP
 
 	queryValues := queryURL.Query()
 
-	if params.Status != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
 	if params.NextToken != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
@@ -1699,6 +1640,40 @@ func NewAdminCreateAccessRuleRequestWithBody(server string, contentType string, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminDeleteAccessRuleRequest generates requests for AdminDeleteAccessRule
+func NewAdminDeleteAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -1780,40 +1755,6 @@ func NewAdminUpdateAccessRuleRequestWithBody(server string, ruleId string, conte
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewAdminArchiveAccessRuleRequest generates requests for AdminArchiveAccessRule
-func NewAdminArchiveAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s/archive", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -2818,6 +2759,22 @@ func NewUserListEntitlementTargetsRequest(server string, params *UserListEntitle
 
 	}
 
+	if params.Kind != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -2988,81 +2945,6 @@ func NewUserGetRequestRequest(server string, requestId string) (*http.Request, e
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/requests/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserListRequestAccessGroupsRequest generates requests for UserListRequestAccessGroups
-func NewUserListRequestAccessGroupsRequest(server string, requestId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/%s/groups", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserGetRequestAccessGroupRequest generates requests for UserGetRequestAccessGroup
-func NewUserGetRequestAccessGroupRequest(server string, requestId string, groupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/%s/groups/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -3336,6 +3218,9 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateAccessRuleWithResponse(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error)
 
+	// AdminDeleteAccessRule request
+	AdminDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminDeleteAccessRuleResponse, error)
+
 	// AdminGetAccessRule request
 	AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error)
 
@@ -3343,9 +3228,6 @@ type ClientWithResponsesInterface interface {
 	AdminUpdateAccessRuleWithBodyWithResponse(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
 
 	AdminUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
-
-	// AdminArchiveAccessRule request
-	AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error)
 
 	// AdminGetDeploymentVersion request
 	AdminGetDeploymentVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetDeploymentVersionResponse, error)
@@ -3455,12 +3337,6 @@ type ClientWithResponsesInterface interface {
 	// UserGetRequest request
 	UserGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetRequestResponse, error)
 
-	// UserListRequestAccessGroups request
-	UserListRequestAccessGroupsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupsResponse, error)
-
-	// UserGetRequestAccessGroup request
-	UserGetRequestAccessGroupWithResponse(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupResponse, error)
-
 	// UserReviewRequest request with any body
 	UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
 
@@ -3541,6 +3417,36 @@ func (r AdminCreateAccessRuleResponse) StatusCode() int {
 	return 0
 }
 
+type AdminDeleteAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AdminGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -3588,37 +3494,6 @@ func (r AdminUpdateAccessRuleResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AdminUpdateAccessRuleResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminArchiveAccessRuleResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AccessRule
-	JSON401      *struct {
-		Error string `json:"error"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminArchiveAccessRuleResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminArchiveAccessRuleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4506,65 +4381,6 @@ func (r UserGetRequestResponse) StatusCode() int {
 	return 0
 }
 
-type UserListRequestAccessGroupsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Groups []RequestAccessGroup `json:"groups"`
-		Next   *string              `json:"next,omitempty"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListRequestAccessGroupsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListRequestAccessGroupsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserGetRequestAccessGroupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *RequestAccessGroup
-	JSON404      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserGetRequestAccessGroupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserGetRequestAccessGroupResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type UserReviewRequestResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4722,6 +4538,15 @@ func (c *ClientWithResponses) AdminCreateAccessRuleWithResponse(ctx context.Cont
 	return ParseAdminCreateAccessRuleResponse(rsp)
 }
 
+// AdminDeleteAccessRuleWithResponse request returning *AdminDeleteAccessRuleResponse
+func (c *ClientWithResponses) AdminDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminDeleteAccessRuleResponse, error) {
+	rsp, err := c.AdminDeleteAccessRule(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteAccessRuleResponse(rsp)
+}
+
 // AdminGetAccessRuleWithResponse request returning *AdminGetAccessRuleResponse
 func (c *ClientWithResponses) AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error) {
 	rsp, err := c.AdminGetAccessRule(ctx, ruleId, reqEditors...)
@@ -4746,15 +4571,6 @@ func (c *ClientWithResponses) AdminUpdateAccessRuleWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseAdminUpdateAccessRuleResponse(rsp)
-}
-
-// AdminArchiveAccessRuleWithResponse request returning *AdminArchiveAccessRuleResponse
-func (c *ClientWithResponses) AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error) {
-	rsp, err := c.AdminArchiveAccessRule(ctx, ruleId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminArchiveAccessRuleResponse(rsp)
 }
 
 // AdminGetDeploymentVersionWithResponse request returning *AdminGetDeploymentVersionResponse
@@ -5099,24 +4915,6 @@ func (c *ClientWithResponses) UserGetRequestWithResponse(ctx context.Context, re
 	return ParseUserGetRequestResponse(rsp)
 }
 
-// UserListRequestAccessGroupsWithResponse request returning *UserListRequestAccessGroupsResponse
-func (c *ClientWithResponses) UserListRequestAccessGroupsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupsResponse, error) {
-	rsp, err := c.UserListRequestAccessGroups(ctx, requestId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListRequestAccessGroupsResponse(rsp)
-}
-
-// UserGetRequestAccessGroupWithResponse request returning *UserGetRequestAccessGroupResponse
-func (c *ClientWithResponses) UserGetRequestAccessGroupWithResponse(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupResponse, error) {
-	rsp, err := c.UserGetRequestAccessGroup(ctx, requestId, groupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserGetRequestAccessGroupResponse(rsp)
-}
-
 // UserReviewRequestWithBodyWithResponse request with arbitrary body returning *UserReviewRequestResponse
 func (c *ClientWithResponses) UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error) {
 	rsp, err := c.UserReviewRequestWithBody(ctx, requestId, contentType, body, reqEditors...)
@@ -5270,6 +5068,52 @@ func ParseAdminCreateAccessRuleResponse(rsp *http.Response) (*AdminCreateAccessR
 	return response, nil
 }
 
+// ParseAdminDeleteAccessRuleResponse parses an HTTP response from a AdminDeleteAccessRuleWithResponse call
+func ParseAdminDeleteAccessRuleResponse(rsp *http.Response) (*AdminDeleteAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAdminGetAccessRuleResponse parses an HTTP response from a AdminGetAccessRuleWithResponse call
 func ParseAdminGetAccessRuleResponse(rsp *http.Response) (*AdminGetAccessRuleResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -5343,59 +5187,6 @@ func ParseAdminUpdateAccessRuleResponse(rsp *http.Response) (*AdminUpdateAccessR
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminArchiveAccessRuleResponse parses an HTTP response from a AdminArchiveAccessRuleWithResponse call
-func ParseAdminArchiveAccessRuleResponse(rsp *http.Response) (*AdminArchiveAccessRuleResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminArchiveAccessRuleResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessRule
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
 
 	}
 
@@ -6763,97 +6554,6 @@ func ParseUserGetRequestResponse(rsp *http.Response) (*UserGetRequestResponse, e
 	return response, nil
 }
 
-// ParseUserListRequestAccessGroupsResponse parses an HTTP response from a UserListRequestAccessGroupsWithResponse call
-func ParseUserListRequestAccessGroupsResponse(rsp *http.Response) (*UserListRequestAccessGroupsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListRequestAccessGroupsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Groups []RequestAccessGroup `json:"groups"`
-			Next   *string              `json:"next,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserGetRequestAccessGroupResponse parses an HTTP response from a UserGetRequestAccessGroupWithResponse call
-func ParseUserGetRequestAccessGroupResponse(rsp *http.Response) (*UserGetRequestAccessGroupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserGetRequestAccessGroupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest RequestAccessGroup
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseUserReviewRequestResponse parses an HTTP response from a UserReviewRequestWithResponse call
 func ParseUserReviewRequestResponse(rsp *http.Response) (*UserReviewRequestResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -7031,15 +6731,15 @@ type ServerInterface interface {
 	// Create Access Rule
 	// (POST /api/v1/admin/access-rules)
 	AdminCreateAccessRule(w http.ResponseWriter, r *http.Request)
+	// Delete Access Rule
+	// (DELETE /api/v1/admin/access-rules/{ruleId})
+	AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Get Access Rule
 	// (GET /api/v1/admin/access-rules/{ruleId})
 	AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Update Access Rule
 	// (PUT /api/v1/admin/access-rules/{ruleId})
 	AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
-	// Archive Access Rule
-	// (POST /api/v1/admin/access-rules/{ruleId}/archive)
-	AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Get deployment version details
 	// (GET /api/v1/admin/deployment/version)
 	AdminGetDeploymentVersion(w http.ResponseWriter, r *http.Request)
@@ -7130,12 +6830,6 @@ type ServerInterface interface {
 	// Get Request
 	// (GET /api/v1/requests/{requestId})
 	UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string)
-	// List Request Access Groups
-	// (GET /api/v1/requests/{requestId}/groups)
-	UserListRequestAccessGroups(w http.ResponseWriter, r *http.Request, requestId string)
-	// Get Request Access Group
-	// (GET /api/v1/requests/{requestId}/groups/{groupId})
-	UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, requestId string, groupId string)
 	// Review a request
 	// (POST /api/v1/requests/{requestId}/review)
 	UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string)
@@ -7171,17 +6865,6 @@ func (siw *ServerInterfaceWrapper) AdminListAccessRules(w http.ResponseWriter, r
 	// Parameter object where we will unmarshal all parameters from the context
 	var params AdminListAccessRulesParams
 
-	// ------------- Optional query parameter "status" -------------
-	if paramValue := r.URL.Query().Get("status"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "status", r.URL.Query(), &params.Status)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
-		return
-	}
-
 	// ------------- Optional query parameter "nextToken" -------------
 	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
 
@@ -7210,6 +6893,32 @@ func (siw *ServerInterfaceWrapper) AdminCreateAccessRule(w http.ResponseWriter, 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminCreateAccessRule(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminDeleteAccessRule operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameter("simple", false, "ruleId", chi.URLParam(r, "ruleId"), &ruleId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -7262,32 +6971,6 @@ func (siw *ServerInterfaceWrapper) AdminUpdateAccessRule(w http.ResponseWriter, 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateAccessRule(w, r, ruleId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminArchiveAccessRule operation middleware
-func (siw *ServerInterfaceWrapper) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "ruleId" -------------
-	var ruleId string
-
-	err = runtime.BindStyledParameter("simple", false, "ruleId", chi.URLParam(r, "ruleId"), &ruleId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminArchiveAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -7914,6 +7597,17 @@ func (siw *ServerInterfaceWrapper) UserListEntitlementTargets(w http.ResponseWri
 		return
 	}
 
+	// ------------- Optional query parameter "kind" -------------
+	if paramValue := r.URL.Query().Get("kind"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "kind", r.URL.Query(), &params.Kind)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserListEntitlementTargets(w, r, params)
 	}
@@ -8014,67 +7708,6 @@ func (siw *ServerInterfaceWrapper) UserGetRequest(w http.ResponseWriter, r *http
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserGetRequest(w, r, requestId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserListRequestAccessGroups operation middleware
-func (siw *ServerInterfaceWrapper) UserListRequestAccessGroups(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "requestId" -------------
-	var requestId string
-
-	err = runtime.BindStyledParameter("simple", false, "requestId", chi.URLParam(r, "requestId"), &requestId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "requestId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListRequestAccessGroups(w, r, requestId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserGetRequestAccessGroup operation middleware
-func (siw *ServerInterfaceWrapper) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "requestId" -------------
-	var requestId string
-
-	err = runtime.BindStyledParameter("simple", false, "requestId", chi.URLParam(r, "requestId"), &requestId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "requestId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "groupId" -------------
-	var groupId string
-
-	err = runtime.BindStyledParameter("simple", false, "groupId", chi.URLParam(r, "groupId"), &groupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserGetRequestAccessGroup(w, r, requestId, groupId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8339,13 +7972,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/access-rules", wrapper.AdminCreateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminDeleteAccessRule)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminGetAccessRule)
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminUpdateAccessRule)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}/archive", wrapper.AdminArchiveAccessRule)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/deployment/version", wrapper.AdminGetDeploymentVersion)
@@ -8438,12 +8071,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/requests/{requestId}", wrapper.UserGetRequest)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/requests/{requestId}/groups", wrapper.UserListRequestAccessGroups)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/requests/{requestId}/groups/{groupId}", wrapper.UserGetRequestAccessGroup)
-	})
-	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/requests/{requestId}/review", wrapper.UserReviewRequest)
 	})
 	r.Group(func(r chi.Router) {
@@ -8465,120 +8092,119 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"AwAA//8xgXlwQKMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

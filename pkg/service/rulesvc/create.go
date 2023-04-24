@@ -69,7 +69,6 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 	rul := rule.AccessRule{
 		ID:          id,
 		Approval:    rule.Approval(in.Approval),
-		Status:      rule.ACTIVE,
 		Description: in.Description,
 		Name:        in.Name,
 		Groups:      in.Groups,

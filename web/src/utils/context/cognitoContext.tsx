@@ -6,7 +6,6 @@ import React, { useEffect, useState } from "react";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import CFSpinner from "../../components/CFSpinner";
 import awsExports from "../aws-exports";
-import { AccessRuleStatus } from "../backend-client/types";
 import { setAPIURL } from "../custom-instance";
 import { createCtx } from "./createCtx";
 

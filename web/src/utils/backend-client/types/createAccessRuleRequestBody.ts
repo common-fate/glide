@@ -17,4 +17,5 @@ export type CreateAccessRuleRequestBody = {
   description: string;
   timeConstraints: AccessRuleTimeConstraints;
   targets: CreateAccessRuleTarget[];
+  priority: number;
 };

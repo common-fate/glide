@@ -9,10 +9,10 @@ import (
 )
 
 func TestGetTargetGroup(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 
 	tg := target.TestGroup()
-	ddbtest.PutFixtures(t, db, &tg)
+	ddbtest.PutFixtures(t, ts.db, &tg)
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -27,5 +27,5 @@ func TestGetTargetGroup(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

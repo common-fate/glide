@@ -38,8 +38,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 			name: "ok",
 			give: `{"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
-				ID:     "rule1",
-				Status: rule.ACTIVE,
+				ID: "rule1",
 
 				Description: "string",
 				Name:        "string",
@@ -136,9 +135,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 			name: "ok",
 			give: `{"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
-				ID:     "rule1",
-				Status: rule.ACTIVE,
-
+				ID:          "rule1",
 				Description: "string",
 				Name:        "string",
 				Groups:      []string{"string"},
@@ -230,7 +227,6 @@ func TestAdminListAccessRules(t *testing.T) {
 			rules: []rule.AccessRule{
 				{
 					ID:          "rule1",
-					Status:      rule.ACTIVE,
 					Description: "string",
 					Name:        "string",
 					Groups:      []string{"string"},
@@ -260,8 +256,8 @@ func TestAdminListAccessRules(t *testing.T) {
 					},
 				},
 				{
-					ID:          "rule2",
-					Status:      rule.ACTIVE,
+					ID: "rule2",
+
 					Description: "string",
 					Name:        "string",
 					Groups:      []string{"string"},

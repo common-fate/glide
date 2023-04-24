@@ -10,10 +10,10 @@ import (
 )
 
 func TestGetAccessRule(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 
 	rul := rule.TestAccessRule()
-	ddbtest.PutFixtures(t, db, &rul)
+	ddbtest.PutFixtures(t, ts.db, &rul)
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -28,5 +28,5 @@ func TestGetAccessRule(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

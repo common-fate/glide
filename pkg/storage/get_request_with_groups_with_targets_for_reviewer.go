@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
+	"github.com/common-fate/ddb"
 )
 
 type GetRequestWithGroupsWithTargetsForReviewer struct {
@@ -29,11 +30,11 @@ func (g *GetRequestWithGroupsWithTargetsForReviewer) BuildQuery() (*dynamodb.Que
 	return qi, nil
 }
 
-func (g *GetRequestWithGroupsWithTargetsForReviewer) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetRequestWithGroupsWithTargetsForReviewer) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	result, err := UnmarshalRequest(out.Items)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	g.Result = result
-	return nil
+	return &ddb.UnmarshalResult{}, nil
 }

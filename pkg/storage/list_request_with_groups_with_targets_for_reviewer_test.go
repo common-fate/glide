@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/access"
@@ -10,7 +9,7 @@ import (
 )
 
 func TestListRequestWithGroupsWithTargetsForReviewer(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 	rid := "req_abcd"
 	gid := "grp_abcd"
 	tid := "gta_abcd"
@@ -24,11 +23,11 @@ func TestListRequestWithGroupsWithTargetsForReviewer(t *testing.T) {
 	group2 := access.Group{ID: gid, RequestID: rid}
 	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid}
 	// cleanup before the test
-	err := deleteAllRequests(context.Background(), db)
+	err := ts.deleteAll()
 	if err != nil {
 		t.Fatal(err)
 	}
-	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -61,5 +60,5 @@ func TestListRequestWithGroupsWithTargetsForReviewer(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

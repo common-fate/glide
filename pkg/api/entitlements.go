@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/common-fate/apikit/apio"
 	"github.com/common-fate/common-fate/pkg/auth"
@@ -45,29 +46,48 @@ func (a *API) UserListEntitlements(w http.ResponseWriter, r *http.Request) {
 
 func (a *API) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params types.UserListEntitlementTargetsParams) {
 	ctx := r.Context()
-	q := storage.ListCachedTargets{}
 	var opts []func(*ddb.QueryOpts)
 	if params.NextToken != nil {
 		opts = append(opts, ddb.Page(*params.NextToken))
 	}
 
-	qo, err := a.DB.Query(ctx, &q, opts...)
-	if err != nil {
-		apio.Error(ctx, w, err)
-		return
+	var results []cache.Target
+	var qo *ddb.QueryResult
+	var err error
+	if params.Kind != nil {
+		// validation is handled for the kind param my a regex in the open API spec
+		parts := strings.Split(*params.Kind, "/")
+		q := storage.ListCachedTargetsForKind{
+			Publisher: parts[0],
+			Name:      parts[1],
+			Kind:      parts[2],
+		}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
+	} else {
+		q := storage.ListCachedTargets{}
+		qo, err = a.DB.Query(ctx, &q, opts...)
+		if err != nil {
+			apio.Error(ctx, w, err)
+			return
+		}
+		results = q.Result
 	}
 
 	res := types.ListTargetsResponse{}
 	if qo.NextPage != "" {
 		res.Next = &qo.NextPage
 	}
-
 	user := auth.UserFromContext(ctx)
 
 	// Filtering needs to be done in the application layer because of limits with dynamoDB filters
 	// in the end, the same amount of read units will be consumed
 	filter := cache.NewFilterTargetsByGroups(user.Groups)
-	for _, target := range filter.Filter(q.Result).Dump() {
+	for _, target := range filter.Filter(results).Dump() {
 		res.Targets = append(res.Targets, target.ToAPI())
 	}
 

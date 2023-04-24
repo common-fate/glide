@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/access"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestListRequestWithGroupsWithTargetsForStatus(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 	rid := "req_abcd"
 	gid := "grp_abcd"
 	tid := "gta_abcd"
@@ -27,11 +26,11 @@ func TestListRequestWithGroupsWithTargetsForStatus(t *testing.T) {
 	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_efgh", RequestStatus: types.ACTIVE}
 
 	// cleanup before the test
-	err := deleteAllRequests(context.Background(), db)
+	err := ts.deleteAll()
 	if err != nil {
 		t.Fatal(err)
 	}
-	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&req, &group, &target, &req2, &group2, &target2})
 
 	// this test asserts that items are retrieved correctly and in the expected order, most recently created upcoming request to oldest created past request
 	testcases := []ddbtest.QueryTestCase{
@@ -64,6 +63,6 @@ func TestListRequestWithGroupsWithTargetsForStatus(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, testcases)
+	ddbtest.RunQueryTests(t, ts.db, testcases)
 
 }

@@ -5,7 +5,6 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { AccessRuleStatus } from './accessRuleStatus';
 import type { AccessRuleTarget } from './accessRuleTarget';
 import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
 import type { AccessRuleApproverConfig } from './accessRuleApproverConfig';
@@ -16,7 +15,6 @@ import type { AccessRuleMetadata } from './accessRuleMetadata';
  */
 export interface AccessRule {
   id: string;
-  status: AccessRuleStatus;
   name: string;
   description: string;
   targets: AccessRuleTarget[];
@@ -25,4 +23,5 @@ export interface AccessRule {
   groups: string[];
   approval: AccessRuleApproverConfig;
   metadata: AccessRuleMetadata;
+  priority: number;
 }

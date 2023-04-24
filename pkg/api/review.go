@@ -2,14 +2,12 @@ package api
 
 import (
 	"net/http"
-
-	"github.com/common-fate/apikit/apio"
 )
 
 // Review a request
-// (POST /api/v1/requests/{requestId}/review)
-func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string) {
-	ctx := r.Context()
+// (POST /api/v1/access-group/{id}/review)
+func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id string) {
+	// ctx := r.Context()
 	// var b types.UserReviewRequestJSONRequestBody
 	// err := apio.DecodeJSONBody(w, r, &b)
 	// if err != nil {
@@ -18,33 +16,33 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 	// }
 	// user := auth.UserFromContext(ctx)
 
-	// // load the request and the reviewers, so that we can process the review.
+	// // load the access group and the reviewers, so that we can process the review.
 	// // this can be done concurrently, so we use an errgroup.
 	// g, fetchctx := errgroup.WithContext(ctx)
 
-	// var req *access.AccessGroup
-	// var rule *rule.AccessRule
-	// g.Go(func() error {
-	// 	var err error
-	// 	q := storage.GetRequest{ID: requestId}
-	// 	_, err = a.DB.Query(ctx, &q)
-	// 	req = q.Result
-	// 	if err == ddb.ErrNoItems {
-	// 		err = apio.NewRequestError(err, http.StatusNotFound)
-	// 	}
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	ruleq := storage.GetAccessRuleCurrent{ID: req.Rule}
-	// 	_, err = a.DB.Query(ctx, &ruleq)
-	// 	rule = ruleq.Result
-	// 	if err == ddb.ErrNoItems {
-	// 		err = apio.NewRequestError(err, http.StatusNotFound)
-	// 	}
-	// 	return err
-	// })
+	// // var req *access.AccessGroup
+	// // var rule *rule.AccessRule
+	// // g.Go(func() error {
+	// // 	var err error
+	// // 	q := storage.GetRequest{ID: requestId}
+	// // 	_, err = a.DB.Query(ctx, &q)
+	// // 	req = q.Result
+	// // 	if err == ddb.ErrNoItems {
+	// // 		err = apio.NewRequestError(err, http.StatusNotFound)
+	// // 	}
+	// // 	if err != nil {
+	// // 		return err
+	// // 	}
+	// // 	ruleq := storage.GetAccessRuleCurrent{ID: req.Rule}
+	// // 	_, err = a.DB.Query(ctx, &ruleq)
+	// // 	rule = ruleq.Result
+	// // 	if err == ddb.ErrNoItems {
+	// // 		err = apio.NewRequestError(err, http.StatusNotFound)
+	// // 	}
+	// // 	return err
+	// // })
 
-	// reviewers := storage.ListRequestReviewers{RequestID: requestId}
+	// reviewers := storage.ListAccessGroupReviewers{AccessGroupId: id}
 	// g.Go(func() error {
 	// 	_, err := a.DB.Query(fetchctx, &reviewers)
 	// 	return err
@@ -69,7 +67,7 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 	// 	ot := requests.TimingFromRequestTiming(*b.OverrideTiming)
 	// 	overrideTiming = &ot
 	// }
-	// result, err := a.Access.AddReviewAndGrantAccess(ctx, accesssvc.AddReviewOpts{
+	// _, err = a.Access.AddReviewAndGrantAccess(ctx, accesssvc.AddReviewOpts{
 	// 	ReviewerID:      user.ID,
 	// 	ReviewerEmail:   user.Email,
 	// 	Decision:        access.Decision(b.Decision),
@@ -93,11 +91,11 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, requestI
 	// 	return
 	// }
 
-	// requestAPI := result.Request.ToAPI()
+	// // requestAPI := result.AccessGroup.ToAPI()
 
-	// res := types.ReviewResponse{
-	// 	Request: &requestAPI,
-	// }
+	// // res := types.ReviewResponse{
+	// // 	Request: &requestAPI,
+	// // }
 
-	apio.JSON(ctx, w, nil, http.StatusCreated)
+	// apio.JSON(ctx, w, nil, http.StatusCreated)
 }

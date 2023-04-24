@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetRequestWithGroupsWithTargets(t *testing.T) {
-	db := newTestingStorage(t)
+	ts := newTestingStorage(t)
 	rid := "req_abcd"
 	gid := "grp_abcd"
 	tid := "gta_abcd"
@@ -17,7 +17,7 @@ func TestGetRequestWithGroupsWithTargets(t *testing.T) {
 	group := access.Group{ID: gid, RequestID: rid}
 	target := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid}
 
-	ddbtest.PutFixtures(t, db, []ddb.Keyer{&req, &group, &target})
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&req, &group, &target})
 
 	tc := []ddbtest.QueryTestCase{
 		{
@@ -38,5 +38,5 @@ func TestGetRequestWithGroupsWithTargets(t *testing.T) {
 		},
 	}
 
-	ddbtest.RunQueryTests(t, db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

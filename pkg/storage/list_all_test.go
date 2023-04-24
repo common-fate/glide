@@ -12,9 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAll(t *testing.T) {
-	db := newTestingStorage(t)
-
+// This is a test that asserts that ddb behaves as expected, it should be shifted to the ddb package
+func TestListAll(t *testing.T) {
+	ts := newTestingStorage(t)
+	err := ts.deleteAll()
+	if err != nil {
+		t.Fatal(err)
+	}
 	g1 := identity.Group{
 		ID:     "id1",
 		Name:   "id1",
@@ -36,15 +40,11 @@ func TestAll(t *testing.T) {
 		Users:  []string{"a"},
 		Status: types.IdpStatusACTIVE,
 	}
-	ddbtest.PutFixtures(t, db, []identity.Group{g1, g2, g3})
+	ddbtest.PutFixtures(t, ts.db, []identity.Group{g1, g2, g3})
 	q := &ListGroups{}
 
 	// in this example, limit applies a limit per query, so all results will be fetched at a rate of 1 result at a time
-	err := db.All(context.Background(), q, ddb.Limit(1))
-
+	err = ts.db.All(context.Background(), q, ddb.Limit(2))
 	assert.NoError(t, err)
-
-	assert.Contains(t, q.Result, g1)
-	assert.Contains(t, q.Result, g2)
-	assert.Contains(t, q.Result, g3)
+	assert.Equal(t, []identity.Group{g1, g2, g3}, q.Result)
 }
