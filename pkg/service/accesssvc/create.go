@@ -137,7 +137,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 				CreatedAt:       now,
 				UpdatedAt:       now,
 				TargetGroupFrom: target.From{},
-				TargetCacheID:   t.ID,
+				TargetCacheID:   t.ID(),
 			}
 			for _, f := range t.Fields {
 				groupTarget.Fields = append(groupTarget.Fields, access.Field{

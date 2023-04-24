@@ -58,3 +58,7 @@ func NewTargetID() string {
 func NewPreflightID() string {
 	return newResourceID("pre")
 }
+
+func NewHistoryID() string {
+	return newResourceID("his")
+}

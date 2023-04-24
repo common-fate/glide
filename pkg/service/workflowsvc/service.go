@@ -6,9 +6,7 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
-	"github.com/common-fate/iso8601"
 )
 
 // //go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
@@ -34,14 +32,15 @@ type Service struct {
 func (s *Service) Grant(ctx context.Context, access_group access.GroupTarget, subject string) ([]access.GroupTarget, error) {
 	// Contains logic for preparing a grant and emitting events
 
-	err := s.Runtime.Grant(ctx, access_group)
-	if err != nil {
-		return nil, err
-	}
+	// err := s.Runtime.Grant(ctx, access_group)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	entitlement.Status = types.GrantStatusACTIVE
+	// //TODO: Grant created event here
 
-	return grants.Result, nil
+	// return grants.Result, nil
+	return nil, nil
 }
 
 // // Revoke attepmts to syncronously revoke access to a request
@@ -124,32 +123,32 @@ func (s *Service) Grant(ctx context.Context, access_group access.GroupTarget, su
 // }
 
 // // prepareCreateGrantRequest prepares the data for requesting
-func (s *Service) prepareCreateGrantRequest(ctx context.Context, groupTarget access.GroupTarget) (types.CreateGrant, error) {
+// func (s *Service) prepareCreateGrantRequest(ctx context.Context, groupTarget access.GroupTarget) (types.CreateGrant, error) {
 
-	start, end := requestTiming.GetInterval(requests.WithNow(s.Clk.Now()))
+// 	start, end := requestTiming.GetInterval(requests.WithNow(s.Clk.Now()))
 
-	req := types.CreateGrant{
-		// Id:       CreateGrantIdHash(subject, iso8601.New(start).Time, accessRule.Target.TargetGroupID),
-		Id:       types.NewGrantID(),
-		Provider: accessRule.Target.TargetGroupID,
-		With: types.CreateGrant_With{
-			AdditionalProperties: make(map[string]string),
-		},
-		Subject: openapi_types.Email(subject),
-		Start:   iso8601.New(start),
-		End:     iso8601.New(end),
-	}
+// 	req := types.CreateGrant{
+// 		// Id:       CreateGrantIdHash(subject, iso8601.New(start).Time, accessRule.Target.TargetGroupID),
+// 		Id:       types.NewGrantID(),
+// 		Provider: accessRule.Target.TargetGroupID,
+// 		With: types.CreateGrant_With{
+// 			AdditionalProperties: make(map[string]string),
+// 		},
+// 		Subject: openapi_types.Email(subject),
+// 		Start:   iso8601.New(start),
+// 		End:     iso8601.New(end),
+// 	}
 
-	//todo: rework this to be used safely around the codebase
-	for k, v := range target.Fields {
-		req.With.AdditionalProperties[k] = v.Value.Value
-	}
-	// for k, v := range request.SelectedWith {
-	// 	req.With.AdditionalProperties[k] = v.Value
-	// }
+// 	//todo: rework this to be used safely around the codebase
+// 	for k, v := range target.Fields {
+// 		req.With.AdditionalProperties[k] = v.Value.Value
+// 	}
+// 	// for k, v := range request.SelectedWith {
+// 	// 	req.With.AdditionalProperties[k] = v.Value
+// 	// }
 
-	return req, nil
-}
+// 	return req, nil
+// }
 
 // // Due to multiple grants being created from one access group I am opting to create dynamic ID's
 // // This helps with testing workflow grant creation

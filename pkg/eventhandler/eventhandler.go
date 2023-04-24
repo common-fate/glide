@@ -2,13 +2,10 @@ package eventhandler
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/api"
-	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 	"go.uber.org/zap"
 )
@@ -38,48 +35,48 @@ func (n *EventHandler) HandleEvent(ctx context.Context, event events.CloudWatchE
 }
 
 func (n *EventHandler) HandleGrantsForRequestGroup(ctx context.Context, log *zap.SugaredLogger, event events.CloudWatchEvent) error {
-	var grantEvent gevent.GrantEventPayload
-	err := json.Unmarshal(event.Detail, &grantEvent)
-	if err != nil {
-		return err
-	}
-	rq := storage.GetRequestWithGroupsWithTargets{ID: grantEvent.Request}
-	_, err = n.db.Query(ctx, &rq)
-	if err != nil {
-		return err
-	}
+	// var grantEvent gevent.GrantEventPayload
+	// err := json.Unmarshal(event.Detail, &grantEvent)
+	// if err != nil {
+	// 	return err
+	// }
+	// rq := storage.GetRequestWithGroupsWithTargets{ID: grantEvent.Request}
+	// _, err = n.db.Query(ctx, &rq)
+	// if err != nil {
+	// 	return err
+	// }
 
-	items := []ddb.Keyer{}
+	// items := []ddb.Keyer{}
 
-	for _, group := range rq.Result.Groups {
+	// for _, group := range rq.Result.Groups {
 
-		//get the user for their email
+	// 	//get the user for their email
 
-		user := storage.GetUser{ID: group.RequestedBy}
-		_, err = n.db.Query(ctx, &user)
-		if err != nil {
-			return err
-		}
+	// 	user := storage.GetUser{ID: group.RequestedBy}
+	// 	_, err = n.db.Query(ctx, &user)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		//provision access
+	// 	//provision access
 
-		//How do we want to separate concerns here?
-		//Access should be provisioned for a whole access group at a time
-		//Pass in access group
-		//returns TargetGroups and Grants to be saved to the db
-		groupTargets, err := n.Access.Grant(ctx, group.Targets, user.Result.Email)
-		if err != nil {
-			return err
-		}
+	// 	//How do we want to separate concerns here?
+	// 	//Access should be provisioned for a whole access group at a time
+	// 	//Pass in access group
+	// 	//returns TargetGroups and Grants to be saved to the db
+	// 	groupTargets, err := n.Access.Grant(ctx, group.Targets, user.Result.Email)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		items = append(items, &target)
+	// 	items = append(items, &target)
 
-	}
+	// }
 
-	err = n.db.PutBatch(ctx, items...)
-	if err != nil {
-		return err
-	}
+	// err = n.db.PutBatch(ctx, items...)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
