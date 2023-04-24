@@ -107,6 +107,11 @@ func (t *Timing) ToAPI() types.RequestAccessGroupTiming {
 	}
 }
 
+// WithNow allows you to override the now time used by getInterval
+func WithNow(t time.Time) func(o *GetIntervalOpts) {
+	return func(o *GetIntervalOpts) { o.Now = t }
+}
+
 // GetInterval returns a start and end time for this timing information
 // it will either return times for scheduled access if the timing represents scheduled access.
 // Or it will use the time.Now() as the start time.

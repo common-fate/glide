@@ -12,6 +12,7 @@ import (
 
 type GetPreflight struct {
 	ID     string
+	UserId string
 	Result *access.Preflight
 }
 
@@ -21,7 +22,7 @@ func (g *GetPreflight) BuildQuery() (*dynamodb.QueryInput, error) {
 		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.Preflight.PK1},
-			":sk": &types.AttributeValueMemberS{Value: keys.Preflight.SK1(g.ID)},
+			":sk": &types.AttributeValueMemberS{Value: keys.Preflight.SK1(g.ID, g.UserId)},
 		},
 	}
 	return qi, nil

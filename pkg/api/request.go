@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/common-fate/apikit/apio"
@@ -123,39 +124,41 @@ func (a *API) UserRequestPreflight(w http.ResponseWriter, r *http.Request) {
 
 // (POST /api/v1/requests)
 func (a *API) UserPostRequests(w http.ResponseWriter, r *http.Request) {
-	// ctx := r.Context()
-	// u := auth.UserFromContext(ctx)
+	ctx := r.Context()
+	u := auth.UserFromContext(ctx)
 
-	// var createRequest types.CreateRequestRequestv2
-	// err := apio.DecodeJSONBody(w, r, &createRequest)
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
-	// requestGroup := storage.GetRequestV2{
-	// 	ID:     createRequest.PreflightId,
-	// 	UserId: u.ID,
-	// }
+	var createRequest types.CreateAccessRequestRequest
+	err := apio.DecodeJSONBody(w, r, &createRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// _, err = a.DB.Query(ctx, &requestGroup)
-	// if err == ddb.ErrNoItems {
-	// 	apio.Error(ctx, w, &apio.APIError{Err: errors.New("request group id not found"), Status: http.StatusNotFound})
-	// 	return
-	// }
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
+	//check preflight exists for user here and return if not found
+	preflight := storage.GetPreflight{
+		ID:     createRequest.PreflightId,
+		UserId: u.ID,
+	}
 
-	//request service to initiate the granting process...
+	_, err = a.DB.Query(ctx, &preflight)
+	if err == ddb.ErrNoItems {
+		apio.Error(ctx, w, &apio.APIError{Err: errors.New("preflight not found"), Status: http.StatusNotFound})
+		return
+	}
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
 
-	// _, err = a.Access.CreateRequests(ctx, *requestGroup.Result)
-	// if err != nil {
-	// 	apio.Error(ctx, w, err)
-	// 	return
-	// }
-	// //do we need to return anything via this api?
-	// apio.JSON(ctx, w, nil, http.StatusOK)
+	//request create service takes a preflight request, validates its fields and initiates the granding process
+	//on all of the entitlements in the preflight
+	_, err = a.Access.CreateRequest(ctx, createRequest)
+	if err != nil {
+		apio.Error(ctx, w, err)
+		return
+	}
+	//do we need to return anything via this api?
+	apio.JSON(ctx, w, nil, http.StatusOK)
 }
 
 func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestID string) {

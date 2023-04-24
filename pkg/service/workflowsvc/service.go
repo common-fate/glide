@@ -1,67 +1,47 @@
 package workflowsvc
 
+import (
+	"context"
+
+	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/ddb"
+)
+
 // //go:generate go run github.com/golang/mock/mockgen -destination=mocks/runtime.go -package=mocks . Runtime
-// type Runtime interface {
-// 	// isForTargetGroup tells the runtime how to process the request
-// 	// grant is expected to be asyncronous
-// 	// Grant(ctx context.Context, grant types.CreateGrant) error
-// 	// isForTargetGroup tells the runtime how to process the request
-// 	// revoke is expected to be syncronous
-// 	Revoke(ctx context.Context, grantID string) error
-// }
+type Runtime interface {
+	// grant is expected to be asyncronous
+	Grant(ctx context.Context, access_group access.GroupTarget) error
+	// isForTargetGroup tells the runtime how to process the request
+	// revoke is expected to be syncronous
+	Revoke(ctx context.Context, grantID string) error
+}
 
 // //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
-// type EventPutter interface {
-// 	Put(ctx context.Context, detail gevent.EventTyper) error
-// }
-// type Service struct {
-// 	Runtime  Runtime
-// 	DB       ddb.Storage
-// 	Clk      clock.Clock
-// 	Eventbus EventPutter
-// }
+type EventPutter interface {
+	Put(ctx context.Context, detail gevent.EventTyper) error
+}
+type Service struct {
+	Runtime  Runtime
+	DB       ddb.Storage
+	Clk      clock.Clock
+	Eventbus EventPutter
+}
 
-// func (s *Service) Grant(ctx context.Context, access_group access.AccessGroup, subject string) ([]requests.Grantv2, error) {
-// 	// Contains logic for preparing a grant and emitting events
+func (s *Service) Grant(ctx context.Context, access_group access.GroupTarget, subject string) ([]access.GroupTarget, error) {
+	// Contains logic for preparing a grant and emitting events
 
-// 	//lookup all the grant entitlements for this access group
+	// err := s.Runtime.Grant(ctx, access_group)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-// 	grants := storage.ListGrantsV2{GroupID: access_group.ID}
+	// //TODO: Grant created event here
 
-// 	_, err := s.DB.Query(ctx, &grants)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	for _, entitlement := range grants.Result {
-// 		createGrant, err := s.prepareCreateGrantRequest(ctx, access_group.TimeConstraints, types.NewRequestID(), subject, access_group.AccessRule, entitlement.Target)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		err = s.Runtime.Grant(ctx, createGrant)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		err = s.Eventbus.Put(ctx, &gevent.GrantCreated{Grant: types.Grant{
-// 			ID:       createGrant.Id,
-// 			Provider: createGrant.Provider,
-// 			End:      createGrant.End.Time,
-// 			Start:    createGrant.Start.Time,
-// 			Status:   types.GrantStatusPENDING,
-// 			Subject:  createGrant.Subject,
-// 			With:     types.Grant_With(createGrant.With),
-// 		}})
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		entitlement.Status = types.GrantStatusACTIVE
-
-// 	}
-
-// 	return grants.Result, nil
-// }
+	// return grants.Result, nil
+	return nil, nil
+}
 
 // // Revoke attepmts to syncronously revoke access to a request
 // // If it is successful, the request is updated in the database, and the updated request is returned from this method
@@ -143,7 +123,7 @@ package workflowsvc
 // }
 
 // // prepareCreateGrantRequest prepares the data for requesting
-// func (s *Service) prepareCreateGrantRequest(ctx context.Context, requestTiming requests.Timing, requestId string, subject string, accessRule rule.AccessRule, target requests.Target) (types.CreateGrant, error) {
+// func (s *Service) prepareCreateGrantRequest(ctx context.Context, groupTarget access.GroupTarget) (types.CreateGrant, error) {
 
 // 	start, end := requestTiming.GetInterval(requests.WithNow(s.Clk.Now()))
 
