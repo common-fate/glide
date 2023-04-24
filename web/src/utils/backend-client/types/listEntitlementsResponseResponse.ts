@@ -8,5 +8,5 @@
 import type { TargetKind } from './targetKind';
 
 export type ListEntitlementsResponseResponse = {
-  entitlements?: TargetKind[];
+  entitlements: TargetKind[];
 };

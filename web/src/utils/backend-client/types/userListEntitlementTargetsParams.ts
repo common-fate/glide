@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type UserListEntitlementTargetsParams = { nextToken?: string };
+export type UserListEntitlementTargetsParams = { nextToken?: string; kind?: string };
