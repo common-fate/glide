@@ -7,7 +7,10 @@ import {
   Text,
 } from "@chakra-ui/react";
 import React from "react";
-import { ApprovalMethod, RequestStatus } from "../utils/backend-client/types";
+import {
+  RequestAccessGroupApprovalMethod,
+  RequestStatus,
+} from "../utils/backend-client/types";
 interface Props extends FlexProps {
   replaceValue?: string;
   value?: string;
@@ -64,7 +67,7 @@ export const StatusCell: React.FC<Props> = ({
 
 interface RequestStatusCellProps extends FlexProps {
   value: string | undefined;
-  approvalMethod: ApprovalMethod | undefined;
+  approvalMethod: RequestAccessGroupApprovalMethod | undefined;
 }
 
 // RequestStatusCell providers a slim wrapper to remove boilerplate for request statuses
@@ -78,8 +81,8 @@ export const RequestStatusCell: React.FC<RequestStatusCellProps> = ({
   return (
     <StatusCell
       value={isAuto ? "Automatically approved" : value}
-      success={[RequestStatus.APPROVED, "Automatically approved"]}
-      danger={[RequestStatus.DECLINED, RequestStatus.CANCELLED]}
+      // success={[RequestStatus.APPROVED, "Automatically approved"]}
+      // danger={[RequestStatus.DECLINED, RequestStatus.CANCELLED]}
       warning={RequestStatus.PENDING}
       textStyle="Body/Small"
       {...rest}

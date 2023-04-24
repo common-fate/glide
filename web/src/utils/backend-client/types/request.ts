@@ -7,6 +7,7 @@
  */
 import type { RequestPurpose } from './requestPurpose';
 import type { RequestAccessGroup } from './requestAccessGroup';
+import type { RequestRequestedBy } from './requestRequestedBy';
 import type { RequestStatus } from './requestStatus';
 
 /**
@@ -16,7 +17,7 @@ export interface Request {
   id: string;
   purpose: RequestPurpose;
   accessGroups: RequestAccessGroup[];
-  requestedBy: string;
+  requestedBy: RequestRequestedBy;
   requestedAt: string;
   status: RequestStatus;
 }

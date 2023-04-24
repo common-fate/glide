@@ -23,13 +23,11 @@ import {
 } from "@chakra-ui/react";
 import React, { useMemo } from "react";
 import { useUserGetUser } from "../utils/backend-client/end-user/end-user";
-import { RequestDetail } from "../utils/backend-client/types";
+import { Request } from "../utils/backend-client/types";
 import { renderTiming } from "../utils/renderTiming";
 import { CFTimelineRow } from "./CFTimelineRow";
 
-export const _AuditLog: React.FC<{ request?: RequestDetail }> = ({
-  request,
-}) => {
+export const _AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
   const data: any = {};
 
   const events = useMemo(() => {
@@ -252,9 +250,7 @@ export const _AuditLog: React.FC<{ request?: RequestDetail }> = ({
   );
 };
 
-export const AuditLog: React.FC<{ request?: RequestDetail }> = ({
-  request,
-}) => {
+export const AuditLog: React.FC<{ request?: Request }> = ({ request }) => {
   const data: any = {};
 
   const events = useMemo(() => {

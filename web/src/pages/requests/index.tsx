@@ -29,16 +29,9 @@ import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
 import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
-import {
-  useUserListFavorites,
-  useUserListRequestsUpcoming,
-  useUserListRequestsPast,
-} from "../../utils/backend-client/end-user/end-user";
-import {
-  AccessRule,
-  Request,
-  Requestv2,
-} from "../../utils/backend-client/types";
+import { useUserListRequests } from "../../utils/backend-client/default/default";
+import {} from "../../utils/backend-client/end-user/end-user";
+import { AccessRule, Request } from "../../utils/backend-client/types";
 import { useUser } from "../../utils/context/userContext";
 import { renderTiming } from "../../utils/renderTiming";
 import { useInfiniteScrollApi } from "../../utils/useInfiniteScrollApi";
@@ -57,18 +50,18 @@ const Home = () => {
     data: reqsUpcoming,
     isValidating,
     ...upcomingApi
-  } = useInfiniteScrollApi<typeof useUserListRequestsUpcoming>({
-    swrHook: useUserListRequestsUpcoming,
-    hookProps: {},
+  } = useInfiniteScrollApi<typeof useUserListRequests>({
+    swrHook: useUserListRequests,
+    hookProps: { filter: "UPCOMING" },
     swrProps: { swr: { refreshInterval: 10000 } },
     listObjKey: "requests",
   });
 
   const { data: reqsPast, ...pastApi } = useInfiniteScrollApi<
-    typeof useUserListRequestsPast
+    typeof useUserListRequests
   >({
-    swrHook: useUserListRequestsPast,
-    hookProps: {},
+    swrHook: useUserListRequests,
+    hookProps: { filter: "PAST" },
     listObjKey: "requests",
   });
 
@@ -293,12 +286,12 @@ const Rules = () => {
                     pos="relative"
                     overflow="hidden"
                   >
-                    <ProviderIcon
+                    {/* <ProviderIcon
                       shortType={r.target.provider.id as ShortTypes}
                       mb={3}
                       h="8"
                       w="8"
-                    />
+                    /> */}
 
                     <Text
                       textStyle="Body/SmallBold"
@@ -396,20 +389,10 @@ const LoadMoreButton = (props: CenterProps) => (
     {...props}
   />
 );
-/** things that end users can do to requests */
-type RequestOption = "cancel" | "extend" | undefined;
-
-// this is currently a hacky approach, it needs to be fixed once we handle extending requests.
-const getRequestOption = (req: Request): RequestOption => {
-  if (req.status === "PENDING") return "cancel";
-  if (req.status === "APPROVED" && req.timing.startTime) return "cancel";
-  if (req.status === "APPROVED") return "extend";
-  return undefined;
-};
 
 const UserAccessCard: React.FC<
   {
-    req: Requestv2;
+    req: Request;
     type: "upcoming" | "past";
     index: number;
   } & LinkBoxProps
@@ -436,11 +419,11 @@ const UserAccessCard: React.FC<
                 <Box>
                   {rule ? (
                     <Flex align="center" mr="auto">
-                      <ProviderIcon
+                      {/* <ProviderIcon
                         shortType={rule?.target.provider.id as ShortTypes}
                         h={10}
                         w={10}
-                      />
+                      /> */}
                       <Text
                         ml={2}
                         textStyle="Body/LargeBold"
