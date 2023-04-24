@@ -845,6 +845,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Request"
+              examples:
+                ex_1:
+                  value:
+                    id: example
+                    purpose:
+                      reason: string
+                    accessGroups:
+                      - id: string
+                        requestId: string
+                        status: DECLINED
+                        time:
+                          durationSeconds: 0
+                          startTime: "14:15:22Z"
+                        overrideTiming:
+                          durationSeconds: 0
+                          startTime: "14:15:22Z"
+                        updatedAt: string
+                        createdAt: string
+                        targets:
+                          - id: string
+                            requestId: string
+                            accessGroupId: string
+                            targetGroupId: string
+                            targetGroupFrom:
+                              publisher: string
+                              name: string
+                              version: string
+                              kind: string
+                            fields:
+                              - id: string
+                                fieldTitle: string
+                                fieldDescription: string
+                                valueLabel: string
+                                valueDescription: string
+                                value: string
+                            status: PENDING_PROVISIONING
+                        approvalMethod: AUTOMATIC
+                    requestedBy: string
+                    requestedAt: "14:15:22Z"
+                    status: CANCELLED
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -2367,6 +2407,7 @@ components:
             required:
               - preflightId
               - groupOptions
+          examples: {}
 tags:
   - name: End User
   - name: Admin

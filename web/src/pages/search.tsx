@@ -172,7 +172,7 @@ const Search = () => {
         {
           baseURL: "http://127.0.0.1:3100",
           headers: {
-            Prefer: "code=200, example=example_targets",
+            Prefer: "code=200, example=ex_1",
           },
         }
       )
