@@ -16,7 +16,9 @@ func TestListAccessRules(t *testing.T) {
 	}
 
 	a := rule.TestAccessRule()
+	a.Priority = 100
 	b := rule.TestAccessRule()
+	b.Priority = 0
 
 	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&a, &b})
 
@@ -24,10 +26,11 @@ func TestListAccessRules(t *testing.T) {
 		{
 			Name:  "ok",
 			Query: &ListAccessRules{},
-			Want:  &ListAccessRules{Result: []rule.AccessRule{a, b}},
+			// asserts the order is from highest to lowest priority
+			Want: &ListAccessRules{Result: []rule.AccessRule{a, b}},
 		},
 	}
 
-	ddbtest.RunQueryTests(t, ts.db, tc)
+	ddbtest.RunQueryTests(t, ts.db, tc, ddbtest.WithAssertResultsOrder(true))
 
 }

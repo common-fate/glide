@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
+// ListAccessRules lists rule in order from highest to lowest priority
 type ListAccessRules struct {
 	Result []rule.AccessRule `ddb:"result"`
 }
