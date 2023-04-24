@@ -63,7 +63,7 @@ const Home = () => {
     request: {
       baseURL: "http://127.0.0.1:3100",
       headers: {
-        Prefer: "code=200, example=example_1",
+        Prefer: "code=200, example=ex_12",
       },
     },
   });
@@ -133,7 +133,7 @@ const Home = () => {
             md: "container.lg",
           }}
         >
-          <Grid mt={8} gridTemplateColumns={"1fr 240px"} gap="4">
+          <Grid mt={8} gridTemplateColumns={{ sm: "1fr 240px" }} gap="4">
             <GridItem>
               <>
                 <Stack spacing={4}>
@@ -204,14 +204,14 @@ const Home = () => {
                   </Stack>
                 </Stack>
 
-                <Code
+                {/* <Code
                   maxW="60ch"
                   textOverflow="clip"
                   whiteSpace="pre-wrap"
                   mt={32}
                 >
                   {JSON.stringify({ request }, null, 2)}
-                </Code>
+                </Code> */}
               </>
             </GridItem>
             <GridItem>

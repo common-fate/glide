@@ -943,6 +943,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Preflight"
+              examples:
+                ex_1:
+                  value:
+                    id: string
+                    accessGroups:
+                      - id: string
+                        requiresApproval: true
+                        time:
+                          maxDurationSeconds: 60
+                        targets:
+                          - id: string
+                            kind:
+                              publisher: string
+                              name: string
+                              kind: string
+                              icon: string
+                            fields:
+                              - id: string
+                                fieldTitle: string
+                                fieldDescription: string
+                                valueLabel: string
+                                valueDescription: string
+                                value: string
+                    createdAt: string
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
