@@ -4,6 +4,7 @@ import {
   FormControl,
   FormHelperText,
   FormLabel,
+  HStack,
   Input,
   Modal,
   ModalBody,
@@ -15,11 +16,13 @@ import {
   ModalProps,
   Stack,
   Text,
+  useRadioGroup,
+  UseRadioGroupProps,
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { When, WhenRadioGroup } from "../../pages/access/request/[id]";
+
 import {
   Request,
   RequestAccessGroup,
@@ -27,7 +30,24 @@ import {
 } from "../../utils/backend-client/types";
 
 import { durationString } from "../../utils/durationString";
+import { CFRadioBox } from "../CFRadioBox";
 import { Days, DurationInput, Hours, Minutes, Weeks } from "../DurationInput";
+export type When = "asap" | "scheduled";
+export const WhenRadioGroup: React.FC<UseRadioGroupProps> = (props) => {
+  const { getRootProps, getRadioProps } = useRadioGroup(props);
+  const group = getRootProps();
+
+  return (
+    <HStack {...group}>
+      <CFRadioBox {...getRadioProps({ value: "asap" })}>
+        <Text textStyle="Body/Medium">ASAP</Text>
+      </CFRadioBox>
+      <CFRadioBox {...getRadioProps({ value: "scheduled" })}>
+        <Text textStyle="Body/Medium">Scheduled</Text>
+      </CFRadioBox>
+    </HStack>
+  );
+};
 type Props = {
   accessGroup: RequestAccessGroup;
   handleSubmit: (timing: RequestAccessGroupTiming) => void;
@@ -108,7 +128,7 @@ const EditRequestTimeModal = ({ accessGroup, ...props }: Props) => {
                         {...rest}
                         max={maxDurationSeconds}
                         min={60}
-                        defaultValue={accessGroup.timing.durationSeconds}
+                        defaultValue={accessGroup.time.durationSeconds}
                         hideUnusedElements
                       >
                         <Weeks />

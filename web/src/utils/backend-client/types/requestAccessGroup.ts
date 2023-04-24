@@ -23,5 +23,5 @@ export interface RequestAccessGroup {
   requestedBy: RequestRequestedBy;
   targets: RequestAccessGroupTarget[];
   approvalMethod?: RequestAccessGroupApprovalMethod;
-  accessRule?: RequestAccessGroupAccessRule;
+  accessRule: RequestAccessGroupAccessRule;
 }
