@@ -5,21 +5,26 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import useSwr from "swr";
-import type { SWRConfiguration, Key } from "swr";
+import useSwr from 'swr'
+import type {
+  SWRConfiguration,
+  Key
+} from 'swr'
 import type {
   User,
   AuthUserResponseResponse,
   ReviewResponseResponse,
-  ReviewRequestBody,
-} from ".././types";
-import { customInstance } from "../../custom-instance";
-import type { ErrorType } from "../../custom-instance";
+  ReviewRequestBody
+} from '.././types'
+import { customInstance } from '../../custom-instance'
+import type { ErrorType } from '../../custom-instance'
 
-// eslint-disable-next-line
-type SecondParameter<T extends (...args: any) => any> = T extends (
+
+  
+  // eslint-disable-next-line
+  type SecondParameter<T extends (...args: any) => any> = T extends (
   config: any,
-  args: infer P
+  args: infer P,
 ) => any
   ? P
   : never;
@@ -29,128 +34,107 @@ type SecondParameter<T extends (...args: any) => any> = T extends (
  * @summary Get a user
  */
 export const userGetUser = (
-  userId: string,
-  options?: SecondParameter<typeof customInstance>
-) => {
-  return customInstance<User>(
-    { url: `/api/v1/users/${userId}`, method: "get" },
-    options
-  );
-};
+    userId: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<User>(
+      {url: `/api/v1/users/${userId}`, method: 'get'
+    },
+      options);
+    }
+  
 
-export const getUserGetUserKey = (userId: string) => [
-  `/api/v1/users/${userId}`,
-];
+export const getUserGetUserKey = (userId: string,) => [`/api/v1/users/${userId}`];
 
-export type UserGetUserQueryResult = NonNullable<
-  Awaited<ReturnType<typeof userGetUser>>
->;
-export type UserGetUserQueryError = ErrorType<void>;
+    
+export type UserGetUserQueryResult = NonNullable<Awaited<ReturnType<typeof userGetUser>>>
+export type UserGetUserQueryError = ErrorType<void>
 
 export const useUserGetUser = <TError = ErrorType<void>>(
-  userId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof userGetUser>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof customInstance>;
-  }
-) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+ userId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetUser>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
-  const isEnabled = swrOptions?.enabled !== false && !!userId;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getUserGetUserKey(userId) : null));
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(userId)
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetUserKey(userId) : null);
   const swrFn = () => userGetUser(userId, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 
 /**
  * Returns information about the currently logged in user.
  * @summary Get details for the current user
  */
-export const userGetMe = (options?: SecondParameter<typeof customInstance>) => {
-  return customInstance<AuthUserResponseResponse>(
-    { url: `/api/v1/users/me`, method: "get" },
-    options
-  );
-};
+export const userGetMe = (
+    
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<AuthUserResponseResponse>(
+      {url: `/api/v1/users/me`, method: 'get'
+    },
+      options);
+    }
+  
 
 export const getUserGetMeKey = () => [`/api/v1/users/me`];
 
-export type UserGetMeQueryResult = NonNullable<
-  Awaited<ReturnType<typeof userGetMe>>
->;
-export type UserGetMeQueryError = ErrorType<void>;
+    
+export type UserGetMeQueryResult = NonNullable<Awaited<ReturnType<typeof userGetMe>>>
+export type UserGetMeQueryError = ErrorType<void>
 
-export const useUserGetMe = <TError = ErrorType<void>>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof userGetMe>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-  request?: SecondParameter<typeof customInstance>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const useUserGetMe = <TError = ErrorType<void>>(
+  options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof userGetMe>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof customInstance> }
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getUserGetMeKey() : null));
+  ) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+    const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getUserGetMeKey() : null);
   const swrFn = () => userGetMe(requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(
-    swrKey,
-    swrFn,
-    swrOptions
-  );
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 
 /**
  * Review an access request made by a user. The reviewing user must be an approver for a request. Users cannot review their own requests, even if they are an approver for the Access Rule.
  * @summary Review a request
  */
 export const userReviewRequest = (
-  requestId: string,
-  reviewRequestBody: ReviewRequestBody,
-  options?: SecondParameter<typeof customInstance>
-) => {
-  return customInstance<ReviewResponseResponse>(
-    {
-      url: `/api/v1/requests/${requestId}/review`,
-      method: "post",
-      headers: { "Content-Type": "application/json" },
-      data: reviewRequestBody,
+    requestId: string,
+    reviewRequestBody: ReviewRequestBody,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<ReviewResponseResponse>(
+      {url: `/api/v1/requests/${requestId}/review`, method: 'post',
+      headers: {'Content-Type': 'application/json', },
+      data: reviewRequestBody
     },
-    options
-  );
-};
+      options);
+    }
+  
 
 /**
- * Admins and approvers can revoke access previously approved. Effective immediately
+ * Admins and approvers can revoke access previously approved. Effective immediately 
  * @summary Revoke an active request
  */
 export const userRevokeRequest = (
-  requestid: string,
-  options?: SecondParameter<typeof customInstance>
-) => {
-  return customInstance<void>(
-    { url: `/api/v1/requests/${requestid}/revoke`, method: "post" },
-    options
-  );
-};
+    requestid: string,
+ options?: SecondParameter<typeof customInstance>) => {
+      return customInstance<void>(
+      {url: `/api/v1/requests/${requestid}/revoke`, method: 'post'
+    },
+      options);
+    }
+  
+

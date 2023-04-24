@@ -5,10 +5,10 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { RequestAccessGroupStatus } from "./requestAccessGroupStatus";
-import type { RequestAccessGroupTiming } from "./requestAccessGroupTiming";
-import type { RequestAccessGroupTarget } from "./requestAccessGroupTarget";
-import type { RequestAccessGroupApprovalMethod } from "./requestAccessGroupApprovalMethod";
+import type { RequestAccessGroupStatus } from './requestAccessGroupStatus';
+import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
+import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
+import type { RequestAccessGroupApprovalMethod } from './requestAccessGroupApprovalMethod';
 
 export interface RequestAccessGroup {
   id: string;

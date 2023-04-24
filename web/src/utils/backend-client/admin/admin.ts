@@ -205,21 +205,6 @@ export const adminUpdateAccessRule = (
   
 
 /**
- * Marks an access rule as archived.
-Any pending requests for this access rule will be cancelled.
- * @summary Archive Access Rule
- */
-export const adminArchiveAccessRule = (
-    ruleId: string,
- options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<AccessRule>(
-      {url: `/api/v1/admin/access-rules/${ruleId}/archive`, method: 'post'
-    },
-      options);
-    }
-  
-
-/**
  * Return a list of all requests
  * @summary Your GET endpoint
  */

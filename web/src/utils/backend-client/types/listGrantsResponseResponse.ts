@@ -5,7 +5,7 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { RequestAccessGroupTarget } from "./requestAccessGroupTarget";
+import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
 
 export type ListGrantsResponseResponse = {
   grants: RequestAccessGroupTarget[];

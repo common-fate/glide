@@ -5,18 +5,16 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { AccessRuleStatus } from "./accessRuleStatus";
-import type { AccessRuleTarget } from "./accessRuleTarget";
-import type { AccessRuleTimeConstraints } from "./accessRuleTimeConstraints";
-import type { AccessRuleApproverConfig } from "./accessRuleApproverConfig";
-import type { AccessRuleMetadata } from "./accessRuleMetadata";
+import type { AccessRuleTarget } from './accessRuleTarget';
+import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
+import type { AccessRuleApproverConfig } from './accessRuleApproverConfig';
+import type { AccessRuleMetadata } from './accessRuleMetadata';
 
 /**
  * AccessRule contains detailed information about a rule and is used in administrative apis.
  */
 export interface AccessRule {
   id: string;
-  status: AccessRuleStatus;
   name: string;
   description: string;
   targets: AccessRuleTarget[];

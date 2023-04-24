@@ -5,10 +5,10 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { RequestStatus } from "./requestStatus";
-import type { RequestAccessGroupTiming } from "./requestAccessGroupTiming";
-import type { RequestAccessGroupTargetStatus } from "./requestAccessGroupTargetStatus";
-import type { RequestEventRecordedEvent } from "./requestEventRecordedEvent";
+import type { RequestStatus } from './requestStatus';
+import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
+import type { RequestAccessGroupTargetStatus } from './requestAccessGroupTargetStatus';
+import type { RequestEventRecordedEvent } from './requestEventRecordedEvent';
 
 export interface RequestEvent {
   id: string;

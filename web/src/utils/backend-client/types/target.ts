@@ -5,8 +5,8 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { TargetKind } from "./targetKind";
-import type { TargetField } from "./targetField";
+import type { TargetKind } from './targetKind';
+import type { TargetField } from './targetField';
 
 export interface Target {
   id: string;
