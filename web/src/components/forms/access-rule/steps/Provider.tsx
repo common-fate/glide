@@ -2,12 +2,12 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Text
+  Text,
 } from "@chakra-ui/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
+import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
 
-import { useAdminListTargetGroups } from "src/utils/backend-client/admin/admin";
 import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 
