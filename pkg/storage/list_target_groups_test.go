@@ -15,8 +15,24 @@ func TestListTargetGroups(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tg1 := target.TestGroup()
-	tg2 := target.TestGroup()
+	tg1 := target.Group{
+		ID:   "test-target-group1",
+		Icon: "aws-sso",
+		From: target.From{
+			Publisher: "test",
+			Name:      "test",
+			Version:   "v1.1.1",
+		},
+	}
+	tg2 := target.Group{
+		ID:   "test-target-group2",
+		Icon: "aws-sso",
+		From: target.From{
+			Publisher: "test",
+			Name:      "test",
+			Version:   "v1.1.1",
+		},
+	}
 	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&tg1, &tg2})
 	tc := []ddbtest.QueryTestCase{
 		{

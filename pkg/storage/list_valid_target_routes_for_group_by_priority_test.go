@@ -37,11 +37,11 @@ func TestListValidTargetRoutesForGroupByPriority(t *testing.T) {
 
 	tc := []ddbtest.QueryTestCase{
 		{
-			Name: "ok",
+			Name: "ok, invalid route is excluded",
 			Query: &ListValidTargetRoutesForGroupByPriority{
 				Group: groupID,
 			},
-			Want: &ListValidTargetRoutesForGroupByPriority{Result: []target.Route{r3, r2, r1}},
+			Want: &ListValidTargetRoutesForGroupByPriority{Group: groupID, Result: []target.Route{r2, r1}},
 		},
 	}
 

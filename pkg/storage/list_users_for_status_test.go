@@ -33,14 +33,14 @@ func TestListUsersStatus(t *testing.T) {
 			Query: &ListUsersForStatus{
 				Status: types.IdpStatusACTIVE,
 			},
-			Want: &ListUsersForStatus{Result: []identity.User{active}},
+			Want: &ListUsersForStatus{Status: types.IdpStatusACTIVE, Result: []identity.User{active}},
 		},
 		{
 			Name: "archived",
 			Query: &ListUsersForStatus{
 				Status: types.IdpStatusARCHIVED,
 			},
-			Want: &ListUsersForStatus{Result: []identity.User{archived}},
+			Want: &ListUsersForStatus{Status: types.IdpStatusARCHIVED, Result: []identity.User{archived}},
 		},
 	}
 
