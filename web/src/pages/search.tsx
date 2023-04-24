@@ -17,6 +17,7 @@ import {
   useEventListener,
   chakra,
   Textarea,
+  Spinner,
 } from "@chakra-ui/react";
 import React from "react";
 import { Link, useNavigate } from "react-location";
@@ -95,6 +96,9 @@ const Search = () => {
     });
     setTargetKeyMap(map);
   }, [targets.data]);
+
+  const targetsLoading =
+    targets.isValidating && Object.entries(targetKeyMap).length == 0;
 
   // @TODO:
   // Actually use the fixture data, maybe write it with actual values.
@@ -232,7 +236,9 @@ const Search = () => {
                       >
                         All resources
                       </Text>
-                      <Flex>{targets.data?.targets.length}&nbsp;total</Flex>
+                      <Flex color="neutrals.500">
+                        {targets.data?.targets.length}&nbsp;total
+                      </Flex>
                     </Center>
                     {[
                       "aws",
@@ -281,12 +287,15 @@ const Search = () => {
                       <Center as={CommandNew.Empty} minH="200px">
                         No results found.
                       </Center>
-
                       <CommandNew.Group
                       // heading="Permissions"
                       >
-                        <CommandNew.Separator />
-                        {targets.data &&
+                        {targetsLoading ? (
+                          <Center as={CommandNew.Loading} minH="200px">
+                            <Spinner />
+                          </Center>
+                        ) : (
+                          targets.data &&
                           Object.entries(targetKeyMap).map(([key, target]) => {
                             return (
                               <Flex
@@ -348,11 +357,13 @@ const Search = () => {
                                 />
                               </Flex>
                             );
-                          })}
+                          })
+                        )}
                       </CommandNew.Group>
                     </Stack>
                   </CommandNew.List>
                 </CommandNew>
+
                 <Flex w="100%" mt={4}>
                   <Button
                     disabled={checked.length == 0}

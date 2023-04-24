@@ -172,14 +172,7 @@ export const Navbar: React.FC = () => {
                     w="95px"
                     pr={showReqCount ? 10 : undefined}
                   >
-                    Search1
-                  </TabsStyledButton>
-                  <TabsStyledButton
-                    href="/search2"
-                    w="95px"
-                    pr={showReqCount ? 10 : undefined}
-                  >
-                    Search2
+                    Search
                   </TabsStyledButton>
                 </ButtonGroup>
               )}
