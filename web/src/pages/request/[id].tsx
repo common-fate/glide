@@ -210,7 +210,7 @@ const Home = () => {
                   whiteSpace="pre-wrap"
                   mt={32}
                 >
-                  {JSON.stringify({ request, groups, grants }, null, 2)}
+                  {JSON.stringify({ request }, null, 2)}
                 </Code>
               </>
             </GridItem>
