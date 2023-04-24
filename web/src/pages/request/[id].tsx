@@ -37,11 +37,16 @@ import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
 import { AuditLog } from "../../components/AuditLog";
 import FieldsCodeBlock from "../../components/FieldsCodeBlock";
-import { ProviderIcon } from "../../components/icons/providerIcon";
+import { ProviderIcon, ShortTypes } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
 import { useUserGetRequest } from "../../utils/backend-client/default/default";
-import { PreflightAccessGroup, Target } from "../../utils/backend-client/types";
+import {
+  PreflightAccessGroup,
+  RequestAccessGroup,
+  RequestAccessGroupTarget,
+  Target,
+} from "../../utils/backend-client/types";
 import {
   durationString,
   durationStringHoursMinutes,
@@ -63,7 +68,7 @@ const Home = () => {
     request: {
       baseURL: "http://127.0.0.1:3100",
       headers: {
-        Prefer: "code=200, example=example_1",
+        Prefer: "code=200, example=ex_12",
       },
     },
   });
@@ -133,7 +138,7 @@ const Home = () => {
             md: "container.lg",
           }}
         >
-          <Grid mt={8} gridTemplateColumns={"1fr 240px"} gap="4">
+          <Grid mt={8} gridTemplateColumns={{ sm: "1fr 240px" }} gap="4">
             <GridItem>
               <>
                 <Stack spacing={4}>
@@ -142,20 +147,20 @@ const Home = () => {
                       <Flex>
                         <Avatar
                           size="sm"
-                          src={request.data.user.picture}
+                          src={request.data.requestedBy.picture}
                           name={
-                            request.data.user.firstName +
+                            request.data.requestedBy.firstName +
                             " " +
-                            request.data.user.lastName
+                            request.data.requestedBy.lastName
                           }
                           mr={2}
                         />
                         <Box>
                           <Flex>
                             <Text textStyle="Body/Small">
-                              {request.data.user.firstName +
+                              {request.data.requestedBy.firstName +
                                 " " +
-                                request.data.user.lastName}
+                                request.data.requestedBy.lastName}
                             </Text>
                             <Text
                               textStyle="Body/Small"
@@ -163,11 +168,11 @@ const Home = () => {
                               color="neutrals.500"
                             >
                               requested at&nbsp;
-                              {request.data.createdAt}
+                              {request.data.requestedAt}
                             </Text>
                           </Flex>
                           <Text textStyle="Body/Small" color="neutrals.500">
-                            {request.data.user.email}
+                            {request.data.requestedBy.email}
                           </Text>
                         </Box>
                       </Flex>
@@ -204,14 +209,14 @@ const Home = () => {
                   </Stack>
                 </Stack>
 
-                <Code
+                {/* <Code
                   maxW="60ch"
                   textOverflow="clip"
                   whiteSpace="pre-wrap"
                   mt={32}
                 >
                   {JSON.stringify({ request }, null, 2)}
-                </Code>
+                </Code> */}
               </>
             </GridItem>
             <GridItem>
@@ -225,11 +230,11 @@ const Home = () => {
 };
 
 type AccessGroupProps = {
-  group: PreflightAccessGroup;
+  group: RequestAccessGroup;
 };
 
 export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
-  if (group.status === "PENDING") {
+  if (group.status === "PENDING_APPROVAL") {
     return (
       <Box
         as="span"
@@ -242,13 +247,13 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
         <Text color="neutrals.700">Review Required</Text>
         <Text color="neutrals.500">
           Duration&nbsp;
-          {durationString(group.time.maxDurationSeconds)}
+          {durationString(group.time.durationSeconds)}
         </Text>
       </Box>
     );
   }
 
-  if (group.status === "ACTIVE") {
+  if (group.status === "APPROVED") {
     return (
       <Flex flex="1">
         <StatusCell
@@ -283,10 +288,11 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
   //   },
   // });
 
-  const [selectedGrant, setSelectedGrant] = useState<Target>();
+  const [selectedGrant, setSelectedGrant] =
+    useState<RequestAccessGroupTarget>();
   const grantModalState = useDisclosure();
 
-  const handleGrantClick = (grant: Target) => {
+  const handleGrantClick = (grant: RequestAccessGroupTarget) => {
     setSelectedGrant(grant);
     grantModalState.onOpen();
   };
@@ -399,8 +405,10 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalCloseButton />
           <ModalBody>
             <Box>
-              <ProviderIcon shortType={selectedGrant?.targetGroupFrom.name} />
-              <FieldsCodeBlock fields={selectedGrant?.fields} />
+              <ProviderIcon
+                shortType={selectedGrant?.targetGroupIcon as ShortTypes}
+              />
+              <FieldsCodeBlock fields={selectedGrant?.fields || []} />
             </Box>
             <Text textStyle="Body/Small">Access Instructions</Text>
 

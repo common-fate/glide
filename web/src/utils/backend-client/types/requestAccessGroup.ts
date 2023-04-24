@@ -7,6 +7,7 @@
  */
 import type { RequestAccessGroupStatus } from './requestAccessGroupStatus';
 import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
+import type { RequestRequestedBy } from './requestRequestedBy';
 import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
 import type { RequestAccessGroupApprovalMethod } from './requestAccessGroupApprovalMethod';
 
@@ -18,6 +19,7 @@ export interface RequestAccessGroup {
   overrideTiming: RequestAccessGroupTiming;
   updatedAt: string;
   createdAt: string;
+  requestedBy: RequestRequestedBy;
   targets: RequestAccessGroupTarget[];
   approvalMethod?: RequestAccessGroupApprovalMethod;
 }

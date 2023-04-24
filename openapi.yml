@@ -942,7 +942,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Preflight"
+                $ref: "#/components/schemas/Request"
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1499,7 +1499,7 @@ components:
           items:
             $ref: "#/components/schemas/RequestAccessGroup"
         requestedBy:
-          type: string
+          $ref: "#/components/schemas/RequestRequestedBy"
         requestedAt:
           type: string
           x-go-type: time.Time
@@ -1513,6 +1513,65 @@ components:
         - requestedBy
         - requestedAt
         - status
+    RequestRequestedBy:
+      title: Request Requested By
+      type: object
+      description: The user who requested access
+      x-examples:
+        Example 1:
+          id: string
+          purpose:
+            reason: string
+          accessGroups:
+            - id: string
+              requestId: string
+              status: APPROVED
+              time:
+                maxDurationSeconds: 60
+              overrideTiming:
+                durationSeconds: 0
+                startTime: "14:15:22Z"
+              updatedAt: string
+              createdAt: string
+              targets:
+                - id: string
+                  requestId: string
+                  accessGroupId: string
+                  targetGroupId: string
+                  targetGroupFrom:
+                    publisher: string
+                    name: string
+                    version: string
+                    kind: string
+                  fields:
+                    - id: string
+                      fieldTitle: string
+                      fieldDescription: string
+                      valueLabel: string
+                      valueDescription: string
+                      value: string
+                  status: PENDING
+          requestedBy: string
+          requestedAt: "14:15:22Z"
+      x-stoplight:
+        id: bd24ac9430a01
+      properties:
+        id:
+          type: string
+          x-go-name: ID
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        picture:
+          type: string
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
     RequestPurpose:
       title: RequestContext
       type: object
@@ -1596,6 +1655,8 @@ components:
         createdAt:
           type: string
           x-go-type: time.Time
+        requestedBy:
+          $ref: "#/components/schemas/RequestRequestedBy"
         targets:
           type: array
           items:
@@ -1610,6 +1671,7 @@ components:
         - overrideTiming
         - updatedAt
         - createdAt
+        - requestedBy
         - targets
     RequestAccessGroupApprovalMethod:
       type: string
@@ -1673,20 +1735,26 @@ components:
           type: string
         targetGroupFrom:
           $ref: "#/components/schemas/TargetGroupFrom"
+        targetGroupIcon:
+          type: string
         fields:
           type: array
           items:
             $ref: "#/components/schemas/TargetField"
         status:
           $ref: "#/components/schemas/RequestAccessGroupTargetStatus"
+        requestedBy:
+          $ref: "#/components/schemas/RequestRequestedBy"
       required:
         - id
         - requestId
         - accessGroupId
         - targetGroupId
         - targetGroupFrom
+        - targetGroupIcon
         - fields
         - status
+        - requestedBy
     RequestAccessGroupTargetStatus:
       type: string
       description: |

@@ -59,6 +59,7 @@ export * from './requestAccessGroupTiming';
 export * from './requestEvent';
 export * from './requestEventRecordedEvent';
 export * from './requestPurpose';
+export * from './requestRequestedBy';
 export * from './requestStatus';
 export * from './reviewDecision';
 export * from './reviewRequestBody';

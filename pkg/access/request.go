@@ -42,11 +42,14 @@ func (p Purpose) ToAPI() types.RequestPurpose {
 }
 func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 	out := types.Request{
-		ID:           r.ID,
-		Status:       r.RequestStatus,
-		Purpose:      r.Purpose.ToAPI(),
-		RequestedAt:  r.RequestedAt,
-		RequestedBy:  r.RequestedBy,
+		ID:          r.ID,
+		Status:      r.RequestStatus,
+		Purpose:     r.Purpose.ToAPI(),
+		RequestedAt: r.RequestedAt,
+		// @TODO denormalise the user onto the request
+		RequestedBy: types.RequestRequestedBy{
+			ID: r.RequestedBy,
+		},
 		AccessGroups: []types.RequestAccessGroup{},
 	}
 	for _, group := range r.Groups {

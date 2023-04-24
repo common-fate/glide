@@ -8,6 +8,7 @@
 import type { TargetGroupFrom } from './targetGroupFrom';
 import type { TargetField } from './targetField';
 import type { RequestAccessGroupTargetStatus } from './requestAccessGroupTargetStatus';
+import type { RequestRequestedBy } from './requestRequestedBy';
 
 /**
  * A temporary assignment of a user to a principal.
@@ -18,6 +19,8 @@ export interface RequestAccessGroupTarget {
   accessGroupId: string;
   targetGroupId: string;
   targetGroupFrom: TargetGroupFrom;
+  targetGroupIcon: string;
   fields: TargetField[];
   status: RequestAccessGroupTargetStatus;
+  requestedBy: RequestRequestedBy;
 }

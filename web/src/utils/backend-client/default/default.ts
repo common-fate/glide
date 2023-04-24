@@ -286,7 +286,7 @@ export const userPostRequests = (
 export const userGetRequest = (
     requestId: string,
  options?: SecondParameter<typeof customInstance>) => {
-      return customInstance<Preflight>(
+      return customInstance<Request>(
       {url: `/api/v1/requests/${requestId}`, method: 'get'
     },
       options);
