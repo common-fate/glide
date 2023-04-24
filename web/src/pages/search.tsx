@@ -162,7 +162,14 @@ const Search = () => {
       userPostRequests(
         {
           preflightId: preflightRes?.id,
-          // accessReason: accessReason,
+          reason: accessReason,
+          groupOptions: [
+            // @TODO: add in group options, after dynamic UI is supported (next scope of work)
+            //   {
+            //     id: preflightRes?.id,
+            //     timing: { startTime: new Date().toISOString() },
+            //   },
+          ],
         },
         {
           baseURL: "http://127.0.0.1:3100",

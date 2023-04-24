@@ -40,12 +40,8 @@ import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
-import {
-  useUserGetRequest,
-  useUserListRequestAccessGroupGrants,
-  useUserListRequestAccessGroups,
-} from "../../utils/backend-client/default/default";
-import { AccessGroup, Grantv2 } from "../../utils/backend-client/types";
+import { useUserGetRequest } from "../../utils/backend-client/default/default";
+import { PreflightAccessGroup, Target } from "../../utils/backend-client/types";
 import {
   durationString,
   durationStringHoursMinutes,
@@ -72,25 +68,27 @@ const Home = () => {
     },
   });
 
-  const groups = useUserListRequestAccessGroups(requestId, {
-    swr: { refreshInterval: 10000 },
-    request: {
-      baseURL: "http://127.0.0.1:3100",
-      headers: {
-        Prefer: "code=200, example=ex_1",
-      },
-    },
-  });
+  // request.data?.accessGroups[0].targets[0]
 
-  const grants = useUserListRequestAccessGroupGrants("TEST", {
-    swr: { refreshInterval: 10000 },
-    request: {
-      baseURL: "http://127.0.0.1:3100",
-      headers: {
-        Prefer: "code=200, example=ex_1",
-      },
-    },
-  });
+  // const groups = useUserListRequestAccessGroups(requestId, {
+  //   swr: { refreshInterval: 10000 },
+  //   request: {
+  //     baseURL: "http://127.0.0.1:3100",
+  //     headers: {
+  //       Prefer: "code=200, example=ex_1",
+  //     },
+  //   },
+  // });
+
+  // const grants = useUserListRequestAccessGroupGrants("TEST", {
+  //   swr: { refreshInterval: 10000 },
+  //   request: {
+  //     baseURL: "http://127.0.0.1:3100",
+  //     headers: {
+  //       Prefer: "code=200, example=ex_1",
+  //     },
+  //   },
+  // });
 
   // const search = useSearch<MyLocationGenerics>();
   // const { action } = search;
@@ -194,8 +192,8 @@ const Home = () => {
                   <Divider borderColor="neutrals.300" w="100%" />
 
                   <Stack spacing={4} w="100%">
-                    {groups.data
-                      ? groups.data.groups.map((group) => (
+                    {request.data
+                      ? request.data.accessGroups.map((group) => (
                           <AccessGroupItem key={group.id} group={group} />
                         ))
                       : [
@@ -226,13 +224,11 @@ const Home = () => {
   );
 };
 
-type NewType = {
-  group: AccessGroup;
+type AccessGroupProps = {
+  group: PreflightAccessGroup;
 };
 
-type AccessGroupProps = NewType;
-
-export const HeaderStatusCell = ({ group }: { group: AccessGroup }) => {
+export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
   if (group.status === "PENDING") {
     return (
       <Box
@@ -277,20 +273,20 @@ export const HeaderStatusCell = ({ group }: { group: AccessGroup }) => {
 };
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
-  const grants = useUserListRequestAccessGroupGrants(group.id, {
-    swr: { refreshInterval: 10000 },
-    request: {
-      baseURL: "http://127.0.0.1:3100",
-      headers: {
-        Prefer: "code=200, example=ex_1",
-      },
-    },
-  });
+  // const grants = useUserListRequestAccessGroupGrants(group.id, {
+  //   swr: { refreshInterval: 10000 },
+  //   request: {
+  //     baseURL: "http://127.0.0.1:3100",
+  //     headers: {
+  //       Prefer: "code=200, example=ex_1",
+  //     },
+  //   },
+  // });
 
-  const [selectedGrant, setSelectedGrant] = useState<Grantv2>();
+  const [selectedGrant, setSelectedGrant] = useState<Target>();
   const grantModalState = useDisclosure();
 
-  const handleGrantClick = (grant: Grantv2) => {
+  const handleGrantClick = (grant: Target) => {
     setSelectedGrant(grant);
     grantModalState.onOpen();
   };
@@ -356,46 +352,42 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
             p={0}
           >
             <Stack spacing={2} p={2}>
-              {grants.data ? (
-                grants.data.grants.map((grant) => (
-                  <Flex
-                    w="100%"
-                    borderColor="neutrals.300"
-                    rounded="md"
-                    borderWidth="1px"
-                    bg="white"
-                    p={2}
-                    pos="relative"
-                  >
-                    <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                    <FieldsCodeBlock fields={grant.fields} />
-                    {false && (
-                      <Spinner
-                        thickness="2px"
-                        speed="0.65s"
-                        emptyColor="neutrals.300"
-                        color="neutrals.800"
-                        size="sm"
-                        top={4}
-                        right={4}
-                        pos="absolute"
-                      />
-                    )}
-                    <Button
-                      variant="brandSecondary"
-                      size="xs"
+              {group.targets.map((target) => (
+                <Flex
+                  w="100%"
+                  borderColor="neutrals.300"
+                  rounded="md"
+                  borderWidth="1px"
+                  bg="white"
+                  p={2}
+                  pos="relative"
+                >
+                  <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
+                  <FieldsCodeBlock fields={target.fields} />
+                  {false && (
+                    <Spinner
+                      thickness="2px"
+                      speed="0.65s"
+                      emptyColor="neutrals.300"
+                      color="neutrals.800"
+                      size="sm"
                       top={4}
                       right={4}
                       pos="absolute"
-                      onClick={() => handleGrantClick(grant)}
-                    >
-                      View
-                    </Button>
-                  </Flex>
-                ))
-              ) : (
-                <Text>loading: todo</Text>
-              )}
+                    />
+                  )}
+                  <Button
+                    variant="brandSecondary"
+                    size="xs"
+                    top={4}
+                    right={4}
+                    pos="absolute"
+                    onClick={() => handleGrantClick(target)}
+                  >
+                    View
+                  </Button>
+                </Flex>
+              ))}
             </Stack>
           </AccordionPanel>
         </AccordionItem>
