@@ -28,6 +28,7 @@ import { UserLayout } from "../components/Layout";
 import {
   userPostRequests,
   userRequestPreflight,
+  useUserListEntitlements,
   useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
 import { Preflight, Target } from "../utils/backend-client/types";
@@ -63,18 +64,15 @@ const Search = () => {
     }
   });
 
-  const targets = useUserListEntitlementTargets(
-    {},
-    {
-      swr: { refreshInterval: 10000 },
-      request: {
-        baseURL: "http://127.0.0.1:3100",
-        headers: {
-          Prefer: "code=200, example=example_targets",
-        },
+  const targets = useUserListEntitlements({
+    swr: { refreshInterval: 10000 },
+    request: {
+      baseURL: "http://127.0.0.1:3100",
+      headers: {
+        Prefer: "code=200, example=example_targets",
       },
-    }
-  );
+    },
+  });
 
   const [targetKeyMap, setTargetKeyMap] = React.useState<{
     [key: string]: Target;
