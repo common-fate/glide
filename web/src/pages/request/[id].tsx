@@ -217,7 +217,6 @@ const Home = () => {
               </>
             </GridItem>
             <GridItem>
-              {/* <h1>audit log</h1> */}
               <AuditLog />
             </GridItem>
           </Grid>
@@ -326,11 +325,12 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
             <AccordionIcon boxSize="6" mr={2} />
             <HeaderStatusCell group={group} />
             {isReviewer && (
-              <ButtonGroup variant="brandSecondary" spacing={2}>
+              <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
                 <Button
                   size="sm"
                   onClick={() => {
                     console.log("approve");
+                    // @TODO: add in admin approval API methods
                   }}
                 >
                   Approve
@@ -339,6 +339,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   size="sm"
                   onClick={() => {
                     console.log("reject");
+                    // @TODO: add in admin approval API methods
                   }}
                 >
                   Reject
@@ -405,6 +406,10 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           <ModalHeader> </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
+            <Box>
+              <ProviderIcon shortType={selectedGrant?.targetGroupFrom.name} />
+              <FieldsCodeBlock fields={selectedGrant?.fields} />
+            </Box>
             <Text textStyle="Body/Small">Access Instructions</Text>
 
             <Code bg="white" whiteSpace="pre-wrap">
