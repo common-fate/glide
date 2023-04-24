@@ -869,53 +869,6 @@ paths:
         name: requestId
         in: path
         required: true
-  "/api/v1/requests/{requestId}/groups":
-    get:
-      summary: List Request Access Groups
-      tags: []
-      responses:
-        "200":
-          $ref: "#/components/responses/ListAccessGroupsResponse"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      operationId: user-list-request-access-groups
-      description: Gets all access groups availiable
-    parameters:
-      - schema:
-          type: string
-        name: requestId
-        in: path
-        required: true
-  "/api/v1/requests/{requestId}/groups/{groupId}":
-    get:
-      summary: Get Request Access Group
-      tags: []
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RequestAccessGroup"
-        "404":
-          $ref: "#/components/responses/ErrorResponse"
-        "500":
-          $ref: "#/components/responses/ErrorResponse"
-      operationId: user-get-request-access-group
-      description: Gets access group
-    parameters:
-      - schema:
-          type: string
-        name: requestId
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: groupId
-        in: path
-        required: true
 components:
   schemas:
     User:

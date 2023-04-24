@@ -35,10 +35,6 @@ export const getUserPostRequestsMock = () => ({id: faker.random.word(), purpose:
 
 export const getUserGetRequestMock = () => ({id: faker.random.word(), accessGroups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requiresApproval: faker.datatype.boolean(), time: {maxDurationSeconds: faker.datatype.number({min: 60, max: 15724800})}, targets: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), kind: {publisher: faker.random.word(), name: faker.random.word(), kind: faker.random.word(), icon: faker.random.word()}, fields: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), fieldTitle: faker.random.word(), fieldDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), valueLabel: faker.random.word(), valueDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), value: faker.random.word()}))}))})), createdAt: faker.random.word()})
 
-export const getUserListRequestAccessGroupsMock = () => ({groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requestId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(RequestAccessGroupStatus)), time: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, overrideTiming: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, updatedAt: faker.random.word(), createdAt: faker.random.word(), targets: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requestId: faker.random.word(), accessGroupId: faker.random.word(), targetGroupId: faker.random.word(), targetGroupFrom: {publisher: faker.random.word(), name: faker.random.word(), version: faker.random.word(), kind: faker.random.word()}, fields: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), fieldTitle: faker.random.word(), fieldDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), valueLabel: faker.random.word(), valueDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), value: faker.random.word()})), status: faker.helpers.arrayElement(Object.values(RequestAccessGroupTargetStatus))})), approvalMethod: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(RequestAccessGroupApprovalMethod)), undefined])})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
-
-export const getUserGetRequestAccessGroupMock = () => ({id: faker.random.word(), requestId: faker.random.word(), status: faker.helpers.arrayElement(Object.values(RequestAccessGroupStatus)), time: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, overrideTiming: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, updatedAt: faker.random.word(), createdAt: faker.random.word(), targets: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), requestId: faker.random.word(), accessGroupId: faker.random.word(), targetGroupId: faker.random.word(), targetGroupFrom: {publisher: faker.random.word(), name: faker.random.word(), version: faker.random.word(), kind: faker.random.word()}, fields: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), fieldTitle: faker.random.word(), fieldDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), valueLabel: faker.random.word(), valueDescription: faker.helpers.arrayElement([faker.random.word(), undefined]), value: faker.random.word()})), status: faker.helpers.arrayElement(Object.values(RequestAccessGroupTargetStatus))})), approvalMethod: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(RequestAccessGroupApprovalMethod)), undefined])})
-
 export const getDefaultMSW = () => [
 rest.get('*/api/v1/admin/target-groups/:id/routes', (_req, res, ctx) => {
         return res(
@@ -87,17 +83,5 @@ ctx.json(getUserPostRequestsMock()),
           ctx.delay(1000),
           ctx.status(200, 'Mocked status'),
 ctx.json(getUserGetRequestMock()),
-        )
-      }),rest.get('*/api/v1/requests/:requestId/groups', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserListRequestAccessGroupsMock()),
-        )
-      }),rest.get('*/api/v1/requests/:requestId/groups/:groupId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserGetRequestAccessGroupMock()),
         )
       }),]
