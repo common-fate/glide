@@ -703,6 +703,12 @@ paths:
           in: query
           name: nextToken
           description: query
+        - schema:
+            type: string
+            pattern: '^[a-zA-Z0-9-]{1,}\/[a-zA-Z0-9-]{1,}\/[a-zA-Z0-9-]{1,}$'
+          in: query
+          name: kind
+          description: filter targets by kind
     parameters: []
   /api/v1/preflight:
     parameters: []
