@@ -1,20 +1,14 @@
-import { Button, ButtonGroup, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import format from "date-fns/format";
 import { useMemo } from "react";
 import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
-import {
-  Request,
-  RequestStatus,
-  Requestv2,
-} from "../../utils/backend-client/types";
-import { durationString } from "../../utils/durationString";
+import { useAdminListRequests } from "../../utils/backend-client/admin/admin";
+import { RequestStatus, Request } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import { RuleNameCell } from "../AccessRuleNameCell";
+import { CFAvatar } from "../CFAvatar";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
-import { CFAvatar } from "../CFAvatar";
-import { useAdminListRequests } from "../../utils/backend-client/admin/admin";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -36,25 +30,25 @@ export const AdminRequestsTable = () => {
     swrProps: { swr: { refreshInterval: 10000 } },
   });
 
-  const cols: Column<Requestv2>[] = useMemo(
+  const cols: Column<Request>[] = useMemo(
     () => [
-      {
-        accessor: "context",
-        Header: "Request",
-        // Cell: (props) => (
-        //   <Link to={"/requests/" + props.row.original.id}>
-        //     <RuleNameCell
-        //       accessRuleId={props.row.original.accessRuleId}
-        //       reason={props.value ?? ""}
-        //       as="a"
-        //       _hover={{
-        //         textDecor: "underline",
-        //       }}
-        //       adminRoute={false}
-        //     />
-        //   </Link>
-        // ),
-      },
+      // {
+      //   accessor: "context",
+      //   Header: "Request",
+      //   // Cell: (props) => (
+      //   //   <Link to={"/requests/" + props.row.original.id}>
+      //   //     <RuleNameCell
+      //   //       accessRuleId={props.row.original.accessRuleId}
+      //   //       reason={props.value ?? ""}
+      //   //       as="a"
+      //   //       _hover={{
+      //   //         textDecor: "underline",
+      //   //       }}
+      //   //       adminRoute={false}
+      //   //     />
+      //   //   </Link>
+      //   // ),
+      // },
       // {
       //   accessor: "timing",
       //   Header: "Duration",
@@ -64,34 +58,34 @@ export const AdminRequestsTable = () => {
       //     </Flex>
       //   ),
       // },
-      {
-        accessor: "user",
-        Header: "Requested by",
-        Cell: ({ cell }) => (
-          <Flex textStyle="Body/Small">
-            <CFAvatar
-              textProps={{
-                maxW: "20ch",
-                noOfLines: 1,
-              }}
-              tooltip={true}
-              variant="withBorder"
-              mr={0}
-              size="xs"
-              userId={cell.value.id}
-            />
-          </Flex>
-        ),
-      },
-      {
-        accessor: "createdAt",
-        Header: "Date Requested",
-        Cell: ({ cell }) => (
-          <Flex textStyle="Body/Small">
-            {format(new Date(Date.parse(cell.value)), "p dd/M/yy")}
-          </Flex>
-        ),
-      },
+      // {
+      //   accessor: "user",
+      //   Header: "Requested by",
+      //   Cell: ({ cell }) => (
+      //     <Flex textStyle="Body/Small">
+      //       <CFAvatar
+      //         textProps={{
+      //           maxW: "20ch",
+      //           noOfLines: 1,
+      //         }}
+      //         tooltip={true}
+      //         variant="withBorder"
+      //         mr={0}
+      //         size="xs"
+      //         userId={cell.value.id}
+      //       />
+      //     </Flex>
+      //   ),
+      // },
+      // {
+      //   accessor: "createdAt",
+      //   Header: "Date Requested",
+      //   Cell: ({ cell }) => (
+      //     <Flex textStyle="Body/Small">
+      //       {format(new Date(Date.parse(cell.value)), "p dd/M/yy")}
+      //     </Flex>
+      //   ),
+      // },
       // {
       //   accessor: "status",
       //   Header: "Status",
@@ -118,7 +112,7 @@ export const AdminRequestsTable = () => {
           status={status?.toUpperCase() as RequestStatus}
         />
       </Flex>
-      {TableRenderer<Requestv2>({
+      {TableRenderer<Request>({
         columns: cols,
         data: paginator?.data?.requests,
         emptyText: "No requests",

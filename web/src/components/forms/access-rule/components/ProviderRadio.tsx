@@ -13,12 +13,13 @@ import {
   WrapItem,
 } from "@chakra-ui/react";
 import React from "react";
-import { Provider } from "../../../../utils/backend-client/types";
+
 import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
 import { useAdminListTargetGroups } from "src/utils/backend-client/admin/admin";
+import { TargetGroup } from "../../../../utils/backend-client/types";
 
 interface ProviderRadioProps extends RadioProps {
-  provider: Provider;
+  targetGroup: TargetGroup;
 }
 const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
   const { getInputProps, getCheckboxProps } = useRadio(props);
@@ -47,7 +48,7 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
         px={6}
         py={5}
         position="relative"
-        data-testid={"provider-selector-" + props.provider.type}
+        data-testid={"targetGroup-selector-" + props.targetGroup.id}
       >
         {/* @ts-ignore */}
         {checkbox?.["data-checked"] !== undefined && (
@@ -61,10 +62,10 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
           />
         )}
         <HStack>
-          <ProviderIcon shortType={props.provider.type as ShortTypes} />
+          <ProviderIcon shortType={props.targetGroup.icon as ShortTypes} />
 
           <Text textStyle={"Body/Medium"} color={"neutrals.800"}>
-            {props.provider.id}
+            {props.targetGroup.id}
           </Text>
         </HStack>
       </Box>

@@ -12,8 +12,12 @@ import {
   AdminListGroupsSource,
   Group,
   User,
-  Option,
 } from "../../../../utils/backend-client/types";
+
+interface Option {
+  label: string;
+  value: string;
+}
 interface BaseSelectProps {
   fieldName: string;
   rules?: MultiSelectRules;
