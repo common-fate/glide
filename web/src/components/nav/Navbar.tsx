@@ -126,6 +126,13 @@ export const Navbar: React.FC = () => {
                   // bottom={-4}
                   // left="50%"
                 >
+                  <TabsStyledButton
+                    href="/search"
+                    w="95px"
+                    pr={showReqCount ? 10 : undefined}
+                  >
+                    Search
+                  </TabsStyledButton>
                   {/* I've hardcoded widths here to prevent the bold/unbold text from 
                   altering the containing divs width. Reduces *jittering* */}
                   {/* <TabsStyledButton
@@ -166,13 +173,6 @@ export const Navbar: React.FC = () => {
                     pr={showReqCount ? 10 : undefined}
                   >
                     Request
-                  </TabsStyledButton>
-                  <TabsStyledButton
-                    href="/search"
-                    w="95px"
-                    pr={showReqCount ? 10 : undefined}
-                  >
-                    Search
                   </TabsStyledButton>
                 </ButtonGroup>
               )}

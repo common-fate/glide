@@ -88,7 +88,7 @@ const Home = () => {
               spacing={12}
             >
               <VStack spacing={8}>
-                <Favorites />
+                {/* <Favorites /> */}
                 <Flex flexDirection="column" w="100%">
                   <Flex>
                     <Text
@@ -465,85 +465,85 @@ const UserAccessCard: React.FC<
   );
 };
 
-const Favorites: React.FC = () => {
-  const { data: favorites } = useUserListFavorites();
+// const Favorites: React.FC = () => {
+//   const { data: favorites } = useUserListFavorites();
 
-  if (favorites?.favorites.length === 0) {
-    return null;
-  }
+//   if (favorites?.favorites.length === 0) {
+//     return null;
+//   }
 
-  return (
-    <Box w="100%">
-      <Flex>
-        <Text
-          as="h3"
-          textStyle="Heading/H3"
-          mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
-        >
-          Favorites
-        </Text>
-      </Flex>
-      <Grid
-        mt={4}
-        templateColumns={{
-          base: "repeat(20, 1fr)",
-          lg: "repeat(1, 1fr)",
-          xl: "repeat(2, 1fr)",
-        }}
-        templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
-        minW={{ base: "unset", xl: "488px" }}
-        gap={6}
-      >
-        {favorites
-          ? favorites.favorites.map((r, i) => (
-              <Link
-                style={{ display: "flex" }}
-                to={"/access/request/" + r.ruleId + "?favorite=" + r.id}
-                key={r.id}
-              >
-                <Box
-                  className="group"
-                  textAlign="center"
-                  bg="neutrals.100"
-                  p={6}
-                  h="172px"
-                  w="232px"
-                  rounded="md"
-                  data-testid={`fav-request-item-${r.name}`}
-                >
-                  <Text textStyle="Body/SmallBold" color="neutrals.700">
-                    {r.name}
-                  </Text>
+//   return (
+//     <Box w="100%">
+//       <Flex>
+//         <Text
+//           as="h3"
+//           textStyle="Heading/H3"
+//           mt="6px" // this minor adjustment aligns heading with Tabbed content on XL screen widths
+//         >
+//           Favorites
+//         </Text>
+//       </Flex>
+//       <Grid
+//         mt={4}
+//         templateColumns={{
+//           base: "repeat(20, 1fr)",
+//           lg: "repeat(1, 1fr)",
+//           xl: "repeat(2, 1fr)",
+//         }}
+//         templateRows={{ base: "repeat(1, 1fr)", xl: "unset" }}
+//         minW={{ base: "unset", xl: "488px" }}
+//         gap={6}
+//       >
+//         {favorites
+//           ? favorites.favorites.map((r, i) => (
+//               <Link
+//                 style={{ display: "flex" }}
+//                 to={"/access/request/" + r.ruleId + "?favorite=" + r.id}
+//                 key={r.id}
+//               >
+//                 <Box
+//                   className="group"
+//                   textAlign="center"
+//                   bg="neutrals.100"
+//                   p={6}
+//                   h="172px"
+//                   w="232px"
+//                   rounded="md"
+//                   data-testid={`fav-request-item-${r.name}`}
+//                 >
+//                   <Text textStyle="Body/SmallBold" color="neutrals.700">
+//                     {r.name}
+//                   </Text>
 
-                  <Button
-                    mt={4}
-                    variant="brandSecondary"
-                    size="sm"
-                    opacity={0}
-                    sx={{
-                      // This media query ensure always visible for touch screens
-                      "@media (hover: none)": {
-                        opacity: 1,
-                      },
-                    }}
-                    transition="all .2s ease-in-out"
-                    transform="translateY(8px)"
-                    _groupHover={{
-                      bg: "white",
-                      opacity: 1,
-                      transform: "translateY(0px)",
-                    }}
-                  >
-                    Request
-                  </Button>
-                </Box>
-              </Link>
-            ))
-          : // Otherwise loading state
-            [1, 2].map((i) => (
-              <Skeleton key={i} p={6} h="172px" w="232px" rounded="sm" />
-            ))}
-      </Grid>
-    </Box>
-  );
-};
+//                   <Button
+//                     mt={4}
+//                     variant="brandSecondary"
+//                     size="sm"
+//                     opacity={0}
+//                     sx={{
+//                       // This media query ensure always visible for touch screens
+//                       "@media (hover: none)": {
+//                         opacity: 1,
+//                       },
+//                     }}
+//                     transition="all .2s ease-in-out"
+//                     transform="translateY(8px)"
+//                     _groupHover={{
+//                       bg: "white",
+//                       opacity: 1,
+//                       transform: "translateY(0px)",
+//                     }}
+//                   >
+//                     Request
+//                   </Button>
+//                 </Box>
+//               </Link>
+//             ))
+//           : // Otherwise loading state
+//             [1, 2].map((i) => (
+//               <Skeleton key={i} p={6} h="172px" w="232px" rounded="sm" />
+//             ))}
+//       </Grid>
+//     </Box>
+//   );
+// };
