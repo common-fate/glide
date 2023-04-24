@@ -91,22 +91,5 @@ func TestListRequestWithGroupsWithTargetsForUser(t *testing.T) {
 	}
 
 	ddbtest.RunQueryTests(t, ts.db, testcases, ddbtest.WithAssertResultsOrder(true))
-	// using a custom test here to assert the order of items returned
-	// for _, tc := range testcases {
-	// 	t.Run(tc.Name, func(t *testing.T) {
-	// 		_, err := db.Query(context.Background(), tc.Query, tc.QueryOpts...)
-	// 		if err != nil && tc.WantErr == nil {
-	// 			t.Fatal(err)
-	// 		}
-
-	// 		if tc.WantErr != nil {
-	// 			// just compare the errors, as we don't care
-	// 			//about what the result would be if an error is returned.
-	// 			assert.Equal(t, tc.WantErr, err)
-	// 		} else {
-	// 			assert.Equal(t, tc.Want, tc.Query)
-	// 		}
-	// 	})
-	// }
 
 }

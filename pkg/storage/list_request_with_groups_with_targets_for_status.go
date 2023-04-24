@@ -15,8 +15,6 @@ type ListRequestWithGroupsWithTargetsForStatus struct {
 	Result []access.RequestWithGroupsWithTargets
 }
 
-var _ ddb.QueryOutputUnmarshalerWithPagination = &ListRequestWithGroupsWithTargetsForStatus{}
-
 func (g *ListRequestWithGroupsWithTargetsForStatus) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		ScanIndexForward:       aws.Bool(false),
@@ -30,11 +28,11 @@ func (g *ListRequestWithGroupsWithTargetsForStatus) BuildQuery() (*dynamodb.Quer
 	return qi, nil
 }
 
-func (g *ListRequestWithGroupsWithTargetsForStatus) UnmarshalQueryOutputWithPagination(out *dynamodb.QueryOutput) (map[string]ddbTypes.AttributeValue, error) {
+func (g *ListRequestWithGroupsWithTargetsForStatus) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	result, pagination, err := UnmarshalRequestsBottomToTop(out.Items)
 	if err != nil {
 		return nil, err
 	}
 	g.Result = result
-	return pagination, nil
+	return &ddb.UnmarshalResult{PaginationToken: pagination}, nil
 }

@@ -14,7 +14,7 @@ type ListRequestWithGroupsWithTargetsForReviewer struct {
 	Result     []access.RequestWithGroupsWithTargets
 }
 
-var _ ddb.QueryOutputUnmarshalerWithPagination = &ListRequestWithGroupsWithTargetsForReviewer{}
+var _ ddb.QueryOutputUnmarshaler = &ListRequestWithGroupsWithTargetsForReviewer{}
 
 func (g *ListRequestWithGroupsWithTargetsForReviewer) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
@@ -30,11 +30,11 @@ func (g *ListRequestWithGroupsWithTargetsForReviewer) BuildQuery() (*dynamodb.Qu
 	return qi, nil
 }
 
-func (g *ListRequestWithGroupsWithTargetsForReviewer) UnmarshalQueryOutputWithPagination(out *dynamodb.QueryOutput) (map[string]types.AttributeValue, error) {
+func (g *ListRequestWithGroupsWithTargetsForReviewer) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	result, pagination, err := UnmarshalRequestsBottomToTop(out.Items)
 	if err != nil {
 		return nil, err
 	}
 	g.Result = result
-	return pagination, nil
+	return &ddb.UnmarshalResult{PaginationToken: pagination}, nil
 }
