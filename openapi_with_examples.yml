@@ -975,6 +975,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Preflight"
+              examples:
+                example_1:
+                  value:
+                    id: "123489"
+                    context:
+                      purpose:
+                        reason: Need to deploy the content to the production
+                      context:
+                        ip: 255.255.255.255
+                        userAgent: macos-ventura-12.03
+                      metadata:
+                        createdAt: "12-12-12T:12:12:12"
+                    user:
+                      id: "123"
+                      email: chris@commonfate.io
+                      firstName: Chris
+                      lastName: Norman
+                      picture: "https://avatars.githubusercontent.com/u/17420369?v=4"
+                      status: ACTIVE
+                      updatedAt: "14:15:22Z"
+                      groups:
+                        - string
+                    createdAt: "3:12 pm 8/5/22"
+                    updatedAt: string
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
@@ -1840,6 +1864,18 @@ components:
             required:
               - groups
               - next
+          examples:
+            ex_1:
+              value:
+                groups:
+                  - name: string
+                    description: string
+                    id: string
+                    memberCount: 0
+                    members:
+                      - string
+                    source: string
+                next: string
     ReviewResponse:
       description: Response for reviewing a request.
       content:
@@ -1922,6 +1958,39 @@ components:
                 type: string
             required:
               - groups
+          examples:
+            ex_1:
+              value:
+                groups:
+                  - id: string
+                    requestId: string
+                    status: APPROVED
+                    time:
+                      maxDurationSeconds: 60
+                    overrideTiming:
+                      durationSeconds: 0
+                      startTime: "14:15:22Z"
+                    updatedAt: string
+                    createdAt: string
+                    targets:
+                      - id: string
+                        requestId: string
+                        accessGroupId: string
+                        targetGroupId: string
+                        targetGroupFrom:
+                          publisher: string
+                          name: string
+                          version: string
+                          kind: string
+                        fields:
+                          - id: string
+                            fieldTitle: string
+                            fieldDescription: string
+                            valueLabel: string
+                            valueDescription: string
+                            value: string
+                        status: PENDING
+                next: string
     ListTargetGroupResponse:
       description: Example response
       content:
@@ -1937,6 +2006,89 @@ components:
                 type: string
             required:
               - targetGroups
+          examples:
+            ex_1:
+              value:
+                targetGroups:
+                  - id: aws-sso
+                    schema:
+                      account:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                      permissionSet:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                          property2:
+                            id: string
+                            title: string
+                            description: string
+                    from:
+                      publisher: common-fate
+                      name: aws-sso
+                      version: v1.0.0
+                      kind: string
+                    icon: aws-sso
+                    createdAt: string
+                    updatedAt: "14:15:22Z"
+                  - id: okta
+                    schema:
+                      account:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                    from:
+                      publisher: common-fate
+                      name: okta
+                      version: v1.0.0
+                      kind: string
+                    icon: okta
+                    createdAt: string
+                    updatedAt: "14:15:22Z"
+                  - id: cloudwatch
+                    schema:
+                      account:
+                        id: string
+                        title: string
+                        description: string
+                        ruleFormElement: INPUT
+                        requestFormElement: SELECT
+                        groups:
+                          property1:
+                            id: string
+                            title: string
+                            description: string
+                    from:
+                      publisher: common-fate
+                      name: cloudwatch
+                      version: v1.0.0
+                      kind: string
+                    icon: cloudwatch
+                    createdAt: string
+                    updatedAt: "14:15:22Z"
+                next: string
     ListHandlersResponse:
       description: Response obj for ListTargetGroupDeploymentAPIResponse
       content:
@@ -1983,6 +2135,40 @@ components:
                 type: string
             required:
               - grants
+          examples:
+            ex_1:
+              value:
+                grants:
+                  - id: string
+                    requestId: string
+                    accessGroupId: string
+                    targetGroupId: string
+                    targetGroupFrom:
+                      publisher: string
+                      name: aws
+                      version: string
+                      kind: aws
+                    fields:
+                      - id: string
+                        fieldTitle: string
+                        fieldDescription: string
+                        valueLabel: string
+                        valueDescription: string
+                        value: Admin
+                      - id: string
+                        fieldTitle: string
+                        fieldDescription: string
+                        valueLabel: string
+                        valueDescription: string
+                        value: "123456789012"
+                      - id: string
+                        fieldTitle: string
+                        fieldDescription: string
+                        valueLabel: string
+                        valueDescription: string
+                        value: "arn:aws:account::$:account"
+                    status: PENDING
+                next: string
     ListResourcesResponse:
       description: Example response
       content:

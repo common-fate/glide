@@ -358,6 +358,13 @@ const two: ThemeOverride = {
         },
       },
     },
+    // TextArea: {
+    //   baseStyle: {
+    //     bg: "pink !important",
+    //     borderColor: "pink !important",
+    //     rounded: "none",
+    //   },
+    // },
     Input: {
       baseStyle: {
         field: {

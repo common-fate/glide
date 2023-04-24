@@ -36,6 +36,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, MakeGenerics, useMatch } from "react-location";
 import { AuditLog } from "../../components/AuditLog";
+import FieldsCodeBlock from "../../components/FieldsCodeBlock";
 import { ProviderIcon } from "../../components/icons/providerIcon";
 import { UserLayout } from "../../components/Layout";
 import { StatusCell } from "../../components/StatusCell";
@@ -192,7 +193,7 @@ const Home = () => {
                   </Flex>
                   <Divider borderColor="neutrals.300" w="100%" />
 
-                  <Stack spacing={4}>
+                  <Stack spacing={4} w="100%">
                     {groups.data
                       ? groups.data.groups.map((group) => (
                           <AccessGroupItem key={group.id} group={group} />
@@ -205,7 +206,12 @@ const Home = () => {
                   </Stack>
                 </Stack>
 
-                <Code whiteSpace="pre-wrap" mt={32}>
+                <Code
+                  maxW="60ch"
+                  textOverflow="clip"
+                  whiteSpace="pre-wrap"
+                  mt={32}
+                >
                   {JSON.stringify({ request, groups, grants }, null, 2)}
                 </Code>
               </>
@@ -361,15 +367,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                     pos="relative"
                   >
                     <ProviderIcon boxSize="24px" shortType="aws-sso" mr={2} />
-                    <Code bg="white" whiteSpace="pre-wrap">
-                      Admin
-                      <br />
-                      012345678912
-                      <br />
-                      arn:aws:account::$:account
-                      <br />
-                      another_misc_field_ 4
-                    </Code>
+                    <FieldsCodeBlock fields={grant.fields} />
                     {false && (
                       <Spinner
                         thickness="2px"

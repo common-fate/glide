@@ -15,13 +15,17 @@ import {
   useBoolean,
   useDisclosure,
   useEventListener,
+  chakra,
+  Textarea,
 } from "@chakra-ui/react";
 import React from "react";
 import { Link, useNavigate } from "react-location";
 import Counter from "../components/Counter";
+import FieldsCodeBlock from "../components/FieldsCodeBlock";
 import { ProviderIcon, ShortTypes } from "../components/icons/providerIcon";
 import { UserLayout } from "../components/Layout";
 import {
+  userPostRequests,
   userRequestPreflight,
   useUserListEntitlementTargets,
 } from "../utils/backend-client/default/default";
@@ -30,8 +34,6 @@ import { Command as CommandNew } from "../utils/cmdk";
 import { HeaderStatusCell } from "./request/[id]";
 
 const Search = () => {
-  const modal = useDisclosure();
-
   // https://erikmartinjordan.com/navigator-platform-deprecated-alternative
   const isMac = () =>
     /(Mac|iPhone|iPod|iPad)/i.test(
@@ -109,9 +111,14 @@ const Search = () => {
   const [preflightRes, setPreflightRes] = React.useState<Preflight>();
 
   const handleSubmit = () => {
+    if (tabIndex == 0) handlePreflight();
+    if (tabIndex == 1) handleRequest();
+  };
+
+  const handlePreflight = () => {
     submitLoadingToggle.on();
 
-    let entitlementTargerts = [];
+    const entitlementTargerts: string[] = [];
 
     // map over keys and get the ids of the targets
     checked.forEach((key) => {
@@ -145,6 +152,35 @@ const Search = () => {
     // navigate({ to: "/search2" });
   };
 
+  const handleRequest = () => {
+    preflightRes &&
+      // test
+      userPostRequests(
+        {
+          preflightId: preflightRes?.id,
+          // accessReason: accessReason,
+        },
+        {
+          baseURL: "http://127.0.0.1:3100",
+          headers: {
+            Prefer: "code=200, example=example_targets",
+          },
+        }
+      )
+        .then((res) => {
+          console.log(res);
+          // clear state
+          setChecked([]);
+          setInputValue("");
+          // redirect to request...
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+  };
+
+  const [accessReason, setAccessReason] = React.useState<string>("");
+
   return (
     <UserLayout>
       <Container mt={24}>
@@ -152,7 +188,7 @@ const Search = () => {
         <Tabs index={tabIndex}>
           <TabPanels>
             <TabPanel>
-              <Box spacing={4} minH="200px">
+              <Box minH="200px">
                 <CommandNew
                   // open={modal.isOpen}
                   // onOpenChange={modal.onToggle}
@@ -166,22 +202,36 @@ const Search = () => {
                     placeholder="What do you want to access?"
                     value={inputValue}
                     onValueChange={setInputValue}
+                    autoFocus={true}
                     as={CommandNew.Input}
                   />
-                  <Stack mt={2} spacing={2} direction="row">
+                  <Flex mt={2} direction="row" overflowX="scroll">
                     <Center
-                      boxSize="90px"
+                      // boxSize="90px"
                       rounded="md"
+                      // w="90px !important"
                       borderColor="neutrals.300"
                       bg="white"
                       borderWidth="1px"
                       flexDir="column"
+                      textStyle="Body/Small"
                       onClick={() => {
                         setInputValue("");
                       }}
+                      px={2}
+                      mr={2}
+                      as="button"
                     >
-                      <Counter count={checked.length} />
-                      All resources
+                      <Counter size="md" count={checked.length} />
+                      <Text
+                        textStyle="Body/Small"
+                        noOfLines={1}
+                        textOverflow="clip"
+                        w="90px"
+                        textAlign="center"
+                      >
+                        All resources
+                      </Text>
                       <Flex>{targets.data?.targets.length}&nbsp;total</Flex>
                     </Center>
                     {[
@@ -199,17 +249,24 @@ const Search = () => {
                           borderColor="neutrals.300"
                           bg="white"
                           borderWidth="1px"
+                          textStyle="Body/Small"
                           flexDir="column"
                           onClick={() => {
                             setInputValue(key);
+                            // then set the focus back to the input
+                            // so that the user can continue typing
+                            document.getElementById(":rd:")?.focus();
                           }}
+                          px={8}
+                          mr={2}
+                          as="button"
                         >
                           <ProviderIcon shortType={key} />
                           {key}
                         </Center>
                       );
                     })}
-                  </Stack>
+                  </Flex>
                   <CommandNew.List>
                     <Stack
                       // as={Command.List}
@@ -313,7 +370,7 @@ const Search = () => {
             <TabPanel>
               {/* main */}
               <Text textStyle="Body/Medium">Access</Text>
-              <Stack spacing={1} w="100%">
+              <Stack spacing={2} w="100%">
                 {preflightRes?.accessGroups.map((group) => {
                   return (
                     <Box
@@ -327,11 +384,12 @@ const Search = () => {
                       <Stack spacing={2}>
                         {group.targets.map((target) => {
                           return (
-                            <Box
+                            <Flex
                               p={2}
                               borderColor="neutrals.300"
                               borderWidth="1px"
                               rounded="md"
+                              flexDir="row"
                             >
                               <ProviderIcon
                                 shortType={
@@ -339,11 +397,8 @@ const Search = () => {
                                 }
                                 mr={2}
                               />
-                              <Code bg="white">
-                                {target.fields.map((f) => f.value).join("\n")}
-                              </Code>
-                              {/* {JSON.stringify(target)} */}
-                            </Box>
+                              <FieldsCodeBlock fields={target.fields} />
+                            </Flex>
                           );
                         })}
                       </Stack>
@@ -351,6 +406,14 @@ const Search = () => {
                   );
                 })}
               </Stack>
+              <Box mt={4}>
+                <Text textStyle="Body/Medium">Why do you need access?</Text>
+                <Textarea
+                  value={accessReason}
+                  onChange={(e) => setAccessReason(e.target.value)}
+                  placeholder="Deploying initial Terraform infrastructure..."
+                />
+              </Box>
 
               {/* buttons */}
               <Flex w="100%" mt={4}>
@@ -369,8 +432,8 @@ const Search = () => {
                 <Button
                   ml="auto"
                   // disabled={checked.length == 0}
-                  // onClick={handleSubmit}
-                  // isLoading={submitLoading}
+                  onClick={handleSubmit}
+                  isLoading={submitLoading}
                   loadingText="Processing request..."
                 >
                   Next (⌘+Enter)
