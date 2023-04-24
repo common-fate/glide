@@ -132,7 +132,7 @@ func (s *Service) GroupTargets(ctx context.Context, targets []cache.Target) ([]a
 				AccessRule:       bestAccessRule.ID,
 				RequiresApproval: bestAccessRule.Approval.IsRequired(),
 				Targets:          []cache.Target{},
-				Time:             bestAccessRule.TimeConstraints,
+				TimeConstraints:  bestAccessRule.TimeConstraints,
 			}
 			newAccessGroup.Targets = append(newAccessGroup.Targets, target)
 

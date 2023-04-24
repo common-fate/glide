@@ -6,11 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
-import type { Target } from './target';
 
-export interface PreflightAccessGroup {
-  id: string;
-  requiresApproval: boolean;
+export interface RequestAccessGroupAccessRule {
   timeConstraints: AccessRuleTimeConstraints;
-  targets: Target[];
 }

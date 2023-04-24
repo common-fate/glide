@@ -22,7 +22,7 @@ type Group struct {
 	RequestStatus   types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
 	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
 	OverrideTiming  *Timing             `json:"overrideTimings,omitempty" dynamodbav:"overrideTimings,omitempty"`
-	RequestedBy     string              `json:"requestedBy" dynamodbav:"requestedBy"`
+	RequestedBy     RequestedBy         `json:"requestedBy" dynamodbav:"requestedBy"`
 	CreatedAt       time.Time           `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt       time.Time           `json:"updatedAt" dynamodbav:"updatedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
@@ -38,13 +38,14 @@ type GroupWithTargets struct {
 
 func (g *GroupWithTargets) ToAPI() types.RequestAccessGroup {
 	out := types.RequestAccessGroup{
-		Id:        g.ID,
-		RequestId: g.RequestID,
-		Status:    g.Status,
-		Time:      g.TimeConstraints.ToAPI(),
-		Targets:   []types.RequestAccessGroupTarget{},
-		CreatedAt: g.CreatedAt,
-		UpdatedAt: g.UpdatedAt,
+		Id:          g.ID,
+		RequestId:   g.RequestID,
+		Status:      g.Status,
+		Time:        g.TimeConstraints.ToAPI(),
+		Targets:     []types.RequestAccessGroupTarget{},
+		CreatedAt:   g.CreatedAt,
+		UpdatedAt:   g.UpdatedAt,
+		RequestedBy: types.RequestRequestedBy(g.RequestedBy),
 	}
 	if g.OverrideTiming != nil {
 		out.OverrideTiming = g.OverrideTiming.ToAPI()
@@ -138,7 +139,7 @@ func (i *Group) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK:     keys.AccessRequestGroup.PK1,
 		SK:     keys.AccessRequestGroup.SK1(i.RequestID, i.ID),
-		GSI1PK: keys.AccessRequestGroup.GSI1PK(i.RequestedBy),
+		GSI1PK: keys.AccessRequestGroup.GSI1PK(i.RequestedBy.ID),
 		GSI1SK: keys.AccessRequestGroup.GSI1SK(RequestStatusToPastOrUpcoming(i.RequestStatus), i.RequestID, i.ID),
 		GSI2PK: keys.AccessRequestGroup.GSI2PK(i.RequestStatus),
 		GSI2SK: keys.AccessRequestGroup.GSI2SK(i.RequestID, i.ID),

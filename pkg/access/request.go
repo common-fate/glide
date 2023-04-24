@@ -8,15 +8,23 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+type RequestedBy struct {
+	Email     string  `json:"email" dynamodbav:"email"`
+	FirstName string  `json:"firstName" dynamodbav:"firstName"`
+	ID        string  `json:"id" dynamodbav:"id"`
+	LastName  string  `json:"lastName" dynamodbav:"lastName"`
+	Picture   *string `json:"picture,omitempty" dynamodbav:"picture,omitempty"`
+}
+
 type Request struct {
 	ID string `json:"id" dynamodbav:"id"`
 	// Also denormalised across all the request items
 	RequestStatus types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
 	// used when unmarshalling data to assert all data was retrieved
-	GroupTargetCount int       `json:"groupTargetCount" dynamodbav:"groupTargetCount"`
-	Purpose          Purpose   `json:"purpose" dynamodbav:"purpose"`
-	RequestedBy      string    `json:"requestedBy" dynamodbav:"requestedBy"`
-	RequestedAt      time.Time `json:"requestedAt" dynamodbav:"requestedAt"`
+	GroupTargetCount int         `json:"groupTargetCount" dynamodbav:"groupTargetCount"`
+	Purpose          Purpose     `json:"purpose" dynamodbav:"purpose"`
+	RequestedBy      RequestedBy `json:"requestedBy" dynamodbav:"requestedBy"`
+	RequestedAt      time.Time   `json:"requestedAt" dynamodbav:"requestedAt"`
 	// request reviewers are users who have one or more groups to review on the request as a whole
 	RequestReviewers []string `json:"requestReviewers" dynamodbav:"requestReviewers, set"`
 }
@@ -47,9 +55,7 @@ func (r *RequestWithGroupsWithTargets) ToAPI() types.Request {
 		Purpose:     r.Purpose.ToAPI(),
 		RequestedAt: r.RequestedAt,
 		// @TODO denormalise the user onto the request
-		RequestedBy: types.RequestRequestedBy{
-			ID: r.RequestedBy,
-		},
+		RequestedBy:  types.RequestRequestedBy(r.RequestedBy),
 		AccessGroups: []types.RequestAccessGroup{},
 	}
 	for _, group := range r.Groups {
@@ -62,7 +68,7 @@ func (i *Request) DDBKeys() (ddb.Keys, error) {
 	keys := ddb.Keys{
 		PK:     keys.AccessRequest.PK1,
 		SK:     keys.AccessRequest.SK1(i.ID),
-		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy),
+		GSI1PK: keys.AccessRequest.GSI1PK(i.RequestedBy.ID),
 		GSI1SK: keys.AccessRequest.GSI1SK(RequestStatusToPastOrUpcoming(i.RequestStatus), i.ID),
 		GSI2PK: keys.AccessRequest.GSI2PK(i.RequestStatus),
 		GSI2SK: keys.AccessRequest.GSI2SK(i.ID),

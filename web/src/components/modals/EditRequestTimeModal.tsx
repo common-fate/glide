@@ -20,21 +20,25 @@ import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { When, WhenRadioGroup } from "../../pages/access/request/[id]";
-import { RequestDetail } from "../../utils/backend-client/types";
-import { RequestTiming } from "../../utils/backend-client/types/requestTiming";
+import {
+  Request,
+  RequestAccessGroup,
+  RequestAccessGroupTiming,
+} from "../../utils/backend-client/types";
+
 import { durationString } from "../../utils/durationString";
 import { Days, DurationInput, Hours, Minutes, Weeks } from "../DurationInput";
 type Props = {
-  request: RequestDetail;
-  handleSubmit: (timing: RequestTiming) => void;
+  accessGroup: RequestAccessGroup;
+  handleSubmit: (timing: RequestAccessGroupTiming) => void;
 } & Omit<ModalProps, "children">;
 
 interface ApproveRequestFormData {
-  timing: RequestTiming;
+  timing: RequestAccessGroupTiming;
   when: When;
 }
 
-const EditRequestTimeModal = ({ request, ...props }: Props) => {
+const EditRequestTimeModal = ({ accessGroup, ...props }: Props) => {
   const [readableDuration, setReadableDuration] = useState<string>("1 hour");
   const methods = useForm<ApproveRequestFormData>();
   const when = methods.watch("when");
@@ -48,14 +52,14 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   useEffect(() => {
     const data: ApproveRequestFormData = {
       timing: {
-        durationSeconds: request.timing.durationSeconds,
-        startTime: request.timing.startTime,
+        durationSeconds: accessGroup.time.durationSeconds,
+        startTime: accessGroup.time.startTime,
       },
-      when: request.timing.startTime ? "scheduled" : "asap",
+      when: accessGroup.time.startTime ? "scheduled" : "asap",
     };
 
-    if (request.timing.startTime) {
-      const d = new Date(Date.parse(request.timing.startTime));
+    if (accessGroup.time.startTime) {
+      const d = new Date(Date.parse(accessGroup.time.startTime));
       // This native datetime input needs a specific format as shown here, we take input in local time and it is converted to UTC for the api call
       data.timing.startTime = format(d, "yyyy-MM-dd'T'HH:mm");
     }
@@ -76,7 +80,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
   };
 
   const maxDurationSeconds =
-    request.accessRule.timeConstraints.maxDurationSeconds;
+    accessGroup.accessRule.timeConstraints.maxDurationSeconds;
   return (
     <Modal {...props} size={maxDurationSeconds >= 3600 * 24 ? "xl" : "md"}>
       <form onSubmit={methods.handleSubmit(handleSubmit)}>
@@ -104,7 +108,7 @@ const EditRequestTimeModal = ({ request, ...props }: Props) => {
                         {...rest}
                         max={maxDurationSeconds}
                         min={60}
-                        defaultValue={request.timing.durationSeconds}
+                        defaultValue={accessGroup.timing.durationSeconds}
                         hideUnusedElements
                       >
                         <Weeks />

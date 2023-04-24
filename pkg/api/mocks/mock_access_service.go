@@ -8,7 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
+	access "github.com/common-fate/common-fate/pkg/access"
 	accesssvc "github.com/common-fate/common-fate/pkg/service/accesssvc"
+	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -62,4 +64,19 @@ func (m *MockAccessService) CancelRequest(arg0 context.Context, arg1 accesssvc.C
 func (mr *MockAccessServiceMockRecorder) CancelRequest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelRequest", reflect.TypeOf((*MockAccessService)(nil).CancelRequest), arg0, arg1)
+}
+
+// CreateRequest mocks base method.
+func (m *MockAccessService) CreateRequest(arg0 context.Context, arg1 types.CreateAccessRequestRequest) (*access.Request, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRequest", arg0, arg1)
+	ret0, _ := ret[0].(*access.Request)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRequest indicates an expected call of CreateRequest.
+func (mr *MockAccessServiceMockRecorder) CreateRequest(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRequest", reflect.TypeOf((*MockAccessService)(nil).CreateRequest), arg0, arg1)
 }

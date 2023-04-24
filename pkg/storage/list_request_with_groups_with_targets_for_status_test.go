@@ -14,16 +14,16 @@ func TestListRequestWithGroupsWithTargetsForStatus(t *testing.T) {
 	rid := "req_abcd"
 	gid := "grp_abcd"
 	tid := "gta_abcd"
-	req := access.Request{ID: rid, GroupTargetCount: 1, RequestedBy: "usr_abcd", RequestStatus: types.COMPLETE}
-	group := access.Group{ID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.COMPLETE}
-	target := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_abcd", RequestStatus: types.COMPLETE}
+	req := access.Request{ID: rid, GroupTargetCount: 1, RequestedBy: access.RequestedBy{ID: "usr_abcd"}, RequestStatus: types.COMPLETE}
+	group := access.Group{ID: gid, RequestID: rid, RequestedBy: access.RequestedBy{ID: "usr_abcd"}, RequestStatus: types.COMPLETE}
+	target := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: access.RequestedBy{ID: "usr_abcd"}, RequestStatus: types.COMPLETE}
 
 	rid = "req_efgh"
 	gid = "grp_efgh"
 	tid = "gta_efgh"
-	req2 := access.Request{ID: rid, GroupTargetCount: 1, RequestedBy: "usr_efgh", RequestStatus: types.ACTIVE}
-	group2 := access.Group{ID: gid, RequestID: rid, RequestedBy: "usr_efgh", RequestStatus: types.ACTIVE}
-	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: "usr_efgh", RequestStatus: types.ACTIVE}
+	req2 := access.Request{ID: rid, GroupTargetCount: 1, RequestedBy: access.RequestedBy{ID: "usr_efgh"}, RequestStatus: types.ACTIVE}
+	group2 := access.Group{ID: gid, RequestID: rid, RequestedBy: access.RequestedBy{ID: "usr_efgh"}, RequestStatus: types.ACTIVE}
+	target2 := access.GroupTarget{ID: tid, GroupID: gid, RequestID: rid, RequestedBy: access.RequestedBy{ID: "usr_efgh"}, RequestStatus: types.ACTIVE}
 
 	// cleanup before the test
 	err := ts.deleteAll()

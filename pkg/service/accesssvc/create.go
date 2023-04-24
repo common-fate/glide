@@ -63,9 +63,14 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 	}
 
 	request := access.Request{
-		ID:               types.NewRequestID(),
-		Purpose:          access.Purpose{Reason: createRequest.Reason},
-		RequestedBy:      u.ID,
+		ID:      types.NewRequestID(),
+		Purpose: access.Purpose{Reason: createRequest.Reason},
+		RequestedBy: access.RequestedBy{
+			Email:     u.Email,
+			FirstName: u.FirstName,
+			ID:        u.ID,
+			LastName:  u.LastName,
+		},
 		RequestedAt:      now,
 		GroupTargetCount: totalTargets,
 	}
@@ -97,7 +102,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 				Duration:  time.Duration(ar.Result.TimeConstraints.MaxDurationSeconds),
 				StartTime: &now,
 			},
-			RequestedBy: u.ID,
+			RequestedBy: request.RequestedBy,
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
@@ -111,7 +116,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		for _, u := range approvers {
 			// users cannot approve their own requests.
 			// We don't create a Reviewer for them, even if they are an approver on the Access Rule.
-			if u == request.RequestedBy {
+			if u == request.RequestedBy.ID {
 				continue
 			}
 
@@ -144,7 +149,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 					ID:               f.ID,
 					FieldTitle:       f.FieldTitle,
 					FieldDescription: f.FieldDescription,
-					ValueLabel:       *&f.ValueLabel,
+					ValueLabel:       f.ValueLabel,
 					ValueDescription: f.ValueDescription,
 					Value: access.FieldValue{
 						Type:  "",
