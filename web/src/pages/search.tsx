@@ -173,10 +173,12 @@ const Search = () => {
       )
         .then((res) => {
           console.log(res);
+          submitLoadingToggle.on();
+          // redirect to request...
+          navigate({ to: `/request/${"REPLACEME"}` });
           // clear state
           setChecked([]);
           setInputValue("");
-          // redirect to request...
         })
         .catch((err) => {
           console.log(err);
