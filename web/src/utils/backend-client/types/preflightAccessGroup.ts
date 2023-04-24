@@ -5,12 +5,12 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
-import type { Target } from './target';
+import type { AccessRuleTimeConstraints } from "./accessRuleTimeConstraints";
+import type { Target } from "./target";
 
 export interface PreflightAccessGroup {
   id: string;
-  status: string;
+  requiresApproval: boolean;
   time: AccessRuleTimeConstraints;
   targets: Target[];
 }

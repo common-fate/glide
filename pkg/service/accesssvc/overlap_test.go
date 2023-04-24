@@ -16,7 +16,7 @@ package accesssvc
 // 	now := clk.Now()
 
 // 	//some requests premade with specific timings
-// 	activeRequest := access.Request{Status: access.Status(types.RequestStatusAPPROVED), Grant: &access.Grant{Status: "ACTIVE"}, Rule: "rule_a", RequestedTiming: requests.Timing{StartTime: &now, Duration: time.Minute * 2}}
+// 	activeRequest := access.Request{Status: access.Status(types.RequestAccessGroupStatusAPPROVED), Grant: &access.Grant{Status: "ACTIVE"}, Rule: "rule_a", RequestedTiming: requests.Timing{StartTime: &now, Duration: time.Minute * 2}}
 // 	cancelledRequest := access.Request{Status: access.Status(types.RequestStatusCANCELLED), RequestedTiming: requests.Timing{StartTime: &now, Duration: time.Minute * 2}, Rule: "rule_a"}
 // 	revokedRequest := access.Request{Status: access.Status(types.RequestStatusCANCELLED), Grant: &access.Grant{Status: "REVOKED"}, RequestedTiming: requests.Timing{StartTime: &now, Duration: time.Minute * 2}, Rule: "rule_a"}
 

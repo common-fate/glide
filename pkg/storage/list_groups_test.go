@@ -1,72 +1,47 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/segmentio/ksuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/ddb/ddbtest"
 )
 
 func TestListGroups(t *testing.T) {
 
-	type testcase struct {
-		name string
-
-		insertBefore []identity.Group
-		want         []identity.Group
-		notWant      []identity.Group
-		wantErr      error
+	ts := newTestingStorage(t)
+	err := ts.deleteAll()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	g := identity.Group{
-		ID:     ksuid.New().String(),
+	active := identity.Group{
+		ID:     types.NewGroupID(),
 		Name:   "a",
 		IdpID:  "a",
 		Users:  []string{"a"},
-		Status: types.ACTIVE,
+		Status: types.IdpStatusACTIVE,
 	}
 
-	testcases := []testcase{
-		{
-			name:         "ok",
-			insertBefore: []identity.Group{g},
-			want:         []identity.Group{g},
+	archived := identity.Group{
+		ID:     types.NewGroupID(),
+		Name:   "a",
+		IdpID:  "a",
+		Users:  []string{"a"},
+		Status: types.IdpStatusARCHIVED,
+	}
 
-			notWant: []identity.Group{},
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&active, &archived})
+
+	tc := []ddbtest.QueryTestCase{
+		{
+			Name:  "ok",
+			Query: &ListGroups{},
+			Want:  &ListGroups{Result: []identity.Group{active, archived}},
 		},
 	}
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			ctx := context.Background()
-			s := newTestingStorage(t)
 
-			// insert any required fixture data
-			for _, r := range tc.insertBefore {
-				err := s.Put(ctx, &r)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			q := ListGroups{}
-			_, err := s.Query(ctx, &q)
-			if err != nil && tc.wantErr == nil {
-				t.Fatal(err)
-			}
-			got := q.Result
-
-			if tc.wantErr != nil {
-				assert.Equal(t, tc.wantErr, err)
-			}
-			for _, item := range tc.want {
-				assert.Contains(t, got, item)
-			}
-			for _, item := range tc.notWant {
-				assert.NotContains(t, got, item, "expected item to not be in results")
-			}
-		})
-	}
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

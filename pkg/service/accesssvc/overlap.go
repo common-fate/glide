@@ -73,7 +73,7 @@ package accesssvc
 // 	return false, nil
 // }
 
-// func (s *Service) overlapsExistingGrant(ctx context.Context, req requests.AccessGroup) (bool, error) {
+// func (s *Service) overlapsExistingGrant(ctx context.Context, req access.AccessGroup) (bool, error) {
 // 	start, _ := req.GetInterval(access.WithNow(s.Clock.Now()))
 
 // 	rq := storage.ListRequestsForUserAndRequestend{

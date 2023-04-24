@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
+	access "github.com/common-fate/common-fate/pkg/access"
 	identity "github.com/common-fate/common-fate/pkg/identity"
-	requests "github.com/common-fate/common-fate/pkg/requests"
 	types "github.com/common-fate/common-fate/pkg/types"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -38,10 +38,10 @@ func (m *MockPreflightService) EXPECT() *MockPreflightServiceMockRecorder {
 }
 
 // ProcessPreflight mocks base method.
-func (m *MockPreflightService) ProcessPreflight(arg0 context.Context, arg1 identity.User, arg2 types.CreatePreflightRequest) (*requests.Preflight, error) {
+func (m *MockPreflightService) ProcessPreflight(arg0 context.Context, arg1 identity.User, arg2 types.CreatePreflightRequest) (*access.Preflight, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessPreflight", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*requests.Preflight)
+	ret0, _ := ret[0].(*access.Preflight)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

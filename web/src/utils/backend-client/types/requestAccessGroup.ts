@@ -5,18 +5,19 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { RequestStatus } from './requestStatus';
-import type { AccessRuleTimeConstraints } from './accessRuleTimeConstraints';
-import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
-import type { RequestAccessGroupGrant } from './requestAccessGroupGrant';
+import type { RequestAccessGroupStatus } from "./requestAccessGroupStatus";
+import type { RequestAccessGroupTiming } from "./requestAccessGroupTiming";
+import type { RequestAccessGroupTarget } from "./requestAccessGroupTarget";
+import type { RequestAccessGroupApprovalMethod } from "./requestAccessGroupApprovalMethod";
 
 export interface RequestAccessGroup {
   id: string;
   requestId: string;
-  status: RequestStatus;
-  time: AccessRuleTimeConstraints;
+  status: RequestAccessGroupStatus;
+  time: RequestAccessGroupTiming;
   overrideTiming: RequestAccessGroupTiming;
   updatedAt: string;
   createdAt: string;
-  targets: RequestAccessGroupGrant[];
+  targets: RequestAccessGroupTarget[];
+  approvalMethod?: RequestAccessGroupApprovalMethod;
 }

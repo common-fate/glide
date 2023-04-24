@@ -5,12 +5,11 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { TargetGroupFrom } from './targetGroupFrom';
-import type { TargetField } from './targetField';
+import type { TargetKind } from "./targetKind";
+import type { TargetField } from "./targetField";
 
 export interface Target {
   id: string;
-  targetGroupId: string;
-  targetGroupFrom: TargetGroupFrom;
+  kind: TargetKind;
   fields: TargetField[];
 }

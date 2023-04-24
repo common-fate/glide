@@ -5,14 +5,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/common-fate/common-fate/pkg/requests"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/ddb"
 )
 
 type GetPreflight struct {
 	ID     string
-	Result *requests.Preflight
+	Result *access.Preflight
 }
 
 func (g *GetPreflight) BuildQuery() (*dynamodb.QueryInput, error) {
@@ -26,10 +26,10 @@ func (g *GetPreflight) BuildQuery() (*dynamodb.QueryInput, error) {
 	}
 	return qi, nil
 }
-func (g *GetPreflight) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (g *GetPreflight) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	if len(out.Items) != 1 {
-		return ddb.ErrNoItems
+		return nil, ddb.ErrNoItems
 	}
 
-	return attributevalue.UnmarshalMap(out.Items[0], &g.Result)
+	return &ddb.UnmarshalResult{}, attributevalue.UnmarshalMap(out.Items[0], &g.Result)
 }

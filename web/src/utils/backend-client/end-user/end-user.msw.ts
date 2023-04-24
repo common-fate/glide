@@ -5,107 +5,158 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
+import { rest } from "msw";
+import { faker } from "@faker-js/faker";
 import {
-  rest
-} from 'msw'
-import {
-  faker
-} from '@faker-js/faker'
-import {
+  IdpStatus,
+  RequestAccessGroupStatus,
+  RequestAccessGroupTargetStatus,
+  RequestAccessGroupApprovalMethod,
   RequestStatus,
-  ApprovalMethod,
-  IdpStatus
-} from '.././types'
+} from ".././types";
 
-export const getUserReviewRequestMock = () => ({request: faker.helpers.arrayElement([{id: faker.random.word(), requestor: faker.random.word(), status: faker.helpers.arrayElement(Object.values(RequestStatus)), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}, requestedAt: faker.random.word(), accessRuleId: faker.random.word(), accessRuleVersion: faker.random.word(), updatedAt: faker.random.word(), grant: faker.helpers.arrayElement([{id: faker.random.word(), status: faker.helpers.arrayElement(['PENDING','ACTIVE','REVOKED','EXPIRED','ERROR']), subject: faker.internet.email(), provider: faker.random.word(), with: {
-        'clglz44ba0000lqon1xeqabmm': faker.random.word()
-      }, start: `${faker.date.past().toISOString().split('.')[0]}Z`, end: `${faker.date.past().toISOString().split('.')[0]}Z`}, undefined]), approvalMethod: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ApprovalMethod)), undefined])}, undefined])})
+export const getUserGetUserMock = () => ({
+  id: faker.random.word(),
+  email: faker.random.word(),
+  firstName: faker.random.word(),
+  picture: faker.random.word(),
+  status: faker.helpers.arrayElement(Object.values(IdpStatus)),
+  lastName: faker.random.word(),
+  updatedAt: faker.random.word(),
+  groups: Array.from(
+    { length: faker.datatype.number({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => faker.random.word()),
+});
 
-export const getUserGetUserMock = () => ({id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.helpers.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word(), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))})
+export const getUserGetMeMock = () => ({
+  user: {
+    id: faker.random.word(),
+    email: faker.random.word(),
+    firstName: faker.random.word(),
+    picture: faker.random.word(),
+    status: faker.helpers.arrayElement(Object.values(IdpStatus)),
+    lastName: faker.random.word(),
+    updatedAt: faker.random.word(),
+    groups: Array.from(
+      { length: faker.datatype.number({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => faker.random.word()),
+  },
+  isAdmin: faker.datatype.boolean(),
+});
 
-export const getUserGetMeMock = () => ({user: {id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.helpers.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word(), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, isAdmin: faker.datatype.boolean()})
-
-export const getUserListFavoritesMock = () => ({next: faker.helpers.arrayElement([faker.random.word(), null]), favorites: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), name: faker.random.word(), ruleId: faker.random.word()}))})
-
-export const getUserCreateFavoriteMock = () => ({id: faker.random.word(), name: faker.random.word(), with: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-        'clglz44cx000llqonc0xodosm': Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))
-      })), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}})
-
-export const getUserGetFavoriteMock = () => ({id: faker.random.word(), name: faker.random.word(), with: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-        'clglz44d0000mlqongu0v2vwd': Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))
-      })), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}})
-
-export const getUserUpdateFavoriteMock = () => ({id: faker.random.word(), name: faker.random.word(), with: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-        'clglz44d0000nlqongjvnec8q': Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))
-      })), reason: faker.helpers.arrayElement([faker.random.word(), undefined]), timing: {durationSeconds: faker.datatype.number({min: undefined, max: undefined}), startTime: faker.helpers.arrayElement([faker.random.word(), undefined])}})
-
-export const getUserListRequestsUpcomingMock = () => ({requests: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), context: {purpose: {reason: faker.random.word()}, context: {ip: faker.random.word(), userAgent: faker.random.word()}, metadata: {createdAt: faker.random.word()}}, user: {id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.helpers.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word(), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, createdAt: faker.random.word(), updatedAt: faker.random.word()})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
-
-export const getUserListRequestsPastMock = () => ({requests: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.random.word(), context: {purpose: {reason: faker.random.word()}, context: {ip: faker.random.word(), userAgent: faker.random.word()}, metadata: {createdAt: faker.random.word()}}, user: {id: faker.random.word(), email: faker.random.word(), firstName: faker.random.word(), picture: faker.random.word(), status: faker.helpers.arrayElement(Object.values(IdpStatus)), lastName: faker.random.word(), updatedAt: faker.random.word(), groups: Array.from({ length: faker.datatype.number({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.random.word()))}, createdAt: faker.random.word(), updatedAt: faker.random.word()})), next: faker.helpers.arrayElement([faker.random.word(), undefined])})
+export const getUserReviewRequestMock = () => ({
+  request: faker.helpers.arrayElement([
+    {
+      id: faker.random.word(),
+      purpose: {
+        reason: faker.helpers.arrayElement([faker.random.word(), undefined]),
+      },
+      accessGroups: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => ({
+        id: faker.random.word(),
+        requestId: faker.random.word(),
+        status: faker.helpers.arrayElement(
+          Object.values(RequestAccessGroupStatus)
+        ),
+        time: {
+          durationSeconds: faker.datatype.number({
+            min: undefined,
+            max: undefined,
+          }),
+          startTime: faker.helpers.arrayElement([
+            faker.random.word(),
+            undefined,
+          ]),
+        },
+        overrideTiming: {
+          durationSeconds: faker.datatype.number({
+            min: undefined,
+            max: undefined,
+          }),
+          startTime: faker.helpers.arrayElement([
+            faker.random.word(),
+            undefined,
+          ]),
+        },
+        updatedAt: faker.random.word(),
+        createdAt: faker.random.word(),
+        targets: Array.from(
+          { length: faker.datatype.number({ min: 1, max: 10 }) },
+          (_, i) => i + 1
+        ).map(() => ({
+          id: faker.random.word(),
+          requestId: faker.random.word(),
+          accessGroupId: faker.random.word(),
+          targetGroupId: faker.random.word(),
+          targetGroupFrom: {
+            publisher: faker.random.word(),
+            name: faker.random.word(),
+            version: faker.random.word(),
+            kind: faker.random.word(),
+          },
+          fields: Array.from(
+            { length: faker.datatype.number({ min: 1, max: 10 }) },
+            (_, i) => i + 1
+          ).map(() => ({
+            id: faker.random.word(),
+            fieldTitle: faker.random.word(),
+            fieldDescription: faker.helpers.arrayElement([
+              faker.random.word(),
+              undefined,
+            ]),
+            valueLabel: faker.random.word(),
+            valueDescription: faker.helpers.arrayElement([
+              faker.random.word(),
+              undefined,
+            ]),
+            value: faker.random.word(),
+          })),
+          status: faker.helpers.arrayElement(
+            Object.values(RequestAccessGroupTargetStatus)
+          ),
+        })),
+        approvalMethod: faker.helpers.arrayElement([
+          faker.helpers.arrayElement(
+            Object.values(RequestAccessGroupApprovalMethod)
+          ),
+          undefined,
+        ]),
+      })),
+      requestedBy: faker.random.word(),
+      requestedAt: faker.random.word(),
+      status: faker.helpers.arrayElement(Object.values(RequestStatus)),
+    },
+    undefined,
+  ]),
+});
 
 export const getEndUserMSW = () => [
-rest.post('*/api/v1/access-group/:id/review', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserReviewRequestMock()),
-        )
-      }),rest.post('*/api/v1/requests/:requestid/revoke', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-        )
-      }),rest.get('*/api/v1/users/:userId', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserGetUserMock()),
-        )
-      }),rest.get('*/api/v1/users/me', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserGetMeMock()),
-        )
-      }),rest.get('*/api/v1/favorites', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserListFavoritesMock()),
-        )
-      }),rest.post('*/api/v1/favorites', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserCreateFavoriteMock()),
-        )
-      }),rest.get('*/api/v1/favorites/:id', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserGetFavoriteMock()),
-        )
-      }),rest.delete('*/api/v1/favorites/:id', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-        )
-      }),rest.put('*/api/v1/favorites/:id', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserUpdateFavoriteMock()),
-        )
-      }),rest.get('*/api/v1/requests/upcoming', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserListRequestsUpcomingMock()),
-        )
-      }),rest.get('*/api/v1/requests/past', (_req, res, ctx) => {
-        return res(
-          ctx.delay(1000),
-          ctx.status(200, 'Mocked status'),
-ctx.json(getUserListRequestsPastMock()),
-        )
-      }),]
+  rest.get("*/api/v1/users/:userId", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getUserGetUserMock())
+    );
+  }),
+  rest.get("*/api/v1/users/me", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getUserGetMeMock())
+    );
+  }),
+  rest.post("*/api/v1/requests/:requestId/review", (_req, res, ctx) => {
+    return res(
+      ctx.delay(1000),
+      ctx.status(200, "Mocked status"),
+      ctx.json(getUserReviewRequestMock())
+    );
+  }),
+  rest.post("*/api/v1/requests/:requestid/revoke", (_req, res, ctx) => {
+    return res(ctx.delay(1000), ctx.status(200, "Mocked status"));
+  }),
+];

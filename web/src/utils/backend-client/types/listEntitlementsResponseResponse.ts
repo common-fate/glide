@@ -5,9 +5,8 @@
  * Common Fate API
  * OpenAPI spec version: 1.0
  */
-import type { Entitlement } from './entitlement';
+import type { TargetKind } from './targetKind';
 
-/**
- * Example response
- */
-export type ListEntitlementsResponseResponse = Entitlement[];
+export type ListEntitlementsResponseResponse = {
+  entitlements: TargetKind[];
+};

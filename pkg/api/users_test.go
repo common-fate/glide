@@ -168,7 +168,7 @@ func TestPostApiV1AdminUsers(t *testing.T) {
 				LastName:  "user",
 				Email:     "test@test.com",
 				Groups:    []string{},
-				Status:    types.ACTIVE,
+				Status:    types.IdpStatusACTIVE,
 			},
 			wantBody: `{"email":"test@test.com","firstName":"test","groups":[],"id":"1234","lastName":"user","picture":"","status":"ACTIVE","updatedAt":"0001-01-01T00:00:00Z"}`,
 		},

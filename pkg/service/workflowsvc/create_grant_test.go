@@ -5,7 +5,7 @@ package workflowsvc
 // 		name                       string
 // 		withCreateGrantResponseErr error
 // 		subject                    string
-// 		giveAccessGroup            requests.AccessGroup
+// 		giveAccessGroup            access.AccessGroup
 // 		wantAccessGroupErr         error
 // 		giveGrants                 []requests.Grantv2
 // 		wantGrantsErr              error
@@ -19,7 +19,7 @@ package workflowsvc
 // 			name: "ok",
 
 // 			subject: "test@commonfate.io",
-// 			giveAccessGroup: requests.AccessGroup{
+// 			giveAccessGroup: access.AccessGroup{
 // 				AccessRule: rule.AccessRule{ID: "rule_a", Target: rule.Target{TargetGroupID: "test"}},
 // 				ID:         "123",
 // 				Request:    "abc",
@@ -32,7 +32,7 @@ package workflowsvc
 // 			giveGrants: []requests.Grantv2{
 // 				{
 // 					AccessGroup:        "123",
-// 					Status:             types.GrantStatus(requests.PENDING),
+// 					Status:             types.GrantStatus(types.RequestStatusPENDING),
 // 					Start:              now,
 // 					End:                now.Add(time.Hour),
 // 					AccessInstructions: aws.String(""),
@@ -42,7 +42,7 @@ package workflowsvc
 // 				},
 // 				{
 // 					AccessGroup:        "123",
-// 					Status:             types.GrantStatus(requests.PENDING),
+// 					Status:             types.GrantStatus(types.RequestStatusPENDING),
 // 					Start:              now,
 // 					End:                now.Add(time.Hour),
 // 					AccessInstructions: aws.String(""),
@@ -55,7 +55,7 @@ package workflowsvc
 // 			want: []requests.Grantv2{
 // 				{
 // 					AccessGroup:        "123",
-// 					Status:             types.GrantStatus(requests.PENDING),
+// 					Status:             types.GrantStatus(types.RequestStatusPENDING),
 // 					Start:              now,
 // 					End:                now.Add(time.Hour),
 // 					AccessInstructions: aws.String(""),
@@ -65,7 +65,7 @@ package workflowsvc
 // 				},
 // 				{
 // 					AccessGroup:        "123",
-// 					Status:             types.GrantStatus(requests.PENDING),
+// 					Status:             types.GrantStatus(types.RequestStatusPENDING),
 // 					Start:              now,
 // 					End:                now.Add(time.Hour),
 // 					AccessInstructions: aws.String(""),

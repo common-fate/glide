@@ -3,7 +3,6 @@ package events
 import (
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gevent"
-	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/ddb"
 	"github.com/pkg/errors"
@@ -50,13 +49,13 @@ var requestCommand = cli.Command{
 		}
 
 		e := gevent.RequestCreated{
-			Request: requests.Requestv2{
-				// ID:        types.NewRequestID(),
-				// CreatedAt: time.Now(),
-				// UpdatedAt: time.Now(),
+			// Request: requests.Requestv2{
+			// 	// ID:        types.NewRequestID(),
+			// 	// CreatedAt: time.Now(),
+			// 	// UpdatedAt: time.Now(),
 
-				RequestedBy: *u.Result,
-			},
+			// 	RequestedBy: *u.Result,
+			// },
 		}
 
 		s, err := gevent.NewSender(c.Context, gevent.SenderOpts{

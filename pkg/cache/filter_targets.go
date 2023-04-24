@@ -14,7 +14,7 @@ type FilterTargetsByAccessRule struct {
 // AppendOutput is goroutine safe way to append to the output map
 func (tf *FilterTargetsByAccessRule) AppendOutput(target Target) {
 	tf.mu.Lock()
-	tf.out[target.Key()] = target
+	tf.out[target.ID()] = target
 	tf.mu.Unlock()
 }
 
@@ -60,7 +60,7 @@ type FilterTargetsByGroups struct {
 // AppendOutput is goroutine safe way to append to the output map
 func (tf *FilterTargetsByGroups) AppendOutput(target Target) {
 	tf.mu.Lock()
-	tf.out[target.Key()] = target
+	tf.out[target.ID()] = target
 	tf.mu.Unlock()
 }
 
@@ -75,7 +75,7 @@ func NewFilterTargetsByGroups(groups []string) *FilterTargetsByGroups {
 	return &tf
 }
 
-func (tf *FilterTargetsByGroups) Filter(targets []Target) {
+func (tf *FilterTargetsByGroups) Filter(targets []Target) *FilterTargetsByGroups {
 	for _, target := range targets {
 		for group := range target.Groups {
 			if _, ok := tf.groups[group]; ok {
@@ -84,6 +84,7 @@ func (tf *FilterTargetsByGroups) Filter(targets []Target) {
 			}
 		}
 	}
+	return tf
 }
 
 func (tf *FilterTargetsByGroups) Dump() []Target {

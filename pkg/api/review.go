@@ -8,11 +8,9 @@ import (
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
 	"github.com/common-fate/common-fate/pkg/requests"
-	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/types"
-	"github.com/common-fate/ddb"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -32,28 +30,27 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id strin
 	// this can be done concurrently, so we use an errgroup.
 	g, fetchctx := errgroup.WithContext(ctx)
 
-	var req *requests.AccessGroup
-	var rule *rule.AccessRule
-	g.Go(func() error {
-		var err error
-		q := storage.GetAccessGroup{GroupID: id}
-		_, err = a.DB.Query(ctx, &q)
-		req = q.Result
-		if err == ddb.ErrNoItems {
-			err = apio.NewRequestError(err, http.StatusNotFound)
-		}
-		if err != nil {
-			return err
-		}
-		//get up to date access rule
-		ruleq := storage.GetAccessRuleCurrent{ID: q.Result.AccessRule.ID}
-		_, err = a.DB.Query(ctx, &ruleq)
-		rule = ruleq.Result
-		if err == ddb.ErrNoItems {
-			err = apio.NewRequestError(err, http.StatusNotFound)
-		}
-		return err
-	})
+	// var req *access.AccessGroup
+	// var rule *rule.AccessRule
+	// g.Go(func() error {
+	// 	var err error
+	// 	q := storage.GetRequest{ID: requestId}
+	// 	_, err = a.DB.Query(ctx, &q)
+	// 	req = q.Result
+	// 	if err == ddb.ErrNoItems {
+	// 		err = apio.NewRequestError(err, http.StatusNotFound)
+	// 	}
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	ruleq := storage.GetAccessRuleCurrent{ID: req.Rule}
+	// 	_, err = a.DB.Query(ctx, &ruleq)
+	// 	rule = ruleq.Result
+	// 	if err == ddb.ErrNoItems {
+	// 		err = apio.NewRequestError(err, http.StatusNotFound)
+	// 	}
+	// 	return err
+	// })
 
 	reviewers := storage.ListAccessGroupReviewers{AccessGroupId: id}
 	g.Go(func() error {

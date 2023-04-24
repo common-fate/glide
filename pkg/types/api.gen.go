@@ -24,31 +24,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Defines values for AccessRuleStatus.
-const (
-	AccessRuleStatusACTIVE   AccessRuleStatus = "ACTIVE"
-	AccessRuleStatusARCHIVED AccessRuleStatus = "ARCHIVED"
-)
-
-// Defines values for ApprovalMethod.
-const (
-	AUTOMATIC ApprovalMethod = "AUTOMATIC"
-	REVIEWED  ApprovalMethod = "REVIEWED"
-)
-
-// Defines values for GrantStatus.
-const (
-	GrantStatusACTIVE  GrantStatus = "ACTIVE"
-	GrantStatusERROR   GrantStatus = "ERROR"
-	GrantStatusEXPIRED GrantStatus = "EXPIRED"
-	GrantStatusPENDING GrantStatus = "PENDING"
-	GrantStatusREVOKED GrantStatus = "REVOKED"
-)
-
 // Defines values for IdpStatus.
 const (
-	ACTIVE   IdpStatus = "ACTIVE"
-	ARCHIVED IdpStatus = "ARCHIVED"
+	IdpStatusACTIVE   IdpStatus = "ACTIVE"
+	IdpStatusARCHIVED IdpStatus = "ARCHIVED"
 )
 
 // Defines values for LogLevel.
@@ -58,12 +37,36 @@ const (
 	WARNING LogLevel = "WARNING"
 )
 
+// Defines values for RequestAccessGroupApprovalMethod.
+const (
+	AUTOMATIC RequestAccessGroupApprovalMethod = "AUTOMATIC"
+	REVIEWED  RequestAccessGroupApprovalMethod = "REVIEWED"
+)
+
+// Defines values for RequestAccessGroupStatus.
+const (
+	RequestAccessGroupStatusAPPROVED        RequestAccessGroupStatus = "APPROVED"
+	RequestAccessGroupStatusDECLINED        RequestAccessGroupStatus = "DECLINED"
+	RequestAccessGroupStatusPENDINGAPPROVAL RequestAccessGroupStatus = "PENDING_APPROVAL"
+)
+
+// Defines values for RequestAccessGroupTargetStatus.
+const (
+	RequestAccessGroupTargetStatusACTIVE              RequestAccessGroupTargetStatus = "ACTIVE"
+	RequestAccessGroupTargetStatusAWAITINGSTART       RequestAccessGroupTargetStatus = "AWAITING_START"
+	RequestAccessGroupTargetStatusERROR               RequestAccessGroupTargetStatus = "ERROR"
+	RequestAccessGroupTargetStatusEXPIRED             RequestAccessGroupTargetStatus = "EXPIRED"
+	RequestAccessGroupTargetStatusPENDINGPROVISIONING RequestAccessGroupTargetStatus = "PENDING_PROVISIONING"
+	RequestAccessGroupTargetStatusREVOKED             RequestAccessGroupTargetStatus = "REVOKED"
+)
+
 // Defines values for RequestStatus.
 const (
-	RequestStatusAPPROVED  RequestStatus = "APPROVED"
-	RequestStatusCANCELLED RequestStatus = "CANCELLED"
-	RequestStatusDECLINED  RequestStatus = "DECLINED"
-	RequestStatusPENDING   RequestStatus = "PENDING"
+	ACTIVE    RequestStatus = "ACTIVE"
+	CANCELLED RequestStatus = "CANCELLED"
+	COMPLETE  RequestStatus = "COMPLETE"
+	PENDING   RequestStatus = "PENDING"
+	REVOKED   RequestStatus = "REVOKED"
 )
 
 // Defines values for ReviewDecision.
@@ -71,14 +74,6 @@ const (
 	ReviewDecisionAPPROVED ReviewDecision = "APPROVED"
 	ReviewDecisionDECLINED ReviewDecision = "DECLINED"
 )
-
-// Instructions on how to access the requested resource.
-//
-// The `instructions` field will be null if no instructions are available.
-type AccessInstructions struct {
-	// Instructions on how to access the role or resource.
-	Instructions *string `json:"instructions,omitempty"`
-}
 
 // AccessRule contains detailed information about a rule and is used in administrative apis.
 type AccessRule struct {
@@ -91,10 +86,8 @@ type AccessRule struct {
 	ID       string             `json:"id"`
 	Metadata AccessRuleMetadata `json:"metadata"`
 	Name     string             `json:"name"`
-
-	// The status of an Access Rule.
-	Status  AccessRuleStatus   `json:"status"`
-	Targets []AccessRuleTarget `json:"targets"`
+	Priority float32            `json:"priority"`
+	Targets  []AccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
@@ -117,9 +110,6 @@ type AccessRuleMetadata struct {
 	UpdatedBy     string    `json:"updatedBy"`
 }
 
-// The status of an Access Rule.
-type AccessRuleStatus string
-
 // a request body for an Access Rule Target
 type AccessRuleTarget struct {
 	FieldFilterExpessions map[string]interface{} `json:"fieldFilterExpessions"`
@@ -132,8 +122,11 @@ type AccessRuleTimeConstraints struct {
 	MaxDurationSeconds int `json:"maxDurationSeconds"`
 }
 
-// Describes whether a request has been approved automatically or from a review
-type ApprovalMethod string
+// CreateAccessRequestGroupOptions defines model for CreateAccessRequestGroupOptions.
+type CreateAccessRequestGroupOptions struct {
+	Id     string                   `json:"id"`
+	Timing RequestAccessGroupTiming `json:"timing"`
+}
 
 // a request body for creating a Access Rule Target
 type CreateAccessRuleTarget struct {
@@ -147,9 +140,6 @@ type Diagnostic struct {
 	Level   LogLevel `json:"level"`
 	Message string   `json:"message"`
 }
-
-// The status of an Access Request.
-type GrantStatus string
 
 // Group defines model for Group.
 type Group struct {
@@ -176,9 +166,9 @@ type Preflight struct {
 
 // PreflightAccessGroup defines model for PreflightAccessGroup.
 type PreflightAccessGroup struct {
-	Id      string   `json:"id"`
-	Status  string   `json:"status"`
-	Targets []Target `json:"targets"`
+	Id               string   `json:"id"`
+	RequiresApproval bool     `json:"requiresApproval"`
+	Targets          []Target `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	Time AccessRuleTimeConstraints `json:"time"`
@@ -188,41 +178,61 @@ type PreflightAccessGroup struct {
 type Request struct {
 	AccessGroups []RequestAccessGroup `json:"accessGroups"`
 	ID           string               `json:"id"`
-	Purpose      *RequestPurpose      `json:"purpose,omitempty"`
+	Purpose      RequestPurpose       `json:"purpose"`
 	RequestedAt  time.Time            `json:"requestedAt"`
 	RequestedBy  string               `json:"requestedBy"`
+
+	// The status of an Access Request.
+	Status RequestStatus `json:"status"`
 }
 
 // RequestAccessGroup defines model for RequestAccessGroup.
 type RequestAccessGroup struct {
-	CreatedAt      time.Time                `json:"createdAt"`
-	Id             string                   `json:"id"`
-	OverrideTiming RequestAccessGroupTiming `json:"overrideTiming"`
-	RequestId      string                   `json:"requestId"`
+	// Describes whether a request has been approved automatically or from a review
+	ApprovalMethod *RequestAccessGroupApprovalMethod `json:"approvalMethod,omitempty"`
+	CreatedAt      time.Time                         `json:"createdAt"`
+	Id             string                            `json:"id"`
+	OverrideTiming RequestAccessGroupTiming          `json:"overrideTiming"`
+	RequestId      string                            `json:"requestId"`
 
 	// The status of an Access Request.
-	Status  RequestStatus             `json:"status"`
-	Targets []RequestAccessGroupGrant `json:"targets"`
-
-	// Time configuration for an Access Rule.
-	Time      AccessRuleTimeConstraints `json:"time"`
-	UpdatedAt time.Time                 `json:"updatedAt"`
+	Status    RequestAccessGroupStatus   `json:"status"`
+	Targets   []RequestAccessGroupTarget `json:"targets"`
+	Time      RequestAccessGroupTiming   `json:"time"`
+	UpdatedAt time.Time                  `json:"updatedAt"`
 }
 
+// Describes whether a request has been approved automatically or from a review
+type RequestAccessGroupApprovalMethod string
+
+// The status of an Access Request.
+type RequestAccessGroupStatus string
+
 // A temporary assignment of a user to a principal.
-type RequestAccessGroupGrant struct {
+type RequestAccessGroupTarget struct {
 	AccessGroupId string        `json:"accessGroupId"`
 	Fields        []TargetField `json:"fields"`
 	Id            string        `json:"id"`
 	RequestId     string        `json:"requestId"`
 
-	// The status of an Access Request.
-	Status GrantStatus `json:"status"`
+	// The status of a grant.
+	Status RequestAccessGroupTargetStatus `json:"status"`
 
 	// Specifies a particular Access Provider to create a Target Group schema from.
 	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
 	TargetGroupId   string          `json:"targetGroupId"`
 }
+
+// Instructions on how to access the requested resource.
+//
+// The `instructions` field will be null if no instructions are available.
+type RequestAccessGroupTargetAccessInstructions struct {
+	// Instructions on how to access the role or resource.
+	Instructions *string `json:"instructions,omitempty"`
+}
+
+// The status of a grant.
+type RequestAccessGroupTargetStatus string
 
 // RequestAccessGroupTiming defines model for RequestAccessGroupTiming.
 type RequestAccessGroupTiming struct {
@@ -237,8 +247,8 @@ type RequestEvent struct {
 	Actor     *string   `json:"actor,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 
-	// The status of an Access Request.
-	FromGrantStatus *GrantStatus `json:"fromGrantStatus,omitempty"`
+	// The status of a grant.
+	FromGrantStatus *RequestAccessGroupTargetStatus `json:"fromGrantStatus,omitempty"`
 
 	// The status of an Access Request.
 	FromStatus         *RequestStatus            `json:"fromStatus,omitempty"`
@@ -252,8 +262,8 @@ type RequestEvent struct {
 	RequestCreated *bool              `json:"requestCreated,omitempty"`
 	RequestId      string             `json:"requestId"`
 
-	// The status of an Access Request.
-	ToGrantStatus *GrantStatus `json:"toGrantStatus,omitempty"`
+	// The status of a grant.
+	ToGrantStatus *RequestAccessGroupTargetStatus `json:"toGrantStatus,omitempty"`
 
 	// The status of an Access Request.
 	ToStatus *RequestStatus            `json:"toStatus,omitempty"`
@@ -267,11 +277,6 @@ type RequestPurpose struct {
 
 // The status of an Access Request.
 type RequestStatus string
-
-// Resource defines model for Resource.
-type Resource struct {
-	Id *string `json:"id,omitempty"`
-}
 
 // A decision made on an Access Request.
 type ReviewDecision string
@@ -292,10 +297,7 @@ type TGHandler struct {
 type Target struct {
 	Fields []TargetField `json:"fields"`
 	Id     string        `json:"id"`
-
-	// Specifies a particular Access Provider to create a Target Group schema from.
-	TargetGroupFrom TargetGroupFrom `json:"targetGroupFrom"`
-	TargetGroupId   string          `json:"targetGroupId"`
+	Kind   TargetKind    `json:"kind"`
 }
 
 // TargetField defines model for TargetField.
@@ -338,6 +340,14 @@ type TargetGroupSchemaArgument struct {
 	Description *string `json:"description,omitempty"`
 	Id          string  `json:"id"`
 	Title       string  `json:"title"`
+}
+
+// TargetKind defines model for TargetKind.
+type TargetKind struct {
+	Icon      string `json:"icon"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Publisher string `json:"publisher"`
 }
 
 // TargetRoute defines model for TargetRoute.
@@ -398,10 +408,15 @@ type ListAccessRulesResponse struct {
 	Next        *string      `json:"next"`
 }
 
+// ListEntitlementsResponse defines model for ListEntitlementsResponse.
+type ListEntitlementsResponse struct {
+	Entitlements []TargetKind `json:"entitlements"`
+}
+
 // ListGrantsResponse defines model for ListGrantsResponse.
 type ListGrantsResponse struct {
-	Grants []RequestAccessGroupGrant `json:"grants"`
-	Next   *string                   `json:"next,omitempty"`
+	Grants []RequestAccessGroupTarget `json:"grants"`
+	Next   *string                    `json:"next,omitempty"`
 }
 
 // ListGroupsResponse defines model for ListGroupsResponse.
@@ -428,15 +443,8 @@ type ListRequestsResponse struct {
 	Requests []Request `json:"requests"`
 }
 
-// ListResourcesResponse defines model for ListResourcesResponse.
-type ListResourcesResponse struct {
-	Next      *string    `json:"next,omitempty"`
-	Resources []Resource `json:"resources"`
-}
-
 // ListTargetGroupResponse defines model for ListTargetGroupResponse.
 type ListTargetGroupResponse struct {
-	Next         *string       `json:"next,omitempty"`
 	TargetGroups []TargetGroup `json:"targetGroups"`
 }
 
@@ -464,6 +472,13 @@ type ReviewResponse struct {
 	Request *Request `json:"request,omitempty"`
 }
 
+// CreateAccessRequestRequest defines model for CreateAccessRequestRequest.
+type CreateAccessRequestRequest struct {
+	GroupOptions []CreateAccessRequestGroupOptions `json:"groupOptions"`
+	PreflightId  string                            `json:"preflightId"`
+	Reason       *string                           `json:"reason,omitempty"`
+}
+
 // CreateAccessRuleRequest defines model for CreateAccessRuleRequest.
 type CreateAccessRuleRequest struct {
 	// Approver config for access rules
@@ -471,9 +486,10 @@ type CreateAccessRuleRequest struct {
 	Description string                   `json:"description"`
 
 	// The group IDs that the access rule applies to.
-	Groups  []string                 `json:"groups"`
-	Name    string                   `json:"name"`
-	Targets []CreateAccessRuleTarget `json:"targets"`
+	Groups   []string                 `json:"groups"`
+	Name     string                   `json:"name"`
+	Priority float32                  `json:"priority"`
+	Targets  []CreateAccessRuleTarget `json:"targets"`
 
 	// Time configuration for an Access Rule.
 	TimeConstraints AccessRuleTimeConstraints `json:"timeConstraints"`
@@ -489,11 +505,6 @@ type CreateGroupRequest struct {
 // CreatePreflightRequest defines model for CreatePreflightRequest.
 type CreatePreflightRequest struct {
 	Targets []string `json:"targets"`
-}
-
-// CreateRequestPreflight defines model for CreateRequestPreflight.
-type CreateRequestPreflight struct {
-	PreflightId string `json:"preflightId"`
 }
 
 // CreateTargetGroupLink defines model for CreateTargetGroupLink.
@@ -539,15 +550,9 @@ type ReviewRequest struct {
 
 // AdminListAccessRulesParams defines parameters for AdminListAccessRules.
 type AdminListAccessRulesParams struct {
-	// Filter Access Rules by a particular status.
-	Status *AdminListAccessRulesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
-
 	// Next page token
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
-
-// AdminListAccessRulesParamsStatus defines parameters for AdminListAccessRules.
-type AdminListAccessRulesParamsStatus string
 
 // AdminListGroupsParams defines parameters for AdminListGroups.
 type AdminListGroupsParams struct {
@@ -588,56 +593,38 @@ type AdminUpdateUserJSONBody struct {
 	Groups []string `json:"groups"`
 }
 
-// UserListEntitlementResourcesParams defines parameters for UserListEntitlementResources.
-type UserListEntitlementResourcesParams struct {
-	// The kind of the entitlement
-	Kind string `form:"kind" json:"kind"`
-
-	// The publisher of the provider
-	Publisher string `form:"publisher" json:"publisher"`
-
-	// The name of provider
-	Name string `form:"name" json:"name"`
-
-	// The version of the provider
-	Version string `form:"version" json:"version"`
-
-	// The type of resource to list
-	ResourceType string `form:"resourceType" json:"resourceType"`
-}
-
 // UserListEntitlementTargetsParams defines parameters for UserListEntitlementTargets.
 type UserListEntitlementTargetsParams struct {
 	// query
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+
+	// filter targets by kind
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty"`
 }
 
 // UserListRequestsParams defines parameters for UserListRequests.
 type UserListRequestsParams struct {
+	// pagination token
+	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
+
+	// filter for past or upcoming requests
+	Filter *UserListRequestsParamsFilter `form:"filter,omitempty" json:"filter,omitempty"`
+}
+
+// UserListRequestsParamsFilter defines parameters for UserListRequests.
+type UserListRequestsParamsFilter string
+
+// UserListReviewsParams defines parameters for UserListReviews.
+type UserListReviewsParams struct {
 	// omit this param to view all results
-	Status *UserListRequestsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+	Status *UserListReviewsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
 
-	// show requests that the user is a reviewer for, rather than requests that the user has made themselves
-	Reviewer *bool `form:"reviewer,omitempty" json:"reviewer,omitempty"`
-
-	// encrypted token containing pagination info
+	// pagination token
 	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
 }
 
-// UserListRequestsParamsStatus defines parameters for UserListRequests.
-type UserListRequestsParamsStatus string
-
-// UserListRequestsPastParams defines parameters for UserListRequestsPast.
-type UserListRequestsPastParams struct {
-	// encrypted token containing pagination info
-	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
-}
-
-// UserListRequestsUpcomingParams defines parameters for UserListRequestsUpcoming.
-type UserListRequestsUpcomingParams struct {
-	// encrypted token containing pagination info
-	NextToken *string `form:"nextToken,omitempty" json:"nextToken,omitempty"`
-}
+// UserListReviewsParamsStatus defines parameters for UserListReviews.
+type UserListReviewsParamsStatus string
 
 // AdminCreateAccessRuleJSONRequestBody defines body for AdminCreateAccessRule for application/json ContentType.
 type AdminCreateAccessRuleJSONRequestBody CreateAccessRuleRequest
@@ -670,7 +657,7 @@ type AdminUpdateUserJSONRequestBody AdminUpdateUserJSONBody
 type UserRequestPreflightJSONRequestBody CreatePreflightRequest
 
 // UserPostRequestsJSONRequestBody defines body for UserPostRequests for application/json ContentType.
-type UserPostRequestsJSONRequestBody CreateRequestPreflight
+type UserPostRequestsJSONRequestBody CreateAccessRequestRequest
 
 // UserReviewRequestJSONRequestBody defines body for UserReviewRequest for application/json ContentType.
 type UserReviewRequestJSONRequestBody ReviewRequest
@@ -809,6 +796,9 @@ type ClientInterface interface {
 
 	AdminCreateAccessRule(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AdminDeleteAccessRule request
+	AdminDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AdminGetAccessRule request
 	AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -816,9 +806,6 @@ type ClientInterface interface {
 	AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// AdminArchiveAccessRule request
-	AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AdminGetDeploymentVersion request
 	AdminGetDeploymentVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -909,17 +896,8 @@ type ClientInterface interface {
 	// UserListEntitlements request
 	UserListEntitlements(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UserListEntitlementResources request
-	UserListEntitlementResources(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// UserListEntitlementTargets request
 	UserListEntitlementTargets(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserGetRequestAccessGroupGrant request
-	UserGetRequestAccessGroupGrant(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserListRequestAccessGroupGrants request
-	UserListRequestAccessGroupGrants(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserRequestPreflight request with any body
 	UserRequestPreflightWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -934,20 +912,8 @@ type ClientInterface interface {
 
 	UserPostRequests(ctx context.Context, body UserPostRequestsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// UserListRequestsPast request
-	UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserListRequestsUpcoming request
-	UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// UserGetRequest request
 	UserGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserListRequestAccessGroups request
-	UserListRequestAccessGroups(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UserGetRequestAccessGroup request
-	UserGetRequestAccessGroup(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserReviewRequest request with any body
 	UserReviewRequestWithBody(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -956,6 +922,9 @@ type ClientInterface interface {
 
 	// UserRevokeRequest request
 	UserRevokeRequest(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UserListReviews request
+	UserListReviews(ctx context.Context, params *UserListReviewsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UserGetMe request
 	UserGetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1000,6 +969,18 @@ func (c *Client) AdminCreateAccessRule(ctx context.Context, body AdminCreateAcce
 	return c.Client.Do(req)
 }
 
+func (c *Client) AdminDeleteAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAdminDeleteAccessRuleRequest(c.Server, ruleId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) AdminGetAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminGetAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
@@ -1026,18 +1007,6 @@ func (c *Client) AdminUpdateAccessRuleWithBody(ctx context.Context, ruleId strin
 
 func (c *Client) AdminUpdateAccessRule(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewAdminUpdateAccessRuleRequest(c.Server, ruleId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) AdminArchiveAccessRule(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewAdminArchiveAccessRuleRequest(c.Server, ruleId)
 	if err != nil {
 		return nil, err
 	}
@@ -1432,44 +1401,8 @@ func (c *Client) UserListEntitlements(ctx context.Context, reqEditors ...Request
 	return c.Client.Do(req)
 }
 
-func (c *Client) UserListEntitlementResources(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListEntitlementResourcesRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) UserListEntitlementTargets(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserListEntitlementTargetsRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserGetRequestAccessGroupGrant(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserGetRequestAccessGroupGrantRequest(c.Server, gid, grantid)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserListRequestAccessGroupGrants(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListRequestAccessGroupGrantsRequest(c.Server, groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -1540,56 +1473,8 @@ func (c *Client) UserPostRequests(ctx context.Context, body UserPostRequestsJSON
 	return c.Client.Do(req)
 }
 
-func (c *Client) UserListRequestsPast(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListRequestsPastRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserListRequestsUpcoming(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListRequestsUpcomingRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) UserGetRequest(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserGetRequestRequest(c.Server, requestId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserListRequestAccessGroups(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserListRequestAccessGroupsRequest(c.Server, requestId)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UserGetRequestAccessGroup(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUserGetRequestAccessGroupRequest(c.Server, requestId, groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -1626,6 +1511,18 @@ func (c *Client) UserReviewRequest(ctx context.Context, requestId string, body U
 
 func (c *Client) UserRevokeRequest(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUserRevokeRequestRequest(c.Server, requestid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UserListReviews(ctx context.Context, params *UserListReviewsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUserListReviewsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1680,22 +1577,6 @@ func NewAdminListAccessRulesRequest(server string, params *AdminListAccessRulesP
 	}
 
 	queryValues := queryURL.Query()
-
-	if params.Status != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
 
 	if params.NextToken != nil {
 
@@ -1759,6 +1640,40 @@ func NewAdminCreateAccessRuleRequestWithBody(server string, contentType string, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewAdminDeleteAccessRuleRequest generates requests for AdminDeleteAccessRule
+func NewAdminDeleteAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -1840,40 +1755,6 @@ func NewAdminUpdateAccessRuleRequestWithBody(server string, ruleId string, conte
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewAdminArchiveAccessRuleRequest generates requests for AdminArchiveAccessRule
-func NewAdminArchiveAccessRuleRequest(server string, ruleId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "ruleId", runtime.ParamLocationPath, ruleId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/admin/access-rules/%s/archive", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -2841,97 +2722,6 @@ func NewUserListEntitlementsRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewUserListEntitlementResourcesRequest generates requests for UserListEntitlementResources
-func NewUserListEntitlementResourcesRequest(server string, params *UserListEntitlementResourcesParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/entitlements/resources")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, params.Kind); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "publisher", runtime.ParamLocationQuery, params.Publisher); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, params.Name); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "version", runtime.ParamLocationQuery, params.Version); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "resourceType", runtime.ParamLocationQuery, params.ResourceType); err != nil {
-		return nil, err
-	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-		return nil, err
-	} else {
-		for k, v := range parsed {
-			for _, v2 := range v {
-				queryValues.Add(k, v2)
-			}
-		}
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewUserListEntitlementTargetsRequest generates requests for UserListEntitlementTargets
 func NewUserListEntitlementTargetsRequest(server string, params *UserListEntitlementTargetsParams) (*http.Request, error) {
 	var err error
@@ -2969,82 +2759,23 @@ func NewUserListEntitlementTargetsRequest(server string, params *UserListEntitle
 
 	}
 
+	if params.Kind != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kind", runtime.ParamLocationQuery, *params.Kind); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
 	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserGetRequestAccessGroupGrantRequest generates requests for UserGetRequestAccessGroupGrant
-func NewUserGetRequestAccessGroupGrantRequest(server string, gid string, grantid string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "gid", runtime.ParamLocationPath, gid)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "grantid", runtime.ParamLocationPath, grantid)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/groups/%s/grants%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserListRequestAccessGroupGrantsRequest generates requests for UserListRequestAccessGroupGrants
-func NewUserListRequestAccessGroupGrantsRequest(server string, groupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/groups/%s/grants", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
@@ -3115,41 +2846,25 @@ func NewUserListRequestsRequest(server string, params *UserListRequestsParams) (
 
 	queryValues := queryURL.Query()
 
-	if params.Status != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	if params.Reviewer != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "reviewer", runtime.ParamLocationQuery, *params.Reviewer); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
 	if params.NextToken != nil {
 
 		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.Filter != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "filter", runtime.ParamLocationQuery, *params.Filter); err != nil {
 			return nil, err
 		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 			return nil, err
@@ -3213,100 +2928,6 @@ func NewUserPostRequestsRequestWithBody(server string, contentType string, body 
 	return req, nil
 }
 
-// NewUserListRequestsPastRequest generates requests for UserListRequestsPast
-func NewUserListRequestsPastRequest(server string, params *UserListRequestsPastParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/past")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if params.NextToken != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserListRequestsUpcomingRequest generates requests for UserListRequestsUpcoming
-func NewUserListRequestsUpcomingRequest(server string, params *UserListRequestsUpcomingParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/upcoming")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	queryValues := queryURL.Query()
-
-	if params.NextToken != nil {
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-	}
-
-	queryURL.RawQuery = queryValues.Encode()
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewUserGetRequestRequest generates requests for UserGetRequest
 func NewUserGetRequestRequest(server string, requestId string) (*http.Request, error) {
 	var err error
@@ -3324,81 +2945,6 @@ func NewUserGetRequestRequest(server string, requestId string) (*http.Request, e
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/requests/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserListRequestAccessGroupsRequest generates requests for UserListRequestAccessGroups
-func NewUserListRequestAccessGroupsRequest(server string, requestId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/%s/groups", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUserGetRequestAccessGroupRequest generates requests for UserGetRequestAccessGroup
-func NewUserGetRequestAccessGroupRequest(server string, requestId string, groupId string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "requestId", runtime.ParamLocationPath, requestId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "groupId", runtime.ParamLocationPath, groupId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/requests/%s/groups/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -3490,6 +3036,69 @@ func NewUserRevokeRequestRequest(server string, requestid string) (*http.Request
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUserListReviewsRequest generates requests for UserListReviews
+func NewUserListReviewsRequest(server string, params *UserListReviewsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/reviews")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := queryURL.Query()
+
+	if params.Status != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	if params.NextToken != nil {
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "nextToken", runtime.ParamLocationQuery, *params.NextToken); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3609,6 +3218,9 @@ type ClientWithResponsesInterface interface {
 
 	AdminCreateAccessRuleWithResponse(ctx context.Context, body AdminCreateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminCreateAccessRuleResponse, error)
 
+	// AdminDeleteAccessRule request
+	AdminDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminDeleteAccessRuleResponse, error)
+
 	// AdminGetAccessRule request
 	AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error)
 
@@ -3616,9 +3228,6 @@ type ClientWithResponsesInterface interface {
 	AdminUpdateAccessRuleWithBodyWithResponse(ctx context.Context, ruleId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
 
 	AdminUpdateAccessRuleWithResponse(ctx context.Context, ruleId string, body AdminUpdateAccessRuleJSONRequestBody, reqEditors ...RequestEditorFn) (*AdminUpdateAccessRuleResponse, error)
-
-	// AdminArchiveAccessRule request
-	AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error)
 
 	// AdminGetDeploymentVersion request
 	AdminGetDeploymentVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AdminGetDeploymentVersionResponse, error)
@@ -3709,17 +3318,8 @@ type ClientWithResponsesInterface interface {
 	// UserListEntitlements request
 	UserListEntitlementsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserListEntitlementsResponse, error)
 
-	// UserListEntitlementResources request
-	UserListEntitlementResourcesWithResponse(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*UserListEntitlementResourcesResponse, error)
-
 	// UserListEntitlementTargets request
 	UserListEntitlementTargetsWithResponse(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*UserListEntitlementTargetsResponse, error)
-
-	// UserGetRequestAccessGroupGrant request
-	UserGetRequestAccessGroupGrantWithResponse(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupGrantResponse, error)
-
-	// UserListRequestAccessGroupGrants request
-	UserListRequestAccessGroupGrantsWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupGrantsResponse, error)
 
 	// UserRequestPreflight request with any body
 	UserRequestPreflightWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserRequestPreflightResponse, error)
@@ -3734,20 +3334,8 @@ type ClientWithResponsesInterface interface {
 
 	UserPostRequestsWithResponse(ctx context.Context, body UserPostRequestsJSONRequestBody, reqEditors ...RequestEditorFn) (*UserPostRequestsResponse, error)
 
-	// UserListRequestsPast request
-	UserListRequestsPastWithResponse(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*UserListRequestsPastResponse, error)
-
-	// UserListRequestsUpcoming request
-	UserListRequestsUpcomingWithResponse(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*UserListRequestsUpcomingResponse, error)
-
 	// UserGetRequest request
 	UserGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetRequestResponse, error)
-
-	// UserListRequestAccessGroups request
-	UserListRequestAccessGroupsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupsResponse, error)
-
-	// UserGetRequestAccessGroup request
-	UserGetRequestAccessGroupWithResponse(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupResponse, error)
 
 	// UserReviewRequest request with any body
 	UserReviewRequestWithBodyWithResponse(ctx context.Context, requestId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UserReviewRequestResponse, error)
@@ -3756,6 +3344,9 @@ type ClientWithResponsesInterface interface {
 
 	// UserRevokeRequest request
 	UserRevokeRequestWithResponse(ctx context.Context, requestid string, reqEditors ...RequestEditorFn) (*UserRevokeRequestResponse, error)
+
+	// UserListReviews request
+	UserListReviewsWithResponse(ctx context.Context, params *UserListReviewsParams, reqEditors ...RequestEditorFn) (*UserListReviewsResponse, error)
 
 	// UserGetMe request
 	UserGetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*UserGetMeResponse, error)
@@ -3826,6 +3417,36 @@ func (r AdminCreateAccessRuleResponse) StatusCode() int {
 	return 0
 }
 
+type AdminDeleteAccessRuleResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON401      *struct {
+		Error string `json:"error"`
+	}
+	JSON404 *struct {
+		Error string `json:"error"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r AdminDeleteAccessRuleResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AdminDeleteAccessRuleResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type AdminGetAccessRuleResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -3873,37 +3494,6 @@ func (r AdminUpdateAccessRuleResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r AdminUpdateAccessRuleResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type AdminArchiveAccessRuleResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AccessRule
-	JSON401      *struct {
-		Error string `json:"error"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r AdminArchiveAccessRuleResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r AdminArchiveAccessRuleResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4306,7 +3896,6 @@ type AdminListTargetGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next         *string       `json:"next,omitempty"`
 		TargetGroups []TargetGroup `json:"targetGroups"`
 	}
 	JSON401 *struct {
@@ -4617,8 +4206,7 @@ type UserListEntitlementsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *struct {
-		Next         *string       `json:"next,omitempty"`
-		TargetGroups []TargetGroup `json:"targetGroups"`
+		Entitlements []TargetKind `json:"entitlements"`
 	}
 	JSON500 *struct {
 		Error string `json:"error"`
@@ -4635,40 +4223,6 @@ func (r UserListEntitlementsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UserListEntitlementsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserListEntitlementResourcesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Next      *string    `json:"next,omitempty"`
-		Resources []Resource `json:"resources"`
-	}
-	JSON400 *struct {
-		Error string `json:"error"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListEntitlementResourcesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListEntitlementResourcesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4703,65 +4257,6 @@ func (r UserListEntitlementTargetsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UserListEntitlementTargetsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserGetRequestAccessGroupGrantResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *RequestAccessGroupGrant
-	JSON404      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserGetRequestAccessGroupGrantResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserGetRequestAccessGroupGrantResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserListRequestAccessGroupGrantsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Grants []RequestAccessGroupGrant `json:"grants"`
-		Next   *string                   `json:"next,omitempty"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListRequestAccessGroupGrantsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListRequestAccessGroupGrantsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4809,9 +4304,6 @@ type UserListRequestsResponse struct {
 		Next     *string   `json:"next"`
 		Requests []Request `json:"requests"`
 	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
 	JSON500 *struct {
 		Error string `json:"error"`
 	}
@@ -4836,6 +4328,7 @@ func (r UserListRequestsResponse) StatusCode() int {
 type UserPostRequestsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	JSON200      *Request
 	JSON404      *struct {
 		Error string `json:"error"`
 	}
@@ -4854,56 +4347,6 @@ func (r UserPostRequestsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UserPostRequestsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserListRequestsPastResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Next     *string   `json:"next"`
-		Requests []Request `json:"requests"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListRequestsPastResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListRequestsPastResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserListRequestsUpcomingResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Next     *string   `json:"next"`
-		Requests []Request `json:"requests"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListRequestsUpcomingResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListRequestsUpcomingResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4932,65 +4375,6 @@ func (r UserGetRequestResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UserGetRequestResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserListRequestAccessGroupsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *struct {
-		Groups []RequestAccessGroup `json:"groups"`
-		Next   *string              `json:"next,omitempty"`
-	}
-	JSON404 *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserListRequestAccessGroupsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserListRequestAccessGroupsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UserGetRequestAccessGroupResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *RequestAccessGroup
-	JSON404      *struct {
-		Error string `json:"error"`
-	}
-	JSON500 *struct {
-		Error string `json:"error"`
-	}
-}
-
-// Status returns HTTPResponse.Status
-func (r UserGetRequestAccessGroupResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UserGetRequestAccessGroupResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5046,6 +4430,34 @@ func (r UserRevokeRequestResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UserRevokeRequestResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UserListReviewsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		Next     *string   `json:"next"`
+		Requests []Request `json:"requests"`
+	}
+	JSON500 *struct {
+		Error string `json:"error"`
+	}
+}
+
+// Status returns HTTPResponse.Status
+func (r UserListReviewsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UserListReviewsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -5126,6 +4538,15 @@ func (c *ClientWithResponses) AdminCreateAccessRuleWithResponse(ctx context.Cont
 	return ParseAdminCreateAccessRuleResponse(rsp)
 }
 
+// AdminDeleteAccessRuleWithResponse request returning *AdminDeleteAccessRuleResponse
+func (c *ClientWithResponses) AdminDeleteAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminDeleteAccessRuleResponse, error) {
+	rsp, err := c.AdminDeleteAccessRule(ctx, ruleId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAdminDeleteAccessRuleResponse(rsp)
+}
+
 // AdminGetAccessRuleWithResponse request returning *AdminGetAccessRuleResponse
 func (c *ClientWithResponses) AdminGetAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminGetAccessRuleResponse, error) {
 	rsp, err := c.AdminGetAccessRule(ctx, ruleId, reqEditors...)
@@ -5150,15 +4571,6 @@ func (c *ClientWithResponses) AdminUpdateAccessRuleWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseAdminUpdateAccessRuleResponse(rsp)
-}
-
-// AdminArchiveAccessRuleWithResponse request returning *AdminArchiveAccessRuleResponse
-func (c *ClientWithResponses) AdminArchiveAccessRuleWithResponse(ctx context.Context, ruleId string, reqEditors ...RequestEditorFn) (*AdminArchiveAccessRuleResponse, error) {
-	rsp, err := c.AdminArchiveAccessRule(ctx, ruleId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseAdminArchiveAccessRuleResponse(rsp)
 }
 
 // AdminGetDeploymentVersionWithResponse request returning *AdminGetDeploymentVersionResponse
@@ -5442,15 +4854,6 @@ func (c *ClientWithResponses) UserListEntitlementsWithResponse(ctx context.Conte
 	return ParseUserListEntitlementsResponse(rsp)
 }
 
-// UserListEntitlementResourcesWithResponse request returning *UserListEntitlementResourcesResponse
-func (c *ClientWithResponses) UserListEntitlementResourcesWithResponse(ctx context.Context, params *UserListEntitlementResourcesParams, reqEditors ...RequestEditorFn) (*UserListEntitlementResourcesResponse, error) {
-	rsp, err := c.UserListEntitlementResources(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListEntitlementResourcesResponse(rsp)
-}
-
 // UserListEntitlementTargetsWithResponse request returning *UserListEntitlementTargetsResponse
 func (c *ClientWithResponses) UserListEntitlementTargetsWithResponse(ctx context.Context, params *UserListEntitlementTargetsParams, reqEditors ...RequestEditorFn) (*UserListEntitlementTargetsResponse, error) {
 	rsp, err := c.UserListEntitlementTargets(ctx, params, reqEditors...)
@@ -5458,24 +4861,6 @@ func (c *ClientWithResponses) UserListEntitlementTargetsWithResponse(ctx context
 		return nil, err
 	}
 	return ParseUserListEntitlementTargetsResponse(rsp)
-}
-
-// UserGetRequestAccessGroupGrantWithResponse request returning *UserGetRequestAccessGroupGrantResponse
-func (c *ClientWithResponses) UserGetRequestAccessGroupGrantWithResponse(ctx context.Context, gid string, grantid string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupGrantResponse, error) {
-	rsp, err := c.UserGetRequestAccessGroupGrant(ctx, gid, grantid, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserGetRequestAccessGroupGrantResponse(rsp)
-}
-
-// UserListRequestAccessGroupGrantsWithResponse request returning *UserListRequestAccessGroupGrantsResponse
-func (c *ClientWithResponses) UserListRequestAccessGroupGrantsWithResponse(ctx context.Context, groupId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupGrantsResponse, error) {
-	rsp, err := c.UserListRequestAccessGroupGrants(ctx, groupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListRequestAccessGroupGrantsResponse(rsp)
 }
 
 // UserRequestPreflightWithBodyWithResponse request with arbitrary body returning *UserRequestPreflightResponse
@@ -5521,24 +4906,6 @@ func (c *ClientWithResponses) UserPostRequestsWithResponse(ctx context.Context, 
 	return ParseUserPostRequestsResponse(rsp)
 }
 
-// UserListRequestsPastWithResponse request returning *UserListRequestsPastResponse
-func (c *ClientWithResponses) UserListRequestsPastWithResponse(ctx context.Context, params *UserListRequestsPastParams, reqEditors ...RequestEditorFn) (*UserListRequestsPastResponse, error) {
-	rsp, err := c.UserListRequestsPast(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListRequestsPastResponse(rsp)
-}
-
-// UserListRequestsUpcomingWithResponse request returning *UserListRequestsUpcomingResponse
-func (c *ClientWithResponses) UserListRequestsUpcomingWithResponse(ctx context.Context, params *UserListRequestsUpcomingParams, reqEditors ...RequestEditorFn) (*UserListRequestsUpcomingResponse, error) {
-	rsp, err := c.UserListRequestsUpcoming(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListRequestsUpcomingResponse(rsp)
-}
-
 // UserGetRequestWithResponse request returning *UserGetRequestResponse
 func (c *ClientWithResponses) UserGetRequestWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserGetRequestResponse, error) {
 	rsp, err := c.UserGetRequest(ctx, requestId, reqEditors...)
@@ -5546,24 +4913,6 @@ func (c *ClientWithResponses) UserGetRequestWithResponse(ctx context.Context, re
 		return nil, err
 	}
 	return ParseUserGetRequestResponse(rsp)
-}
-
-// UserListRequestAccessGroupsWithResponse request returning *UserListRequestAccessGroupsResponse
-func (c *ClientWithResponses) UserListRequestAccessGroupsWithResponse(ctx context.Context, requestId string, reqEditors ...RequestEditorFn) (*UserListRequestAccessGroupsResponse, error) {
-	rsp, err := c.UserListRequestAccessGroups(ctx, requestId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserListRequestAccessGroupsResponse(rsp)
-}
-
-// UserGetRequestAccessGroupWithResponse request returning *UserGetRequestAccessGroupResponse
-func (c *ClientWithResponses) UserGetRequestAccessGroupWithResponse(ctx context.Context, requestId string, groupId string, reqEditors ...RequestEditorFn) (*UserGetRequestAccessGroupResponse, error) {
-	rsp, err := c.UserGetRequestAccessGroup(ctx, requestId, groupId, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUserGetRequestAccessGroupResponse(rsp)
 }
 
 // UserReviewRequestWithBodyWithResponse request with arbitrary body returning *UserReviewRequestResponse
@@ -5590,6 +4939,15 @@ func (c *ClientWithResponses) UserRevokeRequestWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseUserRevokeRequestResponse(rsp)
+}
+
+// UserListReviewsWithResponse request returning *UserListReviewsResponse
+func (c *ClientWithResponses) UserListReviewsWithResponse(ctx context.Context, params *UserListReviewsParams, reqEditors ...RequestEditorFn) (*UserListReviewsResponse, error) {
+	rsp, err := c.UserListReviews(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUserListReviewsResponse(rsp)
 }
 
 // UserGetMeWithResponse request returning *UserGetMeResponse
@@ -5710,6 +5068,52 @@ func ParseAdminCreateAccessRuleResponse(rsp *http.Response) (*AdminCreateAccessR
 	return response, nil
 }
 
+// ParseAdminDeleteAccessRuleResponse parses an HTTP response from a AdminDeleteAccessRuleWithResponse call
+func ParseAdminDeleteAccessRuleResponse(rsp *http.Response) (*AdminDeleteAccessRuleResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AdminDeleteAccessRuleResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseAdminGetAccessRuleResponse parses an HTTP response from a AdminGetAccessRuleWithResponse call
 func ParseAdminGetAccessRuleResponse(rsp *http.Response) (*AdminGetAccessRuleResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -5783,59 +5187,6 @@ func ParseAdminUpdateAccessRuleResponse(rsp *http.Response) (*AdminUpdateAccessR
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseAdminArchiveAccessRuleResponse parses an HTTP response from a AdminArchiveAccessRuleWithResponse call
-func ParseAdminArchiveAccessRuleResponse(rsp *http.Response) (*AdminArchiveAccessRuleResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &AdminArchiveAccessRuleResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AccessRule
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
 
 	}
 
@@ -6432,7 +5783,6 @@ func ParseAdminListTargetGroupsResponse(rsp *http.Response) (*AdminListTargetGro
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next         *string       `json:"next,omitempty"`
 			TargetGroups []TargetGroup `json:"targetGroups"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -6939,69 +6289,12 @@ func ParseUserListEntitlementsResponse(rsp *http.Response) (*UserListEntitlement
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest struct {
-			Next         *string       `json:"next,omitempty"`
-			TargetGroups []TargetGroup `json:"targetGroups"`
+			Entitlements []TargetKind `json:"entitlements"`
 		}
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserListEntitlementResourcesResponse parses an HTTP response from a UserListEntitlementResourcesWithResponse call
-func ParseUserListEntitlementResourcesResponse(rsp *http.Response) (*UserListEntitlementResourcesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListEntitlementResourcesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Next      *string    `json:"next,omitempty"`
-			Resources []Resource `json:"resources"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
@@ -7049,97 +6342,6 @@ func ParseUserListEntitlementTargetsResponse(rsp *http.Response) (*UserListEntit
 			return nil, err
 		}
 		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserGetRequestAccessGroupGrantResponse parses an HTTP response from a UserGetRequestAccessGroupGrantWithResponse call
-func ParseUserGetRequestAccessGroupGrantResponse(rsp *http.Response) (*UserGetRequestAccessGroupGrantResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserGetRequestAccessGroupGrantResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest RequestAccessGroupGrant
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserListRequestAccessGroupGrantsResponse parses an HTTP response from a UserListRequestAccessGroupGrantsWithResponse call
-func ParseUserListRequestAccessGroupGrantsResponse(rsp *http.Response) (*UserListRequestAccessGroupGrantsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListRequestAccessGroupGrantsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Grants []RequestAccessGroupGrant `json:"grants"`
-			Next   *string                   `json:"next,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
@@ -7250,15 +6452,6 @@ func ParseUserListRequestsResponse(rsp *http.Response) (*UserListRequestsRespons
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
 			Error string `json:"error"`
@@ -7287,6 +6480,13 @@ func ParseUserPostRequestsResponse(rsp *http.Response) (*UserPostRequestsRespons
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Request
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
 		var dest struct {
 			Error string `json:"error"`
@@ -7304,64 +6504,6 @@ func ParseUserPostRequestsResponse(rsp *http.Response) (*UserPostRequestsRespons
 			return nil, err
 		}
 		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserListRequestsPastResponse parses an HTTP response from a UserListRequestsPastWithResponse call
-func ParseUserListRequestsPastResponse(rsp *http.Response) (*UserListRequestsPastResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListRequestsPastResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Next     *string   `json:"next"`
-			Requests []Request `json:"requests"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserListRequestsUpcomingResponse parses an HTTP response from a UserListRequestsUpcomingWithResponse call
-func ParseUserListRequestsUpcomingResponse(rsp *http.Response) (*UserListRequestsUpcomingResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListRequestsUpcomingResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Next     *string   `json:"next"`
-			Requests []Request `json:"requests"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
 
 	}
 
@@ -7384,97 +6526,6 @@ func ParseUserGetRequestResponse(rsp *http.Response) (*UserGetRequestResponse, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Preflight
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserListRequestAccessGroupsResponse parses an HTTP response from a UserListRequestAccessGroupsWithResponse call
-func ParseUserListRequestAccessGroupsResponse(rsp *http.Response) (*UserListRequestAccessGroupsResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserListRequestAccessGroupsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			Groups []RequestAccessGroup `json:"groups"`
-			Next   *string              `json:"next,omitempty"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUserGetRequestAccessGroupResponse parses an HTTP response from a UserGetRequestAccessGroupWithResponse call
-func ParseUserGetRequestAccessGroupResponse(rsp *http.Response) (*UserGetRequestAccessGroupResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UserGetRequestAccessGroupResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest RequestAccessGroup
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7578,6 +6629,44 @@ func ParseUserRevokeRequestResponse(rsp *http.Response) (*UserRevokeRequestRespo
 	return response, nil
 }
 
+// ParseUserListReviewsResponse parses an HTTP response from a UserListReviewsWithResponse call
+func ParseUserListReviewsResponse(rsp *http.Response) (*UserListReviewsResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UserListReviewsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Next     *string   `json:"next"`
+			Requests []Request `json:"requests"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseUserGetMeResponse parses an HTTP response from a UserGetMeWithResponse call
 func ParseUserGetMeResponse(rsp *http.Response) (*UserGetMeResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -7642,15 +6731,15 @@ type ServerInterface interface {
 	// Create Access Rule
 	// (POST /api/v1/admin/access-rules)
 	AdminCreateAccessRule(w http.ResponseWriter, r *http.Request)
+	// Delete Access Rule
+	// (DELETE /api/v1/admin/access-rules/{ruleId})
+	AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Get Access Rule
 	// (GET /api/v1/admin/access-rules/{ruleId})
 	AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Update Access Rule
 	// (PUT /api/v1/admin/access-rules/{ruleId})
 	AdminUpdateAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
-	// Archive Access Rule
-	// (POST /api/v1/admin/access-rules/{ruleId}/archive)
-	AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request, ruleId string)
 	// Get deployment version details
 	// (GET /api/v1/admin/deployment/version)
 	AdminGetDeploymentVersion(w http.ResponseWriter, r *http.Request)
@@ -7727,17 +6816,8 @@ type ServerInterface interface {
 	// (GET /api/v1/entitlements)
 	UserListEntitlements(w http.ResponseWriter, r *http.Request)
 	// List Entitlement Resources
-	// (GET /api/v1/entitlements/resources)
-	UserListEntitlementResources(w http.ResponseWriter, r *http.Request, params UserListEntitlementResourcesParams)
-	// List Entitlement Resources
 	// (GET /api/v1/entitlements/targets)
 	UserListEntitlementTargets(w http.ResponseWriter, r *http.Request, params UserListEntitlementTargetsParams)
-	// Get Request Access Group Grant
-	// (GET /api/v1/groups/{gid}/grants{grantid})
-	UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request, gid string, grantid string)
-	// List Request Access Group Grants
-	// (GET /api/v1/groups/{groupId}/grants)
-	UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request, groupId string)
 	// Submit Preflight
 	// (POST /api/v1/preflight)
 	UserRequestPreflight(w http.ResponseWriter, r *http.Request)
@@ -7747,27 +6827,18 @@ type ServerInterface interface {
 
 	// (POST /api/v1/requests)
 	UserPostRequests(w http.ResponseWriter, r *http.Request)
-	// Your GET endpoint
-	// (GET /api/v1/requests/past)
-	UserListRequestsPast(w http.ResponseWriter, r *http.Request, params UserListRequestsPastParams)
-	// Your GET endpoint
-	// (GET /api/v1/requests/upcoming)
-	UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request, params UserListRequestsUpcomingParams)
 	// Get Request
 	// (GET /api/v1/requests/{requestId})
 	UserGetRequest(w http.ResponseWriter, r *http.Request, requestId string)
-	// List Request Access Groups
-	// (GET /api/v1/requests/{requestId}/groups)
-	UserListRequestAccessGroups(w http.ResponseWriter, r *http.Request, requestId string)
-	// Get Request Access Group
-	// (GET /api/v1/requests/{requestId}/groups/{groupId})
-	UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request, requestId string, groupId string)
 	// Review a request
 	// (POST /api/v1/requests/{requestId}/review)
 	UserReviewRequest(w http.ResponseWriter, r *http.Request, requestId string)
 	// Revoke an active request
 	// (POST /api/v1/requests/{requestid}/revoke)
 	UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestid string)
+	// List Reviews
+	// (GET /api/v1/reviews)
+	UserListReviews(w http.ResponseWriter, r *http.Request, params UserListReviewsParams)
 	// Get details for the current user
 	// (GET /api/v1/users/me)
 	UserGetMe(w http.ResponseWriter, r *http.Request)
@@ -7793,17 +6864,6 @@ func (siw *ServerInterfaceWrapper) AdminListAccessRules(w http.ResponseWriter, r
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params AdminListAccessRulesParams
-
-	// ------------- Optional query parameter "status" -------------
-	if paramValue := r.URL.Query().Get("status"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "status", r.URL.Query(), &params.Status)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
-		return
-	}
 
 	// ------------- Optional query parameter "nextToken" -------------
 	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
@@ -7833,6 +6893,32 @@ func (siw *ServerInterfaceWrapper) AdminCreateAccessRule(w http.ResponseWriter, 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminCreateAccessRule(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// AdminDeleteAccessRule operation middleware
+func (siw *ServerInterfaceWrapper) AdminDeleteAccessRule(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "ruleId" -------------
+	var ruleId string
+
+	err = runtime.BindStyledParameter("simple", false, "ruleId", chi.URLParam(r, "ruleId"), &ruleId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminDeleteAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -7885,32 +6971,6 @@ func (siw *ServerInterfaceWrapper) AdminUpdateAccessRule(w http.ResponseWriter, 
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AdminUpdateAccessRule(w, r, ruleId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// AdminArchiveAccessRule operation middleware
-func (siw *ServerInterfaceWrapper) AdminArchiveAccessRule(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "ruleId" -------------
-	var ruleId string
-
-	err = runtime.BindStyledParameter("simple", false, "ruleId", chi.URLParam(r, "ruleId"), &ruleId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "ruleId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AdminArchiveAccessRule(w, r, ruleId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8517,96 +7577,6 @@ func (siw *ServerInterfaceWrapper) UserListEntitlements(w http.ResponseWriter, r
 	handler(w, r.WithContext(ctx))
 }
 
-// UserListEntitlementResources operation middleware
-func (siw *ServerInterfaceWrapper) UserListEntitlementResources(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UserListEntitlementResourcesParams
-
-	// ------------- Required query parameter "kind" -------------
-	if paramValue := r.URL.Query().Get("kind"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "kind", r.URL.Query(), &params.Kind)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "publisher" -------------
-	if paramValue := r.URL.Query().Get("publisher"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "publisher"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "publisher", r.URL.Query(), &params.Publisher)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "publisher", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "name" -------------
-	if paramValue := r.URL.Query().Get("name"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "name"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "name", r.URL.Query(), &params.Name)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "name", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "version" -------------
-	if paramValue := r.URL.Query().Get("version"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "version"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "version", r.URL.Query(), &params.Version)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "version", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "resourceType" -------------
-	if paramValue := r.URL.Query().Get("resourceType"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "resourceType"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "resourceType", r.URL.Query(), &params.ResourceType)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resourceType", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListEntitlementResources(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
 // UserListEntitlementTargets operation middleware
 func (siw *ServerInterfaceWrapper) UserListEntitlementTargets(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -8627,69 +7597,19 @@ func (siw *ServerInterfaceWrapper) UserListEntitlementTargets(w http.ResponseWri
 		return
 	}
 
+	// ------------- Optional query parameter "kind" -------------
+	if paramValue := r.URL.Query().Get("kind"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "kind", r.URL.Query(), &params.Kind)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		return
+	}
+
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserListEntitlementTargets(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserGetRequestAccessGroupGrant operation middleware
-func (siw *ServerInterfaceWrapper) UserGetRequestAccessGroupGrant(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "gid" -------------
-	var gid string
-
-	err = runtime.BindStyledParameter("simple", false, "gid", chi.URLParam(r, "gid"), &gid)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "gid", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "grantid" -------------
-	var grantid string
-
-	err = runtime.BindStyledParameter("simple", false, "grantid", chi.URLParam(r, "grantid"), &grantid)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "grantid", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserGetRequestAccessGroupGrant(w, r, gid, grantid)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserListRequestAccessGroupGrants operation middleware
-func (siw *ServerInterfaceWrapper) UserListRequestAccessGroupGrants(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "groupId" -------------
-	var groupId string
-
-	err = runtime.BindStyledParameter("simple", false, "groupId", chi.URLParam(r, "groupId"), &groupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListRequestAccessGroupGrants(w, r, groupId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8723,28 +7643,6 @@ func (siw *ServerInterfaceWrapper) UserListRequests(w http.ResponseWriter, r *ht
 	// Parameter object where we will unmarshal all parameters from the context
 	var params UserListRequestsParams
 
-	// ------------- Optional query parameter "status" -------------
-	if paramValue := r.URL.Query().Get("status"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "status", r.URL.Query(), &params.Status)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "reviewer" -------------
-	if paramValue := r.URL.Query().Get("reviewer"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "reviewer", r.URL.Query(), &params.Reviewer)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "reviewer", Err: err})
-		return
-	}
-
 	// ------------- Optional query parameter "nextToken" -------------
 	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
 
@@ -8753,6 +7651,17 @@ func (siw *ServerInterfaceWrapper) UserListRequests(w http.ResponseWriter, r *ht
 	err = runtime.BindQueryParameter("form", true, false, "nextToken", r.URL.Query(), &params.NextToken)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "nextToken", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "filter" -------------
+	if paramValue := r.URL.Query().Get("filter"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "filter", r.URL.Query(), &params.Filter)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "filter", Err: err})
 		return
 	}
 
@@ -8782,68 +7691,6 @@ func (siw *ServerInterfaceWrapper) UserPostRequests(w http.ResponseWriter, r *ht
 	handler(w, r.WithContext(ctx))
 }
 
-// UserListRequestsPast operation middleware
-func (siw *ServerInterfaceWrapper) UserListRequestsPast(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UserListRequestsPastParams
-
-	// ------------- Optional query parameter "nextToken" -------------
-	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "nextToken", r.URL.Query(), &params.NextToken)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "nextToken", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListRequestsPast(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserListRequestsUpcoming operation middleware
-func (siw *ServerInterfaceWrapper) UserListRequestsUpcoming(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UserListRequestsUpcomingParams
-
-	// ------------- Optional query parameter "nextToken" -------------
-	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
-
-	}
-
-	err = runtime.BindQueryParameter("form", true, false, "nextToken", r.URL.Query(), &params.NextToken)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "nextToken", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListRequestsUpcoming(w, r, params)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
 // UserGetRequest operation middleware
 func (siw *ServerInterfaceWrapper) UserGetRequest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -8861,67 +7708,6 @@ func (siw *ServerInterfaceWrapper) UserGetRequest(w http.ResponseWriter, r *http
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserGetRequest(w, r, requestId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserListRequestAccessGroups operation middleware
-func (siw *ServerInterfaceWrapper) UserListRequestAccessGroups(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "requestId" -------------
-	var requestId string
-
-	err = runtime.BindStyledParameter("simple", false, "requestId", chi.URLParam(r, "requestId"), &requestId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "requestId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserListRequestAccessGroups(w, r, requestId)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// UserGetRequestAccessGroup operation middleware
-func (siw *ServerInterfaceWrapper) UserGetRequestAccessGroup(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "requestId" -------------
-	var requestId string
-
-	err = runtime.BindStyledParameter("simple", false, "requestId", chi.URLParam(r, "requestId"), &requestId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "requestId", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "groupId" -------------
-	var groupId string
-
-	err = runtime.BindStyledParameter("simple", false, "groupId", chi.URLParam(r, "groupId"), &groupId)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "groupId", Err: err})
-		return
-	}
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserGetRequestAccessGroup(w, r, requestId, groupId)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -8974,6 +7760,48 @@ func (siw *ServerInterfaceWrapper) UserRevokeRequest(w http.ResponseWriter, r *h
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserRevokeRequest(w, r, requestid)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UserListReviews operation middleware
+func (siw *ServerInterfaceWrapper) UserListReviews(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UserListReviewsParams
+
+	// ------------- Optional query parameter "status" -------------
+	if paramValue := r.URL.Query().Get("status"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "status", r.URL.Query(), &params.Status)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "nextToken" -------------
+	if paramValue := r.URL.Query().Get("nextToken"); paramValue != "" {
+
+	}
+
+	err = runtime.BindQueryParameter("form", true, false, "nextToken", r.URL.Query(), &params.NextToken)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "nextToken", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UserListReviews(w, r, params)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -9144,13 +7972,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/admin/access-rules", wrapper.AdminCreateAccessRule)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminDeleteAccessRule)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminGetAccessRule)
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}", wrapper.AdminUpdateAccessRule)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/api/v1/admin/access-rules/{ruleId}/archive", wrapper.AdminArchiveAccessRule)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/admin/deployment/version", wrapper.AdminGetDeploymentVersion)
@@ -9228,16 +8056,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/api/v1/entitlements", wrapper.UserListEntitlements)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/entitlements/resources", wrapper.UserListEntitlementResources)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/entitlements/targets", wrapper.UserListEntitlementTargets)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/groups/{gid}/grants{grantid}", wrapper.UserGetRequestAccessGroupGrant)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/groups/{groupId}/grants", wrapper.UserListRequestAccessGroupGrants)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/preflight", wrapper.UserRequestPreflight)
@@ -9249,25 +8068,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/api/v1/requests", wrapper.UserPostRequests)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/requests/past", wrapper.UserListRequestsPast)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/requests/upcoming", wrapper.UserListRequestsUpcoming)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/requests/{requestId}", wrapper.UserGetRequest)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/requests/{requestId}/groups", wrapper.UserListRequestAccessGroups)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/api/v1/requests/{requestId}/groups/{groupId}", wrapper.UserGetRequestAccessGroup)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/requests/{requestId}/review", wrapper.UserReviewRequest)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/api/v1/requests/{requestid}/revoke", wrapper.UserRevokeRequest)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/api/v1/reviews", wrapper.UserListReviews)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/api/v1/users/me", wrapper.UserGetMe)
@@ -9282,119 +8092,119 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AAD//8ol2KgyqgAA",
+	"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",
+	"AwAA//8xgXlwQKMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -9,5 +9,4 @@ import type { TargetGroup } from './targetGroup';
 
 export type ListTargetGroupResponseResponse = {
   targetGroups: TargetGroup[];
-  next?: string;
 };

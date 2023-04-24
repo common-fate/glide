@@ -9,15 +9,14 @@ import (
 	registry_types "github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 
 	"github.com/benbjohnson/clock"
+	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
-	"github.com/common-fate/common-fate/pkg/cache"
 	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/gconfig"
 	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/identity"
 	"github.com/common-fate/common-fate/pkg/identity/identitysync"
-	"github.com/common-fate/common-fate/pkg/requests"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/accesssvc"
 	"github.com/common-fate/common-fate/pkg/service/cognitosvc"
@@ -60,7 +59,6 @@ type API struct {
 	IdentityProvider string
 	FrontendURL      string
 
-	Cache          CacheService
 	IdentitySyncer auth.IdentitySyncer
 	// Set this to nil if cognito is not configured as the IDP for the deployment
 	Cognito            CognitoService
@@ -100,11 +98,6 @@ type AccessRuleService interface {
 	// RequestArguments(ctx context.Context, accessRuleTarget rule.Target) (map[string]types.RequestArgument, error)
 }
 
-type CacheService interface {
-	RefreshCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
-	LoadCachedProviderArgOptions(ctx context.Context, providerId string, argId string) (bool, []cache.ProviderOption, []cache.ProviderArgGroupOption, error)
-}
-
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_internalidentity_service.go -package=mocks . InternalIdentityService
 
 type InternalIdentityService interface {
@@ -134,7 +127,7 @@ type Workflow interface {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_preflight_service.go -package=mocks . PreflightService
 type PreflightService interface {
-	ProcessPreflight(ctx context.Context, user identity.User, preflightRequest types.CreatePreflightRequest) (*requests.Preflight, error)
+	ProcessPreflight(ctx context.Context, user identity.User, preflightRequest types.CreatePreflightRequest) (*access.Preflight, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/mock_healthcheck_service.go -package=mocks . HealthcheckService

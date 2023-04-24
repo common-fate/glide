@@ -12,13 +12,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.11
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.5
-	github.com/aws/aws-sdk-go-v2/service/sfn v1.13.10
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.28.0
 	github.com/awslabs/aws-lambda-go-api-proxy v0.13.3
 	github.com/bitfield/script v0.20.2
 	github.com/common-fate/apikit v0.2.1-0.20220526131641-1d860b34f6ed
 	github.com/common-fate/cloudform v0.6.0
-	github.com/common-fate/iso8601 v1.0.2
 	github.com/deepmap/oapi-codegen v1.11.0
 	github.com/getkin/kin-openapi v0.107.0
 	github.com/getsentry/sentry-go v0.13.0
@@ -88,10 +86,10 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.2.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/tools v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
@@ -149,7 +147,7 @@ require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0
-	github.com/common-fate/ddb v0.15.1-0.20230418043217-cae275aec9aa
+	github.com/common-fate/ddb v0.15.1-0.20230424033643-2558c36a3a5e
 	github.com/common-fate/provider-registry-sdk-go v0.17.1
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/cors v1.2.1

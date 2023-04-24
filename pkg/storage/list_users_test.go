@@ -1,66 +1,39 @@
 package storage
 
 import (
-	"context"
 	"testing"
 
 	"github.com/common-fate/common-fate/pkg/identity"
+	"github.com/common-fate/common-fate/pkg/types"
+	"github.com/common-fate/ddb"
+	"github.com/common-fate/ddb/ddbtest"
 	"github.com/segmentio/ksuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestListUsers(t *testing.T) {
-	type testcase struct {
-		name string
-
-		insertBefore []identity.User
-		want         []identity.User
-		notWant      []identity.User
-		wantErr      error
+	ts := newTestingStorage(t)
+	err := ts.deleteAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	active := identity.User{
+		ID:     types.NewUserID(),
+		Status: types.IdpStatusACTIVE,
 	}
 
-	g := identity.User{
-		ID: ksuid.New().String(),
+	archived := identity.User{
+		ID:     ksuid.New().String(),
+		Status: types.IdpStatusARCHIVED,
 	}
 
-	testcases := []testcase{
+	ddbtest.PutFixtures(t, ts.db, []ddb.Keyer{&active, &archived})
+	tc := []ddbtest.QueryTestCase{
 		{
-			name:         "ok",
-			insertBefore: []identity.User{g},
-			want:         []identity.User{g},
-
-			notWant: []identity.User{},
+			Name:  "ok",
+			Query: &ListUsers{},
+			Want:  &ListUsers{Result: []identity.User{active, archived}},
 		},
 	}
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
-			ctx := context.Background()
-			s := newTestingStorage(t)
 
-			// insert any required fixture data
-			for _, r := range tc.insertBefore {
-				err := s.Put(ctx, &r)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			q := ListUsers{}
-			_, err := s.Query(ctx, &q)
-			if err != nil && tc.wantErr == nil {
-				t.Fatal(err)
-			}
-			got := q.Result
-
-			if tc.wantErr != nil {
-				assert.Equal(t, tc.wantErr, err)
-			}
-			for _, item := range tc.want {
-				assert.Contains(t, got, item)
-			}
-			for _, item := range tc.notWant {
-				assert.NotContains(t, got, item, "expected item to not be in results")
-			}
-		})
-	}
+	ddbtest.RunQueryTests(t, ts.db, tc)
 }

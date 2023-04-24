@@ -42,7 +42,7 @@ func TestCreateGroup(t *testing.T) {
 				CreatedAt:   clk.Now(),
 				UpdatedAt:   clk.Now(),
 				Source:      identity.INTERNAL,
-				Status:      types.ACTIVE,
+				Status:      types.IdpStatusACTIVE,
 			},
 		},
 		{
@@ -113,7 +113,7 @@ func TestUpdateGroup(t *testing.T) {
 				CreatedAt:   clk.Now(),
 				UpdatedAt:   clk.Now(),
 				Source:      identity.INTERNAL,
-				Status:      types.ACTIVE,
+				Status:      types.IdpStatusACTIVE,
 			},
 			withListUsers: storage.ListUsers{Result: []identity.User{
 				{ID: "a"}, {ID: "b"}, {ID: "c"},
@@ -127,7 +127,7 @@ func TestUpdateGroup(t *testing.T) {
 				CreatedAt:   clk.Now(),
 				UpdatedAt:   clk.Now(),
 				Source:      identity.INTERNAL,
-				Status:      types.ACTIVE,
+				Status:      types.IdpStatusACTIVE,
 			},
 		},
 		{
@@ -169,7 +169,7 @@ func TestUpdateGroup(t *testing.T) {
 				CreatedAt:   clk.Now(),
 				UpdatedAt:   clk.Now(),
 				Source:      identity.INTERNAL,
-				Status:      types.ACTIVE,
+				Status:      types.IdpStatusACTIVE,
 			},
 			withListUsers: storage.ListUsers{Result: []identity.User{
 				{ID: "a"}, {ID: "b"}, {ID: "c"},
@@ -183,7 +183,7 @@ func TestUpdateGroup(t *testing.T) {
 				CreatedAt:   clk.Now(),
 				UpdatedAt:   clk.Now(),
 				Source:      identity.INTERNAL,
-				Status:      types.ACTIVE,
+				Status:      types.IdpStatusACTIVE,
 			},
 		},
 	}

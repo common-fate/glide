@@ -52,7 +52,6 @@ func TestUpdateAccessRule(t *testing.T) {
 	mockRule := rule.AccessRule{
 		ID:          ruleID,
 		Approval:    rule.Approval(in.Approval),
-		Status:      rule.ACTIVE,
 		Description: in.Description,
 		Name:        in.Name,
 		Groups:      in.Groups,
@@ -104,7 +103,6 @@ func TestUpdateAccessRule(t *testing.T) {
 		Approval: rule.Approval{
 			Users: mockRuleUpdateBody.Approval.Users,
 		},
-		Status:      rule.ACTIVE,
 		Description: mockRuleUpdateBody.Description,
 		Name:        mockRuleUpdateBody.Name,
 		Groups:      mockRuleUpdateBody.Groups,

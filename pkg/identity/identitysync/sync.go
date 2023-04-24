@@ -274,7 +274,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		if existingGroup, ok := ddbGroupMap[idpGroup.ID]; ok { //update
 			existingGroup.Description = idpGroup.Description
 			existingGroup.Name = idpGroup.Name
-			existingGroup.Status = types.ACTIVE
+			existingGroup.Status = types.IdpStatusACTIVE
 			existingGroup.Source = idpType
 			ddbGroupMap[idpGroup.ID] = existingGroup
 		} else { // create
@@ -287,12 +287,12 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 	// archive deleted users
 	for k, u := range ddbUserMap {
 		if _, ok := idpUserMap[k]; !ok {
-			u.Status = types.ARCHIVED
+			u.Status = types.IdpStatusARCHIVED
 			// Remove all group associations from archived users
 			u.Groups = []string{}
 			ddbUserMap[k] = u
 		} else {
-			u.Status = types.ACTIVE
+			u.Status = types.IdpStatusACTIVE
 			ddbUserMap[k] = u
 		}
 	}
@@ -302,7 +302,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		if useIdpGroupsAsFilter {
 			if _, ok := idpGroupMap[g.ID]; !ok {
 
-				g.Status = types.ARCHIVED
+				g.Status = types.IdpStatusARCHIVED
 				g.Users = []string{}
 				ddbGroupMap[k] = g
 
@@ -313,7 +313,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		if _, ok := idpGroupMap[k]; !ok {
 			if g.Source != identity.INTERNAL {
 
-				g.Status = types.ARCHIVED
+				g.Status = types.IdpStatusARCHIVED
 				// Remove all user associations from archived groups
 				g.Users = []string{}
 				ddbGroupMap[k] = g
@@ -373,7 +373,7 @@ func processUsersAndGroups(idpType string, idpUsers []identity.IDPUser, idpGroup
 		internalUser.Groups = groupKeys
 		// if the user is not in any groups, archive them
 		if len(internalUser.Groups) == 0 && useIdpGroupsAsFilter {
-			internalUser.Status = types.ARCHIVED
+			internalUser.Status = types.IdpStatusARCHIVED
 		}
 		ddbUserMap[idpUser.Email] = internalUser
 	}

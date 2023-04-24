@@ -11,8 +11,7 @@ import (
 )
 
 type GetCachedTarget struct {
-	ID string
-
+	ID     string
 	Result *cache.Target `ddb:"result"`
 }
 
@@ -20,17 +19,16 @@ func (l *GetCachedTarget) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("PK = :pk and SK = :sk"),
 		Limit:                  aws.Int32(1),
-		IndexName:              &keys.IndexNames.GSI1,
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.EntitlementTarget.GSI1PK},
-			":sk": &types.AttributeValueMemberS{Value: keys.EntitlementTarget.GSI1SK(l.ID)},
+			":pk": &types.AttributeValueMemberS{Value: keys.EntitlementTarget.PK1},
+			":sk": &types.AttributeValueMemberS{Value: keys.EntitlementTarget.SK1(l.ID)},
 		},
 	}
 	return &qi, nil
 }
-func (q *GetCachedTarget) UnmarshalQueryOutput(out *dynamodb.QueryOutput) error {
+func (q *GetCachedTarget) UnmarshalQueryOutput(out *dynamodb.QueryOutput) (*ddb.UnmarshalResult, error) {
 	if len(out.Items) != 1 {
-		return ddb.ErrNoItems
+		return nil, ddb.ErrNoItems
 	}
-	return attributevalue.UnmarshalMap(out.Items[0], &q.Result)
+	return &ddb.UnmarshalResult{}, attributevalue.UnmarshalMap(out.Items[0], &q.Result)
 }

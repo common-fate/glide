@@ -12,7 +12,7 @@ import (
 // AccessRules define policies for requesting access to entitlements
 type AccessRule struct {
 	ID       string             `json:"id" dynamodbav:"id"`
-	Status   Status             `json:"status" dynamodbav:"status"`
+	Priority int                `json:"priority" dynamodbav:"priority"`
 	Metadata AccessRuleMetadata `json:"metadata" dynamodbav:"metadata"`
 
 	Name        string `json:"name" dynamodbav:"name"`
@@ -59,10 +59,6 @@ type Target struct {
 
 // // ised for admin apis, this contains the access rule target in a format for updating the access rule provider target
 func (a AccessRule) ToAPI() types.AccessRule {
-	status := types.AccessRuleStatusACTIVE
-	if a.Status == ARCHIVED {
-		status = types.AccessRuleStatusARCHIVED
-	}
 	approval := types.AccessRuleApproverConfig{
 		Groups: []string{},
 		Users:  []string{},
@@ -95,7 +91,6 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		},
 		Approval: approval,
 		Targets:  targets,
-		Status:   status,
 	}
 }
 
@@ -110,7 +105,7 @@ func (t Target) ToAPI() types.AccessRuleTarget {
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {
 	return ddb.Keys{
 		PK: keys.AccessRule.PK1,
-		SK: keys.AccessRule.SK1(r.ID),
+		SK: keys.AccessRule.SK1(r.ID, r.Priority),
 	}, nil
 
 }

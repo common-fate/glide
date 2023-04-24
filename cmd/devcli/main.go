@@ -9,7 +9,6 @@ import (
 	"github.com/common-fate/common-fate/cmd/devcli/commands/events"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/groups"
 	registry "github.com/common-fate/common-fate/cmd/devcli/commands/provider-registry"
-	requests "github.com/common-fate/common-fate/cmd/devcli/commands/requestsv2"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/slack"
 	"github.com/common-fate/common-fate/cmd/devcli/commands/targetgroup"
 
@@ -34,7 +33,7 @@ func main() {
 			&healthcheck.Command,
 			&registry.Command,
 			&targetgroup.Command,
-			&requests.SeedCommand,
+			// &requests.SeedCommand,
 		},
 	}
 

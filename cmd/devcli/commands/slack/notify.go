@@ -1,17 +1,8 @@
 package slack
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/common-fate/common-fate/pkg/deploy"
-	"github.com/common-fate/common-fate/pkg/gevent"
-	slacknotifier "github.com/common-fate/common-fate/pkg/notifiers/slack"
-	"github.com/common-fate/common-fate/pkg/storage"
-	"github.com/common-fate/ddb"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 var SlackCommand = cli.Command{
@@ -29,57 +20,57 @@ var requestMessageCommand = cli.Command{
 	},
 
 	Action: func(c *cli.Context) error {
-		ctx := c.Context
-		f := c.Path("file")
-		dc, err := deploy.LoadConfig(f)
-		if err != nil {
-			return err
-		}
-		currentConfig := dc.Deployment.Parameters.NotificationsConfiguration.Slack
-		if currentConfig == nil {
-			return fmt.Errorf("slack is not yet configured, configure it now by running 'gdeploy notifications slack configure'")
-		}
-		var slack slacknotifier.SlackNotifier
-		err = slack.Init(ctx, dc.Deployment.Parameters.NotificationsConfiguration)
-		if err != nil {
-			return err
-		}
-		stackOutput, err := dc.LoadOutput(ctx)
-		if err != nil {
-			return err
-		}
+		// ctx := c.Context
+		// f := c.Path("file")
+		// dc, err := deploy.LoadConfig(f)
+		// if err != nil {
+		// 	return err
+		// }
+		// currentConfig := dc.Deployment.Parameters.NotificationsConfiguration.Slack
+		// if currentConfig == nil {
+		// 	return fmt.Errorf("slack is not yet configured, configure it now by running 'gdeploy notifications slack configure'")
+		// }
+		// var slack slacknotifier.SlackNotifier
+		// err = slack.Init(ctx, dc.Deployment.Parameters.NotificationsConfiguration)
+		// if err != nil {
+		// 	return err
+		// }
+		// stackOutput, err := dc.LoadOutput(ctx)
+		// if err != nil {
+		// 	return err
+		// }
 
-		db, err := ddb.New(ctx, stackOutput.DynamoDBTable)
-		slack.DB = db
-		if err != nil {
-			return err
-		}
+		// db, err := ddb.New(ctx, stackOutput.DynamoDBTable)
+		// slack.DB = db
+		// if err != nil {
+		// 	return err
+		// }
 
-		id := c.String("request-id")
-		if id == "" {
-			return fmt.Errorf("request-id is required")
-		}
+		// id := c.String("request-id")
+		// if id == "" {
+		// 	return fmt.Errorf("request-id is required")
+		// }
 
-		q := storage.GetRequestV2{ID: id}
-		_, err = db.Query(ctx, &q)
-		if err != nil {
-			return err
-		}
+		// q := storage.GetRequestV2{ID: id}
+		// _, err = db.Query(ctx, &q)
+		// if err != nil {
+		// 	return err
+		// }
 
-		r := c.String("reviewer-id")
+		// r := c.String("reviewer-id")
 
-		requestEvent := gevent.RequestEventPayload{
-			// Request:    *q.Result,
-			ReviewerID: r,
-		}
-		m, err := json.Marshal(requestEvent)
-		if err != nil {
-			return err
-		}
-		return slack.HandleRequestEvent(ctx, zap.S(), events.CloudWatchEvent{
-			Detail:     json.RawMessage(m),
-			DetailType: gevent.RequestCreatedType,
-		})
-
+		// requestEvent := gevent.RequestEventPayload{
+		// 	// Request:    *q.Result,
+		// 	ReviewerID: r,
+		// }
+		// m, err := json.Marshal(requestEvent)
+		// if err != nil {
+		// 	return err
+		// }
+		// return slack.HandleRequestEvent(ctx, zap.S(), events.CloudWatchEvent{
+		// 	Detail:     json.RawMessage(m),
+		// 	DetailType: gevent.RequestCreatedType,
+		// })
+		return nil
 	},
 }
