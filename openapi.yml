@@ -943,6 +943,67 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Request"
+              examples:
+                ex_1:
+                  value:
+                    id: string
+                    purpose:
+                      reason: string
+                    accessGroups:
+                      - id: string
+                        requestId: string
+                        status: PENDING_APPROVAL
+                        time:
+                          durationSeconds: 0
+                          startTime: "14:15:22Z"
+                        overrideTiming:
+                          durationSeconds: 0
+                          startTime: "14:15:22Z"
+                        updatedAt: string
+                        createdAt: string
+                        requestedBy:
+                          id: string
+                          firstName: string
+                          lastName: string
+                          email: string
+                          picture: string
+                        targets:
+                          - id: string
+                            requestId: string
+                            accessGroupId: string
+                            targetGroupId: string
+                            targetGroupFrom:
+                              publisher: string
+                              name: string
+                              version: string
+                              kind: string
+                            targetGroupIcon: string
+                            fields:
+                              - id: string
+                                fieldTitle: string
+                                fieldDescription: string
+                                valueLabel: string
+                                valueDescription: string
+                                value: string
+                            status: PENDING_PROVISIONING
+                            requestedBy:
+                              id: string
+                              firstName: string
+                              lastName: string
+                              email: string
+                              picture: string
+                        approvalMethod: AUTOMATIC
+                        accessRule:
+                          timeConstraints:
+                            maxDurationSeconds: 60
+                    requestedBy:
+                      id: string
+                      firstName: string
+                      lastName: string
+                      email: string
+                      picture: string
+                    requestedAt: "14:15:22Z"
+                    status: CANCELLED
         "404":
           $ref: "#/components/responses/ErrorResponse"
         "500":
