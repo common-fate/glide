@@ -64,7 +64,7 @@ func (GrantRevoked) EventType() string {
 // encounters an unrecoverable error when activating
 // or deactivating a grant.
 type GrantFailed struct {
-	Grant access.Grant `json:"grant"`
+	Grant access.GroupTarget `json:"grant"`
 	// Reason contains details about why the grant failed.
 	Reason string `json:"reason"`
 }
