@@ -1,4 +1,4 @@
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Accordion,
   AccordionButton,
@@ -30,6 +30,13 @@ import {
   useDisclosure,
   Grid,
   GridItem,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTrigger,
 } from "@chakra-ui/react";
 import { formatDistance, intervalToDuration } from "date-fns";
 import { useState } from "react";
@@ -68,7 +75,7 @@ const Home = () => {
     request: {
       baseURL: "http://127.0.0.1:3100",
       headers: {
-        Prefer: "code=200, example=ex_12",
+        Prefer: "code=200, example=ex_1",
       },
     },
   });
@@ -245,10 +252,15 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
         }}
       >
         <Text color="neutrals.700">Review Required</Text>
-        <Text color="neutrals.500">
-          Duration&nbsp;
-          {durationString(group.time.durationSeconds)}
-        </Text>
+        {/* <AvatarGroup size="sm" max={2} ml={-2}>
+          {group.reviewers.map((reviewer) => (
+            <Avatar
+              key={reviewer.id}
+              name={reviewer.firstName + " " + reviewer.lastName}
+              src={reviewer.picture}
+            />
+          ))}
+        </AvatarGroup> */}
       </Box>
     );
   }
@@ -275,6 +287,65 @@ export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
   }
 
   return null;
+};
+export const ApproveRejectDuration = ({ group }: AccessGroupProps) => {
+  const isReviewer = true;
+  return (
+    <Flex>
+      <Box textAlign="left">
+        <Text textStyle="Body/ExtraSmall" lineHeight="8px" color="neutrals.800">
+          Duration 3hrs
+        </Text>
+        <Popover>
+          <PopoverTrigger>
+            <Button
+              size="sm"
+              textStyle="Body/ExtraSmall"
+              lineHeight="8px"
+              fontSize="12px"
+              color="neutrals.500"
+              variant="link"
+            >
+              Edit Duration
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <PopoverHeader fontWeight="semibold">Edit Duration</PopoverHeader>
+            <PopoverArrow />
+            <PopoverCloseButton />
+            <PopoverBody py={8}>
+              Duration 3hrs
+              <Button variant="outline">MAX 12hrs</Button>
+              <Button variant="outline" leftIcon={<EditIcon />} />
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
+        {durationString(group.time.durationSeconds)}
+      </Box>
+      {isReviewer && (
+        <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
+          <Button
+            size="sm"
+            onClick={() => {
+              console.log("approve");
+              // @TODO: add in admin approval API methods
+            }}
+          >
+            Approve
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              console.log("reject");
+              // @TODO: add in admin approval API methods
+            }}
+          >
+            Reject
+          </Button>
+        </ButtonGroup>
+      )}
+    </Flex>
+  );
 };
 
 export const AccessGroupItem = ({ group }: AccessGroupProps) => {
@@ -316,7 +387,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
             p={2}
             bg="neutrals.100"
             roundedTop="md"
-            borderBottomColor="neutrals.300"
+            borderColor="neutrals.300"
             borderWidth="1px"
             sx={{
               "&[aria-expanded='false']": {
@@ -326,32 +397,13 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
           >
             <AccordionIcon boxSize="6" mr={2} />
             <HeaderStatusCell group={group} />
-            {isReviewer && (
-              <ButtonGroup ml="auto" variant="brandSecondary" spacing={2}>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    console.log("approve");
-                    // @TODO: add in admin approval API methods
-                  }}
-                >
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    console.log("reject");
-                    // @TODO: add in admin approval API methods
-                  }}
-                >
-                  Reject
-                </Button>
-              </ButtonGroup>
-            )}
+
+            <ApproveRejectDuration group={group} />
           </AccordionButton>
 
           <AccordionPanel
             borderColor="neutrals.300"
+            borderTop="none"
             roundedBottom="md"
             borderWidth="1px"
             bg="white"
@@ -385,8 +437,8 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
                   <Button
                     variant="brandSecondary"
                     size="xs"
-                    top={4}
-                    right={4}
+                    top={2}
+                    right={2}
                     pos="absolute"
                     onClick={() => handleGrantClick(target)}
                   >
@@ -401,7 +453,7 @@ export const AccessGroupItem = ({ group }: AccessGroupProps) => {
       <Modal isOpen={grantModalState.isOpen} onClose={handleClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader> </ModalHeader>
+          <ModalHeader></ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Box>
