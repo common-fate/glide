@@ -6,7 +6,6 @@ import { AccessRuleTable } from "../../../components/tables/AccessRuleTable";
 import { useUserListEntitlementTargets } from "../../../utils/backend-client/default/default";
 
 const Index = () => {
-  useUserListEntitlementTargets();
   return (
     <AdminLayout>
       <Helmet>

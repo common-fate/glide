@@ -86,13 +86,13 @@ const Search = () => {
   React.useEffect(() => {
     if (!targets.data) return;
     const map: { [key: string]: Target } = {};
-    targets.data.targets.forEach((target) => {
-      const key =
-        target.targetGroupFrom.name +
-        " " +
-        target.fields.map((f) => f.value).join(" ");
-      map[key] = target;
-    });
+    // targets.data.entitlements.forEach((target) => {
+    //   const key =
+    //     target.name +
+    //     " " +
+    //     target.fields.map((f) => f.value).join(" ");
+    //   map[key] = target;
+    // });
     setTargetKeyMap(map);
   }, [targets.data]);
 
@@ -250,7 +250,7 @@ const Search = () => {
                         All resources
                       </Text>
                       <Flex color="neutrals.500">
-                        {targets.data?.targets.length}&nbsp;total
+                        {targets.data?.entitlements.length}&nbsp;total
                       </Flex>
                     </Center>
                     {[
@@ -280,7 +280,7 @@ const Search = () => {
                           mr={2}
                           as="button"
                         >
-                          <ProviderIcon shortType={key} />
+                          <ProviderIcon shortType={key as ShortTypes} />
                           {key}
                         </Center>
                       );
@@ -333,9 +333,7 @@ const Search = () => {
                               >
                                 <ProviderIcon
                                   mr={2}
-                                  shortType={
-                                    target.targetGroupFrom.name as ShortTypes
-                                  }
+                                  shortType={target.kind.icon as ShortTypes}
                                   // onClick={() => {
                                   //   console.log("click");
                                   //   if (checked.includes(key)) {
@@ -464,9 +462,7 @@ const Search = () => {
                               flexDir="row"
                             >
                               <ProviderIcon
-                                shortType={
-                                  target.targetGroupFrom.name as ShortTypes
-                                }
+                                shortType={target.kind.icon as ShortTypes}
                                 mr={2}
                               />
                               <FieldsCodeBlock fields={target.fields} />
