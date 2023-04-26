@@ -30,7 +30,7 @@ import { AccessRuleFormData, accessRuleFormDataToApi } from "./CreateForm";
 
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
-import { ProviderStep } from "./steps/Provider";
+import { TargetStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
@@ -50,19 +50,14 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
   // we use this to ensure that data for selected and then deselected providers is not included.
   const methods = useForm<AccessRuleFormData>({
     shouldUnregister: true,
+    defaultValues: {
+      targets: [],
+    },
   });
 
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const { mutate } = useAdminGetAccessRule(ruleId);
-  // const { data: targetGroup } = useAdminGetTargetGroup(
-  //   data.target.targetGroup.id ?? "",
-  //   {
-  //     swr: {
-  //       enabled: data.target.targetGroup !== undefined,
-  //     },
-  //   }
-  // );
 
   useEffect(() => {
     // We will only reset form data if it has changed on the backend
@@ -84,7 +79,6 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
         },
         targets: [],
         priority: 0,
-        // target: accessRuleTargetApiToTargetFormData(data, targetGroup),
       };
       methods.reset(f);
     }
@@ -171,7 +165,7 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
           <VStack w="100%" spacing={6}>
             <StepsProvider isEditMode={true}>
               <GeneralStep />
-              <ProviderStep />
+              <TargetStep />
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />

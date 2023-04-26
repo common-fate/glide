@@ -88,7 +88,9 @@ func (a *API) AdminCreateAccessRule(w http.ResponseWriter, r *http.Request) {
 func (a *API) AdminGetAccessRule(w http.ResponseWriter, r *http.Request, ruleId string) {
 	ctx := r.Context()
 
-	q := storage.GetAccessRule{}
+	q := storage.GetAccessRule{
+		ID: ruleId,
+	}
 	_, err := a.DB.Query(ctx, &q)
 	if err == ddb.ErrNoItems {
 		apio.Error(ctx, w, &apio.APIError{Err: err, Status: http.StatusNotFound})
