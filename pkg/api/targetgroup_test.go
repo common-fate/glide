@@ -78,7 +78,7 @@ func TestCreateTargetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			//
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -172,7 +172,7 @@ func TestListTargetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListTargetGroups{Result: tc.targetgroups}, tc.mockListErr)
 
@@ -227,7 +227,7 @@ func TestGetTargetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 
@@ -301,7 +301,7 @@ func TestTargetGroupLink(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
@@ -367,7 +367,7 @@ func TestRemoveTargetGroupLink(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: &tc.mockGetTargetGroupResponse}, tc.mockGetTargetGroupErr)
 			db.MockQueryWithErr(&storage.GetHandler{Result: &tc.mockGetTargetGroupDeploymentResponse}, tc.mockGetTargetGroupErr)
@@ -431,7 +431,7 @@ func TestDeleteTargetGroup(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetTargetGroup{Result: tc.mockGetTargetGroup}, tc.mockGetTargetGroupErr)
 			ctrl := gomock.NewController(t)
@@ -519,7 +519,7 @@ func TestListTargetGroupRoutes(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListTargetRoutesForGroup{Result: tc.routes}, tc.mockListErr)
 

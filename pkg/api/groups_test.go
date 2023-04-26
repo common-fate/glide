@@ -51,7 +51,7 @@ func TestListGroups(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.ListGroupsForStatus{Result: tc.idpGroups})
 
@@ -114,7 +114,7 @@ func TestGetGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetGroup{Result: tc.idpGroup}, tc.idpErr)
 
@@ -193,7 +193,7 @@ func TestCreateGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.GetUser{ID: tc.withUser, Result: &identity.User{}})
 			ctrl := gomock.NewController(t)
@@ -298,7 +298,7 @@ func TestUpdateGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQuery(&storage.GetUser{ID: tc.withUser, Result: &identity.User{Groups: []string{}}})
 			db.MockQuery(&storage.GetGroup{ID: tc.existingGroupId, Result: &tc.withExistingGroup})
@@ -368,7 +368,7 @@ func TestDeleteGroup(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.GetGroup{Result: &tc.withGroup}, tc.withGroupError)
 

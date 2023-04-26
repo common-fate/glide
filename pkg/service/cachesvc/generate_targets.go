@@ -8,6 +8,7 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
 	"github.com/common-fate/ddb"
+	"github.com/common-fate/provider-registry-sdk-go/pkg/providerregistrysdk"
 )
 
 func (s *Service) RefreshCachedTargets(ctx context.Context) error {
@@ -92,7 +93,7 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 
 	type arTargetGroup struct {
 		targetGroup target.Group
-		fields      map[string][]string
+		fields      map[string][]cache.Resource
 	}
 	//rule/targetgroup/targetfieldid/values
 	accessRuleMap := map[string]map[string]arTargetGroup{}
@@ -103,7 +104,7 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 		for _, target := range ar.Targets {
 			accessRuleMap[ar.ID][target.TargetGroup.ID] = arTargetGroup{
 				targetGroup: target.TargetGroup,
-				fields:      make(map[string][]string),
+				fields:      make(map[string][]cache.Resource),
 			}
 			tgar[target.TargetGroup.ID] = append(tgar[target.TargetGroup.ID], ar)
 		}
@@ -123,7 +124,7 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 			target := accessRuleMap[ar.ID][resource.TargetGroupID].targetGroup
 			for id, field := range target.Schema.Properties {
 				if field.Resource != nil && *field.Resource == resource.ResourceType {
-					accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource.ID)
+					accessRuleMap[ar.ID][resource.TargetGroupID].fields[id] = append(accessRuleMap[ar.ID][resource.TargetGroupID].fields[id], resource.Resource)
 				}
 			}
 		}
@@ -147,6 +148,26 @@ func createResourceAccessRuleMapping(resources []cache.TargetGroupResource, acce
 	return arTargets, nil
 }
 
+// GetSchemaField is a helper which returns a zero field if it's not found
+// in practice this should not return a zero field
+func GetSchemaField(schema providerregistrysdk.Target, fieldID string) providerregistrysdk.TargetField {
+	if schema.Properties == nil {
+		return providerregistrysdk.TargetField{}
+	}
+	if field, ok := schema.Properties[fieldID]; ok {
+		return field
+	}
+	return providerregistrysdk.TargetField{}
+}
+
+// WithFallback returns the value if it is not nil, else returns the fallback
+func WithFallback(value *string, fallback string) string {
+	if value == nil {
+		return fallback
+	}
+	return *value
+}
+
 // generateDistinctTargets returns a distict map of targets
 func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.AccessRule) []cache.Target {
 	arMap := make(map[string]rule.AccessRule)
@@ -155,12 +176,23 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 	}
 	out := make(map[string]cache.Target)
 	for arID, ar := range in {
-		for tID, targetgroup := range ar {
-			for _, target := range targetgroup {
+		accessRuleTargetGroupsMap := make(map[string]target.Group)
+		for _, accessRuleTarget := range arMap[arID].Targets {
+			accessRuleTargetGroupsMap[accessRuleTarget.TargetGroup.ID] = accessRuleTarget.TargetGroup
+		}
+		for targetGroupID, targetGroupTargets := range ar {
+			targetGroup := accessRuleTargetGroupsMap[targetGroupID]
+			for _, target := range targetGroupTargets {
 				t := cache.Target{
+					Kind: cache.Kind{
+						Publisher: targetGroup.From.Publisher,
+						Name:      targetGroup.From.Name,
+						Kind:      targetGroup.From.Kind,
+						Icon:      targetGroup.Icon,
+					},
 					Fields: []cache.Field{},
 					AccessRules: map[string]cache.AccessRule{arID: {
-						MatchedTargetGroups: []string{tID},
+						MatchedTargetGroups: []string{targetGroupID},
 					}},
 					// assign the groups
 					Groups: cache.MakeMapStringStruct(arMap[arID].Groups...),
@@ -168,9 +200,14 @@ func generateDistinctTargets(in resourceAccessRuleMapping, accessRules []rule.Ac
 
 				// @TODO populate all the data for field type
 				for k, v := range target {
+					fieldFromSchema := GetSchemaField(targetGroup.Schema, k)
 					t.Fields = append(t.Fields, cache.Field{
-						ID:    k,
-						Value: v,
+						Value:            v.ID,
+						ID:               k,
+						FieldTitle:       WithFallback(fieldFromSchema.Title, k),
+						FieldDescription: fieldFromSchema.Description,
+						ValueLabel:       v.Name,
+						// ValueDescription: *string,
 					})
 				}
 				o := out[t.ID()]

@@ -3,8 +3,10 @@ import { Helmet } from "react-helmet";
 
 import { AdminLayout } from "../../../components/Layout";
 import { AccessRuleTable } from "../../../components/tables/AccessRuleTable";
+import { useUserListEntitlementTargets } from "../../../utils/backend-client/default/default";
 
 const Index = () => {
+  useUserListEntitlementTargets();
   return (
     <AdminLayout>
       <Helmet>

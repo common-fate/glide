@@ -11,6 +11,28 @@ import (
 	"github.com/common-fate/ddb"
 )
 
+func UnmarshalRequestGroup(items []map[string]types.AttributeValue) (*access.GroupWithTargets, error) {
+	if len(items) == 0 {
+		return nil, ddb.ErrNoItems
+	}
+	var result access.GroupWithTargets
+	err := attributevalue.UnmarshalMap(items[0], &result)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range items[1:] {
+		var t access.GroupTarget
+		err := attributevalue.UnmarshalMap(v, &t)
+		if err != nil {
+			return nil, err
+		}
+		result.Targets = append(result.Targets, t)
+	}
+
+	return &result, nil
+}
+
 func UnmarshalRequest(items []map[string]types.AttributeValue) (*access.RequestWithGroupsWithTargets, error) {
 	if len(items) == 0 {
 		return nil, ddb.ErrNoItems
