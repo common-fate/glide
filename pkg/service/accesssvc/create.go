@@ -6,6 +6,7 @@ import (
 
 	"github.com/common-fate/common-fate/pkg/access"
 	"github.com/common-fate/common-fate/pkg/auth"
+	"github.com/common-fate/common-fate/pkg/gevent"
 	"github.com/common-fate/common-fate/pkg/service/rulesvc"
 	"github.com/common-fate/common-fate/pkg/storage"
 	"github.com/common-fate/common-fate/pkg/target"
@@ -173,11 +174,15 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 		//y GroupTargets sourced from the targets on the access group
 		//Appended reviewers onto the Access Group and Group Target objects if exists
 
-		//TODO: replace this with an event call to create the grants async
-		// updatedGrants, err := s.Workflow.Grant(ctx, ag, u.ID)
-		// if err != nil {
-		// 	return nil, err
-		// }
+	}
+
+	//emit request create event
+	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
+		Request:        request,
+		RequestorEmail: request.RequestedBy.Email,
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &request, nil

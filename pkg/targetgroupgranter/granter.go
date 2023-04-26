@@ -16,7 +16,7 @@ type Granter struct {
 	RequestRouter *requestroutersvc.Service
 }
 type WorkflowInput struct {
-	// Grant types.CreateGrant `json:"grant"`
+	Grant access.GroupTarget `json:"grant"`
 }
 type EventType string
 

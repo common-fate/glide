@@ -2,6 +2,11 @@ package accesssvc
 
 import (
 	"context"
+
+	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
+	"github.com/common-fate/common-fate/pkg/storage"
+	"github.com/common-fate/common-fate/pkg/types"
 )
 
 type CancelRequestOpts struct {
@@ -12,56 +17,42 @@ type CancelRequestOpts struct {
 // CancelRequest cancels a request if it is in pending status.
 // Returns an error if the request is invalid.
 func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) error {
-	// items := []ddb.Keyer{}
-	// now := s.Clock.Now()
-	// requestGet := storage.GetRequestV2{ID: opts.RequestID}
-	// _, err := s.DB.Query(ctx, &requestGet)
-	// if err != nil {
-	// 	return err
-	// }
-	// req := requestGet.Result
 
-	// isAllowed := canCancel(opts, *req)
-	// if !isAllowed {
-	// 	return ErrUserNotAuthorized
-	// }
+	requestGet := storage.GetRequestWithGroupsWithTargets{ID: opts.RequestID}
+	_, err := s.DB.Query(ctx, &requestGet)
+	if err != nil {
+		return err
+	}
+	req := requestGet.Result.Request
 
-	// q := storage.ListAccessGroups{RequestID: opts.RequestID}
-	// _, err = s.DB.Query(ctx, &q)
-	// if err != nil {
-	// 	return err
-	// }
-	// accessGroups := q.Result
+	isAllowed := canCancel(opts, req)
+	if !isAllowed {
+		return ErrUserNotAuthorized
+	}
 
-	// for _, ag := range accessGroups {
-	// 	canBeCancelled := isCancellable(ag)
-	// 	if !canBeCancelled {
-	// 		return ErrRequestCannotBeCancelled
-	// 	}
+	isCancellable := isCancellable(*requestGet.Result)
+	if !isCancellable {
+		return ErrRequestCannotBeCancelled
+	}
 
-	// 	ag.Status = requests.CANCELLED
-	// 	ag.UpdatedAt = now
-
-	// 	items = append(items, &ag)
-	// }
-
-	// // Todo: what should happen with grant types here?
-
-	// req.UpdatedAt = now
-
-	// items = append(items, req)
-
-	// return s.DB.PutBatch(ctx, items...)
+	s.EventPutter.Put(ctx, gevent.RequestCancelledInit{
+		Request: requestGet.Result.Request,
+	})
 	return nil
 }
 
 // // users can cancel their own requests.
-// func canCancel(opts CancelRequestOpts, request requests.Requestv2) bool {
-// 	// canceller must be original requestor
-// 	return opts.CancellerID == request.RequestedBy.ID
-// }
+func canCancel(opts CancelRequestOpts, request access.Request) bool {
+	// canceller must be original requestor
+	return opts.CancellerID == request.RequestedBy.ID
+}
 
-// // A request can be cancelled if
-// func isCancellable(AccessGroup access.AccessGroup) bool {
-// 	return AccessGroup.Status == types.RequestStatusPENDING || AccessGroup.Status != requests.CANCELLED
-// }
+// // A access group can be cancelled if
+func isCancellable(request access.RequestWithGroupsWithTargets) bool {
+	var isCancellable bool
+	for _, group := range request.Groups {
+		isCancellable = group.Status == types.RequestAccessGroupStatusPENDINGAPPROVAL
+
+	}
+	return isCancellable
+}

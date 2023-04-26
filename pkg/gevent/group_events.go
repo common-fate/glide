@@ -11,9 +11,9 @@ const (
 )
 
 type AccessGroupReviewed struct {
-	Request       access.Request `json:"request"`
-	ReviewerID    string         `json:"reviewerId"`
-	ReviewerEmail string         `json:"reviewerEmail"`
+	AccessGroup   access.Group `json:"group"`
+	ReviewerID    string       `json:"reviewerId"`
+	ReviewerEmail string       `json:"reviewerEmail"`
 }
 
 func (AccessGroupReviewed) EventType() string {
@@ -21,9 +21,9 @@ func (AccessGroupReviewed) EventType() string {
 }
 
 type AccessGroupApproved struct {
-	Request       access.Request `json:"request"`
-	ReviewerID    string         `json:"reviewerId"`
-	ReviewerEmail string         `json:"reviewerEmail"`
+	AccessGroup   access.Group `json:"group"`
+	ReviewerID    string       `json:"reviewerId"`
+	ReviewerEmail string       `json:"reviewerEmail"`
 }
 
 func (AccessGroupApproved) EventType() string {
@@ -31,9 +31,9 @@ func (AccessGroupApproved) EventType() string {
 }
 
 type AccessGroupDeclined struct {
-	Request       access.Request `json:"request"`
-	ReviewerID    string         `json:"reviewerId"`
-	ReviewerEmail string         `json:"reviewerEmail"`
+	AccessGroup   access.Group `json:"group"`
+	ReviewerID    string       `json:"reviewerId"`
+	ReviewerEmail string       `json:"reviewerEmail"`
 }
 
 func (AccessGroupDeclined) EventType() string {
