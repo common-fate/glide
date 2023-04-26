@@ -15,13 +15,19 @@ import {
 import React from "react";
 
 import { ProviderIcon, ShortTypes } from "../../../icons/providerIcon";
-import { useAdminListTargetGroups } from "src/utils/backend-client/admin/admin";
-import { TargetGroup } from "../../../../utils/backend-client/types";
 
-interface ProviderRadioProps extends RadioProps {
+import {
+  CreateAccessRuleTargetFieldFilterExpessions,
+  TargetGroup,
+} from "../../../../utils/backend-client/types";
+import { useFormContext } from "react-hook-form";
+import { AccessRuleFormData } from "../CreateForm";
+import { useAdminListTargetGroups } from "../../../../utils/backend-client/admin/admin";
+
+interface TargetGroupRadioProps extends RadioProps {
   targetGroup: TargetGroup;
 }
-const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
+const TargetGroupRadio: React.FC<TargetGroupRadioProps> = (props) => {
   const { getInputProps, getCheckboxProps } = useRadio(props);
 
   const input = getInputProps();
@@ -73,7 +79,9 @@ const ProviderRadio: React.FC<ProviderRadioProps> = (props) => {
   );
 };
 
-export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {
+export const TargetGroupRadioSelector: React.FC<UseRadioGroupProps> = (
+  props
+) => {
   const { data } = useAdminListTargetGroups();
   const { getRootProps, getRadioProps } = useRadioGroup(props);
   const group = getRootProps();
@@ -87,7 +95,7 @@ export const ProviderRadioSelector: React.FC<UseRadioGroupProps> = (props) => {
         const radio = getRadioProps({ value: p.id });
         return (
           <WrapItem key={p.id}>
-            <ProviderRadio provider={p} {...radio} />
+            <TargetGroupRadio targetGroup={p} {...radio} />
           </WrapItem>
         );
       })}

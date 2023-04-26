@@ -5,6 +5,10 @@
 package mocks
 
 import (
+	context "context"
+	reflect "reflect"
+
+	access "github.com/common-fate/common-fate/pkg/access"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -29,4 +33,19 @@ func NewMockWorkflow(ctrl *gomock.Controller) *MockWorkflow {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockWorkflow) EXPECT() *MockWorkflowMockRecorder {
 	return m.recorder
+}
+
+// Grant mocks base method.
+func (m *MockWorkflow) Grant(arg0 context.Context, arg1 []access.GroupTarget, arg2 string) ([]access.Grant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Grant", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]access.Grant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Grant indicates an expected call of Grant.
+func (mr *MockWorkflowMockRecorder) Grant(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Grant", reflect.TypeOf((*MockWorkflow)(nil).Grant), arg0, arg1, arg2)
 }

@@ -10,6 +10,7 @@ import type { RequestAccessGroupTiming } from './requestAccessGroupTiming';
 import type { RequestRequestedBy } from './requestRequestedBy';
 import type { RequestAccessGroupTarget } from './requestAccessGroupTarget';
 import type { RequestAccessGroupApprovalMethod } from './requestAccessGroupApprovalMethod';
+import type { RequestAccessGroupAccessRule } from './requestAccessGroupAccessRule';
 
 export interface RequestAccessGroup {
   id: string;
@@ -22,4 +23,5 @@ export interface RequestAccessGroup {
   requestedBy: RequestRequestedBy;
   targets: RequestAccessGroupTarget[];
   approvalMethod?: RequestAccessGroupApprovalMethod;
+  accessRule: RequestAccessGroupAccessRule;
 }

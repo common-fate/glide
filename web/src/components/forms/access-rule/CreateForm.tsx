@@ -4,14 +4,10 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-location";
 import { adminCreateAccessRule } from "../../../utils/backend-client/admin/admin";
 
-import {
-  CreateAccessRuleRequestBody,
-  AccessRuleTarget,
-  CreateAccessRuleTarget,
-} from "../../../utils/backend-client/types";
+import { CreateAccessRuleRequestBody } from "../../../utils/backend-client/types";
 import { ApprovalStep } from "./steps/Approval";
 import { GeneralStep } from "./steps/General";
-import { ProviderStep } from "./steps/Provider";
+import { TargetStep } from "./steps/Provider";
 import { RequestsStep } from "./steps/Request";
 import { TimeStep } from "./steps/Time";
 import { StepsProvider } from "./StepsContext";
@@ -45,7 +41,13 @@ const CreateAccessRuleForm = () => {
   const toast = useToast();
   //  Should unregister controls how the form will persist data if a component is unmounted
   // we use this to ensure that data for selected and then deselected providers is not included.
-  const methods = useForm<AccessRuleFormData>({ shouldUnregister: true });
+  const methods = useForm<AccessRuleFormData>({
+    shouldUnregister: true,
+    defaultValues: {
+      targets: [],
+      priority: 1,
+    },
+  });
   const onSubmit = async (data: AccessRuleFormData) => {
     console.debug("submit form data", { data });
 
@@ -83,7 +85,7 @@ const CreateAccessRuleForm = () => {
           <VStack w="100%" spacing={6}>
             <StepsProvider>
               <GeneralStep />
-              <ProviderStep />
+              <TargetStep />
               <TimeStep />
               <RequestsStep />
               <ApprovalStep />

@@ -3,18 +3,26 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
+  NumberDecrementStepper,
+  NumberIncrementStepper,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
   Text,
   Textarea,
   VStack,
 } from "@chakra-ui/react";
 import React from "react";
-import { useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
+import { AccessRuleFormData } from "../CreateForm";
 import { FormStep } from "./FormStep";
 
 export const GeneralStep: React.FC = () => {
-  const methods = useFormContext();
+  const methods = useFormContext<AccessRuleFormData>();
   const name = methods.watch("name");
   const description = methods.watch("description");
+  const priority = methods.watch("priority");
+
   return (
     <FormStep
       heading="General"
@@ -32,6 +40,14 @@ export const GeneralStep: React.FC = () => {
             flexWrap="wrap"
           >
             Description: {description}
+          </Text>
+          <Text
+            textStyle={"Body/Medium"}
+            color="neutrals.600"
+            wordBreak={"break-word"}
+            flexWrap="wrap"
+          >
+            Priority: {priority}
           </Text>
         </VStack>
       }
@@ -86,6 +102,44 @@ export const GeneralStep: React.FC = () => {
           {methods.formState.errors?.description && (
             <FormErrorMessage>
               {methods.formState.errors.description?.message?.toString()}
+            </FormErrorMessage>
+          )}
+        </FormControl>
+        <FormControl isInvalid={!!methods.formState.errors.priority}>
+          <FormLabel htmlFor="Priority">
+            <Text textStyle={"Body/Medium"}>Priority</Text>
+          </FormLabel>
+          <Controller
+            control={methods.control}
+            name={"priority"}
+            rules={{
+              min: 0,
+              max: 999,
+            }}
+            render={({ field: { ref, onChange, value, ...rest } }) => {
+              return (
+                <NumberInput
+                  bg="neutrals.0"
+                  min={0}
+                  max={999}
+                  onChange={(e) => onChange(Number.parseInt(e))}
+                  value={value}
+                  ref={ref}
+                  {...rest}
+                >
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              );
+            }}
+          />
+
+          {methods.formState.errors?.priority && (
+            <FormErrorMessage>
+              {methods.formState.errors.priority?.message?.toString()}
             </FormErrorMessage>
           )}
         </FormControl>

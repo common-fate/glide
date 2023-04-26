@@ -1,4 +1,4 @@
-import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, CheckCircleIcon, SettingsIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -18,6 +18,7 @@ import {
   chakra,
   Textarea,
   Spinner,
+  Divider,
 } from "@chakra-ui/react";
 import React from "react";
 import { Link, useNavigate } from "react-location";
@@ -194,7 +195,12 @@ const Search = () => {
 
   return (
     <UserLayout>
-      <Container mt={24}>
+      <Container
+        mt={24}
+        maxW={{
+          md: tabIndex == 0 ? "container.lg" : "container.sm",
+        }}
+      >
         {/* set index */}
         <Tabs index={tabIndex}>
           <TabPanels>
@@ -310,7 +316,10 @@ const Search = () => {
                                 p={2}
                                 rounded="md"
                                 _selected={{
-                                  bg: "neutrals.100",
+                                  "bg": "neutrals.100",
+                                  "#description": {
+                                    display: "block",
+                                  },
                                 }}
                                 _checked={{
                                   "#checked": {
@@ -362,6 +371,40 @@ const Search = () => {
                                   w="12px"
                                   color={"brandBlue.300"}
                                 />
+                                {/* @TODO: review me as a part of CF-1028 */}
+                                {/* <Box
+                                  rounded="md"
+                                  w="24ch"
+                                  zIndex={9999}
+                                  pos="absolute"
+                                  top={4}
+                                  right={4}
+                                  id="description"
+                                  display="none"
+                                  textStyle="Body/ExtraSmall"
+                                  p={1}
+                                >
+                                  Admin access to {target.fields[0].value}{" "}
+                                  account
+                                </Box> */}
+                                <Box
+                                  rounded="md"
+                                  w="24ch"
+                                  bg="white"
+                                  border="1px solid"
+                                  borderColor="neutrals.300"
+                                  zIndex={9999}
+                                  pos="absolute"
+                                  bottom={-4}
+                                  right={0}
+                                  id="description"
+                                  display="none"
+                                  textStyle="Body/ExtraSmall"
+                                  p={1}
+                                >
+                                  Admin access to {target.fields[0].value}{" "}
+                                  account
+                                </Box>
                               </Flex>
                             );
                           })
@@ -383,6 +426,17 @@ const Search = () => {
                   </Button>
                 </Flex>
               </Box>
+
+              <Flex mt={12}>
+                <Button
+                  leftIcon={<SettingsIcon />}
+                  size="xs"
+                  ml="auto"
+                  variant="brandSecondary"
+                >
+                  Settings
+                </Button>
+              </Flex>
             </TabPanel>
             {/* PAGE 2 */}
             <TabPanel>

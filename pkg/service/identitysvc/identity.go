@@ -16,7 +16,7 @@ func (s *Service) UpdateUserAccessRules(ctx context.Context, users map[string]id
 		u.AccessRules = []string{}
 	}
 
-	q := storage.ListAccessRules{}
+	q := storage.ListAccessRulesByPriority{}
 
 	_, err := s.DB.Query(ctx, &q)
 	if err != nil {

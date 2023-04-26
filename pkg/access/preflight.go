@@ -25,11 +25,11 @@ type Preflight struct {
 }
 
 type PreflightAccessGroup struct {
-	ID               string         `json:"id"`
-	AccessRule       string         `json:"accessRule"`
-	RequiresApproval bool           `json:"requiresApproval"`
-	Targets          []cache.Target `json:"targets"`
-	Time             types.AccessRuleTimeConstraints
+	ID               string                          `json:"id" dynamodbav:"id"`
+	AccessRule       string                          `json:"accessRule" dynamodbav:"accessRule"`
+	RequiresApproval bool                            `json:"requiresApproval" dynamodbav:"requiresApproval"`
+	Targets          []cache.Target                  `json:"targets" dynamodbav:"targets"`
+	TimeConstraints  types.AccessRuleTimeConstraints `json:"timeConstraints" dynamodbav:"timeConstraints"`
 }
 
 func (i *PreflightAccessGroup) ToAPI() types.PreflightAccessGroup {
@@ -37,7 +37,7 @@ func (i *PreflightAccessGroup) ToAPI() types.PreflightAccessGroup {
 		Id:               i.ID,
 		RequiresApproval: i.RequiresApproval,
 		Targets:          []types.Target{},
-		Time:             i.Time,
+		TimeConstraints:  i.TimeConstraints,
 	}
 	for _, target := range i.Targets {
 		out.Targets = append(out.Targets, target.ToAPI())

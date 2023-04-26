@@ -1,19 +1,15 @@
-import { Button, ButtonGroup, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import format from "date-fns/format";
 import { useMemo } from "react";
-import { Link, MakeGenerics, useNavigate, useSearch } from "react-location";
+import { MakeGenerics, useNavigate, useSearch } from "react-location";
 import { Column } from "react-table";
+import { Request, RequestStatus } from "../../utils/backend-client/types";
 import { usePaginatorApi } from "../../utils/usePaginatorApi";
-import {
-  Request,
-  RequestStatus,
-  Requestv2,
-} from "../../utils/backend-client/types";
 
+import { useUserListReviews } from "../../utils/backend-client/default/default";
+import { CFAvatar } from "../CFAvatar";
 import { RequestsFilterMenu } from "./RequestsFilterMenu";
 import { TableRenderer } from "./TableRenderer";
-import { CFAvatar } from "../CFAvatar";
-import { useUserListRequests } from "../../utils/backend-client/default/default";
 
 type MyLocationGenerics = MakeGenerics<{
   Search: {
@@ -29,35 +25,33 @@ export const UserReviewsTable = () => {
 
   // const [status, setStatus] = useState<RequestStatus | undefined>();
 
-  const paginator = usePaginatorApi<typeof useUserListRequests>({
-    swrHook: useUserListRequests,
+  const paginator = usePaginatorApi<typeof useUserListReviews>({
+    swrHook: useUserListReviews,
     hookProps: {
-      reviewer: true,
-
       status: status ? (status.toUpperCase() as RequestStatus) : undefined,
     },
     swrProps: { swr: { refreshInterval: 10000 } },
   });
 
-  const cols: Column<Requestv2>[] = useMemo(
+  const cols: Column<Request>[] = useMemo(
     () => [
-      {
-        accessor: "context",
-        Header: "Request",
-        // Cell: (props) => (
-        //   <Link to={"/requests/" + props.row.original.id}>
-        //     <RuleNameCell
-        //       accessRuleId={props.row.original.accessRuleId}
-        //       reason={props.value ?? ""}
-        //       as="a"
-        //       _hover={{
-        //         textDecor: "underline",
-        //       }}
-        //       adminRoute={false}
-        //     />
-        //   </Link>
-        // ),
-      },
+      // {
+      //   accessor: "context",
+      //   Header: "Request",
+      //   // Cell: (props) => (
+      //   //   <Link to={"/requests/" + props.row.original.id}>
+      //   //     <RuleNameCell
+      //   //       accessRuleId={props.row.original.accessRuleId}
+      //   //       reason={props.value ?? ""}
+      //   //       as="a"
+      //   //       _hover={{
+      //   //         textDecor: "underline",
+      //   //       }}
+      //   //       adminRoute={false}
+      //   //     />
+      //   //   </Link>
+      //   // ),
+      // },
       // {
       //   accessor: "timing",
       //   Header: "Duration",
@@ -68,7 +62,7 @@ export const UserReviewsTable = () => {
       //   ),
       // },
       {
-        accessor: "user",
+        accessor: "requestedBy",
         Header: "Requested by",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
@@ -87,7 +81,7 @@ export const UserReviewsTable = () => {
         ),
       },
       {
-        accessor: "createdAt",
+        accessor: "requestedAt",
         Header: "Date Requested",
         Cell: ({ cell }) => (
           <Flex textStyle="Body/Small">
@@ -121,7 +115,7 @@ export const UserReviewsTable = () => {
           status={status?.toUpperCase() as RequestStatus}
         />
       </Flex>
-      {TableRenderer<Requestv2>({
+      {TableRenderer<Request>({
         columns: cols,
         data: paginator?.data?.requests,
         apiPaginator: paginator,
@@ -130,7 +124,7 @@ export const UserReviewsTable = () => {
           "_hover": { bg: "gray.50" },
           "cursor": "pointer",
           // in our test cases we use reason for the unique key
-          "data-testid": row.original.context,
+          "data-testid": row.original.purpose.reason,
           "alignItems": "center",
           "onClick": () => {
             navigate({ to: "/requests/" + row.original.id });

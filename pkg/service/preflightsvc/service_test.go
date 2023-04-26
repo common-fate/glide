@@ -94,7 +94,7 @@ func TestGroupTargets(t *testing.T) {
 					Targets: []cache.Target{
 						target1,
 					},
-					Time: types.AccessRuleTimeConstraints{
+					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
 				},
@@ -102,7 +102,7 @@ func TestGroupTargets(t *testing.T) {
 					Targets: []cache.Target{
 						target2,
 					},
-					Time: types.AccessRuleTimeConstraints{
+					TimeConstraints: types.AccessRuleTimeConstraints{
 						MaxDurationSeconds: 3600,
 					},
 				},

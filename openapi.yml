@@ -1066,7 +1066,7 @@ components:
         metadata:
           $ref: "#/components/schemas/AccessRuleMetadata"
         priority:
-          type: number
+          type: integer
           minimum: 0
       required:
         - id
@@ -1345,7 +1345,7 @@ components:
           type: string
         requiresApproval:
           type: boolean
-        time:
+        timeConstraints:
           $ref: "#/components/schemas/AccessRuleTimeConstraints"
         targets:
           type: array
@@ -1354,7 +1354,7 @@ components:
       required:
         - id
         - requiresApproval
-        - time
+        - timeConstraints
         - targets
     Target:
       title: Target
@@ -1663,6 +1663,8 @@ components:
             $ref: "#/components/schemas/RequestAccessGroupTarget"
         approvalMethod:
           $ref: "#/components/schemas/RequestAccessGroupApprovalMethod"
+        accessRule:
+          $ref: "#/components/schemas/RequestAccessGroupAccessRule"
       required:
         - id
         - requestId
@@ -1673,6 +1675,17 @@ components:
         - createdAt
         - requestedBy
         - targets
+        - accessRule
+    RequestAccessGroupAccessRule:
+      title: RequestAccessGroupAccessRule
+      type: object
+      x-stoplight:
+        id: 9c910ef95507c
+      properties:
+        timeConstraints:
+          $ref: "#/components/schemas/AccessRuleTimeConstraints"
+      required:
+        - timeConstraints
     RequestAccessGroupApprovalMethod:
       type: string
       description: "Describes whether a request has been approved automatically or from a review "
@@ -2300,9 +2313,7 @@ components:
                 items:
                   $ref: "#/components/schemas/CreateAccessRuleTarget"
               priority:
-                type: number
-                minimum: 0
-                maximum: 999
+                type: integer
             required:
               - groups
               - approval

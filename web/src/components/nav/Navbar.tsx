@@ -30,15 +30,16 @@ import Counter from "../Counter";
 import { DoorIcon } from "../icons/Icons";
 import { CommonFateLogo } from "../icons/Logos";
 import { DrawerNav } from "./DrawerNav";
-import { useUserListRequests } from "../../utils/backend-client/default/default";
+import {
+  useUserListRequests,
+  useUserListReviews,
+} from "../../utils/backend-client/default/default";
 
 export const Navbar: React.FC = () => {
   const isDesktop = useBreakpointValue({ base: false, lg: true }, "800px");
 
   const user = useUser();
   const auth = useCognito();
-  const { data: requests } = useUserListRequests({ status: "PENDING" });
-  const { data: reviews } = useUserListRequests({ reviewer: true });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const modal = useDisclosure();
@@ -68,12 +69,6 @@ export const Navbar: React.FC = () => {
       modal.isOpen ? modal.onClose() : modal.onOpen();
     }
   });
-
-  const showReqCount = useMemo(
-    () => requests?.requests && requests?.requests.length > 0,
-    [requests]
-  );
-  const showRewCount = useMemo(() => false, [reviews]);
 
   return (
     <Box as="section">
@@ -126,11 +121,7 @@ export const Navbar: React.FC = () => {
                   // bottom={-4}
                   // left="50%"
                 >
-                  <TabsStyledButton
-                    href="/search"
-                    w="95px"
-                    pr={showReqCount ? 10 : undefined}
-                  >
+                  <TabsStyledButton href="/search" w="95px" pr={0}>
                     Search
                   </TabsStyledButton>
                   {/* I've hardcoded widths here to prevent the bold/unbold text from 
@@ -152,7 +143,7 @@ export const Navbar: React.FC = () => {
                   <TabsStyledButton
                     href="/reviews?status=pending"
                     w="125px"
-                    pr={showReqCount ? 10 : undefined}
+                    pr={0}
                   >
                     Reviews
                     {/* {showRewCount && (
@@ -167,11 +158,7 @@ export const Navbar: React.FC = () => {
                       />
                     )} */}
                   </TabsStyledButton>
-                  <TabsStyledButton
-                    href="/request/123"
-                    w="125px"
-                    pr={showReqCount ? 10 : undefined}
-                  >
+                  <TabsStyledButton href="/request/123" w="125px" pr={0}>
                     Request
                   </TabsStyledButton>
                 </ButtonGroup>

@@ -50,6 +50,7 @@ export * from './preflightAccessGroup';
 export * from './registerHandlerRequestBody';
 export * from './request';
 export * from './requestAccessGroup';
+export * from './requestAccessGroupAccessRule';
 export * from './requestAccessGroupApprovalMethod';
 export * from './requestAccessGroupStatus';
 export * from './requestAccessGroupTarget';
