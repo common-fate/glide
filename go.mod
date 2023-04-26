@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.3
 	github.com/aws/aws-sdk-go v1.44.71
-	github.com/aws/aws-sdk-go-v2 v1.17.5
+	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.15
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.22
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.22.2
@@ -102,8 +102,8 @@ require (
 require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.15
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.23 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.29 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.33 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.30 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.9.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.7.10 // indirect
@@ -144,6 +144,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.16.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.3
+	github.com/aws/aws-sdk-go-v2/service/sfn v1.17.10
 	github.com/briandowns/spinner v1.23.0
 	github.com/common-fate/analytics-go v0.2.0
 	github.com/common-fate/clio v1.1.0

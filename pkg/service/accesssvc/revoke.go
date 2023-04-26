@@ -32,11 +32,12 @@ func (s *Service) RevokeRequest(ctx context.Context, in access.RequestWithGroups
 	//revoke each group in the request
 
 	for _, group := range in.Groups {
-		_, err := s.Workflow.Revoke(ctx, group.Group, u.ID, u.Email)
+		_, err := s.Workflow.Revoke(ctx, group, u.ID, u.Email)
 
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
 	//emit request group revoke event

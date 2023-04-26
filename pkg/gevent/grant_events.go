@@ -8,6 +8,7 @@ const (
 	GrantActivatedType = "grant.activated"
 	GrantExpiredType   = "grant.expired"
 	GrantFailedType    = "grant.failed"
+	GrantRevokedType   = "grant.revoked"
 )
 
 // GrantActivated is emitted when a grant is
@@ -47,17 +48,17 @@ func (GrantExpired) EventType() string {
 // in the provider directly (such as removing
 // the user from the Okta group which they were granted
 // access to), this event will not be emitted.
-// type GrantRevoked struct {
-// 	Grant access.Grant `json:"grant"`
-// 	// the commonfate internal id of the actor who revoked the grant
-// 	Actor string `json:"actor"`
-// 	// the email address of the actor who revoked the grant
-// 	RevokerEmail string `json:"revokerEmail"`
-// }
+type GrantRevoked struct {
+	Grant access.Grant `json:"grant"`
+	// the commonfate internal id of the actor who revoked the grant
+	Actor string `json:"actor"`
+	// the email address of the actor who revoked the grant
+	RevokerEmail string `json:"revokerEmail"`
+}
 
-// func (GrantRevoked) EventType() string {
-// 	return GrantRevokedType
-// }
+func (GrantRevoked) EventType() string {
+	return GrantRevokedType
+}
 
 // GrantFailed is emitted when the access handler
 // encounters an unrecoverable error when activating

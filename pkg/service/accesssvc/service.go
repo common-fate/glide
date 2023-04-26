@@ -32,8 +32,8 @@ type CreateGrantOpts struct {
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/workflow.go -package=mocks . Workflow
 type Workflow interface {
-	Revoke(ctx context.Context, targets access.Group, revokerID string, revokerEmail string) (*access.Request, error)
-	Grant(ctx context.Context, targets access.Group, subject string) ([]access.Grant, error)
+	Revoke(ctx context.Context, group access.GroupWithTargets, revokerID string, revokerEmail string) (*access.Group, error)
+	Grant(ctx context.Context, group access.GroupWithTargets, subject string) ([]access.Grant, error)
 }
 
 //go:generate go run github.com/golang/mock/mockgen -destination=mocks/eventputter.go -package=mocks . EventPutter
