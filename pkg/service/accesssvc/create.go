@@ -95,9 +95,9 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 
 		//create accessgroup object
 		ag := access.Group{
-			ID:         types.NewAccessGroupID(),
-			RequestID:  request.ID,
-			AccessRule: access.AccessRule{ID: ar.Result.ID},
+			ID:                 types.NewAccessGroupID(),
+			RequestID:          request.ID,
+			AccessRuleSnapshot: *ar.Result,
 			TimeConstraints: access.Timing{
 				Duration:  time.Duration(ar.Result.TimeConstraints.MaxDurationSeconds),
 				StartTime: &now,

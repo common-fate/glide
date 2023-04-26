@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/common-fate/analytics-go"
+	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 	"github.com/common-fate/common-fate/pkg/types"
 	"github.com/common-fate/ddb"
@@ -14,10 +15,11 @@ type AccessRule struct {
 }
 
 type Group struct {
-	ID         string                         `json:"id" dynamodbav:"id"`
-	RequestID  string                         `json:"requestId" dynamodbav:"request"`
-	AccessRule AccessRule                     `json:"accessRule" dynamodbav:"accessRule"`
-	Status     types.RequestAccessGroupStatus `json:"status" dynamodbav:"status"`
+	ID        string `json:"id" dynamodbav:"id"`
+	RequestID string `json:"requestId" dynamodbav:"request"`
+	// This is a snapshot of the access rule as it was configured when the request was submitted
+	AccessRuleSnapshot rule.AccessRule                `json:"accessRuleSnapshot" dynamodbav:"accessRuleSnapshot"`
+	Status             types.RequestAccessGroupStatus `json:"status" dynamodbav:"status"`
 	// Also denormalised across all the request items
 	RequestStatus   types.RequestStatus `json:"requestStatus" dynamodbav:"requestStatus"`
 	TimeConstraints Timing              `json:"timeConstraints" dynamodbav:"timeConstraints"`
