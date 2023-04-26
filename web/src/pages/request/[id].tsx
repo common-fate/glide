@@ -237,7 +237,7 @@ const Home = () => {
 };
 
 type AccessGroupProps = {
-  group: RequestAccessGroup | PreflightAccessGroup;
+  group: RequestAccessGroup;
 };
 
 export const HeaderStatusCell = ({ group }: AccessGroupProps) => {
