@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/common-fate/common-fate/pkg/access"
+	"github.com/common-fate/common-fate/pkg/gevent"
 
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/types"
@@ -33,6 +34,16 @@ type AddReviewResult struct {
 // AddReviewAndGrantAccess reviews a Request. It updates the status of the Request depending on the review decision.
 // If the review approves access, access is granted.
 func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpts) (*AddReviewResult, error) {
+
+	err := s.EventPutter.Put(ctx, gevent.AccessGroupReviewed{
+		AccessGroup:   opts.AccessGroup,
+		ReviewerID:    opts.ReviewerEmail,
+		ReviewerEmail: opts.ReviewerEmail,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	access_group := opts.AccessGroup
 	isAllowed := canReview(opts)
 	if !isAllowed {
@@ -61,8 +72,25 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		// reviewed := types.REVIEWED
 		// access_group.ApprovalMethod = &reviewed
 
+		err = s.EventPutter.Put(ctx, gevent.AccessGroupApproved{
+			AccessGroup:   opts.AccessGroup,
+			ReviewerID:    opts.ReviewerEmail,
+			ReviewerEmail: opts.ReviewerEmail,
+		})
+		if err != nil {
+			return nil, err
+		}
+
 	case access.DecisionDECLINED:
 		access_group.Status = types.RequestAccessGroupStatusDECLINED
+		err := s.EventPutter.Put(ctx, gevent.AccessGroupDeclined{
+			AccessGroup:   opts.AccessGroup,
+			ReviewerID:    opts.ReviewerEmail,
+			ReviewerEmail: opts.ReviewerEmail,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 	access_group.UpdatedAt = s.Clock.Now()
 
@@ -85,7 +113,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 
 	// items = append(items, &reqEvent)
 	// store the updated items in the database
-	err := s.DB.PutBatch(ctx, items...)
+	err = s.DB.PutBatch(ctx, items...)
 	if err != nil {
 		return nil, err
 	}
