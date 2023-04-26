@@ -20,7 +20,7 @@ func (s *Service) RefreshCachedTargetGroupResources(ctx context.Context, tg targ
 
 	cachedResources := storage.ListCachedTargetGroupResourceForTargetGroup{TargetGroupID: tg.ID}
 
-	_, err := s.DB.Query(ctx, &cachedResources)
+	err := s.DB.All(ctx, &cachedResources)
 	if err != nil && err != ddb.ErrNoItems {
 		return err
 	}

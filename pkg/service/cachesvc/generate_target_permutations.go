@@ -2,9 +2,11 @@ package cachesvc
 
 import (
 	"fmt"
+
+	"github.com/common-fate/common-fate/pkg/cache"
 )
 
-type Targets []map[string]string
+type Targets []map[string]cache.Resource
 
 // HasDuplicates compares all the combinations in the array
 // O = n*n*arguments
@@ -43,7 +45,7 @@ func (e FieldHasNoValuesError) Error() string {
 //	{"a":[1,2],"b":[3]} -> [{"a":1,"b":3},{"a":2,"b":3}]
 //
 // This method uses recursion to build a slice of possible combinations of arguments
-func GenerateTargets(fieldOptions map[string][]string) (Targets, error) {
+func GenerateTargets(fieldOptions map[string][]cache.Resource) (Targets, error) {
 
 	if fieldOptions == nil {
 		return nil, nil
@@ -58,25 +60,25 @@ func GenerateTargets(fieldOptions map[string][]string) (Targets, error) {
 
 	// This is a depth first search approach to building the combinations
 	// for each value of the first argument, create all possible combinations with the other arguments by stepping down through the argument slices
-	var combinations []map[string]string
+	var combinations Targets
 	if len(keys) > 0 {
 		for _, value := range fieldOptions[keys[0]] {
 			if len(keys) > 1 {
-				combinations = append(combinations, branch(fieldOptions, keys, map[string]string{keys[0]: value}, 1)...)
+				combinations = append(combinations, branch(fieldOptions, keys, map[string]cache.Resource{keys[0]: value}, 1)...)
 			} else {
-				combinations = append(combinations, map[string]string{keys[0]: value})
+				combinations = append(combinations, map[string]cache.Resource{keys[0]: value})
 			}
 		}
 	}
 	return combinations, nil
 }
 
-func branch(subRequest map[string][]string, keys []string, combination map[string]string, keyIndex int) []map[string]string {
-	var combos []map[string]string
+func branch(subRequest map[string][]cache.Resource, keys []string, combination map[string]cache.Resource, keyIndex int) Targets {
+	var combos Targets
 	key := keys[keyIndex]
 	for _, value := range subRequest[key] {
 		// Create the target map
-		next := map[string]string{key: value}
+		next := map[string]cache.Resource{key: value}
 		// Copy from the original map to the target map
 		for k, v := range combination {
 			next[k] = v

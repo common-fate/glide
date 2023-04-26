@@ -2,11 +2,11 @@ package cache
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/common-fate/common-fate/pkg/cachesync"
-	"github.com/common-fate/common-fate/pkg/deploy"
 	"github.com/common-fate/common-fate/pkg/handler"
 	"github.com/common-fate/common-fate/pkg/rule"
 	"github.com/common-fate/common-fate/pkg/service/cachesvc"
@@ -30,17 +30,8 @@ var syncCommand = cli.Command{
 	Description: "Sync cache",
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
-		_ = godotenv.Load()
-		do, err := deploy.LoadConfig(deploy.DefaultFilename)
-		if err != nil {
-			return err
-		}
-		o, err := do.LoadOutput(ctx)
-		if err != nil {
-			return err
-		}
 
-		db, err := ddb.New(ctx, o.DynamoDBTable)
+		db, err := ddb.New(ctx, os.Getenv("COMMONFATE_TABLE_NAME"))
 		if err != nil {
 			return err
 		}

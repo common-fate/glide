@@ -46,13 +46,13 @@ func TestSync(t *testing.T) {
 			want: resourceAccessRuleMapping{
 				"accessRule_1": {
 					"targetgroup_1": Targets{
-						map[string]string{
-							"accountId":        "account_1",
-							"permissionSetArn": "permissionSet_1",
+						map[string]cache.Resource{
+							"accountId":        {ID: "account_1", Name: "Account_1"},
+							"permissionSetArn": {ID: "permissionSet_1", Name: "PermissionSet_1"},
 						},
-						map[string]string{
-							"accountId":        "account_1",
-							"permissionSetArn": "permissionSet_2",
+						map[string]cache.Resource{
+							"accountId":        {ID: "account_1", Name: "Account_1"},
+							"permissionSetArn": {ID: "permissionSet_2", Name: "PermissionSet_2"},
 						},
 					},
 				},
@@ -88,28 +88,40 @@ func TestGenerateDistinctTargets(t *testing.T) {
 				in: map[string]map[string]Targets{
 					"accessRule_1": {
 						"targetgroup_1": Targets{
-							map[string]string{
-								"accountId":        "account_1",
-								"permissionSetArn": "permissionSet_1",
+							map[string]cache.Resource{
+								"accountId":        {ID: "account_1", Name: "Account_1"},
+								"permissionSetArn": {ID: "permissionSet_1", Name: "PermissionSet_1"},
 							},
-							map[string]string{
-								"accountId":        "account_1",
-								"permissionSetArn": "permissionSet_2",
+							map[string]cache.Resource{
+								"accountId":        {ID: "account_1", Name: "Account_1"},
+								"permissionSetArn": {ID: "permissionSet_2", Name: "PermissionSet_2"},
 							},
 						},
 					},
 					"accessRule_2": {
 						"targetgroup_1": Targets{
-							map[string]string{
-								"accountId":        "account_1",
-								"permissionSetArn": "permissionSet_1",
+							map[string]cache.Resource{
+								"accountId":        {ID: "account_1", Name: "Account_1"},
+								"permissionSetArn": {ID: "permissionSet_1", Name: "PermissionSet_1"},
 							},
 						},
 					},
 				},
 				acessRules: []rule.AccessRule{
-					{ID: "accessRule_1", Groups: []string{"group_1", "group_2"}},
-					{ID: "accessRule_2", Groups: []string{"group_3", "group_4"}},
+					{ID: "accessRule_1", Groups: []string{"group_1", "group_2"},
+						Targets: []rule.Target{{TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
+							Properties: map[string]providerregistrysdk.TargetField{
+								"accountId":        {Title: aws.String("AWS Account")},
+								"permissionSetArn": {Title: aws.String("AWS Permission Set"), Description: aws.String("a permission set field description")},
+							},
+						}}}}},
+					{ID: "accessRule_2", Groups: []string{"group_3", "group_4"},
+						Targets: []rule.Target{{TargetGroup: target.Group{ID: "targetgroup_1", Schema: providerregistrysdk.Target{
+							Properties: map[string]providerregistrysdk.TargetField{
+								"accountId":        {Title: aws.String("AWS Account")},
+								"permissionSetArn": {Title: aws.String("AWS Permission Set"), Description: aws.String("a permission set field description")},
+							},
+						}}}}},
 				},
 			},
 			want: []cache.Target{
@@ -117,12 +129,17 @@ func TestGenerateDistinctTargets(t *testing.T) {
 
 					Fields: []cache.Field{
 						{
-							ID:    "accountId",
-							Value: "account_1",
+							ID:         "accountId",
+							Value:      "account_1",
+							ValueLabel: "Account_1",
+							FieldTitle: "AWS Account",
 						},
 						{
-							ID:    "permissionSetArn",
-							Value: "permissionSet_1",
+							ID:               "permissionSetArn",
+							Value:            "permissionSet_1",
+							FieldTitle:       "AWS Permission Set",
+							FieldDescription: aws.String("a permission set field description"),
+							ValueLabel:       "PermissionSet_1",
 						},
 					},
 
@@ -135,12 +152,17 @@ func TestGenerateDistinctTargets(t *testing.T) {
 
 					Fields: []cache.Field{
 						{
-							ID:    "accountId",
-							Value: "account_1",
+							ID:         "accountId",
+							Value:      "account_1",
+							ValueLabel: "Account_1",
+							FieldTitle: "AWS Account",
 						},
 						{
-							ID:    "permissionSetArn",
-							Value: "permissionSet_2",
+							ID:               "permissionSetArn",
+							Value:            "permissionSet_2",
+							FieldTitle:       "AWS Permission Set",
+							FieldDescription: aws.String("a permission set field description"),
+							ValueLabel:       "PermissionSet_2",
 						},
 					},
 					Groups:      map[string]struct{}{"group_1": {}, "group_2": {}},

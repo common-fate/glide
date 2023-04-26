@@ -72,7 +72,7 @@ package api
 
 // 	for _, tc := range testcases {
 // 		t.Run(tc.name, func(t *testing.T) {
-// 			t.Parallel()
+//
 // 			ctrl := gomock.NewController(t)
 // 			mockAccess := mocks.NewMockAccessService(ctrl)
 // 			mockrequests.EXPECT().CreateRequests(gomock.Any(), gomock.Any()).Return(nil, tc.mockCreateErr).AnyTimes()
@@ -150,7 +150,7 @@ package api
 
 // 	for _, tc := range testcases {
 // 		t.Run(tc.name, func(t *testing.T) {
-// 			t.Parallel()
+//
 // 			ctrl := gomock.NewController(t)
 // 			mockAccess := mocks.NewMockAccessService(ctrl)
 // 			mockrequests.EXPECT().CancelRequest(gomock.Any(), gomock.Any()).Return(tc.mockCancelErr).AnyTimes()
@@ -262,7 +262,7 @@ package api
 
 // 	for _, tc := range testcases {
 // 		t.Run(tc.name, func(t *testing.T) {
-// 			t.Parallel()
+//
 // 			db := ddbmock.New(t)
 // 			db.MockQueryWithErr(&storage.GetRequest{Result: tc.mockGetRequest}, tc.mockGetRequestErr)
 // 			db.MockQueryWithErr(&storage.GetRequestReviewer{Result: tc.mockGetReviewer}, tc.mockGetReviewerErr)
@@ -423,7 +423,7 @@ package api
 
 // 	for _, tc := range testcases {
 // 		t.Run(tc.name, func(t *testing.T) {
-// 			t.Parallel()
+//
 // 			db := ddbmock.New(t)
 // 			db.MockQueryWithErr(tc.mockDBQuery, tc.mockDBQueryErr)
 // 			a := API{DB: db}
@@ -661,7 +661,7 @@ package api
 
 // 	for _, tc := range testcases {
 // 		t.Run(tc.name, func(t *testing.T) {
-// 			t.Parallel()
+//
 // 			db := ddbmock.New(t)
 // 			db.MockQueryWithErr(&tc.mockGetRequest, tc.mockGetRequestErr)
 // 			db.MockQueryWithErr(&tc.mockListEvents, tc.mockListEventsErr)

@@ -36,7 +36,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
+			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
 				ID: "rule1",
 
@@ -57,6 +57,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 						FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
 					},
 				},
+				Priority: 4,
 			},
 			wantCode: http.StatusCreated,
 			// idpUser: &types.User{
@@ -64,18 +65,18 @@ func TestAdminCreateAccessRule(t *testing.T) {
 			// 	Email: "test@test.com",
 			// },
 
-			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","status":"ACTIVE","targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"maxDurationSeconds":0}}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","priority":4,"targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"maxDurationSeconds":0}}`,
 		},
 		{
 			name:          "id already exists",
-			give:          `{"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
+			give:          `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
 			mockCreateErr: rulesvc.ErrRuleIdAlreadyExists,
 			wantCode:      http.StatusBadRequest,
 			wantBody:      `{"error":"access rule id already exists"}`,
 		},
 		{
 			name:     "fail when rule doesn't meet maxduration req",
-			give:     `{"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":6}}`,
+			give:     `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":6}}`,
 			wantCode: http.StatusBadRequest,
 			wantBody: `{"error":"request body has an error: doesn't match the schema: Error at \"/timeConstraints/maxDurationSeconds\": number must be at least 60"}`,
 		},
@@ -83,7 +84,7 @@ func TestAdminCreateAccessRule(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -133,7 +134,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "ok",
-			give: `{"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
+			give: `{"priority":4,"approval":{"groups":["group1","group2"],"users":["user1","user2"]},"description":"Test Access Rule","groups":["group_a","group_b"],"name":"Test Access Rule","targets":[{"fieldFilterExpessions":{"field1":"value1","field2":"value2"},"targetGroupId":"target_group_id"}],"timeConstraints":{"maxDurationSeconds":3600}}`,
 			mockCreate: &rule.AccessRule{
 				ID:          "rule1",
 				Description: "string",
@@ -153,10 +154,12 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 						FieldFilterExpessions: map[string]rule.FieldFilterExpessions{},
 					},
 				},
+				Priority: 4,
 			},
 			wantCode: http.StatusAccepted,
-			wantBody: `{"approval":{"groups":[],"users":["a6936de0-633e-400b-8d36-5d3f47e1356e","629d4ea4-686c-4581-b778-ec083375523b"]},"description":"Production access ","groups":["common_fate_administrators"],"id":"rule1","isCurrent":false,"metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"Productions","status":"ACTIVE","target":{"provider":{"id":"string","type":""},"with":{}},"timeConstraints":{"maxDurationSeconds":3600},"version":"abcd"}`,
+			wantBody: `{"approval":{"groups":[],"users":[]},"description":"string","groups":["string"],"id":"rule1","metadata":{"createdAt":"0001-01-01T00:00:00Z","createdBy":"","updatedAt":"0001-01-01T00:00:00Z","updatedBy":""},"name":"string","priority":4,"targets":[{"fieldFilterExpessions":{},"targetGroup":{"createdAt":"0001-01-01T00:00:00Z","from":{"kind":"Account","name":"test","publisher":"commonfate","version":"v1.1.1"},"icon":"","id":"123","schema":{},"updatedAt":"0001-01-01T00:00:00Z"}}],"timeConstraints":{"maxDurationSeconds":0}}`,
 		},
+
 		{
 			name:     "malformed",
 			give:     `malformed json input`,
@@ -167,7 +170,7 @@ func TestAdminUpdateAccessRule(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -310,7 +313,7 @@ func TestAdminListAccessRules(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+
 			db := ddbmock.New(t)
 			db.MockQueryWithErr(&storage.ListAccessRulesByPriority{Result: tc.rules}, tc.mockListErr)
 

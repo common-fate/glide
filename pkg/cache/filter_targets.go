@@ -1,6 +1,9 @@
 package cache
 
-import "sync"
+import (
+	"sort"
+	"sync"
+)
 
 // FilterTargetsByAccessRule can be used to filter paginated data
 type FilterTargetsByAccessRule struct {
@@ -92,5 +95,16 @@ func (tf *FilterTargetsByGroups) Dump() []Target {
 	for _, v := range tf.out {
 		values = append(values, v)
 	}
+	return values
+}
+func (tf *FilterTargetsByGroups) DumpSorted() []Target {
+	values := make([]Target, 0, len(tf.out))
+	for _, v := range tf.out {
+		values = append(values, v)
+	}
+	sort.Slice(values, func(i, j int) bool {
+		return values[i].ID() < values[j].ID()
+	})
+
 	return values
 }
