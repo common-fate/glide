@@ -37,6 +37,7 @@ import {
   PopoverContent,
   PopoverHeader,
   PopoverTrigger,
+  Portal,
 } from "@chakra-ui/react";
 import { formatDistance, intervalToDuration } from "date-fns";
 import { useState } from "react";
@@ -305,20 +306,45 @@ export const ApproveRejectDuration = ({ group }: AccessGroupProps) => {
               fontSize="12px"
               color="neutrals.500"
               variant="link"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
               Edit Duration
             </Button>
           </PopoverTrigger>
-          <PopoverContent>
-            <PopoverHeader fontWeight="semibold">Edit Duration</PopoverHeader>
-            <PopoverArrow />
-            <PopoverCloseButton />
-            <PopoverBody py={8}>
-              Duration 3hrs
-              <Button variant="outline">MAX 12hrs</Button>
-              <Button variant="outline" leftIcon={<EditIcon />} />
-            </PopoverBody>
-          </PopoverContent>
+          <Portal>
+            <PopoverContent>
+              <PopoverHeader fontWeight="normal">Edit Duration</PopoverHeader>
+              <PopoverArrow />
+              <PopoverCloseButton />
+              <PopoverBody
+                py={8}
+                sx={{
+                  button: {
+                    rounded: "md",
+                  },
+                }}
+              >
+                Duration 3hrs
+                <Button
+                  variant="brandSecondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  MAX 12hrs
+                </Button>
+                <Button
+                  variant="brandSecondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  leftIcon={<EditIcon />}
+                />
+              </PopoverBody>
+            </PopoverContent>
+          </Portal>
         </Popover>
         {durationString(group.time.durationSeconds)}
       </Box>
