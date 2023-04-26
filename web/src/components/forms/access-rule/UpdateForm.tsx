@@ -78,7 +78,7 @@ const UpdateAccessRuleForm = ({ data }: Props) => {
           groups: data.approval.groups,
         },
         targets: [],
-        priority: 0,
+        priority: data.priority,
       };
       methods.reset(f);
     }

@@ -1066,7 +1066,7 @@ components:
         metadata:
           $ref: "#/components/schemas/AccessRuleMetadata"
         priority:
-          type: number
+          type: integer
           minimum: 0
       required:
         - id
@@ -2313,9 +2313,7 @@ components:
                 items:
                   $ref: "#/components/schemas/CreateAccessRuleTarget"
               priority:
-                type: number
-                minimum: 0
-                maximum: 999
+                type: integer
             required:
               - groups
               - approval

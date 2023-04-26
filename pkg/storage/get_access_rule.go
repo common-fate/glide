@@ -18,10 +18,10 @@ type GetAccessRule struct {
 func (g *GetAccessRule) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := &dynamodb.QueryInput{
 		Limit:                  aws.Int32(1),
-		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.PK1},
-			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.SK1ID(g.ID)},
+			":sk": &types.AttributeValueMemberS{Value: keys.AccessRule.SK1(g.ID)},
 		},
 	}
 	return qi, nil

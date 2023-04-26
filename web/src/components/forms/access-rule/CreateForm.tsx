@@ -45,6 +45,7 @@ const CreateAccessRuleForm = () => {
     shouldUnregister: true,
     defaultValues: {
       targets: [],
+      priority: 1,
     },
   });
   const onSubmit = async (data: AccessRuleFormData) => {

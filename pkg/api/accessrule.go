@@ -44,7 +44,7 @@ func (a *API) AdminListAccessRules(w http.ResponseWriter, r *http.Request, param
 		queryOpts = append(queryOpts, ddb.Page(*params.NextToken))
 	}
 
-	q := storage.ListAccessRules{}
+	q := storage.ListAccessRulesByPriority{}
 	_, err := a.DB.Query(ctx, &q, queryOpts...)
 	if err != nil {
 		apio.Error(ctx, w, err)

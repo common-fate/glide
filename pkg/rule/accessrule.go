@@ -91,6 +91,7 @@ func (a AccessRule) ToAPI() types.AccessRule {
 		},
 		Approval: approval,
 		Targets:  targets,
+		Priority: a.Priority,
 	}
 }
 
@@ -104,8 +105,10 @@ func (t Target) ToAPI() types.AccessRuleTarget {
 
 func (r *AccessRule) DDBKeys() (ddb.Keys, error) {
 	return ddb.Keys{
-		PK: keys.AccessRule.PK1,
-		SK: keys.AccessRule.SK1(r.ID, r.Priority),
+		PK:     keys.AccessRule.PK1,
+		SK:     keys.AccessRule.SK1(r.ID),
+		GSI1PK: keys.AccessRule.GSI1PK,
+		GSI1SK: keys.AccessRule.GSI1SK(r.Priority, r.ID),
 	}, nil
 
 }

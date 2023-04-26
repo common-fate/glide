@@ -81,7 +81,7 @@ func TestGovListAccessRules(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			db := ddbmock.New(t)
-			db.MockQueryWithErr(&storage.ListAccessRules{Result: tc.rules}, tc.mockListErr)
+			db.MockQueryWithErr(&storage.ListAccessRulesByPriority{Result: tc.rules}, tc.mockListErr)
 
 			a := API{DB: db}
 			handler := newTestServer(t, &a)

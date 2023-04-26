@@ -25,9 +25,9 @@ func TestListAccessRules(t *testing.T) {
 	tc := []ddbtest.QueryTestCase{
 		{
 			Name:  "ok",
-			Query: &ListAccessRules{},
+			Query: &ListAccessRulesByPriority{},
 			// asserts the order is from highest to lowest priority
-			Want: &ListAccessRules{Result: []rule.AccessRule{a, b}},
+			Want: &ListAccessRulesByPriority{Result: []rule.AccessRule{a, b}},
 		},
 	}
 

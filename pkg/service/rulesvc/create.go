@@ -80,6 +80,7 @@ func (s *Service) CreateAccessRule(ctx context.Context, userID string, in types.
 		},
 		Targets:         targets,
 		TimeConstraints: in.TimeConstraints,
+		Priority:        in.Priority,
 	}
 
 	log.Debugw("saving access rule", "rule", rul)

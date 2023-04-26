@@ -8,16 +8,18 @@ import (
 	"github.com/common-fate/common-fate/pkg/storage/keys"
 )
 
-// ListAccessRules lists rule in order from highest to lowest priority
-type ListAccessRules struct {
+// ListAccessRulesByPriority lists rule in order from highest to lowest priority
+type ListAccessRulesByPriority struct {
 	Result []rule.AccessRule `ddb:"result"`
 }
 
-func (l *ListAccessRules) BuildQuery() (*dynamodb.QueryInput, error) {
+func (l *ListAccessRulesByPriority) BuildQuery() (*dynamodb.QueryInput, error) {
 	qi := dynamodb.QueryInput{
-		KeyConditionExpression: aws.String("PK = :pk"),
+		IndexName:              &keys.IndexNames.GSI1,
+		ScanIndexForward:       aws.Bool(false),
+		KeyConditionExpression: aws.String("GSI1PK = :pk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.PK1},
+			":pk": &types.AttributeValueMemberS{Value: keys.AccessRule.GSI1PK},
 		},
 	}
 	return &qi, nil
