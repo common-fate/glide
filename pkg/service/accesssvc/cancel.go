@@ -44,7 +44,7 @@ func (s *Service) CancelRequest(ctx context.Context, opts CancelRequestOpts) err
 // // users can cancel their own requests.
 func canCancel(opts CancelRequestOpts, request access.Request) bool {
 	// canceller must be original requestor
-	return opts.CancellerID == request.RequestedBy
+	return opts.CancellerID == request.RequestedBy.ID
 }
 
 // // A access group can be cancelled if

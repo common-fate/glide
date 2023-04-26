@@ -178,7 +178,7 @@ func (a *API) UserRevokeRequest(w http.ResponseWriter, r *http.Request, requestI
 		return
 	}
 	// user can revoke their own request and admins can revoke any request
-	if q.Result.RequestedBy == u.ID || isAdmin {
+	if q.Result.RequestedBy.Email == u.ID || isAdmin {
 		req = *q.Result
 	} else { // reviewers can revoke reviewable requests
 		p := storage.GetRequestReviewer{RequestID: requestID, ReviewerID: u.Email}

@@ -141,12 +141,12 @@ func (r *Runtime) revokeTargetGroup(ctx context.Context, grantID string) error {
 		//set up the arguments to be read by the provider
 		args := map[string]string{}
 		for _, field := range input.Grant.Fields {
-			args[field.FieldTitle] = *&field.Value.Value
+			args[field.FieldTitle] = field.Value.Value
 		}
 
 		//call the provider revoke
 		req := msg.Revoke{
-			Subject: string(input.Grant.RequestedBy),
+			Subject: input.Grant.RequestedBy.Email,
 			Target: msg.Target{
 				Kind:      routeResult.Route.Kind,
 				Arguments: args,

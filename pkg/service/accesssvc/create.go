@@ -179,7 +179,7 @@ func (s *Service) CreateRequest(ctx context.Context, createRequest types.CreateA
 	//emit request create event
 	err = s.EventPutter.Put(ctx, gevent.RequestCreated{
 		Request:        request,
-		RequestorEmail: request.RequestedBy,
+		RequestorEmail: request.RequestedBy.Email,
 	})
 	if err != nil {
 		return nil, err
