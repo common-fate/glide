@@ -22,7 +22,7 @@ type AddReviewOpts struct {
 	// OverrideTimings are optional overrides for the request timings
 	OverrideTiming *access.Timing
 	RequestingUser string
-	AccessGroup    access.Group
+	AccessGroup    access.GroupWithTargets
 	AccessRule     rule.AccessRule
 }
 
@@ -36,7 +36,7 @@ type AddReviewResult struct {
 func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpts) (*AddReviewResult, error) {
 
 	err := s.EventPutter.Put(ctx, gevent.AccessGroupReviewed{
-		AccessGroup:   opts.AccessGroup,
+		AccessGroup:   opts.AccessGroup.Group,
 		ReviewerID:    opts.ReviewerEmail,
 		ReviewerEmail: opts.ReviewerEmail,
 	})
@@ -73,7 +73,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 		// access_group.ApprovalMethod = &reviewed
 
 		err = s.EventPutter.Put(ctx, gevent.AccessGroupApproved{
-			AccessGroup:   opts.AccessGroup,
+			AccessGroup:   opts.AccessGroup.Group,
 			ReviewerID:    opts.ReviewerEmail,
 			ReviewerEmail: opts.ReviewerEmail,
 		})
@@ -84,7 +84,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	case access.DecisionDECLINED:
 		access_group.Status = types.RequestAccessGroupStatusDECLINED
 		err := s.EventPutter.Put(ctx, gevent.AccessGroupDeclined{
-			AccessGroup:   opts.AccessGroup,
+			AccessGroup:   opts.AccessGroup.Group,
 			ReviewerID:    opts.ReviewerEmail,
 			ReviewerEmail: opts.ReviewerEmail,
 		})
@@ -121,7 +121,7 @@ func (s *Service) AddReviewAndGrantAccess(ctx context.Context, opts AddReviewOpt
 	//TODO: dynano db stream for triggering events on decision outcomes
 
 	res := AddReviewResult{
-		AccessGroup: access_group,
+		AccessGroup: access_group.Group,
 	}
 
 	// analytics event

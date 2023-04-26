@@ -30,12 +30,12 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id strin
 	// this can be done concurrently, so we use an errgroup.
 	g, fetchctx := errgroup.WithContext(ctx)
 
-	var req *access.Request
+	var groupWithTargets *access.GroupWithTargets
 	g.Go(func() error {
 		var err error
-		q := storage.GetRequestWithGroupsWithTargets{ID: id}
-		_, err = a.DB.Query(ctx, &q)
-		req = &q.Result.Request
+		// q := storage.group{ID: id}
+		// _, err = a.DB.Query(ctx, &q)
+		// req = &q.Result.
 		if err == ddb.ErrNoItems {
 			err = apio.NewRequestError(err, http.StatusNotFound)
 		}
@@ -58,7 +58,7 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id strin
 		apio.Error(ctx, w, err)
 		return
 	}
-	if req == nil {
+	if groupWithTargets == nil {
 		apio.Error(ctx, w, errors.New("request was nil"))
 		return
 	}
@@ -73,9 +73,9 @@ func (a *API) UserReviewRequest(w http.ResponseWriter, r *http.Request, id strin
 		ReviewerEmail:   user.Email,
 		Decision:        access.Decision(b.Decision),
 		ReviewerIsAdmin: user.BelongsToGroup(a.AdminGroup),
-		// AccessGroup:     *req,
-		Reviewers: reviewers.Result,
-		Comment:   b.Comment,
+		AccessGroup:     *groupWithTargets,
+		Reviewers:       reviewers.Result,
+		Comment:         b.Comment,
 		// AccessRule:      *rule,
 		OverrideTiming: overrideTiming,
 	})
